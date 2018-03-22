@@ -1,2 +1,2 @@
-# cpp_proposals
-Preparing proposal papers for the ISO C++ Standard committee - private repo
+# cpp-proposals
+Collaborating on papers for the ISO C++ committee - private repo
