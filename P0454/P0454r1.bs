@@ -1,0 +1,837 @@
+<pre class='metadata'>
+Title: Wording for mdspan<>
+Abstract: Proposed wording for <code>mdspan</code>.
+Shortname: D0454
+Revision: 1
+Audience: LEWG, LWG
+Status: D
+Group: WG21
+URL: http://wg21.link/D0454r1
+Editor: Bryce Adelstein Lelbach, NVIDIA Corporation, brycelelbach@gmail.com
+Editor: Christian Trott, Sandia National Labs, crtrott@sandia.gov
+Editor: David S. Hollman, Sandia National Labs, dshollm@sandia.gov
+Editor: Daniel Sunderland, Sandia National Labs, dsunder@sandia.gov
+Date: 2018-03-11
+Markup Shorthands: markdown yes
+</pre>
+
+Editing Notes {#edittingnotes}
+================
+
+The proposed changes are relative to the working draft of the standard
+as of [[N4727]].
+
+The � character is used to denote a placeholder section number which the editor
+shall determine.
+
+Add the header `<mdspan>` to 20.5.1.2 [headers].
+
+Add an entry to Table 82 in 26.1 [containers.general] for a new Subclause
+called Spans listing the header `<mdspan>` to Clause 26 [containers].
+
+Wording {#wording}
+================
+
+<b>26.� Spans [spans]</b>
+
+The header `<mdspan>` defines `mdspan`, a multidimensional view over a
+contiguous sequence of objects, the storage of which is owned by some other
+object.
+
+<b>26.�.1 Header `<mdspan>` Synopsis [spans.mdspan.synopsis]</b>
+
+```c++
+namespace std {
+
+enum class dynamic_extent_tag {};
+inline constexpr dynamic_extent_tag dyn { -1 };
+
+template <auto Extent>
+  using is_dynamic_extent = typename is_same<
+    remove_cv_t<remove_reference_t<decltype(Extent)>>, dynamic_extent_tag>::type;
+template <auto Extent>
+  inline constexpr bool is_dynamic_extent_v = is_dynamic_extent<Extent>::value;
+
+// [spans.extents], class template extents
+template <auto... Extents>
+class extents;
+
+template <auto... Extents>
+  constexpr bool operator==(const extents<Extents...>& l,
+                            const extents<Extents...>& r);
+
+template <auto... Extents>
+  constexpr bool operator!=(const extents<Extents...>& l,
+                            const extents<Extents...>& r);
+
+// [spans.mapping.policies], mapping policies 
+struct mapping_right;
+struct mapping_left;
+
+<!--
+
+struct mapping_stride;
+
+-->
+
+// [spans.accessor.policies], accessor policies
+struct accessor_basic;
+
+// [spans.basic_mdspan], class template basic_mdspan
+template <class T,
+          class Extents,
+          class MappingPolicy = mapping_right,
+          class AccessorPolicy = accessor_basic>
+  class basic_mdspan;
+
+template <class T, class Extents, class MappingPolicy, class AccessorPolicy>
+  constexpr bool operator==(const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& l,
+                            const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& r);
+
+template <class T, class Extents, class MappingPolicy, class AccessorPolicy>
+  constexpr bool operator!=(const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& l,
+                            const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& r);
+
+template <class T, ptrdiff_t... Extents>
+  using mdspan = basic_mdspan<T, extents<Extents...>>;
+
+// [spans.basic_mdspan.subspan], basic_mdspan slicing support
+struct all_extent_tag { };
+inline constexpr all_extent_tag all { };
+
+template <class T, class Extents, class MappingPolicy, class AccessorPolicy, class... SliceSpecifiers>
+  unspecified subspan(const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& M, SliceSpecifiers&&... slice_specs);
+
+} // namespace std
+```
+
+<b>26.�.2 Class Template `extents` [spans.extents]</b>
+
+```c++
+template <auto... Extents>
+class extents {
+public:
+  using index_type = ptrdiff_t;
+
+  constexpr extents() noexcept;
+  template <class... DynamicExtents>
+    constexpr extents(DynamicExtents... dexts) noexcept;
+  constexpr extents(extents const& other) noexcept = default;
+  constexpr extents(extents&& other) noexcept = default;
+  extents& operator=(extents const& other) noexcept = default;
+  extents& operator=(extents&& other) noexcept = default;
+
+  static constexpr index_type rank() noexcept;
+  static constexpr index_type rank_dynamic() noexcept;
+
+  constexpr index_type size() noexcept;
+  constexpr bool empty() const noexcept;
+
+  constexpr bool is_dynamic(index_type i) const noexcept;
+
+  constexpr index_type operator[](index_type i) const noexcept;
+};
+```
+
+`extents` is a class which contains storage for a fixed number of integer
+elements, each of which represents the extent of a *dimension*, collectively
+forming a multi-dimensional integer index.
+
+Each non-type template parameter specifies either a positive integral value,
+indicating a *static extent*, or a value of type `dynamic_extent_tag`, 
+indicating a *dynamic extent* whose value will be provided at runtime.
+
+Implementations shall not use additional storage, such as dynamic memory, to
+allocate the contained extents. The contained values shall be allocated in a
+region of the `extents` storage suitably aligned for the type `index_type`. 
+[*Note:* Implementations are not required to store the value of static extents.
+— *end note*] 
+
+<!-- --- -->
+
+```c++
+constexpr extents() noexcept;
+```
+
+*Effects:* Constructs a `extents` object with all dynamic extents default
+initialized.
+
+<!-- --- -->
+
+```c++
+template <class... DynamicExtents>
+  constexpr extents(DynamicExtents... dexts) noexcept;
+```
+
+*Remarks:* This constructor shall not participate in overload resolution unless
+`sizeof...(DynamicExtents) == rank_dynamic()`.
+
+*Effects:* Constructs a `extents` object with each dynamic extent
+initialized from a corresponding value in `dexts`.
+
+[*Example:*
+
+```c++
+auto e5 = extents<3, dyn, 4, dyn, 5>(2, 7); // e5[1] == 2 && e5[3] == 7
+auto efail = extents<3, dyn, dyn, 6>(1, 2, 3); // error: sizeof...(DynamicExtents) != rank_dynamic
+```
+
+— *end example*] 
+
+<!-- --- -->
+
+```c++
+static constexpr index_type rank() noexcept;
+```
+
+*Effects:* Returns the number of dimensions in the `extents` object.
+
+*Returns:* `sizeof...(Extents)`.
+
+<!-- --- -->
+
+```c++
+static constexpr index_type rank_dynamic() noexcept;
+```
+
+*Effects:* Returns the number of parameters in `Extents` for which
+`is_dynamic_extent_v` is `true`.
+
+<!-- --- -->
+
+```c++
+constexpr index_type size() noexcept;
+```
+
+*Effects:* Returns the product of the elements in the `extents` object.
+
+<!-- --- -->
+
+```c++
+constexpr bool empty() const noexcept;
+```
+
+*Effects:* Equivalent to `return size() != 0;`
+
+<!-- --- -->
+
+```c++
+constexpr bool is_dynamic(index_type i) const noexcept;
+```
+
+*Effects:* If `i < rank()` and the `i`th dimension is a dynamic
+dimension, returns `true`. Otherwise, returns `false`.
+
+<!-- --- -->
+
+```c++
+constexpr index_type operator[](index_type i) const noexcept;
+```
+
+*Effects:* If `i < rank()`, returns the value of the `i`th element. Otherwise,
+returns `0`.
+
+<!-- --- -->
+
+```c++
+template <auto... Extents>
+  constexpr bool operator==(const extents<Extents...>& l,
+                            const extents<Extents...>& r) noexcept;
+```
+
+*Effects:* If `l.rank() == r.rank()` and `l[i] == r[i]` for all `i` in the
+range `[i, l.rank())`, returns `true`.  Otherwise, returns `false`.
+
+<!-- --- -->
+
+```c++
+template <auto... Extents>
+  constexpr bool operator!=(const extents<Extents...>& l,
+                            const extents<Extents...>& r) noexcept;
+```
+
+*Effects:* Equivalent to `return !(l == r);`
+
+<!-- --- -->
+
+<b>23.�.3 Mapping Policy Requirements [spans.mapping.policy.requirements]</b>
+
+<!-- Based on [container.requirements] -->
+
+A *mapping policy* is a class that contains a *mapping*, a nested
+template class.
+
+A mapping describes a mapping from a multi-dimensional index to a
+*mapped index*, which is one-dimensional. `basic_mdspan` (23.�.6
+[spans.basic_mdspan]) is parameterized in terms of mappings.
+
+A mapping shall meet the `DefaultConstructible`, `CopyAssignable`, and
+`EqualityComparable` requirements.
+
+In Table �:
+  * `MP` denotes a mapping policy.
+  * `M` denotes a mapping.
+  * `m` denotes a value of type `M`.
+  * `E` denotes a specialization of `extents`.
+  * `e` denotes a value of type `E`.
+  * `i` denotes a pack of `E::rank_dynamic()` values of type `E::index_type`.
+
+<table border=1>
+<tr>
+  <th>Expression</th>
+  <th>Return Type</th>
+  <th>Operational Semantics</th>
+  <th>Requirements/Note</th>
+</tr>
+<tr>
+  <td>`MP::mapping<E>`</td>
+  <td>`M`</td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>`M m(e)`</td>
+  <td>`M`</td>
+  <td>Constructs a new mapping from the extents `e`.</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`m.get_extents()`</td>
+  <td>`E`</td>
+  <td>Returns `e`.</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`m.required_capacity()`</td>
+  <td>`E::index_type`</td>
+  <td>Returns the number of elements needed to store all the mapped indices.</td>
+  <td>*Requires:* `0 <= m.required_capacity()`.</td>
+</tr>
+<tr>
+  <td>`m(i...)`</td>
+  <td>`E::index_type`</td>
+  <td></td>
+  <td></td>
+</tr>
+</table>
+
+<!-- --- -->
+
+<b>23.�.3.1 mapping_left [spans.mapping.policies.left]</b>
+
+```c++
+struct mapping_left
+{
+  template <typename Extents>
+  struct mapping
+  {
+    constexpr mapping() noexcept;
+    constexpr mapping(mapping const& other) noexcept = default;
+    constexpr mapping(Extents e) noexcept = default;
+
+    mapping& operator=() noexcept = default;
+    mapping& operator=(mapping const& other) noexcept = default;
+
+    Extents get_extents() const noexcept;
+
+    constexpr typename Extents::index_type required_capacity() const noexcept;
+
+    template <class... Indices>
+      typename Extents::index_type operator()(Indices... is) const;
+  };
+};
+```
+
+<!-- --- -->
+
+```c++
+constexpr mapping() noexcept;
+```
+
+*Effects:* Constructs a `mapping` object with a default-constructed `extents` object.
+
+<!-- --- -->
+
+```c++
+Extents get_extents() const noexcept;
+```
+
+*Effects:* Returns a copy of the `mapping`'s `extents` object.
+
+<!-- --- -->
+
+```c++
+typename Extents::index_type required_capacity() const noexcept;
+```
+
+*Returns:* Equivalent to `get_extents().size()`
+
+<!-- --- -->
+
+```
+template <class... Indices>
+  typename Extents::index_type operator()(Indices... i) const;
+```
+
+*Requires:* `sizeof...(Indices) == get_extents().rank()`
+
+*Returns:* If `i...` is `i0, i1, i2, ..., ik` (where `k == get_extents().rank() - 1`)
+and `e = get_extents()`, returns:
+
+```
+i0 + i1*e[0] + i2*e[0]*e[1] + ... + ik*e[0]*e[1]*...*e[k-1]
+```
+
+<b>23.�.3.1 mapping_right [spans.mapping.policies.right]</b>
+
+```c++
+struct mapping_right
+{
+  template <typename Extents>
+  struct mapping
+  {
+    constexpr mapping() noexcept;
+    constexpr mapping(mapping const& other) noexcept = default;
+    constexpr mapping(Extents e) noexcept = default;
+
+    mapping& operator=() noexcept = default;
+    mapping& operator=(mapping const& other) noexcept = default;
+
+    Extents get_extents() const noexcept;
+
+    constexpr typename Extents::index_type required_capacity() const noexcept;
+
+    template <class... Indices>
+      typename Extents::index_type operator()(Indices... is) const;
+  };
+};
+```
+
+<!-- --- -->
+
+```c++
+constexpr mapping() noexcept;
+```
+
+*Effects:* Constructs a `mapping` object with a default-constructed `extents` object.
+
+<!-- --- -->
+
+```c++
+Extents get_extents() const noexcept;
+```
+
+*Effects:* Returns a copy of the `mapping`'s `extents` object.
+
+<!-- --- -->
+
+```c++
+typename Extents::index_type required_capacity() const noexcept;
+```
+
+*Returns:* Equivalent to `get_extents().size()`
+
+<!-- --- -->
+
+```
+template <class... Indices>
+  typename Extents::index_type operator()(Indices... i) const;
+```
+
+*Requires:* `sizeof...(Indices) == get_extents().rank()`
+
+*Returns:* If `i...` is `i0, i1, i2, ..., ik` (where `k == get_extents().rank() - 1`)
+and `e = get_extents()`, returns:
+
+```
+i0*e[1]*...*e[k] + i1*e[2]*...*e[k] + ... + ik
+```
+
+<b>23.�.4 Accessor Policy Requirements [spans.accessor.policy.requirements]</b>
+
+<!-- Based on [container.requirements] -->
+
+An *accessor policy* is a class that contains an *accessor*, a nested
+template class.
+
+An accessor takes a pointer to an array and an index and returns a
+reference to the element of the array at the given index. `basic_mdspan`
+(23.�.6 [spans.basic_mdspan]) is parameterized in terms of accessor. 
+
+An accessor fulfills the `DefaultConstructible` and `CopyAssignable`
+requirements.
+
+In Table �:
+  * `AP` denotes an accessor policy.
+  * `A` denotes an accessor.
+  * `a` denotes a value of type `A`.
+  * `p` denotes a pointer of type `T`.
+  * `i` denotes an integer.
+
+<table border=1>
+<tr>
+  <th>Expression</th>
+  <th>Return Type</th>
+  <th>Operational Semantics</th>
+  <th>Requirements/Note</th>
+</tr>
+<tr>
+  <td>`AP::accessor_type<T>`</td>
+  <td>`A`</td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>`A::pointer`</td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>`A::reference`</td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>`a(p, i)`</td>
+  <td>`reference`</td>
+  <td>*Effects:* Equivalent to `p[i]`.</td>
+  <td></td>
+</tr>
+</table>
+
+<b>23.�.5 Accessor Policies [spans.accessor.policies]</b>
+
+```
+struct accessor_basic {
+  template <typename T>
+  struct accessor
+  {
+    using pointer = T*;
+    using reference = T&;
+
+    template <typename Index>
+      constexpr reference operator()(pointer p, Index i) const noexcept;
+  };
+};
+```
+ 
+```
+template <typename Index>
+  constexpr reference operator()(pointer p, Index i) const noexcept;
+```
+
+*Effects:* Equivalent to `p[i]`.
+
+<b>23.�.6 Class Template `basic_mdspan` [spans.basic_mdspan]</b>
+
+```c++
+template <class T, class Extents, class MappingPolicy, class AccessorPolicy>
+class basic_mdspan {
+public:
+  // types
+  using element_type = T;
+  using value_type = remove_cv_t<element_type>;
+
+  using extents_type = Extents
+  using index_type = typename extents_type::index_type;
+
+  using mapping_policy_type = MappingPolicy;
+  using mapping_type = typename mapping_policy_type::template mapping<extents_type>;
+
+  using accessor_policy_type = AccessorPolicy;
+  using accessor_type = typename accessor_policy_type::template accessor<value_type>;
+
+  using pointer = typename accessor_type::pointer;
+  using reference = typename accessor_type::reference;
+
+  // [spans.basic_mdspan.constructors], constructors/assignment/destructor 
+  constexpr basic_mdspan() noexcept;
+  constexpr basic_mdspan(nullptr_t) noexcept;
+  template <class... DynamicExtents>
+    constexpr basic_mdspan(pointer ptr, DynamicExtents... dexts);
+  template <typename Mapping>
+    constexpr basic_mdspan(pointer ptr, Mapping&& l);
+  template <typename Mapping>
+    constexpr basic_mdspan(pointer ptr, Mapping&& l, Accessor&& a);
+  constexpr basic_mdspan(basic_mdspan const& other) noexcept = default;
+  constexpr basic_mdspan(basic_mdspan&& other) noexcept = default;
+  template <class U>
+    constexpr basic_mdspan(basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy> const& other);
+  template <class U>
+    constexpr basic_mdspan(basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy>&& other);
+
+  basic_mdspan& operator=(basic_mdspan const& other) noexcept = default;
+  basic_mdspan& operator=(basic_mdspan&& other) noexcept = default;
+  template <class U>
+    basic_mdspan& operator=(basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy> const& other);
+  template <class U>
+    basic_mdspan& operator=(basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy>&& other);
+
+  ~basic_mdspan() noexcept = default;
+  
+  constexpr extents_type get_extents() noexcept; 
+  static constexpr index_type rank() noexcept;
+  static constexpr index_type rank_dynamic() noexcept;
+  constexpr bool is_dynamic(index_type r) const noexcept;
+  constexpr index_type extent(index_type r) const noexcept;
+  constexpr index_type size() const noexcept;
+  constexpr bool empty() const noexcept;
+
+  constexpr mapping_type get_mapping() const noexcept;
+  constexpr index_type required_capacity() const noexcept;
+
+  constexpr accessor_type get_accessor() const noexcept;
+
+  template <class... Indices>
+    reference operator()(Indices... is) const;
+
+  constexpr pointer data() const noexcept;
+};
+```
+
+An `basic_mdspan` is a multidimensional view over a contiguous sequence of
+objects, the storage of which is owned by some other object.
+
+`T` shall be a complete object that is not an abstract class type.
+
+```c++
+constexpr basic_mdspan() noexcept;
+constexpr basic_mdspan(nullptr_t) noexcept;
+```
+
+*Remarks:* If `!is_dynamic(r) && extent(r) != 0` for all `r` in the range
+`[0, rank())`, then the program is ill-formed.
+
+*Effects:* Constructs an empty `basic_mdspan`.
+
+*Postconditions:* `size() == 0 && data() == nullptr`
+
+```c++
+template <class... DynamicExtents>
+  constexpr basic_mdspan(pointer ptr, DynamicExtents... dexts);
+```
+
+*Effects:* Equivalent to `basic_mdspan(ptr, Extents(dexts...))`.
+
+*Complexity:* Constant.
+
+```
+template <typename Mapping>
+  constexpr basic_mdspan(pointer ptr, Mapping&& m);
+```
+
+*Requires:*
+  * If `ptr` is null, then `m.required_capacity()` shall be 0.
+  * If `ptr` is not null, `ptr` shall point to the beginning of a valid sequence
+    of objects of at least `m.required_capacity()` length.
+
+*Effects:* Constructs an `basic_mdspan` that is a view over the sequence of
+objects pointed to be `ptr` with mapping `m`. If `ptr` is null or
+`m.size()` is 0, then an empty `basic_mdspan` is constructed.
+
+*Postconditions:* `m == get_mapping()`
+
+*Complexity:* Constant.
+
+*Throws:* Nothing.
+
+*Remarks:* This constructor shall not participate in overload resolution if
+`!is_convertible_v<Mapping, mapping_type>`
+
+``` 
+template <typename Mapping, typename Accessor>
+  constexpr basic_mdspan(pointer ptr, Mapping&& l, Accessor&& a);
+```
+
+*Requires:*
+  * If `ptr` is null, then `l.required_capacity()` shall be 0.
+  * If `ptr` is not null, `ptr` shall point to the beginning of a valid sequence
+    of objects of at least `l.required_capacity()` length.
+
+*Effects:* Constructs an `basic_mdspan` that is a view over the sequence of
+objects pointed to be `ptr` with layout mapping `l` and accessor `a`. If `ptr`
+is null or `l.size()` is 0, then an empty `basic_mdspan` is constructed.
+
+*Postconditions:* `l == get_mapping() && a == accessor()`.
+
+*Complexity:* Constant.
+
+*Throws:* Nothing.
+
+*Remarks:* This constructor shall not participate in overload resolution if
+`!is_convertible_v<Mapping, mapping_type> || !is_convertible_v<Accessor, accessor_type>`. 
+
+```
+template <class U>
+  constexpr basic_mdspan(basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy> const& other);
+template <class U>
+  constexpr basic_mdspan(basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy>&& other);
+```
+
+*Remarks:* This constructor shall not participate in overload resolution unless
+`basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy>::pointer` is
+implicitly convertible to `pointer`.
+
+*Requires:* If `!other.is_dynamic(r)` then `other.extent(r)` shall be
+equal to `extent(r)`, for all `r` in the range `[0, rank())`.
+
+*Effects:* Constructs an `basic_mdspan` by copying from another `basic_mdspan`.
+
+*Postconditions:* `other.get_mapping() == get_mapping() && other.accessor() == accessor() && reinterpret_cast<pointer>(other.data()) == data()`
+
+*Complexity:* Constant.
+
+*Throws:* Nothing.
+
+```
+template <class U>
+  basic_mdspan& operator=(basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy> const& other);
+template <class U>
+  basic_mdspan& operator=(basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy>&& other);
+```
+
+*Remarks:* This operator shall not participate in overload resolution unless
+`basic_mdspan<U, Extents, MappingPolicy, AccessorPolicy>::pointer` is implicitly
+convertible to `pointer`.
+
+*Requires:* If `!other.is_dynamic(r)` then `other.extent(r)` shall be
+equal to `extent(r)`, for all `r` in the range `[0, rank())`.
+
+*Effects:* Assigns from one `basic_mdspan` to another.
+
+*Postconditions:* `other == *this`.
+  
+```
+constexpr extents_type get_extents() noexcept; 
+```
+
+*Effects:* Equivalent to `return get_mapping().get_extents();`
+
+```
+static constexpr index_type rank() noexcept;
+```
+
+*Effects:* Equivalent to `return extents_type::rank();`
+
+```
+static constexpr index_type rank_dynamic() noexcept;
+```
+
+*Effects:* Equivalent to `return extents_type::rank_dynamic();`
+
+```
+constexpr bool is_dynamic(index_type r) const noexcept;
+```
+
+*Effects:* Equivalent to `return get_mapping().extents().is_dynamic(r);`
+
+```
+constexpr index_type extent(index_type r) const noexcept;
+```
+
+*Effects:* Equivalent to `return get_mapping().extents()[r];`
+
+```
+constexpr index_type size() const noexcept;
+```
+
+*Effects:* Equivalent to `return get_mapping().extents().size();`
+
+```
+constexpr bool empty() const noexcept;
+```
+
+*Effects:* Equivalent to `return get_mapping().extents().empty();`
+
+```
+constexpr mapping_type get_mapping() const noexcept;
+```
+
+*Effects:* Returns a copy of the `basic_mdspan`'s layout mapping.
+
+```
+constexpr index_type required_capacity() const noexcept;
+```
+
+*Effects:* Equivalent to `return get_mapping().required_capacity();`
+
+```
+constexpr accessor_type accessor() const noexcept;
+```
+
+*Effects:* Returns a copy of the `basic_mdspan`'s accessor.
+
+```
+template <class... Indices>
+  reference operator()(Indices... is) const;
+```
+
+*Effects:* Equivalent to `get_accessor()(data(), get_mapping()(is...))`.
+
+*Complexity:* Constant
+
+*Throws:* Nothing
+
+*Remarks:* If `sizeof...(Indices) != rank_dynamic()`, then the program is
+ill-formed.
+
+```
+constexpr pointer data() const noexcept;
+```
+
+*Effects:* If `!empty()`, returns a pointer to the first element in the
+sequence accessible via the `basic_mdspan`. Otherwise, returns `nullptr`.
+
+*Complexity:* Constant
+
+```
+template <class T, class Extents, class MappingPolicy, class AccessorPolicy>
+  constexpr bool operator==(const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& l,
+                            const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& r);
+
+```
+
+*Effects:* `other.get_mapping() == get_mapping() && other.accessor() == get_accessor() && other.data() == data()`.
+
+```
+template <class T, class Extents, class MappingPolicy, class AccessorPolicy>
+  constexpr bool operator!=(const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& l,
+                            const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& r);
+```
+
+*Effects:* Equivalent to `return !(l == r);`
+
+<b>23.�.5 Accessor Policies [spans.accessor.policies]</b>
+
+```
+template <class T, class Extents, class MappingPolicy, class AccessorPolicy, class... SliceSpecifiers>
+  unspecified subspan(const basic_mdspan<T, Extents, MappingPolicy, AccessorPolicy>& M, SliceSpecifiers&&... slice_specs);
+```
+
+Constructs a new mdspan `m` containing the subset of elements in `M` described by `slice_specs`.
+
+Let `slice_spec[x]` denote the `x`th value in the parameter pack `slice_specs`.
+
+For each `R` in the range `[0, M.rank())` and for each `i[R]` be in the range `[0, M.extent(R))`, let `e = M(i[0], ...)`. `e` is an element of `m` if:
+* If `slice_spec[R]` is an integral value and `slice_spec[R] == i[R]`.
+* If `slice_spec[R]` is a braced-init-list and `i[R]` is in the range `[slice_spec[R][0], slice_spec[R][1])`.
+* If `slice_spec[R]` is convertible to `tuple<index_type>` and `i[R]` is in the range `[get<0>(slice_spec[R]), get<1>(slice_spec[R]))`.
+* If `slice_spec[R]` is a value of type `all_tag`.
+
+Let `n = ((is_integral_v<decltype(SliceSpecifier)> ? 0 : 1) + ... + 0)`. `m.rank()` shall be `n`. [ *Note:* The new `mdspan`s rank is the number of non-integral specifiers. — *end note* ] 
+
+Let `r[y]` denote the `y`th `[0, M.rank())` such that `slice_spec[r]` is not an integral value. For each `j[r[y]]` be in the range `[0, M.extent(r))`:
+* For each element `e` in `M` that is in `m`, `M.get_mapping()(i[0], ...) == m.get_mapping()(j[0], ...)` is `true`.
+* If `slice_spec[r[y]]` is a braced-init-list, `m.extent(y) == slice_spec[y][1] - slice_spec[y][0]`.
+* If `slice_spec[r[y]]` is convertible to `tuple<index_type>` and `m.extent(y) == get<1>(slice_spec[r[y]]) - get<0>(slice_spec[r[y]]))`.
+* If `slice_spec[r[y]]` is a value of type `all_tag`, `m.extent(y) == M.extent(r[y])`.
+
+
+Feature Testing {#test}
+===============
+
+The `__cpp_lib_mdspan` feature test macro should be added.
+
+
