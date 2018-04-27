@@ -1,0 +1,878 @@
+<pre class='metadata'>
+Title:  <code>async_ptr</code>: Asyncronous extension to reference-borrowing semantics
+Abstract: This paper provides an initial exploration of a class template that provides
+          asynchronous, reference-borrowing-like semantics for C++ as a library feature.
+          The abstraction provided is similar to (but at a slightly higher level
+          than) `future`, and may be a more appropriate abstraction than existing 
+          high-level abstractions for concurrency in many use cases
+Editor: David Hollman, dshollm@sandia.gov
+Shortname: D0971
+Revision: 0
+Audience: SG1
+Status: D
+Group: WG21
+Date: 2018-02-28
+Repository: https://github.com/darma-tasking/async_ptr.git
+URL: https://darma-tasking.github.io/async_ptr/proposals/D0971.html
+Markup Shorthands: markdown yes
+</pre>
+
+Motivation
+==========
+
+Substantial experience has shown the `future` construct to be an incredibly
+useful high-level abstraction for concurrent programming.  Recent work on, for
+instance, executors ([[P0443r5]]) and coroutines ([[N4680]]) has led to an
+increased interest (for instance, [[P0701r2]], [[P0783r0]], and [[P0904r0]]) in
+generalizations and analogs of `future`.  This paper presents one such analog
+with programming model characteristics that address some of the deficiencies of
+a pure `async`/`future` or `promise`/`future` programming model.
+
+Background: Concurrent Programming Model Guarantees
+---------------------------------------------------
+
+Concurrent programming models can, roughly speaking, be classified by the
+guarantees they provide.  For instance, a `mutex` is a primitive concurrent
+programming abstraction that provides an exclusive execution guarantee, but no
+protection from deadlock or livelock.  It is also not data-specific, so any
+association of a `mutex` with a piece of data is implicit in the use of that
+`mutex`.  Atomics, on the other hand, provide deadlock freedom and are
+data-specific by construction, but only expose a relatively limited set of
+operations on the associated data. Both atomics and mutexes provide no mechanism
+for expressing the *ordering* of exclusive accesses.
+
+The most widely used higher-level programming model abstraction that provides
+both data-specific exclusive access and ordering on these accesses is the
+`future` abstraction.  In most models, a `future` represents the result of some
+asynchronous operation, expressed either via a return value of some asyncronous
+closure (sometimes called a *task*) or via a corresponding write-only
+abstraction called a `promise` ([[N4727]], in [futures.state]/4, calls the
+general catagory of `future`-creating abstractions *asynchronous providers*).
+When classifying programming models by their guarantees, however, it is
+important to distinguish between programs that only use `future`s produced by
+tasks (such as `std::async()`) and programs that use `promise`s (potentially in
+addition to *tasks*).  We will call the former programming model
+`async`/`future` and the latter `promise`/`future`.  The important distinction
+between these two is that `promise`/`future` programming models do *not* provide
+deadlock freedom.  The following program never terminates:
+
+```c++
+std::promise<int> pa, pb;
+auto fa = pa.get_future();
+auto fb = pb.get_future();
+auto t1 = std::thread([pa=std::move(pa),fb=std::move(fb)]{
+  pa.set_value(fb.get_value());
+});
+auto t2 = std::thread([pb=std::move(pb),fa=std::move(fa)]{
+  pb.set_value(fa.get_value());
+});
+t1.join();
+t2.join();
+```
+
+(Indeed, a much shorter program can illustrate the principle:
+`std::promise<int>().get_future().get();`.)  In complex programs with lots of
+branches and dependencies, these cycles can be nearly impossible to detect, even
+with heavy use of testing.  A program could easily run for years before
+executing a section of code with just the right set of inputs as to cause
+deadlock.  Some best practices can help mitigate this, but so can the use of
+different programming models.  Notice that by encapsulating the `promise`-like
+abstraction in a task (e.g., by calling `std::async` or the `then()` method of
+`std::experimental::future`), the programming model becomes deadlock-free.
+Thus, `async`/`future` programming models are deadlock free. This is an
+excellent example of how *restricting* a programming model can lead
+to greater safety guarantees.
+
+Another desirable guarantee from a concurrent programming model abstraction is
+the non-blocking property: roughly speaking, any thread of execution using the
+abstraction must make forward progress. (A more nuanced variant of this is
+a *consolidated blocking* guarantee, where blocking behavior occurs in exactly
+one place, often at the end of the program.) This property is part of a broader
+property of concurrent execution models called a *forward progress guarantee*,
+the general form of which is beyond the scope of this paper.  It is important to
+note, though, that non-blocking abstractions are desirable because they usually
+lead to trivial implementation of forward progress guarantees.  (This is why,
+for instance, lock-free data structures are so desirable.)  Note that
+`async/future` programming models do *not* provide a non-blocking guarantee, and
+thus do not provide a strong enough guarantees to be used blindly with weakly
+concurrent agents.  A help-first LIFO scheduler with two less-than-concurrent
+execution agents could livelock on the following program (e.g., if `.get()` is
+implemented by polling with no context switching):
+
+TODO Define weakly concurrent agents
+TODO consider removing this example
+
+```c++
+auto fa = make_ready_future().then([]{ /* ... */ });
+auto fb = make_ready_future().then([]{ /* ... */ });
+auto fc = make_ready_future().then([]{ /* ... */ });
+auto fd = make_ready_future().then([fc=std::move(fc)]{ fc.get(); });
+auto fe = make_ready_future().then([fb=std::move(fb)]{ fb.get(); });
+auto ff = make_ready_future().then([fa=std::move(fa)]{ fa.get(); });
+when_all(fd, fe, ff).wait();
+```
+
+This paper presents an alternative programming model that provides all of the
+same safety guarantees, data-centrism, and other nice properties of the
+`async`/`future` programming model while also providing the non-blocking
+guarantee (or consolidated blocking, depending on construction) needed for
+trivial forward progress guarantees on complex and varied execution agents.
+Additionally, the programming model presented herein solves many of the
+expressiveness issues in pure `async`/`future` programming models that cause
+many to resort to unsafe `promise`/`future` programming.
+
+Reference Borrowing
+-------------------
+
+Largely because of its zero-cost abstractions that guarantee memory and thread
+safety, Rust [[rust-lang]] has become a popular language for highly concurrent
+and asynchronous programming in recent years.  A major contributor to this
+success is the ownership system, which includes a feature known as reference
+borrowing.  By default, all assignments (including assignments to function
+parameters, etc.) in Rust have move semantics. (Oversimplifying a bit,) the
+only way to avoid moves when performing an assignment is to "borrow" a reference
+to that value.  A compile-time borrow-checker enforces safe access to these
+references by enforcing the rule that, in any given scope, a variable can be
+bound to *either* one mutable reference *or* any number of immutable references.
+The lifetimes of these references must not exceed the lifetime of the variable
+they are bound to, thus guaranteeing memory safety of accesses via those
+references.
+
+In the context of asynchronous tasking, this principle can be extended slightly.
+As long as the asynchronous closures (tasks) are aware of the references they
+borrow (or, more broadly, if some executor is aware of this connection), a
+concurrent program may *execute* in such a way that there is no more than one
+mutable reference *or* any number of immutable references *in use* at any given
+time.  This is, perhaps, best illustrated by example:
+
+```c++
+async_ptr<int> a;
+*a = 42;
+// borrow `a` into an asynchronous closure
+a.borrow_async([](async_ptr<int> a) { // intentionally shadow outer scope for clarity
+  assert(*a == 42);
+  *a = 73;
+});
+// borrow an immutable reference to `a` into another
+// asynchronous closure
+a.const_borrow_async([](const_async_ptr<int> a) {
+  cout << *a << endl; // deterministically prints 73
+});
+```
+
+These asynchronous closures are further constrained to obey the program order
+with respect to the references they borrow.  Any non-mutating borrows must
+execute after the completion (or release) of any preceding mutating borrows;
+this ordering holds regardless of nesting depth (more on this later).
+
+### Why Not Just Keep Using `future`?
+
+Indeed, the above code sample could also be implemented using a `future`
+(leaving aside, for the moment, the well-known baggage associated with
+`std::async`)
+
+```c++
+future<int> a = std::async([]{ return 42; });
+a = std::async([](future<int> a){
+  int a_val = a.get();
+  assert(a_val == 42);
+  return 73;
+}, std::move(a));
+std::async([](future<int> a){
+  cout << a.get() << endl; // deterministically prints 73
+}, std::move(a));
+```
+
+(The above example could also be written using `promise`s, but the results are
+pretty similar.)
+
+This is inefficient and jarring for several reasons (more on this later), not
+the least of which involves the requirement of heavy-weight threads and
+context switching. The Concurrency TS [[P0159r0]] provides
+`std::experimental::future::then`, which provides a continuation-passing style
+that is slightly less inefficient:
+
+```c++
+auto done = make_ready_future(42).then(
+  [](future<int> a) {
+    int a_val = a.get();
+    assert(a_val == 42);
+    return 73;
+  }
+).then([](future<int> a) {
+  cout << a.get() << endl; // deterministically prints 73
+});
+done.get();
+```
+
+Unlike the previous version, the continuation-passing style has the desirable
+characteristic that it blocks in exactly one well-defined place (that is,
+before returning from `done.get()`).  This means that, in addition to being more
+readable (in the opinion of many), the latter example could be executed
+substantially more efficiently on hardware where efficient, lightweight context
+switching is impossible or impractical. 
+
+From a programming model design perspective, however, this version has at least
+one major flaw: two different operations with (potentially) vastly different
+costs are spelled exactly the same way: `.get()`.  Both calls to `a.get()` are
+guaranteed to be non-blocking (by the semantics of
+`std::experimental::future::then`), while the line `done.get()` causes a
+(potentially) costly context switch to happen (in a high-QOI implementation) to 
+avoid wasting the resources consumed by the main thread.  [[P0701r2]]
+recognizes this deficiency and suggests that `future::then` be allowed to take
+a continuation parameterized on the value type of the `future`:
+
+```c++
+auto done = make_ready_future<int>(42).then(
+  [](int a_val) {
+    assert(a_val == 42);
+    return 73;
+  }
+).then([](int a_val) {
+  cout << a_val << endl; // deterministically prints 73
+});
+done.get();
+```
+
+While this is a step in the right direction, it is still a bit unwieldy for
+constructing task graphs with certain shapes, particularly when nesting is
+involved.  Consider:
+
+```c++
+auto a = make_ready_future(42);
+auto b = make_ready_future(3.14);
+// Using then_apply from P0701r2
+auto ret = when_all(a, b).then_apply([](future<int> a, future<double> b) {
+  auto aa = a.then([](int a) {
+    assert(a == 42);
+    // ... compute a ...
+    return 73;
+  });
+  // <-- (X)
+  auto bb = b.then([](double b) {
+    assert(b == 3.14);
+    // ... compute b ...
+    return 2.718;
+  });
+  // How do we return a and b dependencies to be used outside?
+  // We need future<tuple<future<int>, future<double>>>, which becomes particularly
+  // unwieldy with more than two dependencies or more than one level of nesting
+  return std::make_tuple(aa, bb);
+}).share();
+// Now scheduling another task that depends on a but not b looks like:
+auto done = ret.then_value([](auto ret) {
+  return std::get<0>(ret).then([](int a) {
+    cout << a << endl; // deterministically prints 73;
+  });
+});
+// Even the termination/waiting condition is unwieldy:
+when_all(
+  done.get(), // is there a way to avoid .get() here?
+  std::get<1>(ret.get())
+).get();
+```
+
+Besides being unwieldy, this structure has the further disadvantage that it
+doesn't necessarily expose all of the available concurrency: if the user were to
+add any code unrelated to `a` at the line marked (X), that code would
+(unnecessarily) delay the print statement later in the program. That is, there
+is no way to establish "ragged ends" of tasks, which could be critical in
+extracting concurrency from complex programs. (We can express the task graph
+of the above more "cleanly" using `promise`/`future` pairs, but there may be
+other reasons to avoid `promise`s, as discussed above).
+
+The task graph in the above program is quite easy to express using asynchronous
+reference borrowing:
+
+```c++
+auto a = make_async_ptr(42);
+auto b = make_async_ptr(3.14);
+with_all(a, b).borrow_async([](auto a, auto b) {
+  a.borrow_value_async([](int& a) {
+    assert(a == 42);
+    // ... compute a ...
+    a = 73;
+  });
+  a = nullptr; // or a.release()
+  // <-- (X)
+  b.borrow_value_async([](double& b) {
+    assert(b == 3.14);
+    // ... compute b ...
+    b = 2.718;
+  });
+});
+a.const_borrow_value_async([](int& a) {
+  cout << a << endl; // deterministically prints 73
+});
+```
+
+With futures, anti-dependencies (that is, write-after-read dependencies) on
+shared reads are also difficult to express in the presence of
+nesting. For instance,
+
+```c++
+auto a = make_ready_future(42);
+auto b = make_ready_future(3.14);
+auto ret = when_all(a, b).then_apply([](auto a, auto b) {
+  auto aa = a.then([](int a) {
+    // ...
+    return 73;
+  }).share();
+  auto bb = when_all(aa, b).then_apply([](auto aa, auto b) {
+    // ... use a read of aa to compute b ...
+    return 2.718; // <-- (X)
+  });
+  return std::make_tuple(aa, bb);
+});
+auto ret_a = ret.then([](auto ret) {
+  return std::get<0>(ret.get()).then([](int a) {
+    cout << a << endl; // deterministically prints 73;
+  });
+});
+// (Supposing the underlying type of 'a' is not fundamental and we want to use
+// it in-place,) how do we make a closure that updates a's value and always
+// runs after lines (X) and (Y)?
+// ...(Is there even a way to do this without calling get()?)
+a = when_all(ret_a.get(), std::get<0>(ret.get())).then_apply(auto a, auto /*ignored*/) {
+  // we have to ignore the second argument because it refers to the same value as the first!
+  return a.get() + 123;
+});
+// ...
+```
+
+This is quite easy to express with reference borrowing:
+
+```c++
+auto a = make_async_ptr(42);
+auto b = make_async_ptr(3.14);
+with_all(a, b).borrow_async([](auto a, auto b) {
+  a.borrow_async([](auto a) { *a = 73; });
+  with_all(as_const(a), b).borrow_async([](auto a, auto b) {
+      // ... use a to compute b ...
+      *b = 2.718;
+  });
+});
+a.const_borrow_async([](auto a) {
+  cout << *a << endl; // deterministically prints 73
+});
+a.borrow_async([](auto a) {
+  *a += 123;
+});
+// ...
+```
+
+Drawbacks
+---------
+
+As you might suspect, there are downsides to using asynchronous reference
+borrowing instead of `future`s.  The biggest drawback is the learning curve: the
+requirement on preservation of non-blocking behavior leads to some unusual
+semantics in the context immediately following a borrow.  Since, like `future`
+and many other high-level concurrent programming abstractions, `async_ptr` is
+designed to prevent data-races (in addition to its other design goals), a
+pointer that has been borrowed from cannot be accessed:
+
+```c++
+auto a = async_ptr<int>();
+*a = 42; // this is fine
+a.borrow_async([](auto a) { *a *= 2; });
+*a = 123; // runtime error!!!
+```
+
+The good news (for debuggability, maintainability, testing...) is that the
+semantics on `async_ptr` are *defined* such that the runtime error in the above
+code is deterministic, regardless or whether it ever actually causes a race:
+
+```c++
+auto a = async_ptr<int>();
+*a = 42; // this is fine
+a.borrow_async([](auto a) { *a *= 2; });
+this_thread::sleep_for(chrono::hours{123456789});
+*a = 123; // still a runtime error!!! (eventually...)
+```
+
+Users of the reference borrowing system in Rust [[rust-lang]] report similar
+difficulties with the learning curve, but in general express the sentiment that
+the power of the semantics outweighs the difficultly of the learning curve quite
+quickly.
+
+Preliminary Wording Proposal
+============================
+
+Note: The (very) preliminary wording in the following sections makes reference
+to *shared state*, which is in principle similar to shared state in 
+**[futures.state]** from [[N4727]].  More fully fleshed-out versions of this
+proposal would need to elaborate on the specifics of this term.
+
+Modulo bikeshedding, the *most basic* interface for `async_ptr` would look
+something like the following:
+
+
+
+Header `async_ptr` synopsis
+---------------------------
+
+```c++
+namespace std {
+namespace experimental {
+inline namespace concurrency_v2 {
+
+template <class T>
+class async_ptr {
+  public:
+
+    // member types
+    using value_type = T;
+    using reference = T&;
+    using const_reference = T const&;
+    using pointer = T*;
+    
+    // construction and assignment
+    async_ptr() noexcept;
+    async_ptr(const async_ptr&) = delete;
+    async_ptr(async_ptr&&) = default;
+    async_ptr& operator=(const async_ptr&) = delete;
+    async_ptr& operator=(async_ptr&&) = default;
+
+    // destructor
+    ~async_ptr();
+
+    // accessing the value
+    reference get_value();
+    const_reference get_const_value();
+    reference operator*();
+    pointer operator->();
+
+    // borrowing
+    template <class Callable>
+    void borrow_async(Callable&& callable);
+    template <class Callable>
+    void borrow_value_async(Callable&& callable);
+    template <class Callable>
+    void const_borrow_async(Callable&& callable);
+    template <class Callable>
+    void const_borrow_value_async(Callable&& callable);
+
+    // releasing access (also happens automatically in destructor)
+    async_ptr& operator=(nullptr_t);
+    void release();
+
+    // querying read/write allowed-ness
+    bool can_read_value() const noexcept;
+    bool can_write_value() const noexcept;
+    operator bool() const noexcept;
+    bool valid() const noexcept;
+};
+
+template <class T>
+class const_async_ptr {
+  public:
+
+    // member types
+    using value_type = const T;
+    using reference = const T&;
+    using const_reference = const T&;
+    using pointer = const T*;
+    
+    // construction and assignment
+    const_async_ptr() = delete;
+    const_async_ptr(const const_async_ptr&) = delete;
+    const_async_ptr(async_ptr&&) = default;
+    const_async_ptr& operator=(const const_async_ptr&) = delete;
+    const_async_ptr& operator=(const_async_ptr&&) = default;
+
+    // destructor
+    ~const_async_ptr();
+
+    // accessing the value
+    const_reference get_const_value();
+    const_reference operator*();
+    pointer operator->();
+
+    // borrowing
+    template <class Callable>
+    void const_borrow_async(Callable&& callable);
+    template <class Callable>
+    void const_borrow_value_async(Callable&& callable);
+
+    // releasing access (also happens automatically in destructor)
+    const_async_ptr& operator=(nullptr_t);
+    void release();
+
+    // querying read/write allowed-ness
+    bool can_read_value() const noexcept;
+    constexpr bool can_write_value() const noexcept { return false; }
+};
+
+template <class... Ptrs>
+constexpr /* see below */ with_all(Ptrs&&...);
+
+template <class... Ptrs>
+constexpr /* see below */ with_all_values(Ptrs&&...);
+
+template <class...>
+class with_all_result {
+  with_all_result() = delete;
+  with_all_result(with_all_result const&) = delete;
+  with_all_result(with_all_result&&) = delete;
+
+  template <class Callable>
+  void borrow_async(Callable&& callable) &&;
+  template <class Callable>
+  void borrow_values_async(Callable&& callable) &&;
+};
+
+template <class T>
+/* implementation-defined */
+as_const(async_ptr<T>& ptr);
+
+class bad_async_ptr_access : public logic_error {
+  public:
+    explicit bad_async_ptr_access(const string& what_arg);
+    explicit bad_async_ptr_access(const char* what_arg);
+};
+
+class bad_async_ptr_borrow : public logic_error {
+  public:
+    explicit bad_async_ptr_borrow(const string& what_arg);
+    explicit bad_async_ptr_borrow(const char* what_arg);
+};
+
+}}}
+```
+
+### Shared State
+
+1. Like `future`, the classes introduced here use some state to communicate
+    results.  This <dfn>shared state</dfn> consists of some <dfn>data</dfn> which
+    may not be <dfn>ready</dfn>.
+
+### Class Template `async_ptr`
+
+#### <code>async_ptr</code> Constructors
+
+```c++
+async_ptr() noexcept;
+```
+
+*Effects:* Constructs an empty `async_ptr` object that does not refer to a
+shared state.
+
+*Postconditions:* `!*this` and `!can_read_value()` and `!can_write_value()`
+
+---
+
+```c++
+async_ptr(async_ptr&& rhs) noexcept;
+```
+
+*Effects:* Constructs a new `async_ptr` object and transfers ownership of the
+shared state of `rhs` (if any) to the newly-constructed object.
+
+*Postconditions*:
+  - `valid()`, `can_read_value()`, and `can_write_value()` all return
+      the same values as the respective methods on `other` prior to the
+      constructor invocation
+  - `rhs` has no shared state, `rhs.valid() == false`, 
+      `rhs.can_read_value() == false`, and `rhs.can_write_value() == false`
+
+---
+
+```c++
+async_ptr& operator=(async_ptr&& rhs) noexcept;
+```
+
+*Effects:*
+  - `release()`s the shared state, if any.
+  - moves the ownership of the shared state of `rhs` (if any) to `*this`.
+
+*Postconditions*:
+  - `valid()`, `can_read_value()`, and `can_write_value()` all return
+      the same values as the respective methods on `other` prior to the
+      constructor invocation.
+  - `rhs` has no shared state, `rhs.valid() == false`, 
+      `rhs.can_read_value() == false`, and `rhs.can_write_value() == false`
+
+#### <code>async_ptr</code> Destruction and Release
+
+```c++
+~async_ptr() noexcept;
+```
+
+*Effects:*
+  - `release()`s any shared state.
+  - destroys `*this`.
+
+---
+
+```c++
+release();
+async_ptr& operator=(nullptr_t);
+```
+
+*Effects:*
+  - Releases the shared state, if any.
+  - If `*this` held the last reference to its shared state, `~T()` is invoked on
+      the data associated with that shared state, if any.
+  - Releases any *permissions* on the shared state still held by `*this` [*Note:*
+      this may cause other borrowers of the shared state to execute. *— end note*]
+
+*Postconditions:*
+  - `*this` has no shared state, `valid() == false`, 
+      `can_read_value() == false`, and `can_write_value() == false`
+
+
+#### <code>async_ptr</code> value accessors
+
+```c++
+reference get_value();
+reference operator*();
+```
+
+*Returns:*
+If `valid() && can_read_value() && can_write_value()`, returns a
+reference to the value represented by the shared state.  [*Note:*
+otherwise, an exception is thrown before returning *— end note*]
+
+*Throws:*
+An instance of `bad_async_ptr_access` if 
+`!valid() || !can_read_value() || !can_write_value()`
+
+---
+
+```c++
+const_reference get_const_value();
+```
+
+*Returns:*
+If `valid() && can_read_value()`, returns a
+reference to the value represented by the shared state.  [*Note:*
+otherwise, an exception is thrown before returning *— end note*]
+
+*Throws:*
+An instance of `bad_async_ptr_access` if `!valid() || !can_read_value()`
+
+---
+
+```c++
+pointer operator->();
+```
+
+*Returns:*
+If `valid() && can_read_value() && can_write_value()`, returns a
+pointer to the value represented by the shared state.  [*Note:*
+otherwise, an exception is thrown before returning *— end note*]
+
+*Throws:*
+An instance of `bad_async_ptr_access` if 
+`!valid() || !can_read_value() || !can_write_value()`
+
+---
+
+#### <code>async_ptr</code> asynchronous borrowing 
+
+```c++
+template <class Callable>
+void borrow_async(Callable&& callable);
+template <class Callable>
+void borrow_value_async(Callable&& callable);
+```
+
+*Effects:*
+
+- Enqueues the *borrowing function* `callable` until it is *ready* to be executed.
+    A *borrowing function* is *ready* when all previous *borrowed pointers* and
+    *shared borrowed pointers*, if any, (and all of their *descendants*, if any)
+    have `release()`d the shared state, if any.
+- `borrow_async`: After `callable` is ready, an unspecified thread of execution
+    calls `INVOKE(callable, std::move(p))` where `p` is an instance of
+    `async_ptr<T>` that refers to the same shared state as `*this`, and
+    `p.valid() == true`, `p.can_read_value() == true`,
+    and `p.can_write_value() == true`.  [*Note:* `p` is a *borrowed pointer*.
+    Any pointer borrowed from `p` (and any of that pointers descendants) is
+    a *descendant* of `p`. *—end note*]
+- `borrow_value_async`: After `callable` is ready, an unspecified thread of
+    execution calls `INVOKE(c, *p)` where `p` is an instance of
+    `async_ptr<T>` that refers to the same shared state as `*this`,
+    and `c` is an object of unspecified type
+    that forwards its arguments to `callable` in its call operator and destroys
+    `p` after `callable` returns.  [*Note:* For instance, as if by
+
+```c++
+c = [cc=std::forward<Callable>(callable),p=std::move(p)](auto&& val) {
+  INVOKE(cc, *p);
+}
+```
+
+*— end note*]     
+
+*Throws:*
+An instance of `bad_async_ptr_borrow` if `!valid()`
+
+---
+
+```c++
+template <class Callable>
+void const_borrow_async(Callable&& callable);
+template <class Callable>
+void const_borrow_value_async(Callable&& callable);
+```
+
+*Effects:*
+
+- Enqueues the *shared borrowing function* `callable` until it is *ready* to be
+    executed. A *shared borrowing function* is *ready* when all previous
+    *borrowed pointers*, if any, (and all of their *descendants*, if any) have `release()`d the shared
+    state, if any.
+- `const_borrow_async`: After `callable` is ready, an unspecified thread of execution
+    calls `INVOKE(callable, std::move(p))` where `p` is an instance of
+    `const_async_ptr<T>` that refers to the same shared state as `*this`, and
+    `p.valid() == true`, `p.can_read_value() == true`,
+    and `p.can_write_value() == false`.     
+- `const_borrow_value_async`: After `callable` is ready, an unspecified thread of
+    execution calls `INVOKE(c, *p)` where `p` is an instance of
+    `const_async_ptr<T>` that refers to the same shared state as `*this`,
+    and `c` is an object of unspecified type
+    that forwards its arguments to `callable` in its call operator and destroys
+    `p` after `callable` returns.
+
+*Throws:*
+An instance of `bad_async_ptr_borrow` if `!valid()`
+
+#### <code>async_ptr</code> querying shared state
+
+TODO Finish this
+
+### Class Template `const_async_ptr`
+
+```c++
+```
+
+TODO write more wording-like stuff
+
+Discussion
+==========
+
+TODO write this
+
+Potential Extensions
+====================
+
+Explicit borrowing and two-sided names for API boundaries
+---------------------------------------------------------
+
+One issue with the continuation semantics of `async_ptr` is that using an
+instance as an argument to a foreign API or in generic code 
+
+TODO finish this
+
+Executor integration
+--------------------
+
+[[P0443r5]] proposes a generic interface for executor abstractions, under
+the assumption that further high-level concurrent programming facilities would
+be built on these executors. Syntactically, executors could be integrated into
+this proposal via overloads to the `borrow_*` methods: 
+
+```c++
+namespace std {
+namespace experimental {
+inline namespace concurrency_v2 {
+
+template <class T>
+class async_ptr {
+  public:
+    /* ... as above ... */
+
+    // borrowing with executors
+    template <class Executor, class Callable>
+    void borrow_async(Executor ex, Callable&& callable);
+    template <class Executor, class Callable>
+    void borrow_value_async(Executor ex, Callable&& callable);
+    template <class Executor, class Callable>
+    void const_borrow_async(Executor ex, Callable&& callable);
+    template <class Executor, class Callable>
+    void const_borrow_value_async(Executor ex, Callable&& callable);
+
+    /* ... */
+};
+
+}}}
+```
+
+and similarly for `const_async_ptr`. An alternative would be to use `via()` in a
+manner similar to [[P0904r0]].  In terms of implementation, this proposal
+can be implemented on top of a couple of `promise`/`future` pairs, so as long as
+the generic executor interface ends up supporting those semantics, a fallback
+implementation would be available.  However, it may be desirable to introduce
+further properties and/or customization points to allow executors to handle the
+differing semantics of `async_ptr` more efficiently.
+
+Exception Handling
+------------------
+
+This initial proposal currently ignores exception handling and propagation.
+The single argument case (i.e., not `with_all()`) could be addressed similarly to
+error propagation on `future`s — by attaching the exception to the asynchronous
+object itself and propagating down the chain when errors are not handled.
+However, unlike `future` and `when_all`, the proposed `with_all` does not
+return an `async_ptr` to a `tuple` or any other such analogous object (this
+omission is intentional and arises from the in-place modification and updating
+semantics of the proposed abstraction), so the extension of error propagation to
+multiple dependencies is awkward at best.  Some executors may be able to handle
+the exceptions themselves by providing mechanisms for attaching user-defined
+error handling functions to the executor itself, but this certainly will not
+cover all use cases; other use cases could be handled by attaching error
+handlers (optionally) to the result of `with_all()`.  None of these solutions
+handle all of the possible use cases, and further exploration is needed to
+understand this issue.
+
+
+Blocking and Completion Semantics
+---------------------------------
+
+In the absence of executor integration to dictate termination constraints on the
+execution functions themselves, it is unclear at what point a program is
+supposed to block, if any.  General blocking on the destructor of `async_ptr`
+would create a fully-strict fork-join constraint on the program, since the
+versions of the borrow methods without `_value` in their names propagate new `async_ptr` instances
+into the scope of their closures.  There are many options for dealing with this
+shortcoming (though the most desirable is still probably just to delegate the
+description of the behavior to the executor).  One could imagine an auxiliary
+type, something like `scoped_async_ptr`, that has blocking semantics on its
+destructor, but when borrowed from, it propagates normal `async_ptr` objects
+into the corresponding closure.  Another option is to provide some sort of
+`async_ptr_factory` object for which all closures borrowing from pointers
+generated by that object must be completed before *its* destructor returns.  A
+third option is to provide a `.get_future()` method on some variants of
+`async_ptr` (and/or some top-level analog to `scoped_async_ptr`) that would
+transition the entity to `async`/`future` semantics, allowing for blocking
+through the usual `future` mechanisms.  Perhaps the simplest option is just to
+provide a `wait(...)` free function that can wait on `async_ptr` instances
+arbitrarily, but this is problematic from a programming model perspective  for
+reasons discussed above. These addenda were omitted from the initial version of
+this paper for simplicity.
+
+
+Allocator/Deleter Support
+-------------------------
+
+A fleshed-out version of this proposal would likely propagate allocators and
+deleters in a manner similar to `shared_ptr` and/or `unique_ptr`.  These were
+omitted from the current work for brevity, but would almost certainly be added
+before merger into the standard.
+
+Implementation
+==============
+
+A naïve, reference implementation is available [here](https://www.github.com/darma-tasking/async_ptr)
+
+
+<pre class=biblio>
+{
+  "rust-lang": {
+    "href": "http://doc.rust-lang.org/book/second-edition",
+    "title": "The Rust Programming Language"
+  }
+}
+</pre>

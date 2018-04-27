@@ -1,0 +1,61 @@
+#ifndef ASYNC_PTR_EXPERIMENTAL_THREAD_POOL
+#define ASYNC_PTR_EXPERIMENTAL_THREAD_POOL
+
+#include <cstdint>
+#include <optional>
+#include <experimental/detail/static_thread_pool_fwd.hpp>
+
+namespace std {
+namespace experimental {
+inline namespace executors_v1 {
+
+class static_thread_pool
+{
+  public:
+    using executor_type = detail::_static_thread_pool_executor;
+    
+    // construction/destruction
+    explicit static_thread_pool(std::size_t num_threads);
+    
+    // nocopy
+    static_thread_pool(const static_thread_pool&) = delete;
+    static_thread_pool& operator=(const static_thread_pool&) = delete;
+
+    // stop accepting incoming work and wait for work to drain
+    ~static_thread_pool();
+
+    // attach current thread to the thread pools list of worker threads
+    void attach();
+
+    // signal all work to complete
+    //void stop();
+
+    // wait for all threads in the thread pool to complete
+    void wait();
+
+    // placeholder for a general approach to getting executors from 
+    // standard contexts.
+    executor_type executor() noexcept;
+
+  private:
+    std::optional<detail::_thread_pool_t> pool_impl_;
+    std::size_t n_threads_;
+
+    detail::_thread_pool_t*
+    _get_valid_impl_ptr();
+
+    future<void> executors_done_trigger_;
+    std::shared_ptr<promise<void>> executors_done_promise_;
+
+    //static constexpr intptr_t reconstructing_pool_flag = std::numeric_limits<intptr_t>::max();
+
+    friend class detail::_static_thread_pool_executor;
+};
+
+} // inline namespace executors_v1
+} // namespace experimental
+} // namespace std
+
+#include "detail/static_thread_pool.impl.hpp"
+
+#endif // ASYNC_PTR_EXPERIMENTAL_THREAD_POOL

@@ -1,0 +1,509 @@
+
+#ifndef ASYNC_PTR_EXPERIMENTAL_ASYNC_PTR
+#define ASYNC_PTR_EXPERIMENTAL_ASYNC_PTR
+
+#include <experimental/future>
+
+#include "detail/async_ptr_control_base.hpp"
+
+namespace std {
+namespace experimental {
+
+namespace detail {
+
+// forward declaration
+template <typename T>
+struct as_const_wrapper;
+
+// forward declaration for friendship purposes
+template <typename... AsyncPtrTs>
+struct with_all_result_base;
+
+struct make_async_ptr_attorney;
+
+} // end namespace detail
+
+//==============================================================================
+// Exceptions
+
+struct bad_access_of_borrowed_value : std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
+//==============================================================================
+
+
+// forward declaration
+template <typename T>
+struct async_ptr;
+
+//==============================================================================
+// const_async_ptr
+//==============================================================================
+
+template <typename T>
+struct const_async_ptr : private detail::_async_ptr_control_base {
+  public:
+
+    using value_type = T const;
+    using const_reference = T const&;
+    using pointer = T const*;
+
+    const_async_ptr(const_async_ptr const&) = delete;
+    const_async_ptr(const_async_ptr&&) = default;
+
+    // Semantics are the same as for a const_async_ptr that has been moved out of
+    const_async_ptr(nullptr_t)
+      : _async_ptr_control_base(nullptr),
+        data_(nullptr)
+    { }
+
+    // move conversion constructor, like shared_ptr
+    template <typename Y>
+    const_async_ptr(const_async_ptr<Y>&& other,
+      /* SFINAE to restrict to convertible Y */
+      enable_if_t<is_convertible_v<Y*, T*>, detail::_nat> = {}
+    ) : _async_ptr_control_base(std::move(*this)), data_(std::move(other.data_))
+    { }
+
+    const_async_ptr& operator=(const_async_ptr const&) = delete;
+    const_async_ptr& operator=(const_async_ptr&&) = default;
+    const_async_ptr& operator=(nullptr_t);
+    void release() { *this = nullptr; }
+
+    constexpr bool can_read_value() const noexcept { return state_.can_read; }
+    constexpr bool can_write_value() const noexcept { return false; }
+
+    const_reference get_const_value() {
+      _throw_if_cannot_read(__FUNCTION__);
+      return *data_;
+    }
+
+    const_reference operator*() {
+      _throw_if_cannot_read(__FUNCTION__);
+      return get_const_value();
+    }
+
+    pointer operator->() {
+      _throw_if_cannot_read(__FUNCTION__);
+      return data_.get();
+    }
+
+    template <typename Callable>
+    void const_borrow_async(Callable&& callable);
+
+    template <typename Executor, typename Callable>
+    void const_borrow_async(Executor ex, Callable&& callable);
+
+    template <typename Callable>
+    void const_borrow_value_async(Callable&& callable);
+
+    template <typename Executor, typename Callable>
+    void const_borrow_value_async(Executor ex, Callable&& callable);
+
+    ~const_async_ptr();
+
+  private:
+
+    std::shared_ptr<T const> data_;
+
+    // for use with `with_all`
+    decltype(auto) _make_default_borrowed_ptr() { return _make_const_borrowed_ptr(); }
+
+    // for use with `with_all_values`
+    decltype(auto) _get_value_with_minimum_constness() { return get_const_value(); }
+
+    template <typename Callable, typename DerefBool>
+    void _do_borrow_async(Callable&&, DerefBool);
+
+    const_async_ptr<T> _make_const_borrowed_ptr() {
+      auto rv = const_async_ptr<T>{};
+      rv.data_ = data_;
+      _do_const_borrow(rv);
+      return std::move(rv);
+    }
+
+    // private default constructor; async_pointer should only
+    constexpr const_async_ptr() = default;
+
+    const_async_ptr(async_ptr<T>&& other)
+      : _async_ptr_control_base(std::move(other)),
+        data_(std::move(other.data_))
+    { }
+
+    template <typename>
+    friend struct async_ptr;
+
+    template <typename...>
+    friend struct detail::with_all_result_base;
+};
+
+//==============================================================================
+// async_ptr
+//==============================================================================
+
+template <typename T>
+struct async_ptr : private detail::_async_ptr_control_base {
+  private:
+
+    std::shared_ptr<T> data_;
+
+  public:
+
+    using value_type = T;
+    using reference = T&;
+    using const_reference = T const&;
+    using pointer = T*;
+
+    async_ptr();
+    async_ptr(async_ptr const&) = delete;
+    async_ptr(async_ptr&&) = default;
+
+    // Semantics are the same as for an async_ptr that has been moved out of
+    async_ptr(nullptr_t)
+      : _async_ptr_control_base(nullptr),
+        data_(nullptr)
+    { }
+
+    // These ctors essentially forward to shared_ptr<T> constructors
+    // (an optimal implementation would not require the additional indirection
+    // and would essentially implement shared_ptr<T>-like stuff inline here)
+
+    template <typename Y>
+    explicit
+    async_ptr(Y* ptr,
+      /* SFINAE to constrain analogously to shared_ptr<T> */
+      enable_if_t<is_convertible_v<Y*, T*>, detail::_nat> = {}
+    ) : _async_ptr_control_base(), data_(ptr)
+    { }
+    template <typename Y, typename Deleter>
+    async_ptr(Y* ptr, Deleter d,
+      /* SFINAE to constrain analogously to shared_ptr<T> */
+      enable_if_t<detail::_deleter_ctor_condition_v<Y, Deleter>, detail::_nat> = {}
+    ) : _async_ptr_control_base(), data_(ptr, d)
+    { }
+    template <typename Y, typename Deleter, typename Alloc>
+    async_ptr(Y* ptr, Deleter d, Alloc alloc,
+      /* SFINAE to constrain analogously to shared_ptr<T> */
+      enable_if_t<detail::_deleter_ctor_condition_v<Y, Deleter>, detail::_nat> = {}
+    ) : _async_ptr_control_base(), data_(ptr, d, alloc)
+    { }
+
+    // move conversion constructor, like shared_ptr
+    template <typename Y>
+    async_ptr(async_ptr<Y>&& other,
+      /* SFINAE to restrict to convertible Y */
+      enable_if_t<is_convertible_v<Y*, T*>, detail::_nat> = {}
+    ) : _async_ptr_control_base(std::move(*this)), data_(std::move(other.data_))
+    { }
+
+    async_ptr& operator=(async_ptr const&) = delete;
+    async_ptr& operator=(async_ptr&&) = default;
+    async_ptr& operator=(nullptr_t);
+    void release() { *this = nullptr; }
+
+    constexpr bool can_read_value() const noexcept { return state_.can_read; }
+    constexpr bool can_write_value() const noexcept { return state_.can_write; }
+
+    template <typename U>
+    void set_value(U&& val) { _throw_if_cannot_write(__FUNCTION__); *data_ = std::forward<U>(val); }
+
+    reference get_value() { _throw_if_cannot_write(__FUNCTION__); return *data_; }
+
+    const_reference get_const_value() { _throw_if_cannot_read(__FUNCTION__); return *data_; }
+
+    reference operator*() { _throw_if_cannot_write(__FUNCTION__); return get_value(); }
+
+    pointer operator->() { _throw_if_cannot_write(__FUNCTION__); return data_.get(); }
+
+    template <typename Callable>
+    void borrow_async(Callable&& callable);
+
+    template <typename Callable>
+    void borrow_value_async(Callable&& callable);
+
+    template <typename Callable>
+    void const_borrow_async(Callable&& callable);
+
+    template <typename Callable>
+    void const_borrow_value_async(Callable&& callable);
+
+    template <typename Executor, typename Callable>
+    void borrow_async(Executor ex, Callable&& callable);
+
+    template <typename Executor, typename Callable>
+    void borrow_value_async(Executor ex, Callable&& callable);
+
+    template <typename Executor, typename Callable>
+    void const_borrow_async(Executor ex, Callable&& callable);
+
+    template <typename Executor, typename Callable>
+    void const_borrow_value_async(Executor ex, Callable&& callable);
+
+    ~async_ptr();
+
+  private:
+
+    template <typename... Args>
+    async_ptr(in_place_t, Args&&... args)
+      : _async_ptr_control_base(),
+        data_(std::make_shared<T>(std::forward<Args>(args)...))
+    { }
+
+    template <typename Callable, typename DerefBool, typename ConstBool>
+    void _do_borrow_async(Callable&&, DerefBool, ConstBool);
+
+    // for use with `with_all`
+    decltype(auto) _make_default_borrowed_ptr() { return _make_borrowed_ptr(); }
+
+    // for use with `with_all_values`
+    decltype(auto) _get_value_with_minimum_constness() { return get_value(); }
+
+    async_ptr<T> _make_borrowed_ptr() {
+      auto rv = async_ptr<T>{};
+      rv.data_ = data_;
+
+      // If this holds a write promise to borrowed-from pointer in its outer
+      // scope, the borrowed pointer also needs to hold that promise
+      rv.write_promise_ = _make_chained_promise_ptr(write_promise_);
+      // same for read
+      rv.read_promise_ = _make_chained_promise_ptr(read_promise_);
+      // We still hold any write promises we made connected to borrows in our
+      // continuation, since other borrows from `this` must also be released
+      // before borrows from the continuation that `this` was borrowed from can
+      // be used. So nothing changes for this->write_promise_
+      // This also applies to read
+
+      // The borrowed pointer should wait on any promises delegated to pointers
+      // previously borrowed from this
+      rv.write_future_ = write_future_;
+      // Also applies to anything we've promised not to do while reads are still active
+      rv.read_future_ = read_future_;
+      // The next thing that tries to write to the data should wait on the
+      // promise we just created for the borrowed pointer
+      write_future_ = rv.write_promise_->get_future().share();
+      read_future_ = rv.read_promise_->get_future().share();
+
+      // update the state
+      // rv.state_.can_read_value defaults to true
+      // rv.state_.can_write_value defaults to true
+      // All of the waiting will be handled by this, so no need for the borrowed
+      // ptr to wait when it is destroyed
+      rv.state_.wait_on_destruction = false;
+
+      // Can't access data in continuation:
+      state_.can_read = false;
+      state_.can_write = false;
+
+      return std::move(rv);
+    }
+
+    const_async_ptr<T> _make_const_borrowed_ptr() {
+      auto rv = const_async_ptr<T>{};
+      rv.data_ = data_;
+      _do_const_borrow(rv);
+      return std::move(rv);
+    }
+
+    template <typename>
+    friend struct async_ptr;
+
+    template <typename>
+    friend struct detail::as_const_wrapper;
+
+    template <typename...>
+    friend struct detail::with_all_result_base;
+
+    friend struct detail::make_async_ptr_attorney;
+};
+
+
+//==============================================================================
+// with_all()
+//==============================================================================
+
+namespace detail {
+
+// forward declaration of attorney
+struct with_all_result_attorney;
+
+// implementation class
+template <typename... AsyncPtrTs>
+struct with_all_result_base {
+
+  tuple<AsyncPtrTs&&...> ptrs_;
+
+  explicit
+  with_all_result_base(AsyncPtrTs&&... ptrs) : ptrs_(std::forward<AsyncPtrTs>(ptrs)...) { }
+
+  template <typename Callable, typename DerefBool, size_t... Idxs>
+  void _do_borrow_async(Callable&& callable, DerefBool, integer_sequence<size_t, Idxs...>);
+
+};
+
+} // end namespace detail
+
+template <typename... AsyncPtrTs>
+struct with_all_result : private detail::with_all_result_base<AsyncPtrTs...> {
+  private:
+
+    using base_t = detail::with_all_result_base<AsyncPtrTs...>;
+
+    explicit
+    with_all_result(AsyncPtrTs&&... ptrs) : base_t(std::forward<AsyncPtrTs>(ptrs)...) { }
+
+    friend struct detail::with_all_result_attorney;
+
+  public:
+
+    with_all_result(with_all_result const&) = delete;
+    with_all_result(with_all_result&&) = delete;
+
+    template <typename Callable>
+    auto borrow_async(Callable&& callable) && {
+      return this->_do_borrow_async(std::forward<Callable>(callable), std::false_type{}, index_sequence_for<AsyncPtrTs...>{});
+    }
+
+    template <typename Callable>
+    auto borrow_values_async(Callable&& callable) && {
+      return this->_do_borrow_async(std::forward<Callable>(callable), std::true_type{}, index_sequence_for<AsyncPtrTs...>{});
+    }
+};
+
+template <typename... AsyncPtrTs>
+struct with_all_values_result : private detail::with_all_result_base<AsyncPtrTs...> {
+  private:
+
+    using base_t = detail::with_all_result_base<AsyncPtrTs...>;
+
+    explicit
+    with_all_values_result(AsyncPtrTs&&... ptrs) : base_t(std::forward<AsyncPtrTs>(ptrs)...) { }
+
+    friend struct detail::with_all_result_attorney;
+
+  public:
+
+    with_all_values_result(with_all_values_result const&) = delete;
+    with_all_values_result(with_all_values_result&&) = delete;
+
+    template <typename Callable>
+    auto borrow_async(Callable&& callable) && {
+      return this->_do_borrow_async(std::forward<Callable>(callable), std::true_type{}, index_sequence_for<AsyncPtrTs...>{});
+    }
+
+    template <typename Callable>
+    auto borrow_values_async(Callable&& callable) && {
+      return this->_do_borrow_async(std::forward<Callable>(callable), std::true_type{}, index_sequence_for<AsyncPtrTs...>{});
+    }
+};
+
+namespace detail {
+
+struct with_all_result_attorney {
+  template <typename... AsyncPtrTs>
+  inline static constexpr auto with_all(AsyncPtrTs&&... ptrs) {
+    return with_all_result<AsyncPtrTs&&...>(std::forward<AsyncPtrTs>(ptrs)...);
+  }
+  template <typename... AsyncPtrTs>
+  inline static constexpr auto with_all_values(AsyncPtrTs&&... ptrs) {
+    return with_all_values_result<AsyncPtrTs&&...>(std::forward<AsyncPtrTs>(ptrs)...);
+  }
+};
+
+template <typename AsyncPtrT>
+struct as_const_wrapper {
+  using value_type = typename AsyncPtrT::value_type;
+  AsyncPtrT& ptr_;
+  const_async_ptr<typename AsyncPtrT::value_type> _make_default_borrowed_ptr() {
+    return ptr_._make_const_borrowed_ptr();
+  }
+  explicit
+  as_const_wrapper(AsyncPtrT& ptr) : ptr_(ptr) { }
+};
+
+} // end namespace detail
+
+template <typename T>
+auto as_const(async_ptr<T>& ptr) {
+  return detail::as_const_wrapper(ptr);
+}
+
+template <typename T>
+decltype(auto) as_const(const_async_ptr<T>& ptr) {
+  return ptr;
+}
+
+// for some type T, valid parameter types are:
+//   * async_ptr<T>&
+//   * const_async_ptr<T>&
+//   * detail::as_const_wrapper<T>&&
+// return type constraint yields a with_all_result<Ptrs...> object if 
+//   all parameters meet the above constraints
+template <typename... Ptrs>
+detail::_with_all_variadic_enable_if_return_t<Ptrs&&...>
+with_all(Ptrs&&... ptrs) {
+  return detail::with_all_result_attorney::with_all(std::forward<Ptrs>(ptrs)...);
+}
+
+// for some type T, valid parameter types are:
+//   * async_ptr<T>&
+//   * const_async_ptr<T>&
+//   * detail::as_const_wrapper<T>&&
+// return type constraint yields a with_all_values_result<Ptrs...> object if 
+//   all parameters meet the above constraints
+template <typename... Ptrs>
+detail::_with_all_values_variadic_enable_if_return_t<Ptrs&&...>
+with_all_values(Ptrs&&... ptrs) {
+  return detail::with_all_result_attorney::with_all_values(std::forward<Ptrs>(ptrs)...);
+}
+
+template <typename T, typename... Args>
+auto
+make_async_ptr(Args&&... args);
+
+// EXPERIMENTAL
+class async_ptr_context;
+
+// EXPERIMENTAL
+template <typename Executor>
+class async_ptr_executor_adapter {
+  public:
+
+    template <typename T, typename... Args>
+    async_ptr<T>
+    make_async_ptr(Args&&... args);
+
+  private:
+
+};
+
+// EXPERIMENTAL
+class async_ptr_context {
+  public:
+
+    async_ptr_context() = default;
+    async_ptr_context(async_ptr_context const&) = delete;
+    async_ptr_context(async_ptr_context&&) = delete;
+    async_ptr_context& operator=(async_ptr_context const&) = delete;
+    async_ptr_context& operator=(async_ptr_context&&) = delete;
+
+    template <typename Executor>
+    async_ptr_executor_adapter<Executor>
+    make_executor();
+
+    ~async_ptr_context();
+
+  private:
+    std::set<detail::_async_ptr_control_base*> to_wait_on_;
+    // This needs a mutex for synchronization because we can create `async_ptr`s
+    //   from executors in contexts that are potentially concurrent.
+    //   (A better implementation would use some concurrent data structure here instead)
+    std::mutex wait_on_mtx_;
+};
+
+} // end namespace experimental
+} // end namespace std
+
+#include "detail/async_ptr.impl.hpp"
+
+#endif // ASYNC_PTR_EXPERIMENTAL_ASYNC_PTR

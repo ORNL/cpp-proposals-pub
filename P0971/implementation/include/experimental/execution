@@ -1,0 +1,161 @@
+
+#ifndef ASYNC_PTR_EXPERIMENTAL_EXECUTION
+#define ASYNC_PTR_EXPERIMENTAL_EXECUTION
+
+namespace std {
+namespace experimental {
+inline namespace executors_v1 {
+namespace execution {
+
+namespace {
+
+template <typename Executor, typename Property1, typename Property2, typename... Properties>
+constexpr auto require(Executor const& ex, Property1 p1, Property2 p2, Properties... ps) {
+  return require(require(ex, p1), p2, ps...);
+} 
+
+template <typename Executor, typename Property1, typename Property2, typename... Properties>
+constexpr auto prefer(Executor const& ex, Property1 p1, Property2 p2, Properties... ps) {
+  return prefer(prefer(ex, p1), p2, ps...);
+} 
+
+}
+
+// Customization point type traits:
+
+template<class Executor, class... Properties> struct can_require;
+template<class Executor, class... Properties> struct can_prefer;
+template<class Executor, class Property> struct can_query;
+
+template<class Executor, class... Properties>
+  constexpr bool can_require_v = can_require<Executor, Properties...>::value;
+template<class Executor, class... Properties>
+  constexpr bool can_prefer_v = can_prefer<Executor, Properties...>::value;
+template<class Executor, class Property>
+  constexpr bool can_query_v = can_query<Executor, Property>::value;
+
+// Associated execution context property:
+
+struct context_t { };
+
+constexpr context_t context { };
+
+// Directionality properties:
+
+struct oneway_t { };
+struct twoway_t { };
+struct then_t { };
+
+constexpr oneway_t oneway { };
+constexpr twoway_t twoway { };
+constexpr then_t then { };
+
+// Cardinality properties:
+
+struct single_t { };
+struct bulk_t { };
+
+constexpr single_t single { };
+constexpr bulk_t bulk { };
+
+// Blocking properties:
+
+struct possibly_blocking_t { };
+struct always_blocking_t { };
+struct never_blocking_t { };
+
+constexpr possibly_blocking_t possibly_blocking { };
+constexpr always_blocking_t always_blocking { };
+constexpr never_blocking_t never_blocking { };
+
+// Properties to allow adaptation of blocking and directionality:
+
+struct adaptable_blocking_t { };
+struct not_adaptable_blocking_t { };
+
+constexpr adaptable_blocking_t adaptable_blocking { };
+constexpr not_adaptable_blocking_t not_adaptable_blocking { };
+
+// Properties to indicate if submitted tasks represent continuations:
+
+struct not_continuation_t { };
+struct continuation_t { };
+
+constexpr not_continuation_t not_continuation { };
+constexpr continuation_t continuation { };
+
+// Properties to indicate likely task submission in the future:
+
+struct not_outstanding_work_t { };
+struct outstanding_work_t { };
+
+constexpr not_outstanding_work_t not_outstanding_work { };
+constexpr outstanding_work_t outstanding_work { };
+
+// Properties for bulk execution guarantees:
+
+struct bulk_sequenced_execution_t { };
+struct bulk_parallel_execution_t { };
+struct bulk_unsequenced_execution_t { };
+
+constexpr bulk_sequenced_execution_t bulk_sequenced_execution { };
+constexpr bulk_parallel_execution_t bulk_parallel_execution { };
+constexpr bulk_unsequenced_execution_t bulk_unsequenced_execution { };
+
+// Properties for mapping of execution on to threads:
+
+struct other_execution_mapping_t { };
+struct thread_execution_mapping_t { };
+struct new_thread_execution_mapping_t { };
+
+constexpr other_execution_mapping_t other_execution_mapping { };
+constexpr thread_execution_mapping_t thread_execution_mapping { };
+constexpr new_thread_execution_mapping_t new_thread_execution_mapping { };
+
+// Memory allocation properties:
+
+template <typename ProtoAllocator>
+struct allocator_t { };
+
+template <typename ProtoAllocator=std::allocator<void>>
+inline constexpr allocator_t<ProtoAllocator> allocator = { };
+
+// Executor type traits:
+
+template <class Executor> struct is_oneway_executor;
+template <class Executor> struct is_twoway_executor;
+template <class Executor> struct is_then_executor;
+template <class Executor> struct is_bulk_oneway_executor;
+template <class Executor> struct is_bulk_twoway_executor;
+template <class Executor> struct is_bulk_then_executor;
+
+template <class Executor> constexpr bool is_oneway_executor_v = is_oneway_executor<Executor>::value;
+template <class Executor> constexpr bool is_twoway_executor_v = is_twoway_executor<Executor>::value;
+template <class Executor> constexpr bool is_then_executor_v = is_then_executor<Executor>::value;
+template <class Executor> constexpr bool is_bulk_oneway_executor_v = is_bulk_oneway_executor<Executor>::value;
+template <class Executor> constexpr bool is_bulk_twoway_executor_v = is_bulk_twoway_executor<Executor>::value;
+template <class Executor> constexpr bool is_bulk_then_executor_v = is_bulk_then_executor<Executor>::value;
+
+template <class Executor, class T> struct executor_future;
+template <class Executor> struct executor_shape;
+template <class Executor> struct executor_index;
+
+template <class Executor, class T> using executor_future_t = typename executor_future<Executor, T>::type;
+template <class Executor> using executor_shape_t = typename executor_shape<Executor>::type;
+template <class Executor> using executor_index_t = typename executor_index<Executor>::type;
+
+// Polymorphic executor wrappers:
+
+class bad_executor;
+
+template <class... SupportableProperties>
+class executor;
+template<class Property> struct prefer_only;
+
+} // namespace execution
+} // inline namespace executors_v1
+} // namespace experimental
+} // namespace std
+
+
+#endif // ASYNC_PTR_EXPERIMENTAL_EXECUTION
