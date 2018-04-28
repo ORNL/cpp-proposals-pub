@@ -399,11 +399,6 @@ quickly.
 Preliminary Wording Proposal
 ============================
 
-Note: The (very) preliminary wording in the following sections makes reference
-to *shared state*, which is in principle similar to shared state in 
-**[futures.state]** from [[N4727]].  More fully fleshed-out versions of this
-proposal would need to elaborate on the specifics of this term.
-
 Modulo bikeshedding, the *most basic* interface for `async_ptr` would look
 something like the following:
 
@@ -417,6 +412,110 @@ namespace std {
 namespace experimental {
 inline namespace concurrency_v2 {
 
+template <class T>
+class async_ptr;
+
+template <class T>
+class const_async_ptr {
+  public:
+
+    // member types
+    using value_type = const T;
+    using reference = const T&;
+    using const_reference = const T&;
+    using pointer = const T*;
+    
+    // construction and assignment
+    const_async_ptr() = delete;
+    const_async_ptr(const const_async_ptr&) = delete;
+    const_async_ptr(async_ptr&&) = default;
+    const_async_ptr& operator=(const const_async_ptr&) = delete;
+    const_async_ptr& operator=(const_async_ptr&&) = default;
+
+    // destructor
+    ~const_async_ptr();
+
+    // accessing the value
+    const_reference get_const_value();
+    const_reference operator*();
+    pointer operator->();
+
+    // borrowing
+    template <class Callable>
+    void const_borrow_async(Callable&& callable);
+    template <class Callable>
+    void const_borrow_value_async(Callable&& callable);
+
+    // releasing access (also happens automatically in destructor)
+    const_async_ptr& operator=(nullptr_t);
+    void release();
+
+    // querying read/write allowed-ness
+    bool can_read_value() const noexcept;
+    constexpr bool can_write_value() const noexcept { return false; }
+};
+
+template <class... Ptrs>
+constexpr /* see below */ with_all(Ptrs&&...);
+
+template <class...>
+class with_all_result {
+  with_all_result() = delete;
+  with_all_result(with_all_result const&) = delete;
+  with_all_result(with_all_result&&) = delete;
+
+  template <class Callable>
+  void borrow_async(Callable&& callable) &&;
+  template <class Callable>
+  void borrow_values_async(Callable&& callable) &&;
+};
+
+template <class T>
+/* implementation-defined */
+as_const_borrow(async_ptr<T>& ptr);
+
+class bad_async_ptr_access : public logic_error {
+  public:
+    explicit bad_async_ptr_access(const string& what_arg);
+    explicit bad_async_ptr_access(const char* what_arg);
+};
+
+class bad_async_ptr_borrow : public logic_error {
+  public:
+    explicit bad_async_ptr_borrow(const string& what_arg);
+    explicit bad_async_ptr_borrow(const char* what_arg);
+};
+
+}}}
+```
+
+### Shared State
+
+The (very) preliminary wording in the following sections makes reference
+to *shared state*, which is in principle similar to shared state in 
+**[futures.state]** from [[N4727]].  An initial attempt at wording for shared
+state and other terms follows, but more fully fleshed-out versions of this
+proposal would need to elaborate on the specifics of these terms more carefully.
+
+
+1. Like `future`, the classes introduced here use some state to communicate
+    results.  This <dfn>shared state</dfn> consists of some <dfn>underlying data</dfn> which
+    may not be <dfn>ready</dfn>.
+2. A <dfn>borrowing function</dfn> is a function object that borrows a reference to an
+    `async_ptr` or `const_async_ptr`.  A <dfn>shared borrowing function</dfn> is
+    a function object that borrows an `async_ptr` as const or a `const_async_ptr`.
+3. A borrowing function <dfn>holds permissions</dfn> to an `async_ptr` or
+    `const_async_ptr` for as long as at least one object derived from the one given as an
+    argument to the borrowing function references the shared state.  [*Note:*
+    this includes before the invocation of that function begins *—end note*] 
+4. Once a pointer has been borrowed by a borrowing function, its value cannot be
+    accessed in the continuing scope (`can_read_value() == can_write_value() == false`)
+    Once a pointer has been borrowed by a shared borrowing function, its value cannot be
+    modified in the continuing scope (`can_write_value() == false`).
+
+### Class Template `async_ptr`
+
+```c++
 template <class T>
 class async_ptr {
   public:
@@ -463,93 +562,9 @@ class async_ptr {
     operator bool() const noexcept;
     bool valid() const noexcept;
 };
-
-template <class T>
-class const_async_ptr {
-  public:
-
-    // member types
-    using value_type = const T;
-    using reference = const T&;
-    using const_reference = const T&;
-    using pointer = const T*;
-    
-    // construction and assignment
-    const_async_ptr() = delete;
-    const_async_ptr(const const_async_ptr&) = delete;
-    const_async_ptr(async_ptr&&) = default;
-    const_async_ptr& operator=(const const_async_ptr&) = delete;
-    const_async_ptr& operator=(const_async_ptr&&) = default;
-
-    // destructor
-    ~const_async_ptr();
-
-    // accessing the value
-    const_reference get_const_value();
-    const_reference operator*();
-    pointer operator->();
-
-    // borrowing
-    template <class Callable>
-    void const_borrow_async(Callable&& callable);
-    template <class Callable>
-    void const_borrow_value_async(Callable&& callable);
-
-    // releasing access (also happens automatically in destructor)
-    const_async_ptr& operator=(nullptr_t);
-    void release();
-
-    // querying read/write allowed-ness
-    bool can_read_value() const noexcept;
-    constexpr bool can_write_value() const noexcept { return false; }
-};
-
-template <class... Ptrs>
-constexpr /* see below */ with_all(Ptrs&&...);
-
-template <class... Ptrs>
-constexpr /* see below */ with_all_values(Ptrs&&...);
-
-template <class...>
-class with_all_result {
-  with_all_result() = delete;
-  with_all_result(with_all_result const&) = delete;
-  with_all_result(with_all_result&&) = delete;
-
-  template <class Callable>
-  void borrow_async(Callable&& callable) &&;
-  template <class Callable>
-  void borrow_values_async(Callable&& callable) &&;
-};
-
-template <class T>
-/* implementation-defined */
-as_const(async_ptr<T>& ptr);
-
-class bad_async_ptr_access : public logic_error {
-  public:
-    explicit bad_async_ptr_access(const string& what_arg);
-    explicit bad_async_ptr_access(const char* what_arg);
-};
-
-class bad_async_ptr_borrow : public logic_error {
-  public:
-    explicit bad_async_ptr_borrow(const string& what_arg);
-    explicit bad_async_ptr_borrow(const char* what_arg);
-};
-
-}}}
 ```
 
-### Shared State
-
-1. Like `future`, the classes introduced here use some state to communicate
-    results.  This <dfn>shared state</dfn> consists of some <dfn>data</dfn> which
-    may not be <dfn>ready</dfn>.
-
-### Class Template `async_ptr`
-
-#### <code>async_ptr</code> Constructors
+#### <code>async_ptr</code> constructors
 
 ```c++
 async_ptr() noexcept;
@@ -631,7 +646,7 @@ reference operator*();
 
 *Returns:*
 If `valid() && can_read_value() && can_write_value()`, returns a
-reference to the value represented by the shared state.  [*Note:*
+reference to the underlying data represented by the shared state.  [*Note:*
 otherwise, an exception is thrown before returning *— end note*]
 
 *Throws:*
@@ -646,7 +661,7 @@ const_reference get_const_value();
 
 *Returns:*
 If `valid() && can_read_value()`, returns a
-reference to the value represented by the shared state.  [*Note:*
+reference to the underlying data represented by the shared state.  [*Note:*
 otherwise, an exception is thrown before returning *— end note*]
 
 *Throws:*
@@ -660,7 +675,7 @@ pointer operator->();
 
 *Returns:*
 If `valid() && can_read_value() && can_write_value()`, returns a
-pointer to the value represented by the shared state.  [*Note:*
+pointer to the underlying data represented by the shared state.  [*Note:*
 otherwise, an exception is thrown before returning *— end note*]
 
 *Throws:*
@@ -709,6 +724,9 @@ c = [cc=std::forward<Callable>(callable),p=std::move(p)](auto&& val) {
 *Throws:*
 An instance of `bad_async_ptr_borrow` if `!valid()`
 
+*Postconditions:*
+`!can_read_value() && !can_write_value()`
+
 ---
 
 ```c++
@@ -739,16 +757,331 @@ void const_borrow_value_async(Callable&& callable);
 *Throws:*
 An instance of `bad_async_ptr_borrow` if `!valid()`
 
+*Postconditions:*
+`!can_write_value()`
+
 #### <code>async_ptr</code> querying shared state
 
-TODO Finish this
+```c++
+bool can_read_value() const noexcept;
+```
+
+*Returns:* `true` if `*this` is `valid()` has not yet been borrowed
+from by a borrowing function, `false` otherwise.
+
+*Remarks:* `*this` is said to hold *immediate read* permissions if this
+method returns `true`.
+
+---
+
+```c++
+bool can_write_value() const noexcept;
+```
+
+*Returns:* `true` if `*this` is `valid()` has not yet been borrowed
+from by a borrowing function or a shared borrowing function, `false` otherwise.
+
+*Remarks:* `*this` is said to hold *immediate write* permissions if this
+method returns `true`.
+
+---
+
+```c++
+bool valid() const noexcept;
+```
+
+*Returns:* `true` if `*this` holds a reference to a shared state; `false` otherwise.
 
 ### Class Template `const_async_ptr`
 
 ```c++
+template <class T>
+class const_async_ptr {
+  public:
+
+    // member types
+    using value_type = const T;
+    using reference = const T&;
+    using const_reference = const T&;
+    using pointer = const T*;
+    
+    // construction and assignment
+    const_async_ptr() = delete;
+    const_async_ptr(const const_async_ptr&) = delete;
+    const_async_ptr(async_ptr&&) = default;
+    const_async_ptr& operator=(const const_async_ptr&) = delete;
+    const_async_ptr& operator=(const_async_ptr&&) = default;
+
+    // destructor
+    ~const_async_ptr();
+
+    // accessing the value
+    const_reference get_const_value();
+    const_reference operator*();
+    pointer operator->();
+
+    // borrowing
+    template <class Callable>
+    void const_borrow_async(Callable&& callable);
+    template <class Callable>
+    void const_borrow_value_async(Callable&& callable);
+
+    // releasing access (also happens automatically in destructor)
+    const_async_ptr& operator=(nullptr_t);
+    void release();
+
+    // querying read/write allowed-ness
+    bool can_read_value() const noexcept;
+    constexpr bool can_write_value() const noexcept { return false; }
+};
 ```
 
-TODO write more wording-like stuff
+#### <code>const_async_ptr</code> construction
+
+```c++
+const_async_ptr() = delete;
+```
+
+*Remarks:* A `const_async_ptr` can only be constructed from a
+`const_borrow_async()` of an `async_ptr`.
+
+---
+
+```c++
+const_async_ptr(const_async_ptr&& rhs) noexcept;
+```
+
+*Effects:* Constructs a new `const_async_ptr` object and transfers ownership of the
+shared state of `rhs` (if any) to the newly-constructed object.
+
+*Postconditions*:
+  - `valid()`, and `can_read_value()` return
+      the same values as the respective methods on `other` prior to the
+      constructor invocation
+  - `rhs` has no shared state, `rhs.valid() == false`, 
+      and `rhs.can_read_value() == false`
+
+---
+
+```c++
+const_async_ptr& operator=(const_async_ptr&& rhs) noexcept;
+```
+
+*Effects:*
+  - `release()`s the shared state, if any.
+  - moves the ownership of the shared state of `rhs` (if any) to `*this`.
+
+*Postconditions*:
+  - `valid()` and `can_read_value()` all return
+      the same values as the respective methods on `other` prior to the
+      constructor invocation.
+  - `rhs` has no shared state, `rhs.valid() == false`, 
+      and `rhs.can_read_value() == false`
+
+#### <code>const_async_ptr</code> Destruction and Release
+
+```c++
+~const_async_ptr() noexcept;
+```
+
+*Effects:*
+  - `release()`s any shared state.
+  - destroys `*this`.
+
+---
+
+```c++
+release();
+async_ptr& operator=(nullptr_t);
+```
+
+*Effects:*
+  - Releases the shared state, if any.
+  - If `*this` held the last reference to its shared state, `~T()` is invoked on
+      the data associated with that shared state, if any.
+  - Releases any *permissions* on the shared state still held by `*this` [*Note:*
+      this may cause other borrowers of the shared state to execute. *— end note*]
+
+*Postconditions:*
+  - `*this` has no shared state, `valid() == false`, 
+      `can_read_value() == false`, and `can_write_value() == false`
+
+
+#### <code>const_async_ptr</code> value accessors
+
+```c++
+const_reference get_value();
+const_reference operator*();
+const_reference get_const_value();
+```
+
+*Returns:*
+If `valid() && can_read_value()`, returns a
+reference to the underlying data represented by the shared state.  [*Note:*
+otherwise, an exception is thrown before returning *— end note*]
+
+*Throws:*
+An instance of `bad_async_ptr_access` if `!valid() || !can_read_value()`
+
+---
+
+```c++
+pointer operator->();
+```
+
+*Returns:*
+If `valid() && can_read_value()`, returns a
+pointer to the underlying data represented by the shared state.  [*Note:*
+otherwise, an exception is thrown before returning *— end note*]
+
+*Throws:*
+An instance of `bad_async_ptr_access` if 
+`!valid() || !can_read_value()`
+
+---
+
+#### <code>const_async_ptr</code> asynchronous borrowing 
+
+```c++
+template <class Callable>
+void const_borrow_async(Callable&& callable);
+template <class Callable>
+void const_borrow_value_async(Callable&& callable);
+```
+
+*Effects:*
+
+- Enqueues the *shared borrowing function* `callable` until it is *ready* to be
+    executed. A *shared borrowing function* is *ready* when all previous
+    *borrowed pointers*, if any, (and all of their *descendants*, if any) have `release()`d the shared
+    state, if any.
+- `const_borrow_async`: After `callable` is ready, an unspecified thread of execution
+    calls `INVOKE(callable, std::move(p))` where `p` is an instance of
+    `const_async_ptr<T>` that refers to the same shared state as `*this`, and
+    `p.valid() == true`, `p.can_read_value() == true`,
+    and `p.can_write_value() == false`.     
+- `const_borrow_value_async`: After `callable` is ready, an unspecified thread of
+    execution calls `INVOKE(c, *p)` where `p` is an instance of
+    `const_async_ptr<T>` that refers to the same shared state as `*this`,
+    and `c` is an object of unspecified type
+    that forwards its arguments to `callable` in its call operator and destroys
+    `p` after `callable` returns.
+
+*Throws:*
+An instance of `bad_async_ptr_borrow` if `!valid()`
+
+#### <code>const_async_ptr</code> querying shared state
+
+```c++
+bool can_read_value() const noexcept;
+```
+
+*Returns:* `true` if `*this` is `valid()` has not yet been borrowed
+from by a borrowing function, `false` otherwise.
+
+*Remarks:* `*this` is said to hold *immediate read* permissions if this
+method returns `true`.
+
+---
+
+```c++
+constexpr bool can_write_value() const noexcept;
+```
+
+*Returns:* `false`
+
+*Remark:* This method is included in the interface for concept compatibility
+between `async_ptr` and `const_async_ptr`
+
+---
+
+```c++
+bool valid() const noexcept;
+```
+
+*Returns:* `true` if `*this` holds a reference to a shared state; `false` otherwise.
+
+### Function template `with_all`
+
+```c++
+template <class... Ptrs>
+constexpr with_all_result<Ptrs...> with_all(Ptrs&&...);
+```
+
+*Returns:* An object of type `with_all_result` that groups together the
+arguments for use as dependencies to a single borrowing function or shared
+borrowing function.
+
+*Remarks:* This function does not participate in overload resolution unless all
+of its arguments are of the form:
+- `async_ptr<T>&`
+- `const_async_ptr<T>&`
+- An rvalue of the implementation-defined type returned by `as_const_borrow()`
+
+### Class template `with_all_result`
+
+```c++
+template <class...>
+class with_all_result {
+  with_all_result() = delete;
+  with_all_result(with_all_result const&) = delete;
+  with_all_result(with_all_result&&) = delete;
+
+  template <class Callable>
+  void borrow_async(Callable&& callable) &&;
+  template <class Callable>
+  void borrow_values_async(Callable&& callable) &&;
+};
+```
+
+A `with_all_result` object groups together zero or more `async_ptr` and/or `const_async_ptr` 
+objects for use by a single borrowing function or shared borrowing function.
+
+---
+
+```c++
+template <class Callable>
+void borrow_async(Callable&& callable) &&;
+```
+
+*Effects:*
+
+Equivalent to calling `borrow_async()` on
+each of the objects grouped together by `*this`, except that the resulting borrowed
+pointer object is passed to `callable` in the position corresponding to the
+position of the borrowed-from the `with_all` call that created `*this`.
+If the corresponding argument in the `with_all()` call that created `*this` is 
+an rvalue of the implementation-defined type returned by `as_const_borrow()`, the effects
+for that argument are equivalent to calling `const_borrow_values_async()` on the
+argument to `as_const_borrow()`.
+
+---
+
+```c++
+template <class Callable>
+void borrow_values_async(Callable&& callable) &&;
+```
+
+*Effects:*
+
+Equivalent to calling `borrow_values_async()` on
+each of the objects grouped together by `*this`, except that the underlying data
+reference is passed to `callable` in the position corresponding to the
+position of the corresponding argument in the `with_all()` call that created `*this`.
+If the corresponding argument in the `with_all()` call that created `*this` is 
+an rvalue of the implementation-defined type returned by `as_const_borrow()`, the effects
+for that argument are equivalent to calling `const_borrow_values_async()` on the
+argument to `as_const_borrow()`.
+
+
+### Function template `as_const_borrow`
+
+template <class T>
+/* implementation-defined */
+as_const_borrow(async_ptr<T>& ptr);
+
+*Returns:* An implementation-defined type used to indicate to `with_all()` that
+an `async_ptr<T>` should be borrowed as a `const_async_ptr<T>`
 
 Discussion
 ==========
@@ -867,6 +1200,20 @@ Implementation
 
 A naïve, reference implementation is available [here](https://www.github.com/darma-tasking/async_ptr)
 
+Acknowledgements
+================
+
+Thanks to Christian Trott, Jonathan Lifflander, Jeremiah Wilke, Michael Garland,
+Jared Hoberock, and others for helpful feedback and discussions.
+
+
+TODO
+====
+
+* Remove this section
+* Finish discussion of two-sided names
+* Discuss sequential semantics
+* Problematize or remove the section about `get` and blocking
 
 <pre class=biblio>
 {
