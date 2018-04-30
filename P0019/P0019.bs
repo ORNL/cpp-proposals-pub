@@ -1,0 +1,700 @@
+<pre class='metadata'>
+Title:  Atomic Ref
+Abstract: Extension to the atomic operations library to allow atomic operations to apply to non-atomic objects.
+Editor: H. Carter Edwards, hedwards@nvidia.com
+Editor: Hans Boehm, hboehm@google.com
+Editor: Olivier Giroux, ogiroux@nvidia.com
+Editor: Daniel Sunderland, dsunder@sandia.gov
+Editor: Mark Hoemmen, mhoemme@sandia.gov
+Editor: David Hollman, dshollm@sandia.gov
+Editor: Bryce Adelstein Lelbach, blelbach@nvidia.com
+Editor: Jens Maurer, Jens.Maurer@gmx.net
+Shortname: D0019
+Revision: 7
+Audience: LWG
+Status: D
+Group: WG21
+Date: 2018-03-14
+Repository: https://github.com/kokkos/ISO-CPP-Papers.git
+URL: https://kokkos.github.io/ISO-CPP-Papers/P0019.html
+Toggle Diffs: Yes
+Warning: Custom
+Custom Warning Title: Work in Progress
+Custom Warning Text: This document is a work in progress that has not yet been
+                     submitted to the committee for discussion in its current
+                     form.
+Markup Shorthands: markdown yes
+</pre>
+
+Revision History
+================
+
+[[P0019r7]]
+
+-   Update to reference resolution of padding bits from [[P0528r2]]
+
+-   Add a note clarifying that `atomic_ref` may not be lock free
+    even if `atomic` is lock free
+
+-   Add wording
+
+-   Convert to bikeshed
+
+[[P0019r6]]
+
+-   `2017-11-07 Albuquerque LEWG review
+    <http://wiki.edg.com/bin/view/Wg21albuquerque/P0019>`
+
+    -   Settle on name `atomic_ref`
+
+    -   Split out atomic_ref<T[]> into a separate paper,
+        apply editorial changes accordingly
+
+    -   Restore copy constructor; not assignment operator
+
+    -   add **Throws: Nothing** to constructor but do not add noexcept
+
+    -   Remove *wrapping* terminology
+
+    -   Address problem of CAS on `atomic_ref<T>` where `T` is
+        a struct containing padding bits
+
+    -   With these revisions move to LWG
+
+
+[[P0019r5]]
+
+-   2017-03-01 Kona LEWG review
+
+    -   Merge in P0440 Floating Point Atomic View because LEWG
+        consensus to move P0020 Floating Point Atomic to C++20 IS
+
+    -   Rename from `atomic_view` and `atomic_array_view`;
+        authors' selection `atomic_ref<T>` and `atomic_ref<T[]>`,
+        other name suggested `atomic_wrapper`.
+
+    -   Remove `constexpr` qualification from default constructor
+        because this qualification constrains implementations and
+        does not add apparent value.
+
+-   Remove default constructor, copy constructor, and assignment operator
+    for tighter alignment with `atomic<T>` and prevent empty references.
+
+-   Revise syntax to align with [[P0558r1]], Resolving atomic<T>
+    base class inconsistencies
+
+-   Recommend feature next macro
+
+[[P0019r4]]
+
+-   wrapper constructor strengthen requires clause and omit throws clause
+
+-   Note types must be trivially copyable, as required for all atomics
+
+-   2016-11-09 Issaquah SG1 decision: move to LEWG targeting Concurrency TS V2
+
+[[P0019r3]]
+
+-   Align proposal with content of corresponding sections in N5131, 2016-07-15.
+
+-   Remove the *one root wrapping constructor* requirement from `atomic_array_view`.
+
+-   Other minor revisions responding to feedback from SG1 @ Oulu.
+
+
+Overview
+========
+
+This paper proposes an extension to the atomic operations library [**atomics**]
+to allow atomic operations to apply to non-atomic objects.  As required by
+[**atomics.types.generic**] the value type **T** must be trivially copyable.
+
+This paper includes *atomic floating point* capability defined in [[P0020r5]].
+
+Note: Recent versions of gcc, intel, clang, pgi, xl, and cray already support
+this capability through the use of gnu atomic builtin functions (excluding 
+the floating point specialiation)
+[GNU Atomic Builtins](https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html). --end note
+
+Motivation
+==========
+
+##  Atomic Operations on a Single Non-atomic Object
+
+An *atomic reference* is used to perform atomic operations on a referenced
+non-atomic object.  The intent is for *atomic reference* to provide the
+best-performing implementation of atomic operations for the non-atomic object
+type.  All atomic operations performed through an *atomic reference* on a
+referenced non-atomic object are atomic with respect to any other *atomic
+reference* that references the same object, as defined by equality of pointers
+to that object.  The intent is for atomic operations to directly update the
+referenced object.  An *atomic reference constructor* may acquire a resource,
+such as a lock from a collection of address-sharded locks, to perform atomic
+operations.  Such *atomic reference* objects are not lock free and not address
+free.  When such a resource is necessary, subsequent copy and move constructors
+and assignment operators may reduce overhead by copying or moving the
+previously acquired resource as opposed to re-acquiring that resource.
+
+Introducing concurrency within legacy codes may require replacing operations on
+existing non-atomic objects with atomic operations such that the non-atomic
+object cannot be replaced with an **atomic** object.
+
+An object may be heavily used non-atomically in well-defined phases of an
+application.  Forcing such objects to be exclusively **atomic** would incur an
+unnecessary performance penalty.
+
+
+##  Atomic Operations on Members of a Very Large Array
+
+High-performance computing (HPC) applications use very large arrays.
+Computations with these arrays typically have distinct phases that allocate and
+initialize members of the array, update members of the array, and read members
+of the array.  Parallel algorithms for initialization (e.g., zero fill) have
+non-conflicting access when assigning member values.  Parallel algorithms for
+updates have conflicting access to members which must be guarded by atomic
+operations.  Parallel algorithms with read-only access require best-performing
+streaming read access, random read access, vectorization, or other guaranteed
+non-conflicting HPC pattern.
+
+*Reference-ability* Constraints
+===============================
+
+An object referenced by an *atomic reference* must satisfy possibly
+architecture-specific constraints.  For example, the object might need to be
+properly aligned in memory or may not be allowed to reside in GPU register
+memory.  We do not enumerate all potential constraints or specify behavior when
+these constraints are violated.  It is a quality-of-implementation issue to
+generate appropriate information when constraints are violated.
+
+Note: Whether an implementation of `atomic<T>` is lock free, does not
+necessarily constrain whether the corresponding implementation of
+`atomic_ref<T>` is lock free.
+
+
+Concern with `atomic<T>` and padding bits in `T`
+====================================================
+A concern has been discussed for `atomic<T>` where `T` is a class type that
+contains padding bits and how construction and `compare_exchange` operations
+are effected by the value of those padding bits.  We require that the
+resolution of padding bits follow [[P0528r2]].
+
+
+Proposal
+========
+
+The proposed changes are relative to the working draft of the standard
+as of [[N4727]].
+
+<blockquote>
+Text in blockquotes is not proposed wording
+</blockquote>
+
+<blockquote>
+The � character is used to denote a placeholder section number which the editor
+shall determine.
+</blockquote>
+
+<blockquote>
+Apply the following changes to 32.2.� [atomics.syn]:
+</blockquote>
+
+```c++
+namespace std {
+namespace experimental {
+inline namespace concurrency_v2 {
+
+// 3.� lock-free property
+#define ATOMIC_REF_BOOL_LOCK_FREE unspecified
+#define ATOMIC_REF_CHAR_LOCK_FREE unspecified
+#define ATOMIC_REF_CHAR16_T_LOCK_FREE unspecified
+#define ATOMIC_REF_CHAR32_T_LOCK_FREE unspecified
+#define ATOMIC_REF_WCHAR_T_LOCK_FREE unspecified
+#define ATOMIC_REF_SHORT_LOCK_FREE unspecified
+#define ATOMIC_REF_INT_LOCK_FREE unspecified
+#define ATOMIC_REF_LONG_LOCK_FREE unspecified
+#define ATOMIC_REF_LLONG_LOCK_FREE unspecified
+#define ATOMIC_REF_POINTER_LOCK_FREE unspecified
+
+// 3.� atomic ref
+template< class T > struct atomic_ref ;
+// 3.� atomic ref partial specialization for pointers
+template< class T > struct atomic_ref< T * >;
+
+// 3.�, non-member atomic ref functions
+template<class T>
+      bool atomic_is_lock_free(const atomic_ref<T> *) noexcept;
+template<class T>
+      void atomic_store(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
+template<class T>
+  void atomic_store_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
+                             memory_order) noexcept;
+template<class T>
+  T atomic_load(const atomic_ref<T> *) noexcept;
+template<class T>
+  T atomic_load_explicit(const atomic_ref<T> *, memory_order) noexcept;
+template<class T>
+  T atomic_exchange(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
+template<class T>
+  T atomic_exchange_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
+                             memory_order) noexcept;
+template<class T>
+  bool atomic_compare_exchange_weak(atomic_ref<T> *,
+                                    typename atomic_ref<T>::value_type*,
+                                    typename atomic_ref<T>::value_type) noexcept;
+template<class T>
+  bool atomic_compare_exchange_strong(atomic_ref<T> *,
+                                      typename atomic_ref<T>::value_type*,
+                                      typename atomic_ref<T>::value_type) noexcept;
+template<class T>
+  bool atomic_compare_exchange_weak_explicit(atomic_ref<T> *,
+                                             typename atomic_ref<T>::value_type*,
+                                             typename atomic_ref<T>::value_type,
+                                             memory_order, memory_order) noexcept;
+template<class T>
+  bool atomic_compare_exchange_strong_explicit(atomic_ref<T> *,
+                                               typename atomic_ref<T>::value_type*,
+                                               typename atomic_ref<T>::value_type,
+                                               memory_order, memory_order) noexcept;
+template<class T>
+  T atomic_fetch_add(atomic_ref<T> *, typename atomic_ref<T>::difference_type) noexcept;
+template<class T>
+  T atomic_fetch_add_explicit(atomic_ref<T> *, typename atomic_ref<T>::difference_type,
+                              memory_order) noexcept;
+template<class T>
+  T atomic_fetch_sub(atomic_ref<T> *, typename atomic_ref<T>::difference_type) noexcept;
+template<class T>
+  T atomic_fetch_sub_explicit(atomic_ref<T> *, typename atomic_ref<T>::difference_type,
+                              memory_order) noexcept;
+template<class T>
+  T atomic_fetch_and(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
+template<class T>
+  T atomic_fetch_and_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
+                              memory_order) noexcept;
+template<class T>
+  T atomic_fetch_or(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
+template<class T>
+  T atomic_fetch_or_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
+                             memory_order) noexcept;
+template<class T>
+  T atomic_fetch_xor(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
+template<class T>
+  T atomic_fetch_xor_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
+                              memory_order) noexcept;
+}}}
+```
+
+<blockquote>
+Add the following defines to the [atomics.lockfree] section.
+</blockquote>
+
+```c++
+#define ATOMIC_REF_BOOL_LOCK_FREE unspecified
+#define ATOMIC_REF_CHAR_LOCK_FREE unspecified
+#define ATOMIC_REF_CHAR16_T_LOCK_FREE unspecified
+#define ATOMIC_REF_CHAR32_T_LOCK_FREE unspecified
+#define ATOMIC_REF_WCHAR_T_LOCK_FREE unspecified
+#define ATOMIC_REF_SHORT_LOCK_FREE unspecified
+#define ATOMIC_REF_INT_LOCK_FREE unspecified
+#define ATOMIC_REF_LONG_LOCK_FREE unspecified
+#define ATOMIC_REF_LLONG_LOCK_FREE unspecified
+#define ATOMIC_REF_POINTER_LOCK_FREE unspecified
+```
+
+<blockquote>
+Add a new section [atomics.ref.generic] after [atomics.types.generic]
+</blockquote>
+
+```c++
+template< class T > struct atomic_ref {
+private:
+  T * ptr_; // exposition only
+public:
+  using value_type = T;
+  static constexpr bool is_always_lock_free = implementation-defined ;
+  static constexpr size_t required_alignment = implementation-defined ;
+
+  atomic_ref() = delete ;
+  atomic_ref & operator = ( const atomic_ref & ) = delete ;
+
+  explicit atomic_ref( T & );
+  atomic_ref( const atomic_ref & );
+
+  T operator=(T) const noexcept ;
+  operator T() const noexcept ;
+
+  bool is_lock_free() const noexcept;
+  void store( T , memory_order = memory_order::seq_cst ) const noexcept;
+  T load( memory_order = memory_order::seq_cst ) const noexcept;
+  T exchange( T , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_weak( T&, T, memory_order, memory_order ) const noexcept;
+  bool compare_exchange_strong( T&, T, memory_order, memory_order ) const noexcept;
+  bool compare_exchange_weak( T&, T, memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_strong( T&, T, memory_order = memory_order::seq_cst ) const noexcept;
+};
+```
+
+The template argument for T shall be trivially copyable [basic.types].
+
+<blockquote>
+Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
+</blockquote>
+
+**static constexpr size_t is_always_lockfree ;**
+
+  The static data member `is_always_lock_free` is true if the `atomic_ref` type’s
+  operations are always lock-free, and false otherwise.
+
+**static constexpr size_t required_alignment ; **
+
+  The required alignment of an object to be referenced by an atomic reference,
+  which is at least `alignof(T)`.
+
+  [*Note:* An architecture may support lock-free atomic operations on objects
+  of type `T` only if those objects meet a required alignment.  The intent is
+  for `atomic_ref` to provide lock-free atomic operations whenever possible.
+  For example, an architecture may be able to support lock-free operations on
+  `std::complex<double>` only if aligned to `2*alignof(double)` and not
+  `alignof(double)` . - *end note*]
+
+**atomic_ref(T & obj ) ;**
+
+  *Requires:* The referenced non-atomic object shall be aligned to
+  `required_alignment`.
+
+  *Effects:* Construct an atomic reference that references the non-atomic object.
+
+  *Throws:* Nothing.
+
+  *Remarks:* The lifetime (6.8) of `*this` shall not exceed the lifetime of the
+  referenced non-atomic object.  While any `atomic_ref` instance exists that
+  references the object all accesses of that object shall exclusively occur
+  through those `atomic_ref` instances.
+
+  If the referenced *object* is of a class or aggregate type then members of
+  that object shall not be concurrently referenced by an `atomic_ref` object.
+
+  Atomic operations applied to object through a referencing atomic reference
+  are atomic with respect to atomic operations applied through any other atomic
+  reference that references that object.
+
+  [*Note*: The constructor may acquire a shared resource, such as a lock
+  associated with the referenced object, to enable atomic operations applied to
+  the referenced non-atomic object. - *end note*]
+
+**atomic_ref( const atomic_ref & ref ) ;**
+
+  *Effects:* Construct an atomic reference that references the non-atomic object
+  referenced by the given `atomic_ref`.
+
+**T operator=(T desired) const noexcept ;**
+  *Effects:* Equivalent to store(desired)
+
+  *Returns:* desired
+
+**operator T() const noexcept ;**
+
+  *Effects:* Equivalent to: return load();
+
+**bool is_lock_free() const noexcept;**
+
+  *Returns:* true if the object's operations are lock-free, false otherwise.
+
+**void store( T desired, memory_order order = memory_order::seq_cst ) const noexcept ;**
+  *Requires:* The order argument shall not be memory_order::consume,
+  memory_order::acquire, nor memory_order::acq_rel.
+
+  *Effects:*Atomically replaces the value pointed to by `ptr_` with the value of
+  desired. Memory is affected according to the value of order.
+
+**void load( memory_order order = memory_order::seq_cst ) const noexcept ; **
+  *Requires:* The order argument shall not be memory_order::release nor
+  memory_order::acq_rel.
+  
+  *Effects:* Memory is affected according to the value of order.
+  
+  *Returns:* Atomically returns the value pointed to by `ptr_`.
+
+**exchange(T desired, memory_order order = memory_order::seq_cst) noexcept ;**
+
+  *Effects:* Atomically replaces the value pointed to by `ptr_` with desired.
+  Memory is affected according to the value of order. These operations are
+  atomic read-modify-write operations [intro.multithread].
+  
+  Returns: Atomically returns the value pointed to by `ptr_` immediately before
+  the effects.
+
+**bool compare_exchange_weak(T& expected, T desired,
+                           memory_order success, memory_order failure) const noexcept ;**
+
+**bool compare_exchange_strong(T& expected, T desired,
+                             memory_order success, memory_order failure) const noexcept ;**
+
+**bool compare_exchange_weak(T& expected, T desired,
+                           memory_order order = memory_order::seq_cst) const noexcept ;**
+
+**bool compare_exchange_strong(T& expected, T desired,
+                             memory_order order = memory_order::seq_cst) const noexcept ;**
+
+  *Requires:* The failure argument shall not be memory_order::release nor
+  memory_order::acq_rel.
+
+  *Effects:* Retrieves the value in expected. It then atomically compares the
+  contents of the memory pointed to by `ptr_` for equality with that previously
+  retrieved from expected, and if true, replaces the contents of the memory
+  pointed to by `ptr_` with that in desired. If and only if the comparison is
+  true, memory is affected according to the value of success, and if the
+  comparison is false, memory is affected according to the value of failure.
+  When only one memory_order argument is supplied, the value of success is
+  order, and the value of failure is order except that a value of
+  memory_order::acq_- rel shall be replaced by the value memory_order::acquire
+  and a value of memory_order::release shall be replaced by the value
+  memory_order::relaxed. If and only if the comparison is false then, after the
+  atomic operation, the contents of the memory in expected are replaced by the
+  value read from the memory pointed to by `ptr_` during the atomic comparison.
+  If the operation returns true, these operations are atomic read-modify-write
+  operations (6.8.2) on the memory pointed to by `ptr_`. Otherwise, these
+  operations are atomic load operations on that memory.
+
+  *Returns:* The result of the comparison.
+
+  *Remarks:* A weak compare-and-exchange operation may fail spuriously. That is,
+  even when the contents of memory referred to by expected and `ptr_` are equal,
+  it may return false and store back to expected the same memory contents that
+  were originally there. [ Note: This spurious failure enables implementation
+  of compare-and-exchange on a broader class of machines, e.g., load-locked
+  store-conditional machines. A consequence of spurious failure is that nearly
+  all uses of weak compare- and-exchange will be in a loop. When a
+  compare-and-exchange is in a loop, the weak version will yield better
+  performance on some platforms. When a weak compare-and-exchange would require
+  a loop and a strong one would not, the strong one is preferable. — end note ]
+
+  [ *Note:* The memcpy and memcmp semantics of the compare-and-exchange
+  operations may result in failed comparisons for values that compare equal
+  with operator== if the underlying type has padding bits, trap bits, or
+  alternate representations of the same value. Notably, on implementations
+  conforming to ISO/IEC/IEEE 60559, floating-point -0.0 and +0.0 will not
+  compare equal with memcmp but will compare equal with operator==, and NaNs
+  with the same payload will compare equal with memcmp but will not compare
+  equal with operator==. — *end note* ]
+
+
+<blockquote>
+Add a new subsection [atomics.ref.int] following the [atomics.ref.operations]
+subsection.
+</blockquote>
+
+```c++
+template<> struct atomic_ref< integral > {
+private:
+  integral * ptr_; // exposition only
+public:
+  using value_type = integral ;
+  using difference_type = value_type;
+  static constexpr bool is_always_lock_free = implementation-defined ;
+  static constexpr size_t required_alignment = implementation-defined ;
+
+  atomic_ref() = delete ;
+  atomic_ref & operator = ( const atomic_ref & ) = delete ;
+
+  explicit atomic_ref(  integral  & );
+  atomic_ref( const atomic_ref & ) ;
+
+  integral operator=( integral ) const noexcept ;
+  operator integral () const noexcept ;
+
+  bool is_lock_free() const noexcept;
+  void store( integral , memory_order = memory_order::seq_cst ) const noexcept;
+  integral load( memory_order = memory_order::seq_cst ) const noexcept;
+  integral exchange( integral , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_weak( integral & , integral , memory_order , memory_order ) const noexcept;
+  bool compare_exchange_strong( integral & , integral  , memory_order , memory_order ) const noexcept;
+  bool compare_exchange_weak( integral & , integral  , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_strong( integral &, integral , memory_order = memory_order::seq_cst ) const noexcept;
+
+  integral fetch_add( integral , memory_order = memory_order::seq_cst) const noexcept;
+  integral fetch_sub( integral , memory_order = memory_order::seq_cst) const noexcept;
+  integral fetch_and( integral , memory_order = memory_order::seq_cst) const noexcept;
+  integral fetch_or(  integral , memory_order = memory_order::seq_cst) const noexcept;
+  integral fetch_xor( integral , memory_order = memory_order::seq_cst) const noexcept;
+
+  integral operator++(int) const noexcept;
+  integral operator--(int) const noexcept;
+  integral operator++() const noexcept;
+  integral operator--() const noexcept;
+  integral operator+=( integral ) const noexcept;
+  integral operator-=( integral ) const noexcept;
+  integral operator&=( integral ) const noexcept;
+  integral operator|=( integral ) const noexcept;
+  integral operator^=( integral ) const noexcept;
+};
+```
+
+Descriptions are provide below only for members that differ from the primary
+template.
+
+The following operations perform arithmetic computations.  The key, operator, and
+computation correspondence are identified in Table 129 [atomics.types.int].
+
+
+**integral fetch_key( integral operand, memory_order order = memory_order::seq_cst ) const noexcept ;**
+  
+  *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
+  of the computation applied to the value pointed to by `ptr_` and the given
+  operand. Memory is affected according to the value of order. These operations
+  are atomic read-modify-write operations (6.8.2).
+
+  *Returns:* Atomically, the value pointed to by `ptr_` immediately before the
+  effects.
+
+  *Remarks:* For signed integer types, arithmetic is defined to use two’s
+  complement representation. There are no undefined results.
+
+**integral operator op=(integral operand ) const noexcept ;**
+
+  *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
+
+<blockquote>
+Add a new subsection [atomics.ref.float] following the [atomics.ref.int]
+subsection.
+</blockquote>
+
+```c++
+
+template<> struct atomic_ref< floating-point > {
+private:
+  floating-point * ptr_; // exposition only
+public:
+  using value_type = floating-point ;
+  using difference_type = value_type;
+  static constexpr bool is_always_lock_free = *implementation-defined* ;
+  static constexpr size_t required_alignment = *implementation-defined* ;
+
+  atomic_ref() = delete ;
+  atomic_ref & operator = ( const atomic_ref & ) = delete ;
+
+  explicit atomic_ref( floating-point & ) noexcept ;
+  atomic_ref( const atomic_ref & );
+
+  floating-point operator=( floating-point ) noexcept ;
+  operator floating-point () const noexcept ;
+
+  bool is_lock_free() const noexcept;
+  void store( floating-point , memory_order = memory_order::seq_cst ) const noexcept;
+  floating-point load( memory_order = memory_order::seq_cst ) const noexcept;
+  floating-point exchange( floating-point , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_weak( floating-point & , floating-point , memory_order , memory_order ) const noexcept;
+  bool compare_exchange_strong( floating-point & , floating-point  , memory_order , memory_order ) const noexcept;
+  bool compare_exchange_weak( floating-point & , floating-point  , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_strong( floating-point &, floating-point , memory_order = memory_order::seq_cst ) const noexcept;
+
+  floating-point fetch_add( floating-point , memory_order = memory_order::seq_cst) const noexcept;
+  floating-point fetch_sub( floating-point , memory_order = memory_order::seq_cst) const noexcept;
+
+  floating-point operator+=( floating-point ) const noexcept ;
+  floating-point operator-=( floating-point ) const noexcept ;
+};
+```
+
+Descriptions are provide below only for members that differ from the primary
+template.
+
+The following operations perform arithmetic computations.  The key, operator, and
+computation correspondence are identified in Table 129 [atomics.types.int].
+
+**floating-point fetch_key( floating-point operand, memory_order order = memory_order::seq_cst ) const noexcept ;**
+  
+  *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
+  of the computation applied to the value pointed to by `ptr_` and the given
+  operand. Memory is affected according to the value of order. These operations
+  are atomic read-modify-write operations (6.8.2).
+
+  *Returns:* Atomically, the value pointed to by `ptr_` immediately before the
+  effects.
+
+  *Remarks:* If the result is not a representable value for its type (8.1) the
+  result is unspecified, but the operations otherwise have no undefined
+  behavior. Atomic arithmetic operations on floating-point should conform to
+  the std::numeric_limits<floating-point > traits associated with the floating-
+  point type (21.3.2). The floating-point environment (29.4) for atomic
+  arithmetic operations on floating-point may be different than the calling
+  thread’s floating-point environment.
+
+**floating-point operator op=(floating-point operand ) const noexcept ;**
+
+  *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
+
+
+<blockquote>
+Add a new subsection [atomics.ref.pointer] following the [atomics.ref.float]
+subsection.
+</blockquote>
+
+```c++
+template<class T> struct atomic_ref< T * > {
+private:
+  T ** ptr_; // exposition only
+public:
+  using value_type = T * ;
+  using difference_type = ptrdiff_t;
+  static constexpr bool is_always_lock_free = *implementation-defined* ;
+  static constexpr size_t required_alignment = *implementation-defined* ;
+
+  atomic_ref() = delete ;
+  atomic_ref & operator = ( const atomic_ref & ) = delete ;
+
+  explicit atomic_ref( T * & );
+  atomic_ref( const atomic_ref & );
+
+  T * operator=( T * ) const noexcept ;
+  operator T * () const noexcept ;
+
+  bool is_lock_free() const noexcept;
+  void store( T * , memory_order = memory_order::seq_cst ) const noexcept;
+  T * load( memory_order = memory_order::seq_cst ) const noexcept;
+  T * exchange( T * , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_weak( T * & , T * , memory_order , memory_order ) const noexcept;
+  bool compare_exchange_strong( T * & , T *  , memory_order , memory_order ) const noexcept;
+  bool compare_exchange_weak( T * & , T *  , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_strong( T * &, T * , memory_order = memory_order::seq_cst ) const noexcept;
+
+  T * fetch_add( difference_type , memory_order = memory_order::seq_cst) const noexcept;
+  T * fetch_sub( difference_type , memory_order = memory_order::seq_cst) const noexcept;
+
+  T * operator++(int) const noexcept;
+  T * operator--(int) const noexcept;
+  T * operator++() const noexcept;
+  T * operator--() const noexcept;
+  T * operator+=( difference_type ) const noexcept;
+  T * operator-=( difference_type ) const noexcept;
+};
+```
+
+Descriptions are provide below only for members that differ from the primary
+template.
+
+The following operations perform arithmetic computations.  The key, operator, and
+computation correspondence are identified in Table 130 [atomics.types.pointer].
+
+**T**\* **fetch_key(T**\* **operand, memory_order order = memory_order::seq_cst ) const noexcept ;**
+
+  *Requires:* T shall be an object type, otherwise the program is ill-formed
+  
+  *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
+  of the computation applied to the value pointed to by `ptr_` and the given
+  operand. Memory is affected according to the value of order. These operations
+  are atomic read-modify-write operations (6.8.2).
+
+  *Returns:* Atomically, the value pointed to by `ptr_` immediately before the
+  effects.
+
+  *Remarks:* The result may be an undefined address, but the operations
+  otherwise have no undefined behavior. 
+  
+**T**\* **operator op=(T**\* **operand ) const noexcept ;**
+
+  *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
+
+Feature Testing {#test}
+===============
+
+The `__cpp_lib_atomic_ref` feature test macro should be added.
