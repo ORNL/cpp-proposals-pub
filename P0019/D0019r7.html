@@ -1192,7 +1192,7 @@ Possible extra rowspan handling
     }
   </style>
   <meta content="Bikeshed version 7078a45a9d5371b70f350a0b092b4acc1bc4ba87" name="generator">
-  <link href="https://kokkos.github.io/ISO-CPP-Papers/P0019.html" rel="canonical">
+  <link href="TBD" rel="canonical">
 <style>/* style-md-lists */
 
 /* This is a weird hack for me not yet following the commonmark spec
@@ -1409,11 +1409,11 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">d0019R7<br>Atomic Ref</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2018-03-14">14 March 2018</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2018-04-30">30 April 2018</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
-     <dd><a class="u-url" href="https://kokkos.github.io/ISO-CPP-Papers/P0019.html">https://kokkos.github.io/ISO-CPP-Papers/P0019.html</a>
+     <dd><a class="u-url" href="TBD">TBD</a>
      <dt>Authors:
      <dd>
       <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:hedwards@nvidia.com">H. Carter Edwards</a>
@@ -1487,7 +1487,7 @@ form.</p>
      <p>Add a note clarifying that <code class="highlight"><span class="n">atomic_ref</span></code> may not be lock free
 even if <code class="highlight"><span class="n">atomic</span></code> is lock free</p>
     <li data-md="">
-     <p>Add wording</p>
+     <p>Add wording for all member functions and specializations</p>
     <li data-md="">
      <p>Convert to bikeshed</p>
    </ul>
@@ -1627,18 +1627,6 @@ shall determine. </blockquote>
 <span class="n">namespace</span> <span class="n">experimental</span> <span class="p">{</span>
 <span class="kr">inline</span> <span class="n">namespace</span> <span class="n">concurrency_v2</span> <span class="p">{</span>
 
-<span class="c1">// 3.� lock-free property</span>
-<span class="c1"></span><span class="cp">#define ATOMIC_REF_BOOL_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_CHAR_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_CHAR16_T_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_CHAR32_T_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_WCHAR_T_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_SHORT_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_INT_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_LONG_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_LLONG_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_POINTER_LOCK_FREE unspecified</span>
-<span class="cp"></span>
 <span class="c1">// 3.� atomic ref</span>
 <span class="c1"></span><span class="n">template</span><span class="o">&lt;</span> <span class="n">class</span> <span class="n">T</span> <span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">;</span>
 <span class="c1">// 3.� atomic ref partial specialization for pointers</span>
@@ -1705,18 +1693,6 @@ shall determine. </blockquote>
   <span class="n">T</span> <span class="n">atomic_fetch_xor_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
                               <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
 <span class="p">}}}</span>
-</pre>
-   <blockquote> Add the following defines to the [atomics.lockfree] section. </blockquote>
-<pre class="language-c++ highlight"><span class="cp">#define ATOMIC_REF_BOOL_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_CHAR_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_CHAR16_T_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_CHAR32_T_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_WCHAR_T_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_SHORT_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_INT_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_LONG_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_LLONG_LOCK_FREE unspecified</span>
-<span class="cp">#define ATOMIC_REF_POINTER_LOCK_FREE unspecified</span>
 </pre>
    <blockquote> Add a new section [atomics.ref.generic] after [atomics.types.generic] </blockquote>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span> <span class="n">class</span> <span class="n">T</span> <span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">{</span>

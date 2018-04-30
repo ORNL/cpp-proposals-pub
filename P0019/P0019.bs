@@ -14,9 +14,9 @@ Revision: 7
 Audience: LWG
 Status: D
 Group: WG21
-Date: 2018-03-14
-Repository: https://github.com/kokkos/ISO-CPP-Papers.git
-URL: https://kokkos.github.io/ISO-CPP-Papers/P0019.html
+Date: 2018-04-30
+Repository: https://github.com/ORNL/cpp-proposals-pub.git
+URL: TBD
 Toggle Diffs: Yes
 Warning: Custom
 Custom Warning Title: Work in Progress
@@ -36,7 +36,7 @@ Revision History
 -   Add a note clarifying that `atomic_ref` may not be lock free
     even if `atomic` is lock free
 
--   Add wording
+-   Add wording for all member functions and specializations
 
 -   Convert to bikeshed
 
@@ -203,18 +203,6 @@ namespace std {
 namespace experimental {
 inline namespace concurrency_v2 {
 
-// 3.� lock-free property
-#define ATOMIC_REF_BOOL_LOCK_FREE unspecified
-#define ATOMIC_REF_CHAR_LOCK_FREE unspecified
-#define ATOMIC_REF_CHAR16_T_LOCK_FREE unspecified
-#define ATOMIC_REF_CHAR32_T_LOCK_FREE unspecified
-#define ATOMIC_REF_WCHAR_T_LOCK_FREE unspecified
-#define ATOMIC_REF_SHORT_LOCK_FREE unspecified
-#define ATOMIC_REF_INT_LOCK_FREE unspecified
-#define ATOMIC_REF_LONG_LOCK_FREE unspecified
-#define ATOMIC_REF_LLONG_LOCK_FREE unspecified
-#define ATOMIC_REF_POINTER_LOCK_FREE unspecified
-
 // 3.� atomic ref
 template< class T > struct atomic_ref ;
 // 3.� atomic ref partial specialization for pointers
@@ -281,23 +269,6 @@ template<class T>
   T atomic_fetch_xor_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
                               memory_order) noexcept;
 }}}
-```
-
-<blockquote>
-Add the following defines to the [atomics.lockfree] section.
-</blockquote>
-
-```c++
-#define ATOMIC_REF_BOOL_LOCK_FREE unspecified
-#define ATOMIC_REF_CHAR_LOCK_FREE unspecified
-#define ATOMIC_REF_CHAR16_T_LOCK_FREE unspecified
-#define ATOMIC_REF_CHAR32_T_LOCK_FREE unspecified
-#define ATOMIC_REF_WCHAR_T_LOCK_FREE unspecified
-#define ATOMIC_REF_SHORT_LOCK_FREE unspecified
-#define ATOMIC_REF_INT_LOCK_FREE unspecified
-#define ATOMIC_REF_LONG_LOCK_FREE unspecified
-#define ATOMIC_REF_LLONG_LOCK_FREE unspecified
-#define ATOMIC_REF_POINTER_LOCK_FREE unspecified
 ```
 
 <blockquote>
