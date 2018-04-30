@@ -294,13 +294,13 @@ public:
   operator T() const noexcept ;
 
   bool is_lock_free() const noexcept;
-  void store( T , memory_order = memory_order::seq_cst ) const noexcept;
-  T load( memory_order = memory_order::seq_cst ) const noexcept;
-  T exchange( T , memory_order = memory_order::seq_cst ) const noexcept;
+  void store( T , memory_order = memory_order_seq_cst ) const noexcept;
+  T load( memory_order = memory_order_seq_cst ) const noexcept;
+  T exchange( T , memory_order = memory_order_seq_cst ) const noexcept;
   bool compare_exchange_weak( T&, T, memory_order, memory_order ) const noexcept;
   bool compare_exchange_strong( T&, T, memory_order, memory_order ) const noexcept;
-  bool compare_exchange_weak( T&, T, memory_order = memory_order::seq_cst ) const noexcept;
-  bool compare_exchange_strong( T&, T, memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_weak( T&, T, memory_order = memory_order_seq_cst ) const noexcept;
+  bool compare_exchange_strong( T&, T, memory_order = memory_order_seq_cst ) const noexcept;
 };
 ```
 
@@ -370,22 +370,22 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
 
   *Returns:* true if the object's operations are lock-free, false otherwise.
 
-**void store( T desired, memory_order order = memory_order::seq_cst ) const noexcept ;**
-  *Requires:* The order argument shall not be memory_order::consume,
-  memory_order::acquire, nor memory_order::acq_rel.
+**void store( T desired, memory_order order = memory_order_seq_cst ) const noexcept ;**
+  *Requires:* The order argument shall not be memory_order_consume,
+  memory_order_acquire, nor memory_order_acq_rel.
 
   *Effects:*Atomically replaces the value pointed to by `ptr_` with the value of
   desired. Memory is affected according to the value of order.
 
-**void load( memory_order order = memory_order::seq_cst ) const noexcept ; **
-  *Requires:* The order argument shall not be memory_order::release nor
-  memory_order::acq_rel.
+**void load( memory_order order = memory_order_seq_cst ) const noexcept ; **
+  *Requires:* The order argument shall not be memory_order_release nor
+  memory_order_acq_rel.
   
   *Effects:* Memory is affected according to the value of order.
   
   *Returns:* Atomically returns the value pointed to by `ptr_`.
 
-**exchange(T desired, memory_order order = memory_order::seq_cst) noexcept ;**
+**exchange(T desired, memory_order order = memory_order_seq_cst) noexcept ;**
 
   *Effects:* Atomically replaces the value pointed to by `ptr_` with desired.
   Memory is affected according to the value of order. These operations are
@@ -401,13 +401,13 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
                              memory_order success, memory_order failure) const noexcept ;**
 
 **bool compare_exchange_weak(T& expected, T desired,
-                           memory_order order = memory_order::seq_cst) const noexcept ;**
+                           memory_order order = memory_order_seq_cst) const noexcept ;**
 
 **bool compare_exchange_strong(T& expected, T desired,
-                             memory_order order = memory_order::seq_cst) const noexcept ;**
+                             memory_order order = memory_order_seq_cst) const noexcept ;**
 
-  *Requires:* The failure argument shall not be memory_order::release nor
-  memory_order::acq_rel.
+  *Requires:* The failure argument shall not be memory_order_release nor
+  memory_order_acq_rel.
 
   *Effects:* Retrieves the value in expected. It then atomically compares the
   contents of the memory pointed to by `ptr_` for equality with that previously
@@ -417,9 +417,9 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   comparison is false, memory is affected according to the value of failure.
   When only one memory_order argument is supplied, the value of success is
   order, and the value of failure is order except that a value of
-  memory_order::acq_- rel shall be replaced by the value memory_order::acquire
-  and a value of memory_order::release shall be replaced by the value
-  memory_order::relaxed. If and only if the comparison is false then, after the
+  memory_order_acq_- rel shall be replaced by the value memory_order_acquire
+  and a value of memory_order_release shall be replaced by the value
+  memory_order_relaxed. If and only if the comparison is false then, after the
   atomic operation, the contents of the memory in expected are replaced by the
   value read from the memory pointed to by `ptr_` during the atomic comparison.
   If the operation returns true, these operations are atomic read-modify-write
@@ -474,19 +474,19 @@ public:
   operator integral () const noexcept ;
 
   bool is_lock_free() const noexcept;
-  void store( integral , memory_order = memory_order::seq_cst ) const noexcept;
-  integral load( memory_order = memory_order::seq_cst ) const noexcept;
-  integral exchange( integral , memory_order = memory_order::seq_cst ) const noexcept;
+  void store( integral , memory_order = memory_order_seq_cst ) const noexcept;
+  integral load( memory_order = memory_order_seq_cst ) const noexcept;
+  integral exchange( integral , memory_order = memory_order_seq_cst ) const noexcept;
   bool compare_exchange_weak( integral & , integral , memory_order , memory_order ) const noexcept;
   bool compare_exchange_strong( integral & , integral  , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_weak( integral & , integral  , memory_order = memory_order::seq_cst ) const noexcept;
-  bool compare_exchange_strong( integral &, integral , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_weak( integral & , integral  , memory_order = memory_order_seq_cst ) const noexcept;
+  bool compare_exchange_strong( integral &, integral , memory_order = memory_order_seq_cst ) const noexcept;
 
-  integral fetch_add( integral , memory_order = memory_order::seq_cst) const noexcept;
-  integral fetch_sub( integral , memory_order = memory_order::seq_cst) const noexcept;
-  integral fetch_and( integral , memory_order = memory_order::seq_cst) const noexcept;
-  integral fetch_or(  integral , memory_order = memory_order::seq_cst) const noexcept;
-  integral fetch_xor( integral , memory_order = memory_order::seq_cst) const noexcept;
+  integral fetch_add( integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_sub( integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_and( integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_or(  integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_xor( integral , memory_order = memory_order_seq_cst) const noexcept;
 
   integral operator++(int) const noexcept;
   integral operator--(int) const noexcept;
@@ -507,7 +507,7 @@ The following operations perform arithmetic computations.  The key, operator, an
 computation correspondence are identified in Table 129 [atomics.types.int].
 
 
-**integral fetch_key( integral operand, memory_order order = memory_order::seq_cst ) const noexcept ;**
+**integral fetch_key( integral operand, memory_order order = memory_order_seq_cst ) const noexcept ;**
   
   *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
   of the computation applied to the value pointed to by `ptr_` and the given
@@ -550,16 +550,16 @@ public:
   operator floating-point () const noexcept ;
 
   bool is_lock_free() const noexcept;
-  void store( floating-point , memory_order = memory_order::seq_cst ) const noexcept;
-  floating-point load( memory_order = memory_order::seq_cst ) const noexcept;
-  floating-point exchange( floating-point , memory_order = memory_order::seq_cst ) const noexcept;
+  void store( floating-point , memory_order = memory_order_seq_cst ) const noexcept;
+  floating-point load( memory_order = memory_order_seq_cst ) const noexcept;
+  floating-point exchange( floating-point , memory_order = memory_order_seq_cst ) const noexcept;
   bool compare_exchange_weak( floating-point & , floating-point , memory_order , memory_order ) const noexcept;
   bool compare_exchange_strong( floating-point & , floating-point  , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_weak( floating-point & , floating-point  , memory_order = memory_order::seq_cst ) const noexcept;
-  bool compare_exchange_strong( floating-point &, floating-point , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_weak( floating-point & , floating-point  , memory_order = memory_order_seq_cst ) const noexcept;
+  bool compare_exchange_strong( floating-point &, floating-point , memory_order = memory_order_seq_cst ) const noexcept;
 
-  floating-point fetch_add( floating-point , memory_order = memory_order::seq_cst) const noexcept;
-  floating-point fetch_sub( floating-point , memory_order = memory_order::seq_cst) const noexcept;
+  floating-point fetch_add( floating-point , memory_order = memory_order_seq_cst) const noexcept;
+  floating-point fetch_sub( floating-point , memory_order = memory_order_seq_cst) const noexcept;
 
   floating-point operator+=( floating-point ) const noexcept ;
   floating-point operator-=( floating-point ) const noexcept ;
@@ -572,7 +572,7 @@ template.
 The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 129 [atomics.types.int].
 
-**floating-point fetch_key( floating-point operand, memory_order order = memory_order::seq_cst ) const noexcept ;**
+**floating-point fetch_key( floating-point operand, memory_order order = memory_order_seq_cst ) const noexcept ;**
   
   *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
   of the computation applied to the value pointed to by `ptr_` and the given
@@ -620,16 +620,16 @@ public:
   operator T * () const noexcept ;
 
   bool is_lock_free() const noexcept;
-  void store( T * , memory_order = memory_order::seq_cst ) const noexcept;
-  T * load( memory_order = memory_order::seq_cst ) const noexcept;
-  T * exchange( T * , memory_order = memory_order::seq_cst ) const noexcept;
+  void store( T * , memory_order = memory_order_seq_cst ) const noexcept;
+  T * load( memory_order = memory_order_seq_cst ) const noexcept;
+  T * exchange( T * , memory_order = memory_order_seq_cst ) const noexcept;
   bool compare_exchange_weak( T * & , T * , memory_order , memory_order ) const noexcept;
   bool compare_exchange_strong( T * & , T *  , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_weak( T * & , T *  , memory_order = memory_order::seq_cst ) const noexcept;
-  bool compare_exchange_strong( T * &, T * , memory_order = memory_order::seq_cst ) const noexcept;
+  bool compare_exchange_weak( T * & , T *  , memory_order = memory_order_seq_cst ) const noexcept;
+  bool compare_exchange_strong( T * &, T * , memory_order = memory_order_seq_cst ) const noexcept;
 
-  T * fetch_add( difference_type , memory_order = memory_order::seq_cst) const noexcept;
-  T * fetch_sub( difference_type , memory_order = memory_order::seq_cst) const noexcept;
+  T * fetch_add( difference_type , memory_order = memory_order_seq_cst) const noexcept;
+  T * fetch_sub( difference_type , memory_order = memory_order_seq_cst) const noexcept;
 
   T * operator++(int) const noexcept;
   T * operator--(int) const noexcept;
@@ -646,7 +646,7 @@ template.
 The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 130 [atomics.types.pointer].
 
-**T**\* **fetch_key(T**\* **operand, memory_order order = memory_order::seq_cst ) const noexcept ;**
+**T**\* **fetch_key(T**\* **operand, memory_order order = memory_order_seq_cst ) const noexcept ;**
 
   *Requires:* T shall be an object type, otherwise the program is ill-formed
   
