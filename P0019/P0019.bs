@@ -306,6 +306,8 @@ public:
 
 The template argument for T shall be trivially copyable [basic.types].
 
+Descriptions are provided below.
+
 <blockquote>
 Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
 </blockquote>
@@ -320,12 +322,12 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   The required alignment of an object to be referenced by an atomic reference,
   which is at least `alignof(T)`.
 
-  [*Note:* An architecture may support lock-free atomic operations on objects
-  of type `T` only if those objects meet a required alignment.  The intent is
-  for `atomic_ref` to provide lock-free atomic operations whenever possible.
-  For example, an architecture may be able to support lock-free operations on
-  `std::complex<double>` only if aligned to `2*alignof(double)` and not
-  `alignof(double)` . - *end note*]
+  [*Note:* An architecture choose to support `atomic_ref` on objects of type T 
+  only if those objects meet a required alignment.  For example, an architecture
+  may be able to support lock-free operations on `std::complex<double>` only if
+  aligned to `2*alignof(double)`.  Implementations should fall back to a 
+  lock-based implementation only where the corresponding `atomic<T>` would. -
+  *end note* ]
 
 **atomic_ref(T & obj ) ;**
 
