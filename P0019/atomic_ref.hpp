@@ -4,7 +4,6 @@
 // reference implementation for compilers which support GNU atomic builtins
 // https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html
 //
-// link with -latomic
 //------------------------------------------------------------------------------
 
 #ifndef ATOMIC_REF_HPP
@@ -47,6 +46,8 @@ static_assert(  (__ATOMIC_RELAXED == static_cast<int>(std::memory_order_relaxed 
              );
 
 namespace std { namespace experimental {
+
+inline namespace concurrency_v2 {
 
 
 //------------------------------------------------------------------------------
@@ -162,6 +163,7 @@ private:
 
 public:
   using value_type = T;
+  using difference_type = value_type;
   static constexpr bool   is_always_lock_free = __atomic_always_lock_free( sizeof(T), 0);
   static constexpr size_t required_alignment  = std::alignment_of<T>::value;
 
@@ -212,7 +214,7 @@ public:
   ATOMIC_REF_FORCEINLINE
   value_type exchange( value_type desired, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    return __atomic_exchange( ptr_, desired, static_cast<int>(order) );
+    return __atomic_exchange_n( ptr_, desired, static_cast<int>(order) );
   }
 
   ATOMIC_REF_FORCEINLINE
@@ -240,13 +242,13 @@ public:
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type fetch_add( value_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
+  value_type fetch_add( difference_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
     return __atomic_fetch_add( ptr_, val, static_cast<int>(order) );
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type fetch_sub( value_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
+  value_type fetch_sub( difference_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
     return __atomic_fetch_sub( ptr_, val, static_cast<int>(order) );
   }
@@ -294,13 +296,13 @@ public:
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type operator+=( value_type val ) const noexcept
+  value_type operator+=( difference_type val ) const noexcept
   {
     return __atomic_add_fetch( ptr_, val, __ATOMIC_SEQ_CST);
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type operator-=( value_type val ) const noexcept
+  value_type operator-=( difference_type val ) const noexcept
   {
     return __atomic_sub_fetch( ptr_, val, __ATOMIC_SEQ_CST);
   }
@@ -339,6 +341,7 @@ private:
 
 public:
   using value_type = T;
+  using difference_type = value_type;
   static constexpr bool   is_always_lock_free = __atomic_always_lock_free( sizeof(T), 0);
   static constexpr size_t required_alignment  = std::alignment_of<T>::value;
 
@@ -377,92 +380,96 @@ public:
   ATOMIC_REF_FORCEINLINE
   void store( value_type desired, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    __atomic_store_n( ptr_, desired, static_cast<int>(order) );
+    __atomic_store( ptr_, &desired, static_cast<int>(order) );
   }
 
   ATOMIC_REF_FORCEINLINE
   value_type load( std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    return __atomic_load_n( ptr_, static_cast<int>(order) );
+    value_type result;
+    __atomic_load( ptr_, &result, static_cast<int>(order) );
+    return result;
   }
 
   ATOMIC_REF_FORCEINLINE
   value_type exchange( value_type desired, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    return __atomic_exchange( ptr_, desired, static_cast<int>(order) );
+    value_type result;
+    __atomic_exchange( ptr_, &desired, &result, static_cast<int>(order) );
+    return result;
   }
 
   ATOMIC_REF_FORCEINLINE
   bool compare_exchange_weak( value_type& expected, value_type desired, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    return __atomic_compare_exchange_n( ptr_, &expected, desired, true, static_cast<int>(order), static_cast<int>(order) );
+    return __atomic_compare_exchange( ptr_, &expected, &desired, true, static_cast<int>(order), static_cast<int>(order) );
   }
 
   ATOMIC_REF_FORCEINLINE
   bool compare_exchange_strong( value_type& expected, value_type desired, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    return __atomic_compare_exchange_n( ptr_, &expected, desired, false, static_cast<int>(order), static_cast<int>(order) );
+    return __atomic_compare_exchange( ptr_, &expected, &desired, false, static_cast<int>(order), static_cast<int>(order) );
   }
 
   ATOMIC_REF_FORCEINLINE
   bool compare_exchange_weak( value_type& expected, value_type desired, std::memory_order success, std::memory_order failure ) const noexcept
   {
-    return __atomic_compare_exchange_n( ptr_, &expected, desired, true, static_cast<int>(success), static_cast<int>(failure) );
+    return __atomic_compare_exchange( ptr_, &expected, &desired, true, static_cast<int>(success), static_cast<int>(failure) );
   }
 
   ATOMIC_REF_FORCEINLINE
   bool compare_exchange_strong( value_type& expected, value_type desired, std::memory_order success, std::memory_order failure ) const noexcept
   {
-    return __atomic_compare_exchange_n( ptr_, &expected, desired, false, static_cast<int>(success), static_cast<int>(failure) );
+    return __atomic_compare_exchange( ptr_, &expected, &desired, false, static_cast<int>(success), static_cast<int>(failure) );
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type fetch_add( value_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
+  value_type fetch_add( difference_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    value_type expected = __atomic_load_n( ptr_, __ATOMIC_RELAXED );
+    value_type expected = load( std::memory_order_relaxed );
     value_type desired  = expected + val;
 
-    while ( !__atomic_compare_exchange_n( ptr_, &expected, desired, true, static_cast<int>(order), __ATOMIC_RELAXED ) ) {
-      expected = __atomic_load_n( ptr_, __ATOMIC_RELAXED );
+    while ( !compare_exchange_weak( expected, desired, order, std::memory_order_relaxed ) ) {
+      expected = load( std::memory_order_relaxed );
       desired  = expected + val;
     }
     return expected;
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type fetch_sub( value_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
+  value_type fetch_sub( difference_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    value_type expected = __atomic_load_n( ptr_, __ATOMIC_RELAXED );
+    value_type expected = load( std::memory_order_relaxed );
     value_type desired  = expected - val;
 
-    while ( !__atomic_compare_exchange_n( ptr_, &expected, desired, true, static_cast<int>(order), __ATOMIC_RELAXED ) ) {
-      expected = __atomic_load_n( ptr_, __ATOMIC_RELAXED );
+    while ( !compare_exchange_weak( expected, desired, order, std::memory_order_relaxed ) ) {
+      expected = load( std::memory_order_relaxed );
       desired  = expected - val;
     }
     return expected;
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type operator+=( value_type val ) const noexcept
+  value_type operator+=( difference_type val ) const noexcept
   {
-    value_type expected = __atomic_load_n( ptr_, __ATOMIC_RELAXED );
+    value_type expected = load( std::memory_order_relaxed );
     value_type desired  = expected + val;
 
-    while ( !__atomic_compare_exchange_n( ptr_, &expected, desired, true, __ATOMIC_SEQ_CST, __ATOMIC_RELAXED ) ) {
-      expected = __atomic_load_n( ptr_, __ATOMIC_RELAXED );
+    while ( !compare_exchange_weak( expected, desired, std::memory_order_seq_cst, std::memory_order_relaxed ) ) {
+      expected = load( std::memory_order_relaxed );
       desired  = expected + val;
     }
     return desired;
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type operator-=( value_type val ) const noexcept
+  value_type operator-=( difference_type val ) const noexcept
   {
-    value_type expected = __atomic_load_n( ptr_, __ATOMIC_RELAXED );
+    value_type expected = load( std::memory_order_relaxed );
     value_type desired  = expected - val;
 
-    while ( !__atomic_compare_exchange_n( ptr_, &expected, desired, true, __ATOMIC_SEQ_CST, __ATOMIC_RELAXED ) ) {
-      expected = __atomic_load_n( ptr_, __ATOMIC_RELAXED );
+    while ( !compare_exchange_weak( expected, desired, std::memory_order_seq_cst, std::memory_order_relaxed ) ) {
+      expected = load( std::memory_order_relaxed );
       desired  = expected - val;
     }
     return desired;
@@ -474,7 +481,7 @@ public:
 // Pointer type
 //------------------------------------------------------------------------------
 template < class T>
-struct atomic_ref< T*>
+struct atomic_ref< T*, void>
 {
 private:
   T ** ptr_;
@@ -486,6 +493,7 @@ private:
 
 public:
   using value_type = T*;
+  using difference_type = ptrdiff_t;
   static constexpr bool   is_always_lock_free = __atomic_always_lock_free( sizeof(T*), 0);
   static constexpr size_t required_alignment  = std::alignment_of<T*>::value;
 
@@ -536,7 +544,7 @@ public:
   ATOMIC_REF_FORCEINLINE
   value_type exchange( value_type desired, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    return __atomic_exchange( ptr_, desired, static_cast<int>(order) );
+    return __atomic_exchange_n( ptr_, desired, static_cast<int>(order) );
   }
 
   ATOMIC_REF_FORCEINLINE
@@ -564,15 +572,22 @@ public:
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type fetch_add( uintptr_t val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
+  value_type fetch_add( difference_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    return __atomic_fetch_add( ptr_, val*stride, static_cast<int>(order) );
+    return val >= 0
+         ? __atomic_fetch_add( ptr_, static_cast<uintptr_t>(val*stride), static_cast<int>(order) )
+         : __atomic_fetch_sub( ptr_, static_cast<uintptr_t>(-val*stride), static_cast<int>(order) )
+         ;
+
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type fetch_sub( uintptr_t val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
+  value_type fetch_sub( difference_type val, std::memory_order order = std::memory_order_seq_cst ) const noexcept
   {
-    return __atomic_fetch_sub( ptr_, val*stride, static_cast<int>(order) );
+    return val >= 0
+         ? __atomic_fetch_sub( ptr_, static_cast<uintptr_t>(val*stride), static_cast<int>(order) )
+         : __atomic_fetch_add( ptr_, static_cast<uintptr_t>(-val*stride), static_cast<int>(order) )
+         ;
   }
 
   ATOMIC_REF_FORCEINLINE
@@ -600,15 +615,21 @@ public:
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type operator+=( uintptr_t val ) const noexcept
+  value_type operator+=( difference_type val ) const noexcept
   {
-    return __atomic_add_fetch( ptr_, val*stride, __ATOMIC_SEQ_CST);
+    return val >= 0
+         ? __atomic_fetch_add( ptr_, static_cast<uintptr_t>(val*stride), __ATOMIC_SEQ_CST )
+         : __atomic_fetch_sub( ptr_, static_cast<uintptr_t>(-val*stride), __ATOMIC_SEQ_CST )
+         ;
   }
 
   ATOMIC_REF_FORCEINLINE
-  value_type operator-=( uintptr_t val ) const noexcept
+  value_type operator-=( difference_type val ) const noexcept
   {
-    return __atomic_sub_fetch( ptr_, val*stride, __ATOMIC_SEQ_CST);
+    return val >= 0
+         ? __atomic_fetch_sub( ptr_, static_cast<uintptr_t>(val*stride), __ATOMIC_SEQ_CST )
+         : __atomic_fetch_add( ptr_, static_cast<uintptr_t>(-val*stride), __ATOMIC_SEQ_CST )
+         ;
   }
 };
 
@@ -816,6 +837,8 @@ atomic_fetch_xor_explicit( atomic_ref<T> * ptr
 {
   return ptr->atomic_fetch_xor_explicit(val, order);
 }
+
+} // inline namespace concurrency_v2
 
 }} // namespace std::experimental
 
