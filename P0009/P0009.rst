@@ -75,9 +75,9 @@ SF  F  N  A SA
 
 **LEWG POLL**: Do we want the language to support syntaxes like X[3][][][5]?
 
-============================================================  ==
-Syntax                                                         #
-============================================================  ==
+============================================================= ==
+Syntax                                                        #
+============================================================= ==
 ``view<int[3][0][][5], property1>``                           12
 ``view<int, dimension<3, 0, dynamic_extent, 5>, property1>``   4
 ``view<int[3][0][dynamic_extent][5], property1>``              5
@@ -85,7 +85,7 @@ Syntax                                                         #
 ``view<int, 3, 0, dynamic_extent, 5, properties<property1>>``  2
 ``view<arr<int, 3, 0, dynamic_extent, 5>, property1>``         4
 ``view<int[3][0][][5], properties<property1>>``                9
-============================================================  ==
+============================================================= ==
 
 **LEWG POLL**: Do we want the variadic property list in template args (either
 raw or in ``properties<>``)? Note there is no precedence for this in the
@@ -98,6 +98,7 @@ SF  F  N  A SA
 == == == == ==
 
 **LEWG POLL**: Do we want the per-view bounds-checking knob?
+
 == == == == ==
 SF  F  N  A SA
 == == == == ==
@@ -173,7 +174,7 @@ SF  F  N  A SA
 
   - Removed iterator support; a future paper will be written on the subject.
   - Noted difference between multidimensional array versus language's array-of-array-of-array...
-  - Clearly describe requirements for the embedded type aliases (``value_type``, ``reference``, etc).
+  - Clearly describe requirements for the embedded type aliases (``element_type``, ``reference``, etc).
   - Expanded description of how the variadic properties list would work.
   - Stopped allowing `array_ref<T[N]>` in addition to `array_ref<extents<N>>`.
   - Clarified domain, codomain, and domain -> codomain mapping specifications.
@@ -314,7 +315,7 @@ SF  F  N  A SA
 
   - Removed variadic properties.
   - Incorporated `P0454r1 <https://wg21.link/P0454r1>`_.
-    - Added accessor concept.
+    - Added accessor policy concept.
     - Renamed ``mdspan`` to ``basic_mdspan``.
     - Added a ``mdspan`` alias to ``basic_mdspan``.
 
@@ -367,10 +368,13 @@ Add to same section and header as **span**
   namespace experimental {
   inline namespace fundamentals_v3 {
 
-    inline constexpr ptrdiff_t dynamic_extent = -1 ; // Revise to add inline
+    inline constexpr ptrdiff_t dynamic_extent = -1;
 
-    template< typename DataType , typename ... Properties >
-    class mdspan ;
+    template <typename ElementType,
+              typename Extents,
+              typename MappingPolicy = mapping_right,
+              typename AccessorPolicy = accessor_basic>
+    class basic_mdspan;
 
     template< ptrdiff_t ... StaticExtents >
     class extents ;
@@ -386,10 +390,11 @@ Add to same section and header as **span**
     constexpr bool operator != ( extents<LHS...> const & lhs , extents<RHS...> const & rhs ) ;
 
     // return type of subspan free function is an mdspan
-    template< typename DataType , typename ... Properties , typename ... SliceSpecifiers >
+    template< typename ElementType , typename Extents, typename MappingPolicy ,
+              typename AccessorPolicy , typename ... SliceSpecifiers >
       // for exposition only:
-      detail::subspan_deduction_t< mdspan<DataType,Properties...>,SliceSpecifiers...>
-    subspan( mdspan< DataType, Properties ... > const & , SliceSpecifiers ... ) noexcept;
+      detail::subspan_deduction_t< basic_mdspan<ElementType, Properties...>,SliceSpecifiers...>
+    subspan( basic_mdspan< ElementType, Properties ... > const & , SliceSpecifiers ... ) noexcept;
 
     // tag supporting subspan
     struct all_type {};
@@ -398,20 +403,20 @@ Add to same section and header as **span**
 
 ..
 
-The ``mdspan`` class maps a multi-index within a multi-index **domain**
+The ``basic_mdspan`` class maps a multi-index within a multi-index **domain**
 to a reference to the **codomain**, defined by a span of objects.
 
-The ``subspan`` free function generates an ``mdspan`` with a domain contained
-within the input ``mdspan`` domain and codomain contained within the input
-``mdspan`` codomain.
+The ``subspan`` free function generates an ``basic_mdspan`` with a domain contained
+within the input ``basic_mdspan`` domain and codomain contained within the input
+``basic_mdspan`` codomain.
 
 The *detail::subspan_deduction_t* template class is not proposed and
 appears for exposition only.
 An implementation metafunction of this form is necessary
-to deduce the specific ``mdspan`` return type of the ``subspan`` function.
+to deduce the specific ``basic_mdspan`` return type of the ``subspan`` function.
 
 ----------------------------------------------------------------------------
-template class ``mdspan``
+Class template ``basic_mdspan``
 ----------------------------------------------------------------------------
 
 .. code-block:: c++
@@ -420,51 +425,54 @@ template class ``mdspan``
   namespace experimental {
   inline namespace fundamentals_v3 {
   
-  template <typename DataType, typename... Properties>
-  class mdspan {
+  template< typename ElementType , typename Extents , typename MappingPolicy , typename AccessorPolicy >
+  class basic_mdspan {
   public:
-    // domain and codomain types
-  
-    using element_type    = typename remove_all_extents_t<DataType> ;
-    using value_type      = typename remove_cv_t< element_type > ;
-    using index_type      = ptrdiff_t ;
-    using difference_type = ptrdiff_t ;
-    using pointer         = element_type * ;
-    using reference       = element_type & ;
+    // Domain and codomain types
+
+    using accessor = typename AccessorPolicy::accessor<ElementType>;
+    using mapping  = typename MappingPolicy::accessor<Extents>;
+ 
+    using element_type    = typename accessor::value_type;
+    using value_type      = remove_cv_t<element_type>;
+    using index_type      = typename accessor::index_type;
+    using difference_type = typename accessor::difference_type;
+    using pointer         = typename accessor::pointer;
+    using reference       = typename accessor::reference;
 
     // Standard constructors, assignments, and destructor
   
-    ~mdspan() noexcept ;
+    ~basic_mdspan() noexcept ;
   
-    constexpr mdspan() noexcept ;
-    constexpr mdspan(mdspan&&) noexcept = default ;
-    constexpr mdspan(mdspan const&) noexcept = default ;
-    mdspan& operator=(mdspan&&) noexcept = default ;
-    mdspan& operator=(mdspan const&) noexcept = default ;
+    constexpr basic_mdspan() noexcept ;
+    constexpr basic_mdspan(basic_mdspan&&) noexcept = default ;
+    constexpr basic_mdspan(basic_mdspan const&) noexcept = default ;
+    basic_mdspan& operator=(basic_mdspan&&) noexcept = default ;
+    basic_mdspan& operator=(basic_mdspan const&) noexcept = default ;
 
-    // Constructor and assignment for assignable mdspan
+    // Constructor and assignment for assignable basic_mdspan
   
-    template <typename UType, typename ... UProp>
-    constexpr mdspan( mdspan<UType, UProp...> const& ) noexcept;
+    template <typename UT, typename UExt, typename UMapPol, typename UAccPol>
+      constexpr basic_mdspan(const basic_mdspan<UT, UExt, UMapPol, UAccPol>& other) noexcept;
 
     template <typename UType, typename ... UProp>
-    mdspan& operator=( mdspan<UType, UProp...> const& ) noexcept;
+      constexpr basic_mdspan& operator=(const basic_mdspan<UT, UExt, UMapPol, UAccPol>& other) noexcept;
 
     // Wrapping constructors
 
     template< class ... IndexType >
-    explicit constexpr mdspan(pointer, IndexType ... DynamicExtents ) noexcept;
+    explicit constexpr basic_mdspan(pointer, IndexType ... DynamicExtents ) noexcept;
 
     template< class ... IndexType >
-    explicit constexpr mdspan(std::span<element_type>, IndexType ... DynamicExtents ) noexcept;
+    explicit constexpr basic_mdspan(span<element_type>, IndexType ... DynamicExtents ) noexcept;
 
     template< class IndexType , size_t N >
-    explicit constexpr mdspan(pointer, std::array<IndexType,N> const & DynamicExtents ) noexcept ;
+    explicit constexpr basic_mdspan(pointer, array<IndexType,N> const & DynamicExtents ) noexcept ;
 
     template< class IndexType , size_t N >
-    explicit constexpr mdspan(std::span<element_type>, std::array<IndexType,N> const & DynamicExtents ) noexcept ;
+    explicit constexpr basic_mdspan(span<element_type>, array<IndexType,N> const & DynamicExtents ) noexcept ;
 
-    // mapping domain multi-index to access codomain member
+    // Mapping domain multi-index to access codomain member
   
     constexpr reference operator[]( index_type ) const noexcept; // requires rank() == 1
 
@@ -472,9 +480,9 @@ template class ``mdspan``
     constexpr reference operator()( IndexType ... indices ) const noexcept;
 
     template< class IndexType , size_t N >
-    constexpr reference operator()( std::array<IndexType,N> const & indices ) const noexcept;
+    constexpr reference operator()( array<IndexType,N> const & indices ) const noexcept;
 
-    // observers of the index space domain
+    // Observers of the index space domain
   
     static constexpr int rank() noexecept ;
     static constexpr int rank_dynamic() noexecept ;
@@ -485,19 +493,17 @@ template class ``mdspan``
 
     constexpr index_type size() const  noexecept ;
 
-    // observers of the codomain:
+    // Observers of the codomain:
 
-    constexpr std::span<element_type> span() const  noexecept ;
+    constexpr span<element_type> span() const  noexecept ;
   
     template< class ... IndexType >
     static constexpr index_type required_span_size( IndexType ... DynamicExtents );
 
     template< class ... IndexType , size_t N >
-    static constexpr index_type required_span_size( std::array<IndexType,N> const & DynamicExtents );
+    static constexpr index_type required_span_size( array<IndexType,N> const & DynamicExtents );
 
-    // observers of the mapping : domain -> codomain
-
-    using layout = /* extracted from Properties... */ ;
+    // Observers of the mapping : domain -> codomain
 
     static constexpr bool is_always_unique     = /* layout */ ;
     static constexpr bool is_always_contiguous = /* layout */ ;
@@ -511,8 +517,9 @@ template class ``mdspan``
 
   private:
     // exposition only
-    typename layout::mapping< StaticExtents... > mapping ;
-    pointer_type                                 ptr ;
+    accesor      access;
+    mapping      map;
+    pointer_type ptr;
   };
 
   }}}
@@ -520,49 +527,22 @@ template class ``mdspan``
 ..
 
 
-Template arguments
+Template Arguments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``template <typename DataType, typename... Properties> class mdspan``
+``ElementType`` is a (possibly cv-qualified) non-array object type denoting the element type of the array.
 
-``DataType``
+``Extents`` is an extents object.
 
-  Requires: Is a non-array type denoting the element type of the array.
+``MappingPolicy`` is a type that satisfies the ``MappingPolicy`` requirements.
 
-``Properties...``
-
-  Effects:  The domain index space rank, static extents, and identification of
-  dynamic extents is determined from the ``extents``
-  member of the property pack.
-  The domain to codomain layout mapping is
-  determined from the layout member of the property pack.
-
-
-Fundamental Types
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-|  ``using element_type = typename remove_all_extents_t<DataType> ;``
-|  ``using value_type   = typename remove_cv_t<element_type> ;``
-|  ``using reference    = element_type & ;``
-|  ``using pointer      = element_type * ;``
-
-  [If ``std::is_const<element_type>`` then references to codomain members are const.
-  Extensions to access properties may cause ``reference`` to become a proxy type 
-  (see Appendix: Reference is potentially a proxy)]
-
-|  ``using index_type      = ptrdiff_t ;``
-|  ``using difference_type = ptrdiff_t ;``
-
-  [Note: Integral types for dimensions and indexing are signed
-  integers to avoid casting unsigned-to-signed for loop bounds
-  and improve opportunities for optimizing loops. --end note]
-
+``AccessorPolicy`` is a type that satisfies the ``AccessorPolicy`` requirements.
 
 Domain Observers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The multi-index domain space is the Cartesian product of the extents:
-``[0..extent(0)) X [0..extent(1)) X ... X [0..extent(rank()-1))``.
+``[0..extent(0)) X [0..extent(1)) X ... X [0..extent(rank() - 1))``.
 Each extent may be statically (at compile time) or dynamically (at runtime)
 specified.
 
@@ -577,7 +557,7 @@ specified.
 
 ``static constexpr index_type static_extent(int r);``
 
-  Requires: ``0 <= r``
+  Requires: ``0 <= r``.
 
   Returns: If ``0 <= r < rank()`` the statically specified extent.
   A statically declared extent of ``dynamic_extent``
@@ -586,7 +566,7 @@ specified.
 
 ``constexpr index_type extent(int r) const ;``
 
-  Requires: ``0 <= r``
+  Requires: ``0 <= r``.
 
   Returns: If ``0 <= r < rank()`` the extent of coordinate ``r``.
   If ``rank() <= r`` then ``extent(r) == 1``.
@@ -594,7 +574,7 @@ specified.
 
 ``constexpr index_type size() const ;``
 
-  Returns: product of ``extent(r)`` where ``0 <= r < rank()``.
+  Returns: Product of ``extent(r)`` where ``0 <= r < rank()``.
 
 
 Codomain Observers
@@ -605,27 +585,27 @@ i.e., the range of the mapping is contained within the codomain but may not
 be equal to the codomain.
 
 
-``constexpr std::span<element_type> span() const ;``
+``constexpr span<element_type> span() const ;``
 
-  Returns: An ``std::span`` for the codomain.
+  Returns: An ``span`` for the codomain.
 
 | ``template< class ... IndexType >``
 | ``static constexpr index_type required_span_size( IndexType ... DynamicExtents );``
 
   Requires: 
 
-  - ``rank_dynamic() == sizeof...(DynamicExtents)``
-  - ``is_integral_type_v<IndexType>...``
-  - Denote the ith coordinate of ``DynamicExtents...`` as
-    denoted as ``DynamicExtents[ith]`` then:
-  - ``0 <= DynamicExtents[ith]`` for ``0 <= ith < rank_dynanic()``
+  - ``rank_dynamic() == sizeof...(DynamicExtents)``.
+  - ``is_integral_type_v<IndexType>...``.
+  - Let ``DynamicExtents[ith]`` denote the ith coordinate of
+    ``DynamicExtents...``. ``0 <= DynamicExtents[ith]`` for
+    ``0 <= ith < rank_dynanic()``.
 
   Returns: The minimum size of the codomain to support the multi-index domain
   defined by the merging of ``DynamicExents`` with ``StaticExtents``.
 
 
 | ``template< class ... IndexType , size_t N >``
-| ``static constexpr index_type required_span_size( std::array<IndexType,N> const & DynamicExtents );``
+| ``static constexpr index_type required_span_size( array<IndexType,N> const & DynamicExtents );``
 
   Requires: 
 
@@ -640,32 +620,31 @@ be equal to the codomain.
 Constructors, assignments, destructor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``constexpr mdspan();``
+``constexpr basic_mdspan();``
 
   Effect: Construct a *null* ``mdspan`` with codomain
-  ``span() == std::span<element_type>()``
+  ``span() == span<element_type>()``
   and ``extent(r) == 0`` for all dynamic extents.
 
-
-| ``template< typename UType , typename ... UProperties >``
-| ``constexpr mdspan( mdspan< UType , UProperties ... > const & ) noexcept``
-| ``template< typename UType , typename ... UProperties >``
-| ``mdspan & operator = ( mdspan< UType , UProperties ... > const & ) noexcept``
+| ``template <typename UT, typename UExt, typename UMapPol, typename UAccPol>``
+| ``  constexpr basic_mdspan(const basic_mdspan<UT, UExt, UMapPol, UAccPol>& other) noexcept;``
+| ``template <typename UType, typename ... UProp>``
+| ``  constexpr basic_mdspan& operator=(const basic_mdspan<UT, UExt, UMapPol, UAccPol>& other) noexcept;``
 
   Requires:
-  Given ``using V = mdspan<DataType,Properties...>`` and
-  ``using U = mdspan<UType,UProperties...>`` then
+  Given ``using V = basic_mdspan<ElementType, Extents, MappingPolicy, AccessorPolicy>`` and
+  ``using U = basic_mdspan<UT, UExt, UMapPol, UAccPol>`` then
 
-  | ``is_assignable<V::pointer,U::pointer>`` ,
+  | ``is_assignable_v<typename V::pointer, typename U::pointer> == true`` ,
   | ``V::rank() == U::rank()`` ,
-  | ``V::static_extent(r) == U::static_extent(r)`` or ``V::static_extent(r) == std::dynamic_extent`` for ``0 <= r < V::rank()`` ,
+  | ``V::static_extent(r) == U::static_extent(r)`` or ``V::static_extent(r) == dynamic_extent`` for ``0 <= r < V::rank()`` ,
   | compatibility of layout mapping
 
   Effect: ``* this`` has equal domain, equal codomain, and
   equivalent mapping.
 
 | ``template< class ... IndexType >``
-| ``constexpr mdspan( pointer ptr , IndexType ... DynamicExtents) noexcept``
+| ``constexpr basic_mdspan( pointer ptr , IndexType ... DynamicExtents) noexcept``
 
   Requires:
 
@@ -673,18 +652,18 @@ Constructors, assignments, destructor
   - ``is_integral_type_v<IndexType>...``
   - The ith coordinate of ``DynamicExtents...``,
     denoted as ``DynamicExtents[ith]``, is ``0 <= DynamicExtents[ith]``.
-  - The span of elements denoted by ``[ ptr , ptr + required_span_size(DynamicExtents...) )``,
+  - ``[ ptr , ptr + required_span_size(DynamicExtents...) )``,
     shall be a valid contiguous span of elements.
 
   Effects:
   This *wrapping constructor* constructs ``* this``
   with domain's dynamic extents equal to ``DynamicExtents...``
   and codomain equal to
-  ``std::span<element_type>( ptr , required_span_size(DynamicExtents...) )``
+  ``span<element_type>( ptr , required_span_size(DynamicExtents...) )``
   
 
 | ``template< class IndexType , size_t N >``
-| ``constexpr mdspan( pointer ptr , std::array<IndexType,N> const & DynamicExtents) noexcept``
+| ``constexpr basic_mdspan( pointer ptr , array<IndexType,N> const & DynamicExtents) noexcept``
 
   Requires:
 
@@ -698,11 +677,11 @@ Constructors, assignments, destructor
   This *wrapping constructor* constructs ``* this``
   with domain's dynamic extents equal to ``DynamicExtents[ith].``
   and codomain equal to
-  ``std::span<element_type>( ptr , required_span_size(DynamicExtents) )``
+  ``span<element_type>( ptr , required_span_size(DynamicExtents) )``
   
 
 | ``template< class ... IndexType >``
-| ``constexpr mdspan( std::span<element_type> s , IndexType ... DynamicExtents) noexcept``
+| ``constexpr basic_mdspan( span<element_type> s , IndexType ... DynamicExtents) noexcept``
 
   Requires:
 
@@ -715,11 +694,11 @@ Constructors, assignments, destructor
   Effects: This *wrapping constructor* constructs ``* this``
   with domain's dynamic extents equal to ``DynamicExtents...``
   and codomain equal to
-  ``std::span<element_type>( ptr , required_span_size(DynamicExtents...) )``
+  ``span<element_type>( ptr , required_span_size(DynamicExtents...) )``
 
 
 | ``template< class IndexType , size_t N >``
-| ``constexpr mdspan( std::span<element_type> s , std::array<IndexType,N> const & DynamicExtents) noexcept``
+| ``constexpr basic_mdspan( span<element_type> s , array<IndexType,N> const & DynamicExtents) noexcept``
 
   Requires:
 
@@ -731,7 +710,7 @@ Constructors, assignments, destructor
   Effects: This *wrapping constructor* constructs ``* this``
   with domain's dynamic extents equal to ``DynamicExtents[ith]``
   and codomain equal to
-  ``std::span<element_type>( ptr , required_span_size(DynamicExtents[ith]) )``
+  ``span<element_type>( ptr , required_span_size(DynamicExtents[ith]) )``
 
 
 
@@ -740,10 +719,7 @@ Mapping domain multi-index to access elements in the codomain
 
 ``reference operator[]( index_type index ) const noexcept``
 
-  Requires: ``rank() == 1`` and  ``0 <= i < extent(0)``
-
-  Returns: A ``reference`` to the element mapped to by ``index``.
-
+  Effects: Equivalent to ``return (*this)(index);``
 
 | ``template< class ... IndexType >``
 | ``reference operator()( IndexType ... indices ) const noexcept``
@@ -754,12 +730,14 @@ Mapping domain multi-index to access elements in the codomain
   - The ith coordinate of ``indices...``, denoted as ``indices[ith]``,
     is in the domain: ``0 <= indices[ith] < extent(ith)``.
 
-  Returns: A ``reference`` to the element mapped to by ``indices...``.
+  Effects: Equivalent to ``return map(index);``.
 
+..
   Remark: Optimization of the mapping operator is a critical
   feature of the multidimensional array implementation.
   Recommended optimizations include:
 
+..
   - Rank-specific overloads to better
     enable optimization of the member access operator.
   - Inlining of a ``constexpr`` multi-index mapping expression
@@ -767,21 +745,17 @@ Mapping domain multi-index to access elements in the codomain
   - Compile-time evaluation statically determined portions of
     multi-index mapping expression.
 
-
 | ``template< class IndexType , size_t N >``
-| ``reference operator()( std::array<IndexType,N> const & indices ) const noexcept``
+| ``reference operator()( array<IndexType,N> const & indices ) const noexcept``
 
-  Requires: ``indices`` is a multi-index in the domain:
+  Effects: Equivalent to ``return map(indices[0], ... indices[N - 1]);``.
 
-  - ``rank() == N``
-  - ``0 <= indices[ith] < extent(ith)``.
-
-  Returns: A ``reference`` to the element mapped to by ``indices...``.
-
+..
   Remark: Optimization of the mapping operator is a critical
   feature of the multidimensional array implementation.
   Recommended optimizations include:
 
+..
   - Rank-specific overloads to better
     enable optimization of the member access operator.
   - Inlining of a ``constexpr`` multi-index mapping expression
@@ -792,12 +766,6 @@ Mapping domain multi-index to access elements in the codomain
 
 Mapping Observers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``using layout = /* implementation deduces from Properties... */ ;``
-
-  Identification of the layout mapping.
-  If ``Properties...`` does not include a layout property then
-  ``layout`` is ``layout_right`` denoting the traditional C/C++ mapping.
 
 | ``static constexpr bool is_always_unique =``
 | ``constexpr bool is_unique() const noexcept ;``
@@ -834,22 +802,10 @@ Mapping Observers
 
 
 ----------------------------------------------------------------------------
-template class ``extents``
+Class template ``extents``
 ----------------------------------------------------------------------------
 
-One of the valid members of an ``mdspan`` ``Properties...`` pack
-is an instantiation of template class ``extents``.
-This property declares the rank and static extents of the ``mdspan`` type.
-Example:
-
-.. code-block:: c++
-
-  using tensor = std::mdspan<double,std::extents<std::dynamic_extent,std::dynamic_extent,std::dynamic_extent>> ;
-
-..
-
-Note: A `preferred, concise, and intuitive syntax`_ for declaring 
-the multidimensional index space of an ``mdspan`` is proposed in P0332.
+An extents objects defines the lengths of the dimensions of an ``mdspan``.
 
 .. code-block:: c++
 
@@ -863,8 +819,7 @@ the multidimensional index space of an ``mdspan`` is proposed in P0332.
 
     using index_type = ptrdiff_t ;
 
-    // observers of the index space domain:
-    // [0..extent(0))X[0..extent(1))X...X[0..extent(rank()-1))
+    // Observers of the index space domain:
   
     static constexpr int rank() noexcept ;
     static constexpr int rank_dynamic() noexcept ;
@@ -875,7 +830,7 @@ the multidimensional index space of an ``mdspan`` is proposed in P0332.
 
     constexpr index_type size() const noexcept ;
 
-    // constructors/assignment/destructor
+    // Constructors/assignment/destructor
 
     ~extents() = default ;
     constexpr extents();
@@ -897,10 +852,15 @@ the multidimensional index space of an ``mdspan`` is proposed in P0332.
 ``subspan``
 ----------------------------------------------------------------------------
 
-| ``template< typename DataType , typename ... Properties , typename ... SliceSpecifiers >``
-|   // for exposition only:
-|   *detail::subspan_deduction_t<mdspan<DataType,Properties...>,SliceSpecifiers...>*
-| ``subspan( mdspan< DataType, Properties ... > const & U , SliceSpecifiers ... slices ) noexcept;``
+.. code-block:: c++
+
+  template <typename ElementType, typename Extents,
+            typename MappingPolicy, typename AccessorPolicy>
+  // for exposition only:
+  detail::subspan_deduction_t<basic_mdspan<ElementType, Extents, MappingPolicy, AccessorPolicy>, SliceSpecifiers...>
+  subspan(const basic_mdspan<ElementType, Extents, MappingPolicy, AccessorPolicy>& U , SliceSpecifiers... slices) noexcept;
+
+..
 
   The ``detail::subspan_deduction_t`` is for exposition only to indicate
   that the implementation will require a metafunction to deduce the resulting
@@ -931,7 +891,7 @@ the multidimensional index space of an ``mdspan`` is proposed in P0332.
   - ``0 <= begin(slices[ith]) <= end(slices[ith]) <= U.extent(ith)``.
   
   Returns:
-  An ``mdspan V`` with a domain contained within the domain of ``U`` ,
+  A ``basic_mdspan V`` with a domain contained within the domain of ``U`` ,
   codomain contained within the codomain of ``U`` ,
   ``V.rank()`` is the number of integral ranges in ``slices...`` ,
   ``U( begin(slices)... )`` refers to the same codomain member
@@ -955,17 +915,17 @@ Such a static extent slice specifier type is to-be-done.
 
 
 ----------------------------------------------------------------------------
-Layout properties
+Layout Policy Requirements
 ----------------------------------------------------------------------------
 
-An ``mdspan`` maps multi-indices from the domain to
+A ``basic_mdspan`` maps multi-indices from the domain to
 reference elements in the codomain by composing a *layout mapping*
 with a span of elements.
-The layout mapping is an extension point such that an ``mdspan`` may be
+The layout mapping is an extension point such that an ``basic_mdspan`` may be
 instantiated with non-standard layout mappings.
 
 
-Predefined, Standard Layouts
+Predefined, Standard Layout Policies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``layout_right`` property denotes the C/C++ standard
@@ -1029,18 +989,18 @@ codomain member reference generation.
     class mapping {
     public:
 
-      // domain types
+      // Domain types
   
       using index_type = ptrdiff_t ;
 
-      // constructors, copy, assignment, and destructor
+      // Constructors, copy, assignment, and destructor
   
       ~mapping() noexcept = default ;
       constexpr mapping() noexcept = default ;
       constexpr mapping(mapping const&) noexcept = default ;
       mapping& operator=(mapping const&) noexcept = default ;
   
-      // observers of domain
+      // Observers of domain
   
       static constexpr int rank() noexcept;
       static constexpr int rank_dynamic() noexcept;
@@ -1051,15 +1011,15 @@ codomain member reference generation.
 
       constexpr index_type size() const noexcept;
   
-      // observers of the codomain: [0..required_span_size())
+      // Observers of the codomain: [0..required_span_size())
 
       constexpr index_type required_span_size() const noexcept;
   
-      // observers of the mapping from domain to codomain
+      // Observers of the mapping from domain to codomain
 
-      static constexpr bool is_always_unique     = /* deduced */ ;
-      static constexpr bool is_always_contiguous = /* deduced */ ;
-      static constexpr bool is_always_strided    = /* deduced */ ;
+      static constexpr bool is_always_unique     = /* unspecified */ ;
+      static constexpr bool is_always_contiguous = /* unspecified */ ;
+      static constexpr bool is_always_strided    = /* unspecified */ ;
 
       constexpr bool is_unique() const noexcept;
       constexpr bool is_contiguous() const noexcept;
@@ -1067,7 +1027,7 @@ codomain member reference generation.
   
       constexpr index_type stride(int) const noexcept;
   
-      // mapping domain index to access codomain element
+      // Mapping domain index to access codomain element
   
       template< class ... IndexType >
       constexpr index_type operator()( IndexType ... indices ) const noexcept;
@@ -1080,19 +1040,19 @@ codomain member reference generation.
 
   Requires:
   Let ``StaticExtents[ith]`` be the ith member of the pack.
-  ``StaticExtents[ith] == std::dynamic_extent`` or
+  ``StaticExtents[ith] == dynamic_extent`` or
   ``0 <= StaticExtents[ith]``.
 
 
   Effects: Defines the domain index space where
   ``rank() == sizeof...(StaticExtents)`` and
-  each ``StaticExtents[ith] == std::dynamic_extent``
+  each ``StaticExtents[ith] == dynamic_extent``
   denotes that ``ith`` extent coordinate is a dynamic extent.
 
 ``constexpr mapping();``
 
   Effects:
-  If ``static_extent(i) != std::dynamic_extent`` then
+  If ``static_extent(i) != dynamic_extent`` then
   ``extent(i) == static_extent(i)``
   otherwise ``extent(i) == 0``.
   
@@ -1100,7 +1060,7 @@ codomain member reference generation.
 | ``explicit constexpr mapping(`` *layout_property* ``const&) noexcept;``
 
   Constructors, assignment operators, and destructor requires and effects
-  correspond to the corresponding members of ``mdspan`` .
+  correspond to the corresponding members of ``basic_mdspan`` .
 
 | ``static constexpr int rank() noexcept;``
 | ``static constexpr int rank_dynamic() noexcept;``
@@ -1112,9 +1072,9 @@ codomain member reference generation.
 | ``static constexpr index_type required_span_size( IndexType ... DynamicExtents ) noexcept;``
 | ``static constexpr index_type required_span_size( *layout_property* const & ) noexcept;``
 |
-| ``static constexpr bool is_always_unique     = /* deduced */ ;``
-| ``static constexpr bool is_always_contiguous = /* deduced */ ;``
-| ``static constexpr bool is_always_strided    = /* deduced */ ;``
+| ``static constexpr bool is_always_unique     = /* unspecified */ ;``
+| ``static constexpr bool is_always_contiguous = /* unspecified */ ;``
+| ``static constexpr bool is_always_strided    = /* unspecified */ ;``
 |
 | ``constexpr bool is_unique() const noexcept;``
 | ``constexpr bool is_contiguous() const noexcept;``
@@ -1123,7 +1083,7 @@ codomain member reference generation.
 | ``constexpr index_type stride(int) const noexcept;``
 
   Domain, codomain, and mapping observers requires and effects
-  correspond to the corresponding members of ``mdspan`` .
+  correspond to the corresponding members of ``basic_mdspan`` .
 
 | ``constexpr index_type required_span_size() const noexcept;``
 
@@ -1140,6 +1100,75 @@ codomain member reference generation.
   multidimensional index space to the codomain one dimensional index space
   ``[0..required_span_size())``.
 
+----------------------------------------------------------------------------
+Accessor Policy Requirements
+----------------------------------------------------------------------------
+
+.. Straight from P0454
+
+An *accessor policy* is a class that contains an *accessor*, a nested
+template class.
+
+An accessor takes a pointer to an array and an index and returns a
+reference to the element of the array at the given index. ``basic_mdspan``
+is parameterized in terms of accessor. 
+
+An accessor fulfills the ``DefaultConstructible`` and ``CopyAssignable``
+requirements.
+
+In Table �:
+
+  * ``AP`` denotes an accessor policy.
+  * ``A`` denotes an accessor.
+  * ``a`` denotes a value of type ``A``.
+  * ``p`` denotes a pointer of type ``T``.
+  * ``i`` denotes an integer.
+
++---------------------+----------------------------+-------------------------------------------+----------------------------------------------------------------------------+
+| Expression          | Return Type                | Operational Semantics                     | Requirements/Note                                                          |
++=====================+============================+===========================================+============================================================================+
+| ``AP::accessor<T>`` | ``A``                      |                                           |                                                                            |
++---------------------+----------------------------+-------------------------------------------+----------------------------------------------------------------------------+
+| ``A::index_type``   |                            |                                           | *Requires:* ``is_numeric_v<A::index_type> == true``.                       |
++---------------------+----------------------------+-------------------------------------------+----------------------------------------------------------------------------+
+| ``A::element_type`` |                            |                                           | *Requires:* This type shall be convertible to ``T``.                       |
++---------------------+----------------------------+-------------------------------------------+----------------------------------------------------------------------------+
+| ``A::pointer``      | A ``RandomAccessIterator`` |                                           | *Requires:* This iterator type's value type shall be convertible to ``T``. |
++---------------------+----------------------------+-------------------------------------------+----------------------------------------------------------------------------+
+| ``A::reference``    |                            |                                           | *Requires:* This type shall be convertible to ``T``.                       |
++---------------------+----------------------------+-------------------------------------------+----------------------------------------------------------------------------+
+| ``a(p, i)``         | ``reference``              | *Effects:* Equivalent to ``return p[i];`` |                                                                            |
++---------------------+----------------------------+-------------------------------------------+----------------------------------------------------------------------------+
+
+----------------------------------------------------------------------------
+Accessor Policies 
+----------------------------------------------------------------------------
+
+.. code-block:: c++
+
+  struct accessor_basic
+  {
+    template <typename T>
+    struct accessor
+    {
+      using element_type = T;
+      using pointer      = T*;
+      using reference    = T&;
+
+      constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
+    };
+  };
+
+..
+
+.. code-block:: c++ 
+
+  template <typename Index>
+    constexpr reference operator()(pointer p, Index i) const noexcept;
+
+..
+
+*Effects:* Equivalent to ``return p[i];``
 
 ****************************************************************************
 Appendix: Preferred declaration syntax for multi-index space domain (P0332)
@@ -1152,7 +1181,7 @@ verbose and unwieldy.
 
 .. code-block:: c++
 
-  using tensor = std::mdspan<double,std::extents<std::dynamic_extent,std::dynamic_extent,std::dynamic_extent>> ;
+  using tensor = basic_mdspan<double,extents<dynamic_extent,dynamic_extent,dynamic_extent>> ;
 
 ..
 
@@ -1162,7 +1191,7 @@ and users have voiced strong expressed preference.
 
 .. code-block:: c++
 
-  using tensor = mdspan<double[][][]> ;
+  using tensor = basic_mdspan<double[][][]> ;
 
 ..
 
@@ -1173,7 +1202,7 @@ proposed in P0332 to relax the definition of an incomplete array type.
 
 There is precedence for using incomplete array types for dynamic extents.
 
-  - ``std::shared_ptr<T[]>`` and ``std::unique_ptr<T[]>``
+  - ``shared_ptr<T[]>`` and ``unique_ptr<T[]>``
     denote a dynamic extent array through the incomplete type ``T[]``
   - P0674 denotes ``make_shared<T[][N1][N2]>`` to allocate
     a ``shared_ptr`` to a C style multidimensional array.
@@ -1182,108 +1211,54 @@ There is precedence for using incomplete array types for dynamic extents.
 Impact on this proposal
 ----------------------------------------------------------------------
 
-``DataType``
+``ElementType``
 
   Requires: Is a complete or incomplete array type (8.3.4.p3).
   Each omitted static extent in the incomplete array type, ``[]``,
   denotes a *dynamic* extent.
 
-  | ``using element_type = std::remove_all_extents<DataType>::type ;``
+  | ``using element_type = remove_all_extents<ElementType>::type ;``
   |
-  | ``constexpr int rank() const { return std::rank<DataType>::value ; }``
+  | ``constexpr int rank() const { return rank<ElementType>::value ; }``
   |
-  | ``static_extent(i)`` is ``std::extent_v<DataType,i>``
+  | ``static_extent(i)`` is ``extent_v<ElementType,i>``
   |
-  | A dynamic extent is denoted when ``std::extent_v<DataType,i> == 0``.
+  | A dynamic extent is denoted when ``extent_v<ElementType,i> == 0``.
   |
-  | The need for the magic number ``std::dynamic_extent`` is removed.
+  | The need for the magic number ``dynamic_extent`` is removed.
 
 
 ***********************************************************************
-Appendix: Alignment or Merging with P0122 ``span`` (P0456)
-***********************************************************************
-
-A minor revision of P0122 ``span`` is proposed in P0456 that
-would more closely align ``span`` with ``mdspan`` and
-enable ``span`` to have a similar extensibility for 
-access properties.
-
-.. code-block:: c++
-
-  template< typename DataType , class ... Properties >
-  class span {
-  public:
-    // change element_type declaration:
-    using element_type = std::remove_extent_t< DataType > ;
-
-  };
-
-..
-
-Given P0456 the proposed ``span`` and ``mdspan`` could be merged into
-a single template class by simply requiring that all members specific
-to a one-dimensional span **Requre** that ``rank() == 1``.
-
-
-***********************************************************************
-Appendix: Reference is potentially a proxy (P0860)
+Appendix: Interoperation with Proxy Types (P0860)
 ***********************************************************************
 
 The ``reference`` type may be a proxy for accessing an ``element_type`` object.
-For example, if an ``atomic_access`` property were defined with the
+For example, if an ``accessor_atomic`` ``AccessorPolicy`` were defined with the
 meaning that all access operations on codomain objects are atomic
 then the ``reference`` type must be an atomic reference type
 (paper P0019).
 
 .. code-block:: c++
 
-  mdspan<int[],atomic_access> a( ptr , N );
+  basic_mdspan<int, extents<dynamic_extent>, layout_right, accessor_atomic> a(ptr, N);
 
-  static_assert( std::is_same_v< delctype(a(i)) , atomic_ref<int> > );
-
-..
-
-
-***********************************************************************
-Appendix: Anticipated mdspan properties
-***********************************************************************
-
-.. code-block:: c++
-
-  namespace std {
-  namespace experimental {
-
-    // bounds checking property
-    template< bool Enable >
-    struct bounds_check_if ;
-
-    using bounds_check = bounds_check_if< true > ;
-  }}
+  static_assert(is_same_v<decltype(a(i)), atomic_ref<int>>);
 
 ..
-
-
-  When ``mdspan`` ``Properties...`` includes
-  ``bounds_check_if<true>`` then the mapping operators
-  ``mdspan::operator()`` and ``mdspan::operator[]``
-  verify that each index is valid,
-  ``0 <= index[ith] < extent(ith)``.
-  Verification failure shall be reported.
-
 
 
 ***********************************************************************
 Appendix: Examples
 ***********************************************************************
 
-Given ``mdspan x`` then:
+Given ``basic_mdspan x`` then:
 
 .. code-block:: c++
 
   int d = 0 ;
   index_type s = 1 ;
   for ( int i = 0 ; i < x.rank() ; ++i ) {
-    if ( x.static_extent(i) == std::dynamic_extent ) { ++d ; }
+    if ( x.static_extent(i) == dynamic_extent ) { ++d ; }
     s *= x.extent(i);
   }
   assert( d == x.rank_dynamic() );
@@ -1296,7 +1271,7 @@ Subspan behavior:
 .. code-block:: c++
 
   // given U.rank() == 4
-  void foo( mdspan< DataType , Properties ... > const & U )
+  void foo( basic_mdspan< ElementType , Properties ... > const & U )
   {
     auto V = subspan( U , make_pair(1,U.extent(0)-1) , 1 , make_pair(2,U.extent(2)-2 );
     assert( V.extent(0) == U.extent(0) - 2 );
@@ -1327,9 +1302,8 @@ Related papers:
   accessing the memory an object or span of objects.
   The ``Properties...`` extension point in this proposal is intended
   to include such memory access properties.
-- **P0454 : Wording for a Minimal ``mdspan``** (withdrawn)
+- **P0454 : Wording for a Minimal ``mdspan``**
 - **P0546 : Preparing ``span`` for the future**
-- **P0567 : Asynchronous Managed Pointer for Hetergeneous ...**
-- **P0687 : Data Movement in C++**
+- **P0900 : An Ontology of Properties for ``mdspan``** 
 
 
