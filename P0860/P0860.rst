@@ -1,0 +1,143 @@
+===================================================================
+D0860r0 : Atomic Access Property for span and mdspan
+===================================================================
+
+:Project: ISO JTC1/SC22/WG21: Programming Language C++
+:Number: D0860r0
+:Date: 2017-11-09
+:Reply-to: hcedwar@sandia.gov
+:Author: H\. Carter Edwards
+:Contact: hcedwar@sandia.gov
+:Author: Christian Trott
+:Contact: crtrott@sandia.gov
+:Author: Daniel Sunderland
+:Contact: dsunder@sandia.gov
+:Audience: Parallelism and Concurrency Study Group (SG1)
+:Audience: Library Evolution Working Group (LEWG)
+:URL: https://github.com/kokkos/array_ref/blob/master/proposals/P0860.rst
+
+
+.. sectnum::
+
+
+******************************************************************
+Revision History
+******************************************************************
+
+----------------------------------------------------------------------------
+D0856r0
+----------------------------------------------------------------------------
+
+2017-11-08 Albuquerque LEWG feedback for P0009, P0019, and P0546
+
+  - Extract atomic array reference from P0019 to a separate paper
+
+
+******************************************************************
+Description / Motivation
+******************************************************************
+
+Both ``span`` and ``mdspan`` allow for additional property parameters 
+to be specified. 
+The collections of all possible property parameters form an ontology 
+(P0900) where the properties are grouped into orthogonal *property-types*.
+Properties with the property-type *access* allows ``span`` and ``mdspan``
+to tailor how referenced members are accessed.
+A ``span`` or ``mdspan`` can have at most one parameter with the
+access property-type.
+
+High performance computing (HPC) applications use very large arrays.
+Computations with these arrays typically have distinct phases that
+allocate and initialize members of the array,
+update members of the array,
+and read members of the array.
+Parallel algorithms for initialization (e.g., zero fill)
+have non-conflicting access when assigning member values.
+Parallel algorithms for updates have conflicting access
+to members which must be guarded by atomic operations.
+Parallel algorithms with read-only access require best-performing
+streaming read access, random read access, vectorization,
+or other guaranteed non-conflicting HPC pattern.
+
+An ``atomic_ref`` (P0019) is used to perform
+atomic operations on the non-atomic members of the referenced array.
+Construction of an ``atomic_ref`` for a non-atomic object
+requires the non-atomic object satisfy several conditions
+and potentially must acquire resources such as a lock
+in order to perform atomic operations on that object.
+Construction of ``atomic_ref`` has potentially large overhead
+which could be performed once for an entire span.
+
+We propose the property ``atomic_access`` with property-type access for
+``span`` and ``mdspan`` such that
+
+  - all references to elements are ``atomic_ref``
+  - potential overhead associated with constructing ``atomic_ref``
+    occurs only once when the ``span`` or ``mdspan``
+    is constructed.
+
+******************************************************************
+Proposal
+******************************************************************
+
+Modify ``span`` and ``mdspan`` specification:
+
+.. code-block:: c++
+
+  namespace std {
+  namespace experimental {
+  inline namespace fundamentals_v3 {
+
+    template< class ArrayType , typename ... Properties >
+    struct span {
+      // revision
+      // using reference = element_type & ; // remove
+      using reference = /* implementation defined */ ;
+    };
+
+    template< class ArrayType , typename ... Properties >
+    struct mdspan {
+      // revision
+      // using reference = element_type & ; // remove
+      using reference = /* implementation defined */ ;
+    };
+
+  }}}
+
+..
+
+Add to **[views]** a new **[views.atomics]** section.
+
+.. code-block:: c++
+
+  namespace std {
+  namespace experimental {
+  inline namespace fundamentals_v3 {
+  
+    // property-type access
+    struct atomic_access;
+       
+  }}}
+
+..
+
+The ``atomic_access``  access property may appear at most once
+in the ``Properties...`` parameter pack of ``span`` or ``mdpsan``
+and no other access property can be given.
+Let *S* be an instantiation of ``span`` or ``mdspan`` with
+``Properties...`` parameter pack containing ``atomic_access``.
+Let *R* be ``atomic_ref<`` *S* ``::element_type>`` .
+
+  *Requires:*
+
+    - *S* ``::element_type`` satisfies requirements for
+      ``atomic_ref<`` *S* ``::element_type>``,
+    - *S* constructors also require *R* constructors' requirements
+      for member objects of *S*.
+
+  *Effects:*
+
+    - *S* ``::reference`` is ``atomic_ref<`` *S* ``::element_type>``,
+    - *S* iterator types dereference to ``atomic_ref<`` *S* ``::element_type>``
+
+
