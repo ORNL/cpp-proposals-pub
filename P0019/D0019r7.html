@@ -1191,8 +1191,8 @@ Possible extra rowspan handling
       text-align: center;
     }
   </style>
-  <meta content="Bikeshed version fde5340fc09b429924ad9bd9945dc45909bd1cb9" name="generator">
-  <link href="TBD" rel="canonical">
+  <meta content="Bikeshed version eef4acd901f774f3d130c245844f8ea23319c1b2" name="generator">
+  <link href="https://github.com/ORNL/cpp-proposals-pub/P0019/P0019.bs" rel="canonical">
 <style>/* style-md-lists */
 
 /* This is a weird hack for me not yet following the commonmark spec
@@ -1409,11 +1409,11 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">d0019R7<br>Atomic Ref</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2018-04-30">30 April 2018</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2018-05-04">4 May 2018</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
-     <dd><a class="u-url" href="TBD">TBD</a>
+     <dd><a class="u-url" href="https://github.com/ORNL/cpp-proposals-pub/P0019/P0019.bs">https://github.com/ORNL/cpp-proposals-pub/P0019/P0019.bs</a>
      <dt>Authors:
      <dd>
       <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:hedwards@nvidia.com">H. Carter Edwards</a>
@@ -1487,7 +1487,12 @@ form.</p>
      <p>Add a note clarifying that <code class="highlight"><span class="n">atomic_ref</span></code> may not be lock free
 even if <code class="highlight"><span class="n">atomic</span></code> is lock free</p>
     <li data-md="">
-     <p>Add wording for all member functions and specializations</p>
+     <p>Add wording for all member functions and specializations (in previous version
+on the constructor had wording)</p>
+    <li data-md="">
+     <p>Added reference implementation</p>
+    <li data-md="">
+     <p>targeted towards IS20</p>
     <li data-md="">
      <p>Convert to bikeshed</p>
    </ul>
@@ -1568,9 +1573,8 @@ for tighter alignment with <code class="highlight"><span class="n">atomic</span>
 to allow atomic operations to apply to non-atomic objects.  As required by
 [<strong>atomics.types.generic</strong>] the value type <strong>T</strong> must be trivially copyable.</p>
    <p>This paper includes <em>atomic floating point</em> capability defined in <a data-link-type="biblio" href="#biblio-p0020r5">[P0020r5]</a>.</p>
-   <p class="note" role="note"><span>Note:</span> Recent versions of gcc, intel, clang, pgi, xl, and cray already support
-this capability through the use of gnu atomic builtin functions (excluding 
-the floating point specialiation) <a href="https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html">GNU Atomic Builtins</a>. --end note</p>
+   <p class="note" role="note"><span>Note:</span> A <a href="https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/atomic_ref.hpp">reference implementation</a> is available that works on compilers which support the <a href="https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html">GNU atomic builtin</a> functions including recent versions of g++, icpc, and clang++.  --end note</p>
+   <p>This paper is currently targeting IS20.</p>
    <h2 class="heading settled" data-level="3" id="motivation"><span class="secno">3. </span><span class="content">Motivation</span><a class="self-link" href="#motivation"></a></h2>
    <h3 class="heading settled" data-level="3.1" id="atomic-operations-on-a-single-non-atomic-object"><span class="secno">3.1. </span><span class="content">Atomic Operations on a Single Non-atomic Object</span><a class="self-link" href="#atomic-operations-on-a-single-non-atomic-object"></a></h3>
    <p>An <em>atomic reference</em> is used to perform atomic operations on a referenced
@@ -1624,8 +1628,6 @@ as of <a data-link-type="biblio" href="#biblio-n4727">[N4727]</a>.</p>
 shall determine. </blockquote>
    <blockquote> Apply the following changes to 32.2.� [atomics.syn]: </blockquote>
 <pre class="language-c++ highlight"><span class="n">namespace</span> <span class="n">std</span> <span class="p">{</span>
-<span class="n">namespace</span> <span class="n">experimental</span> <span class="p">{</span>
-<span class="kr">inline</span> <span class="n">namespace</span> <span class="n">concurrency_v2</span> <span class="p">{</span>
 
 <span class="c1">// 3.� atomic ref</span>
 <span class="c1"></span><span class="n">template</span><span class="o">&lt;</span> <span class="n">class</span> <span class="n">T</span> <span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">;</span>
@@ -1692,7 +1694,7 @@ shall determine. </blockquote>
 <span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
   <span class="n">T</span> <span class="n">atomic_fetch_xor_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
                               <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="p">}}}</span>
+<span class="p">}</span>
 </pre>
    <blockquote> Add a new section [atomics.ref.generic] after [atomics.types.generic] </blockquote>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span> <span class="n">class</span> <span class="n">T</span> <span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">{</span>

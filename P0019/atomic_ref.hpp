@@ -19,21 +19,7 @@
 #endif
 
 #ifndef ATOMIC_REF_FORCEINLINE
-#if   defined( _CRAYC ) //cray
-  #define ATOMIC_REF_FORCEINLINE inline
-#elif defined( __PGIC__ ) // pgi
-  #define ATOMIC_REF_FORCEINLINE inline
-#elif defined( __IBMCPP__ ) || defined( __IBMC__ ) // ibm
-  #define ATOMIC_REF_FORCEINLINE inline
-#elif defined( __INTEL_COMPILER ) || defined( __ICC ) //intel
   #define ATOMIC_REF_FORCEINLINE inline __attribute__((always_inline))
-#elif defined( __clang__ ) //clang
-  #define ATOMIC_REF_FORCEINLINE inline __attribute__((always_inline))
-#elif defined( __GNUC__ ) //gnu
-  #define ATOMIC_REF_FORCEINLINE inline __attribute__((always_inline))
-#else
-  #define ATOMIC_REF_FORCEINLINE inline
-#endif
 #endif
 
 static_assert(  (__ATOMIC_RELAXED == static_cast<int>(std::memory_order_relaxed ))
@@ -45,10 +31,8 @@ static_assert(  (__ATOMIC_RELAXED == static_cast<int>(std::memory_order_relaxed 
              , "Error: std::memory_order values are not equivalent to builtins"
              );
 
-namespace std { namespace experimental {
-
-inline namespace concurrency_v2 {
-
+namespace std {
+inline namespace is_20 {
 
 //------------------------------------------------------------------------------
 // Generic type
@@ -838,9 +822,8 @@ atomic_fetch_xor_explicit( atomic_ref<T> * ptr
   return ptr->atomic_fetch_xor_explicit(val, order);
 }
 
-} // inline namespace concurrency_v2
-
-}} // namespace std::experimental
+} // inline namespace is_20
+} // namespace std
 
 
 #endif // ATOMIC_REF_HPP
