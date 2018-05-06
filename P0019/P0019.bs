@@ -9,17 +9,17 @@ Editor: Mark Hoemmen, mhoemme@sandia.gov
 Editor: David Hollman, dshollm@sandia.gov
 Editor: Bryce Adelstein Lelbach, blelbach@nvidia.com
 Editor: Jens Maurer, Jens.Maurer@gmx.net
-Shortname: D0019
+Shortname: P0019
 Revision: 7
 Audience: SG1
 Audience: LWG
-Status: D
+Status: P
 Group: WG21
 Date: 2018-05-05
 Repository: https://github.com/ORNL/cpp-proposals-pub.git
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html
 Toggle Diffs: Yes
-Warning: Custom 
+Warning:
 Custom Warning Title: Work in Progress
 Custom Warning Text: This document is a work in progress that has not yet been
                      submitted to the committee for discussion in its current
@@ -147,10 +147,10 @@ previously acquired resource as opposed to re-acquiring that resource.
 
 Introducing concurrency within legacy codes may require replacing operations on
 existing non-atomic objects with atomic operations such that the non-atomic
-object cannot be replaced with an **atomic** object.
+object cannot be replaced with an *atomic* object.
 
 An object may be heavily used non-atomically in well-defined phases of an
-application.  Forcing such objects to be exclusively **atomic** would incur an
+application.  Forcing such objects to be exclusively *atomic* would incur an
 unnecessary performance penalty.
 
 
@@ -201,7 +201,23 @@ Questions and Concerns
 
 2. Should the wording of `atomic<T>` be rewritten in terms of an *atomic* *reference*?
 
-    Result of SG1 poll: SF F N A SA = 4 3 13 0 0.
+    Result of SG1 poll
+    <table border=1>
+      <tr>
+        <th>SF</th>
+        <th>F</th>
+        <th>N</th>
+        <th>A</th>
+        <th>SA</th>
+      </tr>
+      <tr>
+        <td>4</th>
+        <td>3</th>
+        <td>13</th>
+        <td>0</th>
+        <td>0</th>
+      </tr>
+    </table>
    
     Rewriting `atomic<T>` would require revisiting the contentious issue of
     `atomic<T>` having an exposition only member of type `T`.  While there is
@@ -216,14 +232,31 @@ Questions and Concerns
 
 4. Should *atomic reference* of T be named `atomic_ref<T>` or `atomic<T&>`?
 
-    Results of SG1 poll: SF F N A SA = 0 7 12 3 1.
+    Result of SG1 poll
+    <table border=1>
+      <tr>
+        <th>SF</th>
+        <th>F</th>
+        <th>N</th>
+        <th>A</th>
+        <th>SA</th>
+      </tr>
+      <tr>
+        <td>0</th>
+        <td>7</th>
+        <td>11</th>
+        <td>3</th>
+        <td>1</th>
+      </tr>
+    </table>
 
     Those against `atomic<T&>` raised the concern that it allows dangerous
     errors to creep into generic code, which requires users to be aware of this
     edge case to avoid.  Also, after an `atomic<T>` is constructed it does not
     have data races with other objects, while an *atomic reference* of T does.
-    An `atomic<T&>` is a specialization of `atomic<T>` with weaker guarantees
-    because of these data race potentials.
+    Furthermore `atomic<T&>` does not have *volatile* member functions.
+    Consequently, `atomic<T&>` is a specialization of `atomic<T>` with weaker
+    guarantees.
      
     The arguments for `atomic<T&>` is that it is more concise and reduces the
     vocabulary terms that a user needs to know.
@@ -233,8 +266,10 @@ Questions and Concerns
     removes any possibility of impacting existing generic code which uses
     `atomic<T>`.  Second, when trying to create wording for `atomic<T&>` the
     specializations had a distinct `vector<bool>` feel where each
-    specialization needed to walk back from guarantees made by the generic
-    version.
+    specialization needed to walk back from guarantees made by the primary
+    template.  In particular, the `atomic<T&>` specializations would be unable
+    to use the phrase 
+    *"Descriptions are provide below only for members that differ from the primary template"*.
 
 
 Proposal
@@ -551,8 +586,8 @@ private:
 public:
   using value_type = floating-point;
   using difference_type = value_type;
-  static constexpr bool is_always_lock_free = *implementation-defined*;
-  static constexpr size_t required_alignment = *implementation-defined*;
+  static constexpr bool is_always_lock_free = implementation-defined;
+  static constexpr size_t required_alignment = implementation-defined;
 
   atomic_ref() = delete;
   atomic_ref& operator = (const atomic_ref&) = delete;
@@ -621,8 +656,8 @@ private:
 public:
   using value_type = T*;
   using difference_type = ptrdiff_t;
-  static constexpr bool is_always_lock_free = *implementation-defined*;
-  static constexpr size_t required_alignment = *implementation-defined*;
+  static constexpr bool is_always_lock_free = implementation-defined;
+  static constexpr size_t required_alignment = implementation-defined;
 
   atomic_ref() = delete;
   atomic_ref& operator = (const atomic_ref&) = delete;

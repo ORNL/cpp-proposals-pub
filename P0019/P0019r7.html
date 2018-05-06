@@ -1494,7 +1494,7 @@ on the constructor had wording)</p>
    <p><a data-link-type="biblio" href="#biblio-p0019r6">[P0019r6]</a></p>
    <ul>
     <li data-md="">
-     <p><code class="highlight"><span class="mi">2017</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">07</span> <span class="n">Albuquerque</span> <span class="n">LEWG</span> <span class="n">review</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">></span> <span class="o">&lt;</span><span class="nl">http</span><span class="p">:</span><span class="c1">//wiki.edg.com/bin/view/Wg21albuquerque/P0019></span></code> </p>
+     <p><a href="http://wiki.edg.com/bin/view/Wg21albuquerque/P0019">2017-11-07 Albuquerque LEWG review</a></p>
      <ul>
       <li data-md="">
        <p>Settle on name <code class="highlight"><span class="n">atomic_ref</span></code></p>
@@ -1569,7 +1569,7 @@ to allow atomic operations to apply to non-atomic objects.  As required by
 [<strong>atomics.types.generic</strong>] the value type <strong>T</strong> must be trivially copyable.</p>
    <p>This paper includes <em>atomic floating point</em> capability defined in <a data-link-type="biblio" href="#biblio-p0020r5">[P0020r5]</a>.</p>
    <p class="note" role="note"><span>Note:</span> A <a href="https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/atomic_ref.hpp">reference implementation</a> is available that works on compilers which support the <a href="https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html">GNU atomic builtin</a> functions including recent versions of g++, icpc, and clang++.  --end note</p>
-   <p>This paper is currently targeting IS20.</p>
+   <p>This paper is currently targeting C++20.</p>
    <h2 class="heading settled" data-level="3" id="motivation"><span class="secno">3. </span><span class="content">Motivation</span><a class="self-link" href="#motivation"></a></h2>
    <h3 class="heading settled" data-level="3.1" id="atomic-operations-on-a-single-non-atomic-object"><span class="secno">3.1. </span><span class="content">Atomic Operations on a Single Non-atomic Object</span><a class="self-link" href="#atomic-operations-on-a-single-non-atomic-object"></a></h3>
    <p>An <em>atomic reference</em> is used to perform atomic operations on a referenced
@@ -1587,9 +1587,9 @@ and assignment operators may reduce overhead by copying or moving the
 previously acquired resource as opposed to re-acquiring that resource.</p>
    <p>Introducing concurrency within legacy codes may require replacing operations on
 existing non-atomic objects with atomic operations such that the non-atomic
-object cannot be replaced with an <strong>atomic</strong> object.</p>
+object cannot be replaced with an <em>atomic</em> object.</p>
    <p>An object may be heavily used non-atomically in well-defined phases of an
-application.  Forcing such objects to be exclusively <strong>atomic</strong> would incur an
+application.  Forcing such objects to be exclusively <em>atomic</em> would incur an
 unnecessary performance penalty.</p>
    <h3 class="heading settled" data-level="3.2" id="atomic-operations-on-members-of-a-very-large-array"><span class="secno">3.2. </span><span class="content">Atomic Operations on Members of a Very Large Array</span><a class="self-link" href="#atomic-operations-on-members-of-a-very-large-array"></a></h3>
    <p>High-performance computing (HPC) applications use very large arrays.
@@ -1623,7 +1623,22 @@ resolution of padding bits follow <span>[P0528r2]</span>.
 choose an algorithm depending on that property.</p>
     <li data-md="">
      <p>Should the wording of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> be rewritten in terms of an <em>atomic</em> <em>reference</em>?</p>
-     <p>Result of SG1 poll: SF F N A SA = 4 3 13 0 0.</p>
+     <p>Result of SG1 poll</p>
+     <table border="1">
+      <tbody>
+       <tr>
+        <th>SF
+        <th>F
+        <th>N
+        <th>A
+        <th>SA
+       <tr>
+        <td>4 
+        <td>3 
+        <td>13 
+        <td>0 
+        <td>0 
+     </table>
      <p>Rewriting <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> would require revisiting the contentious issue of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> having an exposition only member of type <code class="highlight"><span class="n">T</span></code>.  While there is
 strong support for this rewrite in SG1, we decided to limit the scope of
 this paper to <em>atomic</em> <em>reference</em> to reduce the potential of unnecessary
@@ -1634,19 +1649,36 @@ conflict.  We will attempt this rewrite in a future paper.</p>
 to be address in a future paper.</p>
     <li data-md="">
      <p>Should <em>atomic reference</em> of T be named <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> or <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code>?</p>
-     <p>Results of SG1 poll: SF F N A SA = 0 7 12 3 1.</p>
+     <p>Result of SG1 poll</p>
+     <table border="1">
+      <tbody>
+       <tr>
+        <th>SF
+        <th>F
+        <th>N
+        <th>A
+        <th>SA
+       <tr>
+        <td>0 
+        <td>7 
+        <td>11 
+        <td>3 
+        <td>1 
+     </table>
      <p>Those against <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> raised the concern that it allows dangerous
 errors to creep into generic code, which requires users to be aware of this
 edge case to avoid.  Also, after an <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> is constructed it does not
 have data races with other objects, while an <em>atomic reference</em> of T does.
-An <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> is a specialization of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> with weaker guarantees
-because of these data race potentials.</p>
+Furthermore <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> does not have <em>volatile</em> member functions.
+Consequently, <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> is a specialization of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> with weaker
+guarantees.</p>
      <p>The arguments for <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> is that it is more concise and reduces the
 vocabulary terms that a user needs to know.</p>
      <p>We decided to keep the name of an <em>atomic reference</em> of T as <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> for two reasons.  First, using the name <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> removes any possibility of impacting existing generic code which uses <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code>.  Second, when trying to create wording for <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> the
 specializations had a distinct <code class="highlight"><span class="n">vector</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">></span></code> feel where each
-specialization needed to walk back from guarantees made by the generic
-version.</p>
+specialization needed to walk back from guarantees made by the primary
+template.  In particular, the <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> specializations would be unable
+to use the phrase <em>"Descriptions are provide below only for members that differ from the primary template"</em>.</p>
    </ol>
    <h2 class="heading settled" data-level="7" id="proposal"><span class="secno">7. </span><span class="content">Proposal</span><a class="self-link" href="#proposal"></a></h2>
    <p>The proposed changes are relative to the working draft of the standard
@@ -1658,54 +1690,54 @@ shall determine. </blockquote>
 <pre class="language-c++ highlight"><span class="n">namespace</span> <span class="n">std</span> <span class="p">{</span>
 
 <span class="c1">// 3.� atomic ref</span>
-<span class="c1"></span><span class="n">template</span><span class="o">&lt;</span> <span class="n">class</span> <span class="n">T</span> <span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">;</span>
+<span class="c1"></span><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="p">;</span>
 <span class="c1">// 3.� atomic ref partial specialization for pointers</span>
-<span class="c1"></span><span class="n">template</span><span class="o">&lt;</span> <span class="n">class</span> <span class="n">T</span> <span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span> <span class="n">T</span> <span class="o">*</span> <span class="o">></span><span class="p">;</span>
+<span class="c1"></span><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span> <span class="o">*></span><span class="p">;</span>
 
 <span class="p">}</span>
 </pre>
    <blockquote> Add a new section [atomics.ref.generic] after [atomics.types.generic] </blockquote>
-<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span> <span class="n">class</span> <span class="n">T</span> <span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">{</span>
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">{</span>
 <span class="nl">private</span><span class="p">:</span>
   <span class="n">T</span> <span class="o">*</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// exposition only</span>
 <span class="c1"></span><span class="nl">public</span><span class="p">:</span>
   <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">T</span><span class="p">;</span>
-  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span> <span class="p">;</span>
-  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span> <span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="p">;</span>
 
-  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span> <span class="p">;</span>
-  <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span> <span class="k">const</span> <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="p">)</span> <span class="o">=</span> <span class="n">delete</span> <span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="o">&amp;</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
 
-  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span> <span class="n">T</span> <span class="o">&amp;</span> <span class="p">);</span>
-  <span class="n">atomic_ref</span><span class="p">(</span> <span class="k">const</span> <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="p">);</span>
+  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">);</span>
+  <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">);</span>
 
-  <span class="n">T</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
-  <span class="n">operator</span> <span class="nf">T</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
+  <span class="n">T</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">operator</span> <span class="nf">T</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
   <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span> <span class="n">T</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="nf">load</span><span class="p">(</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="nf">exchange</span><span class="p">(</span> <span class="n">T</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span> <span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span> <span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span> <span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span> <span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span><span class="n">T</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span> <span class="nf">load</span><span class="p">(</span><span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span> <span class="nf">exchange</span><span class="p">(</span><span class="n">T</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 <span class="p">};</span>
 </pre>
    <p>The template argument for T shall be trivially copyable [basic.types].</p>
    <p>Descriptions are provided below.</p>
    <blockquote> Add a new subsection [atomics.ref.operations] to [atomics.ref.generic] </blockquote>
-   <p><strong>static constexpr size_t is_always_lockfree ;</strong></p>
+   <p><strong>static constexpr size_t is_always_lockfree;</strong></p>
    <p>The static data member <code class="highlight"><span class="n">is_always_lock_free</span></code> is true if the <code class="highlight"><span class="n">atomic_ref</span></code> type’s
   operations are always lock-free, and false otherwise.</p>
-   <p><strong>static constexpr size_t required_alignment ; </strong></p>
+   <p><strong>static constexpr size_t required_alignment; </strong></p>
    <p>The required alignment of an object to be referenced by an atomic reference,
   which is at least <code class="highlight"><span class="k">alignof</span><span class="p">(</span><span class="n">T</span><span class="p">)</span></code>.</p>
    <p>[<em>Note:</em> An implementation my require an object to be referenced by an <em>atomic reference</em> to have stricter alignment [basic.align] that other objects
   of type T.  Further, whether operations on a <em>atomic reference</em> of T are 
   lock-free may depend on the alignment of the referenced object.  For example,
   an implementation may support lock-free operations on <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">></span></code> only if aligned to <code class="highlight"><span class="mi">2</span><span class="o">*</span><span class="k">alignof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span></code>.  - <em>end note</em> ]</p>
-   <p><strong>atomic_ref(T &amp; obj ) ;</strong></p>
+   <p><strong>atomic_ref(T&amp; obj);</strong></p>
    <p><em>Requires:</em> The referenced non-atomic object is be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
    <p><em>Effects:</em> Construct an atomic reference that references the non-atomic object.</p>
    <p><em>Throws:</em> Nothing.</p>
@@ -1721,37 +1753,37 @@ shall determine. </blockquote>
    <p>[<em>Note</em>: The constructor may acquire a shared resource, such as a lock
   associated with the referenced object, to enable atomic operations applied to
   the referenced non-atomic object. - <em>end note</em>]</p>
-   <p><strong>atomic_ref( const atomic_ref &amp; ref ) ;</strong></p>
+   <p><strong>atomic_ref(const atomic_ref&amp; ref);</strong></p>
    <p><em>Effects:</em> Construct an atomic reference that references the non-atomic object
   referenced by the given <code class="highlight"><span class="n">atomic_ref</span></code>.</p>
-   <p><strong>T operator=(T desired) const noexcept ;</strong> <em>Effects:</em> Equivalent to store(desired)</p>
+   <p><strong>T operator=(T desired) const noexcept;</strong> <em>Effects:</em> Equivalent to store(desired)</p>
    <p><em>Returns:</em> desired</p>
-   <p><strong>operator T() const noexcept ;</strong></p>
+   <p><strong>operator T() const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: return load();</p>
    <p><strong>bool is_lock_free() const noexcept;</strong></p>
    <p><em>Returns:</em> true if the object’s operations are lock-free, false otherwise.</p>
-   <p><strong>void store( T desired, memory_order order = memory_order_seq_cst ) const noexcept ;</strong> <em>Requires:</em> The order argument shall not be memory_order_consume,
+   <p><strong>void store(T desired, memory_order order = memory_order_seq_cst) const noexcept;</strong> <em>Requires:</em> The order argument shall not be memory_order_consume,
   memory_order_acquire, nor memory_order_acq_rel.</p>
    <p><em>Effects:</em>Atomically replaces the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> with the value of
   desired. Memory is affected according to the value of order.</p>
-   <p><strong>void load( memory_order order = memory_order_seq_cst ) const noexcept ; </strong> <em>Requires:</em> The order argument shall not be memory_order_release nor
+   <p><strong>void load(memory_order order = memory_order_seq_cst) const noexcept; </strong> <em>Requires:</em> The order argument shall not be memory_order_release nor
   memory_order_acq_rel.</p>
    <p><em>Effects:</em> Memory is affected according to the value of order.</p>
    <p><em>Returns:</em> Atomically returns the value pointed to by <code class="highlight"><span class="n">ptr_</span></code>.</p>
-   <p><strong>exchange(T desired, memory_order order = memory_order_seq_cst) noexcept ;</strong></p>
+   <p><strong>exchange(T desired, memory_order order = memory_order_seq_cst) noexcept;</strong></p>
    <p><em>Effects:</em> Atomically replaces the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> with desired.
   Memory is affected according to the value of order. These operations are
   atomic read-modify-write operations [intro.multithread].</p>
    <p>Returns: Atomically returns the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> immediately before
   the effects.</p>
    <p><strong>bool compare_exchange_weak(T&amp; expected, T desired,
-                           memory_order success, memory_order failure) const noexcept ;</strong></p>
+                           memory_order success, memory_order failure) const noexcept;</strong></p>
    <p><strong>bool compare_exchange_strong(T&amp; expected, T desired,
-                             memory_order success, memory_order failure) const noexcept ;</strong></p>
+                             memory_order success, memory_order failure) const noexcept;</strong></p>
    <p><strong>bool compare_exchange_weak(T&amp; expected, T desired,
-                           memory_order order = memory_order_seq_cst) const noexcept ;</strong></p>
+                           memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><strong>bool compare_exchange_strong(T&amp; expected, T desired,
-                             memory_order order = memory_order_seq_cst) const noexcept ;</strong></p>
+                             memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Requires:</em> The failure argument shall not be memory_order_release nor
   memory_order_acq_rel.</p>
    <p><em>Effects:</em> Retrieves the value in expected. It then atomically compares the
@@ -1791,55 +1823,55 @@ shall determine. </blockquote>
   equal with operator==. — <em>end note</em> ]</p>
    <blockquote> Add a new subsection [atomics.ref.int] following the [atomics.ref.operations]
 subsection. </blockquote>
-<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span> <span class="n">integral</span> <span class="o">></span> <span class="p">{</span>
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">integral</span><span class="o">></span> <span class="p">{</span>
 <span class="nl">private</span><span class="p">:</span>
-  <span class="n">integral</span> <span class="o">*</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// exposition only</span>
+  <span class="n">integral</span><span class="o">*</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// exposition only</span>
 <span class="c1"></span><span class="nl">public</span><span class="p">:</span>
-  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">integral</span> <span class="p">;</span>
+  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">integral</span><span class="p">;</span>
   <span class="n">using</span> <span class="n">difference_type</span> <span class="o">=</span> <span class="n">value_type</span><span class="p">;</span>
-  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span> <span class="p">;</span>
-  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span> <span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="p">;</span>
 
-  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span> <span class="p">;</span>
-  <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span> <span class="k">const</span> <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="p">)</span> <span class="o">=</span> <span class="n">delete</span> <span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
 
-  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span>  <span class="n">integral</span>  <span class="o">&amp;</span> <span class="p">);</span>
-  <span class="n">atomic_ref</span><span class="p">(</span> <span class="k">const</span> <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="p">)</span> <span class="p">;</span>
+  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><span class="n">integral</span><span class="o">&amp;</span><span class="p">);</span>
+  <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">);</span>
 
-  <span class="n">integral</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span> <span class="n">integral</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
-  <span class="n">operator</span> <span class="nf">integral</span> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
+  <span class="n">integral</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">operator</span> <span class="nf">integral</span> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
   <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="nf">load</span><span class="p">(</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="nf">exchange</span><span class="p">(</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span> <span class="n">integral</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span> <span class="n">integral</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">integral</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span> <span class="n">integral</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">integral</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span> <span class="n">integral</span> <span class="o">&amp;</span><span class="p">,</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span><span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="nf">load</span><span class="p">(</span><span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="nf">exchange</span><span class="p">(</span><span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">integral</span><span class="o">&amp;</span> <span class="p">,</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">integral</span><span class="o">&amp;</span> <span class="p">,</span> <span class="n">integral</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">integral</span><span class="o">&amp;</span> <span class="p">,</span> <span class="n">integral</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">integral</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
-  <span class="n">integral</span> <span class="nf">fetch_add</span><span class="p">(</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="nf">fetch_sub</span><span class="p">(</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="nf">fetch_and</span><span class="p">(</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="nf">fetch_or</span><span class="p">(</span>  <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="nf">fetch_xor</span><span class="p">(</span> <span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="nf">fetch_and</span><span class="p">(</span><span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="nf">fetch_or</span><span class="p">(</span><span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="nf">fetch_xor</span><span class="p">(</span><span class="n">integral</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
   <span class="n">integral</span> <span class="n">operator</span><span class="o">++</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
   <span class="n">integral</span> <span class="n">operator</span><span class="o">--</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
   <span class="n">integral</span> <span class="n">operator</span><span class="o">++</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
   <span class="n">integral</span> <span class="n">operator</span><span class="o">--</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span> <span class="n">integral</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span> <span class="n">integral</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="n">operator</span><span class="o">&amp;=</span><span class="p">(</span> <span class="n">integral</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="n">operator</span><span class="o">|=</span><span class="p">(</span> <span class="n">integral</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">integral</span> <span class="n">operator</span><span class="o">^=</span><span class="p">(</span> <span class="n">integral</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="n">operator</span><span class="o">&amp;=</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="n">operator</span><span class="o">|=</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">integral</span> <span class="n">operator</span><span class="o">^=</span><span class="p">(</span><span class="n">integral</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 <span class="p">};</span>
 </pre>
    <p>Descriptions are provide below only for members that differ from the primary
 template.</p>
    <p>The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 129 [atomics.types.int].</p>
-   <p><strong>integral fetch</strong><em>_key</em><strong>( integral operand, memory_order order = memory_order_seq_cst ) const noexcept ;</strong></p>
+   <p><strong>integral fetch</strong><em>_key</em><strong>(integral operand, memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Effects:</em> Atomically replaces the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> with the result
   of the computation applied to the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> and the given
   operand. Memory is affected according to the value of order. These operations
@@ -1848,57 +1880,57 @@ computation correspondence are identified in Table 129 [atomics.types.int].</p>
   effects.</p>
    <p><em>Remarks:</em> For signed integer types, arithmetic is defined to use two’s
   complement representation. There are no undefined results.</p>
-   <p><strong>integral operator++() const noexcept ;</strong></p>
+   <p><strong>integral operator++() const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span></code></p>
-   <p><strong>integral operator--() const noexcept ;</strong></p>
+   <p><strong>integral operator--() const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span></code></p>
-   <p><strong>integral operator++(int) const noexcept ;</strong></p>
+   <p><strong>integral operator++(int) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span></code></p>
-   <p><strong>integral operator--(int) const noexcept ;</strong></p>
+   <p><strong>integral operator--(int) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span></code></p>
-   <p><strong>integral operator </strong><em>op</em><strong>=(integral operand ) const noexcept ;</strong></p>
+   <p><strong>integral operator </strong><em>op</em><strong>=(integral operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_key</span><span class="p">(</span><span class="n">operand</span><span class="p">)</span> <span class="n">op</span> <span class="n">operand</span><span class="p">;</span></code></p>
    <blockquote> Add a new subsection [atomics.ref.float] following the [atomics.ref.int]
 subsection. </blockquote>
-<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="o">></span> <span class="p">{</span>
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">></span> <span class="p">{</span>
 <span class="nl">private</span><span class="p">:</span>
-  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="o">*</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// exposition only</span>
+  <span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">*</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// exposition only</span>
 <span class="c1"></span><span class="nl">public</span><span class="p">:</span>
-  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">;</span>
+  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="p">;</span>
   <span class="n">using</span> <span class="n">difference_type</span> <span class="o">=</span> <span class="n">value_type</span><span class="p">;</span>
-  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="o">*</span><span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="o">*</span> <span class="p">;</span>
-  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="o">*</span><span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="o">*</span> <span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="p">;</span>
 
-  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span> <span class="p">;</span>
-  <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span> <span class="k">const</span> <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="p">)</span> <span class="o">=</span> <span class="n">delete</span> <span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
 
-  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="o">&amp;</span> <span class="p">)</span> <span class="n">noexcept</span> <span class="p">;</span>
-  <span class="n">atomic_ref</span><span class="p">(</span> <span class="k">const</span> <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="p">);</span>
+  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">&amp;</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">);</span>
 
-  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">)</span> <span class="n">noexcept</span> <span class="p">;</span>
-  <span class="n">operator</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
+  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">operator</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
   <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">load</span><span class="p">(</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">exchange</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="o">&amp;</span><span class="p">,</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">load</span><span class="p">(</span><span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">exchange</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">&amp;</span> <span class="p">,</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">&amp;</span> <span class="p">,</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">&amp;</span> <span class="p">,</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
-  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">fetch_add</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">fetch_sub</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">fetch_add</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">fetch_sub</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
-  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
-  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span> <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
+  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">floating</span><span class="o">-</span><span class="n">point</span> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 <span class="p">};</span>
 </pre>
    <p>Descriptions are provide below only for members that differ from the primary
 template.</p>
    <p>The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 129 [atomics.types.int].</p>
-   <p><strong>floating-point fetch_</strong><em>key</em><strong>( floating-point operand, memory_order order = memory_order_seq_cst ) const noexcept ;</strong></p>
+   <p><strong>floating-point fetch_</strong><em>key</em><strong>(floating-point operand, memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Effects:</em> Atomically replaces the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> with the result
   of the computation applied to the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> and the given
   operand. Memory is affected according to the value of order. These operations
@@ -1912,53 +1944,53 @@ computation correspondence are identified in Table 129 [atomics.types.int].</p>
   point type (21.3.2). The floating-point environment (29.4) for atomic
   arithmetic operations on floating-point may be different than the calling
   thread’s floating-point environment.</floating-point></p>
-   <p><strong>floating-point operator </strong><em>op</em><strong>=(floating-point operand ) const noexcept ;</strong></p>
+   <p><strong>floating-point operator </strong><em>op</em><strong>=(floating-point operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_key</span><span class="p">(</span><span class="n">operand</span><span class="p">)</span> <span class="n">op</span> <span class="n">operand</span><span class="p">;</span></code></p>
    <blockquote> Add a new subsection [atomics.ref.pointer] following the [atomics.ref.float]
 subsection. </blockquote>
-<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span> <span class="n">T</span> <span class="o">*</span> <span class="o">></span> <span class="p">{</span>
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">*></span> <span class="p">{</span>
 <span class="nl">private</span><span class="p">:</span>
-  <span class="n">T</span> <span class="o">**</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// exposition only</span>
+  <span class="n">T</span><span class="o">**</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// exposition only</span>
 <span class="c1"></span><span class="nl">public</span><span class="p">:</span>
-  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">T</span> <span class="o">*</span> <span class="p">;</span>
+  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">T</span><span class="o">*</span><span class="p">;</span>
   <span class="n">using</span> <span class="n">difference_type</span> <span class="o">=</span> <span class="kt">ptrdiff_t</span><span class="p">;</span>
-  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="o">*</span><span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="o">*</span> <span class="p">;</span>
-  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="o">*</span><span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="o">*</span> <span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="n">implementation</span><span class="o">-</span><span class="n">defined</span><span class="p">;</span>
 
-  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span> <span class="p">;</span>
-  <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span> <span class="k">const</span> <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="p">)</span> <span class="o">=</span> <span class="n">delete</span> <span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
 
-  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span> <span class="n">T</span> <span class="o">*</span> <span class="o">&amp;</span> <span class="p">);</span>
-  <span class="n">atomic_ref</span><span class="p">(</span> <span class="k">const</span> <span class="n">atomic_ref</span> <span class="o">&amp;</span> <span class="p">);</span>
+  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span><span class="p">);</span>
+  <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">);</span>
 
-  <span class="n">T</span> <span class="o">*</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span> <span class="n">T</span> <span class="o">*</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
-  <span class="n">operator</span> <span class="n">T</span> <span class="o">*</span> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span> <span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">T</span><span class="o">*</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">operator</span> <span class="n">T</span><span class="o">*</span> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
   <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span> <span class="n">T</span> <span class="o">*</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="nf">load</span><span class="p">(</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="nf">exchange</span><span class="p">(</span> <span class="n">T</span> <span class="o">*</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span> <span class="n">T</span> <span class="o">*</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">T</span> <span class="o">*</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span> <span class="n">T</span> <span class="o">*</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">T</span> <span class="o">*</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span> <span class="n">T</span> <span class="o">*</span> <span class="o">&amp;</span> <span class="p">,</span> <span class="n">T</span> <span class="o">*</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span> <span class="n">T</span> <span class="o">*</span> <span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span> <span class="o">*</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span><span class="n">T</span><span class="o">*</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="nf">load</span><span class="p">(</span><span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="nf">exchange</span><span class="p">(</span><span class="n">T</span><span class="o">*</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span> <span class="p">,</span> <span class="n">T</span><span class="o">*</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span> <span class="p">,</span> <span class="n">T</span><span class="o">*</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span> <span class="p">,</span> <span class="n">T</span><span class="o">*</span>  <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span><span class="p">,</span> <span class="n">T</span><span class="o">*</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
-  <span class="n">T</span> <span class="o">*</span> <span class="nf">fetch_add</span><span class="p">(</span> <span class="n">difference_type</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="nf">fetch_sub</span><span class="p">(</span> <span class="n">difference_type</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="n">difference_type</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="n">difference_type</span> <span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
-  <span class="n">T</span> <span class="o">*</span> <span class="n">operator</span><span class="o">++</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="n">operator</span><span class="o">--</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="n">operator</span><span class="o">++</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="n">operator</span><span class="o">--</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span> <span class="n">difference_type</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span> <span class="n">difference_type</span> <span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">++</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">--</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">++</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">--</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span><span class="n">difference_type</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span><span class="n">difference_type</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 <span class="p">};</span>
 </pre>
    <p>Descriptions are provide below only for members that differ from the primary
 template.</p>
    <p>The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 130 [atomics.types.pointer].</p>
-   <p><strong>T</strong>* <strong>fetch_</strong><em>key</em><strong>(T</strong>* <strong>operand, memory_order order = memory_order_seq_cst ) const noexcept ;</strong></p>
+   <p><strong>T</strong>* <strong>fetch_</strong><em>key</em><strong>(T</strong>* <strong>operand, memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Requires:</em> T shall be an object type, otherwise the program is ill-formed</p>
    <p><em>Effects:</em> Atomically replaces the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> with the result
   of the computation applied to the value pointed to by <code class="highlight"><span class="n">ptr_</span></code> and the given
@@ -1968,15 +2000,15 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].<
   effects.</p>
    <p><em>Remarks:</em> The result may be an undefined address, but the operations
   otherwise have no undefined behavior.</p>
-   <p><strong>T</strong>* <strong>operator++() const noexcept ;</strong></p>
+   <p><strong>T</strong>* <strong>operator++() const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span></code></p>
-   <p><strong>T</strong>* <strong>operator--() const noexcept ;</strong></p>
+   <p><strong>T</strong>* <strong>operator--() const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span></code></p>
-   <p><strong>T</strong>* <strong>operator++(int) const noexcept ;</strong></p>
+   <p><strong>T</strong>* <strong>operator++(int) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span></code></p>
-   <p><strong>T</strong>* <strong>operator--(int) const noexcept ;</strong></p>
+   <p><strong>T</strong>* <strong>operator--(int) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span></code></p>
-   <p><strong>T</strong>* <strong>operator </strong><em>op</em><strong>=(T</strong>* <strong>operand ) const noexcept ;</strong></p>
+   <p><strong>T</strong>* <strong>operator </strong><em>op</em><strong>=(T</strong>* <strong>operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_key</span><span class="p">(</span><span class="n">operand</span><span class="p">)</span> <span class="n">op</span> <span class="n">operand</span><span class="p">;</span></code></p>
    <h2 class="heading settled" data-level="8" id="test"><span class="secno">8. </span><span class="content">Feature Testing</span><a class="self-link" href="#test"></a></h2>
    <p>The <code class="highlight"><span class="n">__cpp_lib_atomic_ref</span></code> feature test macro should be added.</p>
