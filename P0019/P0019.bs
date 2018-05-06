@@ -10,7 +10,7 @@ Editor: David Hollman, dshollm@sandia.gov
 Editor: Bryce Adelstein Lelbach, blelbach@nvidia.com
 Editor: Jens Maurer, Jens.Maurer@gmx.net
 Shortname: D0019
-Revision: 8
+Revision: 7
 Audience: SG1
 Audience: LWG
 Status: D
@@ -19,7 +19,7 @@ Date: 2018-05-05
 Repository: https://github.com/ORNL/cpp-proposals-pub.git
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html
 Toggle Diffs: Yes
-Warning: Custom
+Warning: Custom 
 Custom Warning Title: Work in Progress
 Custom Warning Text: This document is a work in progress that has not yet been
                      submitted to the committee for discussion in its current
@@ -29,8 +29,6 @@ Markup Shorthands: markdown yes
 
 Revision History
 ================
-
-[[P0019r8]]
 
 [[P0019r7]]
 
@@ -262,9 +260,9 @@ Apply the following changes to 32.2.� [atomics.syn]:
 namespace std {
 
 // 3.� atomic ref
-template< class T > struct atomic_ref ;
+template<class T> struct atomic_ref;
 // 3.� atomic ref partial specialization for pointers
-template< class T > struct atomic_ref< T * >;
+template<class T> struct atomic_ref<T *>;
 
 }
 ```
@@ -274,31 +272,31 @@ Add a new section [atomics.ref.generic] after [atomics.types.generic]
 </blockquote>
 
 ```c++
-template< class T > struct atomic_ref {
+template<class T> struct atomic_ref {
 private:
   T * ptr_; // exposition only
 public:
   using value_type = T;
-  static constexpr bool is_always_lock_free = implementation-defined ;
-  static constexpr size_t required_alignment = implementation-defined ;
+  static constexpr bool is_always_lock_free = implementation-defined;
+  static constexpr size_t required_alignment = implementation-defined;
 
-  atomic_ref() = delete ;
-  atomic_ref & operator = ( const atomic_ref & ) = delete ;
+  atomic_ref() = delete;
+  atomic_ref& operator=(const atomic_ref&) = delete;
 
-  explicit atomic_ref( T & );
-  atomic_ref( const atomic_ref & );
+  explicit atomic_ref(T&);
+  atomic_ref(const atomic_ref&);
 
-  T operator=(T) const noexcept ;
-  operator T() const noexcept ;
+  T operator=(T) const noexcept;
+  operator T() const noexcept;
 
   bool is_lock_free() const noexcept;
-  void store( T , memory_order = memory_order_seq_cst ) const noexcept;
-  T load( memory_order = memory_order_seq_cst ) const noexcept;
-  T exchange( T , memory_order = memory_order_seq_cst ) const noexcept;
-  bool compare_exchange_weak( T&, T, memory_order, memory_order ) const noexcept;
-  bool compare_exchange_strong( T&, T, memory_order, memory_order ) const noexcept;
-  bool compare_exchange_weak( T&, T, memory_order = memory_order_seq_cst ) const noexcept;
-  bool compare_exchange_strong( T&, T, memory_order = memory_order_seq_cst ) const noexcept;
+  void store(T , memory_order = memory_order_seq_cst) const noexcept;
+  T load(memory_order = memory_order_seq_cst) const noexcept;
+  T exchange(T , memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_weak(T&, T, memory_order, memory_order) const noexcept;
+  bool compare_exchange_strong(T&, T, memory_order, memory_order) const noexcept;
+  bool compare_exchange_weak(T&, T, memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_strong(T&, T, memory_order = memory_order_seq_cst) const noexcept;
 };
 ```
 
@@ -310,12 +308,12 @@ Descriptions are provided below.
 Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
 </blockquote>
 
-**static constexpr size_t is_always_lockfree ;**
+**static constexpr size_t is_always_lockfree;**
 
   The static data member `is_always_lock_free` is true if the `atomic_ref` type’s
   operations are always lock-free, and false otherwise.
 
-**static constexpr size_t required_alignment ; **
+**static constexpr size_t required_alignment; **
 
   The required alignment of an object to be referenced by an atomic reference,
   which is at least `alignof(T)`.
@@ -327,7 +325,7 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   an implementation may support lock-free operations on `std::complex<double>`
   only if aligned to `2*alignof(double)`.  - *end note* ]
 
-**atomic_ref(T & obj ) ;**
+**atomic_ref(T& obj);**
 
   *Requires:* The referenced non-atomic object is be aligned to
   `required_alignment`.
@@ -352,17 +350,17 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   associated with the referenced object, to enable atomic operations applied to
   the referenced non-atomic object. - *end note*]
 
-**atomic_ref( const atomic_ref & ref ) ;**
+**atomic_ref(const atomic_ref& ref);**
 
   *Effects:* Construct an atomic reference that references the non-atomic object
   referenced by the given `atomic_ref`.
 
-**T operator=(T desired) const noexcept ;**
+**T operator=(T desired) const noexcept;**
   *Effects:* Equivalent to store(desired)
 
   *Returns:* desired
 
-**operator T() const noexcept ;**
+**operator T() const noexcept;**
 
   *Effects:* Equivalent to: return load();
 
@@ -370,14 +368,14 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
 
   *Returns:* true if the object's operations are lock-free, false otherwise.
 
-**void store( T desired, memory_order order = memory_order_seq_cst ) const noexcept ;**
+**void store(T desired, memory_order order = memory_order_seq_cst) const noexcept;**
   *Requires:* The order argument shall not be memory_order_consume,
   memory_order_acquire, nor memory_order_acq_rel.
 
   *Effects:*Atomically replaces the value pointed to by `ptr_` with the value of
   desired. Memory is affected according to the value of order.
 
-**void load( memory_order order = memory_order_seq_cst ) const noexcept ; **
+**void load(memory_order order = memory_order_seq_cst) const noexcept; **
   *Requires:* The order argument shall not be memory_order_release nor
   memory_order_acq_rel.
   
@@ -385,7 +383,7 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   
   *Returns:* Atomically returns the value pointed to by `ptr_`.
 
-**exchange(T desired, memory_order order = memory_order_seq_cst) noexcept ;**
+**exchange(T desired, memory_order order = memory_order_seq_cst) noexcept;**
 
   *Effects:* Atomically replaces the value pointed to by `ptr_` with desired.
   Memory is affected according to the value of order. These operations are
@@ -395,16 +393,16 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   the effects.
 
 **bool compare_exchange_weak(T& expected, T desired,
-                           memory_order success, memory_order failure) const noexcept ;**
+                           memory_order success, memory_order failure) const noexcept;**
 
 **bool compare_exchange_strong(T& expected, T desired,
-                             memory_order success, memory_order failure) const noexcept ;**
+                             memory_order success, memory_order failure) const noexcept;**
 
 **bool compare_exchange_weak(T& expected, T desired,
-                           memory_order order = memory_order_seq_cst) const noexcept ;**
+                           memory_order order = memory_order_seq_cst) const noexcept;**
 
 **bool compare_exchange_strong(T& expected, T desired,
-                             memory_order order = memory_order_seq_cst) const noexcept ;**
+                             memory_order order = memory_order_seq_cst) const noexcept;**
 
   *Requires:* The failure argument shall not be memory_order_release nor
   memory_order_acq_rel.
@@ -455,48 +453,48 @@ subsection.
 </blockquote>
 
 ```c++
-template<> struct atomic_ref< integral > {
+template<> struct atomic_ref<integral> {
 private:
-  integral * ptr_; // exposition only
+  integral* ptr_; // exposition only
 public:
-  using value_type = integral ;
+  using value_type = integral;
   using difference_type = value_type;
-  static constexpr bool is_always_lock_free = implementation-defined ;
-  static constexpr size_t required_alignment = implementation-defined ;
+  static constexpr bool is_always_lock_free = implementation-defined;
+  static constexpr size_t required_alignment = implementation-defined;
 
-  atomic_ref() = delete ;
-  atomic_ref & operator = ( const atomic_ref & ) = delete ;
+  atomic_ref() = delete;
+  atomic_ref& operator = (const atomic_ref&) = delete;
 
-  explicit atomic_ref(  integral  & );
-  atomic_ref( const atomic_ref & ) ;
+  explicit atomic_ref(integral&);
+  atomic_ref(const atomic_ref&);
 
-  integral operator=( integral ) const noexcept ;
-  operator integral () const noexcept ;
+  integral operator=(integral) const noexcept;
+  operator integral () const noexcept;
 
   bool is_lock_free() const noexcept;
-  void store( integral , memory_order = memory_order_seq_cst ) const noexcept;
-  integral load( memory_order = memory_order_seq_cst ) const noexcept;
-  integral exchange( integral , memory_order = memory_order_seq_cst ) const noexcept;
-  bool compare_exchange_weak( integral & , integral , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_strong( integral & , integral  , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_weak( integral & , integral  , memory_order = memory_order_seq_cst ) const noexcept;
-  bool compare_exchange_strong( integral &, integral , memory_order = memory_order_seq_cst ) const noexcept;
+  void store(integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral load(memory_order = memory_order_seq_cst) const noexcept;
+  integral exchange(integral , memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_weak(integral& , integral , memory_order , memory_order) const noexcept;
+  bool compare_exchange_strong(integral& , integral  , memory_order , memory_order) const noexcept;
+  bool compare_exchange_weak(integral& , integral  , memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_strong(integral&, integral , memory_order = memory_order_seq_cst) const noexcept;
 
-  integral fetch_add( integral , memory_order = memory_order_seq_cst) const noexcept;
-  integral fetch_sub( integral , memory_order = memory_order_seq_cst) const noexcept;
-  integral fetch_and( integral , memory_order = memory_order_seq_cst) const noexcept;
-  integral fetch_or(  integral , memory_order = memory_order_seq_cst) const noexcept;
-  integral fetch_xor( integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_add(integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_sub(integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_and(integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_or(integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_xor(integral , memory_order = memory_order_seq_cst) const noexcept;
 
   integral operator++(int) const noexcept;
   integral operator--(int) const noexcept;
   integral operator++() const noexcept;
   integral operator--() const noexcept;
-  integral operator+=( integral ) const noexcept;
-  integral operator-=( integral ) const noexcept;
-  integral operator&=( integral ) const noexcept;
-  integral operator|=( integral ) const noexcept;
-  integral operator^=( integral ) const noexcept;
+  integral operator+=(integral) const noexcept;
+  integral operator-=(integral) const noexcept;
+  integral operator&=(integral) const noexcept;
+  integral operator|=(integral) const noexcept;
+  integral operator^=(integral) const noexcept;
 };
 ```
 
@@ -507,7 +505,7 @@ The following operations perform arithmetic computations.  The key, operator, an
 computation correspondence are identified in Table 129 [atomics.types.int].
 
 
-**integral fetch***_key***( integral operand, memory_order order = memory_order_seq_cst ) const noexcept ;**
+**integral fetch***_key***(integral operand, memory_order order = memory_order_seq_cst) const noexcept;**
   
   *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
   of the computation applied to the value pointed to by `ptr_` and the given
@@ -520,23 +518,23 @@ computation correspondence are identified in Table 129 [atomics.types.int].
   *Remarks:* For signed integer types, arithmetic is defined to use two’s
   complement representation. There are no undefined results.
 
-**integral operator++() const noexcept ;**
+**integral operator++() const noexcept;**
   
   *Effects:* Equivalent to: `return fetch_add(1) + 1;`
 
-**integral operator--() const noexcept ;**
+**integral operator--() const noexcept;**
   
   *Effects:* Equivalent to: `return fetch_sub(1) - 1;`
 
-**integral operator++(int) const noexcept ;**
+**integral operator++(int) const noexcept;**
   
   *Effects:* Equivalent to: `return fetch_add(1);`
 
-**integral operator--(int) const noexcept ;**
+**integral operator--(int) const noexcept;**
   
   *Effects:* Equivalent to: `return fetch_sub(1);`
 
-**integral operator ***op***=(integral operand ) const noexcept ;**
+**integral operator ***op***=(integral operand) const noexcept;**
 
   *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
 
@@ -547,38 +545,38 @@ subsection.
 
 ```c++
 
-template<> struct atomic_ref< floating-point > {
+template<> struct atomic_ref<floating-point> {
 private:
-  floating-point * ptr_; // exposition only
+  floating-point* ptr_; // exposition only
 public:
-  using value_type = floating-point ;
+  using value_type = floating-point;
   using difference_type = value_type;
-  static constexpr bool is_always_lock_free = *implementation-defined* ;
-  static constexpr size_t required_alignment = *implementation-defined* ;
+  static constexpr bool is_always_lock_free = *implementation-defined*;
+  static constexpr size_t required_alignment = *implementation-defined*;
 
-  atomic_ref() = delete ;
-  atomic_ref & operator = ( const atomic_ref & ) = delete ;
+  atomic_ref() = delete;
+  atomic_ref& operator = (const atomic_ref&) = delete;
 
-  explicit atomic_ref( floating-point & ) noexcept ;
-  atomic_ref( const atomic_ref & );
+  explicit atomic_ref(floating-point&) noexcept;
+  atomic_ref(const atomic_ref&);
 
-  floating-point operator=( floating-point ) noexcept ;
-  operator floating-point () const noexcept ;
+  floating-point operator=(floating-point) noexcept;
+  operator floating-point () const noexcept;
 
   bool is_lock_free() const noexcept;
-  void store( floating-point , memory_order = memory_order_seq_cst ) const noexcept;
-  floating-point load( memory_order = memory_order_seq_cst ) const noexcept;
-  floating-point exchange( floating-point , memory_order = memory_order_seq_cst ) const noexcept;
-  bool compare_exchange_weak( floating-point & , floating-point , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_strong( floating-point & , floating-point  , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_weak( floating-point & , floating-point  , memory_order = memory_order_seq_cst ) const noexcept;
-  bool compare_exchange_strong( floating-point &, floating-point , memory_order = memory_order_seq_cst ) const noexcept;
+  void store(floating-point , memory_order = memory_order_seq_cst) const noexcept;
+  floating-point load(memory_order = memory_order_seq_cst) const noexcept;
+  floating-point exchange(floating-point , memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_weak(floating-point& , floating-point , memory_order , memory_order) const noexcept;
+  bool compare_exchange_strong(floating-point& , floating-point  , memory_order , memory_order) const noexcept;
+  bool compare_exchange_weak(floating-point& , floating-point  , memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_strong(floating-point&, floating-point , memory_order = memory_order_seq_cst) const noexcept;
 
-  floating-point fetch_add( floating-point , memory_order = memory_order_seq_cst) const noexcept;
-  floating-point fetch_sub( floating-point , memory_order = memory_order_seq_cst) const noexcept;
+  floating-point fetch_add(floating-point , memory_order = memory_order_seq_cst) const noexcept;
+  floating-point fetch_sub(floating-point , memory_order = memory_order_seq_cst) const noexcept;
 
-  floating-point operator+=( floating-point ) const noexcept ;
-  floating-point operator-=( floating-point ) const noexcept ;
+  floating-point operator+=(floating-point) const noexcept;
+  floating-point operator-=(floating-point) const noexcept;
 };
 ```
 
@@ -588,7 +586,7 @@ template.
 The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 129 [atomics.types.int].
 
-**floating-point fetch_***key***( floating-point operand, memory_order order = memory_order_seq_cst ) const noexcept ;**
+**floating-point fetch_***key***(floating-point operand, memory_order order = memory_order_seq_cst) const noexcept;**
   
   *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
   of the computation applied to the value pointed to by `ptr_` and the given
@@ -606,7 +604,7 @@ computation correspondence are identified in Table 129 [atomics.types.int].
   arithmetic operations on floating-point may be different than the calling
   thread’s floating-point environment.
 
-**floating-point operator ***op***=(floating-point operand ) const noexcept ;**
+**floating-point operator ***op***=(floating-point operand) const noexcept;**
 
   *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
 
@@ -617,42 +615,42 @@ subsection.
 </blockquote>
 
 ```c++
-template<class T> struct atomic_ref< T * > {
+template<class T> struct atomic_ref<T*> {
 private:
-  T ** ptr_; // exposition only
+  T** ptr_; // exposition only
 public:
-  using value_type = T * ;
+  using value_type = T*;
   using difference_type = ptrdiff_t;
-  static constexpr bool is_always_lock_free = *implementation-defined* ;
-  static constexpr size_t required_alignment = *implementation-defined* ;
+  static constexpr bool is_always_lock_free = *implementation-defined*;
+  static constexpr size_t required_alignment = *implementation-defined*;
 
-  atomic_ref() = delete ;
-  atomic_ref & operator = ( const atomic_ref & ) = delete ;
+  atomic_ref() = delete;
+  atomic_ref& operator = (const atomic_ref&) = delete;
 
-  explicit atomic_ref( T * & );
-  atomic_ref( const atomic_ref & );
+  explicit atomic_ref(T*&);
+  atomic_ref(const atomic_ref&);
 
-  T * operator=( T * ) const noexcept ;
-  operator T * () const noexcept ;
+  T* operator=(T*) const noexcept;
+  operator T* () const noexcept;
 
   bool is_lock_free() const noexcept;
-  void store( T * , memory_order = memory_order_seq_cst ) const noexcept;
-  T * load( memory_order = memory_order_seq_cst ) const noexcept;
-  T * exchange( T * , memory_order = memory_order_seq_cst ) const noexcept;
-  bool compare_exchange_weak( T * & , T * , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_strong( T * & , T *  , memory_order , memory_order ) const noexcept;
-  bool compare_exchange_weak( T * & , T *  , memory_order = memory_order_seq_cst ) const noexcept;
-  bool compare_exchange_strong( T * &, T * , memory_order = memory_order_seq_cst ) const noexcept;
+  void store(T* , memory_order = memory_order_seq_cst) const noexcept;
+  T* load(memory_order = memory_order_seq_cst) const noexcept;
+  T* exchange(T* , memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_weak(T*& , T* , memory_order , memory_order) const noexcept;
+  bool compare_exchange_strong(T*& , T*  , memory_order , memory_order) const noexcept;
+  bool compare_exchange_weak(T*& , T*  , memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_strong(T*&, T* , memory_order = memory_order_seq_cst) const noexcept;
 
-  T * fetch_add( difference_type , memory_order = memory_order_seq_cst) const noexcept;
-  T * fetch_sub( difference_type , memory_order = memory_order_seq_cst) const noexcept;
+  T* fetch_add(difference_type , memory_order = memory_order_seq_cst) const noexcept;
+  T* fetch_sub(difference_type , memory_order = memory_order_seq_cst) const noexcept;
 
-  T * operator++(int) const noexcept;
-  T * operator--(int) const noexcept;
-  T * operator++() const noexcept;
-  T * operator--() const noexcept;
-  T * operator+=( difference_type ) const noexcept;
-  T * operator-=( difference_type ) const noexcept;
+  T* operator++(int) const noexcept;
+  T* operator--(int) const noexcept;
+  T* operator++() const noexcept;
+  T* operator--() const noexcept;
+  T* operator+=(difference_type) const noexcept;
+  T* operator-=(difference_type) const noexcept;
 };
 ```
 
@@ -662,7 +660,7 @@ template.
 The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 130 [atomics.types.pointer].
 
-**T**\* **fetch_***key***(T**\* **operand, memory_order order = memory_order_seq_cst ) const noexcept ;**
+**T**\* **fetch_***key***(T**\* **operand, memory_order order = memory_order_seq_cst) const noexcept;**
 
   *Requires:* T shall be an object type, otherwise the program is ill-formed
   
@@ -677,23 +675,23 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].
   *Remarks:* The result may be an undefined address, but the operations
   otherwise have no undefined behavior. 
 
-**T**\* **operator++() const noexcept ;**
+**T**\* **operator++() const noexcept;**
   
   *Effects:* Equivalent to: `return fetch_add(1) + 1;`
 
-**T**\* **operator--() const noexcept ;**
+**T**\* **operator--() const noexcept;**
   
   *Effects:* Equivalent to: `return fetch_sub(1) - 1;`
 
-**T**\* **operator++(int) const noexcept ;**
+**T**\* **operator++(int) const noexcept;**
   
   *Effects:* Equivalent to: `return fetch_add(1);`
 
-**T**\* **operator--(int) const noexcept ;**
+**T**\* **operator--(int) const noexcept;**
   
   *Effects:* Equivalent to: `return fetch_sub(1);`
   
-**T**\* **operator ***op***=(T**\* **operand ) const noexcept ;**
+**T**\* **operator ***op***=(T**\* **operand) const noexcept;**
 
   *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
 
