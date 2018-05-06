@@ -14,7 +14,7 @@ Revision: 8
 Audience: LWG
 Status: D
 Group: WG21
-Date: 2018-05-04
+Date: 2018-05-05
 Repository: https://github.com/ORNL/cpp-proposals-pub.git
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html
 Toggle Diffs: Yes
@@ -191,6 +191,54 @@ are effected by the value of those padding bits.  We require that the
 resolution of padding bits follow [[P0528r2]].
 
 
+Questions and Concerns
+======================
+
+1. Should `is_lock_free()` be consistent across objects of the same type?  
+
+    There is concern that if this function is not consistent (for both 
+    `atomic<T>` and *atomic reference* of T) then there is no reasonable way to 
+    choose an algorithm depending on that property.
+
+
+2. Should the wording of `atomic<T>` be rewritten in terms of an *atomic* *reference*?
+
+    Result of SG1 poll: SF F N A SA = 4 3 13 0 0.
+   
+    Rewriting `atomic<T>` would require revisiting the contentious issue of
+    `atomic<T>` having an exposition only member of type `T`.  While there is
+    strong support for this rewrite in SG1, we decided to limit the scope of
+    this paper to *atomic* *reference* to reduce the potential of unnecessary
+    conflict.  We will attempt this rewrite in a future paper.
+
+3. Does *atomic reference* of T need C compatibility?
+
+    We decided to leave C compatibility out of this paper, but that it needs
+    to be address in a future paper.
+
+4. Should *atomic reference* of T be named `atomic_ref<T>` or `atomic<T&>`?
+
+    Results of SG1 poll: SF F N A SA = 0 7 12 3 1.
+
+    Those against `atomic<T&>` raised the concern that it allows dangerous
+    errors to creep into generic code, which requires users to be aware of this
+    edge case to avoid.  Also, after an `atomic<T>` is constructed it does not
+    have data races with other objects, while an *atomic reference* of T does.
+    An `atomic<T&>` is a specialization of `atomic<T>` with weaker guarantees
+    because of these data race potentials.
+     
+    The arguments for `atomic<T&>` is that it is more concise and reduces the
+    vocabulary terms that a user needs to know.
+
+    We decided to keep the name of an *atomic reference* of T as
+    `atomic_ref<T>` for two reasons.  First, using the name `atomic_ref<T>`
+    removes any possibility of impacting existing generic code which uses
+    `atomic<T>`.  Second, when trying to create wording for `atomic<T&>` the
+    specializations had a distinct `vector<bool>` feel where each
+    specialization needed to walk back from guarantees made by the generic
+    version.
+
+
 Proposal
 ========
 
@@ -218,66 +266,6 @@ template< class T > struct atomic_ref ;
 // 3.� atomic ref partial specialization for pointers
 template< class T > struct atomic_ref< T * >;
 
-// 3.�, non-member atomic ref functions
-template<class T>
-      bool atomic_is_lock_free(const atomic_ref<T> *) noexcept;
-template<class T>
-      void atomic_store(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
-template<class T>
-  void atomic_store_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
-                             memory_order) noexcept;
-template<class T>
-  T atomic_load(const atomic_ref<T> *) noexcept;
-template<class T>
-  T atomic_load_explicit(const atomic_ref<T> *, memory_order) noexcept;
-template<class T>
-  T atomic_exchange(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
-template<class T>
-  T atomic_exchange_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
-                             memory_order) noexcept;
-template<class T>
-  bool atomic_compare_exchange_weak(atomic_ref<T> *,
-                                    typename atomic_ref<T>::value_type*,
-                                    typename atomic_ref<T>::value_type) noexcept;
-template<class T>
-  bool atomic_compare_exchange_strong(atomic_ref<T> *,
-                                      typename atomic_ref<T>::value_type*,
-                                      typename atomic_ref<T>::value_type) noexcept;
-template<class T>
-  bool atomic_compare_exchange_weak_explicit(atomic_ref<T> *,
-                                             typename atomic_ref<T>::value_type*,
-                                             typename atomic_ref<T>::value_type,
-                                             memory_order, memory_order) noexcept;
-template<class T>
-  bool atomic_compare_exchange_strong_explicit(atomic_ref<T> *,
-                                               typename atomic_ref<T>::value_type*,
-                                               typename atomic_ref<T>::value_type,
-                                               memory_order, memory_order) noexcept;
-template<class T>
-  T atomic_fetch_add(atomic_ref<T> *, typename atomic_ref<T>::difference_type) noexcept;
-template<class T>
-  T atomic_fetch_add_explicit(atomic_ref<T> *, typename atomic_ref<T>::difference_type,
-                              memory_order) noexcept;
-template<class T>
-  T atomic_fetch_sub(atomic_ref<T> *, typename atomic_ref<T>::difference_type) noexcept;
-template<class T>
-  T atomic_fetch_sub_explicit(atomic_ref<T> *, typename atomic_ref<T>::difference_type,
-                              memory_order) noexcept;
-template<class T>
-  T atomic_fetch_and(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
-template<class T>
-  T atomic_fetch_and_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
-                              memory_order) noexcept;
-template<class T>
-  T atomic_fetch_or(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
-template<class T>
-  T atomic_fetch_or_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
-                             memory_order) noexcept;
-template<class T>
-  T atomic_fetch_xor(atomic_ref<T> *, typename atomic_ref<T>::value_type) noexcept;
-template<class T>
-  T atomic_fetch_xor_explicit(atomic_ref<T> *, typename atomic_ref<T>::value_type,
-                              memory_order) noexcept;
 }
 ```
 
@@ -332,16 +320,16 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   The required alignment of an object to be referenced by an atomic reference,
   which is at least `alignof(T)`.
 
-  [*Note:* An architecture choose to support `atomic_ref` on objects of type T 
-  only if those objects meet a required alignment.  For example, an architecture
-  may be able to support lock-free operations on `std::complex<double>` only if
-  aligned to `2*alignof(double)`.  Implementations should fall back to a 
-  lock-based implementation only where the corresponding `atomic<T>` would. -
-  *end note* ]
+  [*Note:* An implementation my require an object to be referenced by an
+  *atomic reference* to have stricter alignment [basic.align] that other objects
+  of type T.  Further, whether operations on a *atomic reference* of T are 
+  lock-free may depend on the alignment of the referenced object.  For example,
+  an implementation may support lock-free operations on `std::complex<double>`
+  only if aligned to `2*alignof(double)`.  - *end note* ]
 
 **atomic_ref(T & obj ) ;**
 
-  *Requires:* The referenced non-atomic object shall be aligned to
+  *Requires:* The referenced non-atomic object is be aligned to
   `required_alignment`.
 
   *Effects:* Construct an atomic reference that references the non-atomic object.
