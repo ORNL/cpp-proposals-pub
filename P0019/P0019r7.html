@@ -1409,7 +1409,7 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">p0019R7<br>Atomic Ref</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2018-05-05">5 May 2018</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2018-05-06">6 May 2018</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -1479,11 +1479,11 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
     <li data-md="">
      <p>Update to reference resolution of padding bits from <span>[P0528r2]</span></p>
     <li data-md="">
-     <p>Add a note clarifying that <code class="highlight"><span class="n">atomic_ref</span></code> may not be lock free
+     <p>Add a note clarifying that <code class="highlight"><span class="n">atomic_ref</span></code> might not be lock free
 even if <code class="highlight"><span class="n">atomic</span></code> is lock free</p>
     <li data-md="">
      <p>Add wording for all member functions and specializations (in previous version
-on the constructor had wording)</p>
+only the constructor had wording)</p>
     <li data-md="">
      <p>Added reference implementation</p>
     <li data-md="">
@@ -1733,19 +1733,19 @@ shall determine. </blockquote>
    <p><strong>static constexpr size_t required_alignment; </strong></p>
    <p>The required alignment of an object to be referenced by an atomic reference,
   which is at least <code class="highlight"><span class="k">alignof</span><span class="p">(</span><span class="n">T</span><span class="p">)</span></code>.</p>
-   <p>[<em>Note:</em> An implementation my require an object to be referenced by an <em>atomic reference</em> to have stricter alignment [basic.align] that other objects
+   <p>[<em>Note:</em> An implementation may require an object to be referenced by an <em>atomic reference</em> to have stricter alignment [basic.align] than other objects
   of type T.  Further, whether operations on a <em>atomic reference</em> of T are 
   lock-free may depend on the alignment of the referenced object.  For example,
   an implementation may support lock-free operations on <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">></span></code> only if aligned to <code class="highlight"><span class="mi">2</span><span class="o">*</span><span class="k">alignof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span></code>.  - <em>end note</em> ]</p>
    <p><strong>atomic_ref(T&amp; obj);</strong></p>
-   <p><em>Requires:</em> The referenced non-atomic object is be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
-   <p><em>Effects:</em> Construct an atomic reference that references the non-atomic object.</p>
+   <p><em>Requires:</em> The referenced non-atomic object has to be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
+   <p><em>Effects:</em> Constructs an atomic reference that references the non-atomic object.</p>
    <p><em>Throws:</em> Nothing.</p>
    <p><em>Remarks:</em> The lifetime (6.8) of <code class="highlight"><span class="o">*</span><span class="k">this</span></code> shall not exceed the lifetime of the
   referenced non-atomic object.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instance exists that
   references the object all accesses of that object shall exclusively occur
   through those <code class="highlight"><span class="n">atomic_ref</span></code> instances.</p>
-   <p>If the referenced <em>object</em> is of a class or aggregate type then members of
+   <p>If the referenced <em>object</em> is of a class or aggregate type, then members of
   that object shall not be concurrently referenced by an <code class="highlight"><span class="n">atomic_ref</span></code> object.</p>
    <p>Atomic operations applied to object through a referencing atomic reference
   are atomic with respect to atomic operations applied through any other atomic
