@@ -1409,7 +1409,7 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">p0019R7<br>Atomic Ref</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2018-05-04">4 May 2018</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2018-05-05">5 May 2018</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -1460,8 +1460,9 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
      </ol>
     <li><a href="#reference-ability-constraints"><span class="secno">4</span> <span class="content"><em>Reference-ability</em> Constraints</span></a>
     <li><a href="#concern-with-atomict-and-padding-bits-in-t"><span class="secno">5</span> <span class="content">Concern with <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> and padding bits in <code class="highlight"><span class="n">T</span></code></span></a>
-    <li><a href="#proposal"><span class="secno">6</span> <span class="content">Proposal</span></a>
-    <li><a href="#test"><span class="secno">7</span> <span class="content">Feature Testing</span></a>
+    <li><a href="#questions-and-concerns"><span class="secno">6</span> <span class="content">Questions and Concerns</span></a>
+    <li><a href="#proposal"><span class="secno">7</span> <span class="content">Proposal</span></a>
+    <li><a href="#test"><span class="secno">8</span> <span class="content">Feature Testing</span></a>
     <li>
      <a href="#references"><span class="secno"></span> <span class="content">References</span></a>
      <ol class="toc">
@@ -1614,7 +1615,40 @@ necessarily constrain whether the corresponding implementation of <code class="h
 contains padding bits and how construction and <code class="highlight"><span class="n">compare_exchange</span></code> operations
 are effected by the value of those padding bits.  We require that the
 resolution of padding bits follow <span>[P0528r2]</span>. 
-   <h2 class="heading settled" data-level="6" id="proposal"><span class="secno">6. </span><span class="content">Proposal</span><a class="self-link" href="#proposal"></a></h2>
+   <h2 class="heading settled" data-level="6" id="questions-and-concerns"><span class="secno">6. </span><span class="content">Questions and Concerns</span><a class="self-link" href="#questions-and-concerns"></a></h2>
+   <ol>
+    <li data-md="">
+     <p>Should <code class="highlight"><span class="n">is_lock_free</span><span class="p">()</span></code> be consistent across objects of the same type?</p>
+     <p>There is concern that if this function is not consistent (for both <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> and <em>atomic reference</em> of T) then there is no reasonable way to 
+choose an algorithm depending on that property.</p>
+    <li data-md="">
+     <p>Should the wording of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> be rewritten in terms of an <em>atomic</em> <em>reference</em>?</p>
+     <p>Result of SG1 poll: SF F N A SA = 4 3 13 0 0.</p>
+     <p>Rewriting <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> would require revisiting the contentious issue of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> having an exposition only member of type <code class="highlight"><span class="n">T</span></code>.  While there is
+strong support for this rewrite in SG1, we decided to limit the scope of
+this paper to <em>atomic</em> <em>reference</em> to reduce the potential of unnecessary
+conflict.  We will attempt this rewrite in a future paper.</p>
+    <li data-md="">
+     <p>Does <em>atomic reference</em> of T need C compatibility?</p>
+     <p>We decided to leave C compatibility out of this paper, but that it needs
+to be address in a future paper.</p>
+    <li data-md="">
+     <p>Should <em>atomic reference</em> of T be named <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> or <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code>?</p>
+     <p>Results of SG1 poll: SF F N A SA = 0 7 12 3 1.</p>
+     <p>Those against <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> raised the concern that it allows dangerous
+errors to creep into generic code, which requires users to be aware of this
+edge case to avoid.  Also, after an <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> is constructed it does not
+have data races with other objects, while an <em>atomic reference</em> of T does.
+An <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> is a specialization of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> with weaker guarantees
+because of these data race potentials.</p>
+     <p>The arguments for <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> is that it is more concise and reduces the
+vocabulary terms that a user needs to know.</p>
+     <p>We decided to keep the name of an <em>atomic reference</em> of T as <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> for two reasons.  First, using the name <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> removes any possibility of impacting existing generic code which uses <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code>.  Second, when trying to create wording for <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code> the
+specializations had a distinct <code class="highlight"><span class="n">vector</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">></span></code> feel where each
+specialization needed to walk back from guarantees made by the generic
+version.</p>
+   </ol>
+   <h2 class="heading settled" data-level="7" id="proposal"><span class="secno">7. </span><span class="content">Proposal</span><a class="self-link" href="#proposal"></a></h2>
    <p>The proposed changes are relative to the working draft of the standard
 as of <a data-link-type="biblio" href="#biblio-n4727">[N4727]</a>.</p>
    <blockquote> Text in blockquotes is not proposed wording </blockquote>
@@ -1628,66 +1662,6 @@ shall determine. </blockquote>
 <span class="c1">// 3.� atomic ref partial specialization for pointers</span>
 <span class="c1"></span><span class="n">template</span><span class="o">&lt;</span> <span class="n">class</span> <span class="n">T</span> <span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span> <span class="n">T</span> <span class="o">*</span> <span class="o">></span><span class="p">;</span>
 
-<span class="c1">// 3.�, non-member atomic ref functions</span>
-<span class="c1"></span><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-      <span class="kt">bool</span> <span class="n">atomic_is_lock_free</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-      <span class="kt">void</span> <span class="n">atomic_store</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="kt">void</span> <span class="n">atomic_store_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
-                             <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_load</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_load_explicit</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_exchange</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_exchange_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
-                             <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="kt">bool</span> <span class="n">atomic_compare_exchange_weak</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span>
-                                    <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="o">*</span><span class="p">,</span>
-                                    <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="kt">bool</span> <span class="n">atomic_compare_exchange_strong</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span>
-                                      <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="o">*</span><span class="p">,</span>
-                                      <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="kt">bool</span> <span class="n">atomic_compare_exchange_weak_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span>
-                                             <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="o">*</span><span class="p">,</span>
-                                             <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
-                                             <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="kt">bool</span> <span class="n">atomic_compare_exchange_strong_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span>
-                                               <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="o">*</span><span class="p">,</span>
-                                               <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
-                                               <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_add</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">difference_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_add_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">difference_type</span><span class="p">,</span>
-                              <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_sub</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">difference_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_sub_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">difference_type</span><span class="p">,</span>
-                              <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_and</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_and_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
-                              <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_or</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_or_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
-                             <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_xor</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-<span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span>
-  <span class="n">T</span> <span class="n">atomic_fetch_xor_explicit</span><span class="p">(</span><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span> <span class="o">*</span><span class="p">,</span> <span class="kr">typename</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">value_type</span><span class="p">,</span>
-                              <span class="n">memory_order</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
 <span class="p">}</span>
 </pre>
    <blockquote> Add a new section [atomics.ref.generic] after [atomics.types.generic] </blockquote>
@@ -1727,13 +1701,12 @@ shall determine. </blockquote>
    <p><strong>static constexpr size_t required_alignment ; </strong></p>
    <p>The required alignment of an object to be referenced by an atomic reference,
   which is at least <code class="highlight"><span class="k">alignof</span><span class="p">(</span><span class="n">T</span><span class="p">)</span></code>.</p>
-   <p>[<em>Note:</em> An architecture choose to support <code class="highlight"><span class="n">atomic_ref</span></code> on objects of type T
-  only if those objects meet a required alignment.  For example, an architecture
-  may be able to support lock-free operations on <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">></span></code> only if
-  aligned to <code class="highlight"><span class="mi">2</span><span class="o">*</span><span class="k">alignof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span></code>.  Implementations should fall back to a 
-  lock-based implementation only where the corresponding <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> would. - <em>end note</em> ]</p>
+   <p>[<em>Note:</em> An implementation my require an object to be referenced by an <em>atomic reference</em> to have stricter alignment [basic.align] that other objects
+  of type T.  Further, whether operations on a <em>atomic reference</em> of T are 
+  lock-free may depend on the alignment of the referenced object.  For example,
+  an implementation may support lock-free operations on <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">></span></code> only if aligned to <code class="highlight"><span class="mi">2</span><span class="o">*</span><span class="k">alignof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span></code>.  - <em>end note</em> ]</p>
    <p><strong>atomic_ref(T &amp; obj ) ;</strong></p>
-   <p><em>Requires:</em> The referenced non-atomic object shall be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
+   <p><em>Requires:</em> The referenced non-atomic object is be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
    <p><em>Effects:</em> Construct an atomic reference that references the non-atomic object.</p>
    <p><em>Throws:</em> Nothing.</p>
    <p><em>Remarks:</em> The lifetime (6.8) of <code class="highlight"><span class="o">*</span><span class="k">this</span></code> shall not exceed the lifetime of the
@@ -1989,7 +1962,7 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].<
   otherwise have no undefined behavior.</p>
    <p><strong>T</strong>* <strong>operator op=(T</strong>* <strong>operand ) const noexcept ;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_key</span><span class="p">(</span><span class="n">operand</span><span class="p">)</span> <span class="n">op</span> <span class="n">operand</span><span class="p">;</span></code></p>
-   <h2 class="heading settled" data-level="7" id="test"><span class="secno">7. </span><span class="content">Feature Testing</span><a class="self-link" href="#test"></a></h2>
+   <h2 class="heading settled" data-level="8" id="test"><span class="secno">8. </span><span class="content">Feature Testing</span><a class="self-link" href="#test"></a></h2>
    <p>The <code class="highlight"><span class="n">__cpp_lib_atomic_ref</span></code> feature test macro should be added.</p>
   </main>
 <script>
