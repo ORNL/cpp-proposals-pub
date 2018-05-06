@@ -38,11 +38,11 @@ Revision History
 
 -   Update to reference resolution of padding bits from [[P0528r2]]
 
--   Add a note clarifying that `atomic_ref` may not be lock free
+-   Add a note clarifying that `atomic_ref` might not be lock free
     even if `atomic` is lock free
 
 -   Add wording for all member functions and specializations (in previous version
-    on the constructor had wording)
+    only the constructor had wording)
 
 -   Added reference implementation
 
@@ -355,8 +355,8 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   The required alignment of an object to be referenced by an atomic reference,
   which is at least `alignof(T)`.
 
-  [*Note:* An implementation my require an object to be referenced by an
-  *atomic reference* to have stricter alignment [basic.align] that other objects
+  [*Note:* An implementation may require an object to be referenced by an
+  *atomic reference* to have stricter alignment [basic.align] than other objects
   of type T.  Further, whether operations on a *atomic reference* of T are 
   lock-free may depend on the alignment of the referenced object.  For example,
   an implementation may support lock-free operations on `std::complex<double>`
@@ -364,10 +364,10 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
 
 **atomic_ref(T& obj);**
 
-  *Requires:* The referenced non-atomic object is be aligned to
+  *Requires:* The referenced non-atomic object has to be aligned to
   `required_alignment`.
 
-  *Effects:* Construct an atomic reference that references the non-atomic object.
+  *Effects:* Constructs an atomic reference that references the non-atomic object.
 
   *Throws:* Nothing.
 
@@ -376,7 +376,7 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   references the object all accesses of that object shall exclusively occur
   through those `atomic_ref` instances.
 
-  If the referenced *object* is of a class or aggregate type then members of
+  If the referenced *object* is of a class or aggregate type, then members of
   that object shall not be concurrently referenced by an `atomic_ref` object.
 
   Atomic operations applied to object through a referencing atomic reference
