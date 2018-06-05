@@ -414,7 +414,7 @@ public:
     value_type desired  = expected + val;
 
     while ( !compare_exchange_weak( expected, desired, order, std::memory_order_relaxed ) ) {
-      expected = load( std::memory_order_relaxed );
+      if (isnan(expected)) break;
       desired  = expected + val;
     }
     return expected;
@@ -427,7 +427,7 @@ public:
     value_type desired  = expected - val;
 
     while ( !compare_exchange_weak( expected, desired, order, std::memory_order_relaxed ) ) {
-      expected = load( std::memory_order_relaxed );
+      if (isnan(expected)) break;
       desired  = expected - val;
     }
     return expected;
@@ -440,7 +440,10 @@ public:
     value_type desired  = expected + val;
 
     while ( !compare_exchange_weak( expected, desired, std::memory_order_seq_cst, std::memory_order_relaxed ) ) {
-      expected = load( std::memory_order_relaxed );
+      if (isnan(expected)) {
+        desired = expected;
+        break;
+      }
       desired  = expected + val;
     }
     return desired;
@@ -453,7 +456,10 @@ public:
     value_type desired  = expected - val;
 
     while ( !compare_exchange_weak( expected, desired, std::memory_order_seq_cst, std::memory_order_relaxed ) ) {
-      expected = load( std::memory_order_relaxed );
+      if (isnan(expected)) {
+        desired = expected;
+        break;
+      }
       desired  = expected - val;
     }
     return desired;
