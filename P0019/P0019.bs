@@ -10,7 +10,7 @@ Editor: David Hollman, dshollm@sandia.gov
 Editor: Bryce Adelstein Lelbach, blelbach@nvidia.com
 Editor: Jens Maurer, Jens.Maurer@gmx.net
 Shortname: P0019
-Revision: 7
+Revision: 8
 Audience: SG1
 Audience: LWG
 Status: P
@@ -19,7 +19,7 @@ Date: 2018-05-06
 Repository: https://github.com/ORNL/cpp-proposals-pub.git
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html
 Toggle Diffs: Yes
-Warning:
+Warning: custom
 Custom Warning Title: Work in Progress
 Custom Warning Text: This document is a work in progress that has not yet been
                      submitted to the committee for discussion in its current
@@ -343,7 +343,7 @@ Descriptions are provided below.
 Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
 </blockquote>
 
-**static constexpr size_t is_always_lockfree;**
+**static constexpr bool is_always_lockfree;**
 
   The static data member `is_always_lock_free` is true if the `atomic_ref` type’s
   operations are always lock-free, and false otherwise.
@@ -369,7 +369,7 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
 
   *Throws:* Nothing.
 
-  *Remarks:* The lifetime (6.8) of `*this` shall not exceed the lifetime of the
+  *Remarks:* The lifetime [basic.life] of `*this` shall not exceed the lifetime of the
   referenced non-atomic object.  While any `atomic_ref` instance exists that
   references the object all accesses of that object shall exclusively occur
   through those `atomic_ref` instances.
