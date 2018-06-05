@@ -12,6 +12,7 @@
 #include <atomic>
 #include <type_traits>
 #include <cstdint>
+#include <cmath>
 
 
 #if defined( _MSC_VER ) //msvc
@@ -414,8 +415,8 @@ public:
     value_type desired  = expected + val;
 
     while ( !compare_exchange_weak( expected, desired, order, std::memory_order_relaxed ) ) {
-      if (isnan(expected)) break;
       desired  = expected + val;
+      if (std::isnan(expected)) break;
     }
     return expected;
   }
@@ -427,8 +428,8 @@ public:
     value_type desired  = expected - val;
 
     while ( !compare_exchange_weak( expected, desired, order, std::memory_order_relaxed ) ) {
-      if (isnan(expected)) break;
       desired  = expected - val;
+      if (std::isnan(expected)) break;
     }
     return expected;
   }
@@ -440,11 +441,8 @@ public:
     value_type desired  = expected + val;
 
     while ( !compare_exchange_weak( expected, desired, std::memory_order_seq_cst, std::memory_order_relaxed ) ) {
-      if (isnan(expected)) {
-        desired = expected;
-        break;
-      }
       desired  = expected + val;
+      if (std::isnan(expected)) break;
     }
     return desired;
   }
@@ -456,11 +454,8 @@ public:
     value_type desired  = expected - val;
 
     while ( !compare_exchange_weak( expected, desired, std::memory_order_seq_cst, std::memory_order_relaxed ) ) {
-      if (isnan(expected)) {
-        desired = expected;
-        break;
-      }
       desired  = expected - val;
+      if (std::isnan(expected)) break;
     }
     return desired;
   }
