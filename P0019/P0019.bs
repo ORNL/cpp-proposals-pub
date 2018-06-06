@@ -427,14 +427,13 @@ The specialization `atomic_ref<bool>` is a standard-layout struct.
 
 The lifetime [basic.life] of an object referenced by `*ptr` shall exceed the lifetime of all `atomic_ref`s
 that reference the object.  While any `atomic_ref`
-instances exist which references the object with `*ptr` all accesses that object shall exclusively occur
+instances exist which references the `*ptr` object all accesses that object shall exclusively occur
 through those `atomic_ref` instances. If the referenced object is of a class or 
 aggregate type, then members of that object shall not be concurrently referenced
-by an `atomic_ref` object.
+by any other `atomic_ref` object.
 
-Atomic operations applied to object through a referencing `atomic_ref`
-are atomic with respect to atomic operations applied through any other `atomic_ref`
-which references the same object.
+Atomic operations applied to an object through a referencing `atomic_ref`
+are atomic with respect to atomic operations applied through any other `atomic_ref` referencing the same object.
 
 [*Note*: Atomic operations or the `atomic_ref` constructor could acquire a shared resource,
 such as a lock associated with the referenced object, to enable atomic operations applied to
@@ -467,17 +466,16 @@ after [atomics.ref.generic] titled
 
 **atomic_ref(T& obj);**
 
-  *Requires:* The referenced non-atomic object shall be aligned to
+  *Requires:* The referenced object shall be aligned to
   `required_alignment`.
 
-  *Effects:* Constructs an atomic reference that references the non-atomic object.
+  *Effects:* Constructs an atomic reference that references the object.
 
   *Throws:* Nothing.
 
 **atomic_ref(const atomic_ref& ref);**
 
-  *Effects:* Construct an atomic reference that references the non-atomic object
-  referenced by the given `atomic_ref`.
+  *Effects:* Construct an atomic reference that references the object referenced by `ref`.
 
 **T operator=(T desired) const noexcept;**
 
@@ -828,7 +826,7 @@ Descriptions are provided below only for members that differ from the primary
 template.
 
 The following operations perform arithmetic computations.  The key, operator, and
-computation correspondence are identified in Table 129 [atomics.types.int].
+computation correspondence are identified in Table 130 [atomics.types.int].
 
 <strong><em>floating-point</em> fetch_</strong><em>key</em><strong>(<em>floating-point</em> operand, memory_order order = memory_order_seq_cst) const noexcept;</strong>
   
@@ -989,7 +987,7 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].
 Retitle subsubsection [atomics.types.memop] to 
 </blockquote>
 
-<strong>Member operators common to <em>atomic objects</em> of integers and 
+<strong>Member operators common to atomic objects of integers and 
 pointers types</strong>
 
 <blockquote>

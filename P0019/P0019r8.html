@@ -1808,11 +1808,11 @@ of the <code class="highlight"><span class="n">atomic_ref</span></code> object, 
    <p>The template argument for <code class="highlight"><span class="n">T</span></code> shall be trivially copyable [basic.types].</p>
    <p>The specialization <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">></span></code> is a standard-layout struct.</p>
    <p>The lifetime [basic.life] of an object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> shall exceed the lifetime of all <code class="highlight"><span class="n">atomic_ref</span></code>s
-that reference the object.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instances exist which references the object with <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> all accesses that object shall exclusively occur
+that reference the object.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instances exist which references the <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> object all accesses that object shall exclusively occur
 through those <code class="highlight"><span class="n">atomic_ref</span></code> instances. If the referenced object is of a class or 
 aggregate type, then members of that object shall not be concurrently referenced
-by an <code class="highlight"><span class="n">atomic_ref</span></code> object.</p>
-   <p>Atomic operations applied to object through a referencing <code class="highlight"><span class="n">atomic_ref</span></code> are atomic with respect to atomic operations applied through any other <code class="highlight"><span class="n">atomic_ref</span></code> which references the same object.</p>
+by any other <code class="highlight"><span class="n">atomic_ref</span></code> object.</p>
+   <p>Atomic operations applied to an object through a referencing <code class="highlight"><span class="n">atomic_ref</span></code> are atomic with respect to atomic operations applied through any other <code class="highlight"><span class="n">atomic_ref</span></code> referencing the same object.</p>
    <p>[<em>Note</em>: Atomic operations or the <code class="highlight"><span class="n">atomic_ref</span></code> constructor could acquire a shared resource,
 such as a lock associated with the referenced object, to enable atomic operations applied to
 the referenced object. - <em>end note</em>]</p>
@@ -1832,12 +1832,11 @@ after [atomics.ref.generic] titled </blockquote>
   lock-free operations on <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">></span></code> could be supported
   only if aligned to <code class="highlight"><span class="mi">2</span><span class="o">*</span><span class="k">alignof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span></code>.  - <em>end note</em> ]</p>
    <p><strong>atomic_ref(T&amp; obj);</strong></p>
-   <p><em>Requires:</em> The referenced non-atomic object shall be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
-   <p><em>Effects:</em> Constructs an atomic reference that references the non-atomic object.</p>
+   <p><em>Requires:</em> The referenced object shall be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
+   <p><em>Effects:</em> Constructs an atomic reference that references the object.</p>
    <p><em>Throws:</em> Nothing.</p>
    <p><strong>atomic_ref(const atomic_ref&amp; ref);</strong></p>
-   <p><em>Effects:</em> Construct an atomic reference that references the non-atomic object
-  referenced by the given <code class="highlight"><span class="n">atomic_ref</span></code>.</p>
+   <p><em>Effects:</em> Construct an atomic reference that references the object referenced by <code class="highlight"><span class="n">ref</span></code>.</p>
    <p><strong>T operator=(T desired) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="n">store</span><span class="p">(</span><span class="n">desired</span><span class="p">);</span> <span class="k">return</span> <span class="n">desired</span><span class="p">;</span></code></p>
    <p><strong>operator T() const noexcept;</strong></p>
@@ -2012,7 +2011,7 @@ atomic operations appropriate to floating-point types.</p>
    <p>Descriptions are provided below only for members that differ from the primary
 template.</p>
    <p>The following operations perform arithmetic computations.  The key, operator, and
-computation correspondence are identified in Table 129 [atomics.types.int].</p>
+computation correspondence are identified in Table 130 [atomics.types.int].</p>
    <p><strong><em>floating-point</em> fetch_</strong><em>key</em><strong>(<em>floating-point</em> operand, memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Effects:</em> Atomically replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with the result
   of the computation applied to the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> and the given <code class="highlight"><span class="n">operand</span></code>. Memory is affected according to the value of <code class="highlight"><span class="n">order</span></code>. These operations
@@ -2089,7 +2088,7 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].<
    <p><strong>T* operator</strong> <em>op</em><strong>=(difference_type operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k"><span class="k">return</span></span> <span class="nf"><span class="nf">fetch_</span><strong><em><span class="nf">key</span></em></strong></span><span class="p"><span class="p">(</span></span><span class="n"><span class="n">operand</span></span><span class="p"><span class="p">)</span></span> <span class="n"><strong><em><span class="n">op</span></em></strong></span> <span class="n"><span class="n">operand</span></span><span class="p"><span class="p">;</span></span></code></p>
    <blockquote> Retitle subsubsection [atomics.types.memop] to </blockquote>
-   <p><strong>Member operators common to <em>atomic objects</em> of integers and
+   <p><strong>Member operators common to atomic objects of integers and
 pointers types</strong></p>
    <blockquote>
      and move to the subsection following the [atomics.types.generic] subsection. 
