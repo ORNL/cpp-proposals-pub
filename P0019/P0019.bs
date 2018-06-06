@@ -418,7 +418,28 @@ public:
 <span class="p">};</span>
 </pre>
 
+`atomic_ref<T>` is an *atomic object* and therefore has all the properties of
+atomic objects described in [intro.races]. 
+
 The template argument for `T` shall be trivially copyable [basic.types].
+
+The specialization `atomic_ref<bool>` is a standard-layout struct.
+
+The lifetime [basic.life] of an object shall exceed the lifetime of all `atomic_ref`s
+with `ptr`s such that the object is referenced by `*ptr`.  While any `atomic_ref`
+instances exist which reference the object with `*ptr` all accesses that object shall exclusively occur
+through those `atomic_ref` instances. If the referenced object is of a class or 
+aggregate type, then members of that object shall not be concurrently referenced
+by an `atomic_ref` object.
+  
+Atomic operations applied to object through a referencing `atomic_ref`
+are atomic with respect to atomic operations applied through any other `atomic_ref`
+which references the same object.
+
+[*Note*: Atomic operations or the constructor could acquire a shared resource,
+such as a lock associated with the referenced object, to enable atomic operations applied to
+the referenced non-atomic object. - *end note*]
+
 
 <blockquote>
 Add a new subsubsection [atomics.ref.operations] titled "Operations on atomic types"
@@ -435,10 +456,10 @@ after [atomics.ref.generic]
   The required alignment of an object to be referenced by an atomic reference,
   which is at least `alignof(T)`.
 
-  [*Note:* An hardware implementation could require an object to be referenced 
-  `atomic_ref` to have stricter alignment [basic.align] than other objects
-  of type `T`.  Further, whether operations on a *atomic reference* of T are 
-  lock-free might depend on the alignment of the referenced object.  For example,
+  [*Note:* A hardware implementation could require that an object to be referenced 
+  by an `atomic_ref` have stricter alignment [basic.align] than other objects
+  of type `T`.  Further, whether operations on an `atomic_ref` are 
+  lock-free could depend on the alignment of the referenced object.  For example,
   an implementation might support lock-free operations on `std::complex<double>`
   only if aligned to `2*alignof(double)`.  - *end note* ]
 
@@ -450,22 +471,6 @@ after [atomics.ref.generic]
   *Effects:* Constructs an atomic reference that references the non-atomic object.
 
   *Throws:* Nothing.
-
-  *Remarks:* The lifetime [basic.life] of `*this` shall not exceed the lifetime of the
-  referenced non-atomic object.  While any `atomic_ref` instance exists that
-  references the object all accesses of that object shall exclusively occur
-  through those `atomic_ref` instances.
-
-  If the referenced *object* is of a class or aggregate type, then members of
-  that object shall not be concurrently referenced by an `atomic_ref` object.
-
-  Atomic operations applied to object through a referencing atomic reference
-  are atomic with respect to atomic operations applied through any other atomic
-  reference that references that object.
-
-  [*Note*: The constructor could acquire a shared resource, such as a lock
-  associated with the referenced object, to enable atomic operations applied to
-  the referenced non-atomic object. - *end note*]
 
 **atomic_ref(const atomic_ref& ref);**
 

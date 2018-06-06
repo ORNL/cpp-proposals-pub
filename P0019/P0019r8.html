@@ -1803,7 +1803,19 @@ shall determine.</p>
                                <span class="n"><span class="n">memory_order</span></span> <span class="o"><span class="o">=</span></span> <span class="n"><span class="n">memory_order_seq_cst</span></span><span class="p"><span class="p">)</span></span> <span class="k"><span class="k">const</span></span> <span class="n"><span class="n">noexcept</span></span><span class="p"><span class="p">;</span></span>
 <span class="p"><span class="p">};</span></span>
 </pre>
+   <p><code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> is an <em>atomic object</em> and therefore has all the properties of
+atomic objects described in [intro.races].</p>
    <p>The template argument for <code class="highlight"><span class="n">T</span></code> shall be trivially copyable [basic.types].</p>
+   <p>The specialization <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">></span></code> is a standard-layout struct.</p>
+   <p>The lifetime [basic.life] of an object shall exceed the lifetime of all <code class="highlight"><span class="n">atomic_ref</span></code>s
+with <code class="highlight"><span class="n">ptr</span></code>s such that the object is referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code>.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instances exist which reference the object with <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> all accesses that object shall exclusively occur
+through those <code class="highlight"><span class="n">atomic_ref</span></code> instances. If the referenced object is of a class or 
+aggregate type, then members of that object shall not be concurrently referenced
+by an <code class="highlight"><span class="n">atomic_ref</span></code> object.</p>
+   <p>Atomic operations applied to object through a referencing <code class="highlight"><span class="n">atomic_ref</span></code> are atomic with respect to atomic operations applied through any other <code class="highlight"><span class="n">atomic_ref</span></code> which references the same object.</p>
+   <p>[<em>Note</em>: Atomic operations or the constructor could acquire a shared resource,
+such as a lock associated with the referenced object, to enable atomic operations applied to
+the referenced non-atomic object. - <em>end note</em>]</p>
    <blockquote> Add a new subsubsection [atomics.ref.operations] titled "Operations on atomic types"
 after [atomics.ref.generic] </blockquote>
    <p><strong>static constexpr bool is_always_lockfree;</strong></p>
@@ -1812,26 +1824,15 @@ after [atomics.ref.generic] </blockquote>
    <p><strong>static constexpr size_t required_alignment; </strong></p>
    <p>The required alignment of an object to be referenced by an atomic reference,
   which is at least <code class="highlight"><span class="k">alignof</span><span class="p">(</span><span class="n">T</span><span class="p">)</span></code>.</p>
-   <p>[<em>Note:</em> An hardware implementation could require an object to be referenced <code class="highlight"><span class="n">atomic_ref</span></code> to have stricter alignment [basic.align] than other objects
-  of type <code class="highlight"><span class="n">T</span></code>.  Further, whether operations on a <em>atomic reference</em> of T are 
-  lock-free might depend on the alignment of the referenced object.  For example,
+   <p>[<em>Note:</em> A hardware implementation could require that an object to be referenced
+  by an <code class="highlight"><span class="n">atomic_ref</span></code> have stricter alignment [basic.align] than other objects
+  of type <code class="highlight"><span class="n">T</span></code>.  Further, whether operations on an <code class="highlight"><span class="n">atomic_ref</span></code> are 
+  lock-free could depend on the alignment of the referenced object.  For example,
   an implementation might support lock-free operations on <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">></span></code> only if aligned to <code class="highlight"><span class="mi">2</span><span class="o">*</span><span class="k">alignof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span></code>.  - <em>end note</em> ]</p>
    <p><strong>atomic_ref(T&amp; obj);</strong></p>
    <p><em>Requires:</em> The referenced non-atomic object has to be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
    <p><em>Effects:</em> Constructs an atomic reference that references the non-atomic object.</p>
    <p><em>Throws:</em> Nothing.</p>
-   <p><em>Remarks:</em> The lifetime [basic.life] of <code class="highlight"><span class="o">*</span><span class="k">this</span></code> shall not exceed the lifetime of the
-  referenced non-atomic object.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instance exists that
-  references the object all accesses of that object shall exclusively occur
-  through those <code class="highlight"><span class="n">atomic_ref</span></code> instances.</p>
-   <p>If the referenced <em>object</em> is of a class or aggregate type, then members of
-  that object shall not be concurrently referenced by an <code class="highlight"><span class="n">atomic_ref</span></code> object.</p>
-   <p>Atomic operations applied to object through a referencing atomic reference
-  are atomic with respect to atomic operations applied through any other atomic
-  reference that references that object.</p>
-   <p>[<em>Note</em>: The constructor could acquire a shared resource, such as a lock
-  associated with the referenced object, to enable atomic operations applied to
-  the referenced non-atomic object. - <em>end note</em>]</p>
    <p><strong>atomic_ref(const atomic_ref&amp; ref);</strong></p>
    <p><em>Effects:</em> Construct an atomic reference that references the non-atomic object
   referenced by the given <code class="highlight"><span class="n">atomic_ref</span></code>.</p>
