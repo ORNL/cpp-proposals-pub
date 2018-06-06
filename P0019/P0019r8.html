@@ -1540,7 +1540,7 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
      <p>Consensus for no change. No objections.</p>
     <li data-md="">
      <p><a href="http://wiki.edg.com/bin/view/Wg21rapperswil2018/LWGP0019">2018-06-05 LWG</a></p>
-     <p>Many minor changes requested.</p>
+     <p>Many editorial changes requested.</p>
    </ul>
    <p><span>[P0019r7]</span></p>
    <ul>
@@ -1803,34 +1803,35 @@ shall determine.</p>
                                <span class="n"><span class="n">memory_order</span></span> <span class="o"><span class="o">=</span></span> <span class="n"><span class="n">memory_order_seq_cst</span></span><span class="p"><span class="p">)</span></span> <span class="k"><span class="k">const</span></span> <span class="n"><span class="n">noexcept</span></span><span class="p"><span class="p">;</span></span>
 <span class="p"><span class="p">};</span></span>
 </pre>
-   <p><code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> is an <em>atomic object</em> and therefore has all the properties of
-atomic objects described in [intro.races].</p>
+   <p><code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> has all the properties of <em>atomic objects</em> described in [intro.races].</p>
    <p>The template argument for <code class="highlight"><span class="n">T</span></code> shall be trivially copyable [basic.types].</p>
    <p>The specialization <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">></span></code> is a standard-layout struct.</p>
-   <p>The lifetime [basic.life] of an object shall exceed the lifetime of all <code class="highlight"><span class="n">atomic_ref</span></code>s
-with <code class="highlight"><span class="n">ptr</span></code>s such that the object is referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code>.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instances exist which reference the object with <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> all accesses that object shall exclusively occur
+   <p>The lifetime [basic.life] of an object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> shall exceed the lifetime of all <code class="highlight"><span class="n">atomic_ref</span></code>s
+that reference the object.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instances exist which references the object with <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> all accesses that object shall exclusively occur
 through those <code class="highlight"><span class="n">atomic_ref</span></code> instances. If the referenced object is of a class or 
 aggregate type, then members of that object shall not be concurrently referenced
 by an <code class="highlight"><span class="n">atomic_ref</span></code> object.</p>
    <p>Atomic operations applied to object through a referencing <code class="highlight"><span class="n">atomic_ref</span></code> are atomic with respect to atomic operations applied through any other <code class="highlight"><span class="n">atomic_ref</span></code> which references the same object.</p>
-   <p>[<em>Note</em>: Atomic operations or the constructor could acquire a shared resource,
+   <p>[<em>Note</em>: Atomic operations or the <code class="highlight"><span class="n">atomic_ref</span></code> constructor could acquire a shared resource,
 such as a lock associated with the referenced object, to enable atomic operations applied to
-the referenced non-atomic object. - <em>end note</em>]</p>
-   <blockquote> Add a new subsubsection [atomics.ref.operations] titled "Operations on atomic types"
-after [atomics.ref.generic] </blockquote>
+the referenced object. - <em>end note</em>]</p>
+   <blockquote> Add a new subsubsection [atomics.ref.operations]
+after [atomics.ref.generic] titled </blockquote>
+   <p><strong>Operations on atomic types</strong></p>
    <p><strong>static constexpr bool is_always_lockfree;</strong></p>
    <p>The static data member <code class="highlight"><span class="n">is_always_lock_free</span></code> is true if the <code class="highlight"><span class="n">atomic_ref</span></code> type’s
   operations are always lock-free, and false otherwise.</p>
    <p><strong>static constexpr size_t required_alignment; </strong></p>
    <p>The required alignment of an object to be referenced by an atomic reference,
   which is at least <code class="highlight"><span class="k">alignof</span><span class="p">(</span><span class="n">T</span><span class="p">)</span></code>.</p>
-   <p>[<em>Note:</em> A hardware implementation could require that an object to be referenced
+   <p>[<em>Note:</em> Hardware could require that an object to be referenced
   by an <code class="highlight"><span class="n">atomic_ref</span></code> have stricter alignment [basic.align] than other objects
   of type <code class="highlight"><span class="n">T</span></code>.  Further, whether operations on an <code class="highlight"><span class="n">atomic_ref</span></code> are 
   lock-free could depend on the alignment of the referenced object.  For example,
-  an implementation might support lock-free operations on <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">></span></code> only if aligned to <code class="highlight"><span class="mi">2</span><span class="o">*</span><span class="k">alignof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span></code>.  - <em>end note</em> ]</p>
+  lock-free operations on <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">complex</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">></span></code> could be supported
+  only if aligned to <code class="highlight"><span class="mi">2</span><span class="o">*</span><span class="k">alignof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span></code>.  - <em>end note</em> ]</p>
    <p><strong>atomic_ref(T&amp; obj);</strong></p>
-   <p><em>Requires:</em> The referenced non-atomic object has to be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
+   <p><em>Requires:</em> The referenced non-atomic object shall be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
    <p><em>Effects:</em> Constructs an atomic reference that references the non-atomic object.</p>
    <p><em>Throws:</em> Nothing.</p>
    <p><strong>atomic_ref(const atomic_ref&amp; ref);</strong></p>
@@ -1953,8 +1954,7 @@ template.</p>
 computation correspondence are identified in Table 130 [atomics.types.int].</p>
    <p><strong><em>integral</em> fetch_</strong><em>key</em><strong>(<em>integral</em> operand, memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Effects:</em> Atomically replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with the result
-  of the computation applied to the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> and the given
-  operand. Memory is affected according to the value of <code class="highlight"><span class="n">order</span></code>. These operations
+  of the computation applied to the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> and the given <code class="highlight"><span class="n">operand</span></code>. Memory is affected according to the value of <code class="highlight"><span class="n">order</span></code>. These operations
   are atomic read-modify-write operations [intro.races].</p>
    <p><em>Returns:</em> Atomically, the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> immediately before the
   effects.</p>
@@ -2014,8 +2014,7 @@ template.</p>
 computation correspondence are identified in Table 129 [atomics.types.int].</p>
    <p><strong><em>floating-point</em> fetch_</strong><em>key</em><strong>(<em>floating-point</em> operand, memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Effects:</em> Atomically replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with the result
-  of the computation applied to the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> and the given
-  operand. Memory is affected according to the value of <code class="highlight"><span class="n">order</span></code>. These operations
+  of the computation applied to the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> and the given <code class="highlight"><span class="n">operand</span></code>. Memory is affected according to the value of <code class="highlight"><span class="n">order</span></code>. These operations
   are atomic read-modify-write operations [intro.races].</p>
    <p><em>Returns:</em> Atomically, the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> immediately before the
   effects.</p>
@@ -2080,8 +2079,7 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].<
    <p><strong>T* fetch_</strong><em>key</em><strong>(difference_type operand, memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Requires:</em> T shall be an object type, otherwise the program is ill-formed</p>
    <p><em>Effects:</em> Atomically replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with the result
-  of the computation applied to the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> and the given
-  operand. Memory is affected according to the value of <code class="highlight"><span class="n">order</span></code>. These operations
+  of the computation applied to the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> and the given <code class="highlight"><span class="n">operand</span></code>. Memory is affected according to the value of <code class="highlight"><span class="n">order</span></code>. These operations
   are atomic read-modify-write operations [intro.races].</p>
    <p><em>Returns:</em> Atomically, the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> immediately before the
   effects.</p>
