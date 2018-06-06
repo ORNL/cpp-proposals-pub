@@ -1803,7 +1803,8 @@ shall determine.</p>
                                <span class="n"><span class="n">memory_order</span></span> <span class="o"><span class="o">=</span></span> <span class="n"><span class="n">memory_order_seq_cst</span></span><span class="p"><span class="p">)</span></span> <span class="k"><span class="k">const</span></span> <span class="n"><span class="n">noexcept</span></span><span class="p"><span class="p">;</span></span>
 <span class="p"><span class="p">};</span></span>
 </pre>
-   <p><code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> has all the properties of <em>atomic objects</em> described in [intro.races].</p>
+   <p>An <code class="highlight"><span class="n">atomic_ref</span></code> object applies atomic operations [atomics.general] to the object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> such that, for the lifetime [basic.life]
+of the <code class="highlight"><span class="n">atomic_ref</span></code> object, the object referenced bi <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> is an atomic object [intro.races].</p>
    <p>The template argument for <code class="highlight"><span class="n">T</span></code> shall be trivially copyable [basic.types].</p>
    <p>The specialization <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">></span></code> is a standard-layout struct.</p>
    <p>The lifetime [basic.life] of an object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> shall exceed the lifetime of all <code class="highlight"><span class="n">atomic_ref</span></code>s
