@@ -1658,7 +1658,7 @@ operations.  Such <em>atomic reference</em> objects are not lock free and not ad
 free.  When such a resource is necessary, subsequent copy and move constructors
 and assignment operators might reduce overhead by copying or moving the
 previously acquired resource as opposed to re-acquiring that resource.</p>
-   <p>Introducing concurrency within legacy codes might require replacing operations on
+   <p>Introducing concurrency within legacy code might require replacing operations on
 existing non-atomic objects with atomic operations such that the non-atomic
 object cannot be replaced with an <em>atomic</em> object.</p>
    <p>An object could be heavily used non-atomically in well-defined phases of an
@@ -1806,7 +1806,6 @@ shall determine.</p>
    <p>An <code class="highlight"><span class="n">atomic_ref</span></code> object applies atomic operations [atomics.general] to the object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> such that, for the lifetime [basic.life]
 of the <code class="highlight"><span class="n">atomic_ref</span></code> object, the object referenced bi <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> is an atomic object [intro.races].</p>
    <p>The template argument for <code class="highlight"><span class="n">T</span></code> shall be trivially copyable [basic.types].</p>
-   <p>The specialization <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">></span></code> is a standard-layout struct.</p>
    <p>The lifetime [basic.life] of an object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> shall exceed the lifetime of all <code class="highlight"><span class="n">atomic_ref</span></code>s
 that reference the object.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instances exist which references the <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> object all accesses that object shall exclusively occur
 through those <code class="highlight"><span class="n">atomic_ref</span></code> instances. If the referenced object is of a class or 
@@ -2018,17 +2017,17 @@ computation correspondence are identified in Table 130 [atomics.types.int].</p>
   are atomic read-modify-write operations [intro.races].</p>
    <p><em>Returns:</em> Atomically, the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> immediately before the
   effects.</p>
-   <p><em>Remarks:</em> If the result is not a representable value for its type (8.1) the
+   <p><em>Remarks:</em> If the result is not a representable value for its type [expr.pre] the
   result is unspecified, but the operations otherwise have no undefined
   behavior. Atomic arithmetic operations on floating-point should conform to
   the std::numeric_limits<floating-point> traits associated with the floating-
-  point type (21.3.2). The floating-point environment (29.4) for atomic
+  point type [limits.syn]. The floating-point environment [cfenv] for atomic
   arithmetic operations on floating-point may be different than the calling
   thread’s floating-point environment.</floating-point></p>
    <p><strong><em>floating-point</em> operator</strong> <em>op</em><strong>=(<em>floating-point</em> operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k"><span class="k">return</span></span> <span class="nf"><span class="nf">fetch_</span><strong><em><span class="nf">key</span></em></strong></span><span class="p"><span class="p">(</span></span><span class="n"><span class="n">operand</span></span><span class="p"><span class="p">)</span></span> <span class="n"><strong><em><span class="n">op</span></em></strong></span> <span class="n"><span class="n">operand</span></span><span class="p"><span class="p">;</span></span></code></p>
    <blockquote> Add a new subsubsection [atomics.ref.pointer] following the [atomics.ref.float]
-subsubsection titled: </blockquote>
+subsubsection titled </blockquote>
    <p><strong>Partial specialization for pointers</strong></p>
 <pre class="language-c++ highlight"><span class="n"><span class="n">template</span></span><span class="o"><span class="o">&lt;</span></span><span class="n"><span class="n">class</span></span> <span class="n"><span class="n">T</span></span><span class="o"><span class="o">></span></span> <span class="k"><span class="k">struct</span></span> <span class="n"><span class="n">atomic_ref</span></span><span class="o"><span class="o">&lt;</span></span><span class="n"><span class="n">T</span></span><span class="o"><span class="o">*></span></span> <span class="p"><span class="p">{</span></span><span class="nl"></span>
 <span class="nl"><span class="nl">private</span></span><span class="p"><span class="p">:</span></span>
@@ -2087,13 +2086,18 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].<
   otherwise have no undefined behavior.</p>
    <p><strong>T* operator</strong> <em>op</em><strong>=(difference_type operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k"><span class="k">return</span></span> <span class="nf"><span class="nf">fetch_</span><strong><em><span class="nf">key</span></em></strong></span><span class="p"><span class="p">(</span></span><span class="n"><span class="n">operand</span></span><span class="p"><span class="p">)</span></span> <span class="n"><strong><em><span class="n">op</span></em></strong></span> <span class="n"><span class="n">operand</span></span><span class="p"><span class="p">;</span></span></code></p>
-   <blockquote> Retitle subsubsection [atomics.types.memop] to </blockquote>
+   <blockquote> Add a new subsubsection [atomics.ref.memberops] following the [atomics.ref.pointer]
+subsubsection titled </blockquote>
    <p><strong>Member operators common to atomic objects of integers and
 pointers types</strong></p>
-   <blockquote>
-     and move to the subsection following the [atomics.types.generic] subsection. 
-    <p>If possible rename the stable name to [atomics.objects.memberops].</p>
-   </blockquote>
+   <p><strong>T* operator++(int) const noexcept;</strong></p>
+   <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span></code></p>
+   <p><strong>T* operator--(int) const noexcept;</strong></p>
+   <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span></code></p>
+   <p><strong>T* operator++() const noexcept;</strong></p>
+   <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span></code></p>
+   <p><strong>T* operator--(int) const noexcept;</strong></p>
+   <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span></code></p>
    <h2 class="heading settled" data-level="9" id="test"><span class="secno">9. </span><span class="content">Feature Testing</span><a class="self-link" href="#test"></a></h2>
    <p>The <code class="highlight"><span class="n">__cpp_lib_atomic_ref</span></code> feature test macro should be added.</p>
   </main>

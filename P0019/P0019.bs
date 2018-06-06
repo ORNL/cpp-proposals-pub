@@ -184,7 +184,7 @@ free.  When such a resource is necessary, subsequent copy and move constructors
 and assignment operators might reduce overhead by copying or moving the
 previously acquired resource as opposed to re-acquiring that resource.
 
-Introducing concurrency within legacy codes might require replacing operations on
+Introducing concurrency within legacy code might require replacing operations on
 existing non-atomic objects with atomic operations such that the non-atomic
 object cannot be replaced with an *atomic* object.
 
@@ -422,8 +422,6 @@ An `atomic_ref` object applies atomic operations [atomics.general] to the object
 of the `atomic_ref` object, the object referenced bi `*ptr` is an atomic object [intro.races].
 
 The template argument for `T` shall be trivially copyable [basic.types].
-
-The specialization `atomic_ref<bool>` is a standard-layout struct.
 
 The lifetime [basic.life] of an object referenced by `*ptr` shall exceed the lifetime of all `atomic_ref`s
 that reference the object.  While any `atomic_ref`
@@ -838,11 +836,11 @@ computation correspondence are identified in Table 130 [atomics.types.int].
   *Returns:* Atomically, the value referenced by `*ptr` immediately before the
   effects.
 
-  *Remarks:* If the result is not a representable value for its type (8.1) the
+  *Remarks:* If the result is not a representable value for its type [expr.pre] the
   result is unspecified, but the operations otherwise have no undefined
   behavior. Atomic arithmetic operations on floating-point should conform to
   the std::numeric_limits<floating-point > traits associated with the floating-
-  point type (21.3.2). The floating-point environment (29.4) for atomic
+  point type [limits.syn]. The floating-point environment [cfenv] for atomic
   arithmetic operations on floating-point may be different than the calling
   thread’s floating-point environment.
 
@@ -857,7 +855,7 @@ computation correspondence are identified in Table 130 [atomics.types.int].
 
 <blockquote>
 Add a new subsubsection [atomics.ref.pointer] following the [atomics.ref.float]
-subsubsection titled:
+subsubsection titled
 </blockquote>
 
 <strong>Partial specialization for pointers</strong>
@@ -984,17 +982,29 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].
 
 
 <blockquote>
-Retitle subsubsection [atomics.types.memop] to 
+Add a new subsubsection [atomics.ref.memberops] following the [atomics.ref.pointer]
+subsubsection titled
 </blockquote>
 
 <strong>Member operators common to atomic objects of integers and 
 pointers types</strong>
 
-<blockquote>
-and move to the subsection following the [atomics.types.generic] subsection.
+<strong>T* operator++(int) const noexcept;</strong>
+  
+  *Effects:* Equivalent to: `return fetch_add(1);`
 
-If possible rename the stable name to [atomics.objects.memberops].
-</blockquote>
+<strong>T* operator--(int) const noexcept;</strong>
+  
+  *Effects:* Equivalent to: `return fetch_sub(1);`
+
+<strong>T* operator++() const noexcept;</strong>
+  
+  *Effects:* Equivalent to: `return fetch_add(1) + 1;`
+
+<strong>T* operator--(int) const noexcept;</strong>
+  
+  *Effects:* Equivalent to: `return fetch_sub(1) - 1;`
+
 
 Feature Testing {#test}
 ===============
