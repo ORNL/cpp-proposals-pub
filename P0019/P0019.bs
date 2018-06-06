@@ -9,17 +9,16 @@ Editor: Mark Hoemmen, mhoemme@sandia.gov
 Editor: David Hollman, dshollm@sandia.gov
 Editor: Bryce Adelstein Lelbach, blelbach@nvidia.com
 Editor: Jens Maurer, Jens.Maurer@gmx.net
-Shortname: P0019
+Shortname: D0019
 Revision: 8
-Audience: SG1
 Audience: LWG
-Status: P
+Status: D
 Group: WG21
-Date: 2018-05-06
+Date: 2018-06-05
 Repository: https://github.com/ORNL/cpp-proposals-pub.git
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html
 Toggle Diffs: Yes
-Warning: custom
+Warning:
 Custom Warning Title: Work in Progress
 Custom Warning Text: This document is a work in progress that has not yet been
                      submitted to the committee for discussion in its current
@@ -30,7 +29,47 @@ Markup Shorthands: markdown yes
 Revision History
 ================
 
+[[P0019r8]]
+
+-   [2018-06-04 Rapperswil SG1](http://wiki.edg.com/bin/view/Wg21rapperswil2018/P0019r7)
+
+    SG1 straw poll to forward to LWG for inclusion in IS20
+    <table border=1>
+      <tr>
+        <th>SF</th>
+        <th>F</th>
+        <th>N</th>
+        <th>A</th>
+        <th>SA</th>
+      </tr>
+      <tr>
+        <td>11</th>
+        <td>14</th>
+        <td>2</th>
+        <td>1</th>
+        <td>1</th>
+      </tr>
+    </table>
+
+    SA: Reported that the ThreadSanitizer team potentially opposed this paper
+   
+        -  2018-06-05 ThreadSanitizer team is not opposed, SA would now vote N.
+
+    A: Believes that a TS is a better ship vehicle.
+
+-   2018-06-05 SG1
+
+    Concern about atomic_ref of something that is not always lock free
+
+    Consensus for no change. No objections.
+
+-   [2018-06-05 LWG](http://wiki.edg.com/bin/view/Wg21rapperswil2018/LWGP0019)
+
+    Many minor changes requested.
+
 [[P0019r7]]
+
+-   [2018-03-15 Jacksonville LWG review](http://wiki.edg.com/bin/view/Wg21jacksonville2018/LWGWedPM2)
 
 -   Update to reflect Jacksonville LWG review
 
@@ -119,10 +158,10 @@ to allow atomic operations to apply to non-atomic objects.  As required by
 
 This paper includes *atomic floating point* capability defined in [[P0020r5]].
 
-Note: A [reference implementation](https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/atomic_ref.hpp)
+*Note:* A reference implementation](https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/atomic_ref.hpp)
 is available that works on compilers which support the 
 [GNU atomic builtin](https://gcc.gnu.org/onlinedocs/gcc/_005f_005fatomic-Builtins.html)
-functions including recent versions of g++, icpc, and clang++.  --end note
+functions including recent versions of g++, icpc, and clang++.  *--end note* 
 
 This paper is currently targeting C++20.
 
@@ -138,18 +177,18 @@ type.  All atomic operations performed through an *atomic reference* on a
 referenced non-atomic object are atomic with respect to any other *atomic
 reference* that references the same object, as defined by equality of pointers
 to that object.  The intent is for atomic operations to directly update the
-referenced object.  An *atomic reference constructor* may acquire a resource,
+referenced object.  An *atomic reference constructor* might acquire a resource,
 such as a lock from a collection of address-sharded locks, to perform atomic
 operations.  Such *atomic reference* objects are not lock free and not address
 free.  When such a resource is necessary, subsequent copy and move constructors
-and assignment operators may reduce overhead by copying or moving the
+and assignment operators might reduce overhead by copying or moving the
 previously acquired resource as opposed to re-acquiring that resource.
 
-Introducing concurrency within legacy codes may require replacing operations on
+Introducing concurrency within legacy codes might require replacing operations on
 existing non-atomic objects with atomic operations such that the non-atomic
 object cannot be replaced with an *atomic* object.
 
-An object may be heavily used non-atomically in well-defined phases of an
+An object could be heavily used non-atomically in well-defined phases of an
 application.  Forcing such objects to be exclusively *atomic* would incur an
 unnecessary performance penalty.
 
@@ -171,14 +210,14 @@ non-conflicting HPC pattern.
 
 An object referenced by an *atomic reference* must satisfy possibly
 architecture-specific constraints.  For example, the object might need to be
-properly aligned in memory or may not be allowed to reside in GPU register
+properly aligned in memory or might not be allowed to reside in GPU register
 memory.  We do not enumerate all potential constraints or specify behavior when
 these constraints are violated.  It is a quality-of-implementation issue to
 generate appropriate information when constraints are violated.
 
-Note: Whether an implementation of `atomic<T>` is lock free, does not
+*Note:* Whether an implementation of `atomic<T>` is lock free, does not
 necessarily constrain whether the corresponding implementation of
-`atomic_ref<T>` is lock free.
+`atomic_ref<T>` is lock free. *--end note* 
 
 
 Concern with `atomic<T>` and padding bits in `T`
@@ -189,48 +228,11 @@ are effected by the value of those padding bits.  We require that the
 resolution of padding bits follow [[P0528r2]].
 
 
-Questions and Concerns
-======================
+Naming *atomic reference of T*
+==============================
 
-1. Should `is_lock_free()` be consistent across objects of the same type?  
-
-    There is concern that if this function is not consistent (for both 
-    `atomic<T>` and *atomic reference* of T) then there is no reasonable way to 
-    choose an algorithm depending on that property.
-
-
-2. Should the wording of `atomic<T>` be rewritten in terms of an *atomic* *reference*?
-
-    Result of SG1 poll
-    <table border=1>
-      <tr>
-        <th>SF</th>
-        <th>F</th>
-        <th>N</th>
-        <th>A</th>
-        <th>SA</th>
-      </tr>
-      <tr>
-        <td>4</th>
-        <td>3</th>
-        <td>13</th>
-        <td>0</th>
-        <td>0</th>
-      </tr>
-    </table>
-   
-    Rewriting `atomic<T>` would require revisiting the contentious issue of
-    `atomic<T>` having an exposition only member of type `T`.  While there is
-    strong support for this rewrite in SG1, we decided to limit the scope of
-    this paper to *atomic* *reference* to reduce the potential of unnecessary
-    conflict.  We will attempt this rewrite in a future paper.
-
-3. Does *atomic reference* of T need C compatibility?
-
-    We decided to leave C compatibility out of this paper, but that it needs
-    to be address in a future paper.
-
-4. Should *atomic reference* of T be named `atomic_ref<T>` or `atomic<T&>`?
+2018-03-15 Suggested that *atomic reference* of T be named `atomic_ref<T>` 
+instead of `atomic<T&>`?
 
     Result of SG1 poll
     <table border=1>
@@ -269,7 +271,42 @@ Questions and Concerns
     specialization needed to walk back from guarantees made by the primary
     template.  In particular, the `atomic<T&>` specializations would be unable
     to use the phrase 
-    *"Descriptions are provide below only for members that differ from the primary template"*.
+    *"Descriptions are provided below only for members that differ from the primary template"*.
+
+
+Future Work
+======================
+
+
+1. Rewrite `atomic<T>` in terms of `atomic_ref<T>`?
+
+    Result of SG1 poll
+    <table border=1>
+      <tr>
+        <th>SF</th>
+        <th>F</th>
+        <th>N</th>
+        <th>A</th>
+        <th>SA</th>
+      </tr>
+      <tr>
+        <td>4</th>
+        <td>3</th>
+        <td>13</th>
+        <td>0</th>
+        <td>0</th>
+      </tr>
+    </table>
+   
+    [[P0019r8]] duplicates much of the wording of `atomic<T>` and it is
+    desirable to reduce this overhead.  However, rewriting `atomic<T>` would
+    require revisiting the contentious issue of `atomic<T>` having an exposition
+    only member of type `T`.  While there is strong support for this rewrite in SG1
+    and LWG, we are limiting the scope of this paper to *atomic* *reference* to
+    reduce unnecessary conflicts.  
+
+2. The free functions and macros intended for C compatibility are deliberately 
+   omitted from this paper, but can be added if/when a need for them arises.
 
 
 Proposal
@@ -280,11 +317,16 @@ as of [[N4727]].
 
 <blockquote>
 Text in blockquotes is not proposed wording
+
+The � character is used to denote a placeholder section number which the editor
+shall determine.
 </blockquote>
 
 <blockquote>
-The � character is used to denote a placeholder section number which the editor
-shall determine.
+[ *Note:* Most of the wording in this paper is duplicated from the wording for
+`atomic<T>`.  A future paper is needed to define `atomic<T>` in terms of 
+`atomic_ref<T>` and improve the current wording for *atomic objects*. 
+--*end note*] 
 </blockquote>
 
 <blockquote>
@@ -303,13 +345,16 @@ template<class T> struct atomic_ref<T *>;
 ```
 
 <blockquote>
-Add a new section [atomics.ref.generic] after [atomics.types.generic]
+Add a new subsection [atomics.ref.generic] before [atomics.types.generic] titled
 </blockquote>
 
+<strong>Class template atomic_ref</strong>
+
+<!--
 ```c++
 template<class T> struct atomic_ref {
 private:
-  T * ptr_; // exposition only
+  T * ptr; // exposition only
 public:
   using value_type = T;
   static constexpr bool is_always_lock_free = implementation-defined;
@@ -325,22 +370,59 @@ public:
   operator T() const noexcept;
 
   bool is_lock_free() const noexcept;
-  void store(T , memory_order = memory_order_seq_cst) const noexcept;
+  void store(T, memory_order = memory_order_seq_cst) const noexcept;
   T load(memory_order = memory_order_seq_cst) const noexcept;
-  T exchange(T , memory_order = memory_order_seq_cst) const noexcept;
-  bool compare_exchange_weak(T&, T, memory_order, memory_order) const noexcept;
-  bool compare_exchange_strong(T&, T, memory_order, memory_order) const noexcept;
-  bool compare_exchange_weak(T&, T, memory_order = memory_order_seq_cst) const noexcept;
-  bool compare_exchange_strong(T&, T, memory_order = memory_order_seq_cst) const noexcept;
+  T exchange(T, memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_weak(T&, T, 
+                             memory_order, memory_order) const noexcept;
+  bool compare_exchange_strong(T&, T,
+                               memory_order, memory_order) const noexcept;
+  bool compare_exchange_weak(T&, T,
+                             memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_strong(T&, T,
+                               memory_order = memory_order_seq_cst) const noexcept;
 };
 ```
+-->
 
-The template argument for T shall be trivially copyable [basic.types].
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">{</span>
+<span class="nl"></span>
+<span class="c1"></span><span class="nl">private</span><span class="p">:</span>
+  <span class="n">T</span> <span class="o">*</span> <span class="n">ptr</span><span class="p">;</span> <span class="c1">// exposition only</span>
+<span class="c1"></span><span class="nl">public</span><span class="p">:</span>
+  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">T</span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n"><em>implementation</em></span><span class="o">-</span><span class="n"><em>defined</em></span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="n"><em>implementation</em></span><span class="o">-</span><span class="n"><em>defined</em></span><span class="p">;</span>
 
-Descriptions are provided below.
+  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="o">&amp;</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+
+  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">);</span>
+  <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">);</span>
+
+  <span class="n">T</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">operator</span> <span class="nf">T</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span> <span class="nf">load</span><span class="p">(</span><span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span> <span class="nf">exchange</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> 
+                             <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span>
+                               <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span>
+                             <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">T</span><span class="o">&amp;</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span>
+                               <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+<span class="p">};</span>
+</pre>
+
+The template argument for `T` shall be trivially copyable [basic.types].
 
 <blockquote>
-Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
+Add a new subsubsection [atomics.ref.operations] titled "Operations on atomic types"
+after [atomics.ref.generic]
 </blockquote>
 
 **static constexpr bool is_always_lockfree;**
@@ -353,11 +435,11 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   The required alignment of an object to be referenced by an atomic reference,
   which is at least `alignof(T)`.
 
-  [*Note:* An implementation may require an object to be referenced by an
-  *atomic reference* to have stricter alignment [basic.align] than other objects
-  of type T.  Further, whether operations on a *atomic reference* of T are 
-  lock-free may depend on the alignment of the referenced object.  For example,
-  an implementation may support lock-free operations on `std::complex<double>`
+  [*Note:* An hardware implementation could require an object to be referenced 
+  `atomic_ref` to have stricter alignment [basic.align] than other objects
+  of type `T`.  Further, whether operations on a *atomic reference* of T are 
+  lock-free might depend on the alignment of the referenced object.  For example,
+  an implementation might support lock-free operations on `std::complex<double>`
   only if aligned to `2*alignof(double)`.  - *end note* ]
 
 **atomic_ref(T& obj);**
@@ -381,7 +463,7 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   are atomic with respect to atomic operations applied through any other atomic
   reference that references that object.
 
-  [*Note*: The constructor may acquire a shared resource, such as a lock
+  [*Note*: The constructor could acquire a shared resource, such as a lock
   associated with the referenced object, to enable atomic operations applied to
   the referenced non-atomic object. - *end note*]
 
@@ -391,40 +473,41 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
   referenced by the given `atomic_ref`.
 
 **T operator=(T desired) const noexcept;**
-  *Effects:* Equivalent to store(desired)
 
-  *Returns:* desired
+  *Effects:* Equivalent to: `store(desired); return desired;`
 
 **operator T() const noexcept;**
 
-  *Effects:* Equivalent to: return load();
+  *Effects:* Equivalent to: `return load();`
 
 **bool is_lock_free() const noexcept;**
 
   *Returns:* true if the object's operations are lock-free, false otherwise.
 
 **void store(T desired, memory_order order = memory_order_seq_cst) const noexcept;**
-  *Requires:* The order argument shall not be memory_order_consume,
-  memory_order_acquire, nor memory_order_acq_rel.
 
-  *Effects:*Atomically replaces the value pointed to by `ptr_` with the value of
-  desired. Memory is affected according to the value of order.
+  *Requires:* The `order` argument shall not be `memory_order_consume`,
+  `memory_order_acquire`, nor `memory_order_acq_rel`.
 
-**void load(memory_order order = memory_order_seq_cst) const noexcept; **
-  *Requires:* The order argument shall not be memory_order_release nor
-  memory_order_acq_rel.
+  *Effects:* Atomically replaces the value referenced by `*ptr` with the value of
+  `desired`. Memory is affected according to the value of `order`.
+
+**T load(memory_order order = memory_order_seq_cst) const noexcept; **
+
+  *Requires:* The `order` argument shall not be `memory_order_release` nor
+  `memory_order_acq_rel`.
   
-  *Effects:* Memory is affected according to the value of order.
+  *Effects:* Memory is affected according to the value of `order`.
   
-  *Returns:* Atomically returns the value pointed to by `ptr_`.
+  *Returns:* Atomically returns the value referenced by `*ptr`.
 
-**exchange(T desired, memory_order order = memory_order_seq_cst) noexcept;**
+**T exchange(T desired, memory_order order = memory_order_seq_cst) noexcept;**
 
-  *Effects:* Atomically replaces the value pointed to by `ptr_` with desired.
-  Memory is affected according to the value of order. These operations are
+  *Effects:* Atomically replaces the value referenced by `*ptr` with `desired`.
+  Memory is affected according to the value of `order`. These operations are
   atomic read-modify-write operations [intro.multithread].
   
-  Returns: Atomically returns the value pointed to by `ptr_` immediately before
+  Returns: Atomically returns the value referenced by `*ptr` immediately before
   the effects.
 
 **bool compare_exchange_weak(T& expected, T desired,
@@ -439,58 +522,60 @@ Add a new subsection [atomics.ref.operations] to [atomics.ref.generic]
 **bool compare_exchange_strong(T& expected, T desired,
                              memory_order order = memory_order_seq_cst) const noexcept;**
 
-  *Requires:* The failure argument shall not be memory_order_release nor
-  memory_order_acq_rel.
+  *Requires:* The failure argument shall not be `memory_order_release` nor
+  `memory_order_acq_rel`.
 
-  *Effects:* Retrieves the value in expected. It then atomically compares the
-  contents of the memory pointed to by `ptr_` for equality with that previously
-  retrieved from expected, and if true, replaces the contents of the memory
-  pointed to by `ptr_` with that in desired. If and only if the comparison is
-  true, memory is affected according to the value of success, and if the
-  comparison is false, memory is affected according to the value of failure.
-  When only one memory_order argument is supplied, the value of success is
-  order, and the value of failure is order except that a value of
-  memory_order_acq_- rel shall be replaced by the value memory_order_acquire
-  and a value of memory_order_release shall be replaced by the value
-  memory_order_relaxed. If and only if the comparison is false then, after the
-  atomic operation, the contents of the memory in expected are replaced by the
-  value read from the memory pointed to by `ptr_` during the atomic comparison.
+  *Effects:* Retrieves the value in `expected`. It then atomically compares the
+  value referenced by `*ptr` for equality with that previously
+  retrieved from `expected`, and if true, replaces the value referenced by `*ptr`
+  with that in `desired`. If and only if the comparison is
+  true, memory is affected according to the value of `success`, and if the
+  comparison is false, memory is affected according to the value of `failure`.
+  When only one `memory_order` argument is supplied, the value of `success` is
+  `order`, and the value of `failure` is `order` except that a value of
+  `memory_order_acq_rel` shall be replaced by the value `memory_order_acquire`
+  and a value of `memory_order_release` shall be replaced by the value
+  `memory_order_relaxed`. If and only if the comparison is false then, after the
+  atomic operation, the contents of the memory in `expected` are replaced by the
+  value read from the value referenced by `*ptr` during the atomic comparison.
   If the operation returns true, these operations are atomic read-modify-write
-  operations (6.8.2) on the memory pointed to by `ptr_`. Otherwise, these
+  operations [intro.races] on the value referenced by `*ptr`. Otherwise, these
   operations are atomic load operations on that memory.
 
   *Returns:* The result of the comparison.
 
   *Remarks:* A weak compare-and-exchange operation may fail spuriously. That is,
-  even when the contents of memory referred to by expected and `ptr_` are equal,
+  even when the contents of memory referred to by expected and `ptr` are equal,
   it may return false and store back to expected the same memory contents that
-  were originally there. [ Note: This spurious failure enables implementation
+  were originally there. [ *Note:* This spurious failure enables implementation
   of compare-and-exchange on a broader class of machines, e.g., load-locked
   store-conditional machines. A consequence of spurious failure is that nearly
-  all uses of weak compare- and-exchange will be in a loop. When a
+  all uses of weak compare-and-exchange will be in a loop. When a
   compare-and-exchange is in a loop, the weak version will yield better
   performance on some platforms. When a weak compare-and-exchange would require
   a loop and a strong one would not, the strong one is preferable. — end note ]
 
-  [ *Note:* The memcpy and memcmp semantics of the compare-and-exchange
-  operations may result in failed comparisons for values that compare equal
-  with operator== if the underlying type has padding bits, trap bits, or
-  alternate representations of the same value. Notably, on implementations
-  conforming to ISO/IEC/IEEE 60559, floating-point -0.0 and +0.0 will not
-  compare equal with memcmp but will compare equal with operator==, and NaNs
-  with the same payload will compare equal with memcmp but will not compare
-  equal with operator==. — *end note* ]
-
-
 <blockquote>
-Add a new subsection [atomics.ref.int] following the [atomics.ref.operations]
-subsection.
+Add a new subsubsection [atomics.ref.int] following the [atomics.ref.operations]
+subsubsection titled
 </blockquote>
 
+<strong>Specializations for integral types</strong>
+
+
+There are specializations of the atomic template for the integral types `char`,
+`signed char`, `unsigned char`, `short`, `unsigned short`, `int`, `unsigned int`, `long`,
+`unsigned long`, `long long`, `unsigned long long`, `char16_t`, `char32_t`, `wchar_t`, and
+any other types needed by the typedefs in the header `<cstdint>`. For each such
+integral type <strong><em>integral</em></strong>, the specialization `atomic_ref<integral>` provides additional
+atomic operations appropriate to integral types. [ *Note:* For the specialization
+`atomic_ref<bool>`, see [atomics.ref.generic]. — end note ]
+
+<!--
 ```c++
 template<> struct atomic_ref<integral> {
 private:
-  integral* ptr_; // exposition only
+  integral* ptr; // exposition only
 public:
   using value_type = integral;
   using difference_type = value_type;
@@ -507,19 +592,29 @@ public:
   operator integral () const noexcept;
 
   bool is_lock_free() const noexcept;
-  void store(integral , memory_order = memory_order_seq_cst) const noexcept;
+  void store(integral, memory_order = memory_order_seq_cst) const noexcept;
   integral load(memory_order = memory_order_seq_cst) const noexcept;
-  integral exchange(integral , memory_order = memory_order_seq_cst) const noexcept;
-  bool compare_exchange_weak(integral& , integral , memory_order , memory_order) const noexcept;
-  bool compare_exchange_strong(integral& , integral  , memory_order , memory_order) const noexcept;
-  bool compare_exchange_weak(integral& , integral  , memory_order = memory_order_seq_cst) const noexcept;
-  bool compare_exchange_strong(integral&, integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral exchange(integral,
+                    memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_weak(integral&, integral,
+                             memory_order, memory_order) const noexcept;
+  bool compare_exchange_strong(integral&, integral,
+                               memory_order, memory_order) const noexcept;
+  bool compare_exchange_weak(integral&, integral,
+                             memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_strong(integral&, integral,
+                               memory_order = memory_order_seq_cst) const noexcept;
 
-  integral fetch_add(integral , memory_order = memory_order_seq_cst) const noexcept;
-  integral fetch_sub(integral , memory_order = memory_order_seq_cst) const noexcept;
-  integral fetch_and(integral , memory_order = memory_order_seq_cst) const noexcept;
-  integral fetch_or(integral , memory_order = memory_order_seq_cst) const noexcept;
-  integral fetch_xor(integral , memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_add(integral,
+                     memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_sub(integral,
+                     memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_and(integral,
+                     memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_or(integral,
+                    memory_order = memory_order_seq_cst) const noexcept;
+  integral fetch_xor(integral,
+                     memory_order = memory_order_seq_cst) const noexcept;
 
   integral operator++(int) const noexcept;
   integral operator--(int) const noexcept;
@@ -532,57 +627,112 @@ public:
   integral operator^=(integral) const noexcept;
 };
 ```
+-->
 
-Descriptions are provide below only for members that differ from the primary
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n"><em>integral</em></span><span class="o">></span> <span class="p">{</span>
+<span class="nl"></span>
+<span class="nl">private</span><span class="p">:</span>
+  <span class="n"><em>integral</em></span><span class="o">*</span> <span class="n">ptr</span><span class="p">;</span> <span class="c1">// exposition only</span>
+<span class="c1"></span><span class="nl">public</span><span class="p">:</span>
+  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n"><em>integral</em></span><span class="p">;</span>
+  <span class="n">using</span> <span class="n">difference_type</span> <span class="o">=</span> <span class="n">value_type</span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n"><em>implementation</em></span><span class="o">-</span><span class="n"><em>defined</em></span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <span class="n"><em>implementation</em></span><span class="o">-</span><span class="n"><em>defined</em></span><span class="p">;</span>
+
+  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+
+  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="o">&amp;</span><span class="p">);</span>
+  <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">);</span>
+
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">operator</span> <span class="nf"><em>integral</em></span> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="nf">load</span><span class="p">(</span><span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="nf">exchange</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">,</span>
+                    <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="o">&amp;</span><span class="p">,</span> <span class="n"><em>integral</em></span><span class="p">,</span>
+                             <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="o">&amp;</span><span class="p">,</span> <span class="n"><em>integral</em></span><span class="p">,</span>
+                               <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="o">&amp;</span><span class="p">,</span> <span class="n"><em>integral</em></span><span class="p">,</span>
+                             <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="o">&amp;</span><span class="p">,</span> <span class="n"><em>integral</em></span><span class="p">,</span>
+                               <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="n"><em>integral</em></span> <span class="nf">fetch_add</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">,</span>
+                     <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">,</span>
+                     <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="nf">fetch_and</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">,</span>
+                     <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="nf">fetch_or</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">,</span>
+                    <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="nf">fetch_xor</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">,</span>
+                     <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">++</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">--</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">++</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">--</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">&amp;=</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">|=</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n"><em>integral</em></span> <span class="n">operator</span><span class="o">^=</span><span class="p">(</span><span class="n"><em>integral</em></span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+<span class="p">};</span>
+</pre>
+
+
+Descriptions are provided below only for members that differ from the primary
 template.
 
 The following operations perform arithmetic computations.  The key, operator, and
-computation correspondence are identified in Table 129 [atomics.types.int].
+computation correspondence are identified in Table 130 [atomics.types.int].
 
 
-**integral fetch***_key***(integral operand, memory_order order = memory_order_seq_cst) const noexcept;**
+<strong><em>integral</em> fetch_</strong><em>key</em><strong>(<em>integral</em> operand, memory_order order = memory_order_seq_cst) const noexcept;</strong>
   
-  *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
-  of the computation applied to the value pointed to by `ptr_` and the given
-  operand. Memory is affected according to the value of order. These operations
-  are atomic read-modify-write operations (6.8.2).
+  *Effects:* Atomically replaces the value referenced by `*ptr` with the result
+  of the computation applied to the value referenced by `*ptr` and the given
+  operand. Memory is affected according to the value of `order`. These operations
+  are atomic read-modify-write operations [intro.races].
 
-  *Returns:* Atomically, the value pointed to by `ptr_` immediately before the
+  *Returns:* Atomically, the value referenced by `*ptr` immediately before the
   effects.
 
   *Remarks:* For signed integer types, arithmetic is defined to use two’s
   complement representation. There are no undefined results.
 
-**integral operator++() const noexcept;**
-  
-  *Effects:* Equivalent to: `return fetch_add(1) + 1;`
+<strong><em>integral</em> operator</strong> <em>op</em><strong>=(<em>integral</em> operand) const noexcept;</strong>
 
-**integral operator--() const noexcept;**
-  
-  *Effects:* Equivalent to: `return fetch_sub(1) - 1;`
-
-**integral operator++(int) const noexcept;**
-  
-  *Effects:* Equivalent to: `return fetch_add(1);`
-
-**integral operator--(int) const noexcept;**
-  
-  *Effects:* Equivalent to: `return fetch_sub(1);`
-
-**integral operator ***op***=(integral operand) const noexcept;**
-
+  <!--
   *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
+  -->
+
+<p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_<strong><em>key</em></strong></span><span class="p">(</span><span class="n">operand</span><span class="p">)</span> <span class="n"><strong><em>op</em></strong></span> <span class="n">operand</span><span class="p">;</span></code></p>
 
 <blockquote>
-Add a new subsection [atomics.ref.float] following the [atomics.ref.int]
-subsection.
+Add a new subsubsection [atomics.ref.float] following the [atomics.ref.int]
+subsubsection titled
 </blockquote>
 
+<strong>Specializations for floating-point types</strong>
+
+
+There are specializations of the `atomic_ref` template for the floating-point types
+`float`, `double`, and `long double`. For each such floating-point type
+<strong><em>floating-point</em></strong>, the specialization `atomic_ref<floating-point>` provides additional
+atomic operations appropriate to floating-point types.
+
+<!--
 ```c++
 
 template<> struct atomic_ref<floating-point> {
 private:
-  floating-point* ptr_; // exposition only
+  floating-point* ptr; // exposition only
 public:
   using value_type = floating-point;
   using difference_type = value_type;
@@ -599,36 +749,88 @@ public:
   operator floating-point () const noexcept;
 
   bool is_lock_free() const noexcept;
-  void store(floating-point , memory_order = memory_order_seq_cst) const noexcept;
+  void store(floating-point, memory_order = memory_order_seq_cst) const noexcept;
   floating-point load(memory_order = memory_order_seq_cst) const noexcept;
-  floating-point exchange(floating-point , memory_order = memory_order_seq_cst) const noexcept;
-  bool compare_exchange_weak(floating-point& , floating-point , memory_order , memory_order) const noexcept;
-  bool compare_exchange_strong(floating-point& , floating-point  , memory_order , memory_order) const noexcept;
-  bool compare_exchange_weak(floating-point& , floating-point  , memory_order = memory_order_seq_cst) const noexcept;
-  bool compare_exchange_strong(floating-point&, floating-point , memory_order = memory_order_seq_cst) const noexcept;
+  floating-point exchange(floating-point,
+                          memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_weak(floating-point&, floating-point,
+                             memory_order, memory_order) const noexcept;
+  bool compare_exchange_strong(floating-point&, floating-point,
+                               memory_order, memory_order) const noexcept;
+  bool compare_exchange_weak(floating-point&, floating-point,
+                             memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_strong(floating-point&, floating-point,
+                               memory_order = memory_order_seq_cst) const noexcept;
 
-  floating-point fetch_add(floating-point , memory_order = memory_order_seq_cst) const noexcept;
-  floating-point fetch_sub(floating-point , memory_order = memory_order_seq_cst) const noexcept;
+  floating-point fetch_add(floating-point,
+                           memory_order = memory_order_seq_cst) const noexcept;
+  floating-point fetch_sub(floating-point,
+                           memory_order = memory_order_seq_cst) const noexcept;
 
   floating-point operator+=(floating-point) const noexcept;
   floating-point operator-=(floating-point) const noexcept;
 };
 ```
+-->
 
-Descriptions are provide below only for members that differ from the primary
+
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">></span> <span class="p">{</span>
+<span class="nl"></span>
+<span class="nl">private</span><span class="p">:</span>
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">*</span> <span class="n">ptr</span><span class="p">;</span> <span class="c1">// exposition only</span>
+<span class="c1"></span><span class="nl">public</span><span class="p">:</span>
+  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">;</span>
+  <span class="n">using</span> <span class="n">difference_type</span> <span class="o">=</span> <span class="n">value_type</span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <em><span class="n">implementation</span><span class="o">-</span><span class="n">defined</span></em><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <em><span class="n">implementation</span><span class="o">-</span><span class="n">defined</span></em><span class="p">;</span>
+
+  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+
+  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">&amp;</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">);</span>
+
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">operator</span> <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">load</span><span class="p">(</span><span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">exchange</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">,</span>
+                          <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">&amp;</span><span class="p">,</span> <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">,</span>
+                             <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">&amp;</span><span class="p">,</span> <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">,</span>
+                               <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">&amp;</span><span class="p">,</span> <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">,</span>
+                             <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">&amp;</span><span class="p">,</span> <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">,</span>
+                               <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">fetch_add</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">,</span>
+                           <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">fetch_sub</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">,</span>
+                           <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+<span class="p">};</span>
+</pre>
+
+Descriptions are provided below only for members that differ from the primary
 template.
 
 The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 129 [atomics.types.int].
 
-**floating-point fetch_***key***(floating-point operand, memory_order order = memory_order_seq_cst) const noexcept;**
+<strong><em>floating-point</em> fetch_</strong><em>key</em><strong>(<em>floating-point</em> operand, memory_order order = memory_order_seq_cst) const noexcept;</strong>
   
-  *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
-  of the computation applied to the value pointed to by `ptr_` and the given
-  operand. Memory is affected according to the value of order. These operations
-  are atomic read-modify-write operations (6.8.2).
+  *Effects:* Atomically replaces the value referenced by `*ptr` with the result
+  of the computation applied to the value referenced by `*ptr` and the given
+  operand. Memory is affected according to the value of `order`. These operations
+  are atomic read-modify-write operations [intro.races].
 
-  *Returns:* Atomically, the value pointed to by `ptr_` immediately before the
+  *Returns:* Atomically, the value referenced by `*ptr` immediately before the
   effects.
 
   *Remarks:* If the result is not a representable value for its type (8.1) the
@@ -639,20 +841,27 @@ computation correspondence are identified in Table 129 [atomics.types.int].
   arithmetic operations on floating-point may be different than the calling
   thread’s floating-point environment.
 
-**floating-point operator ***op***=(floating-point operand) const noexcept;**
+<strong><em>floating-point</em> operator</strong> <em>op</em><strong>=(<em>floating-point</em> operand) const noexcept;</strong>
 
+  <!--
   *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
+  -->
+
+<p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_<strong><em>key</em></strong></span><span class="p">(</span><span class="n">operand</span><span class="p">)</span> <span class="n"><strong><em>op</em></strong></span> <span class="n">operand</span><span class="p">;</span></code></p>
 
 
 <blockquote>
-Add a new subsection [atomics.ref.pointer] following the [atomics.ref.float]
-subsection.
+Add a new subsubsection [atomics.ref.pointer] following the [atomics.ref.float]
+subsubsection titled:
 </blockquote>
 
+<strong>Partial specialization for pointers</strong>
+
+<!--
 ```c++
 template<class T> struct atomic_ref<T*> {
 private:
-  T** ptr_; // exposition only
+  T** ptr; // exposition only
 public:
   using value_type = T*;
   using difference_type = ptrdiff_t;
@@ -669,16 +878,20 @@ public:
   operator T* () const noexcept;
 
   bool is_lock_free() const noexcept;
-  void store(T* , memory_order = memory_order_seq_cst) const noexcept;
+  void store(T*, memory_order = memory_order_seq_cst) const noexcept;
   T* load(memory_order = memory_order_seq_cst) const noexcept;
-  T* exchange(T* , memory_order = memory_order_seq_cst) const noexcept;
-  bool compare_exchange_weak(T*& , T* , memory_order , memory_order) const noexcept;
-  bool compare_exchange_strong(T*& , T*  , memory_order , memory_order) const noexcept;
-  bool compare_exchange_weak(T*& , T*  , memory_order = memory_order_seq_cst) const noexcept;
-  bool compare_exchange_strong(T*&, T* , memory_order = memory_order_seq_cst) const noexcept;
+  T* exchange(T*, memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_weak(T*&, T*,
+                             memory_order, memory_order) const noexcept;
+  bool compare_exchange_strong(T*&, T*,
+                               memory_order, memory_order) const noexcept;
+  bool compare_exchange_weak(T*&, T*,
+                             memory_order = memory_order_seq_cst) const noexcept;
+  bool compare_exchange_strong(T*&, T*,
+                               memory_order = memory_order_seq_cst) const noexcept;
 
-  T* fetch_add(difference_type , memory_order = memory_order_seq_cst) const noexcept;
-  T* fetch_sub(difference_type , memory_order = memory_order_seq_cst) const noexcept;
+  T* fetch_add(difference_type, memory_order = memory_order_seq_cst) const noexcept;
+  T* fetch_sub(difference_type, memory_order = memory_order_seq_cst) const noexcept;
 
   T* operator++(int) const noexcept;
   T* operator--(int) const noexcept;
@@ -688,47 +901,95 @@ public:
   T* operator-=(difference_type) const noexcept;
 };
 ```
+-->
 
-Descriptions are provide below only for members that differ from the primary
+
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">*></span> <span class="p">{</span>
+<span class="nl"></span>
+<span class="nl">private</span><span class="p">:</span>
+  <span class="n">T</span><span class="o">**</span> <span class="n">ptr</span><span class="p">;</span> <span class="c1">// exposition only</span>
+<span class="c1"></span><span class="nl">public</span><span class="p">:</span>
+  <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">T</span><span class="o">*</span><span class="p">;</span>
+  <span class="n">using</span> <span class="n">difference_type</span> <span class="o">=</span> <span class="kt">ptrdiff_t</span><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <em><span class="n">implementation</span><span class="o">-</span><span class="n">defined</span></em><span class="p">;</span>
+  <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">size_t</span> <span class="n">required_alignment</span> <span class="o">=</span> <em><span class="n">implementation</span><span class="o">-</span><span class="n">defined</span></em><span class="p">;</span>
+
+  <span class="n">atomic_ref</span><span class="p">()</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+  <span class="n">atomic_ref</span><span class="o">&amp;</span> <span class="n">operator</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="n">delete</span><span class="p">;</span>
+
+  <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span><span class="p">);</span>
+  <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">);</span>
+
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">T</span><span class="o">*</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">operator</span> <span class="n">T</span><span class="o">*</span> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="nf">store</span><span class="p">(</span><span class="n">T</span><span class="o">*</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="nf">load</span><span class="p">(</span><span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="nf">exchange</span><span class="p">(</span><span class="n">T</span><span class="o">*</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span><span class="p">,</span> <span class="n">T</span><span class="o">*</span><span class="p">,</span>
+                             <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span><span class="p">,</span> <span class="n">T</span><span class="o">*</span><span class="p">,</span>
+                               <span class="n">memory_order</span><span class="p">,</span> <span class="n">memory_order</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_weak</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span><span class="p">,</span> <span class="n">T</span><span class="o">*</span><span class="p">,</span>
+                             <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="nf">compare_exchange_strong</span><span class="p">(</span><span class="n">T</span><span class="o">*&amp;</span><span class="p">,</span> <span class="n">T</span><span class="o">*</span><span class="p">,</span>
+                               <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="n">T</span><span class="o">*</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="n">difference_type</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="nf">fetch_sub</span><span class="p">(</span><span class="n">difference_type</span><span class="p">,</span> <span class="n">memory_order</span> <span class="o">=</span> <span class="n">memory_order_seq_cst</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">++</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">--</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">++</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">--</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">+=</span><span class="p">(</span><span class="n">difference_type</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+  <span class="n">T</span><span class="o">*</span> <span class="n">operator</span><span class="o">-=</span><span class="p">(</span><span class="n">difference_type</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+<span class="p">};</span>
+</pre>
+
+Descriptions are provided below only for members that differ from the primary
 template.
 
 The following operations perform arithmetic computations.  The key, operator, and
 computation correspondence are identified in Table 130 [atomics.types.pointer].
 
-**T**\* **fetch_***key***(T**\* **operand, memory_order order = memory_order_seq_cst) const noexcept;**
+<strong>T* fetch_</strong><em>key</em><strong>(difference_type operand, memory_order order = memory_order_seq_cst) const noexcept;</strong>
 
   *Requires:* T shall be an object type, otherwise the program is ill-formed
   
-  *Effects:* Atomically replaces the value pointed to by `ptr_` with the result
-  of the computation applied to the value pointed to by `ptr_` and the given
-  operand. Memory is affected according to the value of order. These operations
-  are atomic read-modify-write operations (6.8.2).
+  *Effects:* Atomically replaces the value referenced by `*ptr` with the result
+  of the computation applied to the value referenced by `*ptr` and the given
+  operand. Memory is affected according to the value of `order`. These operations
+  are atomic read-modify-write operations [intro.races].
 
-  *Returns:* Atomically, the value pointed to by `ptr_` immediately before the
+  *Returns:* Atomically, the value referenced by `*ptr` immediately before the
   effects.
 
   *Remarks:* The result may be an undefined address, but the operations
   otherwise have no undefined behavior. 
 
-**T**\* **operator++() const noexcept;**
-  
-  *Effects:* Equivalent to: `return fetch_add(1) + 1;`
+<strong>T* operator</strong> <em>op</em><strong>=(difference_type operand) const noexcept;</strong>
 
-**T**\* **operator--() const noexcept;**
-  
-  *Effects:* Equivalent to: `return fetch_sub(1) - 1;`
-
-**T**\* **operator++(int) const noexcept;**
-  
-  *Effects:* Equivalent to: `return fetch_add(1);`
-
-**T**\* **operator--(int) const noexcept;**
-  
-  *Effects:* Equivalent to: `return fetch_sub(1);`
-  
-**T**\* **operator ***op***=(T**\* **operand) const noexcept;**
-
+  <!--
   *Effects:* Equivalent to: `return fetch_key(operand) op operand;`
+  -->
+
+<p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_<strong><em>key</em></strong></span><span class="p">(</span><span class="n">operand</span><span class="p">)</span> <span class="n"><strong><em>op</em></strong></span> <span class="n">operand</span><span class="p">;</span></code></p>
+
+
+<blockquote>
+Retitle subsubsection [atomics.types.memop] to 
+</blockquote>
+
+<strong>Member operators common to <em>atomic objects</em> of integers and 
+pointers types</strong>
+
+<blockquote>
+and move to the subsection following the [atomics.types.generic] subsection.
+
+If possible rename the stable name to [atomics.objects.memberops].
+</blockquote>
 
 Feature Testing {#test}
 ===============
