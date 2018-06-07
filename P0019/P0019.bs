@@ -59,7 +59,7 @@ Revision History
 
 -   2018-06-05 SG1
 
-    Concern about atomic_ref of something that is not always lock free
+    Concern about `atomic_ref` of something that is not always lock free
 
     Consensus for no change. No objections.
 
@@ -94,7 +94,7 @@ Revision History
 
     -   Settle on name `atomic_ref`
 
-    -   Split out atomic_ref<T[]> into a separate paper,
+    -   Split out `atomic_ref<T[]>` into a separate paper,
         apply editorial changes accordingly
 
     -   Restore copy constructor; not assignment operator
@@ -339,22 +339,22 @@ namespace std {
 // 3.� atomic ref
 template<class T> struct atomic_ref;
 // 3.� atomic ref partial specialization for pointers
-template<class T> struct atomic_ref<T *>;
+template<class T> struct atomic_ref<T*>;
 
 }
 ```
 
 <blockquote>
-Add a new subsection [atomics.ref.generic] before [atomics.types.generic] titled
+Add a new subsection [atomics.ref.generic] before [atomics.types.generic] 
 </blockquote>
 
-<strong>Class template atomic_ref</strong>
+<strong>Class template `atomic_ref`</strong>
 
 <!--
 ```c++
 template<class T> struct atomic_ref {
 private:
-  T * ptr; // exposition only
+  T* ptr; // exposition only
 public:
   using value_type = T;
   static constexpr bool is_always_lock_free = implementation-defined;
@@ -388,7 +388,7 @@ public:
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span> <span class="p">{</span>
 <span class="nl"></span>
 <span class="c1"></span><span class="nl">private</span><span class="p">:</span>
-  <span class="n">T</span> <span class="o">*</span> <span class="n">ptr</span><span class="p">;</span> <span class="c1">// exposition only</span>
+  <span class="n">T*</span> <span class="n">ptr</span><span class="p">;</span> <span class="c1">// exposition only</span>
 <span class="c1"></span><span class="nl">public</span><span class="p">:</span>
   <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">T</span><span class="p">;</span>
   <span class="k">static</span> <span class="n">constexpr</span> <span class="kt">bool</span> <span class="n">is_always_lock_free</span> <span class="o">=</span> <span class="n"><em>implementation</em></span><span class="o">-</span><span class="n"><em>defined</em></span><span class="p">;</span>
@@ -423,12 +423,12 @@ of the `atomic_ref` object, the object referenced by `*ptr` is an atomic object 
 
 The template argument for `T` shall be trivially copyable [basic.types].
 
-The lifetime [basic.life] of an object referenced by `*ptr` shall exceed the lifetime of all `atomic_ref`s
-that reference the object.  While any `atomic_ref`
-instances exist which references the `*ptr` object all accesses that object shall exclusively occur
-through those `atomic_ref` instances. If the referenced object is of a class or 
-aggregate type, then members of that object shall not be concurrently referenced
-by any other `atomic_ref` object.
+The lifetime [basic.life] of an object referenced by `*ptr` shall exceed the
+lifetime of all `atomic_ref`s that reference the object.  While any
+`atomic_ref` instances exist which reference the `*ptr` object all accesses to
+that object shall exclusively occur through those `atomic_ref` instances.  
+No subobject of the object referenced by `atomic_ref` shall be concurrently
+referenced by any other `atomic_ref` object.
 
 Atomic operations applied to an object through a referencing `atomic_ref`
 are atomic with respect to atomic operations applied through any other `atomic_ref` referencing the same object.
@@ -440,15 +440,15 @@ the referenced object. - *end note*]
 
 <blockquote>
 Add a new subsubsection [atomics.ref.operations]
-after [atomics.ref.generic] titled
+after [atomics.ref.generic] 
 </blockquote>
 
 <strong>Operations on atomic types</strong>
 
 **static constexpr bool is_always_lockfree;**
 
-  The static data member `is_always_lock_free` is true if the `atomic_ref` type’s
-  operations are always lock-free, and false otherwise.
+  The static data member `is_always_lock_free` is `true` if the `atomic_ref` type’s
+  operations are always lock-free, and `false` otherwise.
 
 **static constexpr size_t required_alignment; **
 
@@ -471,13 +471,18 @@ after [atomics.ref.generic] titled
 
   *Throws:* Nothing.
 
-**atomic_ref(const atomic_ref& ref);**
+**atomic_ref(const atomic_ref& ref) noexcept;**
 
   *Effects:* Construct an atomic reference that references the object referenced by `ref`.
 
 **T operator=(T desired) const noexcept;**
 
-  *Effects:* Equivalent to: `store(desired); return desired;`
+  *Effects:* Equivalent to: 
+  
+  ```c++
+  store(desired);
+  return desired;
+  ```
 
 **operator T() const noexcept;**
 
@@ -485,7 +490,7 @@ after [atomics.ref.generic] titled
 
 **bool is_lock_free() const noexcept;**
 
-  *Returns:* true if the object's operations are lock-free, false otherwise.
+  *Returns:* `true` if the object's operations are lock-free, `false` otherwise.
 
 **void store(T desired, memory_order order = memory_order_seq_cst) const noexcept;**
 
@@ -530,18 +535,18 @@ after [atomics.ref.generic] titled
 
   *Effects:* Retrieves the value in `expected`. It then atomically compares the
   value referenced by `*ptr` for equality with that previously
-  retrieved from `expected`, and if true, replaces the value referenced by `*ptr`
+  retrieved from `expected`, and if `true`, replaces the value referenced by `*ptr`
   with that in `desired`. If and only if the comparison is
-  true, memory is affected according to the value of `success`, and if the
-  comparison is false, memory is affected according to the value of `failure`.
+  `true`, memory is affected according to the value of `success`, and if the
+  comparison is `false`, memory is affected according to the value of `failure`.
   When only one `memory_order` argument is supplied, the value of `success` is
   `order`, and the value of `failure` is `order` except that a value of
   `memory_order_acq_rel` shall be replaced by the value `memory_order_acquire`
   and a value of `memory_order_release` shall be replaced by the value
-  `memory_order_relaxed`. If and only if the comparison is false then, after the
+  `memory_order_relaxed`. If and only if the comparison is `false` then, after the
   atomic operation, the contents of the memory in `expected` are replaced by the
   value read from the value referenced by `*ptr` during the atomic comparison.
-  If the operation returns true, these operations are atomic read-modify-write
+  If the operation returns `true`, these operations are atomic read-modify-write
   operations [intro.races] on the value referenced by `*ptr`. Otherwise, these
   operations are atomic load operations on that memory.
 
@@ -549,7 +554,7 @@ after [atomics.ref.generic] titled
 
   *Remarks:* A weak compare-and-exchange operation may fail spuriously. That is,
   even when the contents of memory referred to by expected and `ptr` are equal,
-  it may return false and store back to expected the same memory contents that
+  it may return `false` and store back to expected the same memory contents that
   were originally there. [ *Note:* This spurious failure enables implementation
   of compare-and-exchange on a broader class of machines, e.g., load-locked
   store-conditional machines. A consequence of spurious failure is that nearly
@@ -560,7 +565,7 @@ after [atomics.ref.generic] titled
 
 <blockquote>
 Add a new subsubsection [atomics.ref.int] following the [atomics.ref.operations]
-subsubsection titled
+subsubsection 
 </blockquote>
 
 <strong>Specializations for integral types</strong>
@@ -719,7 +724,7 @@ computation correspondence are identified in Table 130 [atomics.types.int].
 
 <blockquote>
 Add a new subsubsection [atomics.ref.float] following the [atomics.ref.int]
-subsubsection titled
+subsubsection 
 </blockquote>
 
 <strong>Specializations for floating-point types</strong>
@@ -727,8 +732,10 @@ subsubsection titled
 
 There are specializations of the `atomic_ref` template for the floating-point types
 `float`, `double`, and `long double`. For each such floating-point type
-<strong><em>floating-point</em></strong>, the specialization `atomic_ref<floating-point>` provides additional
-atomic operations appropriate to floating-point types.
+<strong><em>floating-point</em></strong>, the specialization 
+<code class="highlight><span class="n">atomic_ref</span><span class="o">&lt;</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">></span></code>
+provides additional atomic operations appropriate to floating-point types.
+   
 
 <!--
 ```c++
@@ -793,7 +800,7 @@ public:
   <span class="n">explicit</span> <span class="nf">atomic_ref</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="o">&amp;</span><span class="p">)</span><span class="p">;</span>
   <span class="n">atomic_ref</span><span class="p">(</span><span class="k">const</span> <span class="n">atomic_ref</span><span class="o">&amp;</span><span class="p">) noexcept;</span>
 
-  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+  <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
   <span class="n">operator</span> <em><span class="n">floating</span><span class="o">-</span><span class="n">point</span></em> <span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 
   <span class="kt">bool</span> <span class="nf">is_lock_free</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
@@ -839,8 +846,8 @@ computation correspondence are identified in Table 130 [atomics.types.int].
   *Remarks:* If the result is not a representable value for its type [expr.pre] the
   result is unspecified, but the operations otherwise have no undefined
   behavior. Atomic arithmetic operations on floating-point should conform to
-  the std::numeric_limits<floating-point > traits associated with the floating-
-  point type [limits.syn]. The floating-point environment [cfenv] for atomic
+  the `std::numeric_limits<floating-point>` traits associated with the <em>floating-point</em>
+  type [limits.syn]. The floating-point environment [cfenv] for atomic
   arithmetic operations on floating-point may be different than the calling
   thread’s floating-point environment.
 
@@ -855,7 +862,7 @@ computation correspondence are identified in Table 130 [atomics.types.int].
 
 <blockquote>
 Add a new subsubsection [atomics.ref.pointer] following the [atomics.ref.float]
-subsubsection titled
+subsubsection 
 </blockquote>
 
 <strong>Partial specialization for pointers</strong>
@@ -983,11 +990,11 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].
 
 <blockquote>
 Add a new subsubsection [atomics.ref.memberops] following the [atomics.ref.pointer]
-subsubsection titled
+subsubsection 
 </blockquote>
 
-<strong>Member operators common to atomic objects of integers and 
-pointers types</strong>
+<strong>Member operators of `atomic_ref` common to integers and 
+pointers to objects</strong>
 
 <strong>T* operator++(int) const noexcept;</strong>
   

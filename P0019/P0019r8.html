@@ -1536,7 +1536,7 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
      <p>A: Believes that a TS is a better ship vehicle.</p>
     <li data-md="">
      <p>2018-06-05 SG1</p>
-     <p>Concern about atomic_ref of something that is not always lock free</p>
+     <p>Concern about <code class="highlight"><span class="n">atomic_ref</span></code> of something that is not always lock free</p>
      <p>Consensus for no change. No objections.</p>
     <li data-md="">
      <p><a href="http://wiki.edg.com/bin/view/Wg21rapperswil2018/LWGP0019">2018-06-05 LWG</a></p>
@@ -1571,11 +1571,8 @@ only the constructor had wording)</p>
       <li data-md="">
        <p>Settle on name <code class="highlight"><span class="n">atomic_ref</span></code></p>
       <li data-md="">
-       <p>
-        Split out atomic_ref
-        <tU0005BU0005D> into a separate paper,
-apply editorial changes accordingly</tU0005BU0005D>
-       </p>
+       <p>Split out <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="p">[]</span><span class="o">></span></code> into a separate paper,
+apply editorial changes accordingly</p>
       <li data-md="">
        <p>Restore copy constructor; not assignment operator</p>
       <li data-md="">
@@ -1766,15 +1763,15 @@ shall determine.</p>
 <span class="c1">// 3.� atomic ref</span>
 <span class="c1"></span><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="p">;</span>
 <span class="c1">// 3.� atomic ref partial specialization for pointers</span>
-<span class="c1"></span><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span> <span class="o">*></span><span class="p">;</span>
+<span class="c1"></span><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">T</span><span class="o">></span> <span class="k">struct</span> <span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">*></span><span class="p">;</span>
 
 <span class="p">}</span>
 </pre>
-   <blockquote> Add a new subsection [atomics.ref.generic] before [atomics.types.generic] titled </blockquote>
-   <p><strong>Class template atomic_ref</strong></p>
+   <blockquote> Add a new subsection [atomics.ref.generic] before [atomics.types.generic] </blockquote>
+   <p><strong>Class template <code class="highlight"><span class="n">atomic_ref</span></code></strong></p>
 <pre class="language-c++ highlight"><span class="n"><span class="n">template</span></span><span class="o"><span class="o">&lt;</span></span><span class="n"><span class="n">class</span></span> <span class="n"><span class="n">T</span></span><span class="o"><span class="o">></span></span> <span class="k"><span class="k">struct</span></span> <span class="n"><span class="n">atomic_ref</span></span> <span class="p"><span class="p">{</span></span><span class="nl"></span>
 <span class="c1"></span><span class="nl"><span class="nl">private</span></span><span class="p"><span class="p">:</span></span>
-  <span class="n"><span class="n">T</span></span> <span class="o"><span class="o">*</span></span> <span class="n"><span class="n">ptr</span></span><span class="p"><span class="p">;</span></span> <span class="c1"><span class="c1">// exposition only</span></span>
+  <span class="n"><span class="n">T</span><span class="o">*</span></span> <span class="n"><span class="n">ptr</span></span><span class="p"><span class="p">;</span></span> <span class="c1"><span class="c1">// exposition only</span></span>
 <span class="c1"></span><span class="nl"><span class="c1"></span><span class="nl">public</span></span><span class="p"><span class="p">:</span></span>
   <span class="n"><span class="n">using</span></span> <span class="n"><span class="n">value_type</span></span> <span class="o"><span class="o">=</span></span> <span class="n"><span class="n">T</span></span><span class="p"><span class="p">;</span></span>
   <span class="k"><span class="k">static</span></span> <span class="n"><span class="n">constexpr</span></span> <span class="kt"><span class="kt">bool</span></span> <span class="n"><span class="n">is_always_lock_free</span></span> <span class="o"><span class="o">=</span></span> <span class="n"><em><span class="n">implementation</span></em></span><span class="o"><span class="o">-</span></span><span class="n"><em><span class="n">defined</span></em></span><span class="p"><span class="p">;</span></span>
@@ -1806,21 +1803,21 @@ shall determine.</p>
    <p>An <code class="highlight"><span class="n">atomic_ref</span></code> object applies atomic operations [atomics.general] to the object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> such that, for the lifetime [basic.life]
 of the <code class="highlight"><span class="n">atomic_ref</span></code> object, the object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> is an atomic object [intro.races].</p>
    <p>The template argument for <code class="highlight"><span class="n">T</span></code> shall be trivially copyable [basic.types].</p>
-   <p>The lifetime [basic.life] of an object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> shall exceed the lifetime of all <code class="highlight"><span class="n">atomic_ref</span></code>s
-that reference the object.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instances exist which references the <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> object all accesses that object shall exclusively occur
-through those <code class="highlight"><span class="n">atomic_ref</span></code> instances. If the referenced object is of a class or 
-aggregate type, then members of that object shall not be concurrently referenced
-by any other <code class="highlight"><span class="n">atomic_ref</span></code> object.</p>
+   <p>The lifetime [basic.life] of an object referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> shall exceed the
+lifetime of all <code class="highlight"><span class="n">atomic_ref</span></code>s that reference the object.  While any <code class="highlight"><span class="n">atomic_ref</span></code> instances exist which reference the <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> object all accesses to
+that object shall exclusively occur through those <code class="highlight"><span class="n">atomic_ref</span></code> instances.  
+No subobject of the object referenced by <code class="highlight"><span class="n">atomic_ref</span></code> shall be concurrently
+referenced by any other <code class="highlight"><span class="n">atomic_ref</span></code> object.</p>
    <p>Atomic operations applied to an object through a referencing <code class="highlight"><span class="n">atomic_ref</span></code> are atomic with respect to atomic operations applied through any other <code class="highlight"><span class="n">atomic_ref</span></code> referencing the same object.</p>
    <p>[<em>Note</em>: Atomic operations or the <code class="highlight"><span class="n">atomic_ref</span></code> constructor could acquire a shared resource,
 such as a lock associated with the referenced object, to enable atomic operations applied to
 the referenced object. - <em>end note</em>]</p>
    <blockquote> Add a new subsubsection [atomics.ref.operations]
-after [atomics.ref.generic] titled </blockquote>
+after [atomics.ref.generic] </blockquote>
    <p><strong>Operations on atomic types</strong></p>
    <p><strong>static constexpr bool is_always_lockfree;</strong></p>
-   <p>The static data member <code class="highlight"><span class="n">is_always_lock_free</span></code> is true if the <code class="highlight"><span class="n">atomic_ref</span></code> type’s
-  operations are always lock-free, and false otherwise.</p>
+   <p>The static data member <code class="highlight"><span class="n">is_always_lock_free</span></code> is <code class="highlight">true</code> if the <code class="highlight"><span class="n">atomic_ref</span></code> type’s
+  operations are always lock-free, and <code class="highlight">false</code> otherwise.</p>
    <p><strong>static constexpr size_t required_alignment; </strong></p>
    <p>The required alignment of an object to be referenced by an atomic reference,
   which is at least <code class="highlight"><span class="k">alignof</span><span class="p">(</span><span class="n">T</span><span class="p">)</span></code>.</p>
@@ -1834,14 +1831,17 @@ after [atomics.ref.generic] titled </blockquote>
    <p><em>Requires:</em> The referenced object shall be aligned to <code class="highlight"><span class="n">required_alignment</span></code>.</p>
    <p><em>Effects:</em> Constructs an atomic reference that references the object.</p>
    <p><em>Throws:</em> Nothing.</p>
-   <p><strong>atomic_ref(const atomic_ref&amp; ref);</strong></p>
+   <p><strong>atomic_ref(const atomic_ref&amp; ref) noexcept;</strong></p>
    <p><em>Effects:</em> Construct an atomic reference that references the object referenced by <code class="highlight"><span class="n">ref</span></code>.</p>
    <p><strong>T operator=(T desired) const noexcept;</strong></p>
-   <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="n">store</span><span class="p">(</span><span class="n">desired</span><span class="p">);</span> <span class="k">return</span> <span class="n">desired</span><span class="p">;</span></code></p>
+   <p><em>Effects:</em> Equivalent to:</p>
+<pre class="language-c++ highlight">  <span class="n">store</span><span class="p">(</span><span class="n">desired</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">desired</span><span class="p">;</span>
+</pre>
    <p><strong>operator T() const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">load</span><span class="p">();</span></code></p>
    <p><strong>bool is_lock_free() const noexcept;</strong></p>
-   <p><em>Returns:</em> true if the object’s operations are lock-free, false otherwise.</p>
+   <p><em>Returns:</em> <code class="highlight">true</code> if the object’s operations are lock-free, <code class="highlight">false</code> otherwise.</p>
    <p><strong>void store(T desired, memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Requires:</em> The <code class="highlight"><span class="n">order</span></code> argument shall not be <code class="highlight"><span class="n">memory_order_consume</span></code>, <code class="highlight"><span class="n">memory_order_acquire</span></code>, nor <code class="highlight"><span class="n">memory_order_acq_rel</span></code>.</p>
    <p><em>Effects:</em> Atomically replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with the value of <code class="highlight"><span class="n">desired</span></code>. Memory is affected according to the value of <code class="highlight"><span class="n">order</span></code>.</p>
@@ -1866,19 +1866,18 @@ after [atomics.ref.generic] titled </blockquote>
    <p><em>Requires:</em> The failure argument shall not be <code class="highlight"><span class="n">memory_order_release</span></code> nor <code class="highlight"><span class="n">memory_order_acq_rel</span></code>.</p>
    <p><em>Effects:</em> Retrieves the value in <code class="highlight"><span class="n">expected</span></code>. It then atomically compares the
   value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> for equality with that previously
-  retrieved from <code class="highlight"><span class="n">expected</span></code>, and if true, replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with that in <code class="highlight"><span class="n">desired</span></code>. If and only if the comparison is
-  true, memory is affected according to the value of <code class="highlight"><span class="n">success</span></code>, and if the
-  comparison is false, memory is affected according to the value of <code class="highlight"><span class="n">failure</span></code>.
-  When only one <code class="highlight"><span class="n">memory_order</span></code> argument is supplied, the value of <code class="highlight"><span class="n">success</span></code> is <code class="highlight"><span class="n">order</span></code>, and the value of <code class="highlight"><span class="n">failure</span></code> is <code class="highlight"><span class="n">order</span></code> except that a value of <code class="highlight"><span class="n">memory_order_acq_rel</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_acquire</span></code> and a value of <code class="highlight"><span class="n">memory_order_release</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_relaxed</span></code>. If and only if the comparison is false then, after the
+  retrieved from <code class="highlight"><span class="n">expected</span></code>, and if <code class="highlight">true</code>, replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with that in <code class="highlight"><span class="n">desired</span></code>. If and only if the comparison is <code class="highlight">true</code>, memory is affected according to the value of <code class="highlight"><span class="n">success</span></code>, and if the
+  comparison is <code class="highlight">false</code>, memory is affected according to the value of <code class="highlight"><span class="n">failure</span></code>.
+  When only one <code class="highlight"><span class="n">memory_order</span></code> argument is supplied, the value of <code class="highlight"><span class="n">success</span></code> is <code class="highlight"><span class="n">order</span></code>, and the value of <code class="highlight"><span class="n">failure</span></code> is <code class="highlight"><span class="n">order</span></code> except that a value of <code class="highlight"><span class="n">memory_order_acq_rel</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_acquire</span></code> and a value of <code class="highlight"><span class="n">memory_order_release</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_relaxed</span></code>. If and only if the comparison is <code class="highlight">false</code> then, after the
   atomic operation, the contents of the memory in <code class="highlight"><span class="n">expected</span></code> are replaced by the
   value read from the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> during the atomic comparison.
-  If the operation returns true, these operations are atomic read-modify-write
+  If the operation returns <code class="highlight">true</code>, these operations are atomic read-modify-write
   operations [intro.races] on the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code>. Otherwise, these
   operations are atomic load operations on that memory.</p>
    <p><em>Returns:</em> The result of the comparison.</p>
    <p><em>Remarks:</em> A weak compare-and-exchange operation may fail spuriously. That is,
   even when the contents of memory referred to by expected and <code class="highlight"><span class="n">ptr</span></code> are equal,
-  it may return false and store back to expected the same memory contents that
+  it may return <code class="highlight">false</code> and store back to expected the same memory contents that
   were originally there. [ <em>Note:</em> This spurious failure enables implementation
   of compare-and-exchange on a broader class of machines, e.g., load-locked
   store-conditional machines. A consequence of spurious failure is that nearly
@@ -1887,7 +1886,7 @@ after [atomics.ref.generic] titled </blockquote>
   performance on some platforms. When a weak compare-and-exchange would require
   a loop and a strong one would not, the strong one is preferable. — end note ]</p>
    <blockquote> Add a new subsubsection [atomics.ref.int] following the [atomics.ref.operations]
-subsubsection titled </blockquote>
+subsubsection </blockquote>
    <p><strong>Specializations for integral types</strong></p>
    <p>There are specializations of the atomic template for the integral types <code class="highlight"><span class="kt">char</span></code>, <code class="highlight"><span class="kt">signed</span> <span class="kt">char</span></code>, <code class="highlight"><span class="kt">unsigned</span> <span class="kt">char</span></code>, <code class="highlight"><span class="kt">short</span></code>, <code class="highlight"><span class="kt">unsigned</span> <span class="kt">short</span></code>, <code class="highlight"><span class="kt">int</span></code>, <code class="highlight"><span class="kt">unsigned</span> <span class="kt">int</span></code>, <code class="highlight"><span class="kt">long</span></code>, <code class="highlight"><span class="kt">unsigned</span> <span class="kt">long</span></code>, <code class="highlight"><span class="kt">long</span> <span class="kt">long</span></code>, <code class="highlight"><span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span></code>, <code class="highlight"><span class="kt">char16_t</span></code>, <code class="highlight"><span class="kt">char32_t</span></code>, <code class="highlight"><span class="kt">wchar_t</span></code>, and
 any other types needed by the typedefs in the header <code class="highlight"><span class="o">&lt;</span><span class="n">cstdint</span><span class="o">></span></code>. For each such
@@ -1962,10 +1961,9 @@ computation correspondence are identified in Table 130 [atomics.types.int].</p>
    <p><strong><em>integral</em> operator</strong> <em>op</em><strong>=(<em>integral</em> operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k"><span class="k">return</span></span> <span class="nf"><span class="nf">fetch_</span><strong><em><span class="nf">key</span></em></strong></span><span class="p"><span class="p">(</span></span><span class="n"><span class="n">operand</span></span><span class="p"><span class="p">)</span></span> <span class="n"><strong><em><span class="n">op</span></em></strong></span> <span class="n"><span class="n">operand</span></span><span class="p"><span class="p">;</span></span></code></p>
    <blockquote> Add a new subsubsection [atomics.ref.float] following the [atomics.ref.int]
-subsubsection titled </blockquote>
+subsubsection </blockquote>
    <p><strong>Specializations for floating-point types</strong></p>
-   <p>There are specializations of the <code class="highlight"><span class="n">atomic_ref</span></code> template for the floating-point types <code class="highlight"><span class="kt">float</span></code>, <code class="highlight"><span class="kt">double</span></code>, and <code class="highlight"><span class="kt">long</span> <span class="kt">double</span></code>. For each such floating-point type <strong><em>floating-point</em></strong>, the specialization <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">></span></code> provides additional
-atomic operations appropriate to floating-point types.</p>
+   <p>There are specializations of the <code class="highlight"><span class="n">atomic_ref</span></code> template for the floating-point types <code class="highlight"><span class="kt">float</span></code>, <code class="highlight"><span class="kt">double</span></code>, and <code class="highlight"><span class="kt">long</span> <span class="kt">double</span></code>. For each such floating-point type <strong><em>floating-point</em></strong>, the specialization <code class="highlight><span class= highlight" nU00022=""><span class="n">atomic_ref</span><span class="o"><span class="o">&lt;</span></span><em><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span></em><span class="o"><span class="o">></span></span></code> provides additional atomic operations appropriate to floating-point types.</p>
 <pre class="language-c++ highlight"><span class="n"><span class="n">template</span></span><span class="o"><span class="o">&lt;></span></span> <span class="k"><span class="k">struct</span></span> <span class="n"><span class="n">atomic_ref</span></span><span class="o"><span class="o">&lt;</span></span><em><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span></em><span class="o"><span class="o">></span></span> <span class="p"><span class="p">{</span></span><span class="nl"></span>
 <span class="nl"><span class="nl">private</span></span><span class="p"><span class="p">:</span></span>
   <em><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span></em><span class="o"><span class="o">*</span></span> <span class="n"><span class="n">ptr</span></span><span class="p"><span class="p">;</span></span> <span class="c1"><span class="c1">// exposition only</span></span>
@@ -1981,7 +1979,7 @@ atomic operations appropriate to floating-point types.</p>
   <span class="n"><span class="n">explicit</span></span> <span class="nf"><span class="nf">atomic_ref</span></span><span class="p"><span class="p">(</span></span><em><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span></em><span class="o"><span class="o">&amp;</span></span><span class="p"><span class="p">)</span></span><span class="p"><span class="p">;</span></span>
   <span class="n"><span class="n">atomic_ref</span></span><span class="p"><span class="p">(</span></span><span class="k"><span class="k">const</span></span> <span class="n"><span class="n">atomic_ref</span></span><span class="o"><span class="o">&amp;</span></span><span class="p"><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span></span>
 
-  <em><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span></em> <span class="n"><span class="n">operator</span></span><span class="o"><span class="o">=</span></span><span class="p"><span class="p">(</span></span><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span><span class="p"><span class="p">)</span></span> <span class="n"><span class="n">noexcept</span></span><span class="p"><span class="p">;</span></span>
+  <em><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span></em> <span class="n"><span class="n">operator</span></span><span class="o"><span class="o">=</span></span><span class="p"><span class="p">(</span></span><em><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span></em><span class="p"><span class="p">)</span></span> <span class="n"><span class="n">noexcept</span></span><span class="p"><span class="p">;</span></span>
   <span class="n"><span class="n">operator</span></span> <em><span class="n"><span class="n">floating</span></span><span class="o"><span class="o">-</span></span><span class="n"><span class="n">point</span></span></em> <span class="p"><span class="p">()</span></span> <span class="k"><span class="k">const</span></span> <span class="n"><span class="n">noexcept</span></span><span class="p"><span class="p">;</span></span>
 
   <span class="kt"><span class="kt">bool</span></span> <span class="nf"><span class="nf">is_lock_free</span></span><span class="p"><span class="p">()</span></span> <span class="k"><span class="k">const</span></span> <span class="n"><span class="n">noexcept</span></span><span class="p"><span class="p">;</span></span>
@@ -2020,14 +2018,13 @@ computation correspondence are identified in Table 130 [atomics.types.int].</p>
    <p><em>Remarks:</em> If the result is not a representable value for its type [expr.pre] the
   result is unspecified, but the operations otherwise have no undefined
   behavior. Atomic arithmetic operations on floating-point should conform to
-  the std::numeric_limits<floating-point> traits associated with the floating-
-  point type [limits.syn]. The floating-point environment [cfenv] for atomic
+  the <code class="highlight"><span class="n">std</span><span class="o">::</span><span class="n">numeric_limits</span><span class="o">&lt;</span><span class="n">floating</span><span class="o">-</span><span class="n">point</span><span class="o">></span></code> traits associated with the <em>floating-point</em> type [limits.syn]. The floating-point environment [cfenv] for atomic
   arithmetic operations on floating-point may be different than the calling
-  thread’s floating-point environment.</floating-point></p>
+  thread’s floating-point environment.</p>
    <p><strong><em>floating-point</em> operator</strong> <em>op</em><strong>=(<em>floating-point</em> operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k"><span class="k">return</span></span> <span class="nf"><span class="nf">fetch_</span><strong><em><span class="nf">key</span></em></strong></span><span class="p"><span class="p">(</span></span><span class="n"><span class="n">operand</span></span><span class="p"><span class="p">)</span></span> <span class="n"><strong><em><span class="n">op</span></em></strong></span> <span class="n"><span class="n">operand</span></span><span class="p"><span class="p">;</span></span></code></p>
    <blockquote> Add a new subsubsection [atomics.ref.pointer] following the [atomics.ref.float]
-subsubsection titled </blockquote>
+subsubsection </blockquote>
    <p><strong>Partial specialization for pointers</strong></p>
 <pre class="language-c++ highlight"><span class="n"><span class="n">template</span></span><span class="o"><span class="o">&lt;</span></span><span class="n"><span class="n">class</span></span> <span class="n"><span class="n">T</span></span><span class="o"><span class="o">></span></span> <span class="k"><span class="k">struct</span></span> <span class="n"><span class="n">atomic_ref</span></span><span class="o"><span class="o">&lt;</span></span><span class="n"><span class="n">T</span></span><span class="o"><span class="o">*></span></span> <span class="p"><span class="p">{</span></span><span class="nl"></span>
 <span class="nl"><span class="nl">private</span></span><span class="p"><span class="p">:</span></span>
@@ -2087,9 +2084,9 @@ computation correspondence are identified in Table 130 [atomics.types.pointer].<
    <p><strong>T* operator</strong> <em>op</em><strong>=(difference_type operand) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k"><span class="k">return</span></span> <span class="nf"><span class="nf">fetch_</span><strong><em><span class="nf">key</span></em></strong></span><span class="p"><span class="p">(</span></span><span class="n"><span class="n">operand</span></span><span class="p"><span class="p">)</span></span> <span class="n"><strong><em><span class="n">op</span></em></strong></span> <span class="n"><span class="n">operand</span></span><span class="p"><span class="p">;</span></span></code></p>
    <blockquote> Add a new subsubsection [atomics.ref.memberops] following the [atomics.ref.pointer]
-subsubsection titled </blockquote>
-   <p><strong>Member operators common to atomic objects of integers and
-pointers types</strong></p>
+subsubsection </blockquote>
+   <p><strong>Member operators of <code class="highlight"><span class="n">atomic_ref</span></code> common to integers and
+pointers to objects</strong></p>
    <p><strong>T* operator++(int) const noexcept;</strong></p>
    <p><em>Effects:</em> Equivalent to: <code class="highlight"><span class="k">return</span> <span class="nf">fetch_add</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span></code></p>
    <p><strong>T* operator--(int) const noexcept;</strong></p>
