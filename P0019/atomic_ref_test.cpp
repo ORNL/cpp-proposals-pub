@@ -232,6 +232,7 @@ int main()
     num_errors += test_generic( a ,b );
   }
 
+  
   {
     std::array<double,4> a{{32,64,128,256}}, b{{512, 1024, 2048, 4096}};
 
