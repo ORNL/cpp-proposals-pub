@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>d0019R8: Atomic Ref</title>
+  <title>P0019R8: Atomic Ref</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -1226,7 +1226,7 @@ Possible extra rowspan handling
       text-align: center;
     }
   </style>
-  <meta content="Bikeshed version 60c7cf64c0efdd39a8c0261dfad14adb1da62902" name="generator">
+  <meta content="Bikeshed version 5888e02cf0071ba98c44312075d6903689282c04" name="generator">
   <link href="https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html" rel="canonical">
 <style>/* style-md-lists */
 
@@ -1443,21 +1443,21 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
   <input id="hidedel" style="display:none" type="checkbox">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">d0019R8<br>Atomic Ref</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2018-06-05">5 June 2018</time></span></h2>
+   <h1 class="p-name no-ref" id="title">P0019R8<br>Atomic Ref</h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Published Proposal, <time class="dt-updated" datetime="2018-06-07">7 June 2018</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
      <dd><a class="u-url" href="https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html">https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html</a>
      <dt>Authors:
      <dd>
+      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:dsunder@sandia.gov">Daniel Sunderland</a>
+     <dd>
       <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:hedwards@nvidia.com">H. Carter Edwards</a>
      <dd>
       <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:hboehm@google.com">Hans Boehm</a>
      <dd>
       <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:ogiroux@nvidia.com">Olivier Giroux</a>
-     <dd>
-      <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:dsunder@sandia.gov">Daniel Sunderland</a>
      <dd>
       <dd class="editor p-author h-card vcard"><a class="p-name fn u-email email" href="mailto:mhoemme@sandia.gov">Mark Hoemmen</a>
      <dd>
@@ -1494,7 +1494,7 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
       <li><a href="#atomic-operations-on-members-of-a-very-large-array"><span class="secno">3.2</span> <span class="content">Atomic Operations on Members of a Very Large Array</span></a>
      </ol>
     <li><a href="#reference-ability-constraints"><span class="secno">4</span> <span class="content"><em>Reference-ability</em> Constraints</span></a>
-    <li><a href="#concern-with-atomict-and-padding-bits-in-t"><span class="secno">5</span> <span class="content">Concern with <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> and padding bits in <code class="highlight"><span class="n">T</span></code></span></a>
+    <li><a href="#concern-with-atomict-and-padding-bits-in-t-make-compare-and-exchange-work-when-atomic_ref-references-an-object-with-padding-bits"><span class="secno">5</span> <span class="content"><del>Concern with <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> and padding bits in <code class="highlight"><span class="n">T</span></code></del> <ins>Make compare-and-exchange work when <code class="highlight"><span class="n">atomic_ref</span></code> references an object with padding bits.</ins></span></a>
     <li><a href="#naming-atomic-reference-of-t"><span class="secno">6</span> <span class="content">Naming <em>atomic reference of T</em></span></a>
     <li><a href="#future-work"><span class="secno">7</span> <span class="content">Future Work</span></a>
     <li><a href="#proposal"><span class="secno">8</span> <span class="content">Proposal</span></a>
@@ -1541,6 +1541,8 @@ pre.highlight, pre > code.highlight { display: block; padding: 1em; margin: .5em
     <li data-md="">
      <p><a href="http://wiki.edg.com/bin/view/Wg21rapperswil2018/LWGP0019">2018-06-05 LWG</a></p>
      <p>Many editorial changes requested.</p>
+    <li data-md="">
+     <p>Added padding bit resolution from <span>[P0528r3]</span></p>
    </ul>
    <p><span>[P0019r7]</span></p>
    <ul>
@@ -1680,11 +1682,13 @@ these constraints are violated.  It is a quality-of-implementation issue to
 generate appropriate information when constraints are violated.</p>
    <p><em>Note:</em> Whether an implementation of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> is lock free, does not
 necessarily constrain whether the corresponding implementation of <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> is lock free. <em>--end note</em></p>
-   <h2 class="heading settled" data-level="5" id="concern-with-atomict-and-padding-bits-in-t"><span class="secno">5. </span><span class="content">Concern with <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> and padding bits in <code class="highlight"><span class="n">T</span></code></span><a class="self-link" href="#concern-with-atomict-and-padding-bits-in-t"></a></h2>
-    A concern has been discussed for <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> where <code class="highlight"><span class="n">T</span></code> is a class type that
+   <h2 class="heading settled" data-level="5" id="concern-with-atomict-and-padding-bits-in-t-make-compare-and-exchange-work-when-atomic_ref-references-an-object-with-padding-bits"><span class="secno">5. </span><span class="content"><del>Concern with <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> and padding bits in <code class="highlight"><span class="n">T</span></code></del> <ins>Make compare-and-exchange work when <code class="highlight"><span class="n">atomic_ref</span></code> references an object with padding bits.</ins></span><a class="self-link" href="#concern-with-atomict-and-padding-bits-in-t-make-compare-and-exchange-work-when-atomic_ref-references-an-object-with-padding-bits"></a></h2>
+   <del>A concern has been discussed for <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> where <code class="highlight"><span class="n">T</span></code> is a class type that
 contains padding bits and how construction and <code class="highlight"><span class="n">compare_exchange</span></code> operations
 are effected by the value of those padding bits.  We require that the
-resolution of padding bits follow <span>[P0528r2]</span>. 
+resolution of padding bits follow <span>[P0528r2]</span>.</del>
+   <ins><code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> uses the proposed solution for compare-and-exchange 
+with padding bits proposed by <span>[P0528r3]</span>. </ins>
    <h2 class="heading settled" data-level="6" id="naming-atomic-reference-of-t"><span class="secno">6. </span><span class="content">Naming <em>atomic reference of T</em></span><a class="self-link" href="#naming-atomic-reference-of-t"></a></h2>
    <p>2018-03-15 Suggested that <em>atomic reference</em> of T be named <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> instead of <code class="highlight"><span class="n">atomic</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&amp;></span></code>?</p>
    <p>Result of SG1 poll</p>
@@ -1863,9 +1867,12 @@ after [atomics.ref.generic] </blockquote>
                            memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><strong>bool compare_exchange_strong(T&amp; expected, T desired,
                              memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
-   <p><em>Requires:</em> The failure argument shall not be <code class="highlight"><span class="n">memory_order_release</span></code> nor <code class="highlight"><span class="n">memory_order_acq_rel</span></code>.</p>
-   <p><em>Effects:</em> Retrieves the value in <code class="highlight"><span class="n">expected</span></code>. It then atomically compares the
-  value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> for equality with that previously
+   <p><em>Requires:</em> The <code class="highlight"><span class="n">failure</span></code> argument shall not be <code class="highlight"><span class="n">memory_order_release</span></code> nor <code class="highlight"><span class="n">memory_order_acq_rel</span></code>.</p>
+   <p>
+    <em>Effects:</em> Retrieves the value in <code class="highlight"><span class="n">expected</span></code>. It then atomically compares the
+  value 
+    <ins>representation of the value</ins>
+     referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> for equality with that previously
   retrieved from <code class="highlight"><span class="n">expected</span></code>, and if <code class="highlight">true</code>, replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with that in <code class="highlight"><span class="n">desired</span></code>. If and only if the comparison is <code class="highlight">true</code>, memory is affected according to the value of <code class="highlight"><span class="n">success</span></code>, and if the
   comparison is <code class="highlight">false</code>, memory is affected according to the value of <code class="highlight"><span class="n">failure</span></code>.
   When only one <code class="highlight"><span class="n">memory_order</span></code> argument is supplied, the value of <code class="highlight"><span class="n">success</span></code> is <code class="highlight"><span class="n">order</span></code>, and the value of <code class="highlight"><span class="n">failure</span></code> is <code class="highlight"><span class="n">order</span></code> except that a value of <code class="highlight"><span class="n">memory_order_acq_rel</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_acquire</span></code> and a value of <code class="highlight"><span class="n">memory_order_release</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_relaxed</span></code>. If and only if the comparison is <code class="highlight">false</code> then, after the
@@ -1873,7 +1880,8 @@ after [atomics.ref.generic] </blockquote>
   value read from the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> during the atomic comparison.
   If the operation returns <code class="highlight">true</code>, these operations are atomic read-modify-write
   operations [intro.races] on the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code>. Otherwise, these
-  operations are atomic load operations on that memory.</p>
+  operations are atomic load operations on that memory.
+   </p>
    <p><em>Returns:</em> The result of the comparison.</p>
    <p><em>Remarks:</em> A weak compare-and-exchange operation may fail spuriously. That is,
   even when the contents of memory referred to by expected and <code class="highlight"><span class="n">ptr</span></code> are equal,

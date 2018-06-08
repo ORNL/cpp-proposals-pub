@@ -1,20 +1,20 @@
 <pre class='metadata'>
 Title:  Atomic Ref
 Abstract: Extension to the atomic operations library to allow atomic operations to apply to non-atomic objects.
+Editor: Daniel Sunderland, dsunder@sandia.gov
 Editor: H. Carter Edwards, hedwards@nvidia.com
 Editor: Hans Boehm, hboehm@google.com
 Editor: Olivier Giroux, ogiroux@nvidia.com
-Editor: Daniel Sunderland, dsunder@sandia.gov
 Editor: Mark Hoemmen, mhoemme@sandia.gov
 Editor: David Hollman, dshollm@sandia.gov
 Editor: Bryce Adelstein Lelbach, blelbach@nvidia.com
 Editor: Jens Maurer, Jens.Maurer@gmx.net
-Shortname: D0019
+Shortname: P0019
 Revision: 8
 Audience: LWG
-Status: D
+Status: P
 Group: WG21
-Date: 2018-06-05
+Date: 2018-06-07
 Repository: https://github.com/ORNL/cpp-proposals-pub.git
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html
 Toggle Diffs: Yes
@@ -66,6 +66,8 @@ Revision History
 -   [2018-06-05 LWG](http://wiki.edg.com/bin/view/Wg21rapperswil2018/LWGP0019)
 
     Many editorial changes requested.
+
+-   Added padding bit resolution from [[P0528r3]]
 
 [[P0019r7]]
 
@@ -220,12 +222,16 @@ necessarily constrain whether the corresponding implementation of
 `atomic_ref<T>` is lock free. *--end note* 
 
 
-Concern with `atomic<T>` and padding bits in `T`
-====================================================
-A concern has been discussed for `atomic<T>` where `T` is a class type that
+# <del>Concern with `atomic<T>` and padding bits in `T`</del> <ins>Make compare-and-exchange work when  `atomic_ref` references an object with padding bits.</ins>
+
+<del>A concern has been discussed for `atomic<T>` where `T` is a class type that
 contains padding bits and how construction and `compare_exchange` operations
 are effected by the value of those padding bits.  We require that the
-resolution of padding bits follow [[P0528r2]].
+resolution of padding bits follow [[P0528r2]].</del>
+
+<ins>`atomic_ref<T>` uses the proposed solution for compare-and-exchange 
+with padding bits proposed by [[P0528r3]].
+</ins>
 
 
 Naming *atomic reference of T*
@@ -530,11 +536,11 @@ after [atomics.ref.generic]
 **bool compare_exchange_strong(T& expected, T desired,
                              memory_order order = memory_order_seq_cst) const noexcept;**
 
-  *Requires:* The failure argument shall not be `memory_order_release` nor
+  *Requires:* The `failure` argument shall not be `memory_order_release` nor
   `memory_order_acq_rel`.
 
   *Effects:* Retrieves the value in `expected`. It then atomically compares the
-  value referenced by `*ptr` for equality with that previously
+  value <ins>representation of the value</ins> referenced by `*ptr` for equality with that previously
   retrieved from `expected`, and if `true`, replaces the value referenced by `*ptr`
   with that in `desired`. If and only if the comparison is
   `true`, memory is affected according to the value of `success`, and if the
