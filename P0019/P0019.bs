@@ -1,20 +1,20 @@
 <pre class='metadata'>
 Title:  Atomic Ref
 Abstract: Extension to the atomic operations library to allow atomic operations to apply to non-atomic objects.
-Editor: Daniel Sunderland, dsunder@sandia.gov
 Editor: H. Carter Edwards, hedwards@nvidia.com
 Editor: Hans Boehm, hboehm@google.com
 Editor: Olivier Giroux, ogiroux@nvidia.com
+Editor: Daniel Sunderland, dsunder@sandia.gov
 Editor: Mark Hoemmen, mhoemme@sandia.gov
 Editor: David Hollman, dshollm@sandia.gov
 Editor: Bryce Adelstein Lelbach, blelbach@nvidia.com
 Editor: Jens Maurer, Jens.Maurer@gmx.net
-Shortname: P0019
+Shortname: D0019
 Revision: 8
 Audience: LWG
-Status: P
+Status: D
 Group: WG21
-Date: 2018-06-07
+Date: 2018-06-05
 Repository: https://github.com/ORNL/cpp-proposals-pub.git
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/P0019/P0019r7.html
 Toggle Diffs: Yes
@@ -66,8 +66,6 @@ Revision History
 -   [2018-06-05 LWG](http://wiki.edg.com/bin/view/Wg21rapperswil2018/LWGP0019)
 
     Many editorial changes requested.
-
--   Added padding bit resolution from [[P0528r3]]
 
 [[P0019r7]]
 
@@ -222,16 +220,12 @@ necessarily constrain whether the corresponding implementation of
 `atomic_ref<T>` is lock free. *--end note* 
 
 
-# <del>Concern with `atomic<T>` and padding bits in `T`</del> <ins>Make compare-and-exchange work when  `atomic_ref` references an object with padding bits.</ins>
-
-<del>A concern has been discussed for `atomic<T>` where `T` is a class type that
+Concern with `atomic<T>` and padding bits in `T`
+====================================================
+A concern has been discussed for `atomic<T>` where `T` is a class type that
 contains padding bits and how construction and `compare_exchange` operations
 are effected by the value of those padding bits.  We require that the
-resolution of padding bits follow [[P0528r2]].</del>
-
-<ins>`atomic_ref<T>` uses the proposed solution for compare-and-exchange 
-with padding bits proposed by [[P0528r3]].
-</ins>
+resolution of padding bits follow [[P0528r2]].
 
 
 Naming *atomic reference of T*
@@ -536,26 +530,25 @@ after [atomics.ref.generic]
 **bool compare_exchange_strong(T& expected, T desired,
                              memory_order order = memory_order_seq_cst) const noexcept;**
 
-  *Requires:* The `failure` argument shall not be `memory_order_release` nor
+  *Requires:* The failure argument shall not be `memory_order_release` nor
   `memory_order_acq_rel`.
 
-  *Effects:* Retrieves the value in `expected`. It then atomically compares <ins>the value reprensentation of</ins> the value referenced by `*ptr` for
-  equality with that previously retrieved from `expected`, and if `true`,
-  replaces the value referenced by `*ptr` with that in `desired`. If and only
-  if the comparison is `true`, memory is affected according to the value of
-  `success`, and if the comparison is `false`, memory is affected according to
-  the value of `failure`.  When only one `memory_order` argument is supplied,
-  the value of `success` is `order`, and the value of `failure` is `order`
-  except that a value of `memory_order_acq_rel` shall be replaced by the value
-  `memory_order_acquire` and a value of `memory_order_release` shall be
-  replaced by the value `memory_order_relaxed`. If and only if the comparison
-  is `false` then, after the atomic operation, the <del>contents of the
-  memory</del> <ins>value</ins> in `expected` <del>are</del> <ins>is</ins>
-  replaced by the <del>value read from the</del> value referenced by `*ptr`
-  during the atomic comparison.  If the operation returns `true`, these
-  operations are atomic read-modify-write operations [intro.races] on the value
-  referenced by `*ptr`. Otherwise, these operations are atomic load operations
-  on that memory.
+  *Effects:* Retrieves the value in `expected`. It then atomically compares the
+  value referenced by `*ptr` for equality with that previously
+  retrieved from `expected`, and if `true`, replaces the value referenced by `*ptr`
+  with that in `desired`. If and only if the comparison is
+  `true`, memory is affected according to the value of `success`, and if the
+  comparison is `false`, memory is affected according to the value of `failure`.
+  When only one `memory_order` argument is supplied, the value of `success` is
+  `order`, and the value of `failure` is `order` except that a value of
+  `memory_order_acq_rel` shall be replaced by the value `memory_order_acquire`
+  and a value of `memory_order_release` shall be replaced by the value
+  `memory_order_relaxed`. If and only if the comparison is `false` then, after the
+  atomic operation, the contents of the memory in `expected` are replaced by the
+  value read from the value referenced by `*ptr` during the atomic comparison.
+  If the operation returns `true`, these operations are atomic read-modify-write
+  operations [intro.races] on the value referenced by `*ptr`. Otherwise, these
+  operations are atomic load operations on that memory.
 
   *Returns:* The result of the comparison.
 
