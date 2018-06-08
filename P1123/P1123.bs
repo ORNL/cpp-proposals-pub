@@ -1,0 +1,58 @@
+<pre class='metadata'>
+Title:  Editorial Guidance for merging P0019r8 and P0528r3
+Abstract: Merge proposed changes in P0019r8 and P0528r3
+Editor: Daniel Sunderland, dsunder@sandia.gov
+Shortname: P1123
+Revision: 0
+Audience: LWG
+Status: P
+Group: WG21
+Date: 2018-06-08
+Repository: https://github.com/ORNL/cpp-proposals-pub.git
+URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/P1123/P1123r0.html
+Markup Shorthands: markdown yes
+</pre>
+
+Proposal
+========
+
+<blockquote>
+Text in blockquotes is not proposed wording.
+</blockquote>
+
+<blockquote>
+If P0019r8 and P0528r3 are both accepted,
+apply the following changes to the compare-exchange wording in
+[atomics.ref.operations]
+</blockquote>
+
+**bool compare_exchange_weak(T& expected, T desired,
+                           memory_order success, memory_order failure) const noexcept;**
+
+**bool compare_exchange_strong(T& expected, T desired,
+                             memory_order success, memory_order failure) const noexcept;**
+
+**bool compare_exchange_weak(T& expected, T desired,
+                           memory_order order = memory_order_seq_cst) const noexcept;**
+
+**bool compare_exchange_strong(T& expected, T desired,
+                             memory_order order = memory_order_seq_cst) const noexcept;**
+
+  *Effects:* Retrieves the value in `expected`. It then atomically compares <ins>the value
+  representation of</ins> the value referenced by `*ptr` for equality with that previously
+  retrieved from `expected`, and if `true`, replaces the value referenced by `*ptr`
+  with that in `desired`. If and only if the comparison is
+  `true`, memory is affected according to the value of `success`, and if the
+  comparison is `false`, memory is affected according to the value of `failure`.
+  When only one `memory_order` argument is supplied, the value of `success` is
+  `order`, and the value of `failure` is `order` except that a value of
+  `memory_order_acq_rel` shall be replaced by the value `memory_order_acquire`
+  and a value of `memory_order_release` shall be replaced by the value
+  `memory_order_relaxed`. If and only if the comparison is `false` then, after the
+  atomic operation, the <del>contents of the memory</del> <ins>value</ins> in 
+  `expected` <del>are</del> <ins>is</ins> replaced by the
+  value read from the value referenced by `*ptr` during the atomic comparison.
+  If the operation returns `true`, these operations are atomic read-modify-write
+  operations [intro.races] on the value referenced by `*ptr`. Otherwise, these
+  operations are atomic load operations on that memory.
+
