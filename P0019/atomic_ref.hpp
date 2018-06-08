@@ -37,11 +37,11 @@ namespace Impl {
 
 //------------------------------------------------------------------------------
 template <typename T>
-inline constexpr size_t atomic_ref_required_alignment_v = sizeof(T) <= sizeof(uint8_t)  ? sizeof(uint8_t)
-                                                        : sizeof(T) <= sizeof(uint16_t) ? sizeof(uint16_t)
-                                                        : sizeof(T) <= sizeof(uint32_t) ? sizeof(uint32_t)
-                                                        : sizeof(T) <= sizeof(uint64_t) ? sizeof(uint64_t)
-                                                        : sizeof(T) <= sizeof(__uint128_t) ? sizeof(__uint128_t)
+inline constexpr size_t atomic_ref_required_alignment_v = sizeof(T) == sizeof(uint8_t)  ? sizeof(uint8_t)
+                                                        : sizeof(T) == sizeof(uint16_t) ? sizeof(uint16_t)
+                                                        : sizeof(T) == sizeof(uint32_t) ? sizeof(uint32_t)
+                                                        : sizeof(T) == sizeof(uint64_t) ? sizeof(uint64_t)
+                                                        : sizeof(T) == sizeof(__uint128_t) ? sizeof(__uint128_t)
                                                         : std::alignment_of_v<T>
                                                         ;
 
@@ -55,15 +55,20 @@ inline constexpr bool atomic_use_native_ops_v =  sizeof(T) <= sizeof(__uint128_t
 
 template <typename T>
 inline constexpr bool atomic_use_cast_ops_v =  !atomic_use_native_ops_v<T>
-                                            && sizeof(T) <= sizeof(__uint128_t)
+                                            && (  sizeof(T) == sizeof(uint8_t)
+                                               || sizeof(T) == sizeof(uint16_t)
+                                               || sizeof(T) == sizeof(uint32_t)
+                                               || sizeof(T) == sizeof(uint64_t)
+                                               || sizeof(T) == sizeof(__uint128_t)
+                                               )
                                             ;
 
 template <typename T>
-using atomic_ref_cast_t = std::conditional_t< sizeof(T) <= sizeof(uint8_t),  uint8_t
-                        , std::conditional_t< sizeof(T) <= sizeof(uint16_t), uint16_t
-                        , std::conditional_t< sizeof(T) <= sizeof(uint32_t), uint32_t
-                        , std::conditional_t< sizeof(T) <= sizeof(uint64_t), uint64_t
-                        , std::conditional_t< sizeof(T) <= sizeof(__uint128_t), __uint128_t
+using atomic_ref_cast_t = std::conditional_t< sizeof(T) == sizeof(uint8_t),  uint8_t
+                        , std::conditional_t< sizeof(T) == sizeof(uint16_t), uint16_t
+                        , std::conditional_t< sizeof(T) == sizeof(uint32_t), uint32_t
+                        , std::conditional_t< sizeof(T) == sizeof(uint64_t), uint64_t
+                        , std::conditional_t< sizeof(T) == sizeof(__uint128_t), __uint128_t
                         , T
                         >>>>>
                         ;
@@ -81,9 +86,9 @@ struct atomic_ref_ops
 //------------------------------------------------------------------------------
 template <typename Base, typename ValueType>
 struct atomic_ref_ops< Base, ValueType
-                     , typename std::enable_if<  std::is_integral_v<ValueType>
-                                              && !std::is_same_v<bool,ValueType>
-                                              >::type
+                     , std::enable_if_t<  std::is_integral_v<ValueType>
+                                       && !std::is_same_v<bool,ValueType>
+                                       >
                      >
 {
  public:
@@ -206,7 +211,7 @@ struct atomic_ref_ops< Base, ValueType
 //------------------------------------------------------------------------------
 template <typename Base, typename ValueType>
 struct atomic_ref_ops< Base, ValueType
-                     , typename std::enable_if<  std::is_floating_point_v<ValueType> >::type
+                     , std::enable_if_t<  std::is_floating_point_v<ValueType> >
                      >
 {
  public:
@@ -277,9 +282,9 @@ struct atomic_ref_ops< Base, ValueType
 //------------------------------------------------------------------------------
 template <typename Base, typename ValueType>
 struct atomic_ref_ops< Base, ValueType
-                     , typename std::enable_if<  std::is_pointer_v<ValueType>
-                                              && std::is_object_v< std::remove_pointer_t<ValueType>>
-                                              >::type
+                     , std::enable_if<  std::is_pointer_v<ValueType>
+                                     && std::is_object_v< std::remove_pointer_t<ValueType>>
+                                     >
                      >
 {
   static constexpr ptrdiff_t stride = static_cast<ptrdiff_t>(sizeof( std::remove_pointer_t<ValueType> ));
@@ -397,7 +402,11 @@ public:
   using value_type = T;
 
   static constexpr size_t required_alignment  = Impl::atomic_ref_required_alignment_v<T>;
-  static constexpr bool   is_always_lock_free = __atomic_always_lock_free( required_alignment, 0);
+  static constexpr bool   is_always_lock_free = __atomic_always_lock_free( sizeof(T) <= required_alignment
+                                                                                      ? required_alignment 
+                                                                                      : sizeof(T)
+                                                                         , nullptr
+                                                                         );
 
   atomic_ref() = delete;
   atomic_ref & operator=( const atomic_ref & ) = delete;

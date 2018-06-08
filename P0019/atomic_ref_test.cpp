@@ -101,6 +101,10 @@ int test_float(T a, T b)
   ref.fetch_add(b, std::memory_order_relaxed );
   ref.fetch_sub(b, std::memory_order_relaxed );
 
+  ref.fetch_add( std::nan("") );
+
+  errors += std::isnan( ref.load() ) ? 0 : 1;
+
   return errors;
 }
 
@@ -132,90 +136,105 @@ int main()
     char a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "char", Foo::atomic_ref<char>::is_always_lock_free);
   }
 
   {
     signed char a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "signed char", Foo::atomic_ref<signed char>::is_always_lock_free);
   }
 
   {
     unsigned char a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "unsigned char", Foo::atomic_ref<unsigned char>::is_always_lock_free);
   }
 
   {
     short a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "short", Foo::atomic_ref<short>::is_always_lock_free);
   }
 
   {
     unsigned short a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "unsigned short", Foo::atomic_ref<unsigned short>::is_always_lock_free);
   }
 
   {
     int a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "int", Foo::atomic_ref<int>::is_always_lock_free);
   }
 
   {
     unsigned a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "unsigned int", Foo::atomic_ref<unsigned int>::is_always_lock_free);
   }
 
   {
     long a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "long", Foo::atomic_ref<long>::is_always_lock_free);
   }
 
   {
     unsigned long a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "unsigned long", Foo::atomic_ref<unsigned long>::is_always_lock_free);
   }
 
   {
     long long a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "long long", Foo::atomic_ref<long long>::is_always_lock_free);
   }
 
   {
     unsigned long long a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "unsigned long long", Foo::atomic_ref<unsigned long long>::is_always_lock_free);
   }
 
   {
-    __int128 a = 1, b = 64;
+    __int128_t a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "__int128_t", Foo::atomic_ref<__int128_t>::is_always_lock_free);
   }
 
   {
-    unsigned __int128 a = 1, b = 64;
+    __uint128_t a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_integral( a ,b );
+    printf("lockfree[%s]: %d\n", "__uint128_t", Foo::atomic_ref<__uint128_t>::is_always_lock_free);
   }
 
   {
     float a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_float( a ,b );
+    printf("lockfree[%s]: %d\n", "float", Foo::atomic_ref<float>::is_always_lock_free);
   }
 
   {
     double a = 1, b = 64;
     num_errors += test_generic( a ,b );
     num_errors += test_float( a ,b );
+    printf("lockfree[%s]: %d\n", "double", Foo::atomic_ref<double>::is_always_lock_free);
   }
 
   {
@@ -224,19 +243,35 @@ int main()
     int * b_ptr = &b;
     num_errors += test_generic( a_ptr , b_ptr );
     num_errors += test_pointer( a, 10 );
+    printf("lockfree[%s]: %d\n", "int*", Foo::atomic_ref<int*>::is_always_lock_free);
   }
 
   {
     std::complex<double> a{32,64}, b{128, 256};
 
     num_errors += test_generic( a ,b );
+    printf("lockfree[%s]: %d\n", "complex<double>", Foo::atomic_ref<std::complex<double>>::is_always_lock_free);
+  }
+  
+  {
+    std::array<char,3> a{{(char)32,(char)64,(char)128}}, b{{(char)512,(char)1024,(char)2048}};
+
+    num_errors += test_generic( a ,b );
+    printf("lockfree[%s]: %d\n", "array<int,3>", Foo::atomic_ref<std::array<int,3>>::is_always_lock_free);
   }
 
+  {
+    std::array<int,3> a{{32,64,128}}, b{{512, 1024, 2048}};
+
+    num_errors += test_generic( a ,b );
+    printf("lockfree[%s]: %d\n", "array<int,3>", Foo::atomic_ref<std::array<int,3>>::is_always_lock_free);
+  }
 
   {
     std::array<double,4> a{{32,64,128,256}}, b{{512, 1024, 2048, 4096}};
 
     num_errors += test_generic( a ,b );
+    printf("lockfree[%s]: %d\n", "array<int,4>", Foo::atomic_ref<std::array<int,4>>::is_always_lock_free);
   }
 
   if (num_errors > 0) {
