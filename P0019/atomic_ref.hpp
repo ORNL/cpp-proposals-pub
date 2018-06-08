@@ -38,25 +38,25 @@ namespace Impl {
 //------------------------------------------------------------------------------
 template <typename T>
 inline constexpr size_t atomic_ref_required_alignment_v = sizeof(T) <= sizeof(uint8_t)  ? sizeof(uint8_t)
-                                                 : sizeof(T) <= sizeof(uint16_t) ? sizeof(uint16_t)
-                                                 : sizeof(T) <= sizeof(uint32_t) ? sizeof(uint32_t)
-                                                 : sizeof(T) <= sizeof(uint64_t) ? sizeof(uint64_t)
-                                                 : sizeof(T) <= sizeof(__uint128_t) ? sizeof(__uint128_t)
-                                                 : std::alignment_of_v<T>
-                                                 ;
+                                                        : sizeof(T) <= sizeof(uint16_t) ? sizeof(uint16_t)
+                                                        : sizeof(T) <= sizeof(uint32_t) ? sizeof(uint32_t)
+                                                        : sizeof(T) <= sizeof(uint64_t) ? sizeof(uint64_t)
+                                                        : sizeof(T) <= sizeof(__uint128_t) ? sizeof(__uint128_t)
+                                                        : std::alignment_of_v<T>
+                                                        ;
 
 template <typename T>
 inline constexpr bool atomic_use_native_ops_v =  sizeof(T) <= sizeof(__uint128_t)
-                                       && (  std::is_integral_v<T> 
-                                          || std::is_enum_v<T> 
-                                          || std::is_pointer_v<T>
-                                          )
-                                       ;
+                                              && (  std::is_integral_v<T>
+                                                 || std::is_enum_v<T>
+                                                 || std::is_pointer_v<T>
+                                                 )
+                                              ;
 
 template <typename T>
-inline constexpr bool atomic_use_cast_ops_v =  !atomic_use_native_ops_v<T> 
-                                     && sizeof(T) <= sizeof(__uint128_t)
-                                     ;
+inline constexpr bool atomic_use_cast_ops_v =  !atomic_use_native_ops_v<T>
+                                            && sizeof(T) <= sizeof(__uint128_t)
+                                            ;
 
 template <typename T>
 using atomic_ref_cast_t = std::conditional_t< sizeof(T) <= sizeof(uint8_t),  uint8_t
@@ -64,7 +64,7 @@ using atomic_ref_cast_t = std::conditional_t< sizeof(T) <= sizeof(uint8_t),  uin
                         , std::conditional_t< sizeof(T) <= sizeof(uint32_t), uint32_t
                         , std::conditional_t< sizeof(T) <= sizeof(uint64_t), uint64_t
                         , std::conditional_t< sizeof(T) <= sizeof(__uint128_t), __uint128_t
-                        , T 
+                        , T
                         >>>>>
                         ;
 
@@ -82,7 +82,7 @@ struct atomic_ref_ops
 template <typename Base, typename ValueType>
 struct atomic_ref_ops< Base, ValueType
                      , typename std::enable_if<  std::is_integral_v<ValueType>
-                                              && !std::is_same_v<bool,ValueType> 
+                                              && !std::is_same_v<bool,ValueType>
                                               >::type
                      >
 {
@@ -110,7 +110,7 @@ struct atomic_ref_ops< Base, ValueType
                              , order
                              );
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type fetch_and( difference_type val
                            , std::memory_order order = std::memory_order_seq_cst
@@ -121,7 +121,7 @@ struct atomic_ref_ops< Base, ValueType
                              , order
                              );
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type fetch_or( difference_type val
                            , std::memory_order order = std::memory_order_seq_cst
@@ -132,7 +132,7 @@ struct atomic_ref_ops< Base, ValueType
                             , order
                             );
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type fetch_xor( difference_type val
                            , std::memory_order order = std::memory_order_seq_cst
@@ -143,7 +143,7 @@ struct atomic_ref_ops< Base, ValueType
                              , order
                              );
   }
-  
+
 
   ATOMIC_REF_FORCEINLINE
   difference_type operator++(int) const noexcept
@@ -174,25 +174,25 @@ struct atomic_ref_ops< Base, ValueType
   {
     return __atomic_add_fetch( static_cast<const Base*>(this)->ptr_, val, std::memory_order_seq_cst );
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type operator-=(difference_type val) const noexcept
   {
     return __atomic_sub_fetch( static_cast<const Base*>(this)->ptr_, val, std::memory_order_seq_cst );
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type operator&=(difference_type val) const noexcept
   {
     return __atomic_sub_fetch( static_cast<const Base*>(this)->ptr_, val, std::memory_order_seq_cst );
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type operator|=(difference_type val) const noexcept
   {
     return __atomic_or_fetch( static_cast<const Base*>(this)->ptr_, val, std::memory_order_seq_cst );
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type operator^=(difference_type val) const noexcept
   {
@@ -257,13 +257,13 @@ struct atomic_ref_ops< Base, ValueType
 
     return expected;
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type operator+=(difference_type val) const noexcept
   {
     return fetch_add( val ) + val;
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type operator-=(difference_type val) const noexcept
   {
@@ -278,12 +278,12 @@ struct atomic_ref_ops< Base, ValueType
 template <typename Base, typename ValueType>
 struct atomic_ref_ops< Base, ValueType
                      , typename std::enable_if<  std::is_pointer_v<ValueType>
-                                              && std::is_object_v< std::remove_pointer_t<ValueType>> 
+                                              && std::is_object_v< std::remove_pointer_t<ValueType>>
                                               >::type
                      >
 {
   static constexpr ptrdiff_t stride = static_cast<ptrdiff_t>(sizeof( std::remove_pointer_t<ValueType> ));
-  
+
  public:
   using difference_type = ValueType;
 
@@ -292,7 +292,7 @@ struct atomic_ref_ops< Base, ValueType
                      , std::memory_order order = std::memory_order_seq_cst
                      ) const noexcept
   {
-    return val >= 0 
+    return val >= 0
            ? __atomic_fetch_add( static_cast<const Base*>(this)->ptr_
                                 , stride*val
                                 , order
@@ -309,7 +309,7 @@ struct atomic_ref_ops< Base, ValueType
                      , std::memory_order order = std::memory_order_seq_cst
                      ) const noexcept
   {
-    return val >= 0 
+    return val >= 0
            ? __atomic_fetch_sub( static_cast<const Base*>(this)->ptr_
                                 , stride*val
                                 , order
@@ -320,8 +320,8 @@ struct atomic_ref_ops< Base, ValueType
                                )
            ;
   }
-  
-  
+
+
 
   ATOMIC_REF_FORCEINLINE
   difference_type operator++(int) const noexcept
@@ -350,7 +350,7 @@ struct atomic_ref_ops< Base, ValueType
   ATOMIC_REF_FORCEINLINE
   difference_type operator+=(difference_type val) const noexcept
   {
-    return val >= 0 
+    return val >= 0
            ? __atomic_fetch_add( static_cast<const Base*>(this)->ptr_
                                 , stride*val
                                 , std::memory_order_seq_cst
@@ -361,11 +361,11 @@ struct atomic_ref_ops< Base, ValueType
                                )
            ;
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   difference_type operator-=(difference_type val) const noexcept
   {
-    return val >= 0 
+    return val >= 0
            ? __atomic_fetch_sub( static_cast<const Base*>(this)->ptr_
                                 , stride*val
                                 , std::memory_order_seq_cst
@@ -381,7 +381,7 @@ struct atomic_ref_ops< Base, ValueType
 } // namespace Impl
 
 template < class T >
-struct atomic_ref 
+struct atomic_ref
   : public Impl::atomic_ref_ops< atomic_ref<T>, T >
 {
   static_assert( std::is_trivially_copyable_v<T>
@@ -393,12 +393,12 @@ private:
   friend struct Impl::atomic_ref_ops< atomic_ref<T>, T>;
 
 public:
-  
+
   using value_type = T;
 
   static constexpr size_t required_alignment  = Impl::atomic_ref_required_alignment_v<T>;
   static constexpr bool   is_always_lock_free = __atomic_always_lock_free( required_alignment, 0);
-  
+
   atomic_ref() = delete;
   atomic_ref & operator=( const atomic_ref & ) = delete;
 
@@ -494,7 +494,7 @@ public:
       return result;
     }
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   bool compare_exchange_weak( value_type& expected
                             , value_type desired
@@ -546,7 +546,7 @@ public:
       return __atomic_compare_exchange( ptr_, &expected, &desired, false, success, failure );
     }
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   bool compare_exchange_weak( value_type& expected
                             , value_type desired
@@ -555,7 +555,7 @@ public:
   {
     return compare_exchange_weak( expected, desired, order, order );
   }
-  
+
   ATOMIC_REF_FORCEINLINE
   bool compare_exchange_strong( value_type& expected
                               , value_type desired
