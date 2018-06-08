@@ -1869,18 +1869,28 @@ after [atomics.ref.generic] </blockquote>
                              memory_order order = memory_order_seq_cst) const noexcept;</strong></p>
    <p><em>Requires:</em> The <code class="highlight"><span class="n">failure</span></code> argument shall not be <code class="highlight"><span class="n">memory_order_release</span></code> nor <code class="highlight"><span class="n">memory_order_acq_rel</span></code>.</p>
    <p>
-    <em>Effects:</em> Retrieves the value in <code class="highlight"><span class="n">expected</span></code>. It then atomically compares the
-  value 
-    <ins>representation of the value</ins>
-     referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> for equality with that previously
-  retrieved from <code class="highlight"><span class="n">expected</span></code>, and if <code class="highlight">true</code>, replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with that in <code class="highlight"><span class="n">desired</span></code>. If and only if the comparison is <code class="highlight">true</code>, memory is affected according to the value of <code class="highlight"><span class="n">success</span></code>, and if the
-  comparison is <code class="highlight">false</code>, memory is affected according to the value of <code class="highlight"><span class="n">failure</span></code>.
-  When only one <code class="highlight"><span class="n">memory_order</span></code> argument is supplied, the value of <code class="highlight"><span class="n">success</span></code> is <code class="highlight"><span class="n">order</span></code>, and the value of <code class="highlight"><span class="n">failure</span></code> is <code class="highlight"><span class="n">order</span></code> except that a value of <code class="highlight"><span class="n">memory_order_acq_rel</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_acquire</span></code> and a value of <code class="highlight"><span class="n">memory_order_release</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_relaxed</span></code>. If and only if the comparison is <code class="highlight">false</code> then, after the
-  atomic operation, the contents of the memory in <code class="highlight"><span class="n">expected</span></code> are replaced by the
-  value read from the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> during the atomic comparison.
-  If the operation returns <code class="highlight">true</code>, these operations are atomic read-modify-write
-  operations [intro.races] on the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code>. Otherwise, these
-  operations are atomic load operations on that memory.
+    <em>Effects:</em> Retrieves the value in <code class="highlight"><span class="n">expected</span></code>. It then atomically compares 
+    <ins>the value reprensentation of</ins>
+     the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> for
+  equality with that previously retrieved from <code class="highlight"><span class="n">expected</span></code>, and if <code class="highlight">true</code>,
+  replaces the value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> with that in <code class="highlight"><span class="n">desired</span></code>. If and only
+  if the comparison is <code class="highlight">true</code>, memory is affected according to the value of <code class="highlight"><span class="n">success</span></code>, and if the comparison is <code class="highlight">false</code>, memory is affected according to
+  the value of <code class="highlight"><span class="n">failure</span></code>.  When only one <code class="highlight"><span class="n">memory_order</span></code> argument is supplied,
+  the value of <code class="highlight"><span class="n">success</span></code> is <code class="highlight"><span class="n">order</span></code>, and the value of <code class="highlight"><span class="n">failure</span></code> is <code class="highlight"><span class="n">order</span></code> except that a value of <code class="highlight"><span class="n">memory_order_acq_rel</span></code> shall be replaced by the value <code class="highlight"><span class="n">memory_order_acquire</span></code> and a value of <code class="highlight"><span class="n">memory_order_release</span></code> shall be
+  replaced by the value <code class="highlight"><span class="n">memory_order_relaxed</span></code>. If and only if the comparison
+  is <code class="highlight">false</code> then, after the atomic operation, the 
+    <del>contents of the
+  memory</del>
+    <ins>value</ins>
+     in <code class="highlight"><span class="n">expected</span></code> 
+    <del>are</del>
+    <ins>is</ins>
+     replaced by the 
+    <del>value read from the</del>
+     value referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code> during the atomic comparison.  If the operation returns <code class="highlight">true</code>, these
+  operations are atomic read-modify-write operations [intro.races] on the value
+  referenced by <code class="highlight"><span class="o">*</span><span class="n">ptr</span></code>. Otherwise, these operations are atomic load operations
+  on that memory.
    </p>
    <p><em>Returns:</em> The result of the comparison.</p>
    <p><em>Remarks:</em> A weak compare-and-exchange operation may fail spuriously. That is,
