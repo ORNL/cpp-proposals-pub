@@ -32,8 +32,7 @@ static_assert(  (__ATOMIC_RELAXED == static_cast<int>(std::memory_order_relaxed 
              , "Error: std::memory_order values are not equivalent to builtins"
              );
 
-namespace std {
-inline namespace is_20 {
+namespace Foo {
 
 //------------------------------------------------------------------------------
 // Generic type
@@ -44,7 +43,7 @@ struct atomic_ref
 private:
   T * ptr_;
 
-  static_assert( std::is_trivially_copyable<T>::value
+  static_assert( std::is_trivially_copyable_v<T>
                , "Error: atomic_ref<T> requires a trivially copyable type" );
 
 public:
@@ -61,9 +60,7 @@ public:
   {}
 
   ATOMIC_REF_FORCEINLINE
-  atomic_ref( const atomic_ref & ref )
-    : ptr_{ref.ptr_}
-  {}
+  atomic_ref( const atomic_ref & ref ) noexcept = default;
 
   ATOMIC_REF_FORCEINLINE
   value_type operator=( value_type desired ) const noexcept
@@ -138,12 +135,12 @@ public:
 // Integral type
 //------------------------------------------------------------------------------
 template < class T>
-struct atomic_ref< T, typename std::enable_if< std::is_integral<T>::value, void>::type >
+struct atomic_ref< T, typename std::enable_if< std::is_integral_v<T> && !std::is_same_v<bool,T>, void>::type >
 {
 private:
   T * ptr_;
 
-  static_assert( std::is_trivially_copyable<T>::value
+  static_assert( std::is_trivially_copyable_v<T>
                , "Error: atomic_ref<T> requires a trivially copyable type" );
 
 public:
@@ -161,9 +158,7 @@ public:
   {}
 
   ATOMIC_REF_FORCEINLINE
-  atomic_ref( const atomic_ref & ref )
-    : ptr_{ref.ptr_}
-  {}
+  atomic_ref( const atomic_ref & ref ) noexcept = default;
 
   ATOMIC_REF_FORCEINLINE
   value_type operator=( value_type desired ) const noexcept
@@ -316,12 +311,12 @@ public:
 // Floating type
 //------------------------------------------------------------------------------
 template < class T>
-struct atomic_ref< T, typename std::enable_if< std::is_floating_point<T>::value, void>::type >
+struct atomic_ref< T, typename std::enable_if< std::is_floating_point_v<T>, void>::type >
 {
 private:
   T * ptr_;
 
-  static_assert( std::is_trivially_copyable<T>::value
+  static_assert( std::is_trivially_copyable_v<T>
                , "Error: atomic_ref<T> requires a trivially copyable type" );
 
 public:
@@ -339,9 +334,7 @@ public:
   {}
 
   ATOMIC_REF_FORCEINLINE
-  atomic_ref( const atomic_ref & ref )
-    : ptr_{ref.ptr_}
-  {}
+  atomic_ref( const atomic_ref & ref ) noexcept = default;
 
   ATOMIC_REF_FORCEINLINE
   value_type operator=( value_type desired ) const noexcept
@@ -466,21 +459,22 @@ public:
 // Pointer type
 //------------------------------------------------------------------------------
 template < class T>
-struct atomic_ref< T*, void>
+struct atomic_ref< T, typename std::enable_if< std::is_pointer_v<T> && std::is_object_v< std::remove_pointer_t<T> >, void>::type >
 {
 private:
-  T ** ptr_;
+  T* ptr_;
 
-  static_assert( std::is_trivially_copyable<T*>::value
+  static_assert( std::is_trivially_copyable_v<T>
                , "Error: atomic_ref<T> requires a trivially copyable type" );
 
-  static constexpr uintptr_t stride = static_cast<uintptr_t>(sizeof(T));
+  static constexpr uintptr_t stride = static_cast<uintptr_t>(sizeof(std::remove_pointer_t<T>));
+
 
 public:
-  using value_type = T*;
+  using value_type = T;
   using difference_type = ptrdiff_t;
-  static constexpr bool   is_always_lock_free = __atomic_always_lock_free( sizeof(T*), 0);
-  static constexpr size_t required_alignment  = std::alignment_of<T*>::value;
+  static constexpr bool   is_always_lock_free = __atomic_always_lock_free( sizeof(T), 0);
+  static constexpr size_t required_alignment  = std::alignment_of<T>::value;
 
   atomic_ref() = delete;
   atomic_ref & operator=( const atomic_ref & ) = delete;
@@ -491,9 +485,7 @@ public:
   {}
 
   ATOMIC_REF_FORCEINLINE
-  atomic_ref( const atomic_ref & ref )
-    : ptr_{ref.ptr_}
-  {}
+  atomic_ref( const atomic_ref & ref ) noexcept = default;
 
   ATOMIC_REF_FORCEINLINE
   value_type operator=( value_type desired ) const noexcept
@@ -619,8 +611,7 @@ public:
 };
 
 
-} // inline namespace is_20
-} // namespace std
+} // namespace Foo
 
 
 #endif // ATOMIC_REF_HPP

@@ -11,7 +11,7 @@ namespace {
 template <class T>
 int test_generic(T v1, T v2)
 {
-  using atomic_ref = std::atomic_ref<T>;
+  using atomic_ref = Foo::atomic_ref<T>;
 
   int errors = 0;
 
@@ -66,7 +66,7 @@ int test_integral(T a, T b)
 {
   int errors = 0;
 
-  using atomic_ref = std::atomic_ref<T>;
+  using atomic_ref = Foo::atomic_ref<T>;
 
   atomic_ref ref(a);
 
@@ -91,7 +91,7 @@ int test_float(T a, T b)
 {
   int errors = 0;
 
-  using atomic_ref = std::atomic_ref<T>;
+  using atomic_ref = Foo::atomic_ref<T>;
 
   atomic_ref ref(a);
 
@@ -109,7 +109,7 @@ int test_pointer(T a, uintptr_t b)
 {
   int errors = 0;
 
-  using atomic_ref = std::atomic_ref<T>;
+  using atomic_ref = Foo::atomic_ref<T>;
 
   atomic_ref ref(a);
 
