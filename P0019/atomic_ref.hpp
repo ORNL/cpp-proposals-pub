@@ -290,7 +290,7 @@ struct atomic_ref_ops< Base, ValueType
   static constexpr ptrdiff_t stride = static_cast<ptrdiff_t>(sizeof( std::remove_pointer_t<ValueType> ));
 
  public:
-  using difference_type = ValueType;
+  using difference_type = ptrdiff_t;
 
   ATOMIC_REF_FORCEINLINE
   ValueType fetch_add( difference_type val
