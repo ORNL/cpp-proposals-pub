@@ -95,12 +95,9 @@ lead to trivial implementation of forward progress guarantees.  (This is why,
 for instance, lock-free data structures are so desirable.)  Note that
 `async/future` programming models do *not* provide a non-blocking guarantee, and
 thus do not provide a strong enough guarantees to be used blindly with weakly
-concurrent agents.  A help-first LIFO scheduler with two less-than-concurrent
+concurrent agents.  A help-first LIFO scheduler with two less-than-strongly concurrent
 execution agents could livelock on the following program (e.g., if `.get()` is
 implemented by polling with no context switching):
-
-TODO Define weakly concurrent agents
-TODO consider removing this example
 
 ```c++
 auto fa = make_ready_future().then([]{ /* ... */ });
@@ -112,6 +109,7 @@ auto ff = make_ready_future().then([fa=std::move(fa)]{ fa.get(); });
 when_all(fd, fe, ff).wait();
 ```
 
+(While there are clearly simple extensions to this strategy that avoid livelock, the point is that forward progress guarantees require additional complexity to support blocking programming models.)
 This paper presents an alternative programming model that provides all of the
 same safety guarantees, data-centrism, and other nice properties of the
 `async`/`future` programming model while also providing the non-blocking
@@ -1083,14 +1081,17 @@ as_const_borrow(async_ptr<T>& ptr);
 *Returns:* An implementation-defined type used to indicate to `with_all()` that
 an `async_ptr<T>` should be borrowed as a `const_async_ptr<T>`
 
+<!--
 Discussion
 ==========
 
 TODO write this
+-->
 
 Potential Extensions
 ====================
 
+<!--
 Explicit borrowing and two-sided names for API boundaries
 ---------------------------------------------------------
 
@@ -1098,6 +1099,7 @@ One issue with the continuation semantics of `async_ptr` is that using an
 instance as an argument to a foreign API or in generic code 
 
 TODO finish this
+-->
 
 Executor integration
 --------------------
@@ -1207,6 +1209,7 @@ Thanks to Christian Trott, Jonathan Lifflander, Jeremiah Wilke, Michael Garland,
 Jared Hoberock, and others for helpful feedback and discussions.
 
 
+<!-->
 TODO
 ====
 
@@ -1214,6 +1217,7 @@ TODO
 * Finish discussion of two-sided names
 * Discuss sequential semantics
 * Problematize or remove the section about `get` and blocking
+-->
 
 <pre class=biblio>
 {
