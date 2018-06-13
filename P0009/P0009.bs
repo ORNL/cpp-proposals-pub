@@ -725,6 +725,7 @@ namespace std {
 5. If any of `StaticExtents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
 
 <!-- TODO review change to make rank() and rank_dynamic() size_t -->
+<!-- TODO review addition of array constructor -->
 
 ```c++
 namespace std {
@@ -741,6 +742,8 @@ public:
   constexpr extents(extents&&) noexcept;
   template<class... IndexType>
   constexpr extents(IndexType... DynamicExtents) noexcept;
+  template<class IndexType, size_t N>
+  constexpr extents(const array<IndexType, N>&) noexcept;
   ~extents() noexcept = default;
 
   constexpr extents& operator=(const extents&) noexcept = default;
@@ -753,8 +756,7 @@ public:
   constexpr index_type extent(int) const noexcept;
 
 private:
-  // exposition only:
-  array<index_type, rank_dynamic()> dynamic_extents_;
+  array<index_type, rank_dynamic()> dynamic_extents_; // exposition only
 };
 
 }
@@ -766,8 +768,8 @@ private:
 constexpr extents() noexcept;
 ```
 
-* *Effects:* Constructs an `extents` with all dynamic extents set to 0.
-* *Postconditions:* `extent(r)` if `static_extent(r) == dynamic_extent` for 0 <= `r` < `rank()`
+* *Effects:* Aggregate-initializes `dynamic_extents_` to `{ }`
+* *Postconditions:* `extent(r)` if `static_extent(r) == dynamic_extent` for `0 <= r < rank()`
 
 <br/>
 ```c++
@@ -775,10 +777,13 @@ constexpr extents(const extents& other);
 constexpr extents(extents&& other);
 ```
 
-* *Effects:* Constructs an `extents` with the dynamic extents from `other`
-* *Postconditions:* `extent(r) == other.extent(r)` for 0 <= `r` < `rank()`
+<!-- TODO Review this. Should this be two different sections, or does it not matter for move initialization of array? -->
+
+* *Effects:* Initializes `dynamic_extents_` with `other.dynamic_extents_`
+* *Postconditions:* `extent(r) == other.extent(r)` for all `r` where `0 <= r < rank()`
 
 <br/>
+
 ```c++
 template<class... IndexType>
 constexpr extents(IndexType... dynamic_extents) noexcept;
@@ -788,11 +793,23 @@ constexpr extents(IndexType... dynamic_extents) noexcept;
 <!-- TODO @CRT: Please review to make sure this is the desired behavior -->
 
 * *Requires:* `((dynamic_extents >= 0) && ...)`
-* *Effects:* Constructs an `extents` with 
+* *Effects:* Aggregate-initializes `dynamic_extents_` to `{dynamic_extents...}`
 * *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to the *i*th entry in the parameter pack `dynamic_extents`
 * *Remarks:* This constructor shall not participate in overload resolution unless:
     + `(is_integral_v<IndexType> && ...)`
     + and `sizeof...(dynamic_extents) == rank_dynamic()`
+
+```c++
+template<class IndexType, size_t N>
+constexpr extents(array<IndexType, N> dynamic_extents) noexcept;
+```
+
+* *Requires:* `dynamic_extents[i] >= 0` for all `i` where `0 <= i <= rank_dynamic()`
+* *Effects:* Initializes `dynamic_extents_` with `dynamic_extents`
+* *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to `dynamic_extents[i]`
+* *Remarks:* This constructor shall not participate in overload resolution unless:
+    + `is_integral_v<IndexType>`
+    + `N == rank_dynamic()`
 
 <br/>
 <br/>
@@ -810,7 +827,8 @@ static constexpr size_t rank() const noexcept;
 static constexpr size_t rank_dynamic() const noexcept;
 ```
 
-* *Returns:* `((StaticExtents == dynamic_extent) + ...)`
+<!-- DSH: Added note because I was afraid I was being too clever -->
+* *Returns:* `((StaticExtents == dynamic_extent) + ...)` *[Note:* This is the number of dynamic extents *—end note]*
 
 <br/>
 ```c++
@@ -824,8 +842,10 @@ static constexpr index_type static_extent(int r) const noexcept;
 constexpr index_type extent(int r) const noexcept;
 ```
 
-* *Returns:* The `r`th extent if 0 <= `r` < `rank()`, or 1 otherwise. *[Note:* This is exactly `static_extent(r)` unless `static_extent(r) == dynamic_extent` *—end note]*
-
+<!-- TODO Does this need an example? -->
+* *Returns:* 
+    * If `static_extent(r) == dynamic_extent`, then `dynamic_extents_[k]`, where `k` is the number of extents equal to `dynamic_extent` in the first `r` entries of the `StaticExtents` parameter pack.
+    * Otherwise, `static_extent(r)`
 
 <!-- ####################################################################### -->
 <!-- #####################  layout mapping policy  ######################### -->
@@ -942,6 +962,8 @@ Table � — Layout mapping policy and layout mapping requirements
 <!-- #####################  layout_left  ################################### -->
 <!-- ####################################################################### -->
 
+<!-- TODO conversion from other layouts? -->
+
 <br/>
 <br/>
 <b>26.7.�.2 Class layout_left [mdspan.layout.left]</b>
@@ -977,6 +999,9 @@ struct layout_left {
     constexpr bool is_unique() const;
     constexpr bool is_contiguous() const;
     constexpr bool is_strided() const;
+
+    constexpr bool operator==(const mapping& other) const;
+    constexpr bool operator!=(const mapping& other) const;
 
   private:
     Extents extents_; // exposition only
@@ -1020,7 +1045,7 @@ constexpr mapping(mapping const& other) noexcept;
 constexpr mapping(mapping&& other) noexcept;
 ```
 
-* *Effects:* Initializes `extents_` with `std::move(other.extents_)`.
+* *Effects:* Initializes `extents_` with `move(other.extents_)`.
 * *Postconditions:* `get_extents()` returns a copy of an `Extents` that is equal to the copy returned by `other.get_extents()` before the invocation of the move.
 
 <!-- --- -->
@@ -1056,7 +1081,7 @@ Extents get_extents() const noexcept;
 typename Extents::index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* The product of `get_extents().extent(r)` for all `r` in the range `[0, get_extents().rank())`
+* *Returns:* The product of `get_extents().extent(r)` for all `r` where `0 <= r < get_extents().rank()`
 
 <!-- --- -->
 
@@ -1099,6 +1124,19 @@ constexpr bool is_strided() const;
 
 * *Returns:* `false`
 
+<br/>
+```c++
+constexpr bool operator==(const mapping& other) const noexcept;
+```
+
+* *Returns:* `true`
+
+<br/>
+```c++
+constexpr bool operator!=(const mapping& other) const noexcept;
+```
+
+* *Returns:* `false`
 
 <!-- ####################################################################### -->
 <!-- #####################  layout_right  ################################### -->
@@ -1182,7 +1220,7 @@ constexpr mapping(mapping const& other) noexcept;
 constexpr mapping(mapping&& other) noexcept;
 ```
 
-* *Effects:* Initializes `extents_` with `std::move(other.extents_)`.
+* *Effects:* Initializes `extents_` with `move(other.extents_)`.
 * *Postconditions:* `get_extents()` returns a copy of an `Extents` that is equal to the copy returned by `other.get_extents()` before the invocation of the move.
 
 <!-- --- -->
@@ -1218,7 +1256,7 @@ Extents get_extents() const noexcept;
 typename Extents::index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* The product of `get_extents().extent(r)` for all `r` in the range `[0, get_extents().rank())`
+* *Returns:* The product of `get_extents().extent(r)` for all `r` where `0 <= r < get_extents().rank()`
 
 <!-- --- -->
 
@@ -1259,6 +1297,19 @@ constexpr bool is_strided() const;
 
 * *Returns:* `false`
 
+<br/>
+```c++
+constexpr bool operator==(const mapping& other) const noexcept;
+```
+
+* *Returns:* `true`
+
+<br/>
+```c++
+constexpr bool operator!=(const mapping& other) const noexcept;
+```
+
+* *Returns:* `false`
 
 <!-- TODO layout_stride -->
 
@@ -1377,6 +1428,7 @@ constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 <!-- TODO: section references in synopsis -->
 <!-- TODO: Shouldn't we also have converting move constructors? -->
 <!-- TODO: review addition of get_mapping() and get_extents() -->
+<!-- TODO: need ways to construct stateful layout policies and stateful accessors -->
 
 ```c++
 namespace std {
@@ -1396,20 +1448,20 @@ public:
   using pointer = typename accessor::pointer;
   using reference = typename accessor::reference;
 
-  // Standard constructors, assignment, and destructor
+  // Constructors, assignment, and destructor
   constexpr basic_mdspan() noexcept;
-  constexpr basic_mdspan(const basic_mdspan&) noexcept = default;
-  constexpr basic_mdspan(basic_mdspan&&) noexcept = default;
+  constexpr basic_mdspan(const basic_mdspan&) noexcept;
+  constexpr basic_mdspan(basic_mdspan&&) noexcept;
   template<class... IndexType>
-    explicit constexpr basic_mdspan(pointer, IndexType... DynamicExtents) noexcept;
+    explicit constexpr basic_mdspan(pointer, IndexType... dynamic_extents);
   template<class... IndexType>
-    explicit constexpr basic_mdspan(span<element_type>, IndexType... DynamicExtents) noexcept;
+    explicit constexpr basic_mdspan(span<element_type>, IndexType... dynamic_extents);
   template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
-    constexpr basic_mdspan(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other) noexcept;
+    constexpr basic_mdspan(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
   template<class IndexType, size_t N>
-    explicit constexpr basic_mdspan(pointer, array<IndexType, N> const& DynamicExtents) noexcept;
+    explicit constexpr basic_mdspan(pointer, array<IndexType, N> const& dynamic_extents);
   template< class IndexType , size_t N >
-    explicit constexpr basic_mdspan(span<element_type>, array<IndexType, N> const& DynamicExtents) noexcept;
+    explicit constexpr basic_mdspan(span<element_type>, array<IndexType, N> const& dynamic_extents) noexcept;
 
   ~basic_mdspan() noexcept;
 
@@ -1453,9 +1505,9 @@ public:
   constexpr index_type stride(int) const;
 
 private:
-  accessor access; // exposition only
-  mapping map; // exposition only
-  pointer_type ptr; // exposition only
+  accessor acc_; // exposition only
+  mapping map_; // exposition only
+  pointer_type ptr_; // exposition only
 };
 
 }
@@ -1463,6 +1515,286 @@ private:
 
 <br/>
 <b>26.7.�.1 `basic_mdspan` constructors, assignment, and destructor [mdspan.basic.cons]</b>
+
+```c++
+constexpr basic_mdspan() noexcept;
+```
+
+<!-- TODO check for periods, commas, and "and" here. -->
+<!-- TODO: span excludes this constructor if there are no dynamic extents.  Should we do the same? -->
+<!-- TODO: decide if we want to include invocation of `span()` in the postconditions. An accessor may want to make this undefined behavior. -->
+* *Effects:*
+    * Zero-initializes `ptr_`
+    * Value-initializes `map_`
+    * Value-initializes `acc_`
+* *Postconditions:* 
+    + `size() == 0`
+    + `get_extents() == Extents()`
+    + `get_mapping() == mapping()`
+
+<br/>
+
+```c++
+constexpr basic_mdspan(const basic_mdspan& other) noexcept;
+```
+
+* *Effects:*
+    + initializes `ptr_` with `other.ptr_`
+    + initializes `map_` with `other.map_`
+    + initializes `acc_` with `other.acc_`
+* *Postconditions:*
+    + `size() == other.size()`
+    + `get_extents() == other.get_extents()`
+    + `get_mapping() == other.get_mapping()`
+
+<br/>
+
+```c++
+constexpr basic_mdspan(basic_mdspan&& other) noexcept;
+```
+
+* *Effects:*
+    + initializes `ptr_` with `move(other.ptr_)`
+    + initializes `map_` with `move(other.map_)`
+    + initializes `acc_` with `move(other.acc_)`
+
+<br/>
+
+```c++
+template<class... IndexType>
+  explicit constexpr basic_mdspan(pointer, IndexType... dynamic_extents);
+```
+
+* *Requires:* `[ptr, ptr + required_span_size(dynamic_extents...))` shall be a valid range.
+* *Effects:*
+    + initializes `ptr_` with `ptr`
+    + value-initializes `map_`
+    + value-initializes `acc_`
+* *Postconditions:* 
+    + `size() == 0`
+    + `get_extents() == Extents()`
+    + `get_mapping() == mapping()`
+* *Remarks:* This constructor will not participate in overload resolution unless:
+    + `(is_convertible_v<IndexType, index_type> && ...)`, and
+    + `sizeof...(dynamic_extents) == rank_dynamic()`
+* *Throws:* Nothing.
+
+<!-- TODO is there any reason to prefer `(is_integral_v<IndexType> && ...)`? -->
+
+<br/>
+
+```c++
+template<class... IndexType, ptrdiff_t N>
+  explicit constexpr basic_mdspan(span<element_type, N> s, IndexType... dynamic_extents);
+```
+
+* *Requires:* `s.size() == required_span_size(dynamic_extents...)`
+* *Effects:*
+    + initializes `ptr_` with `ptr`
+    + value-initializes `map_`
+    + value-initializes `acc_`
+* *Postconditions:* 
+    + `size() == 0`
+    + `get_extents() == Extents()`
+    + `get_mapping() == mapping()`
+* *Remarks:* This constructor will not participate in overload resolution unless:
+    + `(is_convertible_v<IndexType, index_type> && ...)`,
+    + `sizeof...(dynamic_extents) == rank_dynamic()`, and
+    + `N == dynamic_extent || (rank_dynamic() == 0 && N == required_span_size(dynamic_extents...))`
+* *Throws:* Nothing.
+
+
+<br/>
+
+<!-- TODO review this wording!!! -->
+```c++
+template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
+  constexpr basic_mdspan(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
+```
+
+* *Requires:*
+    + TODO WRITE THIS
+* *Effects:*
+    + initializes `ptr_` with `ptr`
+    + value-initializes `map_`
+    + value-initializes `acc_`
+* *Postconditions:* 
+    + `size() == 0`
+    + `get_extents() == Extents()`
+    + `get_mapping() == mapping()`
+* *Remarks:* This constructor will not participate in overload resolution unless:
+    + TODO FINISH THIS and clean this up
+    + `is_convertible_v<OtherLayoutPolicy::template mapping<OtherExtents>, mapping>`, (SHOULD THIS BE constructible from extents instead?)
+    + `is_convertible_v<OtherAccessor, Accessor>`,
+    + `is_assignable_v<OtherAccessor::pointer, pointer>`,
+    + `sizeof...(dynamic_extents) == rank_dynamic()`, and
+    + `N == dynamic_extent || (rank_dynamic() == 0 && N == required_span_size(dynamic_extents...))`
+* *Throws:* Nothing.
+
+<br/>
+
+```c++
+template<class IndexType, size_t N>
+  explicit constexpr basic_mdspan(pointer, array<IndexType, N> const& DynamicExtents) noexcept;
+```
+
+TODO WRITE THIS
+
+<br/>
+
+```c++
+template< class IndexType , size_t N >
+  explicit constexpr basic_mdspan(span<element_type>, array<IndexType, N> const& DynamicExtents) noexcept;
+```
+
+TODO WRITE THIS
+
+
+<br/>
+<b>26.7.�.2 `basic_mdspan` mapping domain multi-index to access codomain element [mdspan.basic.mapping]</b>
+
+```c++
+static constexpr int rank() noexecept;
+```
+
+* *Returns:* `Extents::rank()`.
+
+<br/>
+
+```c++
+static constexpr int rank_dynamic() noexecept;
+```
+
+* *Returns:* `Extents::rank_dynamic()`.
+
+<br/>
+
+```c++
+static constexpr index_type static_extent(int r) noexecept;
+```
+
+* *Returns:* `Extents::static_extent(r)`.
+
+<br/>
+
+```c++
+constexpr Extents get_extents() const noexcept;
+```
+
+* *Returns:* `get_mapping().get_extents()`.
+
+<br/>
+
+```c++
+constexpr index_type extent(int r) const noexecept;
+```
+
+* *Returns:* `get_extents().extent(r)`.
+
+<br/>
+
+```c++
+constexpr index_type size() const noexecept;
+```
+
+* *Returns:* Product of `extent(r)` for all `r` where `0 <= r < get_extents().rank()`.
+
+<br/>
+<b>26.7.�.3 `basic_mdspan` observers of the codomain [mdspan.basic.codomain]</b>
+
+```c++
+constexpr span<element_type, /* see-below */> span() const noexecept;
+```
+
+* *Returns:* The codomain `span`.  The return type is:
+    * `span<element_type, required_span_size()>` if `rank_dynamic() == 0`, or
+    * `span<element_type, dynamic_extent>` otherwise.
+
+<br/>
+
+```c++
+template<class... IndexType>
+  static constexpr index_type required_span_size(IndexType... dynamic_extents);
+```
+
+* *Returns:* `Extents(dynamic_extents...).required_span_size()`
+
+<br/>
+
+```c++
+template<class... IndexType, size_t N>
+  static constexpr index_type required_span_size(const array<IndexType, N>& dynamic_extents);
+```
+
+* *Returns:* `Extents(dynamic_extents).required_span_size()`
+  
+<br/>
+<b>26.7.�.4 `basic_mdspan` observers of the mapping [mdspan.basic.obs]</b>
+
+<br/>
+
+```c++
+static constexpr bool is_always_unique() noexcept;
+```
+
+* *Returns:* `mapping::is_always_unique()`
+
+<br/>
+
+```c++
+static constexpr bool is_always_contiguous() noexcept;
+```
+
+* *Returns:* `mapping::is_always_contiguous()`
+
+<br/>
+
+```c++
+static constexpr bool is_always_strided() noexcept;
+```
+
+* *Returns:* `mapping::is_always_strided()`
+
+<br/>
+
+```c++
+constexpr mapping get_mapping() const noexcept;
+```
+
+* *Returns:* `map_`
+
+<br/>
+
+```c++
+constexpr bool is_unique() const noexcept;
+```
+
+* *Returns:* `get_mapping().is_unique()`
+
+<br/>
+
+```c++
+constexpr bool is_contiguous() const noexcept;
+```
+
+* *Returns:* `get_mapping().is_contiguous()`
+
+<br/>
+
+```c++
+constexpr bool is_strided() const noexcept;
+```
+
+* *Returns:* `get_mapping().is_strided()`
+
+<br/>
+
+```c++
+constexpr index_type stride(int r) const;
+```
+
+* *Returns:* `get_mapping().stride(r)`
+
 
 <!-- ################################################################################ -->
 <!-- ################################################################################ -->
@@ -1947,8 +2279,8 @@ Next Steps
 ==========
 
 -   Wording editing as per guidance from LWG.
--   Address verbose syntax when using `std::dynamic_extent` to denote
-    dynamic extents; *e.g.*, perhaps alias to `std::dyn`.
+-   Address verbose syntax when using `dynamic_extent` to denote
+    dynamic extents; *e.g.*, perhaps alias to `dyn`.
 
 Related Work
 ============
