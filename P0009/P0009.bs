@@ -1267,6 +1267,8 @@ constexpr bool is_strided() const;
 <!-- ####################################################################### -->
 
 <!-- TODO: @CRT review whether these requirements are flexible enough -->
+<!-- TODO: Review changes here. This was too hard to specify as a nested class, and I'm not sure it buys us anything. 
+(specifically, it was getting really messy trying to allow accessor implementations to constrain what types they are valid for.) -->
 
 <br/>
 <br/>
@@ -1357,6 +1359,111 @@ constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 <!-- #################  class template basic_mdspan  ####################### -->
 <!-- ####################################################################### -->
 
+<br/>
+<br/>
+<b>26.7.� Class template `basic_mdspan` [mdspan.basic]</b>
+
+1. The `basic_mdspan` class template maps a multi-index within a multi-index *domain* to a reference to an element in the *codomain* `span`.
+2. The multi-index domain space is the Cartesian product of the extents: `[0, extent(0)) X [0, extent(1)) X`* ... *` X [0, extent(rank() - 1))`. Each extent may be statically or dynamically specified.
+2. As with `span`, the storage of the objects in the codomain `span` of a `basic_mdspan` is owned by some other object.
+3. `ElementType` is required to be a complete object type that is not an abstract class type or an array type.
+4. `Extents` is required to be a (cv-unqualified) specialization of `extents`
+5. `LayoutPolicy` is required to be a cv-unqualified object type.
+6. If `LayoutPolicy` does not meet the layout policy requirements, the program is ill-formed.
+7. `Accessor` is required to be a cv-unqualified object type.
+8. If `Accessor` does not meet the accessor requirements, or if `Accessor::value_type` is not exactly `ElementType`, the program is ill-formed.
+
+<!-- TODO: Consider moving Accessor to replace ElementType, since it's never used -->
+<!-- TODO: section references in synopsis -->
+<!-- TODO: Shouldn't we also have converting move constructors? -->
+<!-- TODO: review addition of get_mapping() and get_extents() -->
+
+```c++
+namespace std {
+
+template<typename ElementType, typename Extents, typename LayoutPolicy, typename Accessor>
+class basic_mdspan {
+public:
+
+  // Domain and codomain types
+  using layout = LayoutPolicy;
+  using mapping = typename layout::mapping<Extents>;
+  using accessor = Accessor;
+  using element_type = typename accessor::value_type;
+  using value_type = remove_cv_t<element_type>;
+  using index_type = ptrdiff_t ;
+  using difference_type = ptrdiff_t ;
+  using pointer = typename accessor::pointer;
+  using reference = typename accessor::reference;
+
+  // Standard constructors, assignment, and destructor
+  constexpr basic_mdspan() noexcept;
+  constexpr basic_mdspan(const basic_mdspan&) noexcept = default;
+  constexpr basic_mdspan(basic_mdspan&&) noexcept = default;
+  template<class... IndexType>
+    explicit constexpr basic_mdspan(pointer, IndexType... DynamicExtents) noexcept;
+  template<class... IndexType>
+    explicit constexpr basic_mdspan(span<element_type>, IndexType... DynamicExtents) noexcept;
+  template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
+    constexpr basic_mdspan(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other) noexcept;
+  template<class IndexType, size_t N>
+    explicit constexpr basic_mdspan(pointer, array<IndexType, N> const& DynamicExtents) noexcept;
+  template< class IndexType , size_t N >
+    explicit constexpr basic_mdspan(span<element_type>, array<IndexType, N> const& DynamicExtents) noexcept;
+
+  ~basic_mdspan() noexcept;
+
+  constexpr basic_mdspan& operator=(basic_mdspan const&) noexcept = default;
+  constexpr basic_mdspan& operator=(basic_mdspan&&) noexcept = default;
+  template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
+    constexpr basic_mdspan& operator=(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other) noexcept = default;
+
+  // Mapping domain multi-index to access codomain element
+  constexpr reference operator[](index_type) const noexcept;
+  template<class... IndexType>
+    constexpr reference operator()(IndexType... indices) const noexcept;
+  template<class IndexType, size_t N>
+    constexpr reference operator()(const array<IndexType, N>& indices) const noexcept;
+
+  // Observers of the domain multi-index space
+  static constexpr int rank() noexecept;
+  static constexpr int rank_dynamic() noexecept;
+  static constexpr index_type static_extent(int) noexecept;
+
+  constexpr Extents get_extents() const noexcept;
+  constexpr index_type extent(int) const noexecept;
+  constexpr index_type size() const noexecept;
+
+  // Observers of the codomain:
+  constexpr span<element_type> span() const noexecept;
+  template<class... IndexType>
+    static constexpr index_type required_span_size(IndexType... DynamicExtents);
+  template<class... IndexType, size_t N>
+    static constexpr index_type required_span_size(const array<IndexType, N>& DynamicExtents);
+
+  // Observers of the mapping : domain -> codomain
+  static constexpr bool is_always_unique() noexcept;
+  static constexpr bool is_always_contiguous() noexcept;
+  static constexpr bool is_always_strided() noexcept;
+
+  constexpr mapping get_mapping() const noexcept;
+  constexpr bool is_unique() const noexcept;
+  constexpr bool is_contiguous() const noexcept;
+  constexpr bool is_strided() const noexcept;
+  constexpr index_type stride(int) const;
+
+private:
+  accessor access; // exposition only
+  mapping map; // exposition only
+  pointer_type ptr; // exposition only
+};
+
+}
+```
+
+<br/>
+<b>26.7.�.1 `basic_mdspan` constructors, assignment, and destructor [mdspan.basic.cons]</b>
+
 <!-- ################################################################################ -->
 <!-- ################################################################################ -->
 <!-- ################################################################################ -->
@@ -1370,129 +1477,6 @@ TODO Move over this stuff
 
 
 ## Class template `basic_mdspan`
-
-```c++
-namespace std {
-
-template< typename ElementType , typename Extents , typename LayoutPolicy , typename AccessorPolicy >
-class basic_mdspan {
-public:
-  // Domain and codomain types
-
-  using layout   = LayoutPolicy;
-  using mapping  = typename layout::mapping<Extents>;
-  using accessor = typename AccessorPolicy::accessor<ElementType>;
-
-  using element_type    = typename accessor::value_type;
-  using value_type      = remove_cv_t<element_type>;
-  using index_type      = ptrdiff_t ;
-  using difference_type = ptrdiff_t ;
-  using pointer         = typename accessor::pointer;
-  using reference       = typename accessor::reference;
-
-  // Standard constructors, assignments, and destructor
-
-  ~basic_mdspan() noexcept ;
-
-  constexpr basic_mdspan() noexcept ;
-  constexpr basic_mdspan(basic_mdspan&&) noexcept = default ;
-  constexpr basic_mdspan(basic_mdspan const&) noexcept = default ;
-  basic_mdspan& operator=(basic_mdspan&&) noexcept = default ;
-  basic_mdspan& operator=(basic_mdspan const&) noexcept = default ;
-
-  // Constructor and assignment for assignable basic_mdspan
-
-  template <typename UT, typename UExt, typename ULayPol, typename UAccPol>
-  constexpr basic_mdspan(const basic_mdspan<UT, UExt, ULayPol, UAccPol>& other) noexcept;
-
-  template <typename UType, typename ... UProp>
-  constexpr basic_mdspan& operator=(const basic_mdspan<UT, UExt, ULayPol, UAccPol>& other) noexcept;
-
-  // Wrapping constructors
-
-  template< class ... IndexType >
-  explicit constexpr basic_mdspan(pointer, IndexType ... DynamicExtents ) noexcept;
-
-  template< class ... IndexType >
-  explicit constexpr basic_mdspan(span<element_type>, IndexType ... DynamicExtents ) noexcept;
-
-  template< class IndexType , size_t N >
-  explicit constexpr basic_mdspan(pointer, array<IndexType,N> const & DynamicExtents ) noexcept ;
-
-  template< class IndexType , size_t N >
-  explicit constexpr basic_mdspan(span<element_type>, array<IndexType,N> const & DynamicExtents ) noexcept ;
-
-  // Mapping domain multi-index to access codomain element
-
-  constexpr reference operator[]( index_type ) const noexcept;
-
-  template< class ... IndexType >
-  constexpr reference operator()( IndexType ... indices ) const noexcept;
-
-  template< class IndexType , size_t N >
-  constexpr reference operator()( array<IndexType,N> const & indices ) const noexcept;
-
-  // Observers of the domain multi-index space
-
-  static constexpr int rank() noexecept ;
-  static constexpr int rank_dynamic() noexecept ;
-
-  static constexpr index_type static_extent(int) noexecept ;
-
-  constexpr index_type extent(int) const noexecept ;
-
-  constexpr index_type size() const noexecept ;
-
-  // Observers of the codomain:
-
-  constexpr span<element_type> span() const noexecept ;
-
-  template< class ... IndexType >
-  static constexpr index_type required_span_size( IndexType ... DynamicExtents );
-
-  template< class ... IndexType , size_t N >
-  static constexpr index_type required_span_size( array<IndexType,N> const & DynamicExtents );
-
-  // Observers of the mapping : domain -> codomain
-
-  static constexpr bool is_always_unique     = mapping::is_always_unique ;
-  static constexpr bool is_always_contiguous = mapping::is_always_contiguous ;
-  static constexpr bool is_always_strided    = mapping::is_always_strided ;
-
-  constexpr bool is_unique() const noexcept ;
-  constexpr bool is_contiguous() const noexcept ;
-  constexpr bool is_strided() const noexcept ;
-
-  constexpr index_type stride(int) const ;
-
-private:
-  // exposition only
-  accesor      access;
-  mapping      map;
-  pointer_type ptr;
-};
-
-}
-```
-
-### Template Arguments
-
-`ElementType` is a (possibly cv-qualified) non-array object type
-denoting the element type of the array.
-
-`Extents` is an instantiation of `extents`.
-
-`LayoutPolicy` is a type that satisfies the `LayoutPolicy` requirements.
-
-`AccessorPolicy` is a type that satisfies the `AccessorPolicy`
-requirements.
-
-### Domain Observers
-
-The multi-index domain space is the Cartesian product of the extents:
-`[0..extent(0)) X [0..extent(1)) X ... X [0..extent(rank() - 1))`. Each
-extent may be statically (at compile time) or dynamically (at runtime)
-specified.
 
 `static constexpr int rank();`
 
