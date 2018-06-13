@@ -634,49 +634,79 @@ compilers' optimizations include loop invariant code motion, including
 partial evaluation of multi-index layout mappings when indices are
 loop-invariant.
 
+Editing Notes
+=============
 
+The proposed changes are relative to the working draft of the standard
+as of \[N4750](http://wg21.link/n4750).
 
-Multidimensional Array and Subarray Proposal
-============================================
+The � character is used to denote a placeholder section number, table number,
+or paragraph number which the editor shall determine.
 
-## Add to same section and header as **span**
+Add the header `<mdspan>` to table 16 in **[headers]**.  
+
+Add the header `<mdspan>` to Table 76 in 26.1 **[containers.general]** below
+the listing for `<span>`.
+
+Wording
+=======
+
+---
+
+*Add the following paragraphs to* **[views.general]**:
+
+�. The header `<mdspan>` defines the view `basic_mdspan`, the type alias `mdspan`, 
+and other facilities for interacting with these views.  
+The `basic_mdspan` class template maps a multi-index within a multi-index *domain*
+to a reference an element in the *codomain* `span`.
+
+�. The `subspan` function generates a `basic_mdspan` with a domain
+contained within the input `basic_mdspan` domain and codomain contained
+within the input `basic_mdspan` codomain.
+
+---
+
+*Add the following subclauses to the end of the* **[views]** *subclause (currently 26.7)*:
+
+<b>26.7.� Header `<mdspan>` synopsis [mdspan.syn]</b>
+
+<!-- TODO references to subclauses in synopsis comments -->
 
 ```c++
 namespace std {
-
-  inline constexpr ptrdiff_t dynamic_extent = -1; // as per span
-
   // Multidimensional extents:
-  template< ptrdiff_t ... StaticExtents >
-  class extents ;
-
-  template< ptrdiff_t ... LHS , ptrdiff_t ... RHS >
-  constexpr bool operator == ( extents<LHS...> const & lhs , extents<RHS...> const & rhs ) ;
-
-  template< ptrdiff_t ... LHS , ptrdiff_t ... RHS >
-  constexpr bool operator != ( extents<LHS...> const & lhs , extents<RHS...> const & rhs ) ;
+  template<ptrdiff_t... StaticExtents>
+    class extents;
 
   // Layout mapping of multidimensional extents:
-  class layout_right ;
-  class layout_left ;
-  class layout_stride ;
+  class layout_right;
+  class layout_left;
+  class layout_stride;
+
+  // Accessors:
+  class accessor_basic;
 
   // Multidimensional span:
-  template <typename ElementType,
-            typename Extents,
-            typename LayoutPolicy = layout_right,
-            typename AccessorPolicy = accessor_basic>
-  class basic_mdspan;
+  template<class ElementType,
+           class Extents,
+           class LayoutPolicy = layout_right,
+           class AccessorPolicy = accessor_basic>
+    class basic_mdspan;
 
-  template <class T, ptrdiff_t... Extents>
-  using mdspan = basic_mdspan<T, extents<Extents...>>;
+  template<class T, ptrdiff_t... Extents>
+    using mdspan = basic_mdspan<T, extents<Extents...>>;
+
+  template<ptrdiff_t... LHS, ptrdiff_t... RHS>
+    constexpr bool operator==(const extents<LHS...>& lhs, const extents<RHS...>& rhs);
+
+  template<ptrdiff_t... LHS, ptrdiff_t... RHS>
+    constexpr bool operator!=(const extents<LHS...>& lhs, const extents<RHS...>& rhs);
 
   // return type of subspan free function is an mdspan
-  template< typename ElementType , typename Extents, typename LayoutPolicy ,
-            typename AccessorPolicy , typename ... SliceSpecifiers >
-    // for exposition only:
-    detail::subspan_deduction_t< basic_mdspan<ElementType, Properties...>,SliceSpecifiers...>
-  subspan( basic_mdspan< ElementType, Extents , LayoutPolicy , AccessorPolicy > const & , SliceSpecifiers ... ) noexcept;
+  template<class ElementType, class Extents, class LayoutPolicy,
+           class AccessorPolicy, class... SliceSpecifiers>
+    /* unspecified */
+      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>&, SliceSpecifiers...) noexcept;
 
   // tag supporting subspan
   struct all_type {};
@@ -684,17 +714,370 @@ namespace std {
 }
 ```
 
-The `basic_mdspan` class maps a multi-index within a multi-index
-**domain** to a reference an element the **codomain** span.
+<b>26.7.� Class template `extents` [mdspan.extents]</b>
 
-The `subspan` free function generates an `basic_mdspan` with a domain
-contained within the input `basic_mdspan` domain and codomain contained
-within the input `basic_mdspan` codomain.
+<b>26.7.�.1 Overview [mdspan.extents.overview]</b>
 
-The `detail::subspan_deduction_t` template class is not proposed and
-appears for exposition only. An implementation metafunction of this form
-is necessary to deduce the specific `basic_mdspan` return type of the
-`subspan` function.
+1. An `extents` object defines the lengths of the dimensions of a `basic_mdspan`.
+2. The *dynamic extents* of an `extents` object correspond to the `StaticExtents` template parameters that are equal to `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th such extent in the `StaticExtents` template parameter pack.
+3. An `extents` object is expected to store dynamic extents
+4. *[Note:* An implementation should not consume storage for static extents. *— end note]* 
+5. If any of `StaticExtents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
+
+<!-- TODO review change to make rank() and rank_dynamic() size_t -->
+
+```c++
+namespace std {
+
+template<ptrdiff_t... StaticExtents>
+class extents {
+public:
+  // types
+  using index_type = ptrdiff_t;
+
+  // 26.7.�.2 Constructors and assignment
+  constexpr extents() noexcept;
+  constexpr extents(const extents&) noexcept;
+  constexpr extents(extents&&) noexcept;
+  template<class... IndexType>
+  constexpr extents(IndexType... DynamicExtents) noexcept;
+  ~extents() noexcept = default;
+
+  constexpr extents& operator=(const extents&) noexcept = default;
+  constexpr extents& operator=(extents&&) noexcept = default;
+
+  // 26.7.�.3 Observers of the index space domain:
+  static constexpr size_t rank() noexcept;
+  static constexpr size_t rank_dynamic() noexcept;
+  static constexpr index_type static_extent(int) noexcept;
+  constexpr index_type extent(int) const noexcept;
+
+private:
+  // exposition only:
+  array<index_type, rank_dynamic()> dynamic_extents_;
+};
+
+}
+```
+
+<b>26.7.�.2 Constructors and assignment [mdspan.extents.cons]</b>
+
+```c++
+constexpr extents() noexcept;
+```
+
+* *Effects:* Constructs an `extents` with all dynamic extents set to 0.
+* *Postconditions:* `extent(r)` if `static_extent(r) == dynamic_extent` for 0 <= `r` < `rank()`
+
+<br/>
+```c++
+constexpr extents(const extents& other);
+constexpr extents(extents&& other);
+```
+
+* *Effects:* Constructs an `extents` with the dynamic extents from `other`
+* *Postconditions:* `extent(r) == other.extent(r)` for 0 <= `r` < `rank()`
+
+<br/>
+```c++
+template<class... IndexType>
+constexpr extents(IndexType... dynamic_extents) noexcept;
+```
+
+<!-- TODO look at how parameter pack expansions are specified in, e.g., integer_sequence -->
+<!-- TODO @CRT: Please review to make sure this is the desired behavior -->
+
+* *Requires:* `((dynamic_extents >= 0) && ...)`
+* *Effects:* Constructs an `extents` with 
+* *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to the *i*th entry in the parameter pack `dynamic_extents`
+* *Remarks:* This constructor shall not participate in overload resolution unless:
+    + `(is_integral_v<IndexType> && ...)`
+    + and `sizeof...(dynamic_extents) == rank_dynamic()`
+
+<br/>
+<br/>
+<b>26.7.�.3 Observers of the index space domain [mdspan.extents.obs]</b>
+
+<br/>
+```c++
+static constexpr size_t rank() const noexcept;
+```
+
+* *Returns:* `sizeof...(StaticExtents)`
+
+<br/>
+```c++
+static constexpr size_t rank_dynamic() const noexcept;
+```
+
+* *Returns:* `((StaticExtents == dynamic_extent) + ...)`
+
+<br/>
+```c++
+static constexpr index_type static_extent(int r) const noexcept;
+```
+
+* *Returns:* The `r`th entry in the `StaticExtents` parameter pack if 0 <= `r` < `rank()`, or 1 otherwise.
+
+<br/>
+```c++
+constexpr index_type extent(int r) const noexcept;
+```
+
+* *Returns:* The `r`th extent if 0 <= `r` < `rank()`, or 1 otherwise. *[Note:* This is exactly `static_extent(r)` unless `static_extent(r) == dynamic_extent` *—end note]*
+
+
+<br/>
+<br/>
+<b>26.7.� Layout mapping [mdspan.layout]</b>
+
+<b>26.7.�.1 Layout mapping requirements [mdspan.layout.reqs]</b>
+
+1. A *layout mapping policy* is a class that contains a *layout mapping*, a nested class template.
+
+2. A mapping shall meet the requirements of `DefaultConstructible`, `CopyAssignable`, `EqualityComparable`, and the requirements in table �.
+
+3. In Table �:
+    * `MP` denotes a layout mapping policy.
+    * `M` denotes a layout mapping.
+    * `m` denotes a value of type `M`.
+    * `E` denotes a specialization of `extents`.
+    * `e` denotes a value of type `E`.
+    * `i` denotes a pack of `E::rank_dynamic()` values of type `E::index_type`.
+    * `r` is a value of an integral type
+
+<!-- TODO @CRT and @HCE: Review minor design change consolidating extents-like member functions into get_extents() -->
+
+Table � — Layout mapping policy and layout mapping requirements
+<table border=1>
+<tr>
+  <th>Expression</th>
+  <th>Return Type</th>
+  <th>Operational Semantics</th>
+  <th>Requires/Remarks</th>
+</tr>
+<tr>
+  <td>`MP::mapping<E>`</td>
+  <td>`M`</td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>`M m(e)`</td>
+  <td>`M`</td>
+    <td>*Effects:* Constructs a new mapping from the extents `e`.</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`m.get_extents()`</td>
+  <td>`E`</td>
+  <td>*Returns:* `e`.</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`m.required_span_size()`</td>
+  <td>`E::index_type`</td>
+  <td>*Returns:* the number of elements needed to store all the mapped indices.</td>
+  <td>*Requires:* `0 <= m.required_span_size()`.</td>
+</tr>
+<tr>
+  <td>`m(i...)`</td>
+  <td>`E::index_type`</td>
+  <!-- TODO Review this wording! -->
+  <td>*Returns:* The distance between the start and the element of the multi-index space denoted by `i...` in the codomain `span` of the `basic_mdspan` for which `*this` is a layout mapping. </td>
+  <td>*Requires:* `0 <= m(i...) < m.required_span_size()`</td>
+</tr>
+<tr>
+  <td>`M::is_always_unique()`</td>
+  <td>`bool`</td>
+  <td>*Returns:* !!!TODO!!!</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`M::is_always_contiguous()`</td>
+  <td>`bool`</td>
+  <td>*Returns:* !!!TODO!!!</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`M::is_always_strided()`</td>
+  <td>`bool`</td>
+  <td>*Returns:* !!!TODO!!!</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`m.is_unique()`</td>
+  <td>`bool`</td>
+  <td>*Returns:* !!!TODO!!!</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`m.is_contiguous()`</td>
+  <td>`bool`</td>
+  <td>*Returns:* !!!TODO!!!</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`m.is_strided()`</td>
+  <td>`bool`</td>
+  <td>*Returns:* !!!TODO!!!</td>
+  <td></td>
+</tr>
+<tr>
+  <td>`m.stride(r)`</td>
+  <td>`E::index_type`</td>
+  <td>*Returns:* !!!TODO!!!</td>
+  <td></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+<b>26.7.�.2 Class mapping_left [mdspan.layout.left]</b>
+
+```c++
+struct mapping_left
+{
+  template <typename Extents>
+  struct mapping
+  {
+    constexpr mapping() noexcept;
+    constexpr mapping(mapping const& other) noexcept;
+    constexpr mapping(mapping&& other) noexcept = default;
+    constexpr mapping(Extents e) noexcept;
+
+    mapping& operator=() noexcept = default;
+    mapping& operator=(mapping const& other) noexcept = default;
+
+    Extents get_extents() const noexcept;
+
+    constexpr typename Extents::index_type required_span_size() const noexcept;
+
+    template <class... Indices>
+      typename Extents::index_type operator()(Indices... is) const;
+
+    static constexpr bool is_always_unique();
+    constexpr bool is_unique() const;
+    static constexpr bool is_always_contiguous();
+    constexpr bool is_contiguous() const;
+    static constexpr bool is_always_strided();
+    constexpr bool is_strided() const;
+
+  private:
+    // exposition only:
+    Extents extents_;
+  };
+};
+```
+
+The layout mapping property `layout_left` gives a layout mapping where the
+left-most extent is stride one and strides increase left-to-right as the product of extents.
+
+<!-- --- -->
+
+<b>26.7.�.2 Constructors</b>
+
+<br/>
+```c++
+constexpr mapping_left() noexcept;
+```
+
+*Effects:* Constructs a `mapping_left` with a default-constructed `extents` object.
+
+<br/>
+```c++
+constexpr mapping(mapping const& other) noexcept;
+```
+
+*Effects:* Constructs a `mapping_left` that has a copy of `other.get_extents()` as its extents.
+*Postconditions:* `get_extents() == other.get_extents()`
+
+<br/>
+```c++
+constexpr mapping(mapping&& other) noexcept;
+```
+
+*Effects:* Constructs a `mapping_left` that has extents move-constructed from `other.get_extents()`
+
+<!-- --- -->
+
+<br/>
+```c++
+constexpr mapping_left(Extents e) noexcept;
+```
+
+*Effects:* Constructs a `mapping_left` that has `e` as its `extents`.
+*Postconditions:* `get_extents() == e`.
+
+<!-- --- -->
+
+<b>26.7.�.3 TODO Title this section</b>
+
+<br/>
+```c++
+Extents get_extents() const noexcept;
+```
+
+*Effects:* Returns a copy of the `mapping`'s `extents` object.
+
+<!-- --- -->
+
+<br/>
+```c++
+typename Extents::index_type required_span_size() const noexcept;
+```
+
+*Returns:* The product of `get_extents().extent(r)` for all `r` in the range `[0, get_extents().rank())`
+
+<!-- --- -->
+
+<br/>
+```
+template <class... Indices>
+  typename Extents::index_type operator()(Indices... i) const;
+```
+
+*Requires:* `sizeof...(Indices) == get_extents().rank()`
+
+*Returns:* If `i...` is `i0, i1, i2, ..., ik` (where `k == get_extents().rank() - 1`)
+and `e = get_extents()`, returns:
+
+<!-- TODO Check this -->
+<!-- TODO Math-style formatting? e.g., MathJax? -->
+
+```
+i0 + i1*e[0] + i2*e[0]*e[1] + ... + ik*e[0]*e[1]*...*e[k-1]
+```
+
+<br/>
+```c++
+static constexpr bool is_always_unique();
+constexpr bool is_unique() const;
+static constexpr bool is_always_contiguous();
+constexpr bool is_contiguous() const;
+```
+
+*Returns:* `true`
+
+<br/>
+```c++
+static constexpr bool is_always_strided();
+constexpr bool is_strided() const;
+```
+
+*Returns:* `false`
+
+
+<!-- ################################################################################ -->
+<!-- ################################################################################ -->
+<!-- ################################################################################ -->
+<!-- ################################################################################ -->
+<!-- ################################################################################ -->
+<!-- ################################################################################ -->
+<!-- ################################################################################ -->
+
+TODO Move over this stuff
+=========================
 
 ## Class template `basic_mdspan`
 
@@ -1036,41 +1419,6 @@ but may not be equal to the codomain.
 
 ## Class template `extents`
 
-An extents objects defines the lengths of the dimensions of an `mdspan`.
-
-```c++
-namespace std {
-
-template< ptrdiff_t ... StaticExtents >
-class extents {
-public:
-
-  using index_type = ptrdiff_t ;
-
-  // Constructors/assignment/destructor
-
-  ~extents() = default ;
-  constexpr extents();
-  constexpr extents(extents const &) = default ;
-  constexpr extents(extents &&) = default ;
-  extents & operator = (extents const &) noexcept = default ;
-  extents & operator = (extents &&) noexcept = default ;
-
-  template< class ... IndexType >
-  constexpr extents( IndexType ... DynamicExtents ) noexcept ;
-
-  // Observers of the index space domain:
-
-  static constexpr int rank() noexcept ;
-  static constexpr int rank_dynamic() noexcept ;
-
-  static constexpr index_type static_extent(int) noexcept ;
-
-  constexpr index_type extent(int) const noexcept ;
-};
-
-}
-```
 
 The multi-index domain space is the Cartesian product of the extents:
 `[0..extent(0)) X [0..extent(1)) X ... X [0..extent(rank() - 1))`. Each
