@@ -827,17 +827,23 @@ constexpr index_type extent(int r) const noexcept;
 * *Returns:* The `r`th extent if 0 <= `r` < `rank()`, or 1 otherwise. *[Note:* This is exactly `static_extent(r)` unless `static_extent(r) == dynamic_extent` *—end note]*
 
 
+<!-- ####################################################################### -->
+<!-- #####################  layout mapping policy  ######################### -->
+<!-- ####################################################################### -->
+
 <br/>
 <br/>
-<b>26.7.� Layout mapping [mdspan.layout]</b>
+<b>26.7.� Layout mapping policy [mdspan.layout]</b>
 
 <b>26.7.�.1 Layout mapping requirements [mdspan.layout.reqs]</b>
 
 1. A *layout mapping policy* is a class that contains a *layout mapping*, a nested class template.
 
-2. A mapping shall meet the requirements of `DefaultConstructible`, `CopyAssignable`, `EqualityComparable`, and the requirements in table �.
+2. A *layout mapping policy* shall meet the requirements in table �.
 
-3. In Table �:
+3. A *layout mapping* shall meet the requirements of `DefaultConstructible`, `CopyAssignable`, `EqualityComparable`, and the requirements in table �.
+
+4. In Table �:
     * `MP` denotes a layout mapping policy.
     * `M` denotes a layout mapping.
     * `m` denotes a value of type `M`.
@@ -931,19 +937,27 @@ Table � — Layout mapping policy and layout mapping requirements
 </tr>
 </table>
 
+
+<!-- ####################################################################### -->
+<!-- #####################  layout_left  ################################### -->
+<!-- ####################################################################### -->
+
 <br/>
 <br/>
-<b>26.7.�.2 Class mapping_left [mdspan.layout.left]</b>
+<b>26.7.�.2 Class layout_left [mdspan.layout.left]</b>
+
+1. `layout_left` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_left::mapping` meets the requirements of layout mapping *—end note]*
+2. `layout_left` gives a layout mapping where the left-most extent is stride one and strides increase left-to-right as the product of extents.
+3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
 
 ```c++
-struct mapping_left
-{
+struct layout_left {
   template <typename Extents>
-  struct mapping
-  {
+  class mapping {
+  public:
     constexpr mapping() noexcept;
     constexpr mapping(mapping const& other) noexcept;
-    constexpr mapping(mapping&& other) noexcept = default;
+    constexpr mapping(mapping&& other) noexcept;
     constexpr mapping(Extents e) noexcept;
 
     mapping& operator=() noexcept = default;
@@ -957,77 +971,92 @@ struct mapping_left
       typename Extents::index_type operator()(Indices... is) const;
 
     static constexpr bool is_always_unique();
-    constexpr bool is_unique() const;
     static constexpr bool is_always_contiguous();
-    constexpr bool is_contiguous() const;
     static constexpr bool is_always_strided();
+
+    constexpr bool is_unique() const;
+    constexpr bool is_contiguous() const;
     constexpr bool is_strided() const;
 
   private:
-    // exposition only:
-    Extents extents_;
+    Extents extents_; // exposition only
   };
 };
 ```
 
-The layout mapping property `layout_left` gives a layout mapping where the
-left-most extent is stride one and strides increase left-to-right as the product of extents.
+
+<br/>
+
+<b>26.7.�.2.1 `layout_left::mapping` constructors [mdspan.layout.left.cons]</b>
+
+<!-- --- -->
+<!-- Mimicking exposition-only specification style in [istreambuf.iterator.cons] and using [objects.with.classes]/2 for guidance -->
+
+<br/>
+
+```c++
+constexpr mapping() noexcept;
+```
+
+* *Effects:* Default-initializes `extents_`.
+* *Postconditions:* `get_extents() == Extents()`
 
 <!-- --- -->
 
-<b>26.7.�.2 Constructors</b>
-
 <br/>
-```c++
-constexpr mapping_left() noexcept;
-```
 
-*Effects:* Constructs a `mapping_left` with a default-constructed `extents` object.
-
-<br/>
 ```c++
 constexpr mapping(mapping const& other) noexcept;
 ```
 
-*Effects:* Constructs a `mapping_left` that has a copy of `other.get_extents()` as its extents.
-*Postconditions:* `get_extents() == other.get_extents()`
+* *Effects:* Initializes `extents_` with `other.extents_`.
+* *Postconditions:* `get_extents() == other.get_extents()`.
+
+<!-- --- -->
 
 <br/>
+
 ```c++
 constexpr mapping(mapping&& other) noexcept;
 ```
 
-*Effects:* Constructs a `mapping_left` that has extents move-constructed from `other.get_extents()`
+* *Effects:* Initializes `extents_` with `std::move(other.extents_)`.
+* *Postconditions:* `get_extents()` returns a copy of an `Extents` that is equal to the copy returned by `other.get_extents()` before the invocation of the move.
 
 <!-- --- -->
 
 <br/>
+
 ```c++
-constexpr mapping_left(Extents e) noexcept;
+constexpr mapping(Extents e) noexcept;
 ```
 
-*Effects:* Constructs a `mapping_left` that has `e` as its `extents`.
-*Postconditions:* `get_extents() == e`.
+* *Effects:* Initializes `extents_` with `e`.
+* *Postconditions:* `get_extents() == e`.
 
 <!-- --- -->
 
-<b>26.7.�.3 TODO Title this section</b>
+<br/>
+
+<b>26.7.�.2.2 `layout_left::mapping` operations [mdspan.layout.left.ops]</b>
 
 <br/>
+
 ```c++
 Extents get_extents() const noexcept;
 ```
 
-*Effects:* Returns a copy of the `mapping`'s `extents` object.
+* *Returns:* `extents_`.
 
 <!-- --- -->
 
 <br/>
+
 ```c++
 typename Extents::index_type required_span_size() const noexcept;
 ```
 
-*Returns:* The product of `get_extents().extent(r)` for all `r` in the range `[0, get_extents().rank())`
+* *Returns:* The product of `get_extents().extent(r)` for all `r` in the range `[0, get_extents().rank())`
 
 <!-- --- -->
 
@@ -1037,27 +1066,30 @@ template <class... Indices>
   typename Extents::index_type operator()(Indices... i) const;
 ```
 
-*Requires:* `sizeof...(Indices) == get_extents().rank()`
-
-*Returns:* If `i...` is `i0, i1, i2, ..., ik` (where `k == get_extents().rank() - 1`)
-and `e = get_extents()`, returns:
+* *Requires:* `sizeof...(Indices) == get_extents().rank()`
 
 <!-- TODO Check this -->
 <!-- TODO Math-style formatting? e.g., MathJax? -->
 
+* *Returns:* If `i...` is `i0, i1, i2,`*...*`, ik` (where `k == get_extents().rank() - 1`) and `e = get_extents()`, returns `i0 + i1*e[0] + i2*e[0]*e[1] + `*...*` + ik*e[0]*e[1]*`*...*`*e[k-1]`
+
+* *Remarks:* This operator shall not participate in overload resolution unless
+    * `sizeof...(Indices) == get_extents().rank()`,
+    * and `is_convertible_v<Indices, typename Extents::index_type> && ...`
+
+
 ```
-i0 + i1*e[0] + i2*e[0]*e[1] + ... + ik*e[0]*e[1]*...*e[k-1]
 ```
 
 <br/>
 ```c++
 static constexpr bool is_always_unique();
-constexpr bool is_unique() const;
 static constexpr bool is_always_contiguous();
+constexpr bool is_unique() const;
 constexpr bool is_contiguous() const;
 ```
 
-*Returns:* `true`
+* *Returns:* `true`
 
 <br/>
 ```c++
@@ -1065,8 +1097,265 @@ static constexpr bool is_always_strided();
 constexpr bool is_strided() const;
 ```
 
-*Returns:* `false`
+* *Returns:* `false`
 
+
+<!-- ####################################################################### -->
+<!-- #####################  layout_right  ################################### -->
+<!-- ####################################################################### -->
+
+<br/>
+<br/>
+<b>26.7.�.3 Class layout_right [mdspan.layout.right]</b>
+
+1. `layout_right` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_right::mapping` meets the requirements of layout mapping *—end note]*
+2. The layout mapping property `layout_right` gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.
+3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
+
+```c++
+struct layout_right {
+  template <typename Extents>
+  class mapping {
+  public:
+    constexpr mapping() noexcept;
+    constexpr mapping(mapping const& other) noexcept;
+    constexpr mapping(mapping&& other) noexcept;
+    constexpr mapping(Extents e) noexcept;
+
+    mapping& operator=() noexcept = default;
+    mapping& operator=(mapping const& other) noexcept = default;
+
+    Extents get_extents() const noexcept;
+
+    constexpr typename Extents::index_type required_span_size() const noexcept;
+
+    template <class... Indices>
+      typename Extents::index_type operator()(Indices... is) const;
+
+    static constexpr bool is_always_unique();
+    static constexpr bool is_always_contiguous();
+    static constexpr bool is_always_strided();
+
+    constexpr bool is_unique() const;
+    constexpr bool is_contiguous() const;
+    constexpr bool is_strided() const;
+
+  private:
+    Extents extents_; // exposition only
+  };
+};
+```
+
+
+<br/>
+
+<b>26.7.�.3.1 `layout_right::mapping` constructors [mdspan.layout.right.cons]</b>
+
+<!-- --- -->
+<!-- Mimicking exposition-only specification style in [istreambuf.iterator.cons] and using [objects.with.classes]/2 for guidance -->
+
+<br/>
+
+```c++
+constexpr mapping() noexcept;
+```
+
+* *Effects:* Default-initializes `extents_`.
+* *Postconditions:* `get_extents() == Extents()`
+
+<!-- --- -->
+
+<br/>
+
+```c++
+constexpr mapping(mapping const& other) noexcept;
+```
+
+* *Effects:* Initializes `extents_` with `other.extents_`.
+* *Postconditions:* `get_extents() == other.get_extents()`.
+
+<!-- --- -->
+
+<br/>
+
+```c++
+constexpr mapping(mapping&& other) noexcept;
+```
+
+* *Effects:* Initializes `extents_` with `std::move(other.extents_)`.
+* *Postconditions:* `get_extents()` returns a copy of an `Extents` that is equal to the copy returned by `other.get_extents()` before the invocation of the move.
+
+<!-- --- -->
+
+<br/>
+
+```c++
+constexpr mapping(Extents e) noexcept;
+```
+
+* *Effects:* Initializes `extents_` with `e`.
+* *Postconditions:* `get_extents() == e`.
+
+<!-- --- -->
+
+<br/>
+
+<b>26.7.�.3.2 `layout_right::mapping` operations [mdspan.layout.right.ops]</b>
+
+<br/>
+
+```c++
+Extents get_extents() const noexcept;
+```
+
+* *Returns:* `extents_`.
+
+<!-- --- -->
+
+<br/>
+
+```c++
+typename Extents::index_type required_span_size() const noexcept;
+```
+
+* *Returns:* The product of `get_extents().extent(r)` for all `r` in the range `[0, get_extents().rank())`
+
+<!-- --- -->
+
+<br/>
+```
+template <class... Indices>
+  typename Extents::index_type operator()(Indices... i) const;
+```
+
+
+<!-- TODO Check this -->
+<!-- TODO Math-style formatting? e.g., MathJax? -->
+
+* *Returns:* If `i...` is `i0, i1, i2, `*...*`, ik` (where `k == get_extents().rank() - 1`) and `e = get_extents()`, returns `i0*e[1]*`*...*`*e[k] + i1*e[2]*`*...*`*e[k] + `*...*` + ik`
+
+* *Remarks:* This operator shall not participate in overload resolution unless
+    * `sizeof...(Indices) == get_extents().rank()`,
+    * and `is_convertible_v<Indices, typename Extents::index_type> && ...`
+
+
+<br/>
+
+```c++
+static constexpr bool is_always_unique();
+static constexpr bool is_always_contiguous();
+constexpr bool is_unique() const;
+constexpr bool is_contiguous() const;
+```
+
+* *Returns:* `true`
+
+<br/>
+
+```c++
+static constexpr bool is_always_strided();
+constexpr bool is_strided() const;
+```
+
+* *Returns:* `false`
+
+
+<!-- TODO layout_stride -->
+
+<!-- ####################################################################### -->
+<!-- #####################  accessor policy  ############################### -->
+<!-- ####################################################################### -->
+
+<!-- TODO: @CRT review whether these requirements are flexible enough -->
+
+<br/>
+<br/>
+
+<b>26.7.� Accessor [mdspan.accessor]</b>
+
+<br/>
+<b>26.7.�.1 Accessor requirements [mdspan.accessor.reqs]</b>
+
+1. An *accessor* is a class that converts a pointer and an offset into a reference. *[Note:* The intended semantic is that the reference refers to a value at the given offset from the given pointer. *—end note]*
+
+5. An *accessor* shall meet the requirements of `DefaultConstructible`, `CopyAssignable`, and the requirements in table �.
+
+In Table �:
+  * `A` denotes an accessor.
+  * `a` denotes a value of type `A`.
+  * `p` denotes a value of type `A::pointer`.
+  * `i` denotes an integer.
+
+Table �: Accessor policy and accessor requirements
+<table border=1>
+<tr>
+  <th>Expression</th>
+  <th>Return Type</th>
+  <th>Operational Semantics</th>
+  <th>Requirements/Notes</th>
+</tr>
+<tr>
+  <td>`A::value_type`</td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>
+<tr>
+  <td>`A::pointer`</td>
+  <td></td>
+  <td></td>
+  <td>*Requires:* `A::pointer` shall meet the requirements of random access iterator (**[random.access.iterators]**), and `iterator_traits<A::pointer>::value_type` shall be exactly `A::value_type`.</td>
+</tr>
+<tr>
+  <td>`A::reference`</td>
+  <td></td>
+  <td></td>
+  <td>*Requires:* `iterator_traits<A::pointer>::reference` shall be convertible to `A::reference` </td>
+</tr>
+<tr>
+  <td>`a(p, i)`</td>
+  <td>`A::reference`</td>
+  <td></td>
+<!-- TODO review this wording. I'm not sure how to say this or if I need to say this. Should it be a note or a remark? -->
+  <td>*[Note:* A `basic_mdspan` implementation shall use the return of this expression as if it is constructed from `p[i]`. *— end note]*</td>
+</tr>
+</table>
+
+<!-- ####################################################################### -->
+<!-- #####################  class accessor_basic  ########################## -->
+<!-- ####################################################################### -->
+
+<br/>
+<b>26.7.�.2 Class `accessor_basic` [mdspan.accessor.basic]</b>
+
+1. `accessor_basic` meets the requirements of accessor.
+<!-- TODO review this summary description -->
+2. `accessor_basic` gives an accessor that has semantics equivalent to dereferencing a pointer to an array of values.
+3. If `T` is not an object type or is an array type, the program is ill-formed.
+
+```c++
+template <typename T>
+struct accessor_basic {
+  using value_type = T;
+  using pointer = T*;
+  using reference = T&;
+  constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
+};
+```
+
+<br/>
+<b>26.7.�.2.1 `accessor_basic` operations [mdspan.accessor.basic.ops]</b>
+
+```c++
+constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Returns:* `p[i]`
+
+
+<!-- ####################################################################### -->
+<!-- #################  class template basic_mdspan  ####################### -->
+<!-- ####################################################################### -->
 
 <!-- ################################################################################ -->
 <!-- ################################################################################ -->
@@ -1078,6 +1367,7 @@ constexpr bool is_strided() const;
 
 TODO Move over this stuff
 =========================
+
 
 ## Class template `basic_mdspan`
 
@@ -1379,7 +1669,7 @@ but may not be equal to the codomain.
 | `template< class IndexType , size_t N >`
 | `reference operator()( array<IndexType,N> const & indices ) const noexcept`
 
-> Effects: Equivalent to `(*this)(indices[0], ... indices[N-1]);`.
+> Effects: Equivalent to `(*this)(indices[0], ... indices\[N-1]);`.
 
 ### Layout Mapping Observers
 
@@ -1667,79 +1957,8 @@ public:
 
 ## Accessor Policy Requirements
 
-An *accessor policy* is a class that contains an *accessor*, a nested
-template class.
-
-An accessor takes a pointer to an array and an index and returns a
-reference to the element of the array at the given index. `basic_mdspan`
-is parameterized in terms of accessor.
-
-An accessor fulfills the `DefaultConstructible` and `CopyAssignable`
-requirements.
-
-In Table �:
-  * `AP` denotes an accessor policy.
-  * `A` denotes an accessor.
-  * `a` denotes a value of type `A`.
-  * `p` denotes a pointer of type `T`.
-  * `i` denotes an integer.
-
-<table border=1>
-<tr>
-  <th>Expression</th>
-  <th>Return Type</th>
-  <th>Operational Semantics</th>
-  <th>Requirements/Note</th>
-</tr>
-<tr>
-  <td>`AP::accessor_type<T>`</td>
-  <td>`A`</td>
-  <td></td>
-  <td></td>
-</tr>
-<tr>
-  <td>`A::pointer`</td>
-  <td></td>
-  <td></td>
-  <td></td>
-</tr>
-<tr>
-  <td>`A::reference`</td>
-  <td></td>
-  <td></td>
-  <td></td>
-</tr>
-<tr>
-  <td>`a(p, i)`</td>
-  <td>`reference`</td>
-  <td>*Effects:* Equivalent to `p[i]`.</td>
-  <td></td>
-</tr>
-</table>
 
 ## Accessor Policies
-
-```c++
-struct accessor_basic
-{
-  template <typename T>
-  struct accessor
-  {
-    using pointer      = T*;
-    using reference    = T&;
-
-    constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
-  };
-};
-```
-
-```c++
-template <typename Index>
-constexpr reference operator()(pointer p, Index i) const noexcept;
-```
-
-*Effects:* Equivalent to `return p[i];`
-
 Next Steps
 ==========
 
