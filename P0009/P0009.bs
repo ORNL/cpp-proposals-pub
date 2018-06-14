@@ -722,7 +722,7 @@ namespace std {
   template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     constexpr bool operator!=(const extents<LHS...>& lhs, const extents<RHS...>& rhs) noexcept;
 
-  // [mdspan.TODO], subspan creation
+  // [mdspan.subspan], subspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
            class Accessor, class... SliceSpecifiers>
     basic_mdspan<ElementType, /* see-below */>
@@ -980,12 +980,6 @@ Table � — Layout mapping policy and layout mapping requirements
   <td>`MP::mapping<E>`</td>
   <td>`M`</td>
   <td></td>
-  <td></td>
-</tr>
-<tr>
-  <td>`M m(e)`</td>
-  <td>`M`</td>
-    <td>*Effects:* Constructs a new mapping from the extents `e`.</td>
   <td></td>
 </tr>
 <tr>
@@ -1263,6 +1257,14 @@ constexpr bool is_strided() const;
 * *Returns:* `false`
 
 <br/>
+
+```c++
+index_type stride(int r) const
+```
+
+TODO write this
+
+<br/>
 ```c++
 constexpr bool operator==(const mapping& other) const noexcept;
 ```
@@ -1318,13 +1320,15 @@ struct layout_right {
     template <class... Indices>
       typename Extents::index_type operator()(Indices... is) const;
 
-    static constexpr bool is_always_unique();
-    static constexpr bool is_always_contiguous();
-    static constexpr bool is_always_strided();
+    static constexpr bool is_always_unique() noexcept;
+    static constexpr bool is_always_contiguous() noexcept;
+    static constexpr bool is_always_strided() noexcept;
 
-    constexpr bool is_unique() const;
-    constexpr bool is_contiguous() const;
-    constexpr bool is_strided() const;
+    constexpr bool is_unique() const noexcept;
+    constexpr bool is_contiguous() const noexcept;
+    constexpr bool is_strided() const noexcept;
+
+    ptrdiff_t stride(size_t rank) const noexcept;
 
   private:
     Extents extents_; // exposition only
@@ -1440,9 +1444,10 @@ typename Extents::index_type required_span_size() const noexcept;
 <!-- --- -->
 
 <br/>
-```
+
+```c++
 template <class... Indices>
-  typename Extents::index_type operator()(Indices... i) const;
+  typename Extents::index_type operator()(Indices... i) const noexcept;
 ```
 
 
@@ -1459,10 +1464,10 @@ template <class... Indices>
 <br/>
 
 ```c++
-static constexpr bool is_always_unique();
-static constexpr bool is_always_contiguous();
-constexpr bool is_unique() const;
-constexpr bool is_contiguous() const;
+static constexpr bool is_always_unique() noexcept;
+static constexpr bool is_always_contiguous() noexcept;
+constexpr bool is_unique() const noexcept;
+constexpr bool is_contiguous() const noexcept;
 ```
 
 * *Returns:* `true`
@@ -1470,11 +1475,19 @@ constexpr bool is_contiguous() const;
 <br/>
 
 ```c++
-static constexpr bool is_always_strided();
-constexpr bool is_strided() const;
+static constexpr bool is_always_strided() noexcept;
+constexpr bool is_strided() const noexcept;
 ```
 
 * *Returns:* `false`
+
+<br/>
+
+```c++
+index_type stride(int r) const noexcept;
+```
+
+TODO write this
 
 <br/>
 ```c++
@@ -1684,13 +1697,10 @@ public:
   constexpr Extents get_extents() const noexcept;
   constexpr index_type extent(int) const noexecept;
   constexpr index_type size() const noexecept;
+  constexpr index_type unique_size() const noexecept;
 
   // Observers of the codomain:
   constexpr span<element_type> span() const noexecept;
-  template<class... IndexType>
-    static constexpr index_type required_span_size(IndexType... DynamicExtents);
-  template<class... IndexType, size_t N>
-    static constexpr index_type required_span_size(const array<IndexType, N>& DynamicExtents);
 
   // Observers of the mapping : domain -> codomain
   static constexpr bool is_always_unique() noexcept;
@@ -2206,3 +2216,5 @@ TODO
     + Need a way to construct span with non-default-initialized `mapping` and `accessor`
     + Should we be constraining things with `is_integral_v<IndexType>` or `is_convertible_v<IndexType, index_type>`?
     + <strike>Extents and/or mapping conversion?</strike> Done, please review
+    + Constrain constructors of `basic_mdspan` based on `Mapping` and `Accessor` constraints.
+    + `unique_size()`
