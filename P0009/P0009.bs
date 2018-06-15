@@ -1719,7 +1719,7 @@ public:
 private:
   accessor acc_; // exposition only
   mapping map_; // exposition only
-  pointer_type ptr_; // exposition only
+  pointer ptr_; // exposition only
 };
 
 }
@@ -1787,7 +1787,7 @@ constexpr basic_mdspan(basic_mdspan&& other) noexcept;
 
 ```c++
 template<class... IndexType>
-  explicit constexpr basic_mdspan(pointer, IndexType... dynamic_extents);
+  explicit constexpr basic_mdspan(pointer ptr, IndexType... dynamic_extents);
 ```
 
 * *Requires:* `[ptr, ptr + required_span_size(dynamic_extents...))` shall be a valid range.
@@ -1834,7 +1834,7 @@ template<class... IndexType, ptrdiff_t N>
 <br/>
 
 ```c++
-constexpr basic_mdspan(pointer p, const mapping& m);
+constexpr basic_mdspan(pointer ptr, const mapping& m);
 ```
 
 * *Effects:*
