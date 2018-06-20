@@ -699,8 +699,8 @@ namespace fundamentals_v3 {
     class extents;
 
   // [mdspan.layout], Layout mapping policies
-  class layout_right;
   class layout_left;
+  class layout_right;
   class layout_stride;
 
   // [mdspan.accessor.basic], class template accessor_basic
@@ -1518,7 +1518,248 @@ constexpr bool operator!=(const mapping& other) const noexcept;
 
 * *Returns:* `get_extents() != other.get_extents()`
 
-<!-- TODO layout_stride -->
+<!-- 
+layout_stride
+
+ /$$                                           /$$                      /$$               /$$       /$$                
+| $$                                          | $$                     | $$              |__/      | $$                
+| $$  /$$$$$$  /$$   /$$  /$$$$$$  /$$   /$$ /$$$$$$         /$$$$$$$ /$$$$$$    /$$$$$$  /$$  /$$$$$$$  /$$$$$$       
+| $$ |____  $$| $$  | $$ /$$__  $$| $$  | $$|_  $$_/        /$$_____/|_  $$_/   /$$__  $$| $$ /$$__  $$ /$$__  $$      
+| $$  /$$$$$$$| $$  | $$| $$  \ $$| $$  | $$  | $$         |  $$$$$$   | $$    | $$  \__/| $$| $$  | $$| $$$$$$$$      
+| $$ /$$__  $$| $$  | $$| $$  | $$| $$  | $$  | $$ /$$      \____  $$  | $$ /$$| $$      | $$| $$  | $$| $$_____/      
+| $$|  $$$$$$$|  $$$$$$$|  $$$$$$/|  $$$$$$/  |  $$$$/      /$$$$$$$/  |  $$$$/| $$      | $$|  $$$$$$$|  $$$$$$$      
+|__/ \_______/ \____  $$ \______/  \______/    \___//$$$$$$|_______/    \___/  |__/      |__/ \_______/ \_______/      
+               /$$  | $$                           |______/                                                            
+              |  $$$$$$/                                                                                               
+               \______/                                                                                                
+
+-->
+
+<br/>
+<br/>
+<b>26.7.�.4 Class `layout_stride` [mdspan.layout.stride]</b>
+
+1. `layout_stride` meets the requirements of layout mapping policy.  
+2. The layout mapping property `layout_stride` gives a layout mapping where the ...
+3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
+
+<br/>
+
+```c++
+struct layout_stride {
+  template <typename Extents>
+  class mapping {
+  public:
+    constexpr mapping() noexcept;
+    constexpr mapping(mapping const& other) noexcept;
+    constexpr mapping(mapping&& other) noexcept;
+    constexpr mapping(Extents e, array<ptrdiff_t, Extents::rank()> s) noexcept;
+    template<class OtherExtents>
+      constexpr mapping(const mapping<OtherExtents>& other);
+
+    mapping& operator=() noexcept = default;
+    mapping& operator=(mapping const& other) noexcept = default;
+    template<class OtherExtents>
+      constexpr mapping& operator=(const mapping<OtherExtents>& other);
+
+    Extents get_extents() const noexcept;
+    array<ptrdiff_t, Extents::rank()> get_strides() const noexcept;
+
+    constexpr typename Extents::index_type required_span_size() const noexcept;
+
+    template <class... Indices>
+      typename Extents::index_type operator()(Indices... is) const;
+
+    static constexpr bool is_always_unique() noexcept;
+    static constexpr bool is_always_contiguous() noexcept;
+    static constexpr bool is_always_strided() noexcept;
+
+    constexpr bool is_unique() const noexcept;
+    constexpr bool is_contiguous() const noexcept;
+    constexpr bool is_strided() const noexcept;
+
+    ptrdiff_t stride(size_t rank) const noexcept;
+
+  private:
+    Extents extents_; // exposition only
+    //TODO: should this be extents<dynamic_extent,...,dynamic_extent> ?
+    array<ptrdiff_t, Extents::rank()> strides_; // exposition only
+  };
+};
+```
+
+<br/>
+
+<b>26.7.�.4.1 layout_stride::mapping constructors [mdspan.layout.stride.cons]</b>
+```c++
+constexpr mapping() noexcept;
+```
+* Effects: Default-initializes extents_.
+* Postconditions: `get_extents() == Extents()` and `get_strides() == array<ptrdiff_t, Extents::rank()>()`
+
+```c++
+constexpr mapping(mapping const& other) noexcept;
+```
+* Effects: Initializes extents_ with other.extents_.
+* Postconditions: `get_extents() == other.get_extents()` and `get_strides() == other.get_strides()`
+
+```c++
+constexpr mapping(mapping&& other) noexcept;
+```
+* Effects: Initializes extents_ with `move(other.extents_)`.
+* Postconditions: `get_extents()` returns a copy of an Extents that is equal to the copy returned by `other.get_extents()` before the invocation of the move and `get_strides()` returns a copy of an `array<ptrdiff_t,Extents::rank()>` that is equal to the copy returned by `other.get_strides()` before the invocation of the move
+
+
+```c++
+constexpr mapping(Extents e, array<ptrdiff_t, Extents::rank()> s) noexcept;
+```
+* Requires: there is a permutation of the numbers `0,...,Extents::rank()-1` `o(i)` with `0 <= i < Extents::rank()` such that `stride(o(i)) >= stride(o(i-1))*get_extent(o(i-1))` for `1 <= i < Extents::rank()`
+* Effects: Initializes extents_ with e and strides_ with s
+* Postconditions: `get_extents() == e` and `get_strides() == s`.
+* Throws: nothing
+
+```c++
+template<class OtherExtents>
+  constexpr mapping(const mapping<OtherExtents>& other);
+```
+* Requires: other.get_extents() meets the requirements for use in the initialization of extents_.
+* Effects: Initializes extents_ with other.get_extents() and initializes strides_ with other.get_strides().
+* Postconditions: `get_extents() == other.get_extents()` and `get_strides() == other.get_strides()`.
+* Remarks: This constructor does not participate in overload resolution unless OtherExtents is convertible to Extents.
+* Throws: nothing.
+
+
+<b>26.7.�.4.2 layout_stride::mapping operations [mdspan.layout.stride.ops]</b>
+
+```c++
+Extents get_extents() const noexcept;
+```
+* Returns: extents_.
+
+```c++
+Extents get_strides() const noexcept;
+```
+* Returns: strides_.
+
+```c++
+typename Extents::index_type required_span_size() const noexcept;
+```
+* Returns: The maximum of of `get_extents().extent(r) * stride(r)` for all `r` where `0 <= r < get_extents().rank()`
+
+
+```c++
+template <class... Indices>
+  typename Extents::index_type operator()(Indices... i) const noexcept;
+```
+* Returns: If `i...` is `i0, i1, i2,..., ik` (where `k == Extents::rank() - 1`) and `s = get_strides()`, returns `i0*s[1] + i1*s[2] +...+ ik*s[k]`
+* Remarks: This operator shall not participate in overload resolution unless
+  * `sizeof...(Indices) == Extents::rank()`,
+  * and `is_convertible_v<Indices, typename Extents::index_type> && ...`
+
+
+```c++
+static constexpr bool is_always_unique() noexcept;
+static constexpr bool is_always_strided() noexcept;
+constexpr bool is_unique() const noexcept;
+constexpr bool is_strided() const noexcept;
+```
+TODO: should this be always unique?
+* Returns: true
+
+
+```c++
+static constexpr bool is_always_contiguous() noexcept;
+```
+* Returns: false
+
+```c++
+constexpr bool is_contiguous() const noexcept;
+```
+* Returns: true if there is a permutation of the numbers `0,...,Extents::rank()-1` `o(i)` with `0 <= i < Extents::rank()` such that `min(stride(o(i)) == 1` and `stride(o(i)) == stride(o(i-1))*get_extent(o(i-1))` with `1 <= i < Extents::rank()` otherwise returns false
+
+```c++
+index_type stride(int r) const noexcept;
+```
+* Returns: `strides_(r)`
+
+
+
+```c++
+constexpr bool operator==(const mapping& other) const noexcept;
+```
+* Returns: `(get_extents() == other.get_extents()) && (get_strides() == other.get_strides())`
+
+
+```c++
+constexpr bool operator!=(const mapping& other) const noexcept;
+```
+* Returns: `(get_extents() != other.get_extents()) || (get_strides() != other.get_strides())`
+
+<!--
+subspan
+
+                     /$$                                              
+                    | $$                                              
+  /$$$$$$$ /$$   /$$| $$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$  /$$$$$$$ 
+ /$$_____/| $$  | $$| $$__  $$ /$$_____/ /$$__  $$ |____  $$| $$__  $$
+|  $$$$$$ | $$  | $$| $$  \ $$|  $$$$$$ | $$  \ $$  /$$$$$$$| $$  \ $$
+ \____  $$| $$  | $$| $$  | $$ \____  $$| $$  | $$ /$$__  $$| $$  | $$
+ /$$$$$$$/|  $$$$$$/| $$$$$$$/ /$$$$$$$/| $$$$$$$/|  $$$$$$$| $$  | $$
+|_______/  \______/ |_______/ |_______/ | $$____/  \_______/|__/  |__/
+                                        | $$                          
+                                        | $$                          
+                                        |__/                          
+-->
+
+<br/>
+<br/>
+<b>26.7.�.5 subspan [mdspan.subspan]</b>
+
+```c++
+  // [mdspan.subspan], subspan creation
+  template<class ElementType, class Extents, class LayoutPolicy,
+           class Accessor, class... SliceSpecifiers>
+    basic_mdspan<ElementType, E /* see-below */, layout_stride, Accessor>
+      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>& src, SliceSpecifiers ... slices) noexcept;
+```
+
+`subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
+The SliceSpecifier parameters indicate the subset that the return value references.
+Let slices[r] denote the rth value in the parameter pack slices.
+The second template parameter of the return type is E, a specialization of `extents`.
+<br/>
+
+Let <em>C</em> be the number of parameters in `SliceSpecifiers` which are convertible to `ptrdiff_t` <br/>
+Let <em>ranges[r]</em> denote the rth value in the parameter pack slices, which is not convertible to `ptrdiff_t` <br/>
+Let <em>sub</em> be the return value of `subspan` <br/>
+Let <em>first[r]</em> denote the rth lower bound of `slices[r]`. <br/>
+    * If `slices[r]` is convertible to `ptrdiff_t` `first[r]==slices[r]` <br/>
+    * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `first[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).first()` <br/>
+    * If `slices[r]` is convertible to `alltype_t` `first[r]==0` <br/>
+Let `last[r]` denote the rth upper bound of `slices[r]`. <br/>
+    * If `slices[r]` is convertible to `ptrdiff_t` `last[r]==slices[r]+1` <br/>
+    * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `last[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).second()` <br/>
+    * If `slices[r]` is convertible to `alltype_t` `last[r]==src.extent(r)` <br/>
+
+Requires: <br/>
+    * `sizeof(slices...)==Extents::rank()` <br/>
+    * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `alltype_t` <br/>
+    * `0<=first[r]<src.extent(r)` <br/>
+    * `0<last[r]<=src.extent(r)` <br/>
+    * `LayoutPolicy` is `layout_right`, `layout_left`, or `layout_stride` <br/>
+
+Postcondition: <br/>
+    * `E::rank() == Extents::rank()-C` <br/>
+    * If <em>ranges[r]</em> is the nth value of `ranges` convertible to `alltype_t` or `pair<ptrdiff_t,ptrdiff_t>` and `slices[k]` is the `n`th value of `slices` convertible to `all type_t` or  `pair<ptrdiff_t,ptrdiff_t>` then `sub.extent(r)==last[k]-first[k]` and `sub.stride(r)==src.stride(k)` <br/> 
+    * `sub.ptr_==src.ptr_ + first[0]*src.stride(0) + ... + first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
+    * Note: it is quality of implementation whether static extents are preserved if possible.  <br/>
+
+* Examples:
+```c++
+typedef extents<100,dynamic_extent,3> Extents3D;
+layout_right::mapping<Extents3D> map_right(
+basic_mdspan<int,Extents3D,layout_right> a()
+```
 
 <!--
 
