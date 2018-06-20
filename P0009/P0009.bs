@@ -1232,14 +1232,14 @@ template<class... Indices>
 <!-- TODO Check this -->
 <!-- TODO Math-style formatting? e.g., MathJax? -->
 
-  Let `i[k]` denote the `k`*th* member of `i...`.
+Let `i[k]` denote the `k`*th* member of `i...`.
 
-* *Returns:* `offset` as if
+* *Returns:* Equivalent to `offset` in
 
 ```
-  index_type offset = 0 ;
-  for ( int k = 0 ; k < get_extents.rank() ; ++k ) 
-    offset += i[k] * get_extents.stride(k);
+index_type offset = 0 ;
+for(int k = 0; k < get_extents.rank(); ++k) 
+  offset += i[k] * stride(k);
 ```
 
 * *Remarks:* This operator shall not participate in overload resolution unless
@@ -1268,11 +1268,12 @@ constexpr bool is_strided() const;
 index_type stride(int r) const
 ```
 
-* *Returns:* `s` as if
+* *Returns:* Equivalent to `s` in
 
 ```
-  index_type s = 1 ;
-  for ( int k = 0 ; k < r ; ++k ) s *= get_extents().extent(k);
+index_type s = 1;
+for(int k = 0; k < r; ++k)
+  s *= get_extents().extent(k);
 ```
 
 <br/>
@@ -1461,14 +1462,14 @@ template<class... Indices>
   typename Extents::index_type operator()(Indices... i) const noexcept;
 ```
 
-  Let `i[k]` denote the `k`*th* member of `i...`.
+Let `i[k]` denote the `k`*th* member of `i...`.
 
-* *Returns:* `offset` as if
+* *Returns:* Equivalent to `offset` in
 
 ```
-  index_type offset = 0 ;
-  for ( int k = 0 ; k < get_extents().rank() ; ++k ) 
-    offset += i[k] * get_extents().stride(k);
+index_type offset = 0;
+for(int k = 0; k < Extents::rank(); ++k) 
+  offset += i[k] * stride(k);
 ```
 
 * *Remarks:* This operator shall not participate in overload resolution unless
@@ -1495,12 +1496,13 @@ constexpr bool is_strided() const noexcept;
 index_type stride(int r) const noexcept;
 ```
 
-* *Returns:* `s` as if
+* *Returns:* Equivalent to `s` in
 
 ```
-  index_type s = 1 ;
-  for ( int k = r+1 ; k < get_extents.rank() ; ++k ) s *= get_extents(k);
- ```
+index_type s = 1;
+for(int k = r+1; k < get_extents.rank(); ++k)
+  s *= get_extents(k);
+```
 
 <br/>
 ```c++
@@ -1580,7 +1582,7 @@ Table �: Accessor requirements
   <td>`a(p, i)`</td>
   <td>`A::reference`</td>
 <!-- TODO review this wording. I tried to used `swap` in container requirements as an example of something that is an intended semantic rather than a requirement, but I'm still not sure if it should be a note or normative text. -->
-  <td>*[Note:* A `basic_mdspan` implementation shall use the return of this expression as if it is constructed from `p[i]`. *— end note]*</td>
+  <td>*[Note:* A `basic_mdspan` implementation shall use the return of this expression as though it is constructed from `p[i]`. *— end note]*</td>
 </tr>
 </table>
 
