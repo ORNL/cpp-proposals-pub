@@ -25,10 +25,331 @@ Editor: John Michopoulos, john.michopoulos@nrl.navy.mil
 Revision History
 ================
 
-## P0009r0 : Pre 2015-10-Kona Mailing
+## P0009r7: Post 2018-06-Rapperswil Mailing
 
-Original non-owning multidimensional array reference (`view`) paper with
-motivation, specification, and examples.
+TODO summarize changes here
+
+## P0009r6 : Pre 2018-06-Rapperswil Mailing
+
+P0009r5 was not taken up at 2018-03-Jacksonville meeting. Related [LEWG
+review of P0900 at 2018-03-Jacksonville
+meeting](http://wiki.edg.com/bin/view/Wg21jacksonville2018/P0900)
+
+**LEWG Poll**: We want the ability to customize the access to elements
+of span (ability to restrict, etc):
+
+```c++
+span<T, N, Accessor=...>
+```
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1 </td>
+<td> 1 </td>
+<td> 1 </td>
+<td> 2 </td>
+<td> 8 </td>
+</tr>
+</tbody>
+</table>
+
+**LEWG Poll**: We want the customization of `basic_mdspan` to be two
+concepts `Mapper` and `Accessor` (akin to `Allocator` design).
+
+```c++
+basic_mdspan<T, Extents, Mapper, Accessor>
+mdspan<T, N...>
+```
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 3 </td>
+<td> 4 </td>
+<td> 5 </td>
+<td> 1 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+**LEWG Poll**: We want the customization of `basic_mdspan` to be an
+arbitrary (and potentially user-extensible) list of properties.
+
+```c++
+basic_mdspan<T, Extents, Properties...>
+```
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1 </td>
+<td> 2 </td>
+<td> 2 </td>
+<td> 6 </td>
+<td> 2 </td>
+</tr>
+</tbody>
+</table>
+
+**Changes from P0009r5 due to related LEWG reviews**:
+
+-   Replaced variadic property list with *extents*, *layout mapping*,
+    and *accessor* properties.
+-   Incorporated [P0454r1](https://wg21.link/P0454r1).
+    -   Added accessor policy concept.
+    -   Renamed `mdspan` to `basic_mdspan`.
+    -   Added a `mdspan` alias to `basic_mdspan`.
+
+## P0009r5 : Pre 2018-03-Jacksonville Mailing
+
+[LEWG review of P0009r4 at 2017-11-Albuquerque
+meeting](http://wiki.edg.com/bin/view/Wg21albuquerque/P0009)
+
+**LEWG Poll**: We should be able to index with `span<int type[N]>` (in
+addition to array).
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 2 </td>
+<td>11</td>
+<td> 1 </td>
+<td> 1 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+Against comment - there is not a proven needs for this feature.
+
+**LEWG Poll**: We should be able to index with 1d `mdspan`.
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 0 </td>
+<td> 8 </td>
+<td> 7 </td>
+<td> 0 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+**LEWG Poll**: We should put the requirement on "rank() <= N" back to
+"rank() == N".
+
+*Unanimous consent*
+
+**LEWG Poll**: With the editorial changes from small group, plus the
+above polls, forward this to LWG for Fundamentals v3.
+
+*Unanimous consent*
+
+**Changes from P0009r4**:
+
+-   Removed nullptr constructor.
+-   Added constexpr to indexing operator.
+-   Indexing operator requires that `rank() == sizeof...(indices)`.
+-   Fixed typos in examples and moved them to appendix.
+-   Converted note on how extentions to access properties may cause
+    reference to be a proxy type to an "see below" to make it
+    normative.
+
+## P0009r4 : Pre 2017-11-Albuquerque Mailing
+
+[LEWG review at 2017-03-Kona meeting](http://wiki.edg.com/bin/view/Wg21kona2017/P0009)
+
+[LEWG review of P0546r1 at 2017-03-Kona meeting](http://wiki.edg.com/bin/view/Wg21kona2017/P0546)
+
+**LEWG Poll**: Should we have a single template that covers both single
+and multi-dimensional spans?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1 </td>
+<td> 6 </td>
+<td> 2 </td>
+<td> 6 </td>
+<td> 3 </td>
+</tr>
+</tbody>
+</table>
+
+**Changes from P0009r3**:
+
+-   Align with P0122r5 span[proposal](https://wg21.link/P0122r5).
+-   Rename to `mdspan`, multidimensional span, to align with `span`.
+-   Move preferred array extents mechanism to appendix.
+-   Expose codomain as a `span`.
+-   Add layout mapping concept.
+
+## P0009r3 : Post 2016-06-Oulu Mailing
+
+[LEWG review at 2016-06-Oulu](http://wiki.edg.com/bin/view/Wg21oulu/P0009)
+
+LEWG did not like the name `array_ref`, and suggested the following
+alternatives: - `sci_span` - `numeric_span` - `multidimensional_span` -
+`multidim_span` - `mdspan` - `md_span` - `vla_span` - `multispan` -
+`multi_span`
+
+**LEWG Poll**: Are member `begin()`/`end()` still good?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td> 2 </td>
+<td> 4 </td>
+<td> 3 </td>
+<td> 1 </td>
+</tr>
+</tbody>
+</table>
+**LEWG Poll**: Want this proposal to provide range-producing functions
+outside `array_ref`?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 0 </td>
+<td> 1 </td>
+<td> 3 </td>
+<td> 2 </td>
+<td> 3 </td>
+</tr>
+</tbody>
+</table>
+
+**LEWG Poll**: Want a separate proposal to explore iteration design
+space?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 9 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+**Changes from P0009r2**:
+
+-   Removed iterator support; a future paper will be written on the
+    subject.
+-   Noted difference between multidimensional array versus language's
+    array-of-array-of-array...
+-   Clearly describe requirements for the embedded type aliases
+    (`element_type`, `reference`, etc).
+-   Expanded description of how the variadic properties list would
+    work.
+-   Stopped allowing `array_ref<T[N]>` in addition to
+    `array_ref<extents<N>>`.
+-   Clarified domain, codomain, and domain -> codomain mapping
+    specifications.
+-   Consistently use *extent* and *extents* for the multidimensional
+    index space.
+
+## P0009r2 : Pre 2016-06-Oulu Mailing
+
+[LEWG review at 2016-02-Jacksonville](http://wiki.edg.com/bin/view/Wg21jacksonville/P0009).
+
+**Changes from P0009r1**:
+
+-   Adding details for extensibility of layout mapping.
+-   Move motivation, examples, and relaxed incomplete array type
+    proposal to separate papers.
+    -   [P0331: Motivation and Examples for Polymorphic
+        Multidimensional Array](https://wg21.link/P0331).
+    -   [P0332: Relaxed Incomplete Multidimensional Array Type
+        Declaration](https://wg21.link/P0332).
 
 ## P0009r1 : Pre 2016-02-Jacksonville Mailing
 
@@ -206,341 +527,16 @@ in the library.
 -   How are users allowed to add properties? Needs elaboration in
     paper.
 -   `view<int[][][]>::layout` should be named.
--   
-
-    Rename `is_regular` (possibly to `is_affine`) to avoid overloading the
-
-    :   term with the `Regular` concept.
-
+-   Rename `is_regular` (possibly to `is_affine`) to avoid overloading
+    the term with the `Regular` concept.
 -   Make static span(), operator(), constructor, etc variadic.
 -   Demonstrate the need for improper access in the paper.
 -   In `operator()`, take integral types by value.
 
-## P0009r2 : Pre 2016-06-Oulu Mailing
+## P0009r0 : Pre 2015-10-Kona Mailing
 
-[LEWG review at 2016-02-Jacksonville](http://wiki.edg.com/bin/view/Wg21jacksonville/P0009).
-
-**Changes from P0009r1**:
-
--   Adding details for extensibility of layout mapping.
--   Move motivation, examples, and relaxed incomplete array type
-    proposal to separate papers.
-    -   [P0331: Motivation and Examples for Polymorphic
-        Multidimensional Array](https://wg21.link/P0331).
-    -   [P0332: Relaxed Incomplete Multidimensional Array Type
-        Declaration](https://wg21.link/P0332).
-
-## P0009r3 : Post 2016-06-Oulu Mailing
-
-[LEWG review at 2016-06-Oulu](http://wiki.edg.com/bin/view/Wg21oulu/P0009)
-
-LEWG did not like the name `array_ref`, and suggested the following
-alternatives: - `sci_span` - `numeric_span` - `multidimensional_span` -
-`multidim_span` - `mdspan` - `md_span` - `vla_span` - `multispan` -
-`multi_span`
-
-**LEWG Poll**: Are member `begin()`/`end()` still good?
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>0</td>
-<td> 2 </td>
-<td> 4 </td>
-<td> 3 </td>
-<td> 1 </td>
-</tr>
-</tbody>
-</table>
-**LEWG Poll**: Want this proposal to provide range-producing functions
-outside `array_ref`?
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 0 </td>
-<td> 1 </td>
-<td> 3 </td>
-<td> 2 </td>
-<td> 3 </td>
-</tr>
-</tbody>
-</table>
-
-**LEWG Poll**: Want a separate proposal to explore iteration design
-space?
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 9 </td>
-<td> 1 </td>
-<td> 0 </td>
-<td> 0 </td>
-<td> 0 </td>
-</tr>
-</tbody>
-</table>
-
-**Changes from P0009r2**:
-
--   Removed iterator support; a future paper will be written on the
-    subject.
--   Noted difference between multidimensional array versus language's
-    array-of-array-of-array...
--   Clearly describe requirements for the embedded type aliases
-    (`element_type`, `reference`, etc).
--   Expanded description of how the variadic properties list would
-    work.
--   Stopped allowing `array_ref<T[N]>` in addition to
-    `array_ref<extents<N>>`.
--   Clarified domain, codomain, and domain -> codomain mapping
-    specifications.
--   Consistently use *extent* and *extents* for the multidimensional
-    index space.
-
-## P0009r4 : Pre 2017-11-Albuquerque Mailing
-
-[LEWG review at 2017-03-Kona meeting](http://wiki.edg.com/bin/view/Wg21kona2017/P0009)
-
-[LEWG review of P0546r1 at 2017-03-Kona meeting](http://wiki.edg.com/bin/view/Wg21kona2017/P0546)
-
-**LEWG Poll**: Should we have a single template that covers both single
-and multi-dimensional spans?
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 1 </td>
-<td> 6 </td>
-<td> 2 </td>
-<td> 6 </td>
-<td> 3 </td>
-</tr>
-</tbody>
-</table>
-
-**Changes from P0009r3**:
-
--   Align with P0122r5 span[proposal](https://wg21.link/P0122r5).
--   Rename to `mdspan`, multidimensional span, to align with `span`.
--   Move preferred array extents mechanism to appendix.
--   Expose codomain as a `span`.
--   Add layout mapping concept.
-
-## P0009r5 : Pre 2018-03-Jacksonville Mailing
-
-[LEWG review of P0009r4 at 2017-11-Albuquerque
-meeting](http://wiki.edg.com/bin/view/Wg21albuquerque/P0009)
-
-**LEWG Poll**: We should be able to index with `span<int type[N]>` (in
-addition to array).
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 2 </td>
-<td>11</td>
-<td> 1 </td>
-<td> 1 </td>
-<td> 0 </td>
-</tr>
-</tbody>
-</table>
-
-Against comment - there is not a proven needs for this feature.
-
-**LEWG Poll**: We should be able to index with 1d `mdspan`.
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 0 </td>
-<td> 8 </td>
-<td> 7 </td>
-<td> 0 </td>
-<td> 0 </td>
-</tr>
-</tbody>
-</table>
-
-**LEWG Poll**: We should put the requirement on "rank() <= N" back to
-"rank() == N".
-
-*Unanimous consent*
-
-**LEWG Poll**: With the editorial changes from small group, plus the
-above polls, forward this to LWG for Fundamentals v3.
-
-*Unanimous consent*
-
-**Changes from P0009r4**:
-
--   Removed nullptr constructor.
--   Added constexpr to indexing operator.
--   Indexing operator requires that `rank() == sizeof...(indices)`.
--   Fixed typos in examples and moved them to appendix.
--   Converted note on how extentions to access properties may cause
-    reference to be a proxy type to an "see below" to make it
-    normative.
-
-## P0009r6 : Pre 2018-06-Rapperswil Mailing
-
-P0009r5 was not taken up at 2018-03-Jacksonville meeting. Related [LEWG
-review of P0900 at 2018-03-Jacksonville
-meeting](http://wiki.edg.com/bin/view/Wg21jacksonville2018/P0900)
-
-**LEWG Poll**: We want the ability to customize the access to elements
-of span (ability to restrict, etc):
-
-```c++
-span<T, N, Accessor=...>
-```
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 1 </td>
-<td> 1 </td>
-<td> 1 </td>
-<td> 2 </td>
-<td> 8 </td>
-</tr>
-</tbody>
-</table>
-
-**LEWG Poll**: We want the customization of `basic_mdspan` to be two
-concepts `Mapper` and `Accessor` (akin to `Allocator` design).
-
-```c++
-basic_mdspan<T, Extents, Mapper, Accessor>
-mdspan<T, N...>
-```
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 3 </td>
-<td> 4 </td>
-<td> 5 </td>
-<td> 1 </td>
-<td> 0 </td>
-</tr>
-</tbody>
-</table>
-
-**LEWG Poll**: We want the customization of `basic_mdspan` to be an
-arbitrary (and potentially user-extensible) list of properties.
-
-```c++
-basic_mdspan<T, Extents, Properties...>
-```
-
-<table>
-<thead>
-<tr>
-<th>SF</th>
-<th>F</th>
-<th>N</th>
-<th>A</th>
-<th>SA</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td> 1 </td>
-<td> 2 </td>
-<td> 2 </td>
-<td> 6 </td>
-<td> 2 </td>
-</tr>
-</tbody>
-</table>
-
-**Changes from P0009r5 due to related LEWG reviews**:
-
--   Replaced variadic property list with *extents*, *layout mapping*,
-    and *accessor* properties.
--   Incorporated [P0454r1](https://wg21.link/P0454r1).
-    -   Added accessor policy concept.
-    -   Renamed `mdspan` to `basic_mdspan`.
-    -   Added a `mdspan` alias to `basic_mdspan`.
-
-## P0009r7: Post 2018-06-Rapperswil Mailing
-
-TODO summarize changes here
+Original non-owning multidimensional array reference (`view`) paper with
+motivation, specification, and examples.
 
 ## Related Activity
 
