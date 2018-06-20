@@ -965,7 +965,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     * `E` denotes a specialization of `extents`.
     * `e` denotes an object of type `E` defining a domain multi-index space.
     * `r` is a value of an integral type such that `0 <= r < e.rank()`.
-    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th` member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i) == E::rank()` and `0 <= i[r] < e.extent(r)` for `i...` and `j...`.
+    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i) == E::rank()` and `0 <= i[r] < e.extent(r)` for `i...` and `j...`.
     * `M` denotes a layout mapping class.
     * `m` denotes an object of type `M` that maps a multi-index `i...` to an integral value.
 
@@ -988,7 +988,11 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m.get_extents()`</td>
   <td>`E`</td>
-  <td>*Returns:* `e`.</td>
+  <td>
+  
+  *Returns:* `e`.
+  
+  </td>
   <td></td>
 </tr>
 <tr>
@@ -1231,6 +1235,7 @@ template<class... Indices>
   Let `i[k]` denote the `k`*th* member of `i...`.
 
 * *Returns:* `offset` as if
+
 ```
   index_type offset = 0 ;
   for ( int k = 0 ; k < get_extents.rank() ; ++k ) 
@@ -1264,10 +1269,11 @@ index_type stride(int r) const
 ```
 
 * *Returns:* `s` as if
+
 ```
   index_type s = 1 ;
   for ( int k = 0 ; k < r ; ++k ) s *= get_extents().extent(k);
- ```
+```
 
 <br/>
 ```c++
@@ -1458,6 +1464,7 @@ template<class... Indices>
   Let `i[k]` denote the `k`*th* member of `i...`.
 
 * *Returns:* `offset` as if
+
 ```
   index_type offset = 0 ;
   for ( int k = 0 ; k < get_extents().rank() ; ++k ) 
@@ -1489,6 +1496,7 @@ index_type stride(int r) const noexcept;
 ```
 
 * *Returns:* `s` as if
+
 ```
   index_type s = 1 ;
   for ( int k = r+1 ; k < get_extents.rank() ; ++k ) s *= get_extents(k);
