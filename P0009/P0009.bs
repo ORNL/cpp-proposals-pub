@@ -703,7 +703,7 @@ namespace std {
   class layout_stride;
 
   // [mdspan.accessor.basic], class template accessor_basic
-  template <typename ElementType>
+  template<class ElementType>
   class accessor_basic;
 
   // [mdspan.basic], class template mdspan
@@ -826,7 +826,7 @@ constexpr extents(extents&& other);
 <br/>
 
 ```c++
-template <ptrdiff_t... OtherStaticExtents>
+template<ptrdiff_t... OtherStaticExtents>
 constexpr extents(const extents<OtherStaticExtents...>& other) noexcept;
 ```
 
@@ -865,7 +865,7 @@ constexpr extents(array<IndexType, N> dynamic_extents) noexcept;
     + `N == rank_dynamic()`
 
 ```c++
-template <ptrdiff_t... OtherStaticExtents>
+template<ptrdiff_t... OtherStaticExtents>
 constexpr extents& operator=(const extents<OtherStaticExtents...>& other) noexcept;
 ```
 
@@ -1070,14 +1070,14 @@ Table � — Layout mapping policy and layout mapping requirements
 
 ```c++
 struct layout_left {
-  template <typename Extents>
+  template<class Extents>
   class mapping {
   public:
     constexpr mapping() noexcept;
     constexpr mapping(mapping const& other) noexcept;
     constexpr mapping(mapping&& other) noexcept;
     constexpr mapping(Extents e) noexcept;
-    template <class OtherExtents>
+    template<class OtherExtents>
       constexpr mapping(const mapping<OtherExtents>& other);
 
     mapping& operator=() noexcept = default;
@@ -1089,7 +1089,7 @@ struct layout_left {
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
 
-    template <class... Indices>
+    template<class... Indices>
       typename Extents::index_type operator()(Indices... is) const;
 
     static constexpr bool is_always_unique();
@@ -1219,7 +1219,7 @@ typename Extents::index_type required_span_size() const noexcept;
 
 <br/>
 ```
-template <class... Indices>
+template<class... Indices>
   typename Extents::index_type operator()(Indices... i) const;
 ```
 
@@ -1298,7 +1298,7 @@ constexpr bool operator!=(const mapping& other) const noexcept;
 
 ```c++
 struct layout_right {
-  template <typename Extents>
+  template<class Extents>
   class mapping {
   public:
     constexpr mapping() noexcept;
@@ -1317,7 +1317,7 @@ struct layout_right {
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
 
-    template <class... Indices>
+    template<class... Indices>
       typename Extents::index_type operator()(Indices... is) const;
 
     static constexpr bool is_always_unique() noexcept;
@@ -1446,7 +1446,7 @@ typename Extents::index_type required_span_size() const noexcept;
 <br/>
 
 ```c++
-template <class... Indices>
+template<class... Indices>
   typename Extents::index_type operator()(Indices... i) const noexcept;
 ```
 
@@ -1589,7 +1589,7 @@ Table �: Accessor requirements
 3. If `T` is not an object type or is an array type, the program is ill-formed.
 
 ```c++
-template <typename T>
+template<class T>
 struct accessor_basic {
   using value_type = T;
   using pointer = T*;
@@ -1645,7 +1645,7 @@ constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 ```c++
 namespace std {
 
-template<typename ElementType, typename Extents, typename LayoutPolicy, typename Accessor>
+template<class ElementType, class Extents, class LayoutPolicy, class Accessor>
 class basic_mdspan {
 public:
 
@@ -1670,18 +1670,18 @@ public:
     explicit constexpr basic_mdspan(span<element_type>, IndexType... dynamic_extents);
   constexpr basic_mdspan(pointer p, const mapping& m);
   constexpr basic_mdspan(pointer p, const mapping& m, const accessor& a);
-  template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
+  template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
     constexpr basic_mdspan(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
   template<class IndexType, size_t N>
     explicit constexpr basic_mdspan(pointer, array<IndexType, N> const& dynamic_extents);
-  template< class IndexType , size_t N >
+  template<class IndexType, size_t N>
     explicit constexpr basic_mdspan(span<element_type>, array<IndexType, N> const& dynamic_extents) noexcept;
 
   ~basic_mdspan() noexcept;
 
   constexpr basic_mdspan& operator=(basic_mdspan const&) noexcept = default;
   constexpr basic_mdspan& operator=(basic_mdspan&&) noexcept = default;
-  template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
+  template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
     constexpr basic_mdspan& operator=(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other) noexcept;
 
   // Mapping domain multi-index to access codomain element
@@ -1867,7 +1867,7 @@ constexpr basic_mdspan(pointer p, const mapping& m, const accessor& a);
 
 <!-- TODO review this wording! -->
 ```c++
-template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
+template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
   constexpr basic_mdspan(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
 ```
 
@@ -1918,7 +1918,7 @@ template<class IndexType, ptrdiff_t K, size_t N>
 
 <!-- TODO review this wording! -->
 ```c++
-template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
+template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
   constexpr basic_mdspan& operator=(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
 ```
 
