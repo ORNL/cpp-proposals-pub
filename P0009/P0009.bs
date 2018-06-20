@@ -1074,14 +1074,14 @@ struct layout_left {
   class mapping {
   public:
     constexpr mapping() noexcept;
-    constexpr mapping(mapping const& other) noexcept;
+    constexpr mapping(const mapping& other) noexcept;
     constexpr mapping(mapping&& other) noexcept;
     constexpr mapping(Extents e) noexcept;
     template <class OtherExtents>
       constexpr mapping(const mapping<OtherExtents>& other);
 
     mapping& operator=() noexcept = default;
-    mapping& operator=(mapping const& other) noexcept = default;
+    mapping& operator=(const mapping& other) noexcept = default;
     template<class OtherExtents>
       constexpr mapping& operator=(const mapping<OtherExtents>& other);
 
@@ -1131,7 +1131,7 @@ constexpr mapping() noexcept;
 <br/>
 
 ```c++
-constexpr mapping(mapping const& other) noexcept;
+constexpr mapping(const mapping& other) noexcept;
 ```
 
 * *Effects:* Initializes `extents_` with `other.extents_`.
@@ -1302,14 +1302,14 @@ struct layout_right {
   class mapping {
   public:
     constexpr mapping() noexcept;
-    constexpr mapping(mapping const& other) noexcept;
+    constexpr mapping(const mapping& other) noexcept;
     constexpr mapping(mapping&& other) noexcept;
     constexpr mapping(Extents e) noexcept;
     template<class OtherExtents>
       constexpr mapping(const mapping<OtherExtents>& other);
 
     mapping& operator=() noexcept = default;
-    mapping& operator=(mapping const& other) noexcept = default;
+    mapping& operator=(const mapping& other) noexcept = default;
     template<class OtherExtents>
       constexpr mapping& operator=(const mapping<OtherExtents>& other);
 
@@ -1358,7 +1358,7 @@ constexpr mapping() noexcept;
 <br/>
 
 ```c++
-constexpr mapping(mapping const& other) noexcept;
+constexpr mapping(const mapping& other) noexcept;
 ```
 
 * *Effects:* Initializes `extents_` with `other.extents_`.
@@ -1673,13 +1673,13 @@ public:
   template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
     constexpr basic_mdspan(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
   template<class IndexType, size_t N>
-    explicit constexpr basic_mdspan(pointer, array<IndexType, N> const& dynamic_extents);
+    explicit constexpr basic_mdspan(pointer, const array<IndexType, N>& dynamic_extents);
   template< class IndexType , size_t N >
-    explicit constexpr basic_mdspan(span<element_type>, array<IndexType, N> const& dynamic_extents) noexcept;
+    explicit constexpr basic_mdspan(span<element_type>, const array<IndexType, N>& dynamic_extents) noexcept;
 
   ~basic_mdspan() noexcept;
 
-  constexpr basic_mdspan& operator=(basic_mdspan const&) noexcept = default;
+  constexpr basic_mdspan& operator=(const basic_mdspan&) noexcept = default;
   constexpr basic_mdspan& operator=(basic_mdspan&&) noexcept = default;
   template <typename OtherElementType, typename OtherExtents, typename OtherLayoutPolicy, typename OtherAccessor>
     constexpr basic_mdspan& operator=(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other) noexcept;
@@ -1891,7 +1891,7 @@ template <typename OtherElementType, typename OtherExtents, typename OtherLayout
 
 ```c++
 template<class IndexType, size_t N>
-  explicit constexpr basic_mdspan(pointer, array<IndexType, N> const& dynamic_extents) noexcept;
+  explicit constexpr basic_mdspan(pointer, const array<IndexType, N>& dynamic_extents) noexcept;
 ```
 
 * *Effects:* Equivalent to `basic_mdspan(pointer, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
@@ -1905,7 +1905,7 @@ template<class IndexType, size_t N>
 
 ```c++
 template<class IndexType, ptrdiff_t K, size_t N>
-  explicit constexpr basic_mdspan(span<element_type, K> s, array<IndexType, N> const& dynamic_extent) noexcept;
+  explicit constexpr basic_mdspan(span<element_type, K> s, const array<IndexType, N>& dynamic_extent) noexcept;
 ```
 
 * *Effects:* Equivalent to `basic_mdspan(pointer, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
