@@ -188,7 +188,7 @@ Against comment - there is not a proven needs for this feature.
 </table>
 
 **LEWG Poll**: We should put the requirement on "rank() <= N" back to
-"rank() == N".
+"rank()==N".
 
 *Unanimous consent*
 
@@ -201,7 +201,7 @@ above polls, forward this to LWG for Fundamentals v3.
 
 -   Removed nullptr constructor.
 -   Added constexpr to indexing operator.
--   Indexing operator requires that `rank() == sizeof...(indices)`.
+-   Indexing operator requires that `rank()==sizeof...(indices)`.
 -   Fixed typos in examples and moved them to appendix.
 -   Converted note on how extentions to access properties may cause
     reference to be a proxy type to an "see below" to make it
@@ -836,7 +836,7 @@ constexpr extents() noexcept;
 ```
 
 * *Effects:* Aggregate-initializes `dynamic_extents_` to `{ }`
-* *Postconditions:* `extent(r)` if `static_extent(r) == dynamic_extent` for all `r` in the range `[0, rank())`
+* *Postconditions:* `extent(r)` if `static_extent(r)==dynamic_extent` for all `r` in the range `[0, rank())`
 
 <br/>
 
@@ -846,7 +846,7 @@ constexpr extents(extents&& other);
 ```
 
 * *Effects:* Initializes `dynamic_extents_` with `other.dynamic_extents_`
-* *Postconditions:* `extent(r) == other.extent(r)` for all `r` in the range `[0, rank())`
+* *Postconditions:* `extent(r)==other.extent(r)` for all `r` in the range `[0, rank())`
 
 <br/>
 
@@ -855,11 +855,11 @@ template<ptrdiff_t... OtherStaticExtents>
 constexpr extents(const extents<OtherStaticExtents...>& other);
 ```
 
-* *Requires:* For each `r` in the range `[0, rank())`, if `static_extent(r) != dynamic_extent`, then `static_extent(r) == other.extent(r)`.
-* *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r) == dynamic_extent`, initializes `dynamic_extents_[`*DynamicRank[*`r`*]*`]` with `other.extent(r)`.
+* *Requires:* For each `r` in the range `[0, rank())`, if `static_extent(r)!=dynamic_extent`, then `static_extent(r)==other.extent(r)`.
+* *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r)==dynamic_extent`, initializes `dynamic_extents_[`*DynamicRank[*`r`*]*`]` with `other.extent(r)`.
 * *Throws:* Nothing.
-* *Postconditions:* `*this == other`
-* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents) == sizeof...(OtherStaticExtents)`.
+* *Postconditions:* `*this==other`
+* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents)==sizeof...(OtherStaticExtents)`.
 
 <br/>
 
@@ -870,19 +870,19 @@ constexpr extents(IndexType... dynamic_extents) noexcept;
 
 <!-- TODO look at how parameter pack expansions are specified in, e.g., integer_sequence -->
 
-* *Requires:* `((dynamic_extents >= 0) && ...)`
+* *Requires:* `((dynamic_extents>=0) && ...)`
 * *Effects:* Aggregate-initializes `dynamic_extents_` to `{dynamic_extents...}`
 * *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to the *i*th entry in the parameter pack `dynamic_extents`
 * *Remarks:* This constructor shall not participate in overload resolution unless:
     + `(is_convertible_v<IndexType, index_type> && ...)`
-    + and `sizeof...(dynamic_extents) == rank_dynamic()`
+    + and `sizeof...(dynamic_extents)==rank_dynamic()`
 
 ```c++
 template<class IndexType, size_t rank_dynamic>
 constexpr extents(const array<IndexType, rank_dynamic> & dynamic_extents) noexcept;
 ```
 
-* *Requires:* `dynamic_extents[i] >= 0` for all `i` where `0 <= i < rank_dynamic()`
+* *Requires:* `dynamic_extents[i]>=0` for all `i` where `0<=i<rank_dynamic()`
 * *Effects:* Initializes `dynamic_extents_` with `dynamic_extents`
 * *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to `dynamic_extents[i]`
 * *Remarks:* This constructor shall not participate in overload resolution unless:
@@ -893,12 +893,12 @@ template<ptrdiff_t... OtherStaticExtents>
 constexpr extents& operator=(const extents<OtherStaticExtents...>& other);
 ```
 
-* *Requires:* For each `r` in the range `[0, rank())`, if `static_extent(r) != dynamic_extent`, then `static_extent(r) == other.extent(r)`.
-* *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r) == dynamic_extent`, assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
+* *Requires:* For each `r` in the range `[0, rank())`, if `static_extent(r)!=dynamic_extent`, then `static_extent(r)==other.extent(r)`.
+* *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r)==dynamic_extent`, assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
 * *Throws:* Nothing.
-* *Postconditions:* `*this == other`
+* *Postconditions:* `*this==other`
 * *Returns:* `*this`.
-* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents) == sizeof...(OtherStaticExtents)`.
+* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents)==sizeof...(OtherStaticExtents)`.
 
 <br/>
 
@@ -918,7 +918,7 @@ static constexpr size_t rank_dynamic() const noexcept;
 ```
 
 <!-- DSH: Added note because I was afraid I was being too clever -->
-* *Returns:* `((StaticExtents == dynamic_extent) + ...)` *[Note:* This is the number of dynamic extents *—end note]*
+* *Returns:* `((StaticExtents==dynamic_extent)&&...)` *[Note:* This is the number of dynamic extents *—end note]*
 
 <br/>
 ```c++
@@ -984,8 +984,8 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     * `MP` denotes a layout mapping policy.
     * `E` denotes a specialization of `extents`.
     * `e` denotes an object of type `E` defining a domain multi-index space.
-    * `r` is a value of an integral type such that `0 <= r < e.rank()`.
-    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i) == E::rank()`, `0 <= i[r] < e.extent(r)`, `sizeof...(j) == E::rank()` and `0 <= j[r] < e.extent(r)`.
+    * `r` is a value of an integral type such that 0 <= `r` < `e.rank()`.
+    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i)==E::rank()`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()` and 0 <= `j[r]` < `e.extent(r)`.
     * `M` denotes a layout mapping class.
     * `m` denotes an object of type `M` that maps a multi-index `i...` to an integral value.
 
@@ -1030,7 +1030,7 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m.is_unique()`</td>
   <td>`bool`</td>
-  <td>*Returns:* `true` if `m(i...) != m(j...)` for every `i... != j...` </td>
+  <td>*Returns:* `true` if `m(i...)!=m(j...)` for every `i...!=j...` </td>
   <td></td>
 </tr>
 <tr>
@@ -1226,7 +1226,7 @@ Extents get_extents() const noexcept;
 typename Extents::index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* The product of `get_extents().extent(r)` for all `r` where `0 <= r < get_extents().rank()`
+* *Returns:* The product of `get_extents().extent(r)` for all `r` where 0 <= `r` < `get_extents().rank()`
 
 <!-- --- -->
 
@@ -1242,8 +1242,8 @@ Let `i[k]` denote the `k`*th* member of `i...`.
 
 ```
 Extents::index_type offset = 0 ;
-for(size_t k = 0; k < get_extents.rank(); ++k) 
-  offset += i[k] * stride(k);
+for(size_t k=0; k<get_extents.rank(); ++k) 
+  offset += i[k]*stride(k);
 ```
 
 * *Remarks:* This operator shall not participate in overload resolution unless
@@ -1276,7 +1276,7 @@ typename Extents::index_type stride(size_t r) const
 
 ```
 Extents::index_type s = 1;
-for(size_t k = 0; k < r; ++k)
+for(size_t k=0; k<r; ++k)
   s *= get_extents().extent(k);
 ```
 
@@ -1286,7 +1286,7 @@ template<class OtherExtents>
   constexpr bool operator==(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `get_extents() == other.get_extents()`.
+* *Returns:* `get_extents()==other.get_extents()`.
 
 <br/>
 ```c++
@@ -1294,7 +1294,7 @@ template<class OtherExtents>
   constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `get_extents() != other.get_extents()`.
+* *Returns:* `get_extents()!=other.get_extents()`.
 
 
 <!--
@@ -1446,7 +1446,7 @@ Extents get_extents() const noexcept;
 typename Extents::index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* The product of `get_extents().extent(r)` for all `r` where `0 <= r < get_extents().rank()`
+* *Returns:* The product of `get_extents().extent(r)` for all `r` where 0 <= `r` < `get_extents().rank()`
 
 <!-- --- -->
 
@@ -1463,8 +1463,8 @@ Let `i[k]` denote the `k`*th* member of `i...`.
 
 ```
 index_type offset = 0;
-for(size_t k = 0; k < Extents::rank(); ++k) 
-  offset += i[k] * stride(k);
+for(size_t k=0; k<Extents::rank(); ++k) 
+  offset += i[k]*stride(k);
 ```
 
 * *Remarks:* This operator shall not participate in overload resolution unless
@@ -1495,7 +1495,7 @@ typename Extents::index_type stride(size_t r) const noexcept;
 
 ```
 Extents::index_type s = 1;
-for(size_t k = r+1; k < get_extents.rank(); ++k)
+for(size_t k=r+1; k<get_extents.rank(); ++k)
   s *= get_extents(k);
 ```
 
@@ -1513,7 +1513,7 @@ template<class OtherExtents>
   constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `get_extents() != other.get_extents()`.
+* *Returns:* `get_extents()!=other.get_extents()`.
 
 
 <!-- 
@@ -1545,7 +1545,7 @@ layout_stride
 
 <pre highlight="c++">
 struct layout_stride {
-  template&lt;typename Extents>
+  template&lt;class Extents>
   class mapping {
   public:
     constexpr mapping() noexcept;
@@ -1617,7 +1617,7 @@ constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()
 ```
 * Requires: 
    + `s[i]>0` for `0<i<=Extents::rank()`
-   + there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with `0 <= i < Extents::rank()` such that `stride(o(i)) >= stride(o(i-1))*get_extent.extent(o(i-1))` for `1<=i<Extents::rank()`
+   + there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with 0 <= `i` < `Extents::rank()` such that `stride(o(i))>=stride(o(i-1))*get_extent.extent(o(i-1))` for `1<=i<Extents::rank()`
 * Effects: Initializes `extents_` with `e` and `strides_` with `s`
 * Postconditions: `get_extents()==e` and `get_strides()==s`.
 * Throws: nothing
@@ -1654,7 +1654,7 @@ typename Extents::index_type required_span_size() const noexcept;
 template <class... Indices>
   typename Extents::index_type operator()(Indices... i) const noexcept;
 ```
-* Returns: If `i...` is `i0, i1, i2,`...`, ik` (where `k == Extents::rank() - 1`) and `s = get_strides()`, returns `i0*s[1] + i1*s[2] +`...`+ ik*s[k]`
+* Returns: If `i...` is `i0, i1, i2,`...`, ik` (where `k == Extents::rank() - 1`) and `s = get_strides()`, returns `i0*s[1]+i1*s[2]+`...`+ik*s[k]`
 * Remarks: This operator shall not participate in overload resolution unless
   * `sizeof...(Indices)==Extents::rank()`,
   * and `is_convertible_v<Indices, typename Extents::index_type> && ...`
@@ -1699,7 +1699,7 @@ template<class OtherExtents>
   constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `get_extents() != other.get_extents()`.
+* *Returns:* `get_extents()!=other.get_extents()`.
 
 
 
@@ -1989,7 +1989,7 @@ template<class... IndexType>
   explicit constexpr basic_mdspan(const pointer& ptr, IndexType... dynamic_extents);
 ```
 
-* *Requires:* `[ptr, ptr + required_span_size(dynamic_extents...))` shall be a valid range.
+* *Requires:* `[ptr, ptr+required_span_size(dynamic_extents...))` shall be a valid range.
 * *Effects:*
     + initializes `ptr_` with `ptr`
     + initializes `map_` with `Extents(dynamic_extents...)`
@@ -2164,7 +2164,7 @@ template<class... IndexType>
   constexpr reference operator()(IndexType... indices) const;
 ```
 
-* *Requires:* `0 <= array<index_type, sizeof...(indices)>{indices...}[r] < extent(r)` for all `r` in the range `[0, rank())`.
+* *Requires:* 0 <= `array<index_type, sizeof...(indices)>{indices...}[r]` < `extent(r)` for all `r` in the range `[0, rank())`.
 * *Effects:* Equivalent to `return acc_(ptr_, indices...);`
 * *Remarks:* This operator does not participate in overload resolution unless
     + `is_convertible_v<IndexType, index_type> && ...`
@@ -2247,7 +2247,7 @@ constexpr index_type extent(size_t r) const noexcept;
 constexpr index_type size() const noexcept;
 ```
 
-* *Returns:* Product of `extent(r)` for all `r` where `0 <= r < get_extents().rank()`.
+* *Returns:* Product of `extent(r)` for all `r` where 0 <= `r` < `get_extents().rank()`.
 
 ```c++
 constexpr index_type unique_size() const noexcept;
@@ -2408,7 +2408,7 @@ Requires: <br/>
 Postcondition: <br/>
     * `E::rank() == Extents::rank()-C` <br/>
     * If <em>ranges[r]</em> is the nth value of `ranges` convertible to `alltype_t` or `pair<ptrdiff_t,ptrdiff_t>` and `slices[k]` is the `n`th value of `slices` convertible to `all type_t` or  `pair<ptrdiff_t,ptrdiff_t>` then `sub.extent(r)==last[k]-first[k]` and `sub.stride(r)==src.stride(k)` <br/> 
-    * `sub.ptr_==src.ptr_ + first[0]*src.stride(0) + ... + first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
+    * `sub.ptr_==src.ptr_+first[0]*src.stride(0)+`...`+first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
     * Note: it is quality of implementation whether static extents are preserved if possible.  <br/>
 
 * Examples:
@@ -2425,7 +2425,7 @@ basic_mdspan<int,Extents3D,layout_right> a(ptr,map_right);
 for(int i0=0; i0<a.extent(0); i0++)
   for(int i1=0; i1<a.extent(1); i1++)
     for(int i2=0; i2<a.extent(2); i2++)
-      a(i0,i1,i2) = 10000*i0 + 100*i1 + i2;
+      a(i0,i1,i2) = 10000*i0+100*i1+i2;
 
 // Create Subspan
 auto a_sub = subspan(a,1,std::pair<int,int>(4,6),std::pair<int,int>(1,6));

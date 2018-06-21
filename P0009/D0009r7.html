@@ -1640,7 +1640,7 @@ addition to array).</p>
       <td> 0 
    </table>
    <p><strong>LEWG Poll</strong>: We should put the requirement on "rank() &lt;= N" back to
-"rank() == N".</p>
+"rank()==N".</p>
    <p><em>Unanimous consent</em></p>
    <p><strong>LEWG Poll</strong>: With the editorial changes from small group, plus the
 above polls, forward this to LWG for Fundamentals v3.</p>
@@ -1652,7 +1652,7 @@ above polls, forward this to LWG for Fundamentals v3.</p>
     <li data-md="">
      <p>Added constexpr to indexing operator.</p>
     <li data-md="">
-     <p>Indexing operator requires that <code class="highlight"><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="k">sizeof</span><span class="p">...(</span><span class="n">indices</span><span class="p">)</span></code>.</p>
+     <p>Indexing operator requires that <code class="highlight"><span class="n">rank</span><span class="p">()</span><span class="o">==</span><span class="k">sizeof</span><span class="p">...(</span><span class="n">indices</span><span class="p">)</span></code>.</p>
     <li data-md="">
      <p>Fixed typos in examples and moved them to appendix.</p>
     <li data-md="">
@@ -2131,7 +2131,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><em>Effects:</em> Aggregate-initializes <code class="highlight"><span class="n">dynamic_extents_</span></code> to <code class="highlight"><span class="p">{</span> <span class="p">}</span></code></p>
     <li data-md="">
-     <p><em>Postconditions:</em> <code class="highlight"><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">dynamic_extent</span></code> for all <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code></p>
+     <p><em>Postconditions:</em> <code class="highlight"><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="n">dynamic_extent</span></code> for all <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code></p>
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="nf">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">);</span>
@@ -2141,7 +2141,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><em>Effects:</em> Initializes <code class="highlight"><span class="n">dynamic_extents_</span></code> with <code class="highlight"><span class="n">other</span><span class="p">.</span><span class="n">dynamic_extents_</span></code></p>
     <li data-md="">
-     <p><em>Postconditions:</em> <code class="highlight"><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code></p>
+     <p><em>Postconditions:</em> <code class="highlight"><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code></p>
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="kt">ptrdiff_t</span><span class="p">...</span> <span class="n">OtherStaticExtents</span><span class="o">></span>
@@ -2149,15 +2149,15 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">!=</span> <span class="n">dynamic_extent</span></code>, then <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
+     <p><em>Requires:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">!=</span><span class="n">dynamic_extent</span></code>, then <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
     <li data-md="">
-     <p><em>Effects:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">dynamic_extent</span></code>, initializes <code class="highlight"><span class="n">dynamic_extents_</span><span class="p">[</span></code><em>DynamicRank[</em><code class="highlight"><span class="n">r</span></code><em>]</em><code class="highlight"><span class="p">]</span></code> with <code class="highlight"><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
+     <p><em>Effects:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="n">dynamic_extent</span></code>, initializes <code class="highlight"><span class="n">dynamic_extents_</span><span class="p">[</span></code><em>DynamicRank[</em><code class="highlight"><span class="n">r</span></code><em>]</em><code class="highlight"><span class="p">]</span></code> with <code class="highlight"><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
     <li data-md="">
      <p><em>Throws:</em> Nothing.</p>
     <li data-md="">
-     <p><em>Postconditions:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span> <span class="o">==</span> <span class="n">other</span></code></p>
+     <p><em>Postconditions:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span><span class="o">==</span><span class="n">other</span></code></p>
     <li data-md="">
-     <p><em>Remarks:</em> This constructor shall not participate in overload resolution unless <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">StaticExtents</span><span class="p">)</span> <span class="o">==</span> <span class="k">sizeof</span><span class="p">...(</span><span class="n">OtherStaticExtents</span><span class="p">)</span></code>.</p>
+     <p><em>Remarks:</em> This constructor shall not participate in overload resolution unless <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">StaticExtents</span><span class="p">)</span><span class="o">==</span><span class="k">sizeof</span><span class="p">...(</span><span class="n">OtherStaticExtents</span><span class="p">)</span></code>.</p>
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">IndexType</span><span class="o">></span>
@@ -2165,7 +2165,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="p">((</span><span class="n">dynamic_extents</span> <span class="o">>=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">...)</span></code></p>
+     <p><em>Requires:</em> <code class="highlight"><span class="p">((</span><span class="n">dynamic_extents</span><span class="o">>=</span><span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">...)</span></code></p>
     <li data-md="">
      <p><em>Effects:</em> Aggregate-initializes <code class="highlight"><span class="n">dynamic_extents_</span></code> to <code class="highlight"><span class="p">{</span><span class="n">dynamic_extents</span><span class="p">...}</span></code></p>
     <li data-md="">
@@ -2176,7 +2176,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
       <li data-md="">
        <p><code class="highlight"><span class="p">(</span><span class="n">is_convertible_v</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">index_type</span><span class="o">></span> <span class="o">&amp;&amp;</span> <span class="p">...)</span></code></p>
       <li data-md="">
-       <p>and <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">dynamic_extents</span><span class="p">)</span> <span class="o">==</span> <span class="n">rank_dynamic</span><span class="p">()</span></code></p>
+       <p>and <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">dynamic_extents</span><span class="p">)</span><span class="o">==</span><span class="n">rank_dynamic</span><span class="p">()</span></code></p>
      </ul>
    </ul>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">rank_dynamic</span><span class="o">></span>
@@ -2184,7 +2184,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="n">dynamic_extents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">>=</span> <span class="mi">0</span></code> for all <code class="highlight"><span class="n">i</span></code> where <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">rank_dynamic</span><span class="p">()</span></code></p>
+     <p><em>Requires:</em> <code class="highlight"><span class="n">dynamic_extents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">>=</span><span class="mi">0</span></code> for all <code class="highlight"><span class="n">i</span></code> where <code class="highlight"><span class="mi">0</span><span class="o">&lt;=</span><span class="n">i</span><span class="o">&lt;</span><span class="n">rank_dynamic</span><span class="p">()</span></code></p>
     <li data-md="">
      <p><em>Effects:</em> Initializes <code class="highlight"><span class="n">dynamic_extents_</span></code> with <code class="highlight"><span class="n">dynamic_extents</span></code></p>
     <li data-md="">
@@ -2201,17 +2201,17 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">!=</span> <span class="n">dynamic_extent</span></code>, then <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
+     <p><em>Requires:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">!=</span><span class="n">dynamic_extent</span></code>, then <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
     <li data-md="">
-     <p><em>Effects:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">dynamic_extent</span></code>, assigns <code class="highlight"><span class="n">dynamic_extents_</span><span class="p">[</span></code><em>DynamicRank[</em><code class="highlight"><span class="n">r</span></code><em>]</em><code class="highlight"><span class="p">]</span></code> to <code class="highlight"><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
+     <p><em>Effects:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="n">dynamic_extent</span></code>, assigns <code class="highlight"><span class="n">dynamic_extents_</span><span class="p">[</span></code><em>DynamicRank[</em><code class="highlight"><span class="n">r</span></code><em>]</em><code class="highlight"><span class="p">]</span></code> to <code class="highlight"><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
     <li data-md="">
      <p><em>Throws:</em> Nothing.</p>
     <li data-md="">
-     <p><em>Postconditions:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span> <span class="o">==</span> <span class="n">other</span></code></p>
+     <p><em>Postconditions:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span><span class="o">==</span><span class="n">other</span></code></p>
     <li data-md="">
      <p><em>Returns:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span></code>.</p>
     <li data-md="">
-     <p><em>Remarks:</em> This constructor shall not participate in overload resolution unless <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">StaticExtents</span><span class="p">)</span> <span class="o">==</span> <span class="k">sizeof</span><span class="p">...(</span><span class="n">OtherStaticExtents</span><span class="p">)</span></code>.</p>
+     <p><em>Remarks:</em> This constructor shall not participate in overload resolution unless <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">StaticExtents</span><span class="p">)</span><span class="o">==</span><span class="k">sizeof</span><span class="p">...(</span><span class="n">OtherStaticExtents</span><span class="p">)</span></code>.</p>
    </ul>
    <p><br></p>
    <p><br> <b>26.7.�.3 Observers of the domain multi-index space [mdspan.extents.obs]</b></p>
@@ -2227,7 +2227,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Returns:</em> <code class="highlight"><span class="p">((</span><span class="n">StaticExtents</span> <span class="o">==</span> <span class="n">dynamic_extent</span><span class="p">)</span> <span class="o">+</span> <span class="p">...)</span></code> <em>[Note:</em> This is the number of dynamic extents <em>—end note]</em></p>
+     <p><em>Returns:</em> <code class="highlight"><span class="p">((</span><span class="n">StaticExtents</span><span class="o">==</span><span class="n">dynamic_extent</span><span class="p">)</span><span class="o">&amp;&amp;</span><span class="p">...)</span></code> <em>[Note:</em> This is the number of dynamic extents <em>—end note]</em></p>
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="k">static</span> <span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
@@ -2284,9 +2284,9 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
       <li data-md="">
        <p><code class="highlight"><span class="n">e</span></code> denotes an object of type <code class="highlight"><span class="n">E</span></code> defining a domain multi-index space.</p>
       <li data-md="">
-       <p><code class="highlight"><span class="n">r</span></code> is a value of an integral type such that <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">e</span><span class="p">.</span><span class="n">rank</span><span class="p">()</span></code>.</p>
+       <p><code class="highlight"><span class="n">r</span></code> is a value of an integral type such that 0 &lt;= <code class="highlight"><span class="n">r</span></code> &lt; <code class="highlight"><span class="n">e</span><span class="p">.</span><span class="n">rank</span><span class="p">()</span></code>.</p>
       <li data-md="">
-       <p><code class="highlight"><span class="n">i</span><span class="p">...</span></code> and <code class="highlight"><span class="n">j</span><span class="p">...</span></code> are packs of an integer type denoting values in the multi-index space <code class="highlight"><span class="n">e</span></code>, the <code class="highlight"><span class="n">r</span></code>*th member of packs <code class="highlight"><span class="n">i</span><span class="p">...</span></code> and <code class="highlight"><span class="n">j</span><span class="p">...</span></code> are denoted by <code class="highlight"><span class="n">i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> and <code class="highlight"><span class="n">j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code>, and <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">i</span><span class="p">)</span> <span class="o">==</span> <span class="n">E</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code>, <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">e</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>, <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">j</span><span class="p">)</span> <span class="o">==</span> <span class="n">E</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code> and <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">e</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
+       <p><code class="highlight"><span class="n">i</span><span class="p">...</span></code> and <code class="highlight"><span class="n">j</span><span class="p">...</span></code> are packs of an integer type denoting values in the multi-index space <code class="highlight"><span class="n">e</span></code>, the <code class="highlight"><span class="n">r</span></code>*th member of packs <code class="highlight"><span class="n">i</span><span class="p">...</span></code> and <code class="highlight"><span class="n">j</span><span class="p">...</span></code> are denoted by <code class="highlight"><span class="n">i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> and <code class="highlight"><span class="n">j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code>, and <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">i</span><span class="p">)</span><span class="o">==</span><span class="n">E</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code>, 0 &lt;= <code class="highlight"><span class="n">i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> &lt; <code class="highlight"><span class="n">e</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>, <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">j</span><span class="p">)</span><span class="o">==</span><span class="n">E</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code> and 0 &lt;= <code class="highlight"><span class="n">j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> &lt; <code class="highlight"><span class="n">e</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
       <li data-md="">
        <p><code class="highlight"><span class="n">M</span></code> denotes a layout mapping class.</p>
       <li data-md="">
@@ -2325,7 +2325,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <tr>
       <td><code class="highlight"><span class="n">m</span><span class="p">.</span><span class="n">is_unique</span><span class="p">()</span></code>
       <td><code class="highlight"><span class="kt">bool</span></code>
-      <td><em>Returns:</em> <code class="highlight">true</code> if <code class="highlight"><span class="n">m</span><span class="p">(</span><span class="n">i</span><span class="p">...)</span> <span class="o">!=</span> <span class="n">m</span><span class="p">(</span><span class="n">j</span><span class="p">...)</span></code> for every <code class="highlight"><span class="n">i</span><span class="p">...</span> <span class="o">!=</span> <span class="n">j</span><span class="p">...</span></code> 
+      <td><em>Returns:</em> <code class="highlight">true</code> if <code class="highlight"><span class="n">m</span><span class="p">(</span><span class="n">i</span><span class="p">...)</span><span class="o">!=</span><span class="n">m</span><span class="p">(</span><span class="n">j</span><span class="p">...)</span></code> for every <code class="highlight"><span class="n">i</span><span class="p">...</span><span class="o">!=</span><span class="n">j</span><span class="p">...</span></code> 
       <td>
      <tr>
       <td><code class="highlight"><span class="n">m</span><span class="p">.</span><span class="n">is_contiguous</span><span class="p">()</span></code>
@@ -2477,7 +2477,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Returns:</em> The product of <code class="highlight"><span class="n">get_extents</span><span class="p">().</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> where <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">().</span><span class="n">rank</span><span class="p">()</span></code></p>
+     <p><em>Returns:</em> The product of <code class="highlight"><span class="n">get_extents</span><span class="p">().</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> where 0 &lt;= <code class="highlight"><span class="n">r</span></code> &lt; <code class="highlight"><span class="n">get_extents</span><span class="p">().</span><span class="n">rank</span><span class="p">()</span></code></p>
    </ul>
    <p><br></p>
 <pre class="highlight"><span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">Indices</span><span class="o">></span>
@@ -2489,8 +2489,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> Equivalent to <code class="highlight"><span class="n">offset</span></code> in</p>
    </ul>
 <pre class="highlight"><span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">.</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> 
-  <span class="n">offset</span> <span class="o">+=</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">stride</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">k</span><span class="o">&lt;</span><span class="n">get_extents</span><span class="p">.</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> 
+  <span class="n">offset</span> <span class="o">+=</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">stride</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
 </pre>
    <ul>
     <li data-md="">
@@ -2523,7 +2523,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> Equivalent to <code class="highlight"><span class="n">s</span></code> in</p>
    </ul>
 <pre class="highlight"><span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">;</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">k</span><span class="o">&lt;</span><span class="n">r</span><span class="p">;</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span>
   <span class="n">s</span> <span class="o">*=</span> <span class="n">get_extents</span><span class="p">().</span><span class="n">extent</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
 </pre>
    <p><br></p>
@@ -2532,7 +2532,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Returns:</em> <code class="highlight"><span class="n">get_extents</span><span class="p">()</span> <span class="o">==</span> <span class="n">other</span><span class="p">.</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
+     <p><em>Returns:</em> <code class="highlight"><span class="n">get_extents</span><span class="p">()</span><span class="o">==</span><span class="n">other</span><span class="p">.</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">OtherExtents</span><span class="o">></span>
@@ -2540,7 +2540,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Returns:</em> <code class="highlight"><span class="n">get_extents</span><span class="p">()</span> <span class="o">!=</span> <span class="n">other</span><span class="p">.</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
+     <p><em>Returns:</em> <code class="highlight"><span class="n">get_extents</span><span class="p">()</span><span class="o">!=</span><span class="n">other</span><span class="p">.</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
    </ul>
    <p><br> <br> <b>26.7.�.3 Class layout_right [mdspan.layout.right]</b></p>
    <ol>
@@ -2661,7 +2661,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Returns:</em> The product of <code class="highlight"><span class="n">get_extents</span><span class="p">().</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> where <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">().</span><span class="n">rank</span><span class="p">()</span></code></p>
+     <p><em>Returns:</em> The product of <code class="highlight"><span class="n">get_extents</span><span class="p">().</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> where 0 &lt;= <code class="highlight"><span class="n">r</span></code> &lt; <code class="highlight"><span class="n">get_extents</span><span class="p">().</span><span class="n">rank</span><span class="p">()</span></code></p>
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">Indices</span><span class="o">></span>
@@ -2673,8 +2673,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> Equivalent to <code class="highlight"><span class="n">offset</span></code> in</p>
    </ul>
 <pre class="highlight"><span class="n">index_type</span> <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> 
-  <span class="n">offset</span> <span class="o">+=</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">stride</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">k</span><span class="o">&lt;</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> 
+  <span class="n">offset</span> <span class="o">+=</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">stride</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
 </pre>
    <ul>
     <li data-md="">
@@ -2706,7 +2706,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> Equivalent to <code class="highlight"><span class="n">s</span></code> in</p>
    </ul>
 <pre class="highlight"><span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span> <span class="o">=</span> <span class="n">r</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">.</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span><span class="o">=</span><span class="n">r</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">k</span><span class="o">&lt;</span><span class="n">get_extents</span><span class="p">.</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span>
   <span class="n">s</span> <span class="o">*=</span> <span class="n">get_extents</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
 </pre>
    <p><br></p>
@@ -2723,7 +2723,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Returns:</em> <code class="highlight"><span class="n">get_extents</span><span class="p">()</span> <span class="o">!=</span> <span class="n">other</span><span class="p">.</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
+     <p><em>Returns:</em> <code class="highlight"><span class="n">get_extents</span><span class="p">()</span><span class="o">!=</span><span class="n">other</span><span class="p">.</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
    </ul>
    <p><br> <br> <b>26.7.�.4 Class <code class="highlight"><span class="n">layout_stride</span></code> [mdspan.layout.stride]</b></p>
    <ol>
@@ -2736,7 +2736,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
    </ol>
    <p><br></p>
 <pre class="highlight"><span class="k">struct</span> <span class="n">layout_stride</span> <span class="p">{</span>
-  <span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Extents</span><span class="o">></span>
+  <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">Extents</span><span class="o">></span>
   <span class="k">class</span> <span class="nc">mapping</span> <span class="p">{</span>
   <span class="k">public</span><span class="o">:</span>
     <span class="k">constexpr</span> <span class="n">mapping</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -2814,7 +2814,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><code class="highlight"><span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">></span><span class="mi">0</span></code> for <code class="highlight"><span class="mi">0</span><span class="o">&lt;</span><span class="n">i</span><span class="o">&lt;=</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code></p>
     <li data-md="">
-     <p>there is a permutation of the numbers <code class="highlight"><span class="mi">0</span><span class="p">,</span></code>...<code class="highlight"><span class="p">,</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span></code> <code class="highlight"><span class="n">o</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></code> with <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code> such that <code class="highlight"><span class="n">stride</span><span class="p">(</span><span class="n">o</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="o">>=</span> <span class="n">stride</span><span class="p">(</span><span class="n">o</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="n">get_extent</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">o</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span></code> for <code class="highlight"><span class="mi">1</span><span class="o">&lt;=</span><span class="n">i</span><span class="o">&lt;</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code></p>
+     <p>there is a permutation of the numbers <code class="highlight"><span class="mi">0</span><span class="p">,</span></code>...<code class="highlight"><span class="p">,</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span></code> <code class="highlight"><span class="n">o</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></code> with 0 &lt;= <code class="highlight"><span class="n">i</span></code> &lt; <code class="highlight"><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code> such that <code class="highlight"><span class="n">stride</span><span class="p">(</span><span class="n">o</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">>=</span><span class="n">stride</span><span class="p">(</span><span class="n">o</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="n">get_extent</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">o</span><span class="p">(</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span></code> for <code class="highlight"><span class="mi">1</span><span class="o">&lt;=</span><span class="n">i</span><span class="o">&lt;</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code></p>
     <li data-md="">
      <p>Effects: Initializes <code class="highlight"><span class="n">extents_</span></code> with <code class="highlight"><span class="n">e</span></code> and <code class="highlight"><span class="n">strides_</span></code> with <code class="highlight"><span class="n">s</span></code></p>
     <li data-md="">
@@ -2859,7 +2859,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p>Returns: If <code class="highlight"><span class="n">i</span><span class="p">...</span></code> is <code class="highlight"><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span></code>...<code class="highlight"><span class="p">,</span> <span class="n">ik</span></code> (where <code class="highlight"><span class="n">k</span> <span class="o">==</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span></code>) and <code class="highlight"><span class="n">s</span> <span class="o">=</span> <span class="n">get_strides</span><span class="p">()</span></code>, returns <code class="highlight"><span class="n">i0</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">i1</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span></code>...<code class="highlight"><span class="o">+</span> <span class="n">ik</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></code></p>
+     <p>Returns: If <code class="highlight"><span class="n">i</span><span class="p">...</span></code> is <code class="highlight"><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span></code>...<code class="highlight"><span class="p">,</span> <span class="n">ik</span></code> (where <code class="highlight"><span class="n">k</span> <span class="o">==</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span></code>) and <code class="highlight"><span class="n">s</span> <span class="o">=</span> <span class="n">get_strides</span><span class="p">()</span></code>, returns <code class="highlight"><span class="n">i0</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">i1</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span></code>...<code class="highlight"><span class="o">+</span><span class="n">ik</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></code></p>
     <li data-md="">
      <p>Remarks: This operator shall not participate in overload resolution unless</p>
     <li data-md="">
@@ -2908,7 +2908,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Returns:</em> <code class="highlight"><span class="n">get_extents</span><span class="p">()</span> <span class="o">!=</span> <span class="n">other</span><span class="p">.</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
+     <p><em>Returns:</em> <code class="highlight"><span class="n">get_extents</span><span class="p">()</span><span class="o">!=</span><span class="n">other</span><span class="p">.</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
    </ul>
    <p><br> <br></p>
    <p><b>26.7.� Accessor [mdspan.accessor]</b></p>
@@ -3163,7 +3163,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span> <span class="o">+</span> <span class="n">required_span_size</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...))</span></code> shall be a valid range.</p>
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">required_span_size</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...))</span></code> shall be a valid range.</p>
     <li data-md="">
      <p><em>Effects:</em></p>
      <ul>
@@ -3437,7 +3437,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">index_type</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">...(</span><span class="n">indices</span><span class="p">)</span><span class="o">></span><span class="p">{</span><span class="n">indices</span><span class="p">...}[</span><span class="n">r</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>.</p>
+     <p><em>Requires:</em> 0 &lt;= <code class="highlight"><span class="n">array</span><span class="o">&lt;</span><span class="n">index_type</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">...(</span><span class="n">indices</span><span class="p">)</span><span class="o">></span><span class="p">{</span><span class="n">indices</span><span class="p">...}[</span><span class="n">r</span><span class="p">]</span></code> &lt; <code class="highlight"><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>.</p>
     <li data-md="">
      <p><em>Effects:</em> Equivalent to <code class="highlight"><span class="k">return</span> <span class="nf">acc_</span><span class="p">(</span><span class="n">ptr_</span><span class="p">,</span> <span class="n">indices</span><span class="p">...);</span></code></p>
     <li data-md="">
@@ -3515,7 +3515,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Returns:</em> Product of <code class="highlight"><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> where <code class="highlight"><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">().</span><span class="n">rank</span><span class="p">()</span></code>.</p>
+     <p><em>Returns:</em> Product of <code class="highlight"><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code> for all <code class="highlight"><span class="n">r</span></code> where 0 &lt;= <code class="highlight"><span class="n">r</span></code> &lt; <code class="highlight"><span class="n">get_extents</span><span class="p">().</span><span class="n">rank</span><span class="p">()</span></code>.</p>
    </ul>
 <pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">unique_size</span><span class="p">()</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 </pre>
@@ -3636,7 +3636,7 @@ The second template parameter of the return type is E, a specialization of <code
     <li data-md="">
      <p>If <em>ranges[r]</em> is the nth value of <code class="highlight"><span class="n">ranges</span></code> convertible to <code class="highlight"><span class="n">alltype_t</span></code> or <code class="highlight"><span class="n">pair</span><span class="o">&lt;</span><span class="kt">ptrdiff_t</span><span class="p">,</span><span class="kt">ptrdiff_t</span><span class="o">></span></code> and <code class="highlight"><span class="n">slices</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></code> is the <code class="highlight"><span class="n">n</span></code>th value of <code class="highlight"><span class="n">slices</span></code> convertible to <code class="highlight"><span class="n">all</span> <span class="n">type_t</span></code> or <code class="highlight"><span class="n">pair</span><span class="o">&lt;</span><span class="kt">ptrdiff_t</span><span class="p">,</span><span class="kt">ptrdiff_t</span><span class="o">></span></code> then <code class="highlight"><span class="n">sub</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="n">last</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">-</span><span class="n">first</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></code> and <code class="highlight"><span class="n">sub</span><span class="p">.</span><span class="n">stride</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">==</span><span class="n">src</span><span class="p">.</span><span class="n">stride</span><span class="p">(</span><span class="n">k</span><span class="p">)</span></code> <br></p>
     <li data-md="">
-     <p><code class="highlight"><span class="n">sub</span><span class="p">.</span><span class="n">ptr_</span><span class="o">==</span><span class="n">src</span><span class="p">.</span><span class="n">ptr_</span> <span class="o">+</span> <span class="n">first</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">src</span><span class="p">.</span><span class="n">stride</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="p">...</span> <span class="o">+</span> <span class="n">first</span><span class="p">[</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">src</span><span class="p">.</span><span class="n">stride</span><span class="p">(</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></code> <br></p>
+     <p><code class="highlight"><span class="n">sub</span><span class="p">.</span><span class="n">ptr_</span><span class="o">==</span><span class="n">src</span><span class="p">.</span><span class="n">ptr_</span><span class="o">+</span><span class="n">first</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">src</span><span class="p">.</span><span class="n">stride</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">+</span></code>...<code class="highlight"><span class="o">+</span><span class="n">first</span><span class="p">[</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">src</span><span class="p">.</span><span class="n">stride</span><span class="p">(</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></code> <br></p>
     <li data-md="">
      <p class="note" role="note"><span>Note:</span> it is quality of implementation whether static extents are preserved if possible. <br></p>
    </ul>
@@ -3655,7 +3655,7 @@ The second template parameter of the return type is E, a specialization of <code
 <span class="c1"></span><span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i0</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i0</span><span class="o">&lt;</span><span class="n">a</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i0</span><span class="o">++</span><span class="p">)</span>
   <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i1</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i1</span><span class="o">&lt;</span><span class="n">a</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">i1</span><span class="o">++</span><span class="p">)</span>
     <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i2</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i2</span><span class="o">&lt;</span><span class="n">a</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span> <span class="n">i2</span><span class="o">++</span><span class="p">)</span>
-      <span class="n">a</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span><span class="n">i1</span><span class="p">,</span><span class="n">i2</span><span class="p">)</span> <span class="o">=</span> <span class="mi">10000</span><span class="o">*</span><span class="n">i0</span> <span class="o">+</span> <span class="mi">100</span><span class="o">*</span><span class="n">i1</span> <span class="o">+</span> <span class="n">i2</span><span class="p">;</span>
+      <span class="n">a</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span><span class="n">i1</span><span class="p">,</span><span class="n">i2</span><span class="p">)</span> <span class="o">=</span> <span class="mi">10000</span><span class="o">*</span><span class="n">i0</span><span class="o">+</span><span class="mi">100</span><span class="o">*</span><span class="n">i1</span><span class="o">+</span><span class="n">i2</span><span class="p">;</span>
 
 <span class="c1">// Create Subspan</span>
 <span class="c1"></span><span class="k">auto</span> <span class="n">a_sub</span> <span class="o">=</span> <span class="n">subspan</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">></span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">></span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">));</span>
