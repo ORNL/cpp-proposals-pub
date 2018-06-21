@@ -648,6 +648,21 @@ Add the header `<mdspan>` to table 16 in **[headers]**.
 Add the header `<mdspan>` to Table 76 in 26.1 **[containers.general]** below
 the listing for `<span>`.
 
+<!--
+
+ /$$      /$$                           /$$ /$$                    
+| $$  /$ | $$                          | $$|__/                    
+| $$ /$$$| $$  /$$$$$$   /$$$$$$   /$$$$$$$ /$$ /$$$$$$$   /$$$$$$ 
+| $$/$$ $$ $$ /$$__  $$ /$$__  $$ /$$__  $$| $$| $$__  $$ /$$__  $$
+| $$$$_  $$$$| $$  \ $$| $$  \__/| $$  | $$| $$| $$  \ $$| $$  \ $$
+| $$$/ \  $$$| $$  | $$| $$      | $$  | $$| $$| $$  | $$| $$  | $$
+| $$/   \  $$|  $$$$$$/| $$      |  $$$$$$$| $$| $$  | $$|  $$$$$$$
+|__/     \__/ \______/ |__/       \_______/|__/|__/  |__/ \____  $$
+                                                          /$$  \ $$
+                                                         |  $$$$$$/
+                                                          \______/ 
+-->
+
 Wording
 =======
 
@@ -749,9 +764,9 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 
 -->
 
-<b>26.7.� Class template `extents` [mdspan.extents]</b>
+## <b>26.7.� Class template `extents` [mdspan.extents]</b>
 
-<b>26.7.�.1 Overview [mdspan.extents.overview]</b>
+### <b>26.7.�.1 Overview [mdspan.extents.overview]</b>
 
 1. An `extents` object defines a *multidimensional index space* which is the Cartesian product of integers extents *[0..N0) X [0..N1) X ...*.
 2. The *dynamic extents* of an `extents` object correspond to the `StaticExtents` template parameters that are equal to `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th such extent in the `StaticExtents` template parameter pack, and let *DynamicIndex[r]* indicate the number of such extents in the first *r* entries of the `StaticExtents` parameter pack
@@ -805,7 +820,7 @@ private:
 }}}
 </pre>
 
-<b>26.7.�.2 Constructors and assignment [mdspan.extents.cons]</b>
+### <b>26.7.�.2 Constructors and assignment [mdspan.extents.cons]</b>
 
 ```c++
 constexpr extents() noexcept;
@@ -881,7 +896,7 @@ constexpr extents& operator=(const extents<OtherStaticExtents...>& other) noexce
 <br/>
 
 <br/>
-<b>26.7.�.3 Observers of the domain multi-index space [mdspan.extents.obs]</b>
+### <b>26.7.�.3 Observers of the domain multi-index space [mdspan.extents.obs]</b>
 
 <br/>
 ```c++
@@ -916,7 +931,7 @@ constexpr index_type extent(int r) const noexcept;
     * Otherwise, `static_extent(r)`.
 
 <br/>
-<b>26.7.�.4 `extents` comparison operators [mdspan.extents.compare]</b>
+### <b>26.7.�.4 `extents` comparison operators [mdspan.extents.compare]</b>
 
 
 ```c++
@@ -950,9 +965,9 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 
 <br/>
 <br/>
-<b>26.7.� Layout mapping policy [mdspan.layout]</b>
+## <b>26.7.� Layout mapping policy [mdspan.layout]</b>
 
-<b>26.7.�.1 Layout mapping requirements [mdspan.layout.reqs]</b>
+### <b>26.7.�.1 Layout mapping requirements [mdspan.layout.reqs]</b>
 
 1. A *layout mapping policy* is a class that contains a *layout mapping*, a nested class template.
 
@@ -1068,7 +1083,7 @@ Table � — Layout mapping policy and layout mapping requirements
 
 <br/>
 <br/>
-<b>26.7.�.2 Class layout_left [mdspan.layout.left]</b>
+### <b>26.7.�.2 Class layout_left [mdspan.layout.left]</b>
 
 1. `layout_left` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_left::mapping` meets the requirements of layout mapping *—end note]*
 2. `layout_left` gives a layout mapping where the left-most extent is stride one and strides increase left-to-right as the product of extents.
@@ -1302,7 +1317,7 @@ constexpr bool operator!=(const mapping& other) const noexcept;
 
 <br/>
 <br/>
-<b>26.7.�.3 Class layout_right [mdspan.layout.right]</b>
+### <b>26.7.�.3 Class layout_right [mdspan.layout.right]</b>
 
 1. `layout_right` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_right::mapping` meets the requirements of layout mapping *—end note]*
 2. The layout mapping property `layout_right` gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.
@@ -1537,7 +1552,7 @@ layout_stride
 
 <br/>
 <br/>
-<b>26.7.�.4 Class `layout_stride` [mdspan.layout.stride]</b>
+### <b>26.7.�.4 Class `layout_stride` [mdspan.layout.stride]</b>
 
 1. `layout_stride` meets the requirements of layout mapping policy.  
 2. The layout mapping property `layout_stride` gives a layout mapping where the ...
@@ -1696,72 +1711,6 @@ constexpr bool operator!=(const mapping& other) const noexcept;
 * Returns: `(get_extents() != other.get_extents()) || (get_strides() != other.get_strides())`
 
 <!--
-subspan
-
-                     /$$                                              
-                    | $$                                              
-  /$$$$$$$ /$$   /$$| $$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$  /$$$$$$$ 
- /$$_____/| $$  | $$| $$__  $$ /$$_____/ /$$__  $$ |____  $$| $$__  $$
-|  $$$$$$ | $$  | $$| $$  \ $$|  $$$$$$ | $$  \ $$  /$$$$$$$| $$  \ $$
- \____  $$| $$  | $$| $$  | $$ \____  $$| $$  | $$ /$$__  $$| $$  | $$
- /$$$$$$$/|  $$$$$$/| $$$$$$$/ /$$$$$$$/| $$$$$$$/|  $$$$$$$| $$  | $$
-|_______/  \______/ |_______/ |_______/ | $$____/  \_______/|__/  |__/
-                                        | $$                          
-                                        | $$                          
-                                        |__/                          
--->
-
-<br/>
-<br/>
-<b>26.7.�.5 subspan [mdspan.subspan]</b>
-
-```c++
-  // [mdspan.subspan], subspan creation
-  template<class ElementType, class Extents, class LayoutPolicy,
-           class Accessor, class... SliceSpecifiers>
-    basic_mdspan<ElementType, E /* see-below */, layout_stride, Accessor>
-      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>& src, SliceSpecifiers ... slices) noexcept;
-```
-
-`subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
-The SliceSpecifier parameters indicate the subset that the return value references.
-Let slices[r] denote the rth value in the parameter pack slices.
-The second template parameter of the return type is E, a specialization of `extents`.
-<br/>
-
-Let <em>C</em> be the number of parameters in `SliceSpecifiers` which are convertible to `ptrdiff_t` <br/>
-Let <em>ranges[r]</em> denote the rth value in the parameter pack slices, which is not convertible to `ptrdiff_t` <br/>
-Let <em>sub</em> be the return value of `subspan` <br/>
-Let <em>first[r]</em> denote the rth lower bound of `slices[r]`. <br/>
-    * If `slices[r]` is convertible to `ptrdiff_t` `first[r]==slices[r]` <br/>
-    * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `first[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).first()` <br/>
-    * If `slices[r]` is convertible to `alltype_t` `first[r]==0` <br/>
-Let `last[r]` denote the rth upper bound of `slices[r]`. <br/>
-    * If `slices[r]` is convertible to `ptrdiff_t` `last[r]==slices[r]+1` <br/>
-    * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `last[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).second()` <br/>
-    * If `slices[r]` is convertible to `alltype_t` `last[r]==src.extent(r)` <br/>
-
-Requires: <br/>
-    * `sizeof(slices...)==Extents::rank()` <br/>
-    * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `alltype_t` <br/>
-    * `0<=first[r]<src.extent(r)` <br/>
-    * `0<last[r]<=src.extent(r)` <br/>
-    * `LayoutPolicy` is `layout_right`, `layout_left`, or `layout_stride` <br/>
-
-Postcondition: <br/>
-    * `E::rank() == Extents::rank()-C` <br/>
-    * If <em>ranges[r]</em> is the nth value of `ranges` convertible to `alltype_t` or `pair<ptrdiff_t,ptrdiff_t>` and `slices[k]` is the `n`th value of `slices` convertible to `all type_t` or  `pair<ptrdiff_t,ptrdiff_t>` then `sub.extent(r)==last[k]-first[k]` and `sub.stride(r)==src.stride(k)` <br/> 
-    * `sub.ptr_==src.ptr_ + first[0]*src.stride(0) + ... + first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
-    * Note: it is quality of implementation whether static extents are preserved if possible.  <br/>
-
-* Examples:
-```c++
-typedef extents<100,dynamic_extent,3> Extents3D;
-layout_right::mapping<Extents3D> map_right(
-basic_mdspan<int,Extents3D,layout_right> a()
-```
-
-<!--
 
 
 
@@ -1782,10 +1731,10 @@ basic_mdspan<int,Extents3D,layout_right> a()
 <br/>
 <br/>
 
-<b>26.7.� Accessor [mdspan.accessor]</b>
+## <b>26.7.� Accessor [mdspan.accessor]</b>
 
 <br/>
-<b>26.7.�.1 Accessor requirements [mdspan.accessor.reqs]</b>
+### <b>26.7.�.1 Accessor requirements [mdspan.accessor.reqs]</b>
 
 1. An *accessor* is a class that converts a pointer and an offset into a reference. *[Note:* The intended semantic is that the reference refers to a value at the given offset from the given pointer. *—end note]*
 
@@ -1837,7 +1786,7 @@ Table �: Accessor requirements
 -->
 
 <br/>
-<b>26.7.�.2 Class `accessor_basic` [mdspan.accessor.basic]</b>
+### <b>26.7.�.2 Class `accessor_basic` [mdspan.accessor.basic]</b>
 
 1. `accessor_basic` meets the requirements of accessor.
 <!-- TODO review this summary description -->
@@ -1885,7 +1834,7 @@ constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 
 <br/>
 <br/>
-<b>26.7.� Class template `basic_mdspan` [mdspan.basic]</b>
+## <b>26.7.� Class template `basic_mdspan` [mdspan.basic]</b>
 
 1. The `basic_mdspan` class template maps a multi-index within a multi-index *domain* to a reference to an element in the *codomain* `span`.
 2. The multi-index domain space is the Cartesian product of the extents: `[0, extent(0)) X [0, extent(1)) X`* ... *` X [0, extent(rank() - 1))`. Each extent may be statically or dynamically specified.
@@ -1993,7 +1942,7 @@ private:
 
 -->
 <br/>
-<b>26.7.�.1 `basic_mdspan` constructors, assignment, and destructor [mdspan.basic.cons]</b>
+### <b>26.7.�.1 `basic_mdspan` constructors, assignment, and destructor [mdspan.basic.cons]</b>
   // Mapping domain multi-index to access codomain element
 
 ```c++
@@ -2207,7 +2156,7 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
 -->
 
 <br/>
-<b>26.7.�.2 `basic_mdspan` mapping domain multi-index to access codomain element [mdspan.basic.mapping]</b>
+### <b>26.7.�.2 `basic_mdspan` mapping domain multi-index to access codomain element [mdspan.basic.mapping]</b>
 
 ```c++
 constexpr reference operator[](index_type i) const;
@@ -2260,7 +2209,7 @@ accessor get_accessor() const;
 
 -->
 <br/>
-<b>26.7.�.3 `basic_mdspan` observers of the domain multi-index space [mdspan.basic.domobs]</b>
+### <b>26.7.�.3 `basic_mdspan` observers of the domain multi-index space [mdspan.basic.domobs]</b>
 
 ```c++
 static constexpr int rank() noexcept;
@@ -2325,7 +2274,7 @@ constexpr index_type unique_size() const noexcept;
 -->
 
 <br/>
-<b>26.7.�.3 `basic_mdspan` observers of the codomain [mdspan.basic.codomain]</b>
+### <b>26.7.�.3 `basic_mdspan` observers of the codomain [mdspan.basic.codomain]</b>
 
 ```c++
 constexpr span<element_type> span() const noexcept;
@@ -2344,7 +2293,7 @@ constexpr span<element_type> span() const noexcept;
 -->
 
 <br/>
-<b>26.7.�.4 `basic_mdspan` observers of the mapping [mdspan.basic.obs]</b>
+### <b>26.7.�.4 `basic_mdspan` observers of the mapping [mdspan.basic.obs]</b>
 
 <br/>
 
@@ -2412,61 +2361,71 @@ constexpr index_type stride(int r) const;
 
 
 <!--
-                  888
-                  888
-                  888
-.d8888b  888  888 88888b.  .d8888b  88888b.   8888b.  88888b.
-88K      888  888 888 "88b 88K      888 "88b     "88b 888 "88b
-"Y8888b. 888  888 888  888 "Y8888b. 888  888 .d888888 888  888
-     X88 Y88b 888 888 d88P      X88 888 d88P 888  888 888  888
- 88888P'  "Y88888 88888P"   88888P' 88888P"  "Y888888 888  888
-                                    888
-                                    888
-                                    888
+subspan
+
+                     /$$                                              
+                    | $$                                              
+  /$$$$$$$ /$$   /$$| $$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$  /$$$$$$$ 
+ /$$_____/| $$  | $$| $$__  $$ /$$_____/ /$$__  $$ |____  $$| $$__  $$
+|  $$$$$$ | $$  | $$| $$  \ $$|  $$$$$$ | $$  \ $$  /$$$$$$$| $$  \ $$
+ \____  $$| $$  | $$| $$  | $$ \____  $$| $$  | $$ /$$__  $$| $$  | $$
+ /$$$$$$$/|  $$$$$$/| $$$$$$$/ /$$$$$$$/| $$$$$$$/|  $$$$$$$| $$  | $$
+|_______/  \______/ |_______/ |_______/ | $$____/  \_______/|__/  |__/
+                                        | $$                          
+                                        | $$                          
+                                        |__/                          
 -->
 
 <br/>
 <br/>
-<b>26.7.� Function template subspan [mdspan.subspan]</b>
-
-<!-- TODO review wording here! -->
-1. `subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
-2. The `SliceSpecifier` parameters indicate the subset that the return value references.
-3. Let `slices[r]` denote the `r`th value in the parameter pack `slices`.
-4. When `mds` is an instance of a specialization of `basic_mdspan`, define *SLICE_BEGIN(*`mds`*, *`sl`*)* as:
-    + `sl`, if `sl` is convertible to `ptrdiff_t`;
-    + otherwise, `get<0>(sl)` if that expression is well-formed and convertible to `ptrdiff_t`;
-    + otherwise, `0` when `sl` is an instance of `all_tag`;
-    + otherwise, ill-formed.
-5. When `mds` is an instance of a specialization of `basic_mdspan`, define *SLICE_END(*`mds`*, *`sl`*, *`r`*)* as:
-    + `sl + 1`, if `sl` is convertible to `ptrdiff_t`;
-    + otherwise, `get<1>(sl)` if that expression is well-formed and convertible to `ptrdiff_t`;
-    + otherwise, `mds.extent(r)` if `sl` is an instance of `all_tag`;
-    + otherwise, ill-formed.
-6. The second template parameter of the return type is `E`, a specialization of `extents` with `E::rank() == Extents::rank()` and for each integer `r` in the range `[0, E::rank())`, `E::static_extent(r)` is:
-    + `1` if `slices[r]` is convertible to `ptrdiff_t`;
-    + otherwise, `dynamic_extent` if `get<0>(slices[r])` and `get<1>(slices[r])` are well-formed and convertible to `ptrdiff_t`;
-    + otherwise, `Extents::static_extent(r)`.
-7. The third template parameter of the return type is `LM`, a specialization of `layout_stride`, with TODO WRITE THIS
+## <b>26.7.� subspan [mdspan.subspan]</b>
 
 ```c++
-template<class ElementType, class Extents, class LayoutPolicy,
-          class Accessor, class... SliceSpecifiers>
-  basic_mdspan<ElementType, /* see-below */, /* see-below */, Accessor>
-    subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>& s, SliceSpecifiers... slices);
+  // [mdspan.subspan], subspan creation
+  template<class ElementType, class Extents, class LayoutPolicy,
+           class Accessor, class... SliceSpecifiers>
+    basic_mdspan<ElementType, E /* see-below */, layout_stride, Accessor>
+      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>& src, SliceSpecifiers ... slices) noexcept;
 ```
 
-* *Requires:* For all integers `r` in the range `[0, s.rank())`,
-    + *SLICE_BEGIN(*`s`, `slices[r]`*)* `>= 0`,
-    + *SLICE_END(*`s`, `slices[r]`, `r`*)* `<= s.extent(r)`, and
-    + *SLICE_END(*`s`, `slices[r]`, `r`*)* `<= s.extent(r)` >= *SLICE_BEGIN(*`s`, `slices[r]`*)* `>= 0`.
-* *Returns:* An instance `m` of type `basic_mdspan<ElementTYpe, E, LM, Accessor>` such that:
-    + for each integer `r` in the range `[0, s.rank())`, `m.extent(r) == `*SLICE_END(*`s`, `slices[r]`, `r`*)*` - `*SLICE_BEGIN(*`s`, `slices[r]`*)*
-    + TODO describe the layout mapping
-    + for each integer `r` in the range `[0, s.rank())` and for each integer `k(r)` in each range `[0, `*SLICE_END(*`s`, `slices[r]`, `r`*)*` - `*SLICE_BEGIN(*`s`, `slices[r]`*)*`)`, invoking `m(k(Rs)...)` is equivalent to invoking `s((`*SLICE_BEGIN(*`s`, `slices[Rs]`*)*` + k(Rs))...)` with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<Extents::rank()>`.
-* *Remarks:* This function does not participate in overload resolution unless:
-    + `sizeof...(slices) == Extents::rank()`
-    + *SLICE_BEGIN(*`s`, `slices[r]`*)* and *SLICE_END(*`s`, `slices[r]`, `r`*)* are well-formed for all integers `r` in the range `[0, rank())`.
+`subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
+The SliceSpecifier parameters indicate the subset that the return value references.
+Let slices[r] denote the rth value in the parameter pack slices.
+The second template parameter of the return type is E, a specialization of `extents`.
+<br/>
+
+Let <em>C</em> be the number of parameters in `SliceSpecifiers` which are convertible to `ptrdiff_t` <br/>
+Let <em>ranges[r]</em> denote the rth value in the parameter pack slices, which is not convertible to `ptrdiff_t` <br/>
+Let <em>sub</em> be the return value of `subspan` <br/>
+Let <em>first[r]</em> denote the rth lower bound of `slices[r]`. <br/>
+    * If `slices[r]` is convertible to `ptrdiff_t` `first[r]==slices[r]` <br/>
+    * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `first[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).first()` <br/>
+    * If `slices[r]` is convertible to `alltype_t` `first[r]==0` <br/>
+Let `last[r]` denote the rth upper bound of `slices[r]`. <br/>
+    * If `slices[r]` is convertible to `ptrdiff_t` `last[r]==slices[r]+1` <br/>
+    * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `last[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).second()` <br/>
+    * If `slices[r]` is convertible to `alltype_t` `last[r]==src.extent(r)` <br/>
+
+Requires: <br/>
+    * `sizeof(slices...)==Extents::rank()` <br/>
+    * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `alltype_t` <br/>
+    * `0<=first[r]<src.extent(r)` <br/>
+    * `0<last[r]<=src.extent(r)` <br/>
+    * `LayoutPolicy` is `layout_right`, `layout_left`, or `layout_stride` <br/>
+
+Postcondition: <br/>
+    * `E::rank() == Extents::rank()-C` <br/>
+    * If <em>ranges[r]</em> is the nth value of `ranges` convertible to `alltype_t` or `pair<ptrdiff_t,ptrdiff_t>` and `slices[k]` is the `n`th value of `slices` convertible to `all type_t` or  `pair<ptrdiff_t,ptrdiff_t>` then `sub.extent(r)==last[k]-first[k]` and `sub.stride(r)==src.stride(k)` <br/> 
+    * `sub.ptr_==src.ptr_ + first[0]*src.stride(0) + ... + first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
+    * Note: it is quality of implementation whether static extents are preserved if possible.  <br/>
+
+* Examples:
+```c++
+typedef extents<100,dynamic_extent,3> Extents3D;
+layout_right::mapping<Extents3D> map_right(
+basic_mdspan<int,Extents3D,layout_right> a()
+```
+
 
 
 
