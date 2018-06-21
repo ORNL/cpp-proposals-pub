@@ -975,7 +975,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     * `E` denotes a specialization of `extents`.
     * `e` denotes an object of type `E` defining a domain multi-index space.
     * `r` is a value of an integral type such that `0 <= r < e.rank()`.
-    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i) == E::rank()` and `0 <= i[r] < e.extent(r)` for `i...` and `j...`.
+    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i) == E::rank()`, `0 <= i[r] < e.extent(r)`, `sizeof...(j) == E::rank()` and `0 <= j[r] < e.extent(r)`.
     * `M` denotes a layout mapping class.
     * `m` denotes an object of type `M` that maps a multi-index `i...` to an integral value.
 
@@ -1026,7 +1026,7 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m.is_contiguous()`</td>
   <td>`bool`</td>
-  <td>*Returns:* `true` if the set values defined by `m(i)...` is equal to `[0..m.required_span_size())` </td>
+  <td>*Returns:* `true` if the set of values defined by `m(i)...` is equal to `[0..m.required_span_size())` </td>
   <td></td>
 </tr>
 <tr>
@@ -1116,8 +1116,10 @@ struct layout_left {
     constexpr bool is_contiguous() const;
     constexpr bool is_strided() const;
 
-    constexpr bool operator==(const mapping& other) const;
-    constexpr bool operator!=(const mapping& other) const;
+    template&lt;class OtherExtents>
+      constexpr bool operator==(const mapping&lt;OtherExtents>& other) const noexcept;
+    template&lt;class OtherExtents>
+      constexpr bool operator!=(const mapping&lt;OtherExtents>& other) const noexcept;
 
     typename Extents::index_type stride(size_t rank) const noexcept;
 
@@ -1185,27 +1187,12 @@ template<class OtherExtents>
 constexpr mapping(const mapping<OtherExtents>& other);
 ```
 
-<!-- TODO review this addition -->
 * *Requires:* `other.get_extents()` meets the requirements for use in the initialization of `extents_`.
 * *Effects:* Initializes `extents_` with `other.get_extents()`.
 * *Postconditions:* `get_extents() == other.extents_`.
-* *Remarks:* This constructor does not participate in overload resolution unless `OtherExtents` is convertible to `Extents`.
 * *Throws:* nothing.
 
 <br/>
-
-```c++
-template<class OtherExtents>
-  constexpr mapping(const mapping<OtherExtents>& other);
-```
-
-<!-- TODO review this addition -->
-* *Requires:* `other.get_extents()` meets the requirements for assignment to `extents_`.
-* *Effects:* Assigns `other.get_extents()` to `extents_`.
-* *Postconditions:* `get_extents() == other.get_extents()`.
-* *Remarks:* This constructor does not participate in overload resolution unless `OtherExtents` is assignable to `Extents`.
-* *Throws:* nothing.
-<!-- --- -->
 
 <!-- --- -->
 
@@ -1285,14 +1272,16 @@ for(int k = 0; k < r; ++k)
 
 <br/>
 ```c++
-constexpr bool operator==(const mapping& other) const noexcept;
+template<class OtherExtents>
+  constexpr bool operator==(const mapping<OtherExtents>& other) const noexcept;
 ```
 
 * *Returns:* `get_extents() == other.get_extents()`.
 
 <br/>
 ```c++
-constexpr bool operator!=(const mapping& other) const noexcept;
+template<class OtherExtents>
+  constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
 * *Returns:* `get_extents() != other.get_extents()`.
@@ -1348,6 +1337,11 @@ struct layout_right {
     constexpr bool is_strided() const noexcept;
 
     typename Extents::index_type stride(size_t rank) const noexcept;
+
+    template&lt;class OtherExtents>
+      constexpr bool operator==(const mapping&lt;OtherExtents>& other) const noexcept;
+    template&lt;class OtherExtents>
+      constexpr bool operator!=(const mapping&lt;OtherExtents>& other) const noexcept;
 
   private:
     Extents extents_; // <i>exposition only</i>
@@ -1412,30 +1406,14 @@ template<class OtherExtents>
   constexpr mapping(const mapping<OtherExtents>& other);
 ```
 
-<!-- TODO review this wording -->
-<!-- TODO review this addition -->
 * *Requires:* `other.get_extents()` meets the requirements for use in the initialization of `extents_`.
 * *Effects:* Initializes `extents_` with `other.get_extents()`.
 * *Postconditions:* `get_extents() == other.extents_`.
-* *Remarks:* This constructor does not participate in overload resolution unless `OtherExtents` is convertible to `Extents`.
 * *Throws:* nothing.
 <!-- --- -->
 
 <br/>
 
-```c++
-template<class OtherExtents>
-  constexpr mapping(const mapping<OtherExtents>& other);
-```
-
-<!-- TODO review this wording -->
-<!-- TODO review this addition -->
-* *Requires:* `other.get_extents()` meets the requirements for assignment to `extents_`.
-* *Effects:* Assigns `other.get_extents()` to `extents_`.
-* *Postconditions:* `get_extents() == other.get_extents()`.
-* *Remarks:* This constructor does not participate in overload resolution unless `OtherExtents` is assignable to `Extents`.
-* *Throws:* nothing.
-<!-- --- -->
 
 
 <br/>
@@ -1513,17 +1491,20 @@ for(int k = r+1; k < get_extents.rank(); ++k)
 
 <br/>
 ```c++
-constexpr bool operator==(const mapping& other) const noexcept;
+template<class OtherExtents>
+  constexpr bool operator==(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `get_extents() == other.get_extents()`
+* *Returns:* `get_extents() == other.get_extents()`.
 
 <br/>
 ```c++
-constexpr bool operator!=(const mapping& other) const noexcept;
+template<class OtherExtents>
+  constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `get_extents() != other.get_extents()`
+* *Returns:* `get_extents() != other.get_extents()`.
+
 
 <!-- 
 layout_stride
@@ -1587,9 +1568,13 @@ struct layout_stride {
 
     typename Extents::index_type stride(size_t rank) const noexcept;
 
+    template&lt;class OtherExtents>
+      constexpr bool operator==(const mapping&lt;OtherExtents>& other) const noexcept;
+    template&lt;class OtherExtents>
+      constexpr bool operator!=(const mapping&lt;OtherExtents>& other) const noexcept;
+
   private:
     Extents extents_; // <i>exposition only</i>
-    //TODO: should this be extents&lt;dynamic_extent,...,dynamic_extent> ?
     array&lt;typename Extents::index_type, Extents::rank()> strides_; // <i>exposition only</i>
   };
 };
@@ -1620,7 +1605,9 @@ constexpr mapping(mapping&& other) noexcept;
 ```c++
 constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()> s) noexcept;
 ```
-* Requires: there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with `0 <= i < Extents::rank()` such that `stride(o(i)) >= stride(o(i-1))*get_extent(o(i-1))` for `1 <= i < Extents::rank()`
+* Requires: 
+   + `s[i]>0` for `0<i<=Extents::rank()`
+   + there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with `0 <= i < Extents::rank()` such that `stride(o(i)) >= stride(o(i-1))*get_extent.extent(o(i-1))` for `1<=i<Extents::rank()`
 * Effects: Initializes `extents_` with `e` and `strides_` with `s`
 * Postconditions: `get_extents()==e` and `get_strides()==s`.
 * Throws: nothing
@@ -1632,7 +1619,6 @@ template<class OtherExtents>
 * Requires: other.get_extents() meets the requirements for use in the initialization of extents_.
 * Effects: Initializes `extents_` with `other.get_extents()` and initializes `strides_` with `other.get_strides()`.
 * Postconditions: `get_extents()==other.get_extents()` and `get_strides()==other.get_strides()`.
-* Remarks: This constructor does not participate in overload resolution unless `OtherExtents` is convertible to `Extents`.
 * Throws: nothing.
 
 
@@ -1681,7 +1667,7 @@ static constexpr bool is_always_contiguous() noexcept;
 ```c++
 constexpr bool is_contiguous() const noexcept;
 ```
-* Returns: true if there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with `0<=i< Extents::rank()` such that `min(stride(o(i))==1` and `stride(o(i))==stride(o(i-1))*get_extent(o(i-1))` with `1<=i<Extents::rank()` otherwise returns false
+* Returns: true if there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with `0<=i< Extents::rank()` such that `min(stride(o(i))==1` and `stride(o(i))==stride(o(i-1))*get_extent.extent(o(i-1))` with `1<=i<Extents::rank()` otherwise returns false
 
 ```c++
 typename Extents::index_type stride(size_t r) const noexcept;
@@ -1689,20 +1675,25 @@ typename Extents::index_type stride(size_t r) const noexcept;
 * Returns: `strides_(r)`
 
 
-
+<br/>
 ```c++
-constexpr bool operator==(const mapping& other) const noexcept;
+template<class OtherExtents>
+  constexpr bool operator==(const mapping<OtherExtents>& other) const noexcept;
 ```
-* Returns: `(get_extents()==other.get_extents()) && (get_strides()==other.get_strides())`
 
+* *Returns:* `get_extents() == other.get_extents()`.
 
+<br/>
 ```c++
-constexpr bool operator!=(const mapping& other) const noexcept;
+template<class OtherExtents>
+  constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
-* Returns: `(get_extents()!=other.get_extents()) || (get_strides()!=other.get_strides())`
+
+* *Returns:* `get_extents() != other.get_extents()`.
+
+
 
 <!--
-
 
 
  8888b.   .d8888b .d8888b .d88b.  .d8888b  .d8888b   .d88b.  888d888
