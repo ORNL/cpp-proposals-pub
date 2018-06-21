@@ -1556,7 +1556,7 @@ struct layout_stride {
       constexpr mapping(const mapping&lt;OtherExtents>& other);
 
     mapping& operator=() noexcept = default;
-    mapping& operator=(mapping const& other) noexcept = default;
+    mapping& operator=(const mapping& other) noexcept = default;
     template&lt;class OtherExtents>
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
@@ -1600,7 +1600,7 @@ constexpr mapping() noexcept;
 * Postconditions: `get_extents() == Extents()` and `get_strides() == array<typename Extents::index_type, Extents::rank()>()`
 
 ```c++
-constexpr mapping(mapping const& other) noexcept;
+constexpr mapping(const mapping& other) noexcept;
 ```
 * Effects: Initializes extents_ with other.extents_.
 * Postconditions: `get_extents() == other.get_extents()` and `get_strides() == other.get_strides()`
