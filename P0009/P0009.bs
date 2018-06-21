@@ -1560,7 +1560,7 @@ struct layout_stride {
     constexpr mapping() noexcept;
     constexpr mapping(mapping const& other) noexcept;
     constexpr mapping(mapping&& other) noexcept;
-    constexpr mapping(Extents e, array&lt;ptrdiff_t, Extents::rank()> s) noexcept;
+    constexpr mapping(Extents e, array&lt;typename Extents::index_type, Extents::rank()> s) noexcept;
     template&lt;class OtherExtents>
       constexpr mapping(const mapping&lt;OtherExtents>& other);
 
@@ -1570,7 +1570,7 @@ struct layout_stride {
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
     Extents get_extents() const noexcept;
-    array&lt;ptrdiff_t, Extents::rank()> get_strides() const noexcept;
+    array&lt;typename Extents::index_type, Extents::rank()> get_strides() const noexcept;
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
 
@@ -1590,7 +1590,7 @@ struct layout_stride {
   private:
     Extents extents_; // <i>exposition only</i>
     //TODO: should this be extents&lt;dynamic_extent,...,dynamic_extent> ?
-    array&lt;ptrdiff_t, Extents::rank()> strides_; // <i>exposition only</i>
+    array&lt;typename Extents::index_type, Extents::rank()> strides_; // <i>exposition only</i>
   };
 };
 </pre>
@@ -1602,7 +1602,7 @@ struct layout_stride {
 constexpr mapping() noexcept;
 ```
 * Effects: Default-initializes extents_.
-* Postconditions: `get_extents() == Extents()` and `get_strides() == array<ptrdiff_t, Extents::rank()>()`
+* Postconditions: `get_extents() == Extents()` and `get_strides() == array<typename Extents::index_type, Extents::rank()>()`
 
 ```c++
 constexpr mapping(mapping const& other) noexcept;
@@ -1614,11 +1614,11 @@ constexpr mapping(mapping const& other) noexcept;
 constexpr mapping(mapping&& other) noexcept;
 ```
 * Effects: Initializes extents_ with `move(other.extents_)`.
-* Postconditions: `get_extents()` returns a copy of an Extents that is equal to the copy returned by `other.get_extents()` before the invocation of the move and `get_strides()` returns a copy of an `array<ptrdiff_t,Extents::rank()>` that is equal to the copy returned by `other.get_strides()` before the invocation of the move
+* Postconditions: `get_extents()` returns a copy of an Extents that is equal to the copy returned by `other.get_extents()` before the invocation of the move and `get_strides()` returns a copy of an `array<typename Extents::index_type,Extents::rank()>` that is equal to the copy returned by `other.get_strides()` before the invocation of the move
 
 
 ```c++
-constexpr mapping(Extents e, array<ptrdiff_t, Extents::rank()> s) noexcept;
+constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()> s) noexcept;
 ```
 * Requires: there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with `0 <= i < Extents::rank()` such that `stride(o(i)) >= stride(o(i-1))*get_extent(o(i-1))` for `1 <= i < Extents::rank()`
 * Effects: Initializes `extents_` with `e` and `strides_` with `s`
@@ -1644,7 +1644,7 @@ Extents get_extents() const noexcept;
 * Returns: extents_.
 
 ```c++
-array<ptrdiff_t, Extents::rank()> get_strides() const noexcept;
+array<typename Extents::index_type, Extents::rank()> get_strides() const noexcept;
 ```
 * Returns: strides_.
 
