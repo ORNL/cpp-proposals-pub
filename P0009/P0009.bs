@@ -1851,7 +1851,7 @@ constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 2. The multi-index domain space is the Cartesian product of the extents: `[0, extent(0)) * [0, extent(1)) *` ... `* [0, extent(rank() - 1))`. Each extent may be statically or dynamically specified.
 2. As with `span`, the storage of the objects in the codomain `span` of a `basic_mdspan` is owned by some other object.
 3. `ElementType` is required to be a complete object type that is not an abstract class type or an array type.
-4. `Extents` is required to be a (cv-unqualified) specialization of `extents`
+4. `Extents` is required to be a (cv-unqualified) specialization of `extents`.
 5. `LayoutPolicy` is required to be a cv-unqualified object type.
 6. If `LayoutPolicy` does not meet the layout mapping policy requirements, the program is ill-formed.
 7. `Accessor` is required to be a cv-unqualified object type.
@@ -1879,8 +1879,8 @@ public:
   using reference = typename accessor::reference;
 
   // Constructors, assignment, and destructor
-  constexpr basic_mdspan() noexcept;
-  constexpr basic_mdspan(const basic_mdspan&) noexcept;
+  constexpr basic_mdspan() noexcept = default;
+  constexpr basic_mdspan(const basic_mdspan&) noexcept = default;
   constexpr basic_mdspan(basic_mdspan&&) noexcept;
   template&lt;class... IndexType>
     explicit constexpr basic_mdspan(pointer p, IndexType... dynamic_extents);
@@ -1889,7 +1889,7 @@ public:
   template&lt;class IndexType, size_t N>
     explicit constexpr basic_mdspan(pointer p,const array&lt;IndexType, N>& dynamic_extents);
   template&lt;class IndexType, size_t N>
-    explicit constexpr basic_mdspan(const span&lt;element_type>& sp,const array&lt;IndexType, N>& dynamic_extents) noexcept;
+    explicit constexpr basic_mdspan(const span&lt;element_type>& sp, const array&lt;IndexType, N>& dynamic_extents) noexcept;
   constexpr basic_mdspan(pointer p, const mapping& m);
   constexpr basic_mdspan(const span&lt;element_type>& sp, const mapping& m);
   constexpr basic_mdspan(pointer p, const mapping& m, const accessor& a);
@@ -1959,7 +1959,7 @@ private:
   // Mapping domain multi-index to access codomain element
 
 ```c++
-constexpr basic_mdspan() noexcept;
+constexpr basic_mdspan() noexcept = default;
 ```
 
 <!-- TODO check for periods, commas, and "and" here. -->
@@ -1980,7 +1980,7 @@ constexpr basic_mdspan() noexcept;
 <br/>
 
 ```c++
-constexpr basic_mdspan(const basic_mdspan& other) noexcept;
+constexpr basic_mdspan(const basic_mdspan& other) noexcept = default;
 ```
 
 * *Effects:*
@@ -2125,7 +2125,7 @@ template<class IndexType, size_t N>
 
 ```c++
 template<class IndexType, ptrdiff_t K, size_t N>
-  explicit constexpr basic_mdspan(span<element_type, K> s, const array<IndexType, N>& dynamic_extent) noexcept;
+  explicit constexpr basic_mdspan(const span<element_type, K>& s, const array<IndexType, N>& dynamic_extent) noexcept;
 ```
 
 * *Effects:* Equivalent to `basic_mdspan(pointer, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
