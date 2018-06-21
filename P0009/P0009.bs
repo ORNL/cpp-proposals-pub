@@ -606,7 +606,7 @@ The proposed polymorphic multidimensional array reference (`mdspan`)
 defines types and functions for mapping indices from the **domain**, a
 **multidimensional index space**, to the **codomain**, elements of a
 contiguous span of objects. A multidimensional index space is defined as
-the Cartesian product of integer extents, *[0..N0) X [0..N1) X [0..N2) ...*.
+the Cartesian product of integer extents, `[0..N0) * [0..N1) * [0..N2) `....
 An `mdspan` has two policies: the **layout mapping**
 and the **accessor**. The layout mapping specifies the formula, and
 properties of the formula, for mapping a multi-index from the domain to
@@ -777,7 +777,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 
 <b>26.7.�.1 Overview [mdspan.extents.overview]</b>
 
-1. An `extents` object defines a *multidimensional index space* which is the Cartesian product of integers extents *[0..N0) X [0..N1) X ...*.
+1. An `extents` object defines a *multidimensional index space* which is the Cartesian product of integers extents `[0..N0) * [0..N1) *`....
 2. The *dynamic extents* of an `extents` object correspond to the `StaticExtents` template parameters that are equal to `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th such extent in the `StaticExtents` template parameter pack, and let *DynamicIndex[r]* indicate the number of such extents in the first *r* entries of the `StaticExtents` parameter pack
 3. An `extents` object is expected to store dynamic extents.  *[Note:* An implementation should not consume storage for static extents. *— end note]* 
 4. If any of `StaticExtents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
@@ -1000,7 +1000,7 @@ Table � — Layout mapping policy and layout mapping requirements
   <th>Requires/Remarks</th>
 </tr>
 <tr>
-  <td>`MP::mapping<E>`</td>
+  <td>`MP::template mapping<E>`</td>
   <td>`M`</td>
   <td></td>
   <td></td>
@@ -1090,7 +1090,7 @@ Table � — Layout mapping policy and layout mapping requirements
 <br/>
 <b>26.7.�.2 Class layout_left [mdspan.layout.left]</b>
 
-1. `layout_left` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_left::mapping` meets the requirements of layout mapping *—end note]*
+1. `layout_left` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_left::template mapping` meets the requirements of layout mapping *—end note]*
 2. `layout_left` gives a layout mapping where the left-most extent is stride one and strides increase left-to-right as the product of extents.
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
 
@@ -1316,7 +1316,7 @@ template<class OtherExtents>
 <br/>
 <b>26.7.�.3 Class layout_right [mdspan.layout.right]</b>
 
-1. `layout_right` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_right::mapping` meets the requirements of layout mapping *—end note]*
+1. `layout_right` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_right::template mapping` meets the requirements of layout mapping *—end note]*
 2. The layout mapping property `layout_right` gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
 
@@ -1549,7 +1549,7 @@ layout_stride
 <b>26.7.�.4 Class `layout_stride` [mdspan.layout.stride]</b>
 
 1. `layout_stride` meets the requirements of layout mapping policy.  
-2. The layout mapping property `layout_stride` gives a layout mapping where the ...
+2. The layout mapping property `layout_stride` gives a layout mapping where the strides are user defined.
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
 
 <br/>
@@ -1849,12 +1849,12 @@ constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 <b>26.7.� Class template `basic_mdspan` [mdspan.basic]</b>
 
 1. The `basic_mdspan` class template maps a multi-index within a multi-index *domain* to a reference to an element in the *codomain* `span`.
-2. The multi-index domain space is the Cartesian product of the extents: `[0, extent(0)) X [0, extent(1)) X`* ... *` X [0, extent(rank() - 1))`. Each extent may be statically or dynamically specified.
+2. The multi-index domain space is the Cartesian product of the extents: `[0, extent(0)) * [0, extent(1)) *` ... `* [0, extent(rank() - 1))`. Each extent may be statically or dynamically specified.
 2. As with `span`, the storage of the objects in the codomain `span` of a `basic_mdspan` is owned by some other object.
 3. `ElementType` is required to be a complete object type that is not an abstract class type or an array type.
 4. `Extents` is required to be a (cv-unqualified) specialization of `extents`
 5. `LayoutPolicy` is required to be a cv-unqualified object type.
-6. If `LayoutPolicy` does not meet the layout policy requirements, the program is ill-formed.
+6. If `LayoutPolicy` does not meet the layout mapping policy requirements, the program is ill-formed.
 7. `Accessor` is required to be a cv-unqualified object type.
 8. If `Accessor` does not meet the accessor requirements, or if `Accessor::value_type` is not exactly `ElementType`, the program is ill-formed.
 
@@ -1870,7 +1870,7 @@ public:
 
   // Domain and codomain types
   using layout = LayoutPolicy;
-  using mapping = typename layout::mapping&lt;Extents>;
+  using mapping = typename layout::template mapping&lt;Extents>;
   using accessor = Accessor;
   using element_type = typename accessor::value_type;
   using value_type = remove_cv_t&lt;element_type>;
@@ -1898,7 +1898,7 @@ public:
   template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
     constexpr basic_mdspan(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
 
-  ~basic_mdspan();
+  ~basic_mdspan() = default;
 
   constexpr basic_mdspan& operator=(const basic_mdspan&) noexcept = default;
   constexpr basic_mdspan& operator=(basic_mdspan&&) noexcept = default;
@@ -2443,7 +2443,7 @@ Postcondition: <br/>
 ```c++
 // Create a mapping
 typedef extents<3,dynamic_extent,7> Extents3D;
-layout_right::mapping<Extents3D> map_right(10);
+layout_right::template mapping<Extents3D> map_right(10);
 
 // Allocate a basic_mdspan
 int* ptr = new int[3*8*10];
@@ -2492,7 +2492,7 @@ Related Work
 
 The `reference` type may be a proxy for accessing an `element_type`
 object. For example, the *atomic* `AccessorPolicy` in **P0860** defines
-`AccessorPolicy::accessor<T>::reference` to be `atomic_ref<T>` from
+`AccessorPolicy::template accessor<T>::reference` to be `atomic_ref<T>` from
 **P0019**.
 
 **Related papers:**

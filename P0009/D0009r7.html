@@ -1982,7 +1982,7 @@ properties will work.</p>
    <p>The proposed polymorphic multidimensional array reference (<code class="highlight"><span class="n">mdspan</span></code>)
 defines types and functions for mapping indices from the <strong>domain</strong>, a <strong>multidimensional index space</strong>, to the <strong>codomain</strong>, elements of a
 contiguous span of objects. A multidimensional index space is defined as
-the Cartesian product of integer extents, <em>[0..N0) X [0..N1) X [0..N2) ...</em>.
+the Cartesian product of integer extents, <code class="highlight"><span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N0</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N1</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N2</span><span class="p">)</span></code>....
 An <code class="highlight"><span class="n">mdspan</span></code> has two policies: the <strong>layout mapping</strong> and the <strong>accessor</strong>. The layout mapping specifies the formula, and
 properties of the formula, for mapping a multi-index from the domain to
 an element in the codomain. The accessor is an extension point that
@@ -2077,7 +2077,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
    <p><b>26.7.�.1 Overview [mdspan.extents.overview]</b></p>
    <ol>
     <li data-md="">
-     <p>An <code class="highlight"><span class="n">extents</span></code> object defines a <em>multidimensional index space</em> which is the Cartesian product of integers extents <em>[0..N0) X [0..N1) X ...</em>.</p>
+     <p>An <code class="highlight"><span class="n">extents</span></code> object defines a <em>multidimensional index space</em> which is the Cartesian product of integers extents <code class="highlight"><span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N0</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N1</span><span class="p">)</span> <span class="o">*</span></code>....</p>
     <li data-md="">
      <p>The <em>dynamic extents</em> of an <code class="highlight"><span class="n">extents</span></code> object correspond to the <code class="highlight"><span class="n">StaticExtents</span></code> template parameters that are equal to <code class="highlight"><span class="n">dynamic_extent</span></code>.  Let <em>DynamicRank[i]</em> denote the index of the <em>i</em>th such extent in the <code class="highlight"><span class="n">StaticExtents</span></code> template parameter pack, and let <em>DynamicIndex[r]</em> indicate the number of such extents in the first <em>r</em> entries of the <code class="highlight"><span class="n">StaticExtents</span></code> parameter pack</p>
     <li data-md="">
@@ -2302,7 +2302,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
       <th>Operational Semantics
       <th>Requires/Remarks
      <tr>
-      <td><code class="highlight"><span class="n">MP</span><span class="o">::</span><span class="n">mapping</span><span class="o">&lt;</span><span class="n">E</span><span class="o">></span></code>
+      <td><code class="highlight"><span class="n">MP</span><span class="o">::</span><span class="k">template</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">E</span><span class="o">></span></code>
       <td><code class="highlight"><span class="n">M</span></code>
       <td>
       <td>
@@ -2361,7 +2361,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
    <p><br> <br> <b>26.7.�.2 Class layout_left [mdspan.layout.left]</b></p>
    <ol>
     <li data-md="">
-     <p><code class="highlight"><span class="n">layout_left</span></code> meets the requirements of layout mapping policy. <em>[Note:</em> Thus, any well-formed specialization of <code class="highlight"><span class="n">layout_left</span><span class="o">::</span><span class="n">mapping</span></code> meets the requirements of layout mapping <em>—end note]</em></p>
+     <p><code class="highlight"><span class="n">layout_left</span></code> meets the requirements of layout mapping policy. <em>[Note:</em> Thus, any well-formed specialization of <code class="highlight"><span class="n">layout_left</span><span class="o">::</span><span class="k">template</span> <span class="n">mapping</span></code> meets the requirements of layout mapping <em>—end note]</em></p>
     <li data-md="">
      <p><code class="highlight"><span class="n">layout_left</span></code> gives a layout mapping where the left-most extent is stride one and strides increase left-to-right as the product of extents.</p>
     <li data-md="">
@@ -2551,7 +2551,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
    <p><br> <br> <b>26.7.�.3 Class layout_right [mdspan.layout.right]</b></p>
    <ol>
     <li data-md="">
-     <p><code class="highlight"><span class="n">layout_right</span></code> meets the requirements of layout mapping policy. <em>[Note:</em> Thus, any well-formed specialization of <code class="highlight"><span class="n">layout_right</span><span class="o">::</span><span class="n">mapping</span></code> meets the requirements of layout mapping <em>—end note]</em></p>
+     <p><code class="highlight"><span class="n">layout_right</span></code> meets the requirements of layout mapping policy. <em>[Note:</em> Thus, any well-formed specialization of <code class="highlight"><span class="n">layout_right</span><span class="o">::</span><span class="k">template</span> <span class="n">mapping</span></code> meets the requirements of layout mapping <em>—end note]</em></p>
     <li data-md="">
      <p>The layout mapping property <code class="highlight"><span class="n">layout_right</span></code> gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.</p>
     <li data-md="">
@@ -2741,7 +2741,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><code class="highlight"><span class="n">layout_stride</span></code> meets the requirements of layout mapping policy.</p>
     <li data-md="">
-     <p>The layout mapping property <code class="highlight"><span class="n">layout_stride</span></code> gives a layout mapping where the ...</p>
+     <p>The layout mapping property <code class="highlight"><span class="n">layout_stride</span></code> gives a layout mapping where the strides are user defined.</p>
     <li data-md="">
      <p>If <code class="highlight"><span class="n">Extents</span></code> is not a (possibly cv-qualified) specialization of <code class="highlight"><span class="n">extents</span></code>, the program is ill-formed.</p>
    </ol>
@@ -3005,7 +3005,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p>The <code class="highlight"><span class="n">basic_mdspan</span></code> class template maps a multi-index within a multi-index <em>domain</em> to a reference to an element in the <em>codomain</em> <code class="highlight"><span class="n">span</span></code>.</p>
     <li data-md="">
-     <p>The multi-index domain space is the Cartesian product of the extents: <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">extent</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="n">X</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">extent</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="n">X</span></code>* ... *<code class="highlight"><span class="n">X</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">extent</span><span class="p">(</span><span class="n">rank</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span></code>. Each extent may be statically or dynamically specified.</p>
+     <p>The multi-index domain space is the Cartesian product of the extents: <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">extent</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">*</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">extent</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="o">*</span></code> ... <code class="highlight"><span class="o">*</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">extent</span><span class="p">(</span><span class="n">rank</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span></code>. Each extent may be statically or dynamically specified.</p>
     <li data-md="">
      <p>As with <code class="highlight"><span class="n">span</span></code>, the storage of the objects in the codomain <code class="highlight"><span class="n">span</span></code> of a <code class="highlight"><span class="n">basic_mdspan</span></code> is owned by some other object.</p>
     <li data-md="">
@@ -3015,7 +3015,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><code class="highlight"><span class="n">LayoutPolicy</span></code> is required to be a cv-unqualified object type.</p>
     <li data-md="">
-     <p>If <code class="highlight"><span class="n">LayoutPolicy</span></code> does not meet the layout policy requirements, the program is ill-formed.</p>
+     <p>If <code class="highlight"><span class="n">LayoutPolicy</span></code> does not meet the layout mapping policy requirements, the program is ill-formed.</p>
     <li data-md="">
      <p><code class="highlight"><span class="n">Accessor</span></code> is required to be a cv-unqualified object type.</p>
     <li data-md="">
@@ -3031,7 +3031,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 
   <span class="c1">// Domain and codomain types</span>
 <span class="c1"></span>  <span class="k">using</span> <span class="n">layout</span> <span class="o">=</span> <span class="n">LayoutPolicy</span><span class="p">;</span>
-  <span class="k">using</span> <span class="n">mapping</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">layout</span><span class="o">::</span><span class="n">mapping</span><span class="o">&lt;</span><span class="n">Extents</span><span class="o">></span><span class="p">;</span>
+  <span class="k">using</span> <span class="n">mapping</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">layout</span><span class="o">::</span><span class="k">template</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">Extents</span><span class="o">></span><span class="p">;</span>
   <span class="k">using</span> <span class="n">accessor</span> <span class="o">=</span> <span class="n">Accessor</span><span class="p">;</span>
   <span class="k">using</span> <span class="n">element_type</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">accessor</span><span class="o">::</span><span class="n">value_type</span><span class="p">;</span>
   <span class="k">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">remove_cv_t</span><span class="o">&lt;</span><span class="n">element_type</span><span class="o">></span><span class="p">;</span>
@@ -3059,7 +3059,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">OtherElementType</span><span class="p">,</span> <span class="k">class</span> <span class="nc">OtherExtents</span><span class="p">,</span> <span class="k">class</span> <span class="nc">OtherLayoutPolicy</span><span class="p">,</span> <span class="k">class</span> <span class="nc">OtherAccessor</span><span class="o">></span>
     <span class="k">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">basic_mdspan</span><span class="o">&lt;</span><span class="n">OtherElementType</span><span class="p">,</span> <span class="n">OtherExtents</span><span class="p">,</span> <span class="n">OtherLayoutPolicy</span><span class="p">,</span> <span class="n">OtherAccessor</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 
-  <span class="o">~</span><span class="n">basic_mdspan</span><span class="p">();</span>
+  <span class="o">~</span><span class="n">basic_mdspan</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
 
   <span class="k">constexpr</span> <span class="n">basic_mdspan</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">basic_mdspan</span><span class="o">&amp;</span><span class="p">)</span> <span class="k">noexcept</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="n">basic_mdspan</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">basic_mdspan</span><span class="o">&amp;&amp;</span><span class="p">)</span> <span class="k">noexcept</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
@@ -3673,7 +3673,7 @@ The second template parameter of the return type is E, a specialization of <code
      <p>Examples:</p>
 <pre class="language-c++ highlight"><span class="c1">// Create a mapping</span>
 <span class="c1"></span><span class="k">typedef</span> <span class="n">extents</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="n">dynamic_extent</span><span class="p">,</span><span class="mi">7</span><span class="o">></span> <span class="n">Extents3D</span><span class="p">;</span>
-<span class="n">layout_right</span><span class="o">::</span><span class="n">mapping</span><span class="o">&lt;</span><span class="n">Extents3D</span><span class="o">></span> <span class="n">map_right</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+<span class="n">layout_right</span><span class="o">::</span><span class="n">template</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">Extents3D</span><span class="o">></span> <span class="n">map_right</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
 
 <span class="c1">// Allocate a basic_mdspan</span>
 <span class="c1"></span><span class="kt">int</span><span class="o">*</span> <span class="n">ptr</span> <span class="o">=</span> <span class="n">new</span> <span class="kt">int</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="mi">8</span><span class="o">*</span><span class="mi">10</span><span class="p">];</span>
@@ -3714,7 +3714,7 @@ The second template parameter of the return type is E, a specialization of <code
      <p><a data-link-type="biblio" href="#biblio-n4355">[N4355]</a></p>
    </ul>
    <p><strong>P0860 : Access Policy Generating Proxy Reference</strong></p>
-   <p>The <code class="highlight"><span class="n">reference</span></code> type may be a proxy for accessing an <code class="highlight"><span class="n">element_type</span></code> object. For example, the <em>atomic</em> <code class="highlight"><span class="n">AccessorPolicy</span></code> in <strong>P0860</strong> defines <code class="highlight"><span class="n">AccessorPolicy</span><span class="o">::</span><span class="n">accessor</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">reference</span></code> to be <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> from <strong>P0019</strong>.</p>
+   <p>The <code class="highlight"><span class="n">reference</span></code> type may be a proxy for accessing an <code class="highlight"><span class="n">element_type</span></code> object. For example, the <em>atomic</em> <code class="highlight"><span class="n">AccessorPolicy</span></code> in <strong>P0860</strong> defines <code class="highlight"><span class="n">AccessorPolicy</span><span class="o">::</span><span class="k">template</span> <span class="n">accessor</span><span class="o">&lt;</span><span class="n">T</span><span class="o">>::</span><span class="n">reference</span></code> to be <code class="highlight"><span class="n">atomic_ref</span><span class="o">&lt;</span><span class="n">T</span><span class="o">></span></code> from <strong>P0019</strong>.</p>
    <p><strong>Related papers:</strong></p>
    <ul>
     <li data-md="">
