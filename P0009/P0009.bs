@@ -755,7 +755,7 @@ namespace fundamentals_v3 {
       subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>&, SliceSpecifiers...) noexcept;
 
   // tag supporting subspan
-  struct all_type {};
+  struct all_type { explicit all_type() = default; };
   inline constexpr all_type all = all_type{};
 }}}
 ```
@@ -1095,6 +1095,10 @@ Table � — Layout mapping policy and layout mapping requirements
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
 
 <pre highlight="c++">
+namespace std {
+namespace experimental {
+namespace fundamentals_v3 {
+
 struct layout_left {
   template&lt;class Extents>
   class mapping {
@@ -1137,6 +1141,8 @@ struct layout_left {
     Extents extents_; // <i>exposition only</i>
   };
 };
+
+}}}
 </pre>
 
 
@@ -1315,6 +1321,10 @@ template<class OtherExtents>
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
 
 <pre highlight="c++">
+namespace std {
+namespace experimental {
+namespace fundamentals_v3 {
+
 struct layout_right {
   template&lt;class Extents>
   class mapping {
@@ -1357,6 +1367,7 @@ struct layout_right {
     Extents extents_; // <i>exposition only</i>
   };
 };
+}
 </pre>
 
 
@@ -1544,6 +1555,10 @@ layout_stride
 <br/>
 
 <pre highlight="c++">
+namespace std {
+namespace experimental {
+namespace fundamentals_v3 {
+
 struct layout_stride {
   template&lt;class Extents>
   class mapping {
@@ -1588,6 +1603,7 @@ struct layout_stride {
     array&lt;typename Extents::index_type, Extents::rank()> strides_; // <i>exposition only</i>
   };
 };
+}}}
 </pre>
 
 <br/>
@@ -1785,6 +1801,10 @@ Table �: Accessor requirements
 3. If `T` is not an object type or is an array type, the program is ill-formed.
 
 ```c++
+namespace std {
+namespace experimental {
+namespace fundamentals_v3 {
+
 template<class T>
 struct accessor_basic {
   using value_type = T;
@@ -1792,6 +1812,8 @@ struct accessor_basic {
   using reference = T&;
   constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 };
+
+}}}
 ```
 
 <br/>
@@ -2373,11 +2395,17 @@ subspan
 <b>26.7.� subspan [mdspan.subspan]</b>
 
 ```c++
+namespace std {
+namespace experimental {
+namespace fundamentals_v3 {
+
   // [mdspan.subspan], subspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
            class Accessor, class... SliceSpecifiers>
     basic_mdspan<ElementType, E /* see-below */, layout_stride, Accessor>
       subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>& src, SliceSpecifiers ... slices) noexcept;
+
+}}}
 ```
 
 `subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
