@@ -794,16 +794,16 @@ public:
   constexpr extents(extents&&) noexcept;
   template&lt;class... IndexType>
   constexpr extents(IndexType... dynamic_extents) noexcept;
-  template&lt;class IndexType, size_t N>
-  constexpr extents(const array&lt;IndexType, N>&) noexcept;
+  template&lt;class IndexType, size_t rank_dynamic>
+  constexpr extents(const array&lt;IndexType, rank_dynamic>&) noexcept;
   template&lt;ptrdiff_t... OtherStaticExtents>
-  constexpr extents(const extents&lt;OtherStaticExtents...>& other) noexcept;
+  constexpr extents(const extents&lt;OtherStaticExtents...>& other);
   ~extents() = default;
 
   constexpr extents& operator=(const extents&) noexcept = default;
   constexpr extents& operator=(extents&&) noexcept = default;
   template&lt;ptrdiff_t... OtherStaticExtents>
-  constexpr extents& operator=(const extents&lt;OtherStaticExtents...>& other) noexcept;
+  constexpr extents& operator=(const extents&lt;OtherStaticExtents...>& other);
 
   // 26.7.�.3 Observers of the index space domain:
   static constexpr size_t rank() noexcept;
@@ -834,8 +834,6 @@ constexpr extents(const extents& other);
 constexpr extents(extents&& other);
 ```
 
-<!-- TODO Review this. Should this be two different sections, or does it not matter for move initialization of array? -->
-
 * *Effects:* Initializes `dynamic_extents_` with `other.dynamic_extents_`
 * *Postconditions:* `extent(r) == other.extent(r)` for all `r` in the range `[0, rank())`
 
@@ -843,11 +841,12 @@ constexpr extents(extents&& other);
 
 ```c++
 template<ptrdiff_t... OtherStaticExtents>
-constexpr extents(const extents<OtherStaticExtents...>& other) noexcept;
+constexpr extents(const extents<OtherStaticExtents...>& other);
 ```
 
 * *Requires:* For each `r` in the range `[0, rank())`, if `static_extent(r) != dynamic_extent`, then `static_extent(r) == other.extent(r)`.
 * *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r) == dynamic_extent`, initializes `dynamic_extents_[`*DynamicRank[*`r`*]*`]` with `other.extent(r)`.
+* *Throws:* Nothing.
 * *Postconditions:* `*this == other`
 * *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents) == sizeof...(OtherStaticExtents)`.
 
@@ -868,8 +867,8 @@ constexpr extents(IndexType... dynamic_extents) noexcept;
     + and `sizeof...(dynamic_extents) == rank_dynamic()`
 
 ```c++
-template<class IndexType, size_t N>
-constexpr extents(const array<IndexType, N> & dynamic_extents) noexcept;
+template<class IndexType, size_t rank_dynamic>
+constexpr extents(const array<IndexType, rank_dynamic> & dynamic_extents) noexcept;
 ```
 
 * *Requires:* `dynamic_extents[i] >= 0` for all `i` where `0 <= i < rank_dynamic()`
@@ -877,15 +876,15 @@ constexpr extents(const array<IndexType, N> & dynamic_extents) noexcept;
 * *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to `dynamic_extents[i]`
 * *Remarks:* This constructor shall not participate in overload resolution unless:
     + `is_convertible_v<IndexType, index_type>`
-    + `N == rank_dynamic()`
 
 ```c++
 template<ptrdiff_t... OtherStaticExtents>
-constexpr extents& operator=(const extents<OtherStaticExtents...>& other) noexcept;
+constexpr extents& operator=(const extents<OtherStaticExtents...>& other);
 ```
 
 * *Requires:* For each `r` in the range `[0, rank())`, if `static_extent(r) != dynamic_extent`, then `static_extent(r) == other.extent(r)`.
 * *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r) == dynamic_extent`, assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
+* *Throws:* Nothing.
 * *Postconditions:* `*this == other`
 * *Returns:* `*this`.
 * *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents) == sizeof...(OtherStaticExtents)`.

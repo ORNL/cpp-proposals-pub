@@ -2094,16 +2094,16 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">constexpr</span> <span class="nf">extents</span><span class="p">(</span><span class="n">extents</span><span class="o">&amp;&amp;</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">IndexType</span><span class="o">></span>
   <span class="k">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="n">IndexType</span><span class="p">...</span> <span class="n">dynamic_extents</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
-  <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">N</span><span class="o">></span>
-  <span class="k">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
+  <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">rank_dynamic</span><span class="o">></span>
+  <span class="k">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">rank_dynamic</span><span class="o">>&amp;</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">template</span><span class="o">&lt;</span><span class="kt">ptrdiff_t</span><span class="p">...</span> <span class="n">OtherStaticExtents</span><span class="o">></span>
-  <span class="k">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
+  <span class="k">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
   <span class="o">~</span><span class="n">extents</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
 
   <span class="k">constexpr</span> <span class="n">extents</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&amp;</span><span class="p">)</span> <span class="k">noexcept</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="n">extents</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="n">extents</span><span class="o">&amp;&amp;</span><span class="p">)</span> <span class="k">noexcept</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
   <span class="k">template</span><span class="o">&lt;</span><span class="kt">ptrdiff_t</span><span class="p">...</span> <span class="n">OtherStaticExtents</span><span class="o">></span>
-  <span class="k">constexpr</span> <span class="n">extents</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
+  <span class="k">constexpr</span> <span class="n">extents</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 
   <span class="c1">// 26.7.�.3 Observers of the index space domain:</span>
 <span class="c1"></span>  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="nf">rank</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -2138,13 +2138,15 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="kt">ptrdiff_t</span><span class="p">...</span> <span class="n">OtherStaticExtents</span><span class="o">></span>
-<span class="n">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+<span class="n">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 </pre>
    <ul>
     <li data-md="">
      <p><em>Requires:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">!=</span> <span class="n">dynamic_extent</span></code>, then <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
     <li data-md="">
      <p><em>Effects:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">dynamic_extent</span></code>, initializes <code class="highlight"><span class="n">dynamic_extents_</span><span class="p">[</span></code><em>DynamicRank[</em><code class="highlight"><span class="n">r</span></code><em>]</em><code class="highlight"><span class="p">]</span></code> with <code class="highlight"><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
+    <li data-md="">
+     <p><em>Throws:</em> Nothing.</p>
     <li data-md="">
      <p><em>Postconditions:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span> <span class="o">==</span> <span class="n">other</span></code></p>
     <li data-md="">
@@ -2170,8 +2172,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
        <p>and <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">dynamic_extents</span><span class="p">)</span> <span class="o">==</span> <span class="n">rank_dynamic</span><span class="p">()</span></code></p>
      </ul>
    </ul>
-<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">N</span><span class="o">></span>
-<span class="n">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">></span> <span class="o">&amp;</span> <span class="n">dynamic_extents</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">rank_dynamic</span><span class="o">></span>
+<span class="n">constexpr</span> <span class="n">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">rank_dynamic</span><span class="o">></span> <span class="o">&amp;</span> <span class="n">dynamic_extents</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
 </pre>
    <ul>
     <li data-md="">
@@ -2185,18 +2187,18 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <ul>
       <li data-md="">
        <p><code class="highlight"><span class="n">is_convertible_v</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">index_type</span><span class="o">></span></code></p>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">N</span> <span class="o">==</span> <span class="n">rank_dynamic</span><span class="p">()</span></code></p>
      </ul>
    </ul>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="kt">ptrdiff_t</span><span class="p">...</span> <span class="n">OtherStaticExtents</span><span class="o">></span>
-<span class="n">constexpr</span> <span class="n">extents</span><span class="o">&amp;</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+<span class="n">constexpr</span> <span class="n">extents</span><span class="o">&amp;</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 </pre>
    <ul>
     <li data-md="">
      <p><em>Requires:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">!=</span> <span class="n">dynamic_extent</span></code>, then <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
     <li data-md="">
      <p><em>Effects:</em> For each <code class="highlight"><span class="n">r</span></code> in the range <code class="highlight"><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">rank</span><span class="p">())</span></code>, if <code class="highlight"><span class="n">static_extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">==</span> <span class="n">dynamic_extent</span></code>, assigns <code class="highlight"><span class="n">dynamic_extents_</span><span class="p">[</span></code><em>DynamicRank[</em><code class="highlight"><span class="n">r</span></code><em>]</em><code class="highlight"><span class="p">]</span></code> to <code class="highlight"><span class="n">other</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
+    <li data-md="">
+     <p><em>Throws:</em> Nothing.</p>
     <li data-md="">
      <p><em>Postconditions:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span> <span class="o">==</span> <span class="n">other</span></code></p>
     <li data-md="">
