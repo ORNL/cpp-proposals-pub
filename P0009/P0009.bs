@@ -2402,9 +2402,34 @@ Postcondition: <br/>
 
 * Examples:
 ```c++
-typedef extents<100,dynamic_extent,3> Extents3D;
-layout_right::mapping<Extents3D> map_right(
-basic_mdspan<int,Extents3D,layout_right> a()
+// Create a mapping
+typedef extents<3,dynamic_extent,7> Extents3D;
+layout_right::mapping<Extents3D> map_right(10);
+
+// Allocate a basic_mdspan
+int* ptr = new int[3*8*10];
+basic_mdspan<int,Extents3D,layout_right> a(ptr,map_right);
+
+// Initialize the span
+for(int i0=0; i0<a.extent(0); i0++)
+  for(int i1=0; i1<a.extent(1); i1++)
+    for(int i2=0; i2<a.extent(2); i2++)
+      a(i0,i1,i2) = 10000*i0 + 100*i1 + i2;
+
+// Create Subspan
+auto a_sub = subspan(a,1,std::pair<int,int>(4,6),std::pair<int,int>(1,6));
+
+// Print values of subspan
+for(int i0=0; i0<a_sub.extent(0); i0++) {
+  for(int i1=0; i1<a_sub.extent(1); i1++)
+    std::cout << a_sub(i0,i1) << " ";
+  std::cout << std::endl;
+}
+
+/* Output
+10401 10402 10403 10404 10405
+10501 10502 10503 10504 10505
+*/
 ```
 
 

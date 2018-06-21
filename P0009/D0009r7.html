@@ -3636,9 +3636,34 @@ The second template parameter of the return type is E, a specialization of <code
    <ul>
     <li data-md="">
      <p>Examples:</p>
-<pre class="language-c++ highlight"><span class="k">typedef</span> <span class="n">extents</span><span class="o">&lt;</span><span class="mi">100</span><span class="p">,</span><span class="n">dynamic_extent</span><span class="p">,</span><span class="mi">3</span><span class="o">></span> <span class="n">Extents3D</span><span class="p">;</span>
-<span class="n">layout_right</span><span class="o">::</span><span class="n">mapping</span><span class="o">&lt;</span><span class="n">Extents3D</span><span class="o">></span> <span class="n">map_right</span><span class="p">(</span>
-<span class="n">basic_mdspan</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="n">Extents3D</span><span class="p">,</span><span class="n">layout_right</span><span class="o">></span> <span class="n">a</span><span class="p">()</span>
+<pre class="language-c++ highlight"><span class="c1">// Create a mapping</span>
+<span class="c1"></span><span class="k">typedef</span> <span class="n">extents</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span><span class="n">dynamic_extent</span><span class="p">,</span><span class="mi">7</span><span class="o">></span> <span class="n">Extents3D</span><span class="p">;</span>
+<span class="n">layout_right</span><span class="o">::</span><span class="n">mapping</span><span class="o">&lt;</span><span class="n">Extents3D</span><span class="o">></span> <span class="n">map_right</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+
+<span class="c1">// Allocate a basic_mdspan</span>
+<span class="c1"></span><span class="kt">int</span><span class="o">*</span> <span class="n">ptr</span> <span class="o">=</span> <span class="n">new</span> <span class="kt">int</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="mi">8</span><span class="o">*</span><span class="mi">10</span><span class="p">];</span>
+<span class="n">basic_mdspan</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="n">Extents3D</span><span class="p">,</span><span class="n">layout_right</span><span class="o">></span> <span class="n">a</span><span class="p">(</span><span class="n">ptr</span><span class="p">,</span><span class="n">map_right</span><span class="p">);</span>
+
+<span class="c1">// Initialize the span</span>
+<span class="c1"></span><span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i0</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i0</span><span class="o">&lt;</span><span class="n">a</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i0</span><span class="o">++</span><span class="p">)</span>
+  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i1</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i1</span><span class="o">&lt;</span><span class="n">a</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">i1</span><span class="o">++</span><span class="p">)</span>
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i2</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i2</span><span class="o">&lt;</span><span class="n">a</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span> <span class="n">i2</span><span class="o">++</span><span class="p">)</span>
+      <span class="n">a</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span><span class="n">i1</span><span class="p">,</span><span class="n">i2</span><span class="p">)</span> <span class="o">=</span> <span class="mi">10000</span><span class="o">*</span><span class="n">i0</span> <span class="o">+</span> <span class="mi">100</span><span class="o">*</span><span class="n">i1</span> <span class="o">+</span> <span class="n">i2</span><span class="p">;</span>
+
+<span class="c1">// Create Subspan</span>
+<span class="c1"></span><span class="k">auto</span> <span class="n">a_sub</span> <span class="o">=</span> <span class="n">subspan</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">></span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="kt">int</span><span class="o">></span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">));</span>
+
+<span class="c1">// Print values of subspan</span>
+<span class="c1"></span><span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i0</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i0</span><span class="o">&lt;</span><span class="n">a_sub</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span> <span class="n">i0</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i1</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i1</span><span class="o">&lt;</span><span class="n">a_sub</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span> <span class="n">i1</span><span class="o">++</span><span class="p">)</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">a_sub</span><span class="p">(</span><span class="n">i0</span><span class="p">,</span><span class="n">i1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cm">/* Output</span>
+<span class="cm">10401 10402 10403 10404 10405</span>
+<span class="cm">10501 10502 10503 10504 10505</span>
+<span class="cm">*/</span>
 </pre>
    </ul>
    <h2 class="heading settled" data-level="5" id="next-steps"><span class="secno">5. </span><span class="content">Next Steps</span><a class="self-link" href="#next-steps"></a></h2>
