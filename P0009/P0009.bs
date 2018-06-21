@@ -1883,16 +1883,16 @@ public:
   constexpr basic_mdspan(const basic_mdspan&) noexcept;
   constexpr basic_mdspan(basic_mdspan&&) noexcept;
   template&lt;class... IndexType>
-    explicit constexpr basic_mdspan(const pointer& p, IndexType... dynamic_extents);
+    explicit constexpr basic_mdspan(pointer p, IndexType... dynamic_extents);
   template&lt;class... IndexType>
     explicit constexpr basic_mdspan(const span&lt;element_type>& sp, IndexType... dynamic_extents);
   template&lt;class IndexType, size_t N>
-    explicit constexpr basic_mdspan(const pointer& p,const array&lt;IndexType, N>& dynamic_extents);
+    explicit constexpr basic_mdspan(pointer p,const array&lt;IndexType, N>& dynamic_extents);
   template&lt;class IndexType, size_t N>
     explicit constexpr basic_mdspan(const span&lt;element_type>& sp,const array&lt;IndexType, N>& dynamic_extents) noexcept;
-  constexpr basic_mdspan(const pointer& p, const mapping& m);
+  constexpr basic_mdspan(pointer p, const mapping& m);
   constexpr basic_mdspan(const span&lt;element_type>& sp, const mapping& m);
-  constexpr basic_mdspan(const pointer& p, const mapping& m, const accessor& a);
+  constexpr basic_mdspan(pointer p, const mapping& m, const accessor& a);
   constexpr basic_mdspan(const span&lt;element_type>& sp, const mapping& m, const accessor& a);
   template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
     constexpr basic_mdspan(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
@@ -2007,7 +2007,7 @@ constexpr basic_mdspan(basic_mdspan&& other) noexcept;
 
 ```c++
 template<class... IndexType>
-  explicit constexpr basic_mdspan(const pointer& ptr, IndexType... dynamic_extents);
+  explicit constexpr basic_mdspan(pointer ptr, IndexType... dynamic_extents);
 ```
 
 * *Requires:* `[ptr, ptr+required_span_size(dynamic_extents...))` shall be a valid range.
@@ -2054,7 +2054,7 @@ template<class... IndexType, ptrdiff_t N>
 <br/>
 
 ```c++
-constexpr basic_mdspan(const pointer& ptr, const mapping& m);
+constexpr basic_mdspan(pointer ptr, const mapping& m);
 ```
 
 * *Effects:*
