@@ -1973,9 +1973,6 @@ constexpr basic_mdspan() noexcept = default;
     + `size() == 0`
     + `get_extents() == Extents()`
     + `get_mapping() == mapping()`
-* *Remarks:* This constructor does not participate in overload resolution unless
-    + `is_default_constructible_v<mapping>`, and
-    + `is_default_constructible_v<accessor>`
 
 <br/>
 
@@ -2021,9 +2018,8 @@ template<class... IndexType>
     + `get_mapping() == mapping(Extents(dynamic_extents...))`
 * *Remarks:* This constructor will not participate in overload resolution unless:
     + `(is_convertible_v<IndexType, index_type> && ...)`,
-    + `sizeof...(dynamic_extents) == rank_dynamic()`,
-    + `is_constructible_v<mapping, Extents>`, and
-    + `is_default_constructible_v<accessor>`.
+    + `sizeof...(dynamic_extents) == rank_dynamic()`, and
+    + `is_constructible_v<mapping, Extents>`.
 * *Throws:* Nothing.
 
 <!-- TODO is there any reason to prefer `(is_integral_v<IndexType> && ...)`? -->
@@ -2046,9 +2042,8 @@ template<class... IndexType, ptrdiff_t N>
 * *Remarks:* This constructor will not participate in overload resolution unless:
     + `(is_convertible_v<IndexType, index_type> && ...)`,
     + `sizeof...(dynamic_extents) == rank_dynamic()`,
-    + `N == dynamic_extent || (rank_dynamic() == 0 && N == required_span_size(dynamic_extents...))`,
-    + `is_constructible_v<mapping, Extents>`, and
-    + `is_default_constructible_v<accessor>`.
+    + `N == dynamic_extent || (rank_dynamic() == 0 && N == required_span_size(dynamic_extents...))`, and
+    + `is_constructible_v<mapping, Extents>`.
 * *Throws:* Nothing.
 
 <br/>
@@ -2064,7 +2059,6 @@ constexpr basic_mdspan(pointer ptr, const mapping& m);
 * *Postconditions:* 
     + `get_extents() == m.get_extents()`
     + `get_mapping() == m`
-* *Remarks:* This constructor will not participate in overload resolution unless `is_default_constructible_v<accessor>`.
 * *Throws:* Nothing.
 
 <br/>
@@ -2117,9 +2111,8 @@ template<class IndexType, size_t N>
 * *Effects:* Equivalent to `basic_mdspan(pointer, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
 * *Remarks:* This constructor does not participate in overload resolution unless
     + `IndexType` is convertible to `index_type`, and
-    + `N == rank_dynamic()`,
-    + `is_constructible_v<mapping, Extents>`, and
-    + `is_default_constructible_v<accessor>`.
+    + `N == rank_dynamic()`, and
+    + `is_constructible_v<mapping, Extents>`.
 
 <br/>
 
@@ -2132,9 +2125,8 @@ template<class IndexType, ptrdiff_t K, size_t N>
 * *Remarks:* This constructor does not participate in overload resolution unless
     + `IndexType` is convertible to `index_type`,
     + `N == rank_dynamic()`,
-    + `K == dynamic_extent || (rank_dynamic() == 0 && K == required_span_size(dynamic_extents))`,
-    + `is_constructible_v<mapping, Extents>`, and
-    + `is_default_constructible_v<accessor>`.
+    + `K == dynamic_extent || (rank_dynamic() == 0 && K == required_span_size(dynamic_extents))`, and
+    + `is_constructible_v<mapping, Extents>`.
 
 <!-- TODO review this wording! -->
 ```c++
