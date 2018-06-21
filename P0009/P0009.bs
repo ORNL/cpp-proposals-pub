@@ -666,6 +666,17 @@ the listing for `<span>`.
 Wording
 =======
 
+<blockquote>
+Text in blockquotes is not proposed wording
+
+The � character is used to denote a placeholder section number which the editor
+shall determine.
+</blockquote>
+
+<blockquote>
+Copy **[views]** *subclause (currently 26.7 in n4750)* which contains
+the wording for `span` and `dynamic_extent` which is needed for `basic_mdspan` 
+</blockquote>
 
 ---
 
@@ -684,7 +695,7 @@ within the input `basic_mdspan` codomain.
 ---
 
 <br/>
-*Add the following subclauses to the end of the* **[views]** *subclause (currently 26.7)*:
+*Add the following subclauses to the end of the* **[views]** *subclause (currently 26.7 in n4750)*:
 
 <!--
  .d8888b.                                               d8b
@@ -808,8 +819,8 @@ public:
   // 26.7.�.3 Observers of the index space domain:
   static constexpr size_t rank() noexcept;
   static constexpr size_t rank_dynamic() noexcept;
-  static constexpr index_type static_extent(int) noexcept;
-  constexpr index_type extent(int) const noexcept;
+  static constexpr index_type static_extent(size_t) noexcept;
+  constexpr index_type extent(size_t) const noexcept;
 
 private:
   array&lt;index_type, rank_dynamic()> dynamic_extents_; // <i>exposition only</i>
@@ -911,14 +922,14 @@ static constexpr size_t rank_dynamic() const noexcept;
 
 <br/>
 ```c++
-static constexpr index_type static_extent(int r) const noexcept;
+static constexpr index_type static_extent(size_t r) const noexcept;
 ```
 
 * *Returns:* The `r`th entry in the `StaticExtents` parameter pack if 0 <= `r` < `rank()`, or 1 otherwise.
 
 <br/>
 ```c++
-constexpr index_type extent(int r) const noexcept;
+constexpr index_type extent(size_t r) const noexcept;
 ```
 * *Returns:* 
     * If `static_extent(r) == dynamic_extent`, then `dynamic_extents_[`*DynamicRank[*`r`*]*`]`.
@@ -1231,7 +1242,7 @@ Let `i[k]` denote the `k`*th* member of `i...`.
 
 ```
 Extents::index_type offset = 0 ;
-for(int k = 0; k < get_extents.rank(); ++k) 
+for(size_t k = 0; k < get_extents.rank(); ++k) 
   offset += i[k] * stride(k);
 ```
 
@@ -1265,7 +1276,7 @@ typename Extents::index_type stride(size_t r) const
 
 ```
 Extents::index_type s = 1;
-for(int k = 0; k < r; ++k)
+for(size_t k = 0; k < r; ++k)
   s *= get_extents().extent(k);
 ```
 
@@ -1452,7 +1463,7 @@ Let `i[k]` denote the `k`*th* member of `i...`.
 
 ```
 index_type offset = 0;
-for(int k = 0; k < Extents::rank(); ++k) 
+for(size_t k = 0; k < Extents::rank(); ++k) 
   offset += i[k] * stride(k);
 ```
 
@@ -1484,7 +1495,7 @@ typename Extents::index_type stride(size_t r) const noexcept;
 
 ```
 Extents::index_type s = 1;
-for(int k = r+1; k < get_extents.rank(); ++k)
+for(size_t k = r+1; k < get_extents.rank(); ++k)
   s *= get_extents(k);
 ```
 
@@ -1883,10 +1894,10 @@ public:
   // Observers of the domain multi-index space
   static constexpr int rank() noexcept;
   static constexpr int rank_dynamic() noexcept;
-  static constexpr index_type static_extent(int) noexcept;
+  static constexpr index_type static_extent(size_t) noexcept;
 
   constexpr Extents get_extents() const noexcept;
-  constexpr index_type extent(int) const noexcept;
+  constexpr index_type extent(size_t) const noexcept;
   constexpr index_type size() const noexcept;
   constexpr index_type unique_size() const noexcept;
 
@@ -1902,7 +1913,7 @@ public:
   constexpr bool is_unique() const noexcept;
   constexpr bool is_contiguous() const noexcept;
   constexpr bool is_strided() const noexcept;
-  constexpr index_type stride(int) const;
+  constexpr index_type stride(size_t) const;
 
 private:
   accessor acc_; // <i>exposition only</i>
@@ -2209,7 +2220,7 @@ static constexpr int rank_dynamic() noexcept;
 <br/>
 
 ```c++
-static constexpr index_type static_extent(int r) noexcept;
+static constexpr index_type static_extent(size_t r) noexcept;
 ```
 
 * *Returns:* `Extents::static_extent(r)`.
@@ -2225,7 +2236,7 @@ constexpr Extents get_extents() const noexcept;
 <br/>
 
 ```c++
-constexpr index_type extent(int r) const noexcept;
+constexpr index_type extent(size_t r) const noexcept;
 ```
 
 * *Returns:* `get_extents().extent(r)`.
@@ -2335,7 +2346,7 @@ constexpr bool is_strided() const noexcept;
 <br/>
 
 ```c++
-constexpr index_type stride(int r) const;
+constexpr index_type stride(size_t r) const;
 ```
 
 * *Returns:* `get_mapping().stride(r)`

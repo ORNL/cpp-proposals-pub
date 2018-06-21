@@ -2012,6 +2012,13 @@ or paragraph number which the editor shall determine.</p>
    <p>Add the header <code class="highlight"><span class="o">&lt;</span><span class="n">mdspan</span><span class="o">></span></code> to Table 76 in 26.1 <strong>[containers.general]</strong> below
 the listing for <code class="highlight"><span class="o">&lt;</span><span class="n">span</span><span class="o">></span></code>.</p>
    <h2 class="heading settled" data-level="4" id="wording"><span class="secno">4. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
+   <blockquote>
+     Text in blockquotes is not proposed wording 
+    <p>The � character is used to denote a placeholder section number which the editor
+shall determine.</p>
+   </blockquote>
+   <blockquote> Copy <strong>[views]</strong> <em>subclause (currently 26.7 in n4750)</em> which contains
+the wording for <code class="highlight"><span class="n">span</span></code> and <code class="highlight"><span class="n">dynamic_extent</span></code> which is needed for <code class="highlight"><span class="n">basic_mdspan</span></code> </blockquote>
    <hr>
    <p><br> <em>Add the following paragraphs to</em> *<em>[views.general]</em>:</p>
    <p>�. The header <code class="highlight"><span class="o">&lt;</span><span class="n">mdspan</span><span class="o">></span></code> defines the view <code class="highlight"><span class="n">basic_mdspan</span></code>, the type alias <code class="highlight"><span class="n">mdspan</span></code>,
@@ -2021,7 +2028,7 @@ The <code class="highlight"><span class="n">basic_mdspan</span></code> class tem
 contained within the input <code class="highlight"><span class="n">basic_mdspan</span></code> domain and codomain contained
 within the input <code class="highlight"><span class="n">basic_mdspan</span></code> codomain.</p>
    <hr>
-   <p><br> <em>Add the following subclauses to the end of the</em> <strong>[views]</strong> <em>subclause (currently 26.7)</em>:</p>
+   <p><br> <em>Add the following subclauses to the end of the</em> <strong>[views]</strong> <em>subclause (currently 26.7 in n4750)</em>:</p>
    <p><br> <b>26.7.� Header <code class="highlight"><span class="o">&lt;</span><span class="n">mdspan</span><span class="o">></span></code> synopsis [mdspan.syn]</b></p>
 <pre class="language-c++ highlight"><span class="n">namespace</span> <span class="n">std</span> <span class="p">{</span>
 <span class="n">namespace</span> <span class="n">experimental</span> <span class="p">{</span>
@@ -2108,8 +2115,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="c1">// 26.7.�.3 Observers of the index space domain:</span>
 <span class="c1"></span>  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="nf">rank</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="nf">rank_dynamic</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
-  <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
+  <span class="k">static</span> <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
+  <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
 <span class="k">private</span><span class="o">:</span>
   <span class="n">array</span><span class="o">&lt;</span><span class="n">index_type</span><span class="p">,</span> <span class="n">rank_dynamic</span><span class="p">()</span><span class="o">></span> <span class="n">dynamic_extents_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
@@ -2223,14 +2230,14 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> <code class="highlight"><span class="p">((</span><span class="n">StaticExtents</span> <span class="o">==</span> <span class="n">dynamic_extent</span><span class="p">)</span> <span class="o">+</span> <span class="p">...)</span></code> <em>[Note:</em> This is the number of dynamic extents <em>—end note]</em></p>
    </ul>
    <p><br></p>
-<pre class="language-c++ highlight"><span class="k">static</span> <span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">int</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+<pre class="language-c++ highlight"><span class="k">static</span> <span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 </pre>
    <ul>
     <li data-md="">
      <p><em>Returns:</em> The <code class="highlight"><span class="n">r</span></code>th entry in the <code class="highlight"><span class="n">StaticExtents</span></code> parameter pack if 0 &lt;= <code class="highlight"><span class="n">r</span></code> &lt; <code class="highlight"><span class="n">rank</span><span class="p">()</span></code>, or 1 otherwise.</p>
    </ul>
    <p><br></p>
-<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">int</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 </pre>
    <ul>
     <li data-md="">
@@ -2482,7 +2489,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> Equivalent to <code class="highlight"><span class="n">offset</span></code> in</p>
    </ul>
 <pre class="highlight"><span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">.</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> 
+<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">.</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> 
   <span class="n">offset</span> <span class="o">+=</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">stride</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
 </pre>
    <ul>
@@ -2516,7 +2523,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> Equivalent to <code class="highlight"><span class="n">s</span></code> in</p>
    </ul>
 <pre class="highlight"><span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">;</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">r</span><span class="p">;</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span>
   <span class="n">s</span> <span class="o">*=</span> <span class="n">get_extents</span><span class="p">().</span><span class="n">extent</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
 </pre>
    <p><br></p>
@@ -2666,7 +2673,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> Equivalent to <code class="highlight"><span class="n">offset</span></code> in</p>
    </ul>
 <pre class="highlight"><span class="n">index_type</span> <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> 
+<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span> 
   <span class="n">offset</span> <span class="o">+=</span> <span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">stride</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
 </pre>
    <ul>
@@ -2699,7 +2706,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> Equivalent to <code class="highlight"><span class="n">s</span></code> in</p>
    </ul>
 <pre class="highlight"><span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="n">r</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">.</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">k</span> <span class="o">=</span> <span class="n">r</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">get_extents</span><span class="p">.</span><span class="n">rank</span><span class="p">();</span> <span class="o">++</span><span class="n">k</span><span class="p">)</span>
   <span class="n">s</span> <span class="o">*=</span> <span class="n">get_extents</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
 </pre>
    <p><br></p>
@@ -3048,10 +3055,10 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="c1">// Observers of the domain multi-index space</span>
 <span class="c1"></span>  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">int</span> <span class="nf">rank</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">int</span> <span class="nf">rank_dynamic</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
-  <span class="k">static</span> <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
+  <span class="k">static</span> <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
 
   <span class="k">constexpr</span> <span class="n">Extents</span> <span class="nf">get_extents</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
-  <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
+  <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">size</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">unique_size</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
@@ -3067,7 +3074,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">constexpr</span> <span class="kt">bool</span> <span class="nf">is_unique</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="kt">bool</span> <span class="nf">is_contiguous</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="kt">bool</span> <span class="nf">is_strided</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
-  <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">stride</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">stride</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 
 <span class="k">private</span><span class="o">:</span>
   <span class="n">accessor</span> <span class="n">acc_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
@@ -3483,7 +3490,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> <code class="highlight"><span class="n">Extents</span><span class="o">::</span><span class="n">rank_dynamic</span><span class="p">()</span></code>.</p>
    </ul>
    <p><br></p>
-<pre class="language-c++ highlight"><span class="k">static</span> <span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">int</span> <span class="n">r</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+<pre class="language-c++ highlight"><span class="k">static</span> <span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">r</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
 </pre>
    <ul>
     <li data-md="">
@@ -3497,7 +3504,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> <code class="highlight"><span class="n">get_mapping</span><span class="p">().</span><span class="n">get_extents</span><span class="p">()</span></code>.</p>
    </ul>
    <p><br></p>
-<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">int</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 </pre>
    <ul>
     <li data-md="">
@@ -3574,7 +3581,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Returns:</em> <code class="highlight"><span class="n">get_mapping</span><span class="p">().</span><span class="n">is_strided</span><span class="p">()</span></code></p>
    </ul>
    <p><br></p>
-<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">stride</span><span class="p">(</span><span class="kt">int</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="n">index_type</span> <span class="nf">stride</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">r</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 </pre>
    <ul>
     <li data-md="">
