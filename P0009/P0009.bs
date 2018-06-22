@@ -916,9 +916,7 @@ static constexpr size_t rank() const noexcept;
 ```c++
 static constexpr size_t rank_dynamic() const noexcept;
 ```
-
-<!-- DSH: Added note because I was afraid I was being too clever -->
-* *Returns:* `((StaticExtents==dynamic_extent)&&...)` *[Note:* This is the number of dynamic extents *—end note]*
+* *Returns:* `((StaticExtents==dynamic_extent)+...)` *[Note:* This is the number of dynamic extents *—end note]*
 
 <br/>
 ```c++
@@ -1663,7 +1661,7 @@ array<typename Extents::index_type, Extents::rank()> get_strides() const noexcep
 ```c++
 typename Extents::index_type required_span_size() const noexcept;
 ```
-* Returns: The maximum of of `get_extents().extent(r)*stride(r)` for all `r` where 0 <= `r` < `get_extents().rank()`
+* Returns: The maximum of `get_extents().extent(r)*stride(r)` for all `r` where 0 <= `r` < `get_extents().rank()`
 
 
 ```c++
