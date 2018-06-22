@@ -3049,7 +3049,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">IndexType</span><span class="o">></span>
     <span class="k">explicit</span> <span class="k">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="o">>&amp;</span> <span class="n">sp</span><span class="p">,</span> <span class="n">IndexType</span><span class="p">...</span> <span class="n">dynamic_extents</span><span class="p">);</span>
   <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">N</span><span class="o">></span>
-    <span class="k">explicit</span> <span class="k">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span> <span class="n">p</span><span class="p">,</span><span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">dynamic_extents</span><span class="p">);</span>
+    <span class="k">explicit</span> <span class="k">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span> <span class="n">p</span><span class="p">,</span> <span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">dynamic_extents</span><span class="p">);</span>
   <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">N</span><span class="o">></span>
     <span class="k">explicit</span> <span class="k">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="o">>&amp;</span> <span class="n">sp</span><span class="p">,</span> <span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">dynamic_extents</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span> <span class="n">p</span><span class="p">,</span> <span class="k">const</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="n">m</span><span class="p">);</span>
@@ -3177,7 +3177,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">required_span_size</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...))</span></code> shall be a valid range.</p>
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">mapping</span><span class="p">(</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...)).</span><span class="n">required_span_size</span><span class="p">())</span></code> shall be a valid range.</p>
     <li data-md="">
      <p><em>Effects:</em></p>
      <ul>
@@ -3191,8 +3191,6 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><em>Postconditions:</em></p>
      <ul>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">size</span><span class="p">()</span><span class="o">==</span><span class="mi">0</span></code></p>
       <li data-md="">
        <p><code class="highlight"><span class="n">get_extents</span><span class="p">()</span><span class="o">==</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...)</span></code></p>
       <li data-md="">
@@ -3212,17 +3210,17 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Throws:</em> Nothing.</p>
    </ul>
    <p><br></p>
-<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">IndexType</span><span class="p">,</span> <span class="kt">ptrdiff_t</span> <span class="n">N</span><span class="o">></span>
-  <span class="n">explicit</span> <span class="n">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">s</span><span class="p">,</span> <span class="n">IndexType</span><span class="p">...</span> <span class="n">dynamic_extents</span><span class="p">);</span>
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">IndexType</span><span class="o">></span>
+  <span class="n">explicit</span> <span class="n">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="o">>&amp;</span> <span class="n">sp</span><span class="p">,</span> <span class="n">IndexType</span><span class="p">...</span> <span class="n">dynamic_extents</span><span class="p">);</span>
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="n">s</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="o">==</span><span class="n">required_span_size</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...)</span></code></p>
+     <p><em>Requires:</em> <code class="highlight"><span class="n">sp</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="o">==</span><span class="n">mapping</span><span class="p">(</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...)).</span><span class="n">required_span_size</span><span class="p">()</span></code></p>
     <li data-md="">
      <p><em>Effects:</em></p>
      <ul>
       <li data-md="">
-       <p>initializes <code class="highlight"><span class="n">ptr_</span></code> with <code class="highlight"><span class="n">s</span><span class="p">.</span><span class="n">data</span><span class="p">()</span></code></p>
+       <p>initializes <code class="highlight"><span class="n">ptr_</span></code> with <code class="highlight"><span class="n">sp</span><span class="p">.</span><span class="n">data</span><span class="p">()</span></code></p>
       <li data-md="">
        <p>value-initializes <code class="highlight"><span class="n">map_</span></code></p>
       <li data-md="">
@@ -3244,17 +3242,57 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
       <li data-md="">
        <p><code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">dynamic_extents</span><span class="p">)</span><span class="o">==</span><span class="n">rank_dynamic</span><span class="p">()</span></code>,</p>
       <li data-md="">
-       <p><code class="highlight"><span class="n">N</span><span class="o">==</span><span class="n">dynamic_extent</span> <span class="o">||</span> <span class="p">(</span><span class="n">rank_dynamic</span><span class="p">()</span><span class="o">==</span><span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">N</span><span class="o">==</span><span class="n">required_span_size</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...))</span></code>, and</p>
-      <li data-md="">
        <p><code class="highlight"><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">mapping</span><span class="p">,</span> <span class="n">Extents</span><span class="o">></span></code>.</p>
      </ul>
     <li data-md="">
      <p><em>Throws:</em> Nothing.</p>
    </ul>
    <p><br></p>
-<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span> <span class="n">ptr</span><span class="p">,</span> <span class="k">const</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="n">m</span><span class="p">);</span>
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">N</span><span class="o">></span>
+  <span class="n">explicit</span> <span class="n">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span> <span class="n">p</span><span class="p">,</span> <span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">dynamic_extents</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
 </pre>
    <ul>
+    <li data-md="">
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">mapping</span><span class="p">(</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">)).</span><span class="n">required_span_size</span><span class="p">())</span></code> shall be a valid range.</p>
+    <li data-md="">
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><span class="n">basic_mdspan</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">dynamic_extents</span><span class="p">[</span><span class="n">Rs</span><span class="p">]...)</span></code>, with <code class="highlight"><span class="n">Rs</span><span class="p">...</span></code> from <code class="highlight"><span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">Rs</span><span class="p">...</span><span class="o">></span></code> matching <code class="highlight"><span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">N</span><span class="o">></span></code>.</p>
+    <li data-md="">
+     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless</p>
+     <ul>
+      <li data-md="">
+       <p><code class="highlight"><span class="n">IndexType</span></code> is convertible to <code class="highlight"><span class="n">index_type</span></code>, and</p>
+      <li data-md="">
+       <p><code class="highlight"><span class="n">N</span><span class="o">==</span><span class="n">rank_dynamic</span><span class="p">()</span></code>, and</p>
+      <li data-md="">
+       <p><code class="highlight"><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">mapping</span><span class="p">,</span> <span class="n">Extents</span><span class="o">></span></code>.</p>
+     </ul>
+   </ul>
+   <p><br></p>
+<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">N</span><span class="o">></span>
+  <span class="n">explicit</span> <span class="n">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="o">>&amp;</span> <span class="n">sp</span><span class="p">,</span> <span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">dynamic_extents</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
+</pre>
+   <ul>
+    <li data-md="">
+     <p><em>Requires:</em> <code class="highlight"><span class="n">sp</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="o">==</span><span class="n">mapping</span><span class="p">(</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">)).</span><span class="n">required_span_size</span><span class="p">()</span></code></p>
+    <li data-md="">
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><span class="n">basic_mdspan</span><span class="p">(</span><span class="n">sp</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">dynamic_extents</span><span class="p">[</span><span class="n">Rs</span><span class="p">]...)</span></code>, with <code class="highlight"><span class="n">Rs</span><span class="p">...</span></code> from <code class="highlight"><span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">Rs</span><span class="p">...</span><span class="o">></span></code> matching <code class="highlight"><span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">N</span><span class="o">></span></code>.</p>
+    <li data-md="">
+     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless</p>
+     <ul>
+      <li data-md="">
+       <p><code class="highlight"><span class="n">IndexType</span></code> is convertible to <code class="highlight"><span class="n">index_type</span></code>,</p>
+      <li data-md="">
+       <p><code class="highlight"><span class="n">N</span><span class="o">==</span><span class="n">rank_dynamic</span><span class="p">()</span></code>,</p>
+      <li data-md="">
+       <p><code class="highlight"><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">mapping</span><span class="p">,</span> <span class="n">Extents</span><span class="o">></span></code>.</p>
+     </ul>
+   </ul>
+   <p><br></p>
+<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span> <span class="n">p</span><span class="p">,</span> <span class="k">const</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="n">m</span><span class="p">);</span>
+</pre>
+   <ul>
+    <li data-md="">
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">m</span><span class="p">.</span><span class="n">required_span_size</span><span class="p">())</span></code> shall be a valid range.</p>
     <li data-md="">
      <p><em>Effects:</em></p>
      <ul>
@@ -3277,9 +3315,22 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Throws:</em> Nothing.</p>
    </ul>
    <p><br></p>
+<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="o">>&amp;</span> <span class="n">sp</span><span class="p">,</span> <span class="k">const</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="n">m</span><span class="p">);</span>
+</pre>
+   <ul>
+    <li data-md="">
+     <p><em>Requires:</em> <code class="highlight"><span class="n">sp</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="o">==</span><span class="n">m</span><span class="p">.</span><span class="n">required_span_size</span><span class="p">()</span></code></p>
+    <li data-md="">
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><span class="n">basic_mdspan</span><span class="p">(</span><span class="n">sp</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">m</span><span class="p">)</span></code></p>
+    <li data-md="">
+     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless <code class="highlight"><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">mapping</span><span class="p">,</span> <span class="n">Extents</span><span class="o">></span></code>.</p>
+   </ul>
+   <p><br></p>
 <pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span> <span class="n">p</span><span class="p">,</span> <span class="k">const</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="n">m</span><span class="p">,</span> <span class="k">const</span> <span class="n">accessor</span><span class="o">&amp;</span> <span class="n">a</span><span class="p">);</span>
 </pre>
    <ul>
+    <li data-md="">
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">m</span><span class="p">.</span><span class="n">required_span_size</span><span class="p">())</span></code> shall be a valid range.</p>
     <li data-md="">
      <p><em>Effects:</em></p>
      <ul>
@@ -3300,6 +3351,21 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      </ul>
     <li data-md="">
      <p><em>Throws:</em> Nothing.</p>
+   </ul>
+   <p><br></p>
+<pre class="language-c++ highlight"><span class="n">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="o">>&amp;</span> <span class="n">sp</span><span class="p">,</span> <span class="k">const</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="n">m</span><span class="p">,</span> <span class="k">const</span> <span class="n">accessor</span><span class="o">&amp;</span> <span class="n">a</span><span class="p">);</span>
+</pre>
+   <ul>
+    <li data-md="">
+     <p><em>Requires:</em> <code class="highlight"><span class="n">sp</span><span class="p">.</span><span class="n">size</span><span class="p">()</span><span class="o">==</span><span class="n">m</span><span class="p">.</span><span class="n">required_span_size</span><span class="p">()</span></code></p>
+    <li data-md="">
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><span class="n">basic_mdspan</span><span class="p">(</span><span class="n">sp</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">m</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span></code></p>
+    <li data-md="">
+     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless</p>
+     <ul>
+      <li data-md="">
+       <p><code class="highlight"><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">mapping</span><span class="p">,</span> <span class="n">Extents</span><span class="o">></span></code>.</p>
+     </ul>
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">OtherElementType</span><span class="p">,</span> <span class="n">class</span> <span class="n">OtherExtents</span><span class="p">,</span> <span class="n">class</span> <span class="n">OtherLayoutPolicy</span><span class="p">,</span> <span class="n">class</span> <span class="n">OtherAccessor</span><span class="o">></span>
@@ -3346,43 +3412,6 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <p><em>Throws:</em> Nothing.</p>
    </ul>
    <p><br></p>
-<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">IndexType</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">N</span><span class="o">></span>
-  <span class="n">explicit</span> <span class="n">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">dynamic_extents</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-</pre>
-   <ul>
-    <li data-md="">
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><span class="n">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">dynamic_extents</span><span class="p">[</span><span class="n">Rs</span><span class="p">]...)</span></code>, with <code class="highlight"><span class="n">Rs</span><span class="p">...</span></code> from <code class="highlight"><span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">Rs</span><span class="p">...</span><span class="o">></span></code> matching <code class="highlight"><span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">N</span><span class="o">></span></code>.</p>
-    <li data-md="">
-     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless</p>
-     <ul>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">IndexType</span></code> is convertible to <code class="highlight"><span class="n">index_type</span></code>, and</p>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">N</span><span class="o">==</span><span class="n">rank_dynamic</span><span class="p">()</span></code>, and</p>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">mapping</span><span class="p">,</span> <span class="n">Extents</span><span class="o">></span></code>.</p>
-     </ul>
-   </ul>
-   <p><br></p>
-<pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">IndexType</span><span class="p">,</span> <span class="kt">ptrdiff_t</span> <span class="n">K</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">N</span><span class="o">></span>
-  <span class="n">explicit</span> <span class="n">constexpr</span> <span class="n">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="p">,</span> <span class="n">K</span><span class="o">>&amp;</span> <span class="n">s</span><span class="p">,</span> <span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">dynamic_extent</span><span class="p">)</span> <span class="n">noexcept</span><span class="p">;</span>
-</pre>
-   <ul>
-    <li data-md="">
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><span class="n">basic_mdspan</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">dynamic_extents</span><span class="p">[</span><span class="n">Rs</span><span class="p">]...)</span></code>, with <code class="highlight"><span class="n">Rs</span><span class="p">...</span></code> from <code class="highlight"><span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">Rs</span><span class="p">...</span><span class="o">></span></code> matching <code class="highlight"><span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">N</span><span class="o">></span></code>.</p>
-    <li data-md="">
-     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless</p>
-     <ul>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">IndexType</span></code> is convertible to <code class="highlight"><span class="n">index_type</span></code>,</p>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">N</span><span class="o">==</span><span class="n">rank_dynamic</span><span class="p">()</span></code>,</p>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">K</span><span class="o">==</span><span class="n">dynamic_extent</span> <span class="o">||</span> <span class="p">(</span><span class="n">rank_dynamic</span><span class="p">()</span><span class="o">==</span><span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">K</span><span class="o">==</span><span class="n">required_span_size</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">))</span></code>, and</p>
-      <li data-md="">
-       <p><code class="highlight"><span class="n">is_constructible_v</span><span class="o">&lt;</span><span class="n">mapping</span><span class="p">,</span> <span class="n">Extents</span><span class="o">></span></code>.</p>
-     </ul>
-   </ul>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span> <span class="n">OtherElementType</span><span class="p">,</span> <span class="n">class</span> <span class="n">OtherExtents</span><span class="p">,</span> <span class="n">class</span> <span class="n">OtherLayoutPolicy</span><span class="p">,</span> <span class="n">class</span> <span class="n">OtherAccessor</span><span class="o">></span>
   <span class="n">constexpr</span> <span class="n">basic_mdspan</span><span class="o">&amp;</span> <span class="n">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">basic_mdspan</span><span class="o">&lt;</span><span class="n">OtherElementType</span><span class="p">,</span> <span class="n">OtherExtents</span><span class="p">,</span> <span class="n">OtherLayoutPolicy</span><span class="p">,</span> <span class="n">OtherAccessor</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 </pre>
