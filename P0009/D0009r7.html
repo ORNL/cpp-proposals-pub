@@ -2095,7 +2095,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="c1">// types</span>
 <span class="c1"></span>  <span class="k">using</span> <span class="n">index_type</span> <span class="o">=</span> <span class="kt">ptrdiff_t</span><span class="p">;</span>
 
-  <span class="c1">// 26.7.�.2 Constructors and assignment</span>
+  <span class="c1">// [mdspan.extents.cons], Constructors and assignment</span>
 <span class="c1"></span>  <span class="k">constexpr</span> <span class="nf">extents</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="nf">extents</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&amp;</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="nf">extents</span><span class="p">(</span><span class="n">extents</span><span class="o">&amp;&amp;</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -2112,7 +2112,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">template</span><span class="o">&lt;</span><span class="kt">ptrdiff_t</span><span class="p">...</span> <span class="n">OtherStaticExtents</span><span class="o">></span>
   <span class="k">constexpr</span> <span class="n">extents</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">extents</span><span class="o">&lt;</span><span class="n">OtherStaticExtents</span><span class="p">...</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 
-  <span class="c1">// 26.7.�.3 Observers of the index space domain:</span>
+  <span class="c1">// [mdspan.extents.obs], Observers of the domain multi-index space</span>
 <span class="c1"></span>  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="nf">rank</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">size_t</span> <span class="nf">rank_dynamic</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">static</span> <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -2375,7 +2375,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">Extents</span><span class="o">></span>
   <span class="k">class</span> <span class="nc">mapping</span> <span class="p">{</span>
   <span class="k">public</span><span class="o">:</span>
-    <span class="k">constexpr</span> <span class="n">mapping</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
+    <span class="c1">// [mdspan.layout.left.cons], layout_left::mapping constructors</span>
+<span class="c1"></span>    <span class="k">constexpr</span> <span class="n">mapping</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="k">const</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="n">mapping</span><span class="o">&amp;&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="k">const</span> <span class="n">Extents</span><span class="o">&amp;</span> <span class="n">e</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -2387,7 +2388,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">OtherExtents</span><span class="o">></span>
       <span class="k">constexpr</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">OtherExtents</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 
-    <span class="n">Extents</span> <span class="nf">get_extents</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
+    <span class="c1">// [mdspan.layout.left.ops], </span><code class="highlight"><span class="c1"><span class="n">layout_left</span><span class="o">::</span><span class="n">mapping</span></span></code><span class="c1"> operations</span>
+<span class="c1"></span>    <span class="n">Extents</span> <span class="nf">get_extents</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
     <span class="k">constexpr</span> <span class="k">typename</span> <span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">required_span_size</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
@@ -2565,7 +2567,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">Extents</span><span class="o">></span>
   <span class="k">class</span> <span class="nc">mapping</span> <span class="p">{</span>
   <span class="k">public</span><span class="o">:</span>
-    <span class="k">constexpr</span> <span class="n">mapping</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
+    <span class="c1">// [mdspan.layout.right.cons], layout_left::mapping constructors</span>
+<span class="c1"></span>    <span class="k">constexpr</span> <span class="n">mapping</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="k">const</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="n">mapping</span><span class="o">&amp;&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="n">Extents</span> <span class="n">e</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -2577,7 +2580,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">OtherExtents</span><span class="o">></span>
       <span class="k">constexpr</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">OtherExtents</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 
-    <span class="n">Extents</span> <span class="nf">get_extents</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
+    <span class="c1">// [mdspan.layout.right.ops], </span><code class="highlight"><span class="c1"><span class="n">layout_right</span><span class="o">::</span><span class="n">mapping</span></span></code><span class="c1"> operations</span>
+<span class="c1"></span>    <span class="n">Extents</span> <span class="nf">get_extents</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
     <span class="k">constexpr</span> <span class="k">typename</span> <span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">required_span_size</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
@@ -2754,7 +2758,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">Extents</span><span class="o">></span>
   <span class="k">class</span> <span class="nc">mapping</span> <span class="p">{</span>
   <span class="k">public</span><span class="o">:</span>
-    <span class="k">constexpr</span> <span class="n">mapping</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
+    <span class="c1">// [mdspan.layout.stride.cons], </span><code class="highlight"><span class="c1"><span class="n">layout_stride</span><span class="o">::</span><span class="n">mapping</span></span></code><span class="c1"> constructors</span>
+<span class="c1"></span>    <span class="k">constexpr</span> <span class="n">mapping</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="n">mapping</span> <span class="k">const</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="n">mapping</span><span class="o">&amp;&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="k">constexpr</span> <span class="nf">mapping</span><span class="p">(</span><span class="n">Extents</span> <span class="n">e</span><span class="p">,</span> <span class="n">array</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span><span class="p">,</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">></span> <span class="n">s</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -2766,7 +2771,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">OtherExtents</span><span class="o">></span>
       <span class="k">constexpr</span> <span class="n">mapping</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">OtherExtents</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">);</span>
 
-    <span class="n">Extents</span> <span class="nf">get_extents</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
+    <span class="c1">// [mdspan.layout.stride.ops], </span><code class="highlight"><span class="c1"><span class="n">layout_stride</span><span class="o">::</span><span class="n">mapping</span></span></code><span class="c1"> operations</span>
+<span class="c1"></span>    <span class="n">Extents</span> <span class="nf">get_extents</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
     <span class="n">array</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span><span class="p">,</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">></span> <span class="n">get_strides</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
     <span class="k">constexpr</span> <span class="k">typename</span> <span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">required_span_size</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -2968,7 +2974,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
      <tr>
       <td><code class="highlight"><span class="n">a</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span></code>
       <td><code class="highlight"><span class="n">A</span><span class="o">::</span><span class="n">reference</span></code>
-      <td><em>[Note:</em> <code class="highlight"><span class="n">basic_mdspan</span></code> implementations behave as if they use this expression in place of p[i]. <em>- end note]</em>
+      <td><em>[Note:</em> <code class="highlight"><span class="n">basic_mdspan</span></code> implementations behave as if they use this expression in place of <code class="highlight"><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></code>. <em>- end note]</em>
    </table>
    <p><br> <b>26.7.�.2 Class <code class="highlight"><span class="n">accessor_basic</span></code> [mdspan.accessor.basic]</b></p>
    <ol>
@@ -2988,7 +2994,9 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="n">using</span> <span class="n">value_type</span> <span class="o">=</span> <span class="n">T</span><span class="p">;</span>
   <span class="n">using</span> <span class="n">pointer</span> <span class="o">=</span> <span class="n">T</span><span class="o">*</span><span class="p">;</span>
   <span class="n">using</span> <span class="n">reference</span> <span class="o">=</span> <span class="n">T</span><span class="o">&amp;</span><span class="p">;</span>
-  <span class="n">constexpr</span> <span class="n">reference</span> <span class="nf">operator</span><span class="p">()(</span><span class="n">pointer</span> <span class="n">p</span><span class="p">,</span> <span class="kt">ptrdiff_t</span> <span class="n">i</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
+
+  <span class="c1">// [mdspan.accessor.basic.ops], &lt;code data-opaque bs-autolink-syntax='`accessor_basic`'>accessor_basic&lt;/code> operations</span>
+<span class="c1"></span>  <span class="n">constexpr</span> <span class="n">reference</span> <span class="nf">operator</span><span class="p">()(</span><span class="n">pointer</span> <span class="n">p</span><span class="p">,</span> <span class="kt">ptrdiff_t</span> <span class="n">i</span><span class="p">)</span> <span class="k">const</span> <span class="n">noexcept</span><span class="p">;</span>
 <span class="p">};</span>
 
 <span class="p">}}}</span>
@@ -3040,7 +3048,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">using</span> <span class="n">pointer</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">accessor</span><span class="o">::</span><span class="n">pointer</span><span class="p">;</span>
   <span class="k">using</span> <span class="n">reference</span> <span class="o">=</span> <span class="k">typename</span> <span class="n">accessor</span><span class="o">::</span><span class="n">reference</span><span class="p">;</span>
 
-  <span class="c1">// Constructors, assignment, and destructor</span>
+  <span class="c1">// [mdspan.basic.cons], </span><code class="highlight"><span class="c1"><span class="n">basic_mdspan</span></span></code><span class="c1"> constructors, assignment, and destructor</span>
 <span class="c1"></span>  <span class="k">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">()</span> <span class="k">noexcept</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">(</span><span class="k">const</span> <span class="n">basic_mdspan</span><span class="o">&amp;</span><span class="p">)</span> <span class="k">noexcept</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="nf">basic_mdspan</span><span class="p">(</span><span class="n">basic_mdspan</span><span class="o">&amp;&amp;</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -3066,7 +3074,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">OtherElementType</span><span class="p">,</span> <span class="k">class</span> <span class="nc">OtherExtents</span><span class="p">,</span> <span class="k">class</span> <span class="nc">OtherLayoutPolicy</span><span class="p">,</span> <span class="k">class</span> <span class="nc">OtherAccessor</span><span class="o">></span>
     <span class="k">constexpr</span> <span class="n">basic_mdspan</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">basic_mdspan</span><span class="o">&lt;</span><span class="n">OtherElementType</span><span class="p">,</span> <span class="n">OtherExtents</span><span class="p">,</span> <span class="n">OtherLayoutPolicy</span><span class="p">,</span> <span class="n">OtherAccessor</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
 
-  <span class="c1">// Mapping domain multi-index to access codomain element</span>
+  <span class="c1">// [mdspan.basic.mapping], </span><code class="highlight"><span class="c1"><span class="n">basic_mdspan</span></span></code><span class="c1"> mapping domain multi-index to access codomain element</span>
 <span class="c1"></span>  <span class="k">constexpr</span> <span class="n">reference</span> <span class="k">operator</span><span class="p">[](</span><span class="n">index_type</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">IndexType</span><span class="o">></span>
     <span class="k">constexpr</span> <span class="n">reference</span> <span class="k">operator</span><span class="p">()(</span><span class="n">IndexType</span><span class="p">...</span> <span class="n">indices</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -3074,7 +3082,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <span class="k">constexpr</span> <span class="n">reference</span> <span class="k">operator</span><span class="p">()(</span><span class="k">const</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">N</span><span class="o">>&amp;</span> <span class="n">indices</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="n">accessor</span> <span class="nf">get_accessor</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
 
-  <span class="c1">// Observers of the domain multi-index space</span>
+  <span class="c1">// [mdspan.basic.domobs], </span><code class="highlight"><span class="c1"><span class="n">basic_mdspan</span></span></code><span class="c1"> observers of the domain multi-index space</span>
 <span class="c1"></span>  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">int</span> <span class="nf">rank</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">int</span> <span class="nf">rank_dynamic</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">static</span> <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">static_extent</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">noexcept</span><span class="p">;</span>
@@ -3084,10 +3092,10 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">size</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">unique_size</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
-  <span class="c1">// Observers of the codomain:</span>
+  <span class="c1">// [mdspan.basic.codomain], </span><code class="highlight"><span class="c1"><span class="n">basic_mdspan</span></span></code><span class="c1"> observers of the codomain</span>
 <span class="c1"></span>  <span class="k">constexpr</span> <span class="n">span</span><span class="o">&lt;</span><span class="n">element_type</span><span class="o">></span> <span class="n">span</span><span class="p">()</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
-  <span class="c1">// Observers of the mapping : domain -> codomain</span>
+  <span class="c1">// [mdspan.basic.obs], </span><code class="highlight"><span class="c1"><span class="n">basic_mdspan</span></span></code><span class="c1"> observers of the mapping</span>
 <span class="c1"></span>  <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">bool</span> <span class="nf">is_always_unique</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">bool</span> <span class="nf">is_always_contiguous</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
   <span class="k">static</span> <span class="k">constexpr</span> <span class="kt">bool</span> <span class="nf">is_always_strided</span><span class="p">()</span> <span class="k">noexcept</span><span class="p">;</span>
