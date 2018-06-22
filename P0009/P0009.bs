@@ -1851,7 +1851,7 @@ constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 2. The multi-index domain space is the Cartesian product of the extents: `[0, extent(0)) * [0, extent(1)) *` ... `* [0, extent(rank() - 1))`. Each extent may be statically or dynamically specified.
 2. As with `span`, the storage of the objects in the codomain `span` of a `basic_mdspan` is owned by some other object.
 3. `ElementType` is required to be a complete object type that is not an abstract class type or an array type.
-4. `Extents` is required to be a (cv-unqualified) specialization of `extents`
+4. `Extents` is required to be a (cv-unqualified) specialization of `extents`.
 5. `LayoutPolicy` is required to be a cv-unqualified object type.
 6. If `LayoutPolicy` does not meet the layout mapping policy requirements, the program is ill-formed.
 7. `Accessor` is required to be a cv-unqualified object type.
@@ -1879,20 +1879,20 @@ public:
   using reference = typename accessor::reference;
 
   // Constructors, assignment, and destructor
-  constexpr basic_mdspan() noexcept;
-  constexpr basic_mdspan(const basic_mdspan&) noexcept;
+  constexpr basic_mdspan() noexcept = default;
+  constexpr basic_mdspan(const basic_mdspan&) noexcept = default;
   constexpr basic_mdspan(basic_mdspan&&) noexcept;
   template&lt;class... IndexType>
-    explicit constexpr basic_mdspan(const pointer& p, IndexType... dynamic_extents);
+    explicit constexpr basic_mdspan(pointer p, IndexType... dynamic_extents);
   template&lt;class... IndexType>
     explicit constexpr basic_mdspan(const span&lt;element_type>& sp, IndexType... dynamic_extents);
   template&lt;class IndexType, size_t N>
-    explicit constexpr basic_mdspan(const pointer& p,const array&lt;IndexType, N>& dynamic_extents);
+    explicit constexpr basic_mdspan(pointer p,const array&lt;IndexType, N>& dynamic_extents);
   template&lt;class IndexType, size_t N>
-    explicit constexpr basic_mdspan(const span&lt;element_type>& sp,const array&lt;IndexType, N>& dynamic_extents) noexcept;
-  constexpr basic_mdspan(const pointer& p, const mapping& m);
+    explicit constexpr basic_mdspan(const span&lt;element_type>& sp, const array&lt;IndexType, N>& dynamic_extents) noexcept;
+  constexpr basic_mdspan(pointer p, const mapping& m);
   constexpr basic_mdspan(const span&lt;element_type>& sp, const mapping& m);
-  constexpr basic_mdspan(const pointer& p, const mapping& m, const accessor& a);
+  constexpr basic_mdspan(pointer p, const mapping& m, const accessor& a);
   constexpr basic_mdspan(const span&lt;element_type>& sp, const mapping& m, const accessor& a);
   template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
     constexpr basic_mdspan(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
@@ -1959,7 +1959,7 @@ private:
   // Mapping domain multi-index to access codomain element
 
 ```c++
-constexpr basic_mdspan() noexcept;
+constexpr basic_mdspan() noexcept = default;
 ```
 
 <!-- TODO check for periods, commas, and "and" here. -->
@@ -1973,14 +1973,11 @@ constexpr basic_mdspan() noexcept;
     + `size() == 0`
     + `get_extents() == Extents()`
     + `get_mapping() == mapping()`
-* *Remarks:* This constructor does not participate in overload resolution unless
-    + `is_default_constructible_v<mapping>`, and
-    + `is_default_constructible_v<accessor>`
 
 <br/>
 
 ```c++
-constexpr basic_mdspan(const basic_mdspan& other) noexcept;
+constexpr basic_mdspan(const basic_mdspan& other) noexcept = default;
 ```
 
 * *Effects:*
@@ -2007,7 +2004,7 @@ constexpr basic_mdspan(basic_mdspan&& other) noexcept;
 
 ```c++
 template<class... IndexType>
-  explicit constexpr basic_mdspan(const pointer& ptr, IndexType... dynamic_extents);
+  explicit constexpr basic_mdspan(pointer ptr, IndexType... dynamic_extents);
 ```
 
 * *Requires:* `[ptr, ptr+required_span_size(dynamic_extents...))` shall be a valid range.
@@ -2021,9 +2018,8 @@ template<class... IndexType>
     + `get_mapping() == mapping(Extents(dynamic_extents...))`
 * *Remarks:* This constructor will not participate in overload resolution unless:
     + `(is_convertible_v<IndexType, index_type> && ...)`,
-    + `sizeof...(dynamic_extents) == rank_dynamic()`,
-    + `is_constructible_v<mapping, Extents>`, and
-    + `is_default_constructible_v<accessor>`.
+    + `sizeof...(dynamic_extents) == rank_dynamic()`, and
+    + `is_constructible_v<mapping, Extents>`.
 * *Throws:* Nothing.
 
 <!-- TODO is there any reason to prefer `(is_integral_v<IndexType> && ...)`? -->
@@ -2037,7 +2033,7 @@ template<class... IndexType, ptrdiff_t N>
 
 * *Requires:* `s.size() == required_span_size(dynamic_extents...)`
 * *Effects:*
-    + initializes `ptr_` with `s.ptr_`
+    + initializes `ptr_` with `s.data()`
     + value-initializes `map_`
     + value-initializes `acc_`
 * *Postconditions:* 
@@ -2046,15 +2042,14 @@ template<class... IndexType, ptrdiff_t N>
 * *Remarks:* This constructor will not participate in overload resolution unless:
     + `(is_convertible_v<IndexType, index_type> && ...)`,
     + `sizeof...(dynamic_extents) == rank_dynamic()`,
-    + `N == dynamic_extent || (rank_dynamic() == 0 && N == required_span_size(dynamic_extents...))`,
-    + `is_constructible_v<mapping, Extents>`, and
-    + `is_default_constructible_v<accessor>`.
+    + `N == dynamic_extent || (rank_dynamic() == 0 && N == required_span_size(dynamic_extents...))`, and
+    + `is_constructible_v<mapping, Extents>`.
 * *Throws:* Nothing.
 
 <br/>
 
 ```c++
-constexpr basic_mdspan(const pointer& ptr, const mapping& m);
+constexpr basic_mdspan(pointer ptr, const mapping& m);
 ```
 
 * *Effects:*
@@ -2064,7 +2059,6 @@ constexpr basic_mdspan(const pointer& ptr, const mapping& m);
 * *Postconditions:* 
     + `get_extents() == m.get_extents()`
     + `get_mapping() == m`
-* *Remarks:* This constructor will not participate in overload resolution unless `is_default_constructible_v<accessor>`.
 * *Throws:* Nothing.
 
 <br/>
@@ -2117,24 +2111,22 @@ template<class IndexType, size_t N>
 * *Effects:* Equivalent to `basic_mdspan(pointer, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
 * *Remarks:* This constructor does not participate in overload resolution unless
     + `IndexType` is convertible to `index_type`, and
-    + `N == rank_dynamic()`,
-    + `is_constructible_v<mapping, Extents>`, and
-    + `is_default_constructible_v<accessor>`.
+    + `N == rank_dynamic()`, and
+    + `is_constructible_v<mapping, Extents>`.
 
 <br/>
 
 ```c++
 template<class IndexType, ptrdiff_t K, size_t N>
-  explicit constexpr basic_mdspan(span<element_type, K> s, const array<IndexType, N>& dynamic_extent) noexcept;
+  explicit constexpr basic_mdspan(const span<element_type, K>& s, const array<IndexType, N>& dynamic_extent) noexcept;
 ```
 
 * *Effects:* Equivalent to `basic_mdspan(pointer, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
 * *Remarks:* This constructor does not participate in overload resolution unless
     + `IndexType` is convertible to `index_type`,
     + `N == rank_dynamic()`,
-    + `K == dynamic_extent || (rank_dynamic() == 0 && K == required_span_size(dynamic_extents))`,
-    + `is_constructible_v<mapping, Extents>`, and
-    + `is_default_constructible_v<accessor>`.
+    + `K == dynamic_extent || (rank_dynamic() == 0 && K == required_span_size(dynamic_extents))`, and
+    + `is_constructible_v<mapping, Extents>`.
 
 <!-- TODO review this wording! -->
 ```c++
