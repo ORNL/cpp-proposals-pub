@@ -882,7 +882,7 @@ template<class IndexType, size_t rank_dynamic>
 constexpr extents(const array<IndexType, rank_dynamic> & dynamic_extents) noexcept;
 ```
 
-* *Requires:* `dynamic_extents[i]>=0` for all `i` where `0<=i<rank_dynamic()`
+* *Requires:* `dynamic_extents[i]>=0` for all `i` where 0 <= `i` < `rank_dynamic()`
 * *Effects:* Initializes `dynamic_extents_` with `dynamic_extents`
 * *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to `dynamic_extents[i]`
 * *Remarks:* This constructor shall not participate in overload resolution unless:
@@ -1632,8 +1632,8 @@ constexpr mapping(mapping&& other) noexcept;
 constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()> s) noexcept;
 ```
 * Requires: 
-   + `s[i]>0` for `0<i<=Extents::rank()`
-   + there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with 0 <= `i` < `Extents::rank()` such that `stride(o(i))>=stride(o(i-1))*get_extent.extent(o(i-1))` for `1<=i<Extents::rank()`
+   + `s[i]>0` for 0 < `i` <= `Extents::rank()`
+   + there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with 0 <= `i` < `Extents::rank()` such that `stride(o(i))>=stride(o(i-1))*get_extent.extent(o(i-1))` for 1 <= `i` < `Extents::rank()`
 * Effects: Initializes `extents_` with `e` and `strides_` with `s`
 * Postconditions: `get_extents()==e` and `get_strides()==s`.
 * Throws: nothing
@@ -1663,7 +1663,7 @@ array<typename Extents::index_type, Extents::rank()> get_strides() const noexcep
 ```c++
 typename Extents::index_type required_span_size() const noexcept;
 ```
-* Returns: The maximum of of `get_extents().extent(r)*stride(r)` for all `r` where `0<=r<get_extents().rank()`
+* Returns: The maximum of of `get_extents().extent(r)*stride(r)` for all `r` where 0 <= `r` < `get_extents().rank()`
 
 
 ```c++
@@ -1693,7 +1693,7 @@ static constexpr bool is_always_contiguous() noexcept;
 ```c++
 constexpr bool is_contiguous() const noexcept;
 ```
-* Returns: true if there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with `0<=i< Extents::rank()` such that `min(stride(o(i))==1` and `stride(o(i))==stride(o(i-1))*get_extent.extent(o(i-1))` with `1<=i<Extents::rank()` otherwise returns false
+* Returns: true if there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with 0 <= `i` < `Extents::rank()` such that `min(stride(o(i))==1` and `stride(o(i))==stride(o(i-1))*get_extent.extent(o(i-1))` with 1 <= `i` < `Extents::rank()` otherwise returns false
 
 ```c++
 typename Extents::index_type stride(size_t r) const noexcept;
@@ -2420,8 +2420,8 @@ Let `last[r]` denote the rth upper bound of `slices[r]`. <br/>
 Requires: <br/>
     * `sizeof(slices...)==Extents::rank()` <br/>
     * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `alltype_t` <br/>
-    * `0<=first[r]<src.extent(r)` <br/>
-    * `0<last[r]<=src.extent(r)` <br/>
+    * 0 <= `first[r]` < `src.extent(r)` <br/>
+    * 0 < `last[r]` <= `src.extent(r)` <br/>
     * `LayoutPolicy` is `layout_right`, `layout_left`, or `layout_stride` <br/>
 
 Postcondition: <br/>
