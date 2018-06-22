@@ -1887,7 +1887,7 @@ public:
   template&lt;class IndexType, size_t N>
     explicit constexpr basic_mdspan(pointer p, const array&lt;IndexType, N>& dynamic_extents);
   template&lt;class IndexType, size_t N>
-    explicit constexpr basic_mdspan(const span&lt;element_type>& sp, const array&lt;IndexType, N>& dynamic_extents) noexcept;
+    explicit constexpr basic_mdspan(const span&lt;element_type>& sp, const array&lt;IndexType, N>& dynamic_extents);
   constexpr basic_mdspan(pointer p, const mapping& m);
   constexpr basic_mdspan(const span&lt;element_type>& sp, const mapping& m);
   constexpr basic_mdspan(pointer p, const mapping& m, const accessor& a);
@@ -2018,8 +2018,6 @@ template<class... IndexType>
     + `is_constructible_v<mapping, Extents>`.
 * *Throws:* Nothing.
 
-<!-- TODO is there any reason to prefer `(is_integral_v<IndexType> && ...)`? -->
-
 <br/>
 
 ```c++
@@ -2045,7 +2043,7 @@ template<class... IndexType>
 
 ```c++
 template<class IndexType, size_t N>
-  explicit constexpr basic_mdspan(pointer p, const array<IndexType, N>& dynamic_extents) noexcept;
+  explicit constexpr basic_mdspan(pointer p, const array<IndexType, N>& dynamic_extents);
 ```
 
 * *Requires:* `[ptr, ptr+mapping(Extents(dynamic_extents)).required_span_size())` shall be a valid range.
@@ -2054,12 +2052,13 @@ template<class IndexType, size_t N>
     + `IndexType` is convertible to `index_type`, and
     + `N==rank_dynamic()`, and
     + `is_constructible_v<mapping, Extents>`.
+* *Throws:* Nothing.
 
 <br/>
 
 ```c++
 template<class IndexType, size_t N>
-  explicit constexpr basic_mdspan(const span<element_type>& sp, const array<IndexType, N>& dynamic_extents) noexcept;
+  explicit constexpr basic_mdspan(const span<element_type>& sp, const array<IndexType, N>& dynamic_extents);
 ```
 
 * *Requires:* `sp.size()==mapping(Extents(dynamic_extents)).required_span_size()`
@@ -2068,6 +2067,7 @@ template<class IndexType, size_t N>
     + `IndexType` is convertible to `index_type`,
     + `N==rank_dynamic()`,
     + `is_constructible_v<mapping, Extents>`.
+* *Throws:* Nothing.
 
 <br/>
 
@@ -2094,6 +2094,7 @@ constexpr basic_mdspan(const span<element_type>& sp, const mapping& m);
 * *Requires:* `sp.size()==m.required_span_size()`
 * *Effects:* Equivalent to `basic_mdspan(sp.data(), m)`
 * *Remarks:* This constructor does not participate in overload resolution unless `is_constructible_v<mapping, Extents>`.
+* *Throws:* Nothing.
 
 <br/>
 
@@ -2121,6 +2122,7 @@ constexpr basic_mdspan(const span<element_type>& sp, const mapping& m, const acc
 * *Effects:* Equivalent to `basic_mdspan(sp.data(), m, a)`
 * *Remarks:* This constructor does not participate in overload resolution unless
     + `is_constructible_v<mapping, Extents>`.
+* *Throws:* Nothing.
 
 <br/>
 
