@@ -606,7 +606,7 @@ The proposed polymorphic multidimensional array reference (`mdspan`)
 defines types and functions for mapping indices from the **domain**, a
 **multidimensional index space**, to the **codomain**, elements of a
 contiguous span of objects. A multidimensional index space is defined as
-the Cartesian product of integer extents, `[0..N0) X [0..N1) X [0..N2) `....
+the Cartesian product of integer extents, `[0..N0) * [0..N1) * [0..N2) `....
 An `mdspan` has two policies: the **layout mapping**
 and the **accessor**. The layout mapping specifies the formula, and
 properties of the formula, for mapping a multi-index from the domain to
@@ -777,7 +777,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 
 <b>26.7.�.1 Overview [mdspan.extents.overview]</b>
 
-1. An `extents` object defines a *multidimensional index space* which is the Cartesian product of integers extents `[0..N0) X [0..N1) X`....
+1. An `extents` object defines a *multidimensional index space* which is the Cartesian product of integers extents `[0..N0) * [0..N1) *`....
 2. The *dynamic extents* of an `extents` object correspond to the `StaticExtents` template parameters that are equal to `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th such extent in the `StaticExtents` template parameter pack, and let *DynamicIndex[r]* indicate the number of such extents in the first *r* entries of the `StaticExtents` parameter pack
 3. An `extents` object is expected to store dynamic extents.  *[Note:* An implementation should not consume storage for static extents. *— end note]* 
 4. If any of `StaticExtents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
@@ -823,7 +823,7 @@ public:
   constexpr index_type extent(size_t) const noexcept;
 
 private:
-  <i>array&lt;index_type, rank_dynamic()> dynamic_extents_; // exposition only</i>
+  array&lt;index_type, rank_dynamic()> dynamic_extents_; // <i>exposition only</i>
 };
 
 }}}
@@ -859,7 +859,7 @@ constexpr extents(const extents<OtherStaticExtents...>& other);
 * *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r)==dynamic_extent`, initializes `dynamic_extents_[`*DynamicRank[*`r`*]*`]` with `other.extent(r)`.
 * *Throws:* Nothing.
 * *Postconditions:* `*this==other`
-* *Remarks:* This constructor does not participate in overload resolution unless `sizeof...(StaticExtents)==sizeof...(OtherStaticExtents)`.
+* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents)==sizeof...(OtherStaticExtents)`.
 
 <br/>
 
@@ -873,7 +873,7 @@ constexpr extents(IndexType... dynamic_extents) noexcept;
 * *Requires:* `((dynamic_extents>=0) && ...)`
 * *Effects:* Aggregate-initializes `dynamic_extents_` to `{dynamic_extents...}`
 * *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to the *i*th entry in the parameter pack `dynamic_extents`
-* *Remarks:* This constructor does not participate in overload resolution unless:
+* *Remarks:* This constructor shall not participate in overload resolution unless:
     + `(is_convertible_v<IndexType, index_type> && ...)`
     + and `sizeof...(dynamic_extents)==rank_dynamic()`
 
@@ -885,7 +885,7 @@ constexpr extents(const array<IndexType, rank_dynamic> & dynamic_extents) noexce
 * *Requires:* `dynamic_extents[i]>=0` for all `i` where 0 <= `i` < `rank_dynamic()`
 * *Effects:* Initializes `dynamic_extents_` with `dynamic_extents`
 * *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to `dynamic_extents[i]`
-* *Remarks:* This constructor does not participate in overload resolution unless:
+* *Remarks:* This constructor shall not participate in overload resolution unless:
     + `is_convertible_v<IndexType, index_type>`
 
 ```c++
@@ -898,7 +898,7 @@ constexpr extents& operator=(const extents<OtherStaticExtents...>& other);
 * *Throws:* Nothing.
 * *Postconditions:* `*this==other`
 * *Returns:* `*this`.
-* *Remarks:* This constructor does not participate in overload resolution unless `sizeof...(StaticExtents)==sizeof...(OtherStaticExtents)`.
+* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents)==sizeof...(OtherStaticExtents)`.
 
 <br/>
 
@@ -983,7 +983,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     * `E` denotes a specialization of `extents`.
     * `e` denotes an object of type `E` defining a domain multi-index space.
     * `r` is a value of an integral type such that 0 <= `r` < `e.rank()`.
-    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, `sizeof...(i)==E::rank()`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()`, and 0 <= `j[r]` < `e.extent(r)`.
+    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i)==E::rank()`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()` and 0 <= `j[r]` < `e.extent(r)`.
     * `M` denotes a layout mapping class.
     * `m` denotes an object of type `M` that maps a multi-index `i...` to an integral value.
 
@@ -1114,7 +1114,7 @@ struct layout_left {
     template&lt;class OtherExtents>
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
-    // [mdspan.layout.left.ops], layout_left::mapping operations
+    // [mdspan.layout.left.ops], `layout_left::mapping` operations
     Extents get_extents() const noexcept;
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
@@ -1138,7 +1138,7 @@ struct layout_left {
     typename Extents::index_type stride(size_t rank) const noexcept;
 
   private:
-    <i>Extents extents_; // exposition only</i>
+    Extents extents_; // <i>exposition only</i>
   };
 };
 
@@ -1252,7 +1252,7 @@ for(size_t k=0; k<get_extents.rank(); ++k)
   offset += i[k]*stride(k);
 ```
 
-* *Remarks:* This operator does not participate in overload resolution unless
+* *Remarks:* This operator shall not participate in overload resolution unless
     * `sizeof...(Indices)==get_extents().rank()`,
     * and `is_convertible_v<Indices, typename Extents::index_type> && ...`
 
@@ -1342,7 +1342,7 @@ struct layout_right {
     template&lt;class OtherExtents>
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
-    // [mdspan.layout.right.ops], layout_right::mapping operations
+    // [mdspan.layout.right.ops], `layout_right::mapping` operations
     Extents get_extents() const noexcept;
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
@@ -1366,7 +1366,7 @@ struct layout_right {
       constexpr bool operator!=(const mapping&lt;OtherExtents>& other) const noexcept;
 
   private:
-    <i>Extents extents_; // exposition only</i>
+    Extents extents_; // <i>exposition only</i>
   };
 };
 }
@@ -1480,7 +1480,7 @@ for(size_t k=0; k<Extents::rank(); ++k)
   offset += i[k]*stride(k);
 ```
 
-* *Remarks:* This operator does not participate in overload resolution unless
+* *Remarks:* This operator shall not participate in overload resolution unless
     * `sizeof...(Indices)==get_extents().rank()`,
     * and `is_convertible_v<Indices, typename Extents::index_type> && ...`
 
@@ -1565,7 +1565,7 @@ struct layout_stride {
   template&lt;class Extents>
   class mapping {
   public:
-    // [mdspan.layout.stride.cons], layout_stride::mapping constructors
+    // [mdspan.layout.stride.cons], `layout_stride::mapping` constructors
     constexpr mapping() noexcept;
     constexpr mapping(mapping const& other) noexcept;
     constexpr mapping(mapping&& other) noexcept;
@@ -1578,7 +1578,7 @@ struct layout_stride {
     template&lt;class OtherExtents>
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
-    // [mdspan.layout.stride.ops], layout_stride::mapping operations
+    // [mdspan.layout.stride.ops], `layout_stride::mapping` operations
     Extents get_extents() const noexcept;
     array&lt;typename Extents::index_type, Extents::rank()> get_strides() const noexcept;
 
@@ -1603,8 +1603,8 @@ struct layout_stride {
       constexpr bool operator!=(const mapping&lt;OtherExtents>& other) const noexcept;
 
   private:
-    <i>Extents extents_; // exposition only</i>
-    <i>array&lt;typename Extents::index_type, Extents::rank()> strides_; // exposition only</i>
+    Extents extents_; // <i>exposition only</i>
+    array&lt;typename Extents::index_type, Extents::rank()> strides_; // <i>exposition only</i>
   };
 };
 }}}
@@ -1675,7 +1675,7 @@ template <class... Indices>
   typename Extents::index_type operator()(Indices... i) const noexcept;
 ```
 * Returns: If `i...` is `i0, i1, i2,`...`, ik` (where `k==Extents::rank() - 1`) and `s = get_strides()`, returns `i0*s[1]+i1*s[2]+`...`+ik*s[k]`
-* Remarks: This operator does not participate in overload resolution unless
+* Remarks: This operator shall not participate in overload resolution unless
   * `sizeof...(Indices)==Extents::rank()`,
   * and `is_convertible_v<Indices, typename Extents::index_type> && ...`
 
@@ -1884,7 +1884,7 @@ public:
   using pointer = typename accessor::pointer;
   using reference = typename accessor::reference;
 
-  // [mdspan.basic.cons], basic_mdspan constructors, assignment, and destructor
+  // [mdspan.basic.cons], `basic_mdspan` constructors, assignment, and destructor
   constexpr basic_mdspan() noexcept = default;
   constexpr basic_mdspan(const basic_mdspan&) noexcept = default;
   constexpr basic_mdspan(basic_mdspan&&) noexcept;
@@ -1910,7 +1910,7 @@ public:
   template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
     constexpr basic_mdspan& operator=(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other) noexcept;
 
-  // [mdspan.basic.mapping], basic_mdspan mapping domain multi-index to access codomain element
+  // [mdspan.basic.mapping], `basic_mdspan` mapping domain multi-index to access codomain element
   constexpr reference operator[](index_type) const noexcept;
   template&lt;class... IndexType>
     constexpr reference operator()(IndexType... indices) const noexcept;
@@ -1918,7 +1918,7 @@ public:
     constexpr reference operator()(const array&lt;IndexType, N>& indices) const noexcept;
   accessor get_accessor() const;
 
-  // [mdspan.basic.domobs], basic_mdspan observers of the domain multi-index space
+  // [mdspan.basic.domobs], `basic_mdspan` observers of the domain multi-index space
   static constexpr int rank() noexcept;
   static constexpr int rank_dynamic() noexcept;
   static constexpr index_type static_extent(size_t) noexcept;
@@ -1928,10 +1928,10 @@ public:
   constexpr index_type size() const noexcept;
   constexpr index_type unique_size() const noexcept;
 
-  // [mdspan.basic.codomain], basic_mdspan observers of the codomain
+  // [mdspan.basic.codomain], `basic_mdspan` observers of the codomain
   constexpr span&lt;element_type> span() const noexcept;
 
-  // [mdspan.basic.obs], basic_mdspan observers of the mapping
+  // [mdspan.basic.obs], `basic_mdspan` observers of the mapping
   static constexpr bool is_always_unique() noexcept;
   static constexpr bool is_always_contiguous() noexcept;
   static constexpr bool is_always_strided() noexcept;
@@ -1943,9 +1943,9 @@ public:
   constexpr index_type stride(size_t) const;
 
 private:
-  <i>accessor acc_; // exposition only</i>
-  <i>mapping map_; // exposition only</i>
-  <i>pointer ptr_; // exposition only</i>
+  accessor acc_; // <i>exposition only</i>
+  mapping map_; // <i>exposition only</i>
+  pointer ptr_; // <i>exposition only</i>
 };
 
 }}}
@@ -2012,7 +2012,7 @@ template<class... IndexType>
   explicit constexpr basic_mdspan(pointer ptr, IndexType... dynamic_extents);
 ```
 
-* *Requires:* `[ptr, ptr+mapping(Extents(dynamic_extents...)).required_span_size())` is a valid range.
+* *Requires:* `[ptr, ptr+mapping(Extents(dynamic_extents...)).required_span_size())` shall be a valid range.
 * *Effects:*
     + initializes `ptr_` with `ptr`
     + initializes `map_` with `Extents(dynamic_extents...)`
@@ -2054,7 +2054,7 @@ template<class IndexType, size_t N>
   explicit constexpr basic_mdspan(pointer p, const array<IndexType, N>& dynamic_extents);
 ```
 
-* *Requires:* `[ptr, ptr+mapping(Extents(dynamic_extents)).required_span_size())` is a valid range.
+* *Requires:* `[ptr, ptr+mapping(Extents(dynamic_extents)).required_span_size())` shall be a valid range.
 * *Effects:* Equivalent to `basic_mdspan(p, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
 * *Remarks:* This constructor does not participate in overload resolution unless
     + `IndexType` is convertible to `index_type`, and
@@ -2083,7 +2083,7 @@ template<class IndexType, size_t N>
 constexpr basic_mdspan(pointer p, const mapping& m);
 ```
 
-* *Requires:* `[ptr, ptr+m.required_span_size())` is a valid range.
+* *Requires:* `[ptr, ptr+m.required_span_size())` shall be a valid range.
 * *Effects:*
     + initializes `ptr_` with `p`
     + initializes `map_` with `m`
@@ -2110,7 +2110,7 @@ constexpr basic_mdspan(const span<element_type>& sp, const mapping& m);
 constexpr basic_mdspan(pointer p, const mapping& m, const accessor& a);
 ```
 
-* *Requires:* `[ptr, ptr+m.required_span_size())` is a valid range.
+* *Requires:* `[ptr, ptr+m.required_span_size())` shall be a valid range.
 * *Effects:*
     + initializes `ptr_` with `p`
     + initializes `map_` with `m`
