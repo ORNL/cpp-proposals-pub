@@ -1226,10 +1226,9 @@ Possible extra rowspan handling
       text-align: center;
     }
   </style>
-  <meta content="Bikeshed version ee4bd4642f06996491f80990f7b1050ff9dcf622" name="generator">
+  <meta content="Bikeshed version 6abc9f98f620481a5031cd9b44944d60af9b79b9" name="generator">
   <link href="wg21.link/P0009r6" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
-  <meta content="77265961f4f105c6fe0d5a70ed3f32918a8303a4" name="document-revision">
 <style>/* style-md-lists */
 
 /* This is a weird hack for me not yet following the commonmark spec
@@ -1439,7 +1438,7 @@ pre .property::before, pre .property::after {
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">D0009R7<br><code class="highlight"><span class="n">mdspan</span></code>: A Non-Owning Multidimensional Array Reference</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2018-06-22">22 June 2018</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="subtitle"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2018-06-23">23 June 2018</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -1983,7 +1982,7 @@ properties will work.</p>
    <p>The proposed polymorphic multidimensional array reference (<code class="highlight"><span class="n">mdspan</span></code>)
 defines types and functions for mapping indices from the <strong>domain</strong>, a <strong>multidimensional index space</strong>, to the <strong>codomain</strong>, elements of a
 contiguous span of objects. A multidimensional index space is defined as
-the Cartesian product of integer extents, <code class="highlight"><span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N0</span><span class="p">)</span> <span class="n">X</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N1</span><span class="p">)</span> <span class="n">X</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N2</span><span class="p">)</span></code>....
+the Cartesian product of integer extents, <code class="highlight"><span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N0</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N1</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N2</span><span class="p">)</span></code>....
 An <code class="highlight"><span class="n">mdspan</span></code> has two policies: the <strong>layout mapping</strong> and the <strong>accessor</strong>. The layout mapping specifies the formula, and
 properties of the formula, for mapping a multi-index from the domain to
 an element in the codomain. The accessor is an extension point that
@@ -2078,7 +2077,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
    <p><b>26.7.�.1 Overview [mdspan.extents.overview]</b></p>
    <ol>
     <li data-md="">
-     <p>An <code class="highlight"><span class="n">extents</span></code> object defines a <em>multidimensional index space</em> which is the Cartesian product of integers extents <code class="highlight"><span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N0</span><span class="p">)</span> <span class="n">X</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N1</span><span class="p">)</span> <span class="n">X</span></code>....</p>
+     <p>An <code class="highlight"><span class="n">extents</span></code> object defines a <em>multidimensional index space</em> which is the Cartesian product of integers extents <code class="highlight"><span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N0</span><span class="p">)</span> <span class="o">*</span> <span class="p">[</span><span class="mf">0.</span><span class="p">.</span><span class="n">N1</span><span class="p">)</span> <span class="o">*</span></code>....</p>
     <li data-md="">
      <p>The <em>dynamic extents</em> of an <code class="highlight"><span class="n">extents</span></code> object correspond to the <code class="highlight"><span class="n">StaticExtents</span></code> template parameters that are equal to <code class="highlight"><span class="n">dynamic_extent</span></code>.  Let <em>DynamicRank[i]</em> denote the index of the <em>i</em>th such extent in the <code class="highlight"><span class="n">StaticExtents</span></code> template parameter pack, and let <em>DynamicIndex[r]</em> indicate the number of such extents in the first <em>r</em> entries of the <code class="highlight"><span class="n">StaticExtents</span></code> parameter pack</p>
     <li data-md="">
@@ -2120,7 +2119,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">extent</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
 <span class="k">private</span><span class="o">:</span>
-  <i><span class="n">array</span><span class="o">&lt;</span><span class="n">index_type</span><span class="p">,</span> <span class="n">rank_dynamic</span><span class="p">()</span><span class="o">></span> <span class="n">dynamic_extents_</span><span class="p">;</span> <span class="c1">// exposition only</span></i>
+  <span class="n">array</span><span class="o">&lt;</span><span class="n">index_type</span><span class="p">,</span> <span class="n">rank_dynamic</span><span class="p">()</span><span class="o">></span> <span class="n">dynamic_extents_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
 <span class="c1"></span><span class="p">};</span>
 
 <span class="p">}}}</span>
@@ -2158,7 +2157,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><em>Postconditions:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span><span class="o">==</span><span class="n">other</span></code></p>
     <li data-md="">
-     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">StaticExtents</span><span class="p">)</span><span class="o">==</span><span class="k">sizeof</span><span class="p">...(</span><span class="n">OtherStaticExtents</span><span class="p">)</span></code>.</p>
+     <p><em>Remarks:</em> This constructor shall not participate in overload resolution unless <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">StaticExtents</span><span class="p">)</span><span class="o">==</span><span class="k">sizeof</span><span class="p">...(</span><span class="n">OtherStaticExtents</span><span class="p">)</span></code>.</p>
    </ul>
    <p><br></p>
 <pre class="language-c++ highlight"><span class="n">template</span><span class="o">&lt;</span><span class="n">class</span><span class="p">...</span> <span class="n">IndexType</span><span class="o">></span>
@@ -2172,7 +2171,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><em>Postconditions:</em> <code class="highlight"><span class="n">extent</span><span class="p">(</span></code><em>DynamicRank[i]</em><code class="highlight"><span class="p">)</span></code> is equal to the <em>i</em>th entry in the parameter pack <code class="highlight"><span class="n">dynamic_extents</span></code></p>
     <li data-md="">
-     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless:</p>
+     <p><em>Remarks:</em> This constructor shall not participate in overload resolution unless:</p>
      <ul>
       <li data-md="">
        <p><code class="highlight"><span class="p">(</span><span class="n">is_convertible_v</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">index_type</span><span class="o">></span> <span class="o">&amp;&amp;</span> <span class="p">...)</span></code></p>
@@ -2191,7 +2190,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><em>Postconditions:</em> <code class="highlight"><span class="n">extent</span><span class="p">(</span></code><em>DynamicRank[i]</em><code class="highlight"><span class="p">)</span></code> is equal to <code class="highlight"><span class="n">dynamic_extents</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></code></p>
     <li data-md="">
-     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless:</p>
+     <p><em>Remarks:</em> This constructor shall not participate in overload resolution unless:</p>
      <ul>
       <li data-md="">
        <p><code class="highlight"><span class="n">is_convertible_v</span><span class="o">&lt;</span><span class="n">IndexType</span><span class="p">,</span> <span class="n">index_type</span><span class="o">></span></code></p>
@@ -2212,7 +2211,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p><em>Returns:</em> <code class="highlight"><span class="o">*</span><span class="k">this</span></code>.</p>
     <li data-md="">
-     <p><em>Remarks:</em> This constructor does not participate in overload resolution unless <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">StaticExtents</span><span class="p">)</span><span class="o">==</span><span class="k">sizeof</span><span class="p">...(</span><span class="n">OtherStaticExtents</span><span class="p">)</span></code>.</p>
+     <p><em>Remarks:</em> This constructor shall not participate in overload resolution unless <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">StaticExtents</span><span class="p">)</span><span class="o">==</span><span class="k">sizeof</span><span class="p">...(</span><span class="n">OtherStaticExtents</span><span class="p">)</span></code>.</p>
    </ul>
    <p><br></p>
    <p><br> <b>26.7.�.3 Observers of the domain multi-index space [mdspan.extents.obs]</b></p>
@@ -2287,7 +2286,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
       <li data-md="">
        <p><code class="highlight"><span class="n">r</span></code> is a value of an integral type such that 0 &lt;= <code class="highlight"><span class="n">r</span></code> &lt; <code class="highlight"><span class="n">e</span><span class="p">.</span><span class="n">rank</span><span class="p">()</span></code>.</p>
       <li data-md="">
-       <p><code class="highlight"><span class="n">i</span><span class="p">...</span></code> and <code class="highlight"><span class="n">j</span><span class="p">...</span></code> are packs of an integer type denoting values in the multi-index space <code class="highlight"><span class="n">e</span></code>, the <code class="highlight"><span class="n">r</span></code>*th member of packs <code class="highlight"><span class="n">i</span><span class="p">...</span></code> and <code class="highlight"><span class="n">j</span><span class="p">...</span></code> are denoted by <code class="highlight"><span class="n">i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> and <code class="highlight"><span class="n">j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code>, <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">i</span><span class="p">)</span><span class="o">==</span><span class="n">E</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code>, 0 &lt;= <code class="highlight"><span class="n">i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> &lt; <code class="highlight"><span class="n">e</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>, <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">j</span><span class="p">)</span><span class="o">==</span><span class="n">E</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code>, and 0 &lt;= <code class="highlight"><span class="n">j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> &lt; <code class="highlight"><span class="n">e</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
+       <p><code class="highlight"><span class="n">i</span><span class="p">...</span></code> and <code class="highlight"><span class="n">j</span><span class="p">...</span></code> are packs of an integer type denoting values in the multi-index space <code class="highlight"><span class="n">e</span></code>, the <code class="highlight"><span class="n">r</span></code>*th member of packs <code class="highlight"><span class="n">i</span><span class="p">...</span></code> and <code class="highlight"><span class="n">j</span><span class="p">...</span></code> are denoted by <code class="highlight"><span class="n">i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> and <code class="highlight"><span class="n">j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code>, and <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">i</span><span class="p">)</span><span class="o">==</span><span class="n">E</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code>, 0 &lt;= <code class="highlight"><span class="n">i</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> &lt; <code class="highlight"><span class="n">e</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>, <code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">j</span><span class="p">)</span><span class="o">==</span><span class="n">E</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code>, and 0 &lt;= <code class="highlight"><span class="n">j</span><span class="p">[</span><span class="n">r</span><span class="p">]</span></code> &lt; <code class="highlight"><span class="n">e</span><span class="p">.</span><span class="n">extent</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></code>.</p>
       <li data-md="">
        <p><code class="highlight"><span class="n">M</span></code> denotes a layout mapping class.</p>
       <li data-md="">
@@ -2413,7 +2412,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <span class="k">typename</span> <span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span> <span class="n">stride</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">rank</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
   <span class="k">private</span><span class="o">:</span>
-    <i><span class="n">Extents</span> <span class="n">extents_</span><span class="p">;</span> <span class="c1">// exposition only</span></i>
+    <span class="n">Extents</span> <span class="n">extents_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
 <span class="c1"></span>  <span class="p">};</span>
 <span class="p">};</span>
 
@@ -2503,7 +2502,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Remarks:</em> This operator does not participate in overload resolution unless</p>
+     <p><em>Remarks:</em> This operator shall not participate in overload resolution unless</p>
      <ul>
       <li data-md="">
        <p><code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">Indices</span><span class="p">)</span><span class="o">==</span><span class="n">get_extents</span><span class="p">().</span><span class="n">rank</span><span class="p">()</span></code>,</p>
@@ -2605,7 +2604,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
       <span class="k">constexpr</span> <span class="kt">bool</span> <span class="k">operator</span><span class="o">!=</span><span class="p">(</span><span class="k">const</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">OtherExtents</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
   <span class="k">private</span><span class="o">:</span>
-    <i><span class="n">Extents</span> <span class="n">extents_</span><span class="p">;</span> <span class="c1">// exposition only</span></i>
+    <span class="n">Extents</span> <span class="n">extents_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
 <span class="c1"></span>  <span class="p">};</span>
 <span class="p">};</span>
 <span class="p">}</span>
@@ -2694,7 +2693,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Remarks:</em> This operator does not participate in overload resolution unless</p>
+     <p><em>Remarks:</em> This operator shall not participate in overload resolution unless</p>
      <ul>
       <li data-md="">
        <p><code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">Indices</span><span class="p">)</span><span class="o">==</span><span class="n">get_extents</span><span class="p">().</span><span class="n">rank</span><span class="p">()</span></code>,</p>
@@ -2797,8 +2796,8 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
       <span class="k">constexpr</span> <span class="kt">bool</span> <span class="k">operator</span><span class="o">!=</span><span class="p">(</span><span class="k">const</span> <span class="n">mapping</span><span class="o">&lt;</span><span class="n">OtherExtents</span><span class="o">>&amp;</span> <span class="n">other</span><span class="p">)</span> <span class="k">const</span> <span class="k">noexcept</span><span class="p">;</span>
 
   <span class="k">private</span><span class="o">:</span>
-    <i><span class="n">Extents</span> <span class="n">extents_</span><span class="p">;</span> <span class="c1">// exposition only</span></i>
-<span class="c1"></span>    <i><span class="n">array</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span><span class="p">,</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">></span> <span class="n">strides_</span><span class="p">;</span> <span class="c1">// exposition only</span></i>
+    <span class="n">Extents</span> <span class="n">extents_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
+<span class="c1"></span>    <span class="n">array</span><span class="o">&lt;</span><span class="k">typename</span> <span class="n">Extents</span><span class="o">::</span><span class="n">index_type</span><span class="p">,</span> <span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span><span class="o">></span> <span class="n">strides_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
 <span class="c1"></span>  <span class="p">};</span>
 <span class="p">};</span>
 <span class="p">}}}</span>
@@ -2884,7 +2883,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
     <li data-md="">
      <p>Returns: If <code class="highlight"><span class="n">i</span><span class="p">...</span></code> is <code class="highlight"><span class="n">i0</span><span class="p">,</span> <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span></code>...<code class="highlight"><span class="p">,</span> <span class="n">ik</span></code> (where <code class="highlight"><span class="n">k</span><span class="o">==</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span></code>) and <code class="highlight"><span class="n">s</span> <span class="o">=</span> <span class="n">get_strides</span><span class="p">()</span></code>, returns <code class="highlight"><span class="n">i0</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">i1</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span></code>...<code class="highlight"><span class="o">+</span><span class="n">ik</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></code></p>
     <li data-md="">
-     <p>Remarks: This operator does not participate in overload resolution unless</p>
+     <p>Remarks: This operator shall not participate in overload resolution unless</p>
     <li data-md="">
      <p><code class="highlight"><span class="k">sizeof</span><span class="p">...(</span><span class="n">Indices</span><span class="p">)</span><span class="o">==</span><span class="n">Extents</span><span class="o">::</span><span class="n">rank</span><span class="p">()</span></code>,</p>
     <li data-md="">
@@ -3108,9 +3107,9 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
   <span class="k">constexpr</span> <span class="n">index_type</span> <span class="nf">stride</span><span class="p">(</span><span class="kt">size_t</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 
 <span class="k">private</span><span class="o">:</span>
-  <i><span class="n">accessor</span> <span class="n">acc_</span><span class="p">;</span> <span class="c1">// exposition only</span></i>
-<span class="c1"></span>  <i><span class="n">mapping</span> <span class="n">map_</span><span class="p">;</span> <span class="c1">// exposition only</span></i>
-<span class="c1"></span>  <i><span class="n">pointer</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// exposition only</span></i>
+  <span class="n">accessor</span> <span class="n">acc_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
+<span class="c1"></span>  <span class="n">mapping</span> <span class="n">map_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
+<span class="c1"></span>  <span class="n">pointer</span> <span class="n">ptr_</span><span class="p">;</span> <span class="c1">// </span><i><span class="c1">exposition only</span></i>
 <span class="c1"></span><span class="p">};</span>
 
 <span class="p">}}}</span>
@@ -3186,7 +3185,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">mapping</span><span class="p">(</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...)).</span><span class="n">required_span_size</span><span class="p">())</span></code> is a valid range.</p>
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">mapping</span><span class="p">(</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">...)).</span><span class="n">required_span_size</span><span class="p">())</span></code> shall be a valid range.</p>
     <li data-md="">
      <p><em>Effects:</em></p>
      <ul>
@@ -3262,7 +3261,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">mapping</span><span class="p">(</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">)).</span><span class="n">required_span_size</span><span class="p">())</span></code> is a valid range.</p>
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">mapping</span><span class="p">(</span><span class="n">Extents</span><span class="p">(</span><span class="n">dynamic_extents</span><span class="p">)).</span><span class="n">required_span_size</span><span class="p">())</span></code> shall be a valid range.</p>
     <li data-md="">
      <p><em>Effects:</em> Equivalent to <code class="highlight"><span class="n">basic_mdspan</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">dynamic_extents</span><span class="p">[</span><span class="n">Rs</span><span class="p">]...)</span></code>, with <code class="highlight"><span class="n">Rs</span><span class="p">...</span></code> from <code class="highlight"><span class="n">index_sequence</span><span class="o">&lt;</span><span class="n">Rs</span><span class="p">...</span><span class="o">></span></code> matching <code class="highlight"><span class="n">make_index_sequence</span><span class="o">&lt;</span><span class="n">N</span><span class="o">></span></code>.</p>
     <li data-md="">
@@ -3305,7 +3304,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">m</span><span class="p">.</span><span class="n">required_span_size</span><span class="p">())</span></code> is a valid range.</p>
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">m</span><span class="p">.</span><span class="n">required_span_size</span><span class="p">())</span></code> shall be a valid range.</p>
     <li data-md="">
      <p><em>Effects:</em></p>
      <ul>
@@ -3345,7 +3344,7 @@ within the input <code class="highlight"><span class="n">basic_mdspan</span></co
 </pre>
    <ul>
     <li data-md="">
-     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">m</span><span class="p">.</span><span class="n">required_span_size</span><span class="p">())</span></code> is a valid range.</p>
+     <p><em>Requires:</em> <code class="highlight"><span class="p">[</span><span class="n">ptr</span><span class="p">,</span> <span class="n">ptr</span><span class="o">+</span><span class="n">m</span><span class="p">.</span><span class="n">required_span_size</span><span class="p">())</span></code> shall be a valid range.</p>
     <li data-md="">
      <p><em>Effects:</em></p>
      <ul>
@@ -3926,5 +3925,5 @@ modification of <code class="highlight"><span class="n">span</span></code> to be
    <dt id="biblio-n4355">[N4355]
    <dd>Carter Edwards. <a href="https://wg21.link/n4355">Shared Multidimensional Arrays with Polymorphic Layout</a>. 4 February 2015. URL: <a href="https://wg21.link/n4355">https://wg21.link/n4355</a>
    <dt id="biblio-p0900r0">[P0900r0]
-   <dd>David S. Hollman. <a href="https://wg21.link/p0900r0">An Ontology for Properties of mdspan</a>. URL: <a href="https://wg21.link/p0900r0">https://wg21.link/p0900r0</a>
+   <dd>David S. Hollman. <a href="https://wg21.link/p0900r0">An Ontology for Properties of mdspan</a>. 12 February 2018. URL: <a href="https://wg21.link/p0900r0">https://wg21.link/p0900r0</a>
   </dl>
