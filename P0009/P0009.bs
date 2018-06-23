@@ -983,11 +983,9 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     * `E` denotes a specialization of `extents`.
     * `e` denotes an object of type `E` defining a domain multi-index space.
     * `r` is a value of an integral type such that 0 <= `r` < `e.rank()`.
-    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i)==E::rank()`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()` and 0 <= `j[r]` < `e.extent(r)`.
+    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i)==E::rank()`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()`, and 0 <= `j[r]` < `e.extent(r)`.
     * `M` denotes a layout mapping class.
     * `m` denotes an object of type `M` that maps a multi-index `i...` to an integral value.
-
-<!-- TODO @CRT and @HCE: Review minor design change consolidating extents-like member functions into get_extents() -->
 
 Table � — Layout mapping policy and layout mapping requirements
 <table border=1>
@@ -1114,7 +1112,7 @@ struct layout_left {
     template&lt;class OtherExtents>
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
-    // [mdspan.layout.left.ops], `layout_left::mapping` operations
+    // [mdspan.layout.left.ops], layout_left::mapping operations
     Extents get_extents() const noexcept;
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
@@ -1342,7 +1340,7 @@ struct layout_right {
     template&lt;class OtherExtents>
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
-    // [mdspan.layout.right.ops], `layout_right::mapping` operations
+    // [mdspan.layout.right.ops], layout_right::mapping operations
     Extents get_extents() const noexcept;
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
@@ -1565,7 +1563,7 @@ struct layout_stride {
   template&lt;class Extents>
   class mapping {
   public:
-    // [mdspan.layout.stride.cons], `layout_stride::mapping` constructors
+    // [mdspan.layout.stride.cons], layout_stride::mapping constructors
     constexpr mapping() noexcept;
     constexpr mapping(mapping const& other) noexcept;
     constexpr mapping(mapping&& other) noexcept;
@@ -1578,7 +1576,7 @@ struct layout_stride {
     template&lt;class OtherExtents>
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
-    // [mdspan.layout.stride.ops], `layout_stride::mapping` operations
+    // [mdspan.layout.stride.ops], layout_stride::mapping operations
     Extents get_extents() const noexcept;
     array&lt;typename Extents::index_type, Extents::rank()> get_strides() const noexcept;
 
@@ -1884,7 +1882,7 @@ public:
   using pointer = typename accessor::pointer;
   using reference = typename accessor::reference;
 
-  // [mdspan.basic.cons], `basic_mdspan` constructors, assignment, and destructor
+  // [mdspan.basic.cons], basic_mdspan constructors, assignment, and destructor
   constexpr basic_mdspan() noexcept = default;
   constexpr basic_mdspan(const basic_mdspan&) noexcept = default;
   constexpr basic_mdspan(basic_mdspan&&) noexcept;
@@ -1910,7 +1908,7 @@ public:
   template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
     constexpr basic_mdspan& operator=(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other) noexcept;
 
-  // [mdspan.basic.mapping], `basic_mdspan` mapping domain multi-index to access codomain element
+  // [mdspan.basic.mapping], basic_mdspan mapping domain multi-index to access codomain element
   constexpr reference operator[](index_type) const noexcept;
   template&lt;class... IndexType>
     constexpr reference operator()(IndexType... indices) const noexcept;
@@ -1918,7 +1916,7 @@ public:
     constexpr reference operator()(const array&lt;IndexType, N>& indices) const noexcept;
   accessor get_accessor() const;
 
-  // [mdspan.basic.domobs], `basic_mdspan` observers of the domain multi-index space
+  // [mdspan.basic.domobs], basic_mdspan observers of the domain multi-index space
   static constexpr int rank() noexcept;
   static constexpr int rank_dynamic() noexcept;
   static constexpr index_type static_extent(size_t) noexcept;
@@ -1928,10 +1926,10 @@ public:
   constexpr index_type size() const noexcept;
   constexpr index_type unique_size() const noexcept;
 
-  // [mdspan.basic.codomain], `basic_mdspan` observers of the codomain
+  // [mdspan.basic.codomain], basic_mdspan observers of the codomain
   constexpr span&lt;element_type> span() const noexcept;
 
-  // [mdspan.basic.obs], `basic_mdspan` observers of the mapping
+  // [mdspan.basic.obs], basic_mdspan observers of the mapping
   static constexpr bool is_always_unique() noexcept;
   static constexpr bool is_always_contiguous() noexcept;
   static constexpr bool is_always_strided() noexcept;
