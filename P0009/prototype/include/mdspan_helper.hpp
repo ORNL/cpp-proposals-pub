@@ -58,6 +58,9 @@ public:
 
 	HOST_DEVICE
 	constexpr index_type product(size_t,size_t) const noexcept { return N ; }
+
+	HOST_DEVICE
+	bool equal( const extents_helper & ) const noexcept { return true ; }
 };
 
 // Iteration 'R' of StaticExtents... expansion
@@ -116,7 +119,7 @@ public:
 	  const extents_helper<R,OtherStaticExtents...> & other ) noexcept
 		: val_t( other.N )
 		, next_t( (const typename extents_helper<R,OtherStaticExtents...>::next_t &) other )
-		{ assert( N == other.N ); }
+		{}
 
   template<ptrdiff_t... OtherStaticExtents>
 	HOST_DEVICE
@@ -152,6 +155,11 @@ public:
 	HOST_DEVICE
 	constexpr index_type product(size_t i, size_t j) const noexcept
 	  { return ( i <= R && R < j ? N : 1 ) * next_t::product(i,j); }
+
+  template<ptrdiff_t... OtherStaticExtents>
+	HOST_DEVICE
+	bool equal( const extents_helper<R,OtherStaticExtents...> & other ) const noexcept
+		{ return ( N == other.N ) && ( next().equal( other.next() ) ); }
 };
 
 }}}}
@@ -196,7 +204,7 @@ template<class ElementType,
          class ... SliceSpecifiers>
 struct subspan_deduction {
 
-  static_assert( sizeof...(SliceSpecifiers) == Extents::rank() );
+  static_assert( sizeof...(SliceSpecifiers) == Extents::rank() , "" );
 
 	static constexpr size_t sum() noexcept { return 0 ; }
 
