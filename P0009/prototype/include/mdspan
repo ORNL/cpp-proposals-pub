@@ -39,14 +39,21 @@ class layout_right ;
 class layout_left ;
 class layout_stride ;
 
-// [mdspan.accessor.basic]
-class accessor_basic;
+// [mdspan.accessor.reference]
+template<class Accessor>
+class accessor_pointer;
+template<class Accessor>
+class accessor_reference;
+template<class Accessor>
+using accessor_pointer_t = typename accessor_pointer<Accessor>::type;
+template<class Accessor>
+using accessor_reference_t = typename accessor_reference<Accessor>::type;
 
 // [mdspan.basic]
 template<class ElementType,
          class Extents,
          class LayoutPolicy = layout_right,
-         class Accessor = accessor_basic >
+         class Accessor = ElementType*>
 class basic_mdspan ;
 
 // [msspan.subspan]
@@ -524,10 +531,76 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-class accessor_basic {
+template<class Accessor>
+class accessor_pointer ;
+template<class Accessor>
+class accessor_reference ;
+
+template<class T>
+class accessor_pointer<T*> {
 public:
-  template<class T> using pointer_t = T * ;
-  template<class T> using reference_t = T & ;
+  using type = T*;
+};
+
+template<class T>
+class accessor_reference<T*> {
+public:
+  using type = T&;
+};
+
+}}} // std::experimental::fundamentals_v3
+
+//--------------------------------------------------------------------------
+//--------------------------------------------------------------------------
+// accessor::pointer<T> is
+// an object pointer type [basic.compound]
+
+namespace std {
+namespace experimental {
+namespace fundamentals_v3 {
+
+template<class T, size_t N>
+class accessor_aligned {
+public:
+  static_assert( ( 0 == ( N & ( N - 1 ))), "" );
+  static_assert( ( 0 == ( N % sizeof(T))), "" );
+
+  enum : size_t { align = N };
+
+	// using pointer = alignas(N) T*;
+	using pointer = T*;
+	using reference = T&;
+
+	constexpr accessor_aligned() noexcept {};
+	constexpr accessor_aligned( const accessor_aligned & ) noexcept = default ;
+
+	accessor_aligned( accessor_aligned && ) = delete ;
+	accessor_aligned operator = ( accessor_aligned && ) = delete ;
+	accessor_aligned operator = ( const accessor_aligned & ) = delete ;
+
+	explicit accessor_aligned( pointer other ) noexcept
+		: ptr(other)
+		{
+		  // Verify pointer alignment:
+		  assert( 0 == reinterpret_cast<uintptr_t>(ptr) % N );
+		}
+
+  // constexpr operator alignas(N) T* () const noexcept { return ptr };
+
+  constexpr operator pointer () const noexcept
+	  { return ptr; }
+	constexpr reference operator[]( size_t i ) const noexcept
+	  { return ptr[i]; }
+
+private:
+
+  pointer const ptr = 0 ;
+};
+
+template<class T, size_t N>
+class accessor_reference< accessor_aligned<T,N> > {
+public:
+  using type = typename accessor_aligned<T,N>::reference ;
 };
 
 }}} // std::experimental::fundamentals_v3
@@ -553,8 +626,8 @@ public:
   using value_type       = typename std::remove_cv<element_type>::type ;
   using index_type       = ptrdiff_t ;
   using difference_type  = ptrdiff_t ;
-  using pointer          = typename accessor_type::template pointer_t<element_type>;
-  using reference        = typename accessor_type::template reference_t<element_type>;
+  using pointer          = accessor_pointer_t<Accessor>;
+  using reference        = accessor_reference_t<Accessor>;
 
   // [mdspan.basic.cons]
 
@@ -680,12 +753,12 @@ public:
 
 private:
 
-  pointer      m_ptr ;
+  Accessor     m_ptr ;
   mapping_type m_map ;
 };
 
 template<class T, ptrdiff_t... Indices>
-using mdspan = basic_mdspan<T,extents<Indices...>,layout_right,accessor_basic> ;
+using mdspan = basic_mdspan<T,extents<Indices...>,layout_right,T*> ;
 
 }}} // std::experimental::fundamentals_v3
 

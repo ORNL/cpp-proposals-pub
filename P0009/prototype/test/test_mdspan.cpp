@@ -123,11 +123,15 @@ void test_accessor()
 {
   using namespace std::experimental::fundamentals_v3 ;
 
-  using iptr = accessor_basic::pointer_t<int> ;
-  using iref = accessor_basic::reference_t<int> ;
+  static_assert( std::is_same<int*,accessor_pointer_t<int*> >::value , "" );
+  static_assert( std::is_same<int&,accessor_reference_t<int*> >::value , "" );
 
-	int x = 42 ;
-	iptr px = & x ;
+  using iacc = accessor_aligned<int,8>;
+  using iref = accessor_reference_t<iacc>;
+
+	alignas(8) int x = 42 ;
+
+	iacc px( & x );
 	iref rx = x ;
 
 	assert( px[0] == 42 );
