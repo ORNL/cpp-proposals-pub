@@ -731,14 +731,17 @@ namespace fundamentals_v3 {
   class layout_right;
   class layout_stride;
 
-  // [mdspan.accessor.basic], class template accessor_basic
-  class accessor_basic;
+  // [mdspan.accessor.traits]
+  template<class Accessor>
+  class accessor_reference;
+  template<class Accessor>
+  using accessor_reference_t = typename accessor_reference<Accessor>::type;
 
   // [mdspan.basic], class template mdspan
   template<class ElementType,
            class Extents,
            class LayoutPolicy = layout_right,
-           class Accessor = accessor_basic>
+           class Accessor = T*>
     class basic_mdspan;
 
   template<class T, ptrdiff_t... Extents>
@@ -1110,7 +1113,7 @@ struct layout_left {
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
     // [mdspan.layout.left.ops], layout_left::mapping operations
-    const Extents & extents() const noexcept;
+    Extents extents() const noexcept;
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
 
@@ -1214,7 +1217,7 @@ constexpr mapping(const mapping<OtherExtents>& other);
 <br/>
 
 ```c++
-const Extents & extents() const noexcept;
+Extents extents() const noexcept;
 ```
 
 * *Returns:* `extents_`.
@@ -1338,7 +1341,7 @@ struct layout_right {
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
     // [mdspan.layout.right.ops], layout_right::mapping operations
-    const Extents & extents() const noexcept;
+    Extents extents() const noexcept;
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
 
@@ -1441,7 +1444,7 @@ template<class OtherExtents>
 <br/>
 
 ```c++
-const Extents & extents() const noexcept;
+Extents extents() const noexcept;
 ```
 
 * *Returns:* `extents_`.
@@ -1574,7 +1577,7 @@ struct layout_stride {
       constexpr mapping& operator=(const mapping&lt;OtherExtents>& other);
 
     // [mdspan.layout.stride.ops], layout_stride::mapping operations
-    const Extents & extents() const noexcept;
+    Extents extents() const noexcept;
     const array&lt;typename Extents::index_type, Extents::rank()> & strides() const noexcept;
 
     constexpr typename Extents::index_type required_span_size() const noexcept;
@@ -1650,7 +1653,7 @@ template<class OtherExtents>
 <b>26.7.�.4.2 layout_stride::mapping operations [mdspan.layout.stride.ops]</b>
 
 ```c++
-const Extents & extents() const noexcept;
+Extents extents() const noexcept;
 ```
 * Returns: extents_.
 
@@ -1740,15 +1743,25 @@ template<class OtherExtents>
 
 <b>26.7.� Accessor [mdspan.accessor]</b>
 
+An *accessor* is an object through which a contiguous set of objects of type *T* 
+that the accessor does not own are accessed. 
+An accessor is similar to an *array of unknown bound of T* [dcl.array] 
+when it is used as a *function parameter* [dcl.fct].
+
+
 <br/>
 <b>26.7.�.1 Accessor requirements [mdspan.accessor.reqs]</b>
 
-An *accessor* is a class that defines `pointer` and `reference` types. *[Note:* The intended semantic is that the reference refers to a value at the given offset from the given pointer. *—end note]*
+An accessor supports subscripting operator [expr.sub], conversion to pointer [conv.array],
+and is constructable from a pointer to a contiguous set of objects of type `T`.
+The subscripting operator returns an object which provides access to the indexed element,
+this return type may be a type that is not `T&`.
 
 In Table �:
   * `A` denotes an accessor type.
+  * `a` denotes an object of type `A`
   * `T` denotes an object type and is not an array type.
-  * `p` denotes a value of type `A::pointer<T>`.
+  * `p` denotes an object of type `T*`.
   * `i` denotes an integer value.
 
 Table �: Accessor requirements
@@ -1759,19 +1772,19 @@ Table �: Accessor requirements
   <th>Requirements/Notes</th>
 </tr>
 <tr>
-  <td>`A::reference<T>`</td>
-  <td></td>
-  <td>*Requires:* `A::reference<T>` shall be convertable to `T` and, if `!is_const_v<T>`, assignable from `T`. *[Note:* This may be `T&` or a proxy that operates like `T&`. *--end note]*</td>
+  <td>`a[i]`</td>
+  <td>`accessor_reference_t<A>`
+  <td>*Returns:* An object which provides access to the `i`*th* element in the contiguous set.</td>
 </tr>
 <tr>
-  <td>`A::pointer<T>`</td>
-  <td></td>
-  <td>*Requires:* `A::pointer<T>` shall be `DefaultConstructible` and `CopyAssignable`. *[Note:* This may be `T*` or a proxy that operates like `T*`. *--end note]*</td>
+  <td>`p = a;`</td>
+  <td>`T*`</td>
+  <td>*Returns:* a pointer to the contiguous set of objects referenced by `a`.</td>
 </tr>
 <tr>
-  <td>`p[i]`</td>
-  <td>`A::reference<T>`</td>
-  <td>*Returns:* `A::reference<T>` corresponding to offset `i` from `p`.
+  <td>`A a(p)`</td>
+  <td></td>
+  <td>*Requires:* `p` is a pointer to a contiguous set of objects.</td>
 </tr>
 </table>
 
@@ -1785,22 +1798,18 @@ Table �: Accessor requirements
 -->
 
 <br/>
-<b>26.7.�.2 Class `accessor_basic` [mdspan.accessor.basic]</b>
-
-1. `accessor_basic` meets the requirements of accessor.
-2. `accessor_basic` gives an accessor that has semantics equivalent to dereferencing a pointer to an array of values.
-3. If `T` is not an object type or is an array type, the program is ill-formed.
+<b>26.7.�.2 Class `accessor_reference` [mdspan.accessor.traits]</b>
 
 ```c++
 namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-struct accessor_basic {
-  template<class T>
-  using pointer = T*;
-  template<class T>
-  using reference = T&;
+template<class T>
+struct accessor_reference ;
+template<class T>
+struct accessor_reference<T*> {
+  using type = T&;
 };
 
 }}}
@@ -1857,9 +1866,9 @@ public:
   using element_type = ElementType ;
   using value_type = remove_cv_t&lt;element_type>;
   using index_type = ptrdiff_t ;
-  using difference_type = ptrdiff_t ;
-  using pointer = typename accessor_type::template pointer&lt;element_type>;
-  using reference = typename accessor_type::template reference&lt;element_type>;
+  using difference_type = ptrdiff_t;
+  using pointer = ElementType*;
+  using reference = typename accessor_reference_t&lt;ElementType>;
 
   // [mdspan.basic.cons], basic_mdspan constructors, assignment, and destructor
   constexpr basic_mdspan() noexcept = default;
@@ -1899,7 +1908,7 @@ public:
   static constexpr int rank_dynamic() noexcept;
   static constexpr index_type static_extent(size_t) noexcept;
 
-  constexpr const Extents & extents() const noexcept;
+  constexpr Extents extents() const noexcept;
   constexpr index_type extent(size_t) const noexcept;
 
   // [mdspan.basic.codomain], basic_mdspan observers of the codomain
@@ -1910,7 +1919,7 @@ public:
   static constexpr bool is_always_contiguous() noexcept;
   static constexpr bool is_always_strided() noexcept;
 
-  constexpr const mapping_type & mapping() const noexcept;
+  constexpr mapping_type mapping() const noexcept;
   constexpr bool is_unique() const noexcept;
   constexpr bool is_contiguous() const noexcept;
   constexpr bool is_strided() const noexcept;
@@ -2305,7 +2314,7 @@ static constexpr bool is_always_strided() noexcept;
 <br/>
 
 ```c++
-constexpr const mapping_type & mapping() const noexcept;
+constexpr mapping_type mapping() const noexcept;
 ```
 
 * *Returns:* `map_`
@@ -2390,7 +2399,7 @@ namespace fundamentals_v3 {
   // [mdspan.subspan], subspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
            class Accessor, class... SliceSpecifiers>
-    basic_mdspan<ElementType, E /* see-below */, layout_stride, Accessor>
+    basic_mdspan<ElementType, E /* see-below */, L /* see-below */, A /* see-below */ >
       subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>& src, SliceSpecifiers ... slices) noexcept;
 
 }}}
@@ -2399,7 +2408,9 @@ namespace fundamentals_v3 {
 `subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
 The SliceSpecifier parameters indicate the subset that the return value references.
 Let slices[r] denote the rth value in the parameter pack slices.
-The second template parameter of the return type is E, a specialization of `extents`.
+The second template parameter of the return type, `E`, is a specialization of `extents`.
+The third template parameter of the return type, `L`, is a layout mapping policy [mdspan.layout].
+The fourth template paramter of the return type, `A`, is an accessor [mdspan.accessor].
 <br/>
 
 Let <em>C</em> be the number of parameters in `SliceSpecifiers` which are convertible to `ptrdiff_t` <br/>
@@ -2426,6 +2437,8 @@ Postcondition: <br/>
     * If <em>ranges[r]</em> is the nth value of `ranges` convertible to `alltype_t` or `pair<ptrdiff_t,ptrdiff_t>` and `slices[k]` is the `n`th value of `slices` convertible to `all type_t` or  `pair<ptrdiff_t,ptrdiff_t>` then `sub.extent(r)==last[k]-first[k]` and `sub.stride(r)==src.stride(k)` <br/> 
     * `sub.ptr_==src.ptr_+first[0]*src.stride(0)+`...`+first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
     * Note: it is quality of implementation whether static extents are preserved if possible.  <br/>
+
+
 
 * Examples:
 
