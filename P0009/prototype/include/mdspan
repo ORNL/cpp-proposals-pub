@@ -41,11 +41,7 @@ class layout_stride ;
 
 // [mdspan.accessor.reference]
 template<class Accessor>
-class accessor_pointer;
-template<class Accessor>
 class accessor_reference;
-template<class Accessor>
-using accessor_pointer_t = typename accessor_pointer<Accessor>::type;
 template<class Accessor>
 using accessor_reference_t = typename accessor_reference<Accessor>::type;
 
@@ -532,15 +528,7 @@ namespace experimental {
 namespace fundamentals_v3 {
 
 template<class Accessor>
-class accessor_pointer ;
-template<class Accessor>
 class accessor_reference ;
-
-template<class T>
-class accessor_pointer<T*> {
-public:
-  using type = T*;
-};
 
 template<class T>
 class accessor_reference<T*> {
@@ -552,8 +540,6 @@ public:
 
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
-// accessor::pointer<T> is
-// an object pointer type [basic.compound]
 
 namespace std {
 namespace experimental {
@@ -567,8 +553,6 @@ public:
 
   enum : size_t { align = N };
 
-	// using pointer = alignas(N) T*;
-	using pointer = T*;
 	using reference = T&;
 
 	constexpr accessor_aligned() noexcept {};
@@ -578,7 +562,7 @@ public:
 	accessor_aligned operator = ( accessor_aligned && ) = delete ;
 	accessor_aligned operator = ( const accessor_aligned & ) = delete ;
 
-	explicit accessor_aligned( pointer other ) noexcept
+	explicit accessor_aligned( T * other ) noexcept
 		: ptr(other)
 		{
 		  // Verify pointer alignment:
@@ -587,14 +571,15 @@ public:
 
   // constexpr operator alignas(N) T* () const noexcept { return ptr };
 
-  constexpr operator pointer () const noexcept
+  constexpr operator T*() const noexcept
 	  { return ptr; }
 	constexpr reference operator[]( size_t i ) const noexcept
 	  { return ptr[i]; }
 
 private:
 
-  pointer const ptr = 0 ;
+  // alignas(N) T * const ptr = 0 ;
+  T * const ptr = 0 ;
 };
 
 template<class T, size_t N>
@@ -626,7 +611,7 @@ public:
   using value_type       = typename std::remove_cv<element_type>::type ;
   using index_type       = ptrdiff_t ;
   using difference_type  = ptrdiff_t ;
-  using pointer          = accessor_pointer_t<Accessor>;
+  using pointer          = ElementType*;
   using reference        = accessor_reference_t<Accessor>;
 
   // [mdspan.basic.cons]

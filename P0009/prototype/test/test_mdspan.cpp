@@ -123,7 +123,6 @@ void test_accessor()
 {
   using namespace std::experimental::fundamentals_v3 ;
 
-  static_assert( std::is_same<int*,accessor_pointer_t<int*> >::value , "" );
   static_assert( std::is_same<int&,accessor_reference_t<int*> >::value , "" );
 
   using iacc = accessor_aligned<int,8>;
