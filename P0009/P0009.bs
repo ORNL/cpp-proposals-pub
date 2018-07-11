@@ -1786,6 +1786,12 @@ Table �: Accessor requirements
   <td></td>
   <td>*Requires:* `p` is a pointer to a contiguous set of objects.</td>
 </tr>
+<tr>
+  <td>`a = A(p);`</td>
+  <td></td>
+  <td>*Requires:* `p` is a pointer to a contiguous set of objects.</td>
+</tr>
+<tr>
 </table>
 
 <!--
@@ -1930,8 +1936,8 @@ public:
   static constexpr index_type required_span_size(const array&lt;IndexType, N>& dynamic_extents) noexcept;
 
 private:
-  mapping_type map_; // <i>exposition only</i>
-  pointer ptr_; // <i>exposition only</i>
+  mapping_type  map_; // <i>exposition only</i>
+  accessor_type acc_; // <i>exposition only</i>
 };
 
 }}}
@@ -1957,7 +1963,7 @@ constexpr basic_mdspan() noexcept = default;
 <!-- TODO check for periods, commas, and "and" here. -->
 <!-- TODO: decide if we want to include invocation of `span()` in the postconditions. An accessor may want to make this undefined behavior. -->
 * *Effects:*
-    * zero-initializes `ptr_`
+    * zero-initializes `acc_`
     * value-initializes `map_`
 * *Postconditions:* 
     + `size()==0`
@@ -1971,7 +1977,7 @@ constexpr basic_mdspan(const basic_mdspan& other) noexcept = default;
 ```
 
 * *Effects:*
-    + initializes `ptr_` with `other.ptr_`
+    + initializes `acc_` with `other.acc_`
     + initializes `map_` with `other.map_`
 * *Postconditions:*
     + `size()==other.size()`
@@ -1985,7 +1991,7 @@ constexpr basic_mdspan(basic_mdspan&& other) noexcept;
 ```
 
 * *Effects:*
-    + initializes `ptr_` with `move(other.ptr_)`
+    + initializes `acc_` with `move(other.acc_)`
     + initializes `map_` with `move(other.map_)`
 
 <br/>
@@ -1997,7 +2003,7 @@ template<class... IndexType>
 
 * *Requires:* `[ptr, ptr+required_span_size(dynamic_extents...))` shall be a valid range.
 * *Effects:*
-    + initializes `ptr_` with `ptr`
+    + initializes `acc_` with `ptr`
     + initializes `map_` with `extents_type(dynamic_extents...)`
 * *Postconditions:* 
     + `extents()==extents_type(dynamic_extents...)`
@@ -2017,7 +2023,7 @@ template<class... IndexType>
 
 * *Requires:* `sp.size()==required_span_size(dynamic_extents...)`
 * *Effects:*
-    + initializes `ptr_` with `sp.data()`
+    + initializes `acc_` with `sp.data()`
     + value-initializes `map_`
 * *Postconditions:* 
     + `extents()==extents_type(dynamic_extents...)`
@@ -2066,7 +2072,7 @@ constexpr basic_mdspan(pointer p, const mapping& m);
 
 * *Requires:* `[ptr, ptr+m.required_span_size())` shall be a valid range.
 * *Effects:*
-    + initializes `ptr_` with `p`
+    + initializes `acc_` with `p`
     + initializes `map_` with `m`
 * *Postconditions:* 
     + `extents()==m.extents()`
@@ -2092,7 +2098,7 @@ constexpr basic_mdspan(pointer p, const mapping& m, const accessor& a);
 
 * *Requires:* `[ptr, ptr+m.required_span_size())` shall be a valid range.
 * *Effects:*
-    + initializes `ptr_` with `p`
+    + initializes `acc_` with `p`
     + initializes `map_` with `m`
 * *Postconditions:* 
     + `extents()==m.extents()`
@@ -2122,7 +2128,7 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
 * *Requires:*
     + For all `r` in the range `[0, rank())`, if `other.static_extent(r)==dynamic_extent` or `static_extent(r)==dynamic_extent`, then `other.extent(r)==extent(r)`
 * *Effects:*
-    + initializes `ptr_` with `other.ptr_`
+    + initializes `acc_` with `other.acc_`
     + initializes `map_` with `other.map_`
 * *Postconditions:* 
     + `extents()==extents_type(other.extents())`
@@ -2131,7 +2137,6 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
     + `OtherElementType(*)[]` is convertible to `ElementType(*)[]`, <!-- lifted directly from span wording -->
     + `OtherLayoutPolicy::template mapping<OtherExtents>` is convertible to `mapping`
     + `OtherAccessor` is convertible to `Accessor`, and
-    + `OtherAccessor::pointer` is convertible to `pointer`.
 * *Throws:* Nothing.
 
 <br/>
@@ -2144,7 +2149,7 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
 * *Requires:*
     + For all `r` in the range `[0, rank())`, if `other.static_extent(r)==dynamic_extent` or `static_extent(r)==dynamic_extent`, then `other.extent(r)==extent(r)`
 * *Effects:*
-    + assigns `other.ptr_` to `ptr_`.
+    + assigns `other.acc_` to `acc_`.
     + assigns `other.map_` to `map_`
 * *Postconditions:* 
     + `extents()==extents_type(other.extents())`
@@ -2153,7 +2158,6 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
     + `OtherElementType(*)[]` is assignable to `ElementType(*)[]`, <!-- lifted directly from span wording -->
     + `OtherLayoutPolicy::template mapping<OtherExtents>` is assignable to `mapping`
     + `OtherAccessor` is assignable to `Accessor`, and
-    + `OtherAccessor::pointer` is assignable to `pointer`.
 * *Throws:* Nothing.
 
 
@@ -2184,7 +2188,7 @@ template<class... IndexType>
 ```
 
 * *Requires:* 0 <= `array<index_type, sizeof...(indices)>{indices...}[r]` < `extent(r)` for all `r` in the range `[0, rank())`.
-* *Effects:* Equivalent to `return ptr_[ map_(indices...)];`
+* *Effects:* Equivalent to `return acc_[ map_(indices...)];`
 * *Remarks:* This operator does not participate in overload resolution unless
     + `is_convertible_v<IndexType, index_type> && ...`
     + `sizeof...(IndexType)==rank()`
@@ -2435,7 +2439,7 @@ Requires: <br/>
 Postcondition: <br/>
     * `E::rank()==Extents::rank()-C` <br/>
     * If <em>ranges[r]</em> is the nth value of `ranges` convertible to `alltype_t` or `pair<ptrdiff_t,ptrdiff_t>` and `slices[k]` is the `n`th value of `slices` convertible to `all type_t` or  `pair<ptrdiff_t,ptrdiff_t>` then `sub.extent(r)==last[k]-first[k]` and `sub.stride(r)==src.stride(k)` <br/> 
-    * `sub.ptr_==src.ptr_+first[0]*src.stride(0)+`...`+first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
+    * `(pointer)sub.acc_==((pointer)src.acc_)+first[0]*src.stride(0)+`...`+first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
     * Note: it is quality of implementation whether static extents are preserved if possible.  <br/>
 
 
