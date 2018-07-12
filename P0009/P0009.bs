@@ -2426,7 +2426,6 @@ namespace fundamentals_v3 {
 
 `subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
 The SliceSpecifier parameters indicate the subset that the return value references.
-Let slices[r] denote the rth value in the parameter pack slices.
 The second template parameter of the return type, `E`, is a specialization of `extents`.
 The third template parameter of the return type, `L`, is a layout mapping policy [mdspan.layout].
 The fourth template paramter of the return type, `A`, is an accessor [mdspan.accessor].
@@ -2442,12 +2441,12 @@ Let `last[r]` denote the rth upper bound of `slices[r]`. <br/>
     * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `last[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).second()` <br/>
     * If `slices[r]` is convertible to `all_type` `last[r]==src.extent(r)` <br/>
 Let an array `R[K]` be <br/>
-<!--
+<pre highlight="c++">
   size_t k = 0;
   for(size_t r=0; r&lt;sizeof...(slices); r++)
     if ( slices[r] <i>convertable to</i> pair&lt;ptrdiff_t,ptrdiff_t> <i>or</i> all_type ) R[k++] = r;
   size_t K = k;
--->
+</pre>
 Let `sub` be the return value of `subspan` <br/>
 
 Requires: <br/>
