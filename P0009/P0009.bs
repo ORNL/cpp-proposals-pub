@@ -733,9 +733,7 @@ namespace fundamentals_v3 {
 
   // [mdspan.accessor.traits]
   template<class Accessor>
-  class accessor_reference;
-  template<class Accessor>
-  using accessor_reference_t = typename accessor_reference<Accessor>::type;
+  class accessor_traits;
 
   // [mdspan.basic], class template mdspan
   template<class ElementType,
@@ -1761,10 +1759,10 @@ contiguous set of objects; e.g., restrict `T` to be trivially copyable or have a
 
 In Table �:
   * `A` denotes an accessor type.
-  * `a` denotes an object of type `A`
-  * `T` denotes an object type and is not an array type.
+  * `a` denotes an object of type `const A`.
+  * `T` denotes the element type of the accessor `typename accessor_traits<T>::element_type`,.
   * `p` denotes an object of type `T*`.
-  * `i` denotes an integer value.
+  * `i` denotes a `size_t` value.
 
 Table �: Accessor requirements
 <table border=1>
@@ -1775,21 +1773,21 @@ Table �: Accessor requirements
 </tr>
 <tr>
   <td>`a[i]`</td>
-  <td>`accessor_reference_t<A>`
+  <td>`typename accessor_traits<A>::reference`
   <td>*Returns:* An object which provides access to the `i`*th* element in the contiguous set.</td>
 </tr>
 <tr>
-  <td>`p = a;`</td>
-  <td>`T*`</td>
-  <td>*Returns:* a pointer to the contiguous set of objects referenced by `a`.</td>
+  <td>`a+i`</td>
+  <td>`typename accessor_traits<A>::offset`
+  <td>*Returns:* An accessor which provides access to the contiguous set of elements starting at the `i`*th* element. *[Note:* The type of returned accessor may be different than `a`. *--end node]*</td>
 </tr>
 <tr>
-  <td>`A a(p)`</td>
-  <td></td>
-  <td>*Requires:* `p` is a pointer to a contiguous set of objects.</td>
+  <td>`(T*)a;`</td>
+  <td>`typename accessor_traits<A>::pointer`</td>
+  <td>*Returns:* A pointer to the contiguous set of objects referenced by `a`.</td>
 </tr>
 <tr>
-  <td>`a = A(p);`</td>
+  <td>`A(p)`</td>
   <td></td>
   <td>*Requires:* `p` is a pointer to a contiguous set of objects.</td>
 </tr>
@@ -1806,18 +1804,32 @@ Table �: Accessor requirements
 -->
 
 <br/>
-<b>26.7.�.2 Class `accessor_reference` [mdspan.accessor.traits]</b>
+<b>26.7.�.2 Class `accessor_traits` [mdspan.accessor.traits]</b>
 
 ```c++
 namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
+template<class Accessor>
+struct accessor_traits ;
+
 template<class T>
-struct accessor_reference ;
-template<class T>
-struct accessor_reference<T*> {
-  using type = T&;
+struct accessor_traits<T*> {
+  using accessor = T*;
+	using element_type = T;
+	using pointer = T*;
+	using reference = T&;
+	using offset = T*;
+};
+
+template<class Accessor>
+struct accessor_traits {
+  using accessor = Accessor;
+	using element_type = typename Accessor::element_type;
+	using pointer = typename Accessor::pointer;
+	using reference = typename Accessor::reference;
+	using offset = typename Accessor::offset;
 };
 
 }}}
@@ -2419,32 +2431,39 @@ The third template parameter of the return type, `L`, is a layout mapping policy
 The fourth template paramter of the return type, `A`, is an accessor [mdspan.accessor].
 <br/>
 
-Let <em>C</em> be the number of parameters in `SliceSpecifiers` which are convertible to `ptrdiff_t` <br/>
-Let <em>ranges[r]</em> denote the rth value in the parameter pack slices, which is not convertible to `ptrdiff_t` <br/>
+Let <em>ranges[r]</em> denote the `r`<em>th</em> value in the parameter pack slices, which is not convertible to `ptrdiff_t` <br/>
 Let <em>sub</em> be the return value of `subspan` <br/>
-Let <em>first[r]</em> denote the rth lower bound of `slices[r]`. <br/>
+Let <em>first[r]</em> denote the `r`<em>th</em> lower bound of `slices[r]`. <br/>
     * If `slices[r]` is convertible to `ptrdiff_t` `first[r]==slices[r]` <br/>
     * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `first[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).first()` <br/>
-    * If `slices[r]` is convertible to `alltype_t` `first[r]==0` <br/>
+    * If `slices[r]` is convertible to `all_type` `first[r]==0` <br/>
 Let `last[r]` denote the rth upper bound of `slices[r]`. <br/>
     * If `slices[r]` is convertible to `ptrdiff_t` `last[r]==slices[r]+1` <br/>
     * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `last[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).second()` <br/>
-    * If `slices[r]` is convertible to `alltype_t` `last[r]==src.extent(r)` <br/>
+    * If `slices[r]` is convertible to `all_type` `last[r]==src.extent(r)` <br/>
+Let `C` be the number of parameters in `SliceSpecifiers` which are convertible to `ptrdiff_t` <br/>
+Let `0 <= k < Extents::rank()-C` and let `R[k]` be <br/>
+<code>for ( size_t k=r=0; i<Extents::rank(); ++i )</code><br/>
+<code>  if ( slices[r] </code><em>convertable to</em> <code> ptrdiff_t ) R[k++] = r ;</code>
 
 Requires: <br/>
     * `sizeof(slices...)==Extents::rank()` <br/>
-    * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `alltype_t` <br/>
+    * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `all_type` <br/>
     * 0 <= `first[r]` < `src.extent(r)` <br/>
     * 0 < `last[r]` <= `src.extent(r)` <br/>
-    * `LayoutPolicy` is `layout_right`, `layout_left`, or `layout_stride` <br/>
 
 Postcondition: <br/>
     * `E::rank()==Extents::rank()-C` <br/>
-    * If <em>ranges[r]</em> is the nth value of `ranges` convertible to `alltype_t` or `pair<ptrdiff_t,ptrdiff_t>` and `slices[k]` is the `n`th value of `slices` convertible to `all type_t` or  `pair<ptrdiff_t,ptrdiff_t>` then `sub.extent(r)==last[k]-first[k]` and `sub.stride(r)==src.stride(k)` <br/> 
-    * `(pointer)sub.acc_==((pointer)src.acc_)+first[0]*src.stride(0)+`...`+first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
-    * Note: it is quality of implementation whether static extents are preserved if possible.  <br/>
-
-
+		* If `LayoutPolicy` is `layout_right` and `E::rank() <= 1` then `L` is `layout_right`.
+		* If `LayoutPolicy` is `layout_left` and `E::rank() <= 1` then `L` is `layout_left`.
+		* If `LayoutPolicy` is `layout_left` or `layout_right` and `1 < E::rank()` then `L` is `layout_stride`.
+		* If `LayoutPolicy` is `layout_stride` then `L` is `layout_stride`.
+		* `A` is `typename accessor_traits<Accessor>::offset`.
+		* Let `0...` be the multi-index of `E::rank()` zeros and let `first...` be the multi-index of `first[r]` values, then `sub(0...)` and `src(first...)` refer to the same element.
+    * `sub.extent(k)==last[R[k]]-first[R[k]]`.
+		* If `src.is_strided()` then `sub.is_strided()` and `sub.stride(k)==src.stride(R[k])` <br/> 
+		* If `src.static_extent(R[k]) != dynamic_extent` and `slices[R[k]]` is convertable to `all_type` then `sub.static_extent(k) == src.static_extent(R[k])`.
+<br/>
 
 * Examples:
 

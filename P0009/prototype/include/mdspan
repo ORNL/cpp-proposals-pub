@@ -39,11 +39,9 @@ class layout_right ;
 class layout_left ;
 class layout_stride ;
 
-// [mdspan.accessor.reference]
+// [mdspan.accessor.traits]
 template<class Accessor>
-class accessor_reference;
-template<class Accessor>
-using accessor_reference_t = typename accessor_reference<Accessor>::type;
+class accessor_traits;
 
 // [mdspan.basic]
 template<class ElementType,
@@ -528,12 +526,24 @@ namespace experimental {
 namespace fundamentals_v3 {
 
 template<class Accessor>
-class accessor_reference ;
+struct accessor_traits ;
 
 template<class T>
-class accessor_reference<T*> {
-public:
-  using type = T&;
+struct accessor_traits<T*> {
+  using accessor     = T*;
+  using element_type = T;
+	using pointer      = T*;
+	using reference    = T&;
+	using offset       = T*;
+};
+
+template<class Accessor>
+struct accessor_traits {
+  using accessor     = Accessor ;
+  using element_type = typename accessor::element_type;
+	using pointer      = typename accessor::pointer;
+	using reference    = typename accessor::reference;
+	using offset       = typename accessor::offset;
 };
 
 }}} // std::experimental::fundamentals_v3
@@ -553,7 +563,10 @@ public:
 
   enum : size_t { align = N };
 
-	using reference = T&;
+  using element_type = T;
+	using reference    = T&;
+	using pointer      = T*;
+	using offset       = T*;
 
 	constexpr accessor_aligned() noexcept {};
 	constexpr accessor_aligned( const accessor_aligned & ) noexcept = default ;
@@ -569,23 +582,22 @@ public:
 		  assert( 0 == reinterpret_cast<uintptr_t>(ptr) % N );
 		}
 
-  // constexpr operator alignas(N) T* () const noexcept { return ptr };
+  // constexpr operator [[aligned(N)]] T* () const noexcept { return ptr };
 
   constexpr operator T*() const noexcept
 	  { return ptr; }
+
 	constexpr reference operator[]( size_t i ) const noexcept
 	  { return ptr[i]; }
 
+  // Offsetting looses the alignment attribute
+	constexpr offset operator+( size_t i ) const noexcept
+	  { return ptr+i; }
+
 private:
 
-  // alignas(N) T * const ptr = 0 ;
+  // [[aligned(N)]] T * const ptr = 0 ;
   T * const ptr = 0 ;
-};
-
-template<class T, size_t N>
-class accessor_reference< accessor_aligned<T,N> > {
-public:
-  using type = typename accessor_aligned<T,N>::reference ;
 };
 
 }}} // std::experimental::fundamentals_v3
@@ -607,17 +619,17 @@ public:
   using layout_type      = LayoutPolicy ;
   using mapping_type     = typename layout_type::template mapping<extents_type> ;
   using accessor_type    = Accessor ;
-  using element_type     = ElementType ;
+  using element_type     = typename accessor_traits<Accessor>::element_type ;
   using value_type       = typename std::remove_cv<element_type>::type ;
   using index_type       = ptrdiff_t ;
   using difference_type  = ptrdiff_t ;
-  using pointer          = ElementType*;
-  using reference        = accessor_reference_t<Accessor>;
+  using pointer          = typename accessor_traits<Accessor>::pointer;
+  using reference        = typename accessor_traits<Accessor>::reference;
 
   // [mdspan.basic.cons]
 
   HOST_DEVICE
-  constexpr basic_mdspan() noexcept : m_ptr(0), m_map() {}
+  constexpr basic_mdspan() noexcept : m_acc(0), m_map() {}
 
   HOST_DEVICE
   constexpr basic_mdspan(basic_mdspan&& other) noexcept = default;
@@ -640,7 +652,7 @@ public:
                        OtherExtents,
                        OtherLayoutPolicy,
                        OtherAccessor> & rhs ) noexcept
-    : m_ptr( rhs.m_ptr )
+    : m_acc( rhs.m_acc )
     , m_map( rhs.m_map )
     {}
 
@@ -653,15 +665,15 @@ public:
                        OtherExtents,
                        OtherLayoutPolicy,
                        OtherAccessor> & rhs ) noexcept
-    { m_ptr = rhs.m_ptr ; m_map = rhs.m_map ; return *this ; }
+    { m_acc = rhs.m_acc ; m_map = rhs.m_map ; return *this ; }
 
   template<class... IndexType >
   explicit constexpr basic_mdspan
     ( pointer ptr , IndexType ... DynamicExtents ) noexcept
-    : m_ptr(ptr), m_map( DynamicExtents... ) {}
+    : m_acc(ptr), m_map( DynamicExtents... ) {}
 
   constexpr basic_mdspan( pointer ptr , const mapping_type & m ) noexcept
-    : m_ptr(ptr), m_map( m ) {}
+    : m_acc(ptr), m_map( m ) {}
 
   // [mdspan.basic.mapping]
 
@@ -671,7 +683,7 @@ public:
   constexpr
   typename std::enable_if<sizeof...(IndexType)==extents_type::rank(),reference>::type
   operator()( IndexType... indices) const noexcept
-    { return m_ptr[ m_map( indices... ) ]; }
+    { return m_acc[ m_map( indices... ) ]; }
 
   // Enforce rank() == 1
   template<class IndexType >
@@ -679,7 +691,7 @@ public:
   constexpr
   typename std::enable_if<std::is_integral<IndexType>::value && 1==extents_type::rank(),reference>::type
   operator[]( IndexType i ) const noexcept
-    { return m_ptr[ m_map(i) ]; }
+    { return m_acc[ m_map(i) ]; }
 
   // [mdspan.basic.domobs]
 
@@ -703,10 +715,10 @@ public:
   // ------------------------------
   // constexpr span<element_type> span() const noexcept ;
 
-     constexpr pointer span_data() const noexcept { return m_ptr ; }
+     constexpr pointer span_data() const noexcept { return (pointer) m_acc ; }
 
      constexpr index_type span_size() const noexcept
-       { return m_ptr ? m_map.required_span_size() : 0 ; }
+       { return ((pointer)m_acc) ? m_map.required_span_size() : 0 ; }
   // ------------------------------
 
   // [mdspan.basic.obs]
@@ -738,7 +750,7 @@ public:
 
 private:
 
-  Accessor     m_ptr ;
+  Accessor     m_acc ;
   mapping_type m_map ;
 };
 
