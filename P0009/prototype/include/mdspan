@@ -39,15 +39,15 @@ class layout_right ;
 class layout_left ;
 class layout_stride ;
 
-// [mdspan.accessor.traits]
-template<class Accessor>
-class accessor_traits;
+// [mdspan.accessor.basic]
+template<class ElementType>
+class accessor_basic;
 
 // [mdspan.basic]
 template<class ElementType,
          class Extents,
          class LayoutPolicy = layout_right,
-         class Accessor = ElementType*>
+         class AccessorPolicy = accessor_basic<ElementType> >
 class basic_mdspan ;
 
 // [msspan.subspan]
@@ -56,7 +56,7 @@ namespace detail {
 template<class ElementType,
          class Extents,
          class LayoutPolicy,
-         class Accessor,
+         class AccessorPolicy,
          class ... SliceSpecifiers>
 class subspan_deduction;
 }
@@ -64,15 +64,15 @@ class subspan_deduction;
 template<class ElementType,
          class Extents,
          class LayoutPolicy,
-         class Accessor,
+         class AccessorPolicy,
          class ... SliceSpecifiers>
 HOST_DEVICE
   typename detail::subspan_deduction<ElementType,
                                      Extents,
                                      LayoutPolicy,
-                                     Accessor,
+                                     AccessorPolicy,
                                      SliceSpecifiers...>::type
-subspan(const basic_mdspan<ElementType,Extents,LayoutPolicy,Accessor> &,
+subspan(const basic_mdspan<ElementType,Extents,LayoutPolicy,AccessorPolicy> &,
         SliceSpecifiers...) noexcept ;
 
 class all_type { public: constexpr explicit all_type() = default; };
@@ -525,25 +525,23 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-template<class Accessor>
-struct accessor_traits ;
+template<class ElementType>
+struct accessor_basic {
+  using accessor_type = ElementType*;
+	using offset_policy = accessor_basic;
+  using element_type  = ElementType;
+	using reference     = ElementType&;
+	using pointer       = ElementType*;
 
-template<class T>
-struct accessor_traits<T*> {
-  using accessor     = T*;
-  using element_type = T;
-	using pointer      = T*;
-	using reference    = T&;
-	using offset       = T*;
-};
+  static typename offset_policy::accessor_type
+	  offset( accessor_type acc , size_t i ) noexcept
+	    { return acc+i; }
 
-template<class Accessor>
-struct accessor_traits {
-  using accessor     = Accessor ;
-  using element_type = typename accessor::element_type;
-	using pointer      = typename accessor::pointer;
-	using reference    = typename accessor::reference;
-	using offset       = typename accessor::offset;
+  static reference deref( accessor_type acc , size_t i ) noexcept
+	  { return acc[i]; }
+
+  static pointer decay( accessor_type acc ) noexcept
+	  { return acc; }
 };
 
 }}} // std::experimental::fundamentals_v3
@@ -556,7 +554,7 @@ namespace experimental {
 namespace fundamentals_v3 {
 
 template<class T, size_t N>
-class accessor_aligned {
+class aligned_accessor {
 public:
   static_assert( ( 0 == ( N & ( N - 1 ))), "" );
   static_assert( ( 0 == ( N % sizeof(T))), "" );
@@ -568,14 +566,14 @@ public:
 	using pointer      = T*;
 	using offset       = T*;
 
-	constexpr accessor_aligned() noexcept {};
-	constexpr accessor_aligned( const accessor_aligned & ) noexcept = default ;
+	constexpr aligned_accessor() noexcept {};
+	constexpr aligned_accessor( const aligned_accessor & ) noexcept = default ;
 
-	accessor_aligned( accessor_aligned && ) = delete ;
-	accessor_aligned operator = ( accessor_aligned && ) = delete ;
-	accessor_aligned operator = ( const accessor_aligned & ) = delete ;
+	aligned_accessor( aligned_accessor && ) = delete ;
+	aligned_accessor operator = ( aligned_accessor && ) = delete ;
+	aligned_accessor operator = ( const aligned_accessor & ) = delete ;
 
-	explicit accessor_aligned( T * other ) noexcept
+	explicit aligned_accessor( T * other ) noexcept
 		: ptr(other)
 		{
 		  // Verify pointer alignment:
@@ -600,6 +598,25 @@ private:
   T * const ptr = 0 ;
 };
 
+template<class ElementType, size_t N>
+struct aligned_access_policy {
+  using accessor_type  = aligned_accessor<ElementType,N>;
+	using offset_policy  = accessor_basic<ElementType>;
+  using element_type   = typename accessor_type::element_type;
+	using reference      = typename accessor_type::reference;
+	using pointer        = typename accessor_type::pointer;
+
+  static typename offset_policy::accessor_type
+	  offset( const accessor_type & acc , size_t i ) noexcept
+	    { return acc+i; }
+
+  static reference deref( const accessor_type & acc , size_t i ) noexcept
+	  { return acc[i]; }
+
+  static pointer decay( const accessor_type & acc ) noexcept
+	  { return (pointer)acc; }
+};
+
 }}} // std::experimental::fundamentals_v3
 
 //--------------------------------------------------------------------------
@@ -609,7 +626,7 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-template<class ElementType, class Extents, class LayoutPolicy, class Accessor>
+template<class ElementType, class Extents, class LayoutPolicy, class AccessorPolicy>
 class basic_mdspan {
 public:
 
@@ -617,14 +634,15 @@ public:
 
   using extents_type     = Extents ;
   using layout_type      = LayoutPolicy ;
+  using accessor_type    = AccessorPolicy ;
   using mapping_type     = typename layout_type::template mapping<extents_type> ;
-  using accessor_type    = Accessor ;
-  using element_type     = typename accessor_traits<Accessor>::element_type ;
+  using element_type     = typename accessor_type::element_type ;
   using value_type       = typename std::remove_cv<element_type>::type ;
   using index_type       = ptrdiff_t ;
   using difference_type  = ptrdiff_t ;
-  using pointer          = typename accessor_traits<Accessor>::pointer;
-  using reference        = typename accessor_traits<Accessor>::reference;
+	using access           = typename accessor_type::accessor_type;
+  using pointer          = typename accessor_type::pointer;
+  using reference        = typename accessor_type::reference;
 
   // [mdspan.basic.cons]
 
@@ -750,12 +768,12 @@ public:
 
 private:
 
-  Accessor     m_acc ;
+  access       m_acc ;
   mapping_type m_map ;
 };
 
 template<class T, ptrdiff_t... Indices>
-using mdspan = basic_mdspan<T,extents<Indices...>,layout_right,T*> ;
+using mdspan = basic_mdspan<T,extents<Indices...>,layout_right,accessor_basic<T> > ;
 
 }}} // std::experimental::fundamentals_v3
 

@@ -123,10 +123,10 @@ void test_accessor()
 {
   using namespace std::experimental::fundamentals_v3 ;
 
-  static_assert( std::is_same<int&,typename accessor_traits<int*>::reference >::value , "" );
+  static_assert( std::is_same<int&,typename accessor_basic<int>::reference >::value , "" );
 
-  using iacc = accessor_aligned<int,8>;
-  using iref = typename accessor_traits<iacc>::reference;
+  using iacc = typename aligned_access_policy<int,8>::accessor_type;
+  using iref = typename aligned_access_policy<int,8>::reference;
 
 	alignas(8) int x = 42 ;
 

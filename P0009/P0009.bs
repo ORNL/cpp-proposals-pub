@@ -731,15 +731,15 @@ namespace fundamentals_v3 {
   class layout_right;
   class layout_stride;
 
-  // [mdspan.accessor.traits]
-  template<class Accessor>
-  class accessor_traits;
+  // [mdspan.accessor.basic]
+  template<class ElementType>
+  class accessor_basic;
 
   // [mdspan.basic], class template mdspan
   template<class ElementType,
            class Extents,
            class LayoutPolicy = layout_right,
-           class Accessor = T*>
+           class AccessorPolicy = accessor_basic<ElementType> >
     class basic_mdspan;
 
   template<class T, ptrdiff_t... Extents>
@@ -753,9 +753,9 @@ namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
-           class Accessor, class... SliceSpecifiers>
+           class AccessorPolicy, class... SliceSpecifiers>
     basic_mdspan<ElementType, /* see-below */>
-      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>&, SliceSpecifiers...) noexcept;
+      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>&, SliceSpecifiers...) noexcept;
 
   // tag supporting subspan
   struct all_type { explicit all_type() = default; };
@@ -1739,32 +1739,32 @@ template<class OtherExtents>
 <br/>
 <br/>
 
-<b>26.7.� Accessor [mdspan.accessor]</b>
+<b>26.7.� Accessor Policy [mdspan.accessor]</b>
 
-An *accessor* is an object through which a contiguous set of objects of type *T* 
-that the accessor does not own are accessed. 
-An accessor is similar to an *array of unknown bound of T* [dcl.array] 
-when it is used as a *function parameter* [dcl.fct].
-
+An *accessor policy* defines types and operations by which
+a contiguous set of objects of type *ElementType* are accessed. 
 
 <br/>
-<b>26.7.�.1 Accessor requirements [mdspan.accessor.reqs]</b>
+<b>26.7.�.1 Accessor policy requirements [mdspan.accessor.reqs]</b>
 
-An accessor supports subscripting operator [expr.sub], conversion to pointer [conv.array],
-and is constructable from a pointer to a contiguous set of objects of type `T`.
-The subscripting operator returns an object which provides access to the indexed element,
-this return type may be a type that is not `T&`.
+An accessor policy defines an accessor type and operations for applying
+subscripting-like [expr.sub],
+conversion to pointer [conv.array],
+and offset operations to an accessor.
+The subscript operation returns an object which provides access to the indexed element,
+this return type may not be `T&`.
+The offset operation returns an accessor for the contiguous subset of elements beginning at the offste value,
+this return type may not be the same accessor type..
 An accessor constructor may impose additional restrictions on the 
 contiguous set of objects; e.g., restrict `T` to be trivially copyable or have a wider alignment.
 
 In Table �:
-  * `A` denotes an accessor type.
-  * `a` denotes an object of type `const A`.
-  * `T` denotes the element type of the accessor `typename accessor_traits<T>::element_type`,.
-  * `p` denotes an object of type `T*`.
+  * `A` denotes an accessor policy.
+  * `a` denotes an object of type `const typename A::accessor_type`.
+  * `p` denotes an object of type `typename A::pointer`.
   * `i` denotes a `size_t` value.
 
-Table �: Accessor requirements
+Table �: Accessor policy requirements
 <table border=1>
 <tr>
   <th>Expression</th>
@@ -1772,26 +1772,50 @@ Table �: Accessor requirements
   <th>Requirements/Notes</th>
 </tr>
 <tr>
-  <td>`a[i]`</td>
-  <td>`typename accessor_traits<A>::reference`
+  <td>A::element_type</td>
+  <td></td>
+  <td>Type of elements accessed</td>
+</tr>
+<tr>
+  <td>A::accessor_type</td>
+  <td></td>
+  <td>Type through which the contiguous set of elements are accessed</td>
+</tr>
+<tr>
+  <td>A::reference</td>
+  <td></td>
+  <td>Type through which an element is accessed</td>
+</tr>
+<tr>
+  <td>A::pointer</td>
+  <td></td>
+  <td>Pointer type to which the accessor type decays</td>
+</tr>
+<tr>
+  <td>A::offset_policy</td>
+  <td></td>
+  <td>Accessor policy of an offset of an accessor_type object.</td>
+</tr>
+<tr>
+  <td>`A::decay(a)`</td>
+  <td>`A::pointer`
+  <td>*Returns:* A pointer to the contiguous set of objects accessed by `a`.</td>
+</tr>
+<tr>
+  <td>`A::deref(a,i)`</td>
+  <td>`A::reference</td>
   <td>*Returns:* An object which provides access to the `i`*th* element in the contiguous set.</td>
 </tr>
 <tr>
-  <td>`a+i`</td>
-  <td>`typename accessor_traits<A>::offset`
-  <td>*Returns:* An accessor which provides access to the contiguous set of elements starting at the `i`*th* element. *[Note:* The type of returned accessor may be different than `a`. *--end node]*</td>
+  <td>`A::offset(a,i)`</td>
+  <td>`A::offset_policy::accessor_type</td>
+  <td>*Returns:* An accessor for the contiguous span of elements offset by `i`.  *Requires:* `A::decay(p)+i == A::offset_policy::decay(A::offset(a,i))`.</td>
 </tr>
 <tr>
-  <td>`(T*)a;`</td>
-  <td>`typename accessor_traits<A>::pointer`</td>
-  <td>*Returns:* A pointer to the contiguous set of objects referenced by `a`.</td>
+  <td>`A::accessor_type(p)`</td>
+	<td></td>
+	<td>Construct an accessor for a contiguous span of elements starting at `p`.</td>
 </tr>
-<tr>
-  <td>`A(p)`</td>
-  <td></td>
-  <td>*Requires:* `p` is a pointer to a contiguous set of objects.</td>
-</tr>
-<tr>
 </table>
 
 <!--
@@ -1804,36 +1828,56 @@ Table �: Accessor requirements
 -->
 
 <br/>
-<b>26.7.�.2 Class `accessor_traits` [mdspan.accessor.traits]</b>
+<b>26.7.�.2 Class `accessor_basic` [mdspan.accessor.basic]</b>
 
 ```c++
 namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-template<class Accessor>
-struct accessor_traits ;
+template<class ElementType>
+struct accessor_basic {
+  using accessor_type = ElementType*;
+  using offset_policy = accessor_basic;
+  using element_type  = ElementType;
+  using reference     = ElementType&;
+  using pointer       = ElementType*;
 
-template<class T>
-struct accessor_traits<T*> {
-  using accessor = T*;
-	using element_type = T;
-	using pointer = T*;
-	using reference = T&;
-	using offset = T*;
-};
+  static constexpr typename offset_policy::accessor_type
+    offset( accessor_type acc , size_t i ) noexcept
+      { return acc+i; }
 
-template<class Accessor>
-struct accessor_traits {
-  using accessor = Accessor;
-	using element_type = typename Accessor::element_type;
-	using pointer = typename Accessor::pointer;
-	using reference = typename Accessor::reference;
-	using offset = typename Accessor::offset;
+  static constexpr reference deref( accessor_type acc , size_t i ) noexcept
+    { return acc[i]; }
+
+  static constexpr pointer decay( accessor_type acc ) noexcept
+    { return acc; }
 };
 
 }}}
 ```
+
+```c++
+static constexpr typename offset_policy::accessor_type
+  offset( accessor_type acc , size_t i ) noexcept ;
+```
+
+* *Returns:* `acc+i`
+</br>
+
+```c++
+static constexpr reference deref( accessor_type acc , size_t i ) noexcept ;
+```
+
+* *Returns:* `acc[i]`
+</br>
+
+```c++
+static constexpr pointer deref( accessor_type acc , size_t i ) noexcept ;
+```
+
+* *Returns:* `acc`
+</br>
 
 <!--
 888                        d8b                                      888
@@ -2416,9 +2460,9 @@ namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
-           class Accessor, class... SliceSpecifiers>
+           class AccessorPolicy, class... SliceSpecifiers>
     basic_mdspan<ElementType, E /* see-below */, L /* see-below */, A /* see-below */ >
-      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>& src, SliceSpecifiers ... slices) noexcept;
+      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src, SliceSpecifiers ... slices) noexcept;
 
 }}}
 ```
@@ -2460,7 +2504,7 @@ Postcondition: <br/>
     * If `LayoutPolicy` is `layout_left` and `Extents::rank() <= 1` then `L` is `layout_left`.
     * If `LayoutPolicy` is `layout_left` or `layout_right` and `1 < Extents::rank()` then `L` is `layout_stride`.
     * If `LayoutPolicy` is `layout_stride` then `L` is `layout_stride`.
-    * `A` is `typename accessor_traits<Accessor>::offset`.
+    * `A` is `typename AccessorPolicy::offset_policy`.
     * Let `I...` be a multi-index such that `I[k] < sub.extents(k)` and `J` be a multi-index where `J[R[k]]=first[R[k]]+I[k]` or `J[r]=first[r]` for `r` not in `R[k]`, then `sub(I...)` and `src(J...)` refer to the same element.
     * `sub.extent(k)==last[R[k]]-first[R[k]]`.
     * If `src.is_strided()` then `sub.is_strided()` and `sub.stride(k)==src.stride(R[k])` <br/> 
@@ -2522,8 +2566,7 @@ Related Work
 
 The `reference` type may be a proxy for accessing an `element_type`
 object. For example, the *atomic* `AccessorPolicy` in **P0860** defines
-`AccessorPolicy::template accessor<T>::reference` to be `atomic_ref<T>` from
-**P0019**.
+`AccessorPolicy::reference` to be `atomic_ref<T>` from **P0019**.
 
 **Related papers:**
 
