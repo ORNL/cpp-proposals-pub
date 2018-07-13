@@ -528,20 +528,20 @@ namespace fundamentals_v3 {
 template<class ElementType>
 struct accessor_basic {
   using accessor_type = ElementType*;
-	using offset_policy = accessor_basic;
+  using offset_policy = accessor_basic;
   using element_type  = ElementType;
-	using reference     = ElementType&;
-	using pointer       = ElementType*;
+  using reference     = ElementType&;
+  using pointer       = ElementType*;
 
   static typename offset_policy::accessor_type
-	  offset( accessor_type acc , size_t i ) noexcept
-	    { return acc+i; }
+    offset( accessor_type acc , size_t i ) noexcept
+      { return acc+i; }
 
   static reference deref( accessor_type acc , size_t i ) noexcept
-	  { return acc[i]; }
+    { return acc[i]; }
 
   static pointer decay( accessor_type acc ) noexcept
-	  { return acc; }
+    { return acc; }
 };
 
 }}} // std::experimental::fundamentals_v3
@@ -562,34 +562,34 @@ public:
   enum : size_t { align = N };
 
   using element_type = T;
-	using reference    = T&;
-	using pointer      = T*;
-	using offset       = T*;
+  using reference    = T&;
+  using pointer      = T*;
+  using offset       = T*;
 
-	constexpr aligned_accessor() noexcept {};
-	constexpr aligned_accessor( const aligned_accessor & ) noexcept = default ;
+  constexpr aligned_accessor() noexcept {};
+  constexpr aligned_accessor( const aligned_accessor & ) noexcept = default ;
 
-	aligned_accessor( aligned_accessor && ) = delete ;
-	aligned_accessor operator = ( aligned_accessor && ) = delete ;
-	aligned_accessor operator = ( const aligned_accessor & ) = delete ;
+  aligned_accessor( aligned_accessor && ) = delete ;
+  aligned_accessor operator = ( aligned_accessor && ) = delete ;
+  aligned_accessor operator = ( const aligned_accessor & ) = delete ;
 
-	explicit aligned_accessor( T * other ) noexcept
-		: ptr(other)
-		{
-		  // Verify pointer alignment:
-		  assert( 0 == reinterpret_cast<uintptr_t>(ptr) % N );
-		}
+  explicit aligned_accessor( T * other ) noexcept
+  	: ptr(other)
+  	{
+  	  // Verify pointer alignment:
+  	  assert( 0 == reinterpret_cast<uintptr_t>(ptr) % N );
+  	}
 
   // constexpr operator [[aligned(N)]] T* () const noexcept { return ptr };
 
   constexpr operator T*() const noexcept
 	  { return ptr; }
 
-	constexpr reference operator[]( size_t i ) const noexcept
+  constexpr reference operator[]( size_t i ) const noexcept
 	  { return ptr[i]; }
 
   // Offsetting looses the alignment attribute
-	constexpr offset operator+( size_t i ) const noexcept
+  constexpr offset operator+( size_t i ) const noexcept
 	  { return ptr+i; }
 
 private:
@@ -601,10 +601,10 @@ private:
 template<class ElementType, size_t N>
 struct aligned_access_policy {
   using accessor_type  = aligned_accessor<ElementType,N>;
-	using offset_policy  = accessor_basic<ElementType>;
+  using offset_policy  = accessor_basic<ElementType>;
   using element_type   = typename accessor_type::element_type;
-	using reference      = typename accessor_type::reference;
-	using pointer        = typename accessor_type::pointer;
+  using reference      = typename accessor_type::reference;
+  using pointer        = typename accessor_type::pointer;
 
   static typename offset_policy::accessor_type
 	  offset( const accessor_type & acc , size_t i ) noexcept
@@ -640,7 +640,7 @@ public:
   using value_type       = typename std::remove_cv<element_type>::type ;
   using index_type       = ptrdiff_t ;
   using difference_type  = ptrdiff_t ;
-	using access           = typename accessor_type::accessor_type;
+  using access           = typename accessor_type::accessor_type;
   using pointer          = typename accessor_type::pointer;
   using reference        = typename accessor_type::reference;
 
