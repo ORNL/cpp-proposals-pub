@@ -1772,51 +1772,52 @@ Table �: Accessor policy requirements
   <th>Requirements/Notes</th>
 </tr>
 <tr>
-  <td>A::element_type</td>
+  <td>`A::element_type`</td>
   <td></td>
   <td>Type of elements accessed</td>
 </tr>
 <tr>
-  <td>A::accessor_type</td>
+  <td>`A::accessor_type`</td>
   <td></td>
   <td>Type through which the contiguous set of elements are accessed</td>
 </tr>
 <tr>
-  <td>A::reference</td>
+  <td>`A::reference`</td>
   <td></td>
   <td>Type through which an element is accessed</td>
 </tr>
 <tr>
-  <td>A::pointer</td>
+  <td>`A::pointer`</td>
   <td></td>
   <td>Pointer type to which the accessor type decays</td>
 </tr>
 <tr>
-  <td>A::offset_policy</td>
+  <td>`A::offset_policy`</td>
   <td></td>
   <td>Accessor policy of an offset of an accessor_type object.</td>
 </tr>
 <tr>
   <td>`A::decay(a)`</td>
-  <td>`A::pointer`
+  <td>`A::pointer`</td>
   <td>*Returns:* A pointer to the contiguous set of objects accessed by `a`.</td>
 </tr>
 <tr>
   <td>`A::deref(a,i)`</td>
-  <td>`A::reference</td>
+  <td>`A::reference`</td>
   <td>*Returns:* An object which provides access to the `i`*th* element in the contiguous set.</td>
 </tr>
 <tr>
   <td>`A::offset(a,i)`</td>
-  <td>`A::offset_policy::accessor_type</td>
+  <td>`A::offset_policy::accessor_type`</td>
   <td>*Returns:* An accessor for the contiguous span of elements offset by `i`.  *Requires:* `A::decay(p)+i == A::offset_policy::decay(A::offset(a,i))`.</td>
 </tr>
 <tr>
   <td>`A::accessor_type(p)`</td>
-	<td></td>
-	<td>Construct an accessor for a contiguous span of elements starting at `p`.</td>
+  <td></td>
+  <td>Construct an accessor for a contiguous span of elements starting at `p`.</td>
 </tr>
 </table>
+
 
 <!--
 
@@ -1844,14 +1845,11 @@ struct accessor_basic {
   using pointer       = ElementType*;
 
   static constexpr typename offset_policy::accessor_type
-    offset( accessor_type acc , size_t i ) noexcept
-      { return acc+i; }
+    offset( accessor_type acc , size_t i ) noexcept;
 
-  static constexpr reference deref( accessor_type acc , size_t i ) noexcept
-    { return acc[i]; }
+  static constexpr reference deref( accessor_type acc , size_t i ) noexcept;
 
-  static constexpr pointer decay( accessor_type acc ) noexcept
-    { return acc; }
+  static constexpr pointer decay( accessor_type acc ) noexcept;
 };
 
 }}}
@@ -1862,22 +1860,19 @@ static constexpr typename offset_policy::accessor_type
   offset( accessor_type acc , size_t i ) noexcept ;
 ```
 
-* *Returns:* `acc+i`
-</br>
+* *Returns:* `acc+i` <br/>
 
 ```c++
 static constexpr reference deref( accessor_type acc , size_t i ) noexcept ;
 ```
 
-* *Returns:* `acc[i]`
-</br>
+* *Returns:* `acc[i]` <br/>
 
 ```c++
 static constexpr pointer deref( accessor_type acc , size_t i ) noexcept ;
 ```
 
-* *Returns:* `acc`
-</br>
+* *Returns:* `acc` <br/>
 
 <!--
 888                        d8b                                      888
