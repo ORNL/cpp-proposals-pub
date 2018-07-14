@@ -125,7 +125,7 @@ void test_accessor()
 
   static_assert( std::is_same<int&,typename accessor_basic<int>::reference >::value , "" );
 
-  using iacc = typename aligned_access_policy<int,8>::accessor_type;
+  using iacc = typename aligned_access_policy<int,8>::handle_type;
   using iref = typename aligned_access_policy<int,8>::reference;
 
 	alignas(8) int x = 42 ;
