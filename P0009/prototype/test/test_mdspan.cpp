@@ -1,6 +1,55 @@
 
 #include <iostream>
+#include <utility>
+#include <memory>
 #include <mdspan>
+
+//----------------------------------------------------------------------------
+
+template<class ElementType>
+struct shared_ptr_offset : private std::shared_ptr<ElementType[]> {
+private:
+  using base = std::shared_ptr<ElementType[]> ;
+	size_t off ;
+public:
+  shared_ptr_offset() = default ;
+  shared_ptr_offset( shared_ptr_offset && ) = default ;
+  shared_ptr_offset( const shared_ptr_offset & ) = default ;
+  shared_ptr_offset & operator = ( shared_ptr_offset && ) = default ;
+  shared_ptr_offset & operator = ( const shared_ptr_offset & ) = default ;
+
+  shared_ptr_offset( const base & S , size_t N ) noexcept
+	  : base(S), off(N) {}
+
+  ElementType & operator[]( size_t i ) const noexcept
+	  { return base::operator[][off+i]; };
+
+  ElementType * get() const { return base::get()+off; }
+
+  shared_ptr_offset operator+(size_t i) const noexcept
+	  { return shared_ptr_offset( ( const base &)(*this) , off + i ); }
+};
+
+template<class ElementType,bool HasOffset=false>
+struct access_policy_shared_ptr {
+  using element_type  = ElementType;
+  using pointer       = ElementType*;
+  using handle_type   = typename std::conditional<HasOffset,shared_ptr_offset<ElementType>,std::shared_ptr<ElementType[]> >::type ;
+  using reference     = ElementType&;
+  using offset_policy = access_policy_shared_ptr<ElementType,true>;
+
+  static typename offset_policy::handle_type
+    offset( const handle_type & h , size_t i ) noexcept
+      { return typename offset_policy::handle_type(h,i); }
+
+  static reference deref( const handle_type & h , size_t i ) noexcept
+    { return h[i]; }
+
+  static pointer decay( const handle_type & h ) noexcept
+    { return h.get(); }
+};
+
+//----------------------------------------------------------------------------
 
 void test_extents()
 {
@@ -184,12 +233,24 @@ void test_mdspan()
 	}
 }
 
+void test_mdspan_plugin()
+{
+  using namespace std::experimental::fundamentals_v3 ;
+
+  using matrix_type = basic_mdspan<double,extents<dynamic_extent,dynamic_extent>,layout_left,access_policy_shared_ptr<double> >;
+
+  std::shared_ptr<double[]> buf( new double[100] );
+
+  matrix_type m(buf,10,10);
+}
+
 int main()
 {
   test_extents();
   test_layout();
 	test_accessor();
 	test_mdspan();
+	test_mdspan_plugin();
 	return 0 ;
 }
 
