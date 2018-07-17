@@ -1432,7 +1432,7 @@ template<class OtherExtents>
 
 * *Requires:* `other.extents()` meets the requirements for use in the initialization of `extents_`.
 * *Effects:* Initializes `extents_` with `other.extents()`.
-* *Postconditions:* `extents()==other.extents_`.
+* *Postconditions:* `extents()==other.extents()`.
 * *Throws:* nothing.
 <!-- --- -->
 
@@ -1509,8 +1509,8 @@ typename Extents::index_type stride(size_t r) const noexcept;
 
 ```
 Extents::index_type s = 1;
-for(size_t k=r+1; k<extents.rank(); ++k)
-  s *= extents(k);
+for(size_t k=r+1; k<extents().rank(); ++k)
+  s *= extents().extent(r);
 ```
 
 <br/>
@@ -1570,7 +1570,7 @@ struct layout_stride {
     constexpr mapping() noexcept;
     constexpr mapping(mapping const& other) noexcept;
     constexpr mapping(mapping&& other) noexcept;
-    constexpr mapping(const Extents & e, const array&lt;typename Extents::index_type, Extents::rank()> & s) noexcept;
+    constexpr mapping(const Extents& e, const array&lt;typename Extents::index_type, Extents::rank()>& s) noexcept;
     template&lt;class OtherExtents>
       constexpr mapping(const mapping&lt;OtherExtents>& other);
 
@@ -1638,7 +1638,7 @@ constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()
 ```
 * Requires: 
    + `s[i]>0` for 0 < `i` <= `Extents::rank()`
-   + there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with 0 <= `i` < `Extents::rank()` such that `stride(o(i))>=stride(o(i-1))*extent.extent(o(i-1))` for 1 <= `i` < `Extents::rank()`
+   + there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with 0 <= `i` < `Extents::rank()` such that `s(o(i))>=s(o(i-1))*e.extent(o(i-1))` for 1 <= `i` < `Extents::rank()`
 * Effects: Initializes `extents_` with `e` and `strides_` with `s`
 * Postconditions: `extents()==e` and `strides()==s`.
 * Throws: nothing
@@ -1698,7 +1698,7 @@ static constexpr bool is_always_contiguous() noexcept;
 ```c++
 constexpr bool is_contiguous() const noexcept;
 ```
-* Returns: true if there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with 0 <= `i` < `Extents::rank()` such that `min(stride(o(i))==1` and `stride(o(i))==stride(o(i-1))*extent.extent(o(i-1))` with 1 <= `i` < `Extents::rank()` otherwise returns false
+* Returns: true if there is a permutation of the numbers `0,`...`,Extents::rank()-1` `o(i)` with 0 <= `i` < `Extents::rank()` such that `min(stride(o(i))==1` and `stride(o(i))==stride(o(i-1))*extents().extent(o(i-1))` with 1 <= `i` < `Extents::rank()` otherwise returns false
 
 ```c++
 typename Extents::index_type stride(size_t r) const noexcept;
