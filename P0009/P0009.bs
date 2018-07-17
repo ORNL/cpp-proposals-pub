@@ -731,7 +731,7 @@ namespace fundamentals_v3 {
   class layout_right;
   class layout_stride;
 
-  // [mdspan.accessor.basic], class template accessor_basic
+  // [mdspan.accessor.basic]
   template<class ElementType>
   class accessor_basic;
 
@@ -739,7 +739,7 @@ namespace fundamentals_v3 {
   template<class ElementType,
            class Extents,
            class LayoutPolicy = layout_right,
-           class Accessor = accessor_basic<ElementType>>
+           class AccessorPolicy = accessor_basic<ElementType> >
     class basic_mdspan;
 
   template<class T, ptrdiff_t... Extents>
@@ -753,9 +753,9 @@ namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
-           class Accessor, class... SliceSpecifiers>
+           class AccessorPolicy, class... SliceSpecifiers>
     basic_mdspan<ElementType, /* see-below */>
-      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>&, SliceSpecifiers...) noexcept;
+      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>&, SliceSpecifiers...) noexcept;
 
   // tag supporting subspan
   struct all_type { explicit all_type() = default; };
@@ -1744,22 +1744,32 @@ template<class OtherExtents>
 <br/>
 <br/>
 
-<b>26.7.� Accessor [mdspan.accessor]</b>
+<b>26.7.� Accessor Policy [mdspan.accessor]</b>
+
+An *accessor policy* defines types and operations by which
+a contiguous set of objects of type *ElementType* are accessed. 
 
 <br/>
-<b>26.7.�.1 Accessor requirements [mdspan.accessor.reqs]</b>
+<b>26.7.�.1 Accessor policy requirements [mdspan.accessor.reqs]</b>
 
-1. An *accessor* is a class that converts a pointer and an offset into a reference. *[Note:* The intended semantic is that the reference refers to a value at the given offset from the given pointer. *—end note]*
-
-5. An *accessor* shall meet the requirements of `DefaultConstructible`, `CopyAssignable`, and the requirements in table �.
+An accessor policy defines an accessor type and operations for applying
+subscripting-like [expr.sub],
+conversion to pointer [conv.array],
+and offset operations to an accessor.
+The subscript operation returns an object which provides access to the indexed element,
+this return type may not be `T&`.
+The offset operation returns an accessor for the contiguous subset of elements beginning at the offste value,
+this return type may not be the same accessor type..
+An accessor constructor may impose additional restrictions on the 
+contiguous set of objects; e.g., restrict `T` to be trivially copyable or have a wider alignment.
 
 In Table �:
-  * `A` denotes an accessor.
-  * `a` denotes a value of type `A`.
-  * `p` denotes a value of type `A::pointer`.
-  * `i` denotes an integer.
+  * `A` denotes an accessor policy.
+  * `a` denotes an object of type `A`.
+  * `p` denotes an object of type `typename A::pointer`.
+  * `i` denotes a `ptrdiff_t` value.
 
-Table �: Accessor requirements
+Table �: Accessor policy requirements
 <table border=1>
 <tr>
   <th>Expression</th>
@@ -1767,26 +1777,42 @@ Table �: Accessor requirements
   <th>Requirements/Notes</th>
 </tr>
 <tr>
-  <td>`A::value_type`</td>
+  <td>`A::element_type`</td>
   <td></td>
-  <td></td>
+  <td>Type of elements accessed</td>
 </tr>
 <tr>
   <td>`A::pointer`</td>
   <td></td>
-  <td>*Requires:* `A::pointer` shall meet the requirements of random access iterator (**[random.access.iterators]**), and `iterator_traits<A::pointer>::value_type` shall be exactly `A::value_type`.</td>
+  <td>Type through which the contiguous set of elements are accessed. *Requires:* Is DefaultConstructible, CopyConstructible, and CopyAssignable </td>
 </tr>
 <tr>
   <td>`A::reference`</td>
   <td></td>
-  <td>*Requires:* `iterator_traits<A::pointer>::reference` shall be convertible to `A::reference` </td>
+  <td>Type through which an element is accessed</td>
 </tr>
 <tr>
-  <td>`a(p, i)`</td>
+  <td>`A::offset_policy`</td>
+  <td></td>
+  <td>Accessor policy compatible with returning a offseted pointer.</td>
+</tr>
+<tr>
+  <td>`A::decay(p)`</td>
+  <td>`A::element_type*`</td>
+  <td>*Returns:* A standard pointer to the contiguous set of objects accessed by `p`.</td>
+</tr>
+<tr>
+  <td>`A::deref(p,i)`</td>
   <td>`A::reference`</td>
-  <td>*[Note:* `basic_mdspan` implementations behave as if they use this expression in place of `p[i]`. *- end note]*</td>
+  <td>*Returns:* An object which provides access to the `i`*th* element in the contiguous set.</td>
+</tr>
+<tr>
+  <td>`A::offset(p,i)`</td>
+  <td>`A::offset_policy::pointer`</td>
+  <td>*Returns:* A pointer for the contiguous span of elements offset by `i`.  *Requires:* `A::decay(p)+i == A::offset_policy::decay(A::offset(p,i))`.</td>
 </tr>
 </table>
+
 
 <!--
 
@@ -1800,36 +1826,50 @@ Table �: Accessor requirements
 <br/>
 <b>26.7.�.2 Class `accessor_basic` [mdspan.accessor.basic]</b>
 
-1. `accessor_basic` meets the requirements of accessor.
-2. `accessor_basic` gives an accessor that has semantics equivalent to dereferencing a pointer to an array of values.
-3. If `T` is not an object type or is an array type, the program is ill-formed.
+1. `accessor_basic` meets the requirements of accessor policy.
+2. If `T` is not an object type or is an array type, the program is ill-formed.
 
 ```c++
 namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-template<class T>
+template<class ElementType>
 struct accessor_basic {
-  using value_type = T;
-  using pointer = T*;
-  using reference = T&;
+  using offset_policy = accessor_basic;
+  using element_type  = ElementType;
+  using reference     = ElementType&;
+  using pointer       = ElementType*;
 
-  // [mdspan.accessor.basic.ops], `accessor_basic` operations
-  constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
+  static constexpr typename offset_policy::pointer
+    offset(pointer p, ptrdiff_t i) noexcept;
+
+  static constexpr reference deref(pointer p,ptrdiff_t i) noexcept;
+
+  static constexpr pointer decay(pointer p) noexcept;
 };
 
 }}}
 ```
 
-<br/>
-<b>26.7.�.2.1 `accessor_basic` operations [mdspan.accessor.basic.ops]</b>
-
 ```c++
-constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
+static constexpr typename offset_policy::pointer
+  offset(pointer p,ptrdiff_t i ) noexcept ;
 ```
 
-* *Returns:* `p[i]`
+* *Returns:* `p+i` <br/>
+
+```c++
+static constexpr reference deref(pointer p,ptrdiff_t i) noexcept ;
+```
+
+* *Returns:* `p[i]` <br/>
+
+```c++
+static constexpr pointer decay(pointer p) noexcept ;
+```
+
+* *Returns:* `p` <br/>
 
 <!--
 888                        d8b                                      888
@@ -1859,10 +1899,8 @@ constexpr reference operator()(pointer p, ptrdiff_t i) const noexcept;
 2. As with `span`, the storage of the objects in the codomain `span` of a `basic_mdspan` is owned by some other object.
 3. `ElementType` is required to be a complete object type that is not an abstract class type or an array type.
 4. `Extents` is required to be a (cv-unqualified) specialization of `extents`.
-5. `LayoutPolicy` is required to be a cv-unqualified object type.
-6. If `LayoutPolicy` does not meet the layout mapping policy requirements, the program is ill-formed.
-7. `Accessor` is required to be a cv-unqualified object type.
-8. If `Accessor` does not meet the accessor requirements, or if `Accessor::value_type` is not exactly `ElementType`, the program is ill-formed.
+5. `LayoutPolicy` is required meet the layout mapping policy requirements, otherwise the program is ill-formed.
+6. `AccessorPolicy` is required meet the accessor policy requirements and `!std::is_same_v<typename AccessorPolicy::element_type,ElementType>`, otherwise the program is ill-formed.
 
 
 <pre highlight="c++">
@@ -1870,18 +1908,19 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-template&lt;class ElementType, class Extents, class LayoutPolicy, class Accessor>
+template&lt;class ElementType, class Extents, class LayoutPolicy, class AccessorPolicy>
 class basic_mdspan {
 public:
 
   // Domain and codomain types
+  using extents_type = Extents;
   using layout_type = LayoutPolicy;
-  using mapping_type = typename layout::template mapping&lt;Extents>;
-  using accessor_type = Accessor;
-  using element_type = typename accessor_type::value_type;
+  using accessor_type = AccessorPolicy;
+  using mapping_type = typename layout_type::template mapping_type&lt;extents_type>;
+  using element_type = typename accessor_type::element_type;
   using value_type = remove_cv_t&lt;element_type>;
   using index_type = ptrdiff_t ;
-  using difference_type = ptrdiff_t ;
+  using difference_type = ptrdiff_t;
   using pointer = typename accessor_type::pointer;
   using reference = typename accessor_type::reference;
 
@@ -1891,25 +1930,19 @@ public:
   constexpr basic_mdspan(basic_mdspan&&) noexcept;
   template&lt;class... IndexType>
     explicit constexpr basic_mdspan(pointer p, IndexType... dynamic_extents);
-  template&lt;class... IndexType>
-    explicit constexpr basic_mdspan(const span&lt;element_type>& sp, IndexType... dynamic_extents);
   template&lt;class IndexType, size_t N>
     explicit constexpr basic_mdspan(pointer p, const array&lt;IndexType, N>& dynamic_extents);
-  template&lt;class IndexType, size_t N>
-    explicit constexpr basic_mdspan(const span&lt;element_type>& sp, const array&lt;IndexType, N>& dynamic_extents);
   constexpr basic_mdspan(pointer p, const mapping_type& m);
-  constexpr basic_mdspan(const span&lt;element_type>& sp, const mapping_type& m);
   constexpr basic_mdspan(pointer p, const mapping_type& m, const accessor_type& a);
-  constexpr basic_mdspan(const span&lt;element_type>& sp, const mapping_type& m, const accessor_type& a);
-  template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
-    constexpr basic_mdspan(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
+  template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessorPolicy>
+    constexpr basic_mdspan(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessorPolicy>& other);
 
   ~basic_mdspan() = default;
 
   constexpr basic_mdspan& operator=(const basic_mdspan&) noexcept = default;
   constexpr basic_mdspan& operator=(basic_mdspan&&) noexcept = default;
-  template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
-    constexpr basic_mdspan& operator=(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other) noexcept;
+  template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessorPolicy>
+    constexpr basic_mdspan& operator=(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessorPolicy>& other) noexcept;
 
   // [mdspan.basic.mapping], basic_mdspan mapping domain multi-index to access codomain element
   constexpr reference operator[](index_type) const noexcept;
@@ -2013,7 +2046,7 @@ template<class... IndexType>
   explicit constexpr basic_mdspan(pointer ptr, IndexType... dynamic_extents);
 ```
 
-* *Requires:* `[ptr, ptr+mapping_type(Extents(dynamic_extents...)).required_span_size())` shall be a valid range.
+* *Requires:* `[acc_.decay(ptr), acc_.decay(ptr)+mapping_type(Extents(dynamic_extents...)).required_span_size())` shall be a valid range.
 * *Effects:*
     + initializes `ptr_` with `ptr`
     + initializes `map_` with `Extents(dynamic_extents...)`
@@ -2023,29 +2056,10 @@ template<class... IndexType>
     + `mapping()==mapping_type(Extents(dynamic_extents...))`
 * *Remarks:* This constructor will not participate in overload resolution unless:
     + `(is_convertible_v<IndexType, index_type> && ...)`,
-    + `sizeof...(dynamic_extents)==rank_dynamic()`, and
-    + `is_constructible_v<mapping_type, Extents>`.
-* *Throws:* Nothing.
-
-<br/>
-
-```c++
-template<class... IndexType>
-  explicit constexpr basic_mdspan(const span<element_type>& sp, IndexType... dynamic_extents);
-```
-
-* *Requires:* `sp.size()==mapping_type(Extents(dynamic_extents...)).required_span_size()`
-* *Effects:*
-    + initializes `ptr_` with `sp.data()`
-    + value-initializes `map_`
-    + value-initializes `acc_`
-* *Postconditions:* 
-    + `extents()==Extents(dynamic_extents...)`
-    + `mapping()==mapping_type(Extents(dynamic_extents...))`
-* *Remarks:* This constructor will not participate in overload resolution unless:
-    + `(is_convertible_v<IndexType, index_type> && ...)`,
     + `sizeof...(dynamic_extents)==rank_dynamic()`,
-    + `is_constructible_v<mapping_type, Extents>`.
+    + `is_constructible_v<mapping_type, Extents>`, and
+    + `is_constructible_v<accessor_type, pointer>`.
+
 * *Throws:* Nothing.
 
 <br/>
@@ -2055,27 +2069,13 @@ template<class IndexType, size_t N>
   explicit constexpr basic_mdspan(pointer p, const array<IndexType, N>& dynamic_extents);
 ```
 
-* *Requires:* `[ptr, ptr+mapping_type(Extents(dynamic_extents)).required_span_size())` shall be a valid range.
+* *Requires:* `[acc_.decay(ptr), acc_.decay(ptr)+mapping_type(Extents(dynamic_extents)).required_span_size())` shall be a valid range.
 * *Effects:* Equivalent to `basic_mdspan(p, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
 * *Remarks:* This constructor does not participate in overload resolution unless
     + `IndexType` is convertible to `index_type`, and
-    + `N==rank_dynamic()`, and
-    + `is_constructible_v<mapping_type, Extents>`.
-* *Throws:* Nothing.
-
-<br/>
-
-```c++
-template<class IndexType, size_t N>
-  explicit constexpr basic_mdspan(const span<element_type>& sp, const array<IndexType, N>& dynamic_extents);
-```
-
-* *Requires:* `sp.size()==mapping_type(Extents(dynamic_extents)).required_span_size()`
-* *Effects:* Equivalent to `basic_mdspan(sp.data(), dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
-* *Remarks:* This constructor does not participate in overload resolution unless
-    + `IndexType` is convertible to `index_type`,
     + `N==rank_dynamic()`,
-    + `is_constructible_v<mapping_type, Extents>`.
+    + `is_constructible_v<mapping_type, Extents>`, and
+    + `is_constructible_v<accessor_type, pointer>`.
 * *Throws:* Nothing.
 
 <br/>
@@ -2084,25 +2084,16 @@ template<class IndexType, size_t N>
 constexpr basic_mdspan(pointer p, const mapping_type& m);
 ```
 
-* *Requires:* `[ptr, ptr+m.required_span_size())` shall be a valid range.
+* *Requires:* `[acc_.decay(ptr), acc_.decay(ptr)+m.required_span_size())` shall be a valid range.
 * *Effects:*
     + initializes `ptr_` with `p`
     + initializes `map_` with `m`
     + value-initializes `acc_`
+* *Remarks:* This constructor does not participate in overload resolution unless
+    + `is_constructible_v<accessor_type, pointer>`.
 * *Postconditions:* 
     + `extents()==m.extents()`
     + `mapping()==m`
-* *Throws:* Nothing.
-
-<br/>
-
-```c++
-constexpr basic_mdspan(const span<element_type>& sp, const mapping_type& m);
-```
-
-* *Requires:* `sp.size()==m.required_span_size()`
-* *Effects:* Equivalent to `basic_mdspan(sp.data(), m)`
-* *Remarks:* This constructor does not participate in overload resolution unless `is_constructible_v<mapping_type, Extents>`.
 * *Throws:* Nothing.
 
 <br/>
@@ -2119,18 +2110,6 @@ constexpr basic_mdspan(pointer p, const mapping_type& m, const accessor_type& a)
 * *Postconditions:* 
     + `extents()==m.extents()`
     + `mapping()==m`
-* *Throws:* Nothing.
-
-<br/>
-
-```c++
-constexpr basic_mdspan(const span<element_type>& sp, const mapping_type& m, const accessor_type& a);
-```
-
-* *Requires:* `sp.size()==m.required_span_size()`
-* *Effects:* Equivalent to `basic_mdspan(sp.data(), m, a)`
-* *Remarks:* This constructor does not participate in overload resolution unless
-    + `is_constructible_v<mapping_type, Extents>`.
 * *Throws:* Nothing.
 
 <br/>
@@ -2209,7 +2188,7 @@ template<class... IndexType>
 ```
 
 * *Requires:* 0 <= `array<index_type, sizeof...(indices)>{indices...}[r]` < `extent(r)` for all `r` in the range `[0, rank())`.
-* *Effects:* Equivalent to `return acc_(ptr_, indices...);`
+* *Effects:* Equivalent to `return acc_.deref(ptr_, map_(indices...));`
 * *Remarks:* This operator does not participate in overload resolution unless
     + `is_convertible_v<IndexType, index_type> && ...`
     + `sizeof...(IndexType)==rank()`
@@ -2316,7 +2295,7 @@ constexpr index_type unique_size() const noexcept;
 constexpr span<element_type> span() const noexcept;
 ```
 
-* *Returns:* The codomain `span`.
+* *Returns:* `std::span<element_type>(acc_.decay(ptr_),required_span_size())`.
 
 
 <!--
