@@ -1915,16 +1915,16 @@ class basic_mdspan {
 public:
 
   // Domain and codomain types
-  using extents_type = Extents;
-  using layout_type = LayoutPolicy;
-  using accessor_type = AccessorPolicy;
-  using mapping_type = typename layout_type::template mapping_type&lt;extents_type>;
-  using element_type = typename accessor_type::element_type;
-  using value_type = remove_cv_t&lt;element_type>;
-  using index_type = ptrdiff_t ;
+  using extents_type    = Extents;
+  using layout_type     = LayoutPolicy;
+  using accessor_type   = AccessorPolicy;
+  using mapping_type    = typename layout_type::template mapping_type&lt;extents_type>;
+  using element_type    = typename accessor_type::element_type;
+  using value_type      = remove_cv_t&lt;element_type>;
+  using index_type      = ptrdiff_t ;
   using difference_type = ptrdiff_t;
-  using pointer = typename accessor_type::pointer;
-  using reference = typename accessor_type::reference;
+  using pointer         = typename accessor_type::pointer;
+  using reference       = typename accessor_type::reference;
 
   // [mdspan.basic.cons], basic_mdspan constructors, assignment, and destructor
   constexpr basic_mdspan() noexcept = default;
@@ -2048,7 +2048,7 @@ template<class... IndexType>
   explicit constexpr basic_mdspan(pointer ptr, IndexType... dynamic_extents);
 ```
 
-* *Requires:* `[acc_.decay(ptr), acc_.decay(ptr)+mapping_type(Extents(dynamic_extents...)).required_span_size())` shall be a valid range.
+* *Requires:* `[accessor_type().decay(ptr), accessor_type.decay(ptr)+mapping_type(Extents(dynamic_extents...)).required_span_size())` shall be a valid range.
 * *Effects:*
     + initializes `ptr_` with `ptr`
     + initializes `map_` with `Extents(dynamic_extents...)`
