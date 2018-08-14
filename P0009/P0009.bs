@@ -1784,7 +1784,9 @@ Table �: Accessor policy requirements
 <tr>
   <td>`A::pointer`</td>
   <td></td>
-  <td>Type through which the contiguous set of elements are accessed. *Requires:* Is DefaultConstructible, CopyConstructible, and CopyAssignable </td>
+  <td>Type through which the contiguous set of elements are accessed. 
+      <br>*Requires:* Meets the requirements of *DefaultConstructible*, *CopyConstructible*, and *CopyAssignable* 
+  </td>
 </tr>
 <tr>
   <td>`A::reference`</td>
@@ -1802,7 +1804,7 @@ Table �: Accessor policy requirements
   <td>*Returns:* A standard pointer to the contiguous set of objects accessed by `p`.</td>
 </tr>
 <tr>
-  <td>`A::deref(p,i)`</td>
+  <td>`A::access(p,i)`</td>
   <td>`A::reference`</td>
   <td>*Returns:* An object which provides access to the `i`*th* element in the contiguous set.</td>
 </tr>
@@ -1844,7 +1846,7 @@ struct accessor_basic {
   static constexpr typename offset_policy::pointer
     offset(pointer p, ptrdiff_t i) noexcept;
 
-  static constexpr reference deref(pointer p,ptrdiff_t i) noexcept;
+  static constexpr reference access(pointer p,ptrdiff_t i) noexcept;
 
   static constexpr pointer decay(pointer p) noexcept;
 };
@@ -1860,7 +1862,7 @@ static constexpr typename offset_policy::pointer
 * *Returns:* `p+i` <br/>
 
 ```c++
-static constexpr reference deref(pointer p,ptrdiff_t i) noexcept ;
+static constexpr reference access(pointer p,ptrdiff_t i) noexcept ;
 ```
 
 * *Returns:* `p[i]` <br/>
@@ -2188,7 +2190,7 @@ template<class... IndexType>
 ```
 
 * *Requires:* 0 <= `array<index_type, sizeof...(indices)>{indices...}[r]` < `extent(r)` for all `r` in the range `[0, rank())`.
-* *Effects:* Equivalent to `return acc_.deref(ptr_, map_(indices...));`
+* *Effects:* Equivalent to `return acc_.access(ptr_, map_(indices...));`
 * *Remarks:* This operator does not participate in overload resolution unless
     + `is_convertible_v<IndexType, index_type> && ...`
     + `sizeof...(IndexType)==rank()`
