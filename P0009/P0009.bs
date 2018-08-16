@@ -1796,20 +1796,20 @@ Table �: Accessor policy requirements
 <tr>
   <td>`A::offset_policy`</td>
   <td></td>
-  <td>Accessor policy which can return a pointer that has been offset.</td>
+  <td>Accessor policy which can access a pointer that has been return by `a.offset(p,i)`.</td>
 </tr>
 <tr>
-  <td>`A::decay(p)`</td>
+  <td>`a.decay(p)`</td>
   <td>`A::element_type*`</td>
   <td>*Returns:* A pointer to the contiguous set of objects accessed by `p`.</td>
 </tr>
 <tr>
-  <td>`A::access(p,i)`</td>
+  <td>`a.access(p,i)`</td>
   <td>`A::reference`</td>
   <td>*Returns:* An object which provides access to the `i`*th* element in the contiguous set.</td>
 </tr>
 <tr>
-  <td>`A::offset(p,i)`</td>
+  <td>`a.offset(p,i)`</td>
   <td>`A::offset_policy::pointer`</td>
   <td>*Returns:* A pointer for the contiguous span of elements offset by `i`.  *Requires:* `A::decay(p)+i == A::offset_policy::decay(A::offset(p,i))`.</td>
 </tr>
@@ -2048,7 +2048,7 @@ template<class... IndexType>
   explicit constexpr basic_mdspan(pointer ptr, IndexType... dynamic_extents);
 ```
 
-* *Requires:* `[accessor_type().decay(ptr), accessor_type.decay(ptr)+mapping_type(Extents(dynamic_extents...)).required_span_size())` shall be a valid range.
+* *Requires:* `[accessor_type().decay(ptr), accessor_type().decay(ptr)+mapping_type(Extents(dynamic_extents...)).required_span_size())` shall be a valid range.
 * *Effects:*
     + initializes `ptr_` with `ptr`
     + initializes `map_` with `Extents(dynamic_extents...)`
