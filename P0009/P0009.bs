@@ -2405,43 +2405,50 @@ namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
-           class Accessor, class... SliceSpecifiers>
-    basic_mdspan<ElementType, E /* see-below */, layout_stride, Accessor>
-      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, Accessor>& src, SliceSpecifiers ... slices) noexcept;
+           class AccessorPolicy, class... SliceSpecifiers>
+    basic_mdspan<ElementType, E /* see-below */, L /* see-below */, typename AccessorPolicy::offset_policy >
+      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src, SliceSpecifiers ... slices) noexcept;
 
 }}}
 ```
 
+
 `subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
 The SliceSpecifier parameters indicate the subset that the return value references.
-Let slices[r] denote the rth value in the parameter pack slices.
-The second template parameter of the return type is E, a specialization of `extents`.
+The second template parameter of the return type, `E`, is a specialization of `extents`.
+The third template parameter of the return type, `L`, meets the requirements of layout mapping policy and is implementation defined [mdspan.layout].
 <br/>
 
-Let <em>C</em> be the number of parameters in `SliceSpecifiers` which are convertible to `ptrdiff_t` <br/>
-Let <em>ranges[r]</em> denote the rth value in the parameter pack slices, which is not convertible to `ptrdiff_t` <br/>
-Let <em>sub</em> be the return value of `subspan` <br/>
-Let <em>first[r]</em> denote the rth lower bound of `slices[r]`. <br/>
+Let `slices[r]` denote the `r`<em>th</em> value in the parameter pack `slices...`.<br/>
+Let `first[r]` denote the `r`<em>th</em> lower bound of `slices[r]`. <br/>
     * If `slices[r]` is convertible to `ptrdiff_t` `first[r]==slices[r]` <br/>
     * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `first[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).first()` <br/>
-    * If `slices[r]` is convertible to `alltype_t` `first[r]==0` <br/>
+    * If `slices[r]` is convertible to `all_type` `first[r]==0` <br/>
 Let `last[r]` denote the rth upper bound of `slices[r]`. <br/>
     * If `slices[r]` is convertible to `ptrdiff_t` `last[r]==slices[r]+1` <br/>
     * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `last[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).second()` <br/>
-    * If `slices[r]` is convertible to `alltype_t` `last[r]==src.extent(r)` <br/>
+    * If `slices[r]` is convertible to `all_type` `last[r]==src.extent(r)` <br/>
+Let an array `R[K]` be <br/>
+<pre highlight="c++">
+  size_t k = 0;
+  for(size_t r=0; r&lt;sizeof...(slices); r++)
+    if ( slices[r] <i>convertable to</i> pair&lt;ptrdiff_t,ptrdiff_t> <i>or</i> all_type ) R[k++] = r;
+  size_t K = k;
+</pre>
+Let `sub` be the return value of `subspan` <br/>
 
 Requires: <br/>
-    * `sizeof(slices...)==Extents::rank()` <br/>
-    * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `alltype_t` <br/>
-    * 0 <= `first[r]` < `src.extent(r)` <br/>
-    * 0 < `last[r]` <= `src.extent(r)` <br/>
-    * `LayoutPolicy` is `layout_right`, `layout_left`, or `layout_stride` <br/>
+    * `sizeof(slices...)==src.rank()` <br/>
+    * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `all_type` <br/>
+    * 0 <= `first[r]` < `last[r]` <= `src.extent(r)` <br/>
 
 Postcondition: <br/>
-    * `E::rank()==Extents::rank()-C` <br/>
-    * If <em>ranges[r]</em> is the nth value of `ranges` convertible to `alltype_t` or `pair<ptrdiff_t,ptrdiff_t>` and `slices[k]` is the `n`th value of `slices` convertible to `all type_t` or  `pair<ptrdiff_t,ptrdiff_t>` then `sub.extent(r)==last[k]-first[k]` and `sub.stride(r)==src.stride(k)` <br/> 
-    * `sub.ptr_==src.ptr_+first[0]*src.stride(0)+`...`+first[Extents::rank()-1]*src.stride(Extents::rank()-1)` <br/>
-    * Note: it is quality of implementation whether static extents are preserved if possible.  <br/>
+    * `E::rank()==K` <br/>
+    * Let `I...` be a multi-index such that `I[k] < sub.extents(k)` and `J...` be a multi-index where `J[R[k]]=first[R[k]]+I[k]` or `J[r]=first[r]` for `r` not in `R`, then `sub(I...)` and `src(J...)` refer to the same element.
+    * `sub.extent(k)==last[R[k]]-first[R[k]]`.
+    * If `src.is_strided()` then `sub.is_strided()` and `sub.stride(k)==src.stride(R[k])` <br/>
+    * If `src.static_extent(R[k]) != dynamic_extent` and `slices[R[k]]` is convertable to `all_type` then `sub.static_extent(k) == src.static_extent(R[k])`.
+<br/>
 
 * Examples:
 
@@ -2506,7 +2513,7 @@ object. For example, the *atomic* `AccessorPolicy` in **P0860** defines
     `mdspan` codomain concept of *span* is well-aligned with this paper.
 -   **P0367** : Accessors The P0367 Accessors proposal includes
     polymorphic mechanisms for accessing the memory an object or span of
-    objects. The `AccessPolicy` extension point in this proposal is
+    objects. The `AccessorPolicy` extension point in this proposal is
     intended to include such memory access properties.
 -   **P0331** : Motivation and Examples for Multidimensional Array
 -   **P0332** : Relaxed Incomplete Multidimensional Array Type
