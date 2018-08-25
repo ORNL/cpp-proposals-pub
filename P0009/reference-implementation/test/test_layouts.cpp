@@ -81,6 +81,14 @@ struct test_layouts {
     ASSERT_EQ(my_mapping_copy.is_contiguous()?1:0,contiguous?1:0);
     ASSERT_EQ(my_mapping_copy.is_strided()?1:0,strided?1:0);
   } 
+
+  template<class ... E>
+  void check_operator(ptrdiff_t offset, E ... e) {
+    std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
+    ASSERT_EQ(my_mapping_explicit(e...),offset);
+    ASSERT_EQ(my_mapping_copy(e...),offset);
+  }
+
 };
 
 TEST_F(layouts_,construction_right) {
@@ -113,4 +121,19 @@ TEST_F(layouts_,properties_left) {
 
   test.check_properties(true,true,true,true,true,true);
 }
+
+TEST_F(layouts_,operator_right) {
+  test_layouts<layout_right,5,dynamic_extent,3,dynamic_extent,1> test(4,2);
+   
+  test.check_operator(107,4,1,2,1,0);
+  test.check_operator(0,0,0,0,0,0);
+}
+
+TEST_F(layouts_,operator_left) {
+  test_layouts<layout_left,5,dynamic_extent,3,dynamic_extent,1> test(4,2);
+   
+  test.check_operator(109,4,1,2,1,0);
+  test.check_operator(0,0,0,0,0,0);
+}
+
 
