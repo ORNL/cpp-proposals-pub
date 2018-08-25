@@ -98,6 +98,7 @@ struct layout_right {
   public:
 
     using index_type = ptrdiff_t ;
+    using extents_type = Extents ;
 
     HOST_DEVICE
     constexpr mapping() noexcept = default ;
@@ -190,6 +191,7 @@ struct layout_left {
   public:
 
     using index_type = ptrdiff_t ;
+    using extents_type = Extents ;
 
     HOST_DEVICE
     constexpr mapping() noexcept = default ;
@@ -289,11 +291,11 @@ struct layout_stride {
     Extents   m_extents ;
     stride_t  m_stride ;
     int       m_contig ;
-    int       m_unique ;
 
   public:
 
     using index_type = ptrdiff_t ;
+    using extents_type = Extents ;
 
     HOST_DEVICE
     constexpr mapping() noexcept = default ;
@@ -312,7 +314,7 @@ struct layout_stride {
 
     HOST_DEVICE
     mapping( const Extents & ext, const stride_t & str ) noexcept
-      : m_extents(ext), m_stride(str), m_contig(1), m_unique(1)
+      : m_extents(ext), m_stride(str), m_contig(1)
       {
         int p[ Extents::rank() ? Extents::rank() : 1 ];
 
@@ -334,7 +336,6 @@ struct layout_stride {
           const int k = p[i];
           const index_type prev = m_stride[j] * m_extents.extent(j);
           if ( m_stride[k] != prev ) { m_contig = 0 ; }
-          if ( m_stride[k] <  prev ) { m_unique = 0 ; }
         }
       }
 

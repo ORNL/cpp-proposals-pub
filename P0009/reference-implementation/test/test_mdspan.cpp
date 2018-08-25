@@ -1,256 +1,176 @@
+#include<mdspan>
+#include<cstdio>
+#include<gtest/gtest.h>
 
-#include <iostream>
-#include <utility>
-#include <memory>
-#include <mdspan>
+using namespace std::experimental::fundamentals_v3;
 
-//----------------------------------------------------------------------------
+class mdspan_ : public ::testing::Test {
+protected:
+  static void SetUpTestCase() {
+  }
 
-template<class ElementType>
-struct shared_ptr_offset : private std::shared_ptr<ElementType[]> {
-private:
-  using base = std::shared_ptr<ElementType[]> ;
-	size_t off ;
-public:
-  shared_ptr_offset() = default ;
-  shared_ptr_offset( shared_ptr_offset && ) = default ;
-  shared_ptr_offset( const shared_ptr_offset & ) = default ;
-  shared_ptr_offset & operator = ( shared_ptr_offset && ) = default ;
-  shared_ptr_offset & operator = ( const shared_ptr_offset & ) = default ;
-
-  shared_ptr_offset( const base & S , size_t N ) noexcept
-	  : base(S), off(N) {}
-
-  ElementType & operator[]( size_t i ) const noexcept
-	  { return base::operator[][off+i]; };
-
-  ElementType * get() const { return base::get()+off; }
-
-  shared_ptr_offset operator+(size_t i) const noexcept
-	  { return shared_ptr_offset( ( const base &)(*this) , off + i ); }
+  static void TearDownTestCase() {
+  }
 };
 
-template<class ElementType,bool HasOffset=false>
-struct access_policy_shared_ptr {
-  using element_type  = ElementType;
-  using pointer       = ElementType*;
-  using handle_type   = typename std::conditional<HasOffset,shared_ptr_offset<ElementType>,std::shared_ptr<ElementType[]> >::type ;
-  using reference     = ElementType&;
-  using offset_policy = access_policy_shared_ptr<ElementType,true>;
-
-  static typename offset_policy::handle_type
-    offset( const handle_type & h , size_t i ) noexcept
-      { return typename offset_policy::handle_type(h,i); }
-
-  static reference deref( const handle_type & h , size_t i ) noexcept
-    { return h[i]; }
-
-  static pointer decay( const handle_type & h ) noexcept
-    { return h.get(); }
+template<class ElementType, class Mapping>
+struct fill_raw_data {
+  static void fill(ElementType* p, Mapping m) {
+    typename Mapping::extents_type e = m.extents();
+    for(ptrdiff_t i0 = 0; i0<e.extent(0); i0++)
+    for(ptrdiff_t i1 = 0; i1<e.extent(1); i1++)
+    for(ptrdiff_t i2 = 0; i2<e.extent(2); i2++)
+    for(ptrdiff_t i3 = 0; i3<e.extent(3); i3++)
+    for(ptrdiff_t i4 = 0; i4<e.extent(4); i4++)
+      p[i0*m.stride(0)+i1*m.stride(1)+i2*m.stride(2)+i3*m.stride(3)+i4*m.stride(4)] =
+        ElementType(i0*10000+i1*1000+i2*100+i3*10+i4);
+  }
 };
 
-//----------------------------------------------------------------------------
+template<class MDSPAN>
+struct test_mdspan {
 
-void test_extents()
-{
-  using namespace std::experimental::fundamentals_v3 ;
+  typedef MDSPAN mdspan_type;
+  typedef typename mdspan_type::element_type   element_type;
+  typedef typename mdspan_type::extents_type   extents_type;
+  typedef typename mdspan_type::mapping_type   mapping_type;
+  typedef typename mdspan_type::accessor_type  accessor_type;
+  typedef typename mdspan_type::pointer        pointer_type;
 
-  {
-    constexpr extents<2,4,8> exA ;
-
-    static_assert( exA.rank() == 3 , "" );
-    static_assert( exA.rank_dynamic() == 0 , "" );
-	  static_assert( exA.static_extent(0) == 2 , "" );
-	  static_assert( exA.static_extent(1) == 4 , "" );
-	  static_assert( exA.static_extent(2) == 8 , "" );
-	  static_assert( exA.extent(0) == 2 , "" );
-	  static_assert( exA.extent(1) == 4 , "" );
-	  static_assert( exA.extent(2) == 8 , "" );
-	}
-
-  {
-    constexpr extents<2,dynamic_extent,dynamic_extent> exB(4,8);
-
-    static_assert( exB.rank() == 3 , "" );
-    static_assert( exB.rank_dynamic() == 2 , "" );
-	  static_assert( exB.static_extent(0) == 2 , "" );
-	  static_assert( exB.static_extent(1) == dynamic_extent , "" );
-	  static_assert( exB.static_extent(2) == dynamic_extent , "" );
-	  static_assert( exB.extent(0) == 2 , "" );
-	  static_assert( exB.extent(1) == 4 , "" );
-	  static_assert( exB.extent(2) == 8 , "" );
-	}
-
-  {
-    constexpr extents<2,dynamic_extent,dynamic_extent> exC ;
-
-    static_assert( exC.rank() == 3 , "" );
-    static_assert( exC.rank_dynamic() == 2 , "" );
-	  static_assert( exC.static_extent(0) == 2 , "" );
-	  static_assert( exC.static_extent(1) == dynamic_extent , "" );
-	  static_assert( exC.static_extent(2) == dynamic_extent , "" );
-	  static_assert( exC.extent(0) == 2 , "" );
-	  static_assert( exC.extent(1) == 0 , "" );
-	  static_assert( exC.extent(2) == 0 , "" );
-	}
-
-  {
-    constexpr extents<2,4,8> exA ;
-    const extents<2,dynamic_extent,dynamic_extent> exB(exA);
-
-    std::cout << "{ " << exB.extent(0) 
-              << " , " << exB.extent(1) 
-              << " , " << exB.extent(2) 
-              << " ; " << exB.extent(3) 
-              << " , " << exB.extent(3) 
-              << " , " << exB.extent(4) 
-							<< " }" << std::endl ;
-
-    static_assert( exB.rank() == 3 , "" );
-    static_assert( exB.rank_dynamic() == 2 , "" );
-	  static_assert( exB.static_extent(0) == 2 , "" );
-	  static_assert( exB.static_extent(1) == dynamic_extent , "" );
-	  static_assert( exB.static_extent(2) == dynamic_extent , "" );
-	  assert( exB.extent(0) == 2 );
-	  assert( exB.extent(1) == 4 );
-	  assert( exB.extent(2) == 8 );
-	}
-}
-
-void test_layout()
-{
-  using namespace std::experimental::fundamentals_v3 ;
-
-  {
-	  using ext = extents<2,dynamic_extent,dynamic_extent>;
-		using lmap = typename layout_right::template mapping< ext > ;
-
-		constexpr ext exB(4,8);
-		constexpr lmap lb( exB );
-
-    assert( lb.extents() == exB );
-    static_assert( lb.is_always_unique , "" );
-    static_assert( lb.is_always_contiguous , "" );
-    static_assert( lb.is_always_strided , "" );
-		static_assert( lb.required_span_size() == exB.extent(0) * exB.extent(1) * exB.extent(2) , "" );
-
-		static_assert( lb.stride(0) == exB.extent(1) * exB.extent(2) , "" );
-		static_assert( lb.stride(1) == exB.extent(2) , "" );
-		static_assert( lb.stride(2) == 1 , "" );
-    
-		static_assert( lb(0,0,0) == 0 , "" );
-		static_assert( lb(0,0,1) == lb.stride(2) , "" );
-		static_assert( lb(0,1,0) == lb.stride(1) , "" );
-		static_assert( lb(1,0,0) == lb.stride(0) , "" );
-	}
-
-  {
-	  using ext = extents<2,dynamic_extent,dynamic_extent>;
-		using lmap = typename layout_left::template mapping< ext > ;
-
-		constexpr ext exB(4,8);
-		constexpr lmap lb( exB );
-
-    assert( lb.extents() == exB );
-    static_assert( lb.is_always_unique , "" );
-    static_assert( lb.is_always_contiguous , "" );
-    static_assert( lb.is_always_strided , "" );
-		static_assert( lb.required_span_size() == exB.extent(0) * exB.extent(1) * exB.extent(2) , "" );
-
-		static_assert( lb.stride(0) == 1 , "" );
-		static_assert( lb.stride(1) == exB.extent(0) , "" );
-		static_assert( lb.stride(2) == exB.extent(0) * exB.extent(1) , "" );
-    
-		static_assert( lb(0,0,0) == 0 , "" );
-		static_assert( lb(1,0,0) == lb.stride(0) , "" );
-		static_assert( lb(0,1,0) == lb.stride(1) , "" );
-		static_assert( lb(0,0,1) == lb.stride(2) , "" );
-	}
-}
-
-void test_accessor()
-{
-  using namespace std::experimental::fundamentals_v3 ;
-
-  static_assert( std::is_same<int&,typename accessor_basic<int>::reference >::value , "" );
-
-  using iacc = typename aligned_access_policy<int,8>::handle_type;
-  using iref = typename aligned_access_policy<int,8>::reference;
-
-	alignas(8) int x = 42 ;
-
-	iacc px( & x );
-	iref rx = x ;
-
-	assert( px[0] == 42 );
-	assert( rx == 42 );
-}
-
-void test_mdspan()
-{
-  using namespace std::experimental::fundamentals_v3 ;
-
-  {
-    using imd_t = mdspan<int,2,dynamic_extent,dynamic_extent> ;
-
-    enum : size_t { LEN = imd_t::required_span_size(4,8) };
+  mdspan_type my_mdspan_extents,my_mdspan_array,my_mdspan_mapping,my_mdspan_map_acc,my_mdspan_copy;
  
-    int buffer[ LEN ] = {0};
+  template<class ... ED>
+  test_mdspan(ED ... e) {
+    mapping_type map(e...);
+    accessor_type acc;
+    element_type* raw_ptr = new element_type[map.required_span_size()];
+    fill_raw_data<element_type,mapping_type>::fill(raw_ptr,map);
+    pointer_type p(raw_ptr);
+    my_mdspan_mapping = mdspan_type(p,map);
+    my_mdspan_map_acc = mdspan_type(p,map,acc);
+    my_mdspan_extents = mdspan_type(p,e...);
+    my_mdspan_copy = my_mdspan_mapping;
+  }
 
-	  imd_t imd( buffer , 4 , 8 );
+  void check_rank(ptrdiff_t r) {
+    ASSERT_EQ(my_mdspan_mapping.rank(),r);
+    ASSERT_EQ(my_mdspan_map_acc.rank(),r);
+    ASSERT_EQ(my_mdspan_extents.rank(),r);
+    ASSERT_EQ(my_mdspan_copy.   rank(),r);
+  }
+  void check_rank_dynamic(ptrdiff_t r) {
+    ASSERT_EQ(my_mdspan_mapping.rank_dynamic(),r);
+    ASSERT_EQ(my_mdspan_map_acc.rank_dynamic(),r);
+    ASSERT_EQ(my_mdspan_extents.rank_dynamic(),r);
+    ASSERT_EQ(my_mdspan_copy.   rank_dynamic(),r);
+  }
+  template<class ... E>
+  void check_extents(E ... e) {
+    std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
+    for(int r = 0; r<extents_type::rank(); r++) {
+      ASSERT_EQ(my_mdspan_mapping.extent(r),a[r]);
+      ASSERT_EQ(my_mdspan_map_acc.extent(r),a[r]);
+      ASSERT_EQ(my_mdspan_extents.extent(r),a[r]);
+      ASSERT_EQ(my_mdspan_copy.   extent(r),a[r]);
+    }
+  }
+  template<class ... E>
+  void check_strides(E ... e) {
+    std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
+    for(int r = 0; r<extents_type::rank(); r++) {
+      ASSERT_EQ(my_mdspan_mapping.stride(r),a[r]);
+      ASSERT_EQ(my_mdspan_map_acc.stride(r),a[r]);
+      ASSERT_EQ(my_mdspan_extents.stride(r),a[r]);
+      ASSERT_EQ(my_mdspan_copy.   stride(r),a[r]);
+    }
+  }
+   
+  void check_properties_internal(mdspan_type my_mdspan, bool always_unique, bool always_contiguous, bool always_strided,
+                        bool unique, bool contiguous, bool strided) {
+    ASSERT_EQ(my_mdspan.is_always_unique()?1:0,always_unique?1:0);
+    ASSERT_EQ(my_mdspan.is_always_contiguous()?1:0,always_contiguous?1:0);
+    ASSERT_EQ(my_mdspan.is_always_strided()?1:0,always_strided?1:0);
+    ASSERT_EQ(my_mdspan.is_unique()?1:0,unique?1:0);
+    ASSERT_EQ(my_mdspan.is_contiguous()?1:0,contiguous?1:0);
+    ASSERT_EQ(my_mdspan.is_strided()?1:0,strided?1:0);
+  }
 
-    int val = 0 ;
-    for ( int k = 0 ; k < imd.extent(2) ; ++k )
-    for ( int j = 0 ; j < imd.extent(1) ; ++j )
-    for ( int i = 0 ; i < imd.extent(0) ; ++i )
-	    imd(i,j,k) = val++ ;
+  void check_properties(bool always_unique, bool always_contiguous, bool always_strided,
+                        bool unique, bool contiguous, bool strided) {
+    check_properties_internal(my_mdspan_mapping,always_unique,always_contiguous,always_strided,unique,contiguous,strided);
+    check_properties_internal(my_mdspan_map_acc,always_unique,always_contiguous,always_strided,unique,contiguous,strided);
+    check_properties_internal(my_mdspan_extents,always_unique,always_contiguous,always_strided,unique,contiguous,strided);
+    check_properties_internal(my_mdspan_copy   ,always_unique,always_contiguous,always_strided,unique,contiguous,strided);
+  }   
 
-	  std::cout << std::endl << "right{" ;
-	  for ( size_t i = 0 ; i < LEN ; ++i )
-	    std::cout << " " << buffer[i];
-	  std::cout << " }" << std::endl ;
-	}
+  void check_operator() {
+    extents_type e = my_mdspan_mapping.extents();
+    for(ptrdiff_t i0 = 0; i0<e.extent(0); i0++)
+    for(ptrdiff_t i1 = 0; i1<e.extent(1); i1++)
+    for(ptrdiff_t i2 = 0; i2<e.extent(2); i2++)
+    for(ptrdiff_t i3 = 0; i3<e.extent(3); i3++)
+    for(ptrdiff_t i4 = 0; i4<e.extent(4); i4++) {
+      element_type value = i0*10000+i1*1000+i2*100+i3*10+i4;
+      ASSERT_EQ(my_mdspan_mapping(i0,i1,i2,i3,i4),value);    
+      ASSERT_EQ(my_mdspan_map_acc(i0,i1,i2,i3,i4),value);    
+      ASSERT_EQ(my_mdspan_extents(i0,i1,i2,i3,i4),value);    
+      ASSERT_EQ(my_mdspan_copy   (i0,i1,i2,i3,i4),value);    
+    }
+  }
+};
 
-  {
-    using imd_t = basic_mdspan<int,extents<2,dynamic_extent,dynamic_extent>,layout_left> ;
+TEST_F(mdspan_,construction_right) {
+  typedef basic_mdspan<int,extents<5,dynamic_extent,3,dynamic_extent,1>,
+                 layout_right,accessor_basic<int> > mdspan_type;
+  test_mdspan<mdspan_type> test(4,2);
 
-    enum : size_t { LEN = imd_t::required_span_size(4,8) };
- 
-    int buffer[ LEN ] = {0};
-
-	  imd_t imd( buffer , 4 , 8 );
-
-    int val = 0 ;
-    for ( int k = 0 ; k < imd.extent(2) ; ++k )
-    for ( int j = 0 ; j < imd.extent(1) ; ++j )
-    for ( int i = 0 ; i < imd.extent(0) ; ++i )
-	    imd(i,j,k) = val++ ;
-
-	  std::cout << std::endl << "left{" ;
-	  for ( size_t i = 0 ; i < LEN ; ++i )
-	    std::cout << " " << buffer[i];
-	  std::cout << " }" << std::endl ;
-	}
+  test.check_rank(5);
+  test.check_rank_dynamic(2);
+  test.check_extents(5,4,3,2,1);
+  test.check_strides(24,6,2,1,1);
 }
 
-void test_mdspan_plugin()
-{
-  using namespace std::experimental::fundamentals_v3 ;
+TEST_F(mdspan_,construction_left) {
+  typedef basic_mdspan<int,extents<5,dynamic_extent,3,dynamic_extent,1>,
+                 layout_left,accessor_basic<int> > mdspan_type;
+  test_mdspan<mdspan_type> test(4,2);
 
-  using matrix_type = basic_mdspan<double,extents<dynamic_extent,dynamic_extent>,layout_left,access_policy_shared_ptr<double> >;
-
-  std::shared_ptr<double[]> buf( new double[100] );
-
-  matrix_type m(buf,10,10);
+  test.check_rank(5);
+  test.check_rank_dynamic(2);
+  test.check_extents(5,4,3,2,1);
+  test.check_strides(1,5,20,60,120);
 }
 
-int main()
-{
-  test_extents();
-  test_layout();
-	test_accessor();
-	test_mdspan();
-	test_mdspan_plugin();
-	return 0 ;
+
+TEST_F(mdspan_,properties_right) {
+  typedef basic_mdspan<int,extents<5,dynamic_extent,3,dynamic_extent,1>,
+                 layout_right,accessor_basic<int> > mdspan_type;
+  test_mdspan<mdspan_type> test(4,2);
+
+  test.check_properties(true,true,true,true,true,true);
+}
+
+TEST_F(mdspan_,properties_left) {
+  typedef basic_mdspan<int,extents<5,dynamic_extent,3,dynamic_extent,1>,
+                 layout_left,accessor_basic<int> > mdspan_type;
+  test_mdspan<mdspan_type> test(4,2);
+
+  test.check_properties(true,true,true,true,true,true);
+}
+
+TEST_F(mdspan_,operator_right) {
+  typedef basic_mdspan<int,extents<5,dynamic_extent,3,dynamic_extent,1>,
+                 layout_right,accessor_basic<int> > mdspan_type;
+  test_mdspan<mdspan_type> test(4,2);
+   
+  test.check_operator();
+}
+
+TEST_F(mdspan_,operator_left) {
+  typedef basic_mdspan<int,extents<5,dynamic_extent,3,dynamic_extent,1>,
+                 layout_left,accessor_basic<int> > mdspan_type;
+  test_mdspan<mdspan_type> test(4,2);
+   
+  test.check_operator();
 }
 

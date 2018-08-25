@@ -14,19 +14,18 @@ template<class ElementType>
 struct accessor_basic {
   using element_type  = ElementType;
   using pointer       = ElementType*;
-  using handle_type   = ElementType*;
   using offset_policy = accessor_basic;
   using reference     = ElementType&;
 
-  static typename offset_policy::handle_type
-    offset( handle_type h , size_t i ) noexcept
-      { return h+i; }
+  constexpr typename offset_policy::pointer
+    offset( pointer p , ptrdiff_t i ) const noexcept
+      { return typename offset_policy::pointer(p+i); }
 
-  static reference deref( handle_type h , size_t i ) noexcept
-    { return h[i]; }
+  constexpr reference access( pointer p , ptrdiff_t i ) const noexcept
+    { return p[i]; }
 
-  static pointer decay( handle_type h ) noexcept
-    { return h; }
+  constexpr ElementType* decay( pointer p ) const noexcept
+    { return p; }
 };
 
 }}} // std::experimental::fundamentals_v3

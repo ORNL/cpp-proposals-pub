@@ -107,18 +107,17 @@ template<class ElementType, size_t N>
 struct aligned_access_policy {
   using element_type  = ElementType;
   using pointer       = ElementType*;
-  using handle_type   = aligned_accessor<ElementType,N>;
-  using reference     = typename handle_type::reference;
+  using reference     = typename pointer::reference;
   using offset_policy = accessor_basic<ElementType>;
 
-  static typename offset_policy::handle_type
-    offset( const handle_type & h , size_t i ) noexcept
+  static typename offset_policy::pointer
+    offset( const pointer & h , size_t i ) noexcept
       { return h+i; }
 
-  static reference deref( const handle_type & h , size_t i ) noexcept
+  static reference deref( const pointer & h , size_t i ) noexcept
     { return h[i]; }
 
-  static pointer decay( const handle_type & h ) noexcept
+  static pointer decay( const pointer & h ) noexcept
     { return (pointer)h; }
 };
 
@@ -130,9 +129,6 @@ struct aligned_access_policy {
 namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
-
-template<class T, ptrdiff_t N = dynamic_extent >
-using span = basic_mdspan<T,extents<N>,layout_none,accessor_basic<T> >;
 
 template<class ElementType, class Extents, class LayoutPolicy, class AccessorPolicy>
 class basic_mdspan {
@@ -148,14 +144,13 @@ public:
   using value_type       = typename remove_cv<element_type>::type ;
   using index_type       = ptrdiff_t ;
   using difference_type  = ptrdiff_t ;
-  using handle_type      = typename accessor_type::handle_type;
   using pointer          = typename accessor_type::pointer;
   using reference        = typename accessor_type::reference;
 
   // [mdspan.basic.cons]
 
   HOST_DEVICE
-  constexpr basic_mdspan() noexcept : m_acc(0), m_map() {}
+  constexpr basic_mdspan() noexcept : acc_(), map_(), ptr_() {}
 
   HOST_DEVICE
   constexpr basic_mdspan(basic_mdspan&& other) noexcept = default;
@@ -178,8 +173,9 @@ public:
                        OtherExtents,
                        OtherLayoutPolicy,
                        OtherAccessor> & rhs ) noexcept
-    : m_acc( rhs.m_acc )
-    , m_map( rhs.m_map )
+    : acc_( rhs.acc_ )
+    , map_( rhs.map_ )
+    , ptr_( rhs.ptr_ )
     {}
 
   template<class OtherElementType,
@@ -191,15 +187,18 @@ public:
                        OtherExtents,
                        OtherLayoutPolicy,
                        OtherAccessor> & rhs ) noexcept
-    { m_acc = rhs.m_acc ; m_map = rhs.m_map ; return *this ; }
+    { acc_ = rhs.acc_ ; map_ = rhs.map_ ; ptr_ = rhs.ptr_ ; return *this ; }
 
   template<class... IndexType >
   explicit constexpr basic_mdspan
-    ( handle_type ptr , IndexType ... DynamicExtents ) noexcept
-    : m_acc(ptr), m_map( DynamicExtents... ) {}
+    ( pointer ptr , IndexType ... DynamicExtents ) noexcept
+    : ptr_(ptr), acc_(accessor_type()), map_( DynamicExtents... ) {}
 
-  constexpr basic_mdspan( handle_type ptr , const mapping_type & m ) noexcept
-    : m_acc(ptr), m_map( m ) {}
+  constexpr basic_mdspan( pointer ptr , const mapping_type m ) noexcept
+    : ptr_(ptr), acc_(accessor_type()), map_( m ) {}
+  
+  constexpr basic_mdspan( pointer ptr , const mapping_type m , const accessor_type a ) noexcept
+    : ptr_(ptr), acc_(a), map_( m ) {}
 
   // [mdspan.basic.mapping]
 
@@ -209,15 +208,15 @@ public:
   constexpr
   typename enable_if<sizeof...(IndexType)==extents_type::rank(),reference>::type
   operator()( IndexType... indices) const noexcept
-    { return m_acc[ m_map( indices... ) ]; }
+    { return acc_.access( ptr_ , map_( indices... ) ); }
 
   // Enforce rank() == 1
-  template<class IndexType >
+  template<class IndexType>
   HOST_DEVICE
   constexpr
   typename enable_if<is_integral<IndexType>::value && 1==extents_type::rank(),reference>::type
-  operator[]( IndexType i ) const noexcept
-    { return m_acc[ m_map(i) ]; }
+  operator[]( const IndexType i ) const noexcept
+    { return acc_( ptr_ , map_(i) ); }
 
   // [mdspan.basic.domobs]
 
@@ -228,54 +227,51 @@ public:
     { return extents_type::rank_dynamic(); }
 
   constexpr index_type static_extent( size_t k ) const noexcept
-    { return m_map.extents().static_extent( k ); }
+    { return map_.extents().static_extent( k ); }
 
   constexpr index_type extent( int k ) const noexcept
-    { return m_map.extents().extent( k ); }
+    { return map_.extents().extent( k ); }
 
   constexpr const extents_type & extents() const noexcept
-    { return m_map.extents(); }
+    { return map_.extents(); }
 
   // [mdspan.basic.codomain]
 
   // ------------------------------
 
-  constexpr fundamentals_v3::span<element_type> span() const noexcept
-	  { return fundamentals_v3::span<element_type>((pointer)m_acc,m_map.extents().extent(0)); }
+//  constexpr fundamentals_v3::span<element_type> span() const noexcept
+//	  { return fundamentals_v3::span<element_type>((pointer)acc_,map_.extents().extent(0)); }
 
   // ------------------------------
 
   // [mdspan.basic.obs]
 
-  static constexpr bool is_always_unique = mapping_type::is_always_unique ;
-  static constexpr bool is_always_regular = mapping_type::is_always_regular ;
-  static constexpr bool is_always_contiguous = mapping_type::is_always_contiguous ;
+  static constexpr bool is_always_unique()     noexcept { return mapping_type::is_always_unique(); }
+  static constexpr bool is_always_strided()    noexcept { return mapping_type::is_always_strided(); }
+  static constexpr bool is_always_contiguous() noexcept { return mapping_type::is_always_contiguous(); }
 
   HOST_DEVICE
-  constexpr bool is_unique() const noexcept  { return m_map.is_unique(); }
+  constexpr bool is_unique() const noexcept  { return map_.is_unique(); }
   HOST_DEVICE
-  constexpr bool is_regular() const noexcept { return m_map.is_regular(); }
+  constexpr bool is_strided() const noexcept { return map_.is_strided(); }
   HOST_DEVICE
-  constexpr bool is_contiguous() const noexcept {return m_map.is_contiguous();}
+  constexpr bool is_contiguous() const noexcept {return map_.is_contiguous();}
 
   HOST_DEVICE
   constexpr index_type stride( size_t r ) const noexcept
-    { return m_map.stride(r); }
-
-  template<class... IndexType>
-  HOST_DEVICE
-  static constexpr
-  typename enable_if<sizeof...(IndexType)==extents_type::rank_dynamic(),index_type>::type
-  required_span_size(IndexType... DynamicExtents) noexcept
-    { return mapping_type(DynamicExtents...).required_span_size(); }
+    { return map_.stride(r); }
 
   HOST_DEVICE
-  constexpr const mapping_type & mapping() const noexcept { return m_map ; }
+  constexpr mapping_type mapping() const noexcept { return map_ ; }
+
+  HOST_DEVICE
+  constexpr accessor_type accessor() const noexcept { return acc_ ; } 
 
 private:
 
-  handle_type  m_acc ;
-  mapping_type m_map ;
+  accessor_type acc_ ;
+  mapping_type map_ ;
+  pointer  ptr_ ;
 };
 
 
