@@ -65,9 +65,9 @@ struct layout_none {
     constexpr index_type operator()() const noexcept { return 0 ; }
     constexpr index_type operator()( index_type i ) const noexcept { return i ; }
 
-    static constexpr bool is_always_unique     = true ;
-    static constexpr bool is_always_contiguous = true ;
-    static constexpr bool is_always_strided    = true ;
+    static constexpr bool is_always_unique()     noexcept { return true ; }
+    static constexpr bool is_always_contiguous() noexcept { return true ; }
+    static constexpr bool is_always_strided()    noexcept { return true ; }
 
     constexpr bool is_unique()     const noexcept { return true ; }
     constexpr bool is_contiguous() const noexcept { return true ; }
@@ -156,9 +156,9 @@ struct layout_right {
     operator()( Indices ... indices ) const noexcept
       { return mapping::offset( m_extents, 0, indices... ); }
 
-    static constexpr bool is_always_unique     = true ;
-    static constexpr bool is_always_contiguous = true ;
-    static constexpr bool is_always_strided    = true ;
+    static constexpr bool is_always_unique()     noexcept { return true ; }
+    static constexpr bool is_always_contiguous() noexcept { return true ; }
+    static constexpr bool is_always_strided()    noexcept { return true ; }
 
     constexpr bool is_unique()     const noexcept { return true ; }
     constexpr bool is_contiguous() const noexcept { return true ; }
@@ -254,9 +254,9 @@ struct layout_left {
                i1 + m_extents.template extent<1>() * ( i2 ) ); }
 */
 
-    static constexpr bool is_always_unique     = true ;
-    static constexpr bool is_always_contiguous = true ;
-    static constexpr bool is_always_strided    = true ;
+    static constexpr bool is_always_unique()     noexcept { return true ; }
+    static constexpr bool is_always_contiguous() noexcept { return true ; }
+    static constexpr bool is_always_strided()    noexcept { return true ; }
 
     constexpr bool is_unique()     const noexcept { return true ; }
     constexpr bool is_contiguous() const noexcept { return true ; }
@@ -385,11 +385,11 @@ struct layout_stride {
                i2 * m_stride_t[2] ; }
 */
 
-    static constexpr bool is_always_unique     = false ;
-    static constexpr bool is_always_contiguous = false ;
-    static constexpr bool is_always_strided    = true ;
+    static constexpr bool is_always_unique()     noexcept { return true ; }
+    static constexpr bool is_always_contiguous() noexcept { return false ; }
+    static constexpr bool is_always_strided()    noexcept { return true ; }
 
-    constexpr bool is_unique()     const noexcept { return m_unique ; }
+    constexpr bool is_unique()     const noexcept { return true ; }
     constexpr bool is_contiguous() const noexcept { return m_contig ; }
     constexpr bool is_strided()    const noexcept { return true ; }
 
