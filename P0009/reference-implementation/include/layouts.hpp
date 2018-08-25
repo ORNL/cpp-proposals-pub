@@ -156,17 +156,6 @@ struct layout_right {
     operator()( Indices ... indices ) const noexcept
       { return mapping::offset( m_extents, 0, indices... ); }
 
-/*
-    template<class Index0, class Index1, class Index2 >
-    typename enable_if< is_integral<Index0>::value &&
-                             is_integral<Index1>::value &&
-                             is_integral<Index2>::value &&
-                             3 == Extents::rank() , index_type >::type
-    operator()( Index0 i0 , Index1 i1 , Index2 i2 ) const noexcept
-      { return ( ( ( i0 ) * m_extents.template extent<1>() + i1 )
-                          * m_extents.template extent<2>() + i2 ); }
-*/
-
     static constexpr bool is_always_unique     = true ;
     static constexpr bool is_always_contiguous = true ;
     static constexpr bool is_always_strided    = true ;
