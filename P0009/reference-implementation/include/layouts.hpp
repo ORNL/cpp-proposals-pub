@@ -129,33 +129,31 @@ struct layout_right {
 
     // ( ( ( ( i0 ) * N1 + i1 ) * N2 + i2 ) * N3 + i3 ) ...
 
-    template<class Ext, class ... Indices >
     static constexpr index_type
-    offset( const Ext & ext,
-            index_type sum,
-            index_type i) noexcept
-      { return sum * ext.extent() + i ; }
+    offset( const size_t , const ptrdiff_t sum)
+      { return sum; }
 
-    template<class Ext, class ... Indices >
-    static constexpr index_type
-    offset( const Ext & ext,
-            index_type sum,
-            index_type i,
-            Indices... indices ) noexcept
+    template<class ... Indices >
+    constexpr index_type
+    offset( const size_t r, ptrdiff_t sum, const index_type i, Indices... indices) const noexcept
       {
-        return mapping::offset( ext.next(), sum * ext.extent() + i, indices...);
+        return offset( r+1 , sum * m_extents.extent(r) + i, indices...);
       }
 
   public:
 
-    constexpr index_type required_span_size() const noexcept
-      { return m_extents.product(0,m_extents.rank()); }
+    constexpr index_type required_span_size() const noexcept { 
+      index_type size = 1;
+      for(size_t r=0; r<m_extents.rank(); r++)
+        size *= m_extents.extent(r);
+      return size;
+    } 
 
     template<class ... Indices >
     constexpr
     typename enable_if<sizeof...(Indices) == Extents::rank(),index_type>::type
-    operator()( Indices ... indices ) const noexcept
-      { return mapping::offset( m_extents, 0, indices... ); }
+    operator()( Indices ... indices ) const noexcept 
+      { return offset( 0, 0, indices... ); }
 
     static constexpr bool is_always_unique()     noexcept { return true ; }
     static constexpr bool is_always_contiguous() noexcept { return true ; }
@@ -165,8 +163,12 @@ struct layout_right {
     constexpr bool is_contiguous() const noexcept { return true ; }
     constexpr bool is_strided()    const noexcept { return true ; }
 
-    constexpr index_type stride(size_t r) const noexcept
-      { return m_extents.product(r+1,m_extents.rank()); }
+    constexpr index_type stride(const size_t R) const noexcept { 
+      ptrdiff_t stride_ = 1;
+      for(size_t r = m_extents.rank()-1; r>R; r--)
+        stride_ *= m_extents.extent(r);
+      return stride_;
+    }
 
   }; // struct mapping
 
@@ -222,28 +224,31 @@ struct layout_left {
 
     // ( i0 + N0 * ( i1 + N1 * ( i2 + N2 * ( ... ) ) ) )
 
-    template<class Ext >
     HOST_DEVICE
     static constexpr index_type
-    offset( const Ext & ) noexcept
+    offset( size_t ) noexcept
       { return 0 ; }
 
-    template<class Ext , class ... IndexType >
+    template<class ... IndexType >
     HOST_DEVICE
-    static constexpr index_type
-    offset( const Ext & ext, index_type i, IndexType... indices ) noexcept
-      { return i + ext.extent() * mapping::offset( ext.next(), indices... ); }
+    constexpr index_type
+    offset( const size_t r, index_type i, IndexType... indices ) const noexcept
+      { return i + m_extents.extent(r) * offset( r+1, indices... ); }
 
   public:
 
-    constexpr index_type required_span_size() const noexcept
-      { return m_extents.product(0,m_extents.rank()); }
+    constexpr index_type required_span_size() const noexcept {
+      ptrdiff_t size = 1;
+      for(size_t r = 0; r<m_extents.rank(); r++)
+        size *= m_extents.extent(r);
+      return size;
+    }
 
     template<class ... Indices >
     constexpr
     typename enable_if<sizeof...(Indices) == Extents::rank(),index_type>::type
     operator()( Indices ... indices ) const noexcept
-      { return mapping::offset( m_extents, indices... ); }
+      { return offset( 0, indices... ); }
 
 /*
     template<class Index0, class Index1, class Index2 >
@@ -264,8 +269,12 @@ struct layout_left {
     constexpr bool is_contiguous() const noexcept { return true ; }
     constexpr bool is_strided()    const noexcept { return true ; }
 
-    constexpr index_type stride(size_t r) const noexcept
-      { return m_extents.product(0,r); }
+    constexpr index_type stride(const size_t R) const noexcept {
+      ptrdiff_t stride_ = 1;
+      for(size_t r = 0; r<R; r++)
+        stride_ *= m_extents.extent(r);
+      return stride_;
+    }
 
   }; // struct mapping
 

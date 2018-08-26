@@ -59,6 +59,18 @@ TEST_F(extents_,construction) {
 
 }
 
+TEST_F(extents_,static_only) {
+   test_extents<5,4,3> test;
+   test.check_rank(3);
+   test.check_rank_dynamic(0);
+   test.check_extents(5,4,3);
+}
+
+TEST_F(extents_,rank_0) {
+  test_extents<> test;
+  test.check_rank(0);
+  test.check_rank_dynamic(0);
+}
 TEST_F(extents_,assignment) {
   extents<5,dynamic_extent,3,dynamic_extent,1> e1(4,2);
   extents<5,4,3,2,1> e2;

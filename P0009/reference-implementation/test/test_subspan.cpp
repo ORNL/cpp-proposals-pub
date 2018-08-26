@@ -184,3 +184,6 @@ TEST_F(subspan_,basic_mdspan_layout_left) {
     ASSERT_EQ(sub(i0,i1,i2),2*10000 + (i0+1)*1000+i1*100+i2*10);
   delete [] ptr;
 }
+
+//TEST_F(subspan_,reduce_to_rank_0) {
+//}
