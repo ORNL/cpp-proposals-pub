@@ -1,4 +1,3 @@
-
 namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
@@ -163,6 +162,5 @@ public:
 };
 
 }}}}
-
 
 

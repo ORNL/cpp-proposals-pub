@@ -18,7 +18,7 @@ template<class ElementType,
 class basic_mdspan ;
 
 // [msspan.subspan]
-
+/*
 namespace detail {
 template<class ElementType,
          class Extents,
@@ -41,7 +41,7 @@ HOST_DEVICE
                                      SliceSpecifiers...>::type
 subspan(const basic_mdspan<ElementType,Extents,LayoutPolicy,AccessorPolicy> &,
         SliceSpecifiers...) noexcept ;
-
+*/
 class all_type { public: constexpr explicit all_type() = default; };
 
 /* inline */ constexpr all_type all ;
@@ -267,6 +267,7 @@ public:
   HOST_DEVICE
   constexpr accessor_type accessor() const noexcept { return acc_ ; } 
 
+  constexpr pointer data() const noexcept { return ptr_ ; } 
 private:
 
   accessor_type acc_ ;

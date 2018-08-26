@@ -345,17 +345,16 @@ struct layout_stride {
 
     // i0 * N0 + i1 * N1 + i2 * N2 + ...
 
-    template<size_t>
     HOST_DEVICE
     constexpr index_type
-    offset() const noexcept
+    offset(int) const noexcept
       { return 0 ; }
 
-    template<size_t K, class... IndexType >
+    template<class... IndexType >
     HOST_DEVICE
     constexpr index_type
-    offset( index_type i, IndexType... indices ) const noexcept
-      { return i * m_stride[K] + mapping::template offset<K+1>(indices...); }
+    offset( const int K, const index_type i, IndexType... indices ) const noexcept
+      { return i * m_stride[K] + mapping::offset(K+1,indices...); }
 
   public:
 
@@ -372,7 +371,7 @@ struct layout_stride {
     constexpr
     typename enable_if<sizeof...(Indices) == Extents::rank(),index_type>::type
     operator()( Indices ... indices ) const noexcept
-      { return mapping::offset( indices... ); }
+      { return mapping::offset(0, indices... ); }
 
 /*
     template<class Index0, class Index1, class Index2 >
