@@ -20,73 +20,6 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-struct layout_none {
-
-  template<class Extents>
-  class mapping {
-  private:
-
-    static_assert( Extents::rank() <= 1 , "" );
-
-    Extents m_extents ;
-
-  public:
-
-    using index_type = ptrdiff_t ;
-
-    HOST_DEVICE
-    constexpr mapping() noexcept = default ;
-
-    HOST_DEVICE
-    constexpr mapping( mapping && ) noexcept = default ;
-
-    HOST_DEVICE
-    constexpr mapping( const mapping & ) noexcept = default ;
-
-    HOST_DEVICE
-    mapping & operator = ( mapping && ) noexcept = default ;
-
-    HOST_DEVICE
-    mapping & operator = ( const mapping & ) noexcept = default ;
-
-    HOST_DEVICE
-    constexpr mapping( const Extents & ext ) noexcept
-      : m_extents( ext ) {}
-
-    constexpr const Extents & extents() const noexcept { return m_extents ; }
-
-    template<class... Indices>
-    constexpr mapping( Indices... DynamicExtents ) noexcept
-      : m_extents( DynamicExtents... ) {}
-
-    constexpr index_type required_span_size() const noexcept
-      { return m_extents.extent(0); }
-
-    constexpr index_type operator()() const noexcept { return 0 ; }
-    constexpr index_type operator()( index_type i ) const noexcept { return i ; }
-
-    static constexpr bool is_always_unique()     noexcept { return true ; }
-    static constexpr bool is_always_contiguous() noexcept { return true ; }
-    static constexpr bool is_always_strided()    noexcept { return true ; }
-
-    constexpr bool is_unique()     const noexcept { return true ; }
-    constexpr bool is_contiguous() const noexcept { return true ; }
-    constexpr bool is_strided()    const noexcept { return true ; }
-
-    static constexpr index_type stride(size_t) noexcept { return 1 ; }
-  }; // struct mapping
-
-}; // struct layout_none
-
-}}} // experimental::fundamentals_v3
-
-//--------------------------------------------------------------------------
-//--------------------------------------------------------------------------
-
-namespace std {
-namespace experimental {
-namespace fundamentals_v3 {
-
 struct layout_right {
 
   template<class Extents>
@@ -356,14 +289,14 @@ struct layout_stride {
 
     HOST_DEVICE
     constexpr index_type
-    offset(int) const noexcept
+    offset(size_t) const noexcept
       { return 0 ; }
 
     template<class... IndexType >
     HOST_DEVICE
     constexpr index_type
-    offset( const int K, const index_type i, IndexType... indices ) const noexcept
-      { return i * m_stride[K] + mapping::offset(K+1,indices...); }
+    offset( const size_t K, const index_type i, IndexType... indices ) const noexcept
+      { return i * m_stride[K] + offset(K+1,indices...); }
 
   public:
 
@@ -380,19 +313,8 @@ struct layout_stride {
     constexpr
     typename enable_if<sizeof...(Indices) == Extents::rank(),index_type>::type
     operator()( Indices ... indices ) const noexcept
-      { return mapping::offset(0, indices... ); }
+      { return offset(0, indices... ); }
 
-/*
-    template<class Index0, class Index1, class Index2 >
-    typename enable_if< is_integral<Index0>::value &&
-                             is_integral<Index1>::value &&
-                             is_integral<Index2>::value &&
-                             3 == Extents::rank() , index_type >::type
-    operator()( Index0 i0 , Index1 i1 , Index2 i2 ) const noexcept
-      { return i0 * m_stride_t[0] +
-               i1 * m_stride_t[1] +
-               i2 * m_stride_t[2] ; }
-*/
 
     static constexpr bool is_always_unique()     noexcept { return true ; }
     static constexpr bool is_always_contiguous() noexcept { return false ; }
