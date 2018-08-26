@@ -101,8 +101,8 @@ struct compose_new_extents<extents<ExtentsNew...>,extents<E0,ExtentsOld...>,pair
   }
 };
 
-template<ptrdiff_t ... ExtentsNew, ptrdiff_t E0, ptrdiff_t ... ExtentsOld, class ... SliceSpecifiers>
-struct compose_new_extents<extents<ExtentsNew...>,extents<E0,ExtentsOld...>,ptrdiff_t,SliceSpecifiers...> {
+template<ptrdiff_t ... ExtentsNew, ptrdiff_t E0, ptrdiff_t ... ExtentsOld, class IT, class ... SliceSpecifiers>
+struct compose_new_extents<extents<ExtentsNew...>,extents<E0,ExtentsOld...>,IT,SliceSpecifiers...> {
   typedef compose_new_extents<extents<ExtentsNew...>,extents<ExtentsOld...>,SliceSpecifiers...> next_compose_new_extents;
   typedef typename next_compose_new_extents::extents_type extents_type; 
 
