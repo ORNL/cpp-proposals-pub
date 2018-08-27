@@ -20,22 +20,28 @@ struct test_extents {
   typedef extents<E_STATIC...> extents_type;
 
   extents_type my_extents_explicit,my_extents_array,my_extents_copy;
- 
+
+  test_extents() {
+    my_extents_explicit = extents<E_STATIC...>();
+    my_extents_array = extents<E_STATIC...>(std::array<ptrdiff_t,0>());
+    my_extents_copy = extents<E_STATIC...>(my_extents_explicit);
+  }
+
   template<class ... E>
   test_extents(E ... e) {
     my_extents_explicit = extents<E_STATIC...>(e...);
-    //my_extents_array = extents<E_STATIC...>(std::array<ptrdiff_t,2>({{e}...}));
+    my_extents_array = extents<E_STATIC...>(std::array<ptrdiff_t,2>({{e...}}));
     my_extents_copy = extents<E_STATIC...>(my_extents_explicit);
   }
 
   void check_rank(ptrdiff_t r) {
     ASSERT_EQ(my_extents_explicit.rank(),r);
-    //ASSERT_EQ(my_extents_array.rank(),r);
+    ASSERT_EQ(my_extents_array.rank(),r);
     ASSERT_EQ(my_extents_copy.rank(),r);
   }
   void check_rank_dynamic(ptrdiff_t r) {
     ASSERT_EQ(my_extents_explicit.rank_dynamic(),r);
-    //ASSERT_EQ(my_extents_array.rank_dynamic(),r);
+    ASSERT_EQ(my_extents_array.rank_dynamic(),r);
     ASSERT_EQ(my_extents_copy.rank_dynamic(),r);
   }
   template<class ... E>
@@ -43,7 +49,7 @@ struct test_extents {
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
     for(size_t r = 0; r<extents_type::rank(); r++) {
       ASSERT_EQ(my_extents_explicit.extent(r),a[r]);
-      //ASSERT_EQ(my_extents_array.extent(r),a[r]);
+      ASSERT_EQ(my_extents_array.extent(r),a[r]);
       ASSERT_EQ(my_extents_copy.extent(r),a[r]);
     }
   }

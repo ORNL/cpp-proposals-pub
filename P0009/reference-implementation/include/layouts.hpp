@@ -49,10 +49,6 @@ public:
 
     constexpr const Extents & extents() const noexcept { return m_extents ; }
 
-    template<class... Indices>
-    constexpr mapping( Indices... DynamicExtents ) noexcept
-      : m_extents( DynamicExtents... ) {}
-
   private:
 
     // ( ( ( ( i0 ) * N1 + i1 ) * N2 + i2 ) * N3 + i3 ) ...
@@ -137,10 +133,6 @@ public:
       : m_extents( ext ) {}
 
     constexpr const Extents & extents() const noexcept { return m_extents ; }
-
-    template<class... Indices>
-    constexpr mapping( Indices... DynamicExtents ) noexcept
-      : m_extents( DynamicExtents... ) {}
 
   private:
 

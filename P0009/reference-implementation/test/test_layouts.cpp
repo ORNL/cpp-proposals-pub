@@ -23,23 +23,20 @@ struct test_layouts {
   typedef extents<E_STATIC...> extents_type;
   typedef typename Layout::template mapping<extents_type> mapping_type;
 
-  mapping_type my_mapping_explicit,my_mapping_array,my_mapping_copy;
+  mapping_type my_mapping_explicit,my_mapping_copy;
  
   template<class ... E>
   test_layouts(E ... e) {
-    my_mapping_explicit = mapping_type(e...);
-    //my_mapping_array = <E_STATIC...>(std::array<ptrdiff_t,2>({{e}...}));
+    my_mapping_explicit = mapping_type(extents_type(e...));
     my_mapping_copy = mapping_type(my_mapping_explicit);
   }
 
   void check_rank(ptrdiff_t r) {
     ASSERT_EQ(my_mapping_explicit.extents().rank(),r);
-    //ASSERT_EQ(my_mapping_array.extents().rank(),r);
     ASSERT_EQ(my_mapping_copy.extents().rank(),r);
   }
   void check_rank_dynamic(ptrdiff_t r) {
     ASSERT_EQ(my_mapping_explicit.extents().rank_dynamic(),r);
-    //ASSERT_EQ(my_mapping_array.extents().rank_dynamic(),r);
     ASSERT_EQ(my_mapping_copy.extents().rank_dynamic(),r);
   }
   template<class ... E>
@@ -47,7 +44,6 @@ struct test_layouts {
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
     for(size_t r = 0; r<extents_type::rank(); r++) {
       ASSERT_EQ(my_mapping_explicit.extents().extent(r),a[r]);
-      //ASSERT_EQ(my_mapping_array.extents().extent(r),a[r]);
       ASSERT_EQ(my_mapping_copy.extents().extent(r),a[r]);
     }
   }
@@ -56,13 +52,11 @@ struct test_layouts {
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
     for(size_t r = 0; r<extents_type::rank(); r++) {
       ASSERT_EQ(my_mapping_explicit.stride(r),a[r]);
-      //ASSERT_EQ(my_mapping_array.stride(r),a[r]);
       ASSERT_EQ(my_mapping_copy.stride(r),a[r]);
     }
   }
   void check_required_span_size(ptrdiff_t size) {
     ASSERT_EQ(my_mapping_explicit.required_span_size(),size);
-    //ASSERT_EQ(my_mapping_array.required_span_size(),size);
     ASSERT_EQ(my_mapping_copy.required_span_size(),size);
   }
  
@@ -84,7 +78,6 @@ struct test_layouts {
 
   template<class ... E>
   void check_operator(ptrdiff_t offset, E ... e) {
-    //std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
     ASSERT_EQ(my_mapping_explicit(e...),offset);
     ASSERT_EQ(my_mapping_copy(e...),offset);
   }

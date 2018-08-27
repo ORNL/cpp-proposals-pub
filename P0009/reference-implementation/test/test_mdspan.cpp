@@ -41,11 +41,12 @@ struct test_mdspan {
  
   template<class ... ED>
   test_mdspan(ED ... e) {
-    mapping_type map(e...);
+    mapping_type map(extents_type(e...));
     accessor_type acc;
     element_type* raw_ptr = new element_type[map.required_span_size()];
     fill_raw_data<element_type,mapping_type>::fill(raw_ptr,map);
     pointer_type p(raw_ptr);
+    my_mdspan_array   = mdspan_type(p,std::array<ptrdiff_t,sizeof...(ED)>({{e...}}));
     my_mdspan_mapping = mdspan_type(p,map);
     my_mdspan_map_acc = mdspan_type(p,map,acc);
     my_mdspan_extents = mdspan_type(p,e...);

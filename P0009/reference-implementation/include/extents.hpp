@@ -46,6 +46,9 @@ namespace detail {
     template<class...DynamicExtents>
     extents_analyse(DynamicExtents...de):next(de...) {}
 
+    template<size_t Rank>
+    extents_analyse(const array<ptrdiff_t,Rank>& de,const size_t r):next(de,r) {}
+
     template<ptrdiff_t...OtherStaticExtents>
     extents_analyse(extents_analyse<R,OtherStaticExtents...> rhs):next(rhs.next) {}    
 
@@ -80,6 +83,9 @@ namespace detail {
     template<class...DynamicExtents>
     extents_analyse(ptrdiff_t E, DynamicExtents...de):next(de...),this_extent(E) {}
 
+    template<size_t Rank>
+    extents_analyse(const array<ptrdiff_t,Rank>& de, const size_t r):next(de,r+1),this_extent(de[r]) {}
+
     template<ptrdiff_t...OtherStaticExtents>
     extents_analyse(extents_analyse<R,OtherStaticExtents...> rhs):next(rhs.next),this_extent(rhs.extent(R)) {}    
 
@@ -106,6 +112,9 @@ namespace detail {
     static constexpr size_t rank_dynamic() noexcept { return 0; }
 
     extents_analyse() {}
+
+    template<size_t Rank>
+    extents_analyse(const array<ptrdiff_t,Rank>&, const size_t) {}
 
     //extents_analyse & operator=(extents_analyse) = default;
 
@@ -139,10 +148,13 @@ public:
   constexpr extents( const extents & ) noexcept = default ;
 
   template< class ... IndexType >
-  constexpr explicit extents( ptrdiff_t dn,
+  constexpr extents( ptrdiff_t dn,
                               IndexType ... DynamicExtents ) noexcept
     : impl( dn , DynamicExtents... ) 
     { static_assert( 1+sizeof...(DynamicExtents) == rank_dynamic() , "" ); }
+
+  constexpr extents( const array<ptrdiff_t,extents_analyse_t::rank_dynamic()> dynamic_extents) noexcept
+    : impl(dynamic_extents,0) {}
 
   template<ptrdiff_t... OtherStaticExtents>
   extents( const extents<OtherStaticExtents...>& other )

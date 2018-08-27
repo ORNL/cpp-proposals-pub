@@ -92,7 +92,10 @@ public:
   template<class... IndexType >
   explicit constexpr basic_mdspan
     ( pointer ptr , IndexType ... DynamicExtents ) noexcept
-    : acc_(accessor_type()), map_( DynamicExtents... ), ptr_(ptr) {}
+    : acc_(accessor_type()), map_( extents_type(DynamicExtents...) ), ptr_(ptr) {}
+
+  constexpr basic_mdspan( pointer ptr , const array<ptrdiff_t,extents_type::rank_dynamic()> dynamic_extents)
+    : acc_(accessor_type()), map_( extents_type(dynamic_extents)), ptr_(ptr) {}
 
   constexpr basic_mdspan( pointer ptr , const mapping_type m ) noexcept
     : acc_(accessor_type()), map_( m ), ptr_(ptr) {}

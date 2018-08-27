@@ -161,7 +161,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
       sub_strides[r] = strides[r];
 
     typename AccessorPolicy::offset_policy::pointer ptr = src.accessor().offset(src.data(),offset);    
-    return sub_mdspan_type(ptr,sub_extents,sub_strides);
+    return sub_mdspan_type(ptr,typename sub_mdspan_type::mapping_type(sub_extents,sub_strides));
   }
 
 }}}
