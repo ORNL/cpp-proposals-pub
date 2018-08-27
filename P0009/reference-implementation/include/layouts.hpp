@@ -20,8 +20,9 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-struct layout_right {
+class layout_right {
 
+public:
   template<class Extents>
   class mapping {
   private:
@@ -33,22 +34,16 @@ struct layout_right {
     using index_type = ptrdiff_t ;
     using extents_type = Extents ;
 
-    HOST_DEVICE
     constexpr mapping() noexcept = default ;
 
-    HOST_DEVICE
     constexpr mapping( mapping && ) noexcept = default ;
 
-    HOST_DEVICE
     constexpr mapping( const mapping & ) noexcept = default ;
 
-    HOST_DEVICE
     mapping & operator = ( mapping && ) noexcept = default ;
 
-    HOST_DEVICE
     mapping & operator = ( const mapping & ) noexcept = default ;
 
-    HOST_DEVICE
     constexpr mapping( const Extents & ext ) noexcept
       : m_extents( ext ) {}
 
@@ -103,9 +98,9 @@ struct layout_right {
       return stride_;
     }
 
-  }; // struct mapping
+  }; // class mapping
 
-}; // struct layout_right
+}; // class layout_right
 
 }}} // experimental::fundamentals_v3
 
@@ -115,8 +110,8 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-struct layout_left {
-
+class layout_left {
+public:
   template<class Extents>
   class mapping {
   private:
@@ -128,22 +123,16 @@ struct layout_left {
     using index_type = ptrdiff_t ;
     using extents_type = Extents ;
 
-    HOST_DEVICE
     constexpr mapping() noexcept = default ;
 
-    HOST_DEVICE
     constexpr mapping( mapping && ) noexcept = default ;
 
-    HOST_DEVICE
     constexpr mapping( const mapping & ) noexcept = default ;
 
-    HOST_DEVICE
     mapping & operator = ( mapping && ) noexcept = default ;
 
-    HOST_DEVICE
     mapping & operator = ( const mapping & ) noexcept = default ;
 
-    HOST_DEVICE
     constexpr mapping( const Extents & ext ) noexcept
       : m_extents( ext ) {}
 
@@ -157,13 +146,11 @@ struct layout_left {
 
     // ( i0 + N0 * ( i1 + N1 * ( i2 + N2 * ( ... ) ) ) )
 
-    HOST_DEVICE
     static constexpr index_type
     offset( size_t ) noexcept
       { return 0 ; }
 
     template<class ... IndexType >
-    HOST_DEVICE
     constexpr index_type
     offset( const size_t r, index_type i, IndexType... indices ) const noexcept
       { return i + m_extents.extent(r) * offset( r+1, indices... ); }
@@ -183,17 +170,6 @@ struct layout_left {
     operator()( Indices ... indices ) const noexcept
       { return offset( 0, indices... ); }
 
-/*
-    template<class Index0, class Index1, class Index2 >
-    typename enable_if< is_integral<Index0>::value &&
-                             is_integral<Index1>::value &&
-                             is_integral<Index2>::value &&
-                             3 == Extents::rank() , index_type >::type
-    operator()( Index0 i0 , Index1 i1 , Index2 i2 ) const noexcept
-      { return i0 + m_extents.template extent<0>() * (
-               i1 + m_extents.template extent<1>() * ( i2 ) ); }
-*/
-
     static constexpr bool is_always_unique()     noexcept { return true ; }
     static constexpr bool is_always_contiguous() noexcept { return true ; }
     static constexpr bool is_always_strided()    noexcept { return true ; }
@@ -209,9 +185,9 @@ struct layout_left {
       return stride_;
     }
 
-  }; // struct mapping
+  }; // class mapping
 
-}; // struct layout_left
+}; // class layout_left
 
 }}} // experimental::fundamentals_v3
 
@@ -222,7 +198,8 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-struct layout_stride {
+class layout_stride {
+public:
 
   template<class Extents>
   class mapping {
@@ -239,22 +216,16 @@ struct layout_stride {
     using index_type = ptrdiff_t ;
     using extents_type = Extents ;
 
-    HOST_DEVICE
     constexpr mapping() noexcept = default ;
 
-    HOST_DEVICE
     constexpr mapping( mapping && ) noexcept = default ;
 
-    HOST_DEVICE
     constexpr mapping( const mapping & ) noexcept = default ;
 
-    HOST_DEVICE
     mapping & operator = ( mapping && ) noexcept = default ;
 
-    HOST_DEVICE
     mapping & operator = ( const mapping & ) noexcept = default ;
 
-    HOST_DEVICE
     mapping( const Extents & ext, const stride_t & str ) noexcept
       : m_extents(ext), m_stride(str), m_contig(1)
       {
@@ -287,20 +258,17 @@ struct layout_stride {
 
     // i0 * N0 + i1 * N1 + i2 * N2 + ...
 
-    HOST_DEVICE
     constexpr index_type
     offset(size_t) const noexcept
       { return 0 ; }
 
     template<class... IndexType >
-    HOST_DEVICE
     constexpr index_type
     offset( const size_t K, const index_type i, IndexType... indices ) const noexcept
       { return i * m_stride[K] + offset(K+1,indices...); }
 
   public:
 
-    HOST_DEVICE
     index_type required_span_size() const noexcept
       {
         index_type max = 0 ;
@@ -327,8 +295,8 @@ struct layout_stride {
     constexpr index_type stride(size_t r) const noexcept
       { return m_stride[r]; }
 
-  }; // struct mapping
+  }; // class mapping
 
-}; // struct layout_stride
+}; // class layout_stride
 
 }}} // experimental::fundamentals_v3

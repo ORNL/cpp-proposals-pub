@@ -11,7 +11,8 @@ class accessor_basic;
 
 
 template<class ElementType>
-struct accessor_basic {
+class accessor_basic {
+public:
   using element_type  = ElementType;
   using pointer       = ElementType*;
   using offset_policy = accessor_basic;

@@ -54,19 +54,14 @@ public:
 
   // [mdspan.basic.cons]
 
-  HOST_DEVICE
   constexpr basic_mdspan() noexcept : acc_(), map_(), ptr_() {}
 
-  HOST_DEVICE
   constexpr basic_mdspan(basic_mdspan&& other) noexcept = default;
 
-  HOST_DEVICE
   constexpr basic_mdspan(const basic_mdspan & other) noexcept = default;
 
-  HOST_DEVICE
   basic_mdspan& operator=(const basic_mdspan & other) noexcept = default;
 
-  HOST_DEVICE
   basic_mdspan& operator=(basic_mdspan&& other) noexcept = default;
 
   template<class OtherElementType,
@@ -97,29 +92,25 @@ public:
   template<class... IndexType >
   explicit constexpr basic_mdspan
     ( pointer ptr , IndexType ... DynamicExtents ) noexcept
-    : ptr_(ptr), acc_(accessor_type()), map_( DynamicExtents... ) {}
+    : acc_(accessor_type()), map_( DynamicExtents... ), ptr_(ptr) {}
 
   constexpr basic_mdspan( pointer ptr , const mapping_type m ) noexcept
-    : ptr_(ptr), acc_(accessor_type()), map_( m ) {}
+    : acc_(accessor_type()), map_( m ), ptr_(ptr) {}
   
   constexpr basic_mdspan( pointer ptr , const mapping_type m , const accessor_type a ) noexcept
-    : ptr_(ptr), acc_(a), map_( m ) {}
+    : acc_(a), map_( m ), ptr_(ptr) {}
 
   // [mdspan.basic.mapping]
 
   // Enforce rank() <= sizeof...(IndexType)
   template<class... IndexType >
-  HOST_DEVICE
-  constexpr
-  typename enable_if<sizeof...(IndexType)==extents_type::rank(),reference>::type
+  constexpr typename enable_if<sizeof...(IndexType)==extents_type::rank(),reference>::type
   operator()( IndexType... indices) const noexcept
     { return acc_.access( ptr_ , map_( indices... ) ); }
 
   // Enforce rank() == 1
   template<class IndexType>
-  HOST_DEVICE
-  constexpr
-  typename enable_if<is_integral<IndexType>::value && 1==extents_type::rank(),reference>::type
+  constexpr typename enable_if<is_integral<IndexType>::value && 1==extents_type::rank(),reference>::type
   operator[]( const IndexType i ) const noexcept
     { return acc_( ptr_ , map_(i) ); }
 
@@ -155,21 +146,15 @@ public:
   static constexpr bool is_always_strided()    noexcept { return mapping_type::is_always_strided(); }
   static constexpr bool is_always_contiguous() noexcept { return mapping_type::is_always_contiguous(); }
 
-  HOST_DEVICE
   constexpr bool is_unique() const noexcept  { return map_.is_unique(); }
-  HOST_DEVICE
   constexpr bool is_strided() const noexcept { return map_.is_strided(); }
-  HOST_DEVICE
   constexpr bool is_contiguous() const noexcept {return map_.is_contiguous();}
 
-  HOST_DEVICE
   constexpr index_type stride( size_t r ) const noexcept
     { return map_.stride(r); }
 
-  HOST_DEVICE
   constexpr mapping_type mapping() const noexcept { return map_ ; }
 
-  HOST_DEVICE
   constexpr accessor_type accessor() const noexcept { return acc_ ; } 
 
   constexpr pointer data() const noexcept { return ptr_ ; } 

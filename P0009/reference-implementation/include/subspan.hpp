@@ -119,11 +119,11 @@ struct compose_new_extents<extents<ExtentsNew...>,extents<>> {
   typedef extents<ExtentsNew...> extents_type; 
 
   template<class OrgExtents, class ... DynamicExtents>
-  static constexpr extents_type create_sub_extents(const OrgExtents e, array<ptrdiff_t,OrgExtents::rank()>, ptrdiff_t, DynamicExtents...de) {
+  static constexpr extents_type create_sub_extents(const OrgExtents, array<ptrdiff_t,OrgExtents::rank()>, ptrdiff_t, DynamicExtents...de) {
     return extents_type(de...);
   }
   template<class OrgExtents>
-  static constexpr extents_type create_sub_extents(const OrgExtents e, array<ptrdiff_t,OrgExtents::rank()>, ptrdiff_t) {
+  static constexpr extents_type create_sub_extents(const OrgExtents, array<ptrdiff_t,OrgExtents::rank()>, ptrdiff_t) {
     return extents_type();
   }
 };

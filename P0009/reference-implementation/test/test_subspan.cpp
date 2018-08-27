@@ -45,7 +45,7 @@ TEST_F(subspan_,dynamic_extent_deduction) {
 TEST_F(subspan_,strides_deduction_layout_right) {
   typedef extents<5,dynamic_extent,3,dynamic_extent,1> extents_type;
   typedef detail::subspan_deduce_extents<extents_type,ptrdiff_t,std::pair<int,int>,all_type,all_type,ptrdiff_t> sub_extent_deduce_type;
-  typedef sub_extent_deduce_type::extents_type new_extents_type;
+  //typedef sub_extent_deduce_type::extents_type new_extents_type;
 
   std::array<ptrdiff_t,extents_type::rank()> strides;
   ptrdiff_t offset = 0;
@@ -54,7 +54,7 @@ TEST_F(subspan_,strides_deduction_layout_right) {
   for(size_t r=0; r<e.rank(); r++)
     strides[r] = map.stride(r);
 
-  new_extents_type sub_extents = sub_extent_deduce_type::create_sub_extents(e,strides,offset,2,std::pair<int,int>(1,3),all_type(),all_type(),0);
+  sub_extent_deduce_type::create_sub_extents(e,strides,offset,2,std::pair<int,int>(1,3),all_type(),all_type(),0);
   ASSERT_EQ(strides[0],map.stride(1));
   ASSERT_EQ(strides[1],map.stride(2));
   ASSERT_EQ(strides[2],map.stride(3));
@@ -64,7 +64,7 @@ TEST_F(subspan_,strides_deduction_layout_right) {
 TEST_F(subspan_,strides_deduction_layout_left) {
   typedef extents<5,dynamic_extent,3,dynamic_extent,1> extents_type;
   typedef detail::subspan_deduce_extents<extents_type,ptrdiff_t,std::pair<int,int>,all_type,all_type,ptrdiff_t> sub_extent_deduce_type;
-  typedef sub_extent_deduce_type::extents_type new_extents_type;
+  //typedef sub_extent_deduce_type::extents_type new_extents_type;
 
   std::array<ptrdiff_t,extents_type::rank()> strides;
   ptrdiff_t offset = 0;
@@ -73,7 +73,7 @@ TEST_F(subspan_,strides_deduction_layout_left) {
   for(size_t r=0; r<e.rank(); r++)
     strides[r] = map.stride(r);
 
-  new_extents_type sub_extents = sub_extent_deduce_type::create_sub_extents(e,strides,offset,2,std::pair<int,int>(1,3),all_type(),all_type(),0);
+  sub_extent_deduce_type::create_sub_extents(e,strides,offset,2,std::pair<int,int>(1,3),all_type(),all_type(),0);
   ASSERT_EQ(strides[0],map.stride(1));
   ASSERT_EQ(strides[1],map.stride(2));
   ASSERT_EQ(strides[2],map.stride(3));
@@ -82,7 +82,7 @@ TEST_F(subspan_,strides_deduction_layout_left) {
 TEST_F(subspan_,offset_deduction_layout_right) {
   typedef extents<5,dynamic_extent,3,dynamic_extent,1> extents_type;
   typedef detail::subspan_deduce_extents<extents_type,ptrdiff_t,std::pair<int,int>,all_type,all_type,ptrdiff_t> sub_extent_deduce_type;
-  typedef sub_extent_deduce_type::extents_type new_extents_type;
+  //typedef sub_extent_deduce_type::extents_type new_extents_type;
 
   std::array<ptrdiff_t,extents_type::rank()> strides;
   ptrdiff_t offset = 0;
@@ -91,14 +91,14 @@ TEST_F(subspan_,offset_deduction_layout_right) {
   for(size_t r=0; r<e.rank(); r++)
     strides[r] = map.stride(r);
 
-  new_extents_type sub_extents = sub_extent_deduce_type::create_sub_extents(e,strides,offset,2,std::pair<int,int>(1,3),all_type(),all_type(),0);
+  sub_extent_deduce_type::create_sub_extents(e,strides,offset,2,std::pair<int,int>(1,3),all_type(),all_type(),0);
   ASSERT_EQ(offset,2*map.stride(0)+map.stride(1));
 }
 
 TEST_F(subspan_,offset_deduction_layout_left) {
   typedef extents<5,dynamic_extent,3,dynamic_extent,1> extents_type;
   typedef detail::subspan_deduce_extents<extents_type,ptrdiff_t,std::pair<int,int>,all_type,all_type,ptrdiff_t> sub_extent_deduce_type;
-  typedef sub_extent_deduce_type::extents_type new_extents_type;
+  //typedef sub_extent_deduce_type::extents_type new_extents_type;
 
   std::array<ptrdiff_t,extents_type::rank()> strides;
   ptrdiff_t offset = 0;
@@ -107,7 +107,7 @@ TEST_F(subspan_,offset_deduction_layout_left) {
   for(size_t r=0; r<e.rank(); r++)
     strides[r] = map.stride(r);
 
-  new_extents_type sub_extents = sub_extent_deduce_type::create_sub_extents(e,strides,offset,2,std::pair<int,int>(1,3),all_type(),all_type(),0);
+  sub_extent_deduce_type::create_sub_extents(e,strides,offset,2,std::pair<int,int>(1,3),all_type(),all_type(),0);
   ASSERT_EQ(offset,2*map.stride(0)+map.stride(1));
 }
 

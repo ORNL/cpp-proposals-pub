@@ -67,7 +67,7 @@ struct test_mdspan {
   template<class ... E>
   void check_extents(E ... e) {
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
-    for(int r = 0; r<extents_type::rank(); r++) {
+    for(size_t r = 0; r<extents_type::rank(); r++) {
       ASSERT_EQ(my_mdspan_mapping.extent(r),a[r]);
       ASSERT_EQ(my_mdspan_map_acc.extent(r),a[r]);
       ASSERT_EQ(my_mdspan_extents.extent(r),a[r]);
@@ -77,7 +77,7 @@ struct test_mdspan {
   template<class ... E>
   void check_strides(E ... e) {
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
-    for(int r = 0; r<extents_type::rank(); r++) {
+    for(size_t r = 0; r<extents_type::rank(); r++) {
       ASSERT_EQ(my_mdspan_mapping.stride(r),a[r]);
       ASSERT_EQ(my_mdspan_map_acc.stride(r),a[r]);
       ASSERT_EQ(my_mdspan_extents.stride(r),a[r]);

@@ -45,7 +45,7 @@ struct test_layouts {
   template<class ... E>
   void check_extents(E ... e) {
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
-    for(int r = 0; r<extents_type::rank(); r++) {
+    for(size_t r = 0; r<extents_type::rank(); r++) {
       ASSERT_EQ(my_mapping_explicit.extents().extent(r),a[r]);
       //ASSERT_EQ(my_mapping_array.extents().extent(r),a[r]);
       ASSERT_EQ(my_mapping_copy.extents().extent(r),a[r]);
@@ -54,7 +54,7 @@ struct test_layouts {
   template<class ... E>
   void check_strides(E ... e) {
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
-    for(int r = 0; r<extents_type::rank(); r++) {
+    for(size_t r = 0; r<extents_type::rank(); r++) {
       ASSERT_EQ(my_mapping_explicit.stride(r),a[r]);
       //ASSERT_EQ(my_mapping_array.stride(r),a[r]);
       ASSERT_EQ(my_mapping_copy.stride(r),a[r]);
@@ -68,7 +68,7 @@ struct test_layouts {
  
   void check_properties(bool always_unique, bool always_contiguous, bool always_strided,
                         bool unique, bool contiguous, bool strided) {
-    ASSERT_EQ((my_mapping_explicit.is_always_unique()?1:0),(always_unique?1:0));
+    ASSERT_EQ(my_mapping_explicit.is_always_unique()?1:0,always_unique?1:0);
     ASSERT_EQ(my_mapping_explicit.is_always_contiguous()?1:0,always_contiguous?1:0);
     ASSERT_EQ(my_mapping_explicit.is_always_strided()?1:0,always_strided?1:0);
     ASSERT_EQ(my_mapping_explicit.is_unique()?1:0,unique?1:0);
@@ -84,7 +84,7 @@ struct test_layouts {
 
   template<class ... E>
   void check_operator(ptrdiff_t offset, E ... e) {
-    std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
+    //std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
     ASSERT_EQ(my_mapping_explicit(e...),offset);
     ASSERT_EQ(my_mapping_copy(e...),offset);
   }

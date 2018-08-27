@@ -41,7 +41,7 @@ struct test_extents {
   template<class ... E>
   void check_extents(E ... e) {
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
-    for(int r = 0; r<extents_type::rank(); r++) {
+    for(size_t r = 0; r<extents_type::rank(); r++) {
       ASSERT_EQ(my_extents_explicit.extent(r),a[r]);
       //ASSERT_EQ(my_extents_array.extent(r),a[r]);
       ASSERT_EQ(my_extents_copy.extent(r),a[r]);
@@ -75,7 +75,7 @@ TEST_F(extents_,assignment) {
   extents<5,dynamic_extent,3,dynamic_extent,1> e1(4,2);
   extents<5,4,3,2,1> e2;
   e2 = e1;
-  for(int r=0; r<5; r++)
+  for(size_t r=0; r<5; r++)
     ASSERT_EQ(e2.extent(r),e1.extent(r));
   extents<dynamic_extent,dynamic_extent,dynamic_extent,dynamic_extent,dynamic_extent> e3(9,8,7,6,5);
   for(int r=0; r<5; r++)
