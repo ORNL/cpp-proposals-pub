@@ -68,7 +68,7 @@ namespace detail {
     }
   };
 
-  template< size_t R, ptrdiff_t ... StaticExtents >
+  template< int R, ptrdiff_t ... StaticExtents >
   struct extents_analyse<R,dynamic_extent,StaticExtents...> {
     typedef extents_analyse<R-1,StaticExtents...> next_extents_analyse;
 
