@@ -46,12 +46,26 @@ struct test_extents {
   }
   template<class ... E>
   void check_extents(E ... e) {
+    std::array<ptrdiff_t,extents_type::rank()> s({{E_STATIC...}});
     std::array<ptrdiff_t,extents_type::rank()> a({{e...}});
     for(size_t r = 0; r<extents_type::rank(); r++) {
+      ASSERT_EQ(my_extents_explicit.static_extent(r),s[r]);
       ASSERT_EQ(my_extents_explicit.extent(r),a[r]);
+
+      ASSERT_EQ(my_extents_array.static_extent(r),s[r]);
       ASSERT_EQ(my_extents_array.extent(r),a[r]);
+
+      ASSERT_EQ(my_extents_copy.static_extent(r),s[r]);
       ASSERT_EQ(my_extents_copy.extent(r),a[r]);
     }
+    ASSERT_EQ(my_extents_explicit.static_extent(extents_type::rank()+1),1);
+    ASSERT_EQ(my_extents_explicit.extent(extents_type::rank()+1),1);
+
+    ASSERT_EQ(my_extents_array.static_extent(extents_type::rank()+1),1);
+    ASSERT_EQ(my_extents_array.extent(extents_type::rank()+1),1);
+
+    ASSERT_EQ(my_extents_copy.static_extent(extents_type::rank()+1),1);
+    ASSERT_EQ(my_extents_copy.extent(extents_type::rank()+1),1);
   }
   
 };

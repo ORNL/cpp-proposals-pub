@@ -119,10 +119,10 @@ namespace detail {
     //extents_analyse & operator=(extents_analyse) = default;
 
     constexpr ptrdiff_t extent(const size_t) const noexcept {
-      return -1;
+      return 1;
     }
     static constexpr ptrdiff_t static_extent(const size_t) noexcept {
-      return -1;
+      return 1;
     }
 
   };
