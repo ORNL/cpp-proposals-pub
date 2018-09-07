@@ -115,7 +115,7 @@ public:
   template<class IndexType>
   constexpr typename enable_if<is_integral<IndexType>::value && 1==extents_type::rank(),reference>::type
   operator[]( const IndexType i ) const noexcept
-    { return acc_( ptr_ , map_(i) ); }
+    { return acc_.access( ptr_ , map_(i) ); }
 
   // [mdspan.basic.domobs]
 
@@ -139,7 +139,7 @@ public:
   // ------------------------------
 
 //  constexpr fundamentals_v3::span<element_type> span() const noexcept
-//	  { return fundamentals_v3::span<element_type>((pointer)acc_,map_.extents().extent(0)); }
+//    { return fundamentals_v3::span<element_type>(acc_.decay(ptr_),map_.required_span_size()); }
 
   // ------------------------------
 
