@@ -647,10 +647,10 @@ as of \[N4750](http://wg21.link/n4750).
 The � character is used to denote a placeholder section number, table number,
 or paragraph number which the editor shall determine.
 
-Add the header `<mdspan>` to table 16 in **[headers]**.  
+Add the header `<mdspan>` to the "C++ library headers" table in **[headers]**.  
 
-Add the header `<mdspan>` to Table 76 in 26.1 **[containers.general]** below
-the listing for `<span>`.
+Add the header `<mdspan>` to the "Containers library summary" table in
+**[containers.general]** below the listing for `<span>`.
 
 <!--
 
@@ -671,35 +671,37 @@ Wording
 =======
 
 <blockquote>
-Text in blockquotes is not proposed wording
+Text in blockquotes is not proposed wording.
 
 The � character is used to denote a placeholder section number which the editor
 shall determine.
 </blockquote>
 
 <blockquote>
-Copy **[views]** *subclause (currently 26.7 in n4750)* which contains
-the wording for `span` and `dynamic_extent` which is needed for `basic_mdspan` 
+Copy the entire **[views]** subclause from the current draft, since it is
+needed for `basic_mdspan`.
 </blockquote>
 
 ---
 
 <br/>
-*Add the following paragraphs to* **[views.general]*:
+*Add the following paragraphs to* **[views.general]**:
 
 �. The header `<mdspan>` defines the view `basic_mdspan`, the type alias `mdspan`, 
-and other facilities for interacting with these views.  
-The `basic_mdspan` class template maps a multi-index within a multi-index *domain*
-to a reference an element in the *codomain* `span`.
+and other facilities for interacting with these views.
+The `basic_mdspan` object maps a multi-index within its domain
+to a reference of an element in the codomain.
+The *domain* of a `basic_mdspan` object is a multidimensional index space.
+The *codomain* of a `basic_mdspan` object is a `span` of elements.
 
-�. The `subspan` function generates a `basic_mdspan` with a domain
+�. The `subspan` function generates a `basic_mdspan` with a *domain*
 contained within the input `basic_mdspan` domain and codomain contained
 within the input `basic_mdspan` codomain.
 
 ---
 
 <br/>
-*Add the following subclauses to the end of the* **[views]** *subclause (currently 26.7 in n4750)*:
+*Add the following subclauses to the end of the* **[views]** *subclause in the current draft*:
 
 <!--
  .d8888b.                                               d8b
@@ -718,13 +720,12 @@ Y88b  d88P Y88b 888 888  888 Y88..88P 888 d88P      X88 888      X88
 <br/>
 <b>26.7.� Header `<mdspan>` synopsis [mdspan.syn]</b>
 
-
-```c++
+<pre highlight="c++">
 namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
   // [mdspan.extents], class template extents
-  template<ptrdiff_t... StaticExtents>
+  template&lt;ptrdiff_t... StaticExtents>
     class extents;
 
   // [mdspan.layout], Layout mapping policies
@@ -733,36 +734,53 @@ namespace fundamentals_v3 {
   class layout_stride;
 
   // [mdspan.accessor.basic]
-  template<class ElementType>
+  template&lt;class ElementType>
   class accessor_basic;
 
   // [mdspan.basic], class template mdspan
-  template<class ElementType,
+  template&lt;class ElementType,
            class Extents,
            class LayoutPolicy = layout_right,
-           class AccessorPolicy = accessor_basic<ElementType> >
+           class AccessorPolicy = accessor_basic&lt;ElementType> >
     class basic_mdspan;
 
-  template<class T, ptrdiff_t... Extents>
-    using mdspan = basic_mdspan<T, extents<Extents...>>;
+  template&lt;class T, ptrdiff_t... Extents>
+    using mdspan = basic_mdspan&lt;T, extents&lt;Extents...>>;
 
   // [mdspan.extents.compare], extents comparison operators
-  template<ptrdiff_t... LHS, ptrdiff_t... RHS>
-    constexpr bool operator==(const extents<LHS...>& lhs, const extents<RHS...>& rhs) noexcept;
-  template<ptrdiff_t... LHS, ptrdiff_t... RHS>
-    constexpr bool operator!=(const extents<LHS...>& lhs, const extents<RHS...>& rhs) noexcept;
+  template&lt;ptrdiff_t... LHS, ptrdiff_t... RHS>
+    constexpr bool operator==(const extents&lt;LHS...>& lhs, const extents&lt;RHS...>& rhs) noexcept;
+  template&lt;ptrdiff_t... LHS, ptrdiff_t... RHS>
+    constexpr bool operator!=(const extents&lt;LHS...>& lhs, const extents&lt;RHS...>& rhs) noexcept;
 
   // [mdspan.subspan], subspan creation
-  template<class ElementType, class Extents, class LayoutPolicy,
+  template&lt;class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
-    basic_mdspan<ElementType, /* see-below */>
-      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>&, SliceSpecifiers...) noexcept;
+  struct mdspan_subspan { // <i>exposition only</i>
+    using extents_t = <i>see below</i>;
+    using layout_t = <i>see below</i>;
+    using type = basic_mdspan&lt;ElementType, extents_t, layout_t,
+                              typename AccessorPolicy::offset_policy>;
+  };
+
+  template&lt;class ElementType, class Extents, class LayoutPolicy,
+           class AccessorPolicy, class... SliceSpecifiers>
+  using mdspan_subspan_t = // <i>exposition only</i>
+    typename mdspan_subspan&lt;ElementType, Extents, LayoutPolicy,
+                            AccessorPolicy, SliceSpecifiers...>::type;
+
+  template&lt;class ElementType, class Extents, class LayoutPolicy,
+           class AccessorPolicy, class... SliceSpecifiers>
+    mdspan_subspan_t&lt;ElementType, Extents, LayoutPolicy,
+                     AccessorPolicy, SliceSpecifiers...>
+      subspan(const basic_mdspan&lt;ElementType, Extents, LayoutPolicy,
+                                 AccessorPolicy>& src, SliceSpecifiers ... slices) noexcept;
 
   // tag supporting subspan
   struct all_type { explicit all_type() = default; };
   inline constexpr all_type all = all_type{};
 }}}
-```
+</pre>
 
 <!--
                   888                     888
@@ -978,9 +996,9 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 
 1. A *layout mapping policy* is a class that contains a *layout mapping*, a nested class template.
 
-2. A *layout mapping policy* shall meet the requirements in table �.
+2. A *layout mapping policy* shall meet the requirements in Table �.
 
-3. A *layout mapping* shall meet the requirements of `DefaultConstructible`, `CopyAssignable`, `EqualityComparable`, and the requirements in table �.
+3. A *layout mapping* shall meet the requirements of `DefaultConstructible`, `CopyAssignable`, `EqualityComparable`, and the requirements in Table �.
 
 4. In Table �:
     * `MP` denotes a layout mapping policy.
@@ -2398,56 +2416,88 @@ subspan
 <br/>
 <b>26.7.� subspan [mdspan.subspan]</b>
 
-```c++
+<pre highlight="c++">
 namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
-  template<class ElementType, class Extents, class LayoutPolicy,
+  template&lt;class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
-    basic_mdspan<ElementType, E /* see-below */, L /* see-below */, typename AccessorPolicy::offset_policy >
-      subspan(const basic_mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src, SliceSpecifiers ... slices) noexcept;
+  struct mdspan_subspan { // <i>exposition only</i>
+    using extents_t = <i>see below</i>;
+    using layout_t = <i>see below</i>;
+    using type = basic_mdspan&lt;ElementType, extents_t, layout_t,
+                              typename AccessorPolicy::offset_policy>;
+  };
+
+  template&lt;class ElementType, class Extents, class LayoutPolicy,
+           class AccessorPolicy, class... SliceSpecifiers>
+  using mdspan_subspan_t = // <i>exposition only</i>
+    typename mdspan_subspan&lt;ElementType, Extents, LayoutPolicy,
+                            AccessorPolicy, SliceSpecifiers...>::type;
+
+  template&lt;class ElementType, class Extents, class LayoutPolicy,
+           class AccessorPolicy, class... SliceSpecifiers>
+    mdspan_subspan_t&lt;ElementType, Extents, LayoutPolicy,
+                     AccessorPolicy, SliceSpecifiers...>
+      subspan(const basic_mdspan&lt;ElementType, Extents, LayoutPolicy,
+                                 AccessorPolicy>& src, SliceSpecifiers ... slices) noexcept;
 
 }}}
-```
+</pre>
 
+<!-- basic_mdspan&lt;ElementType, E /* see-below */, L /* see-below */, typename AccessorPolicy::offset_policy > -->
 
-`subspan` creates a `basic_mdspan` that is a view on a (potentially trivial) subset of another `basic_mdspan`.
-The SliceSpecifier parameters indicate the subset that the return value references.
-The second template parameter of the return type, `E`, is a specialization of `extents`.
-The third template parameter of the return type, `L`, meets the requirements of layout mapping policy and is implementation defined [mdspan.layout].
+The exposition-only `struct mdspan_subspan` defines the type returned by `subspan`.
+The `extents_t` type alias is a specialization of `extents` **[mdspan.extents]**
+determined by the pre- and postconditions of `subspan` specified below.
+The `layout_t` type alias meets the requirements of a layout mapping policy [mdspan.layout.reqs]
+and is implementation defined.
+
+`subspan` creates a `basic_mdspan` that is a view of a (potentially trivial) subset of another `basic_mdspan`.
+The `SliceSpecifier` parameters indicate the subset that the return value references.
 <br/>
 
-Let `slices[r]` denote the `r`<em>th</em> value in the parameter pack `slices...`.<br/>
-Let `first[r]` denote the `r`<em>th</em> lower bound of `slices[r]`. <br/>
-    * If `slices[r]` is convertible to `ptrdiff_t` `first[r]==slices[r]` <br/>
-    * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `first[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).first()` <br/>
-    * If `slices[r]` is convertible to `all_type` `first[r]==0` <br/>
-Let `last[r]` denote the rth upper bound of `slices[r]`. <br/>
-    * If `slices[r]` is convertible to `ptrdiff_t` `last[r]==slices[r]+1` <br/>
-    * If `slices[r]` is convertible to `pair<ptrdiff_t,ptrdiff_t>` `last[r]==pair<ptrdiff_t,ptrdiff_t>(slices[r]).second()` <br/>
-    * If `slices[r]` is convertible to `all_type` `last[r]==src.extent(r)` <br/>
-Let an array `R[K]` be <br/>
+Define `slices_tuple` as `auto slices_tuple = forward_as_tuple(slices...);`. <br/>
+Define `first[r]` as follows: <br/>
+    * If `slices_tuple.get<r>()` is convertible to `ptrdiff_t`, then `first[r]` equals `slices_tuple.get<r>()`. <br/>
+    * Otherwise, if `slices_tuple.get<r>()` is convertible to `pair<ptrdiff_t,ptrdiff_t>`,
+      then `first[r]` equals `pair<ptrdiff_t,ptrdiff_t>(slices_tuple.get<r>()).first`. <br/>
+    * Otherwise, if `slices_tuple.get<r>()` is convertible to `all_type`, then `first[r]` equals `0`. <br/>
+Define `last[r]` as follows: <br/>
+    * If `slices_tuple.get<r>()` is convertible to `ptrdiff_t`,
+      then `last[r]` equals `slices_tuple.get<r>()+1`. <br/>
+    * Otherwise, if `slices_tuple.get<r>()` is convertible to `pair<ptrdiff_t,ptrdiff_t>`,
+      then `last[r]` equals `pair<ptrdiff_t,ptrdiff_t>(slices_tuple.get<r>()).second`. <br/>
+    * Otherwise, if `slices_tuple.get<r>()` is convertible to `all_type`,
+      then `last[r]` equals `src.extent(r)`. <br/>
+Define `R[K]` as follows: <br/>
 <pre highlight="c++">
   size_t k = 0;
   for(size_t r=0; r&lt;sizeof...(slices); r++)
-    if ( slices[r] <i>convertable to</i> pair&lt;ptrdiff_t,ptrdiff_t> <i>or</i> all_type ) R[k++] = r;
+    if ( slices_tuple.get<r>() <i>convertible to</i> pair&lt;ptrdiff_t,ptrdiff_t> <i>or</i> all_type ) R[k++] = r;
   size_t K = k;
 </pre>
-Let `sub` be the return value of `subspan` <br/>
+Let `sub` be the return value of `subspan`,
+and let `E` be `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t`.
+<br/>
 
 Requires: <br/>
     * `sizeof(slices...)==src.rank()` <br/>
-    * `slices[r]` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `all_type` <br/>
+    * `slices_tuple.get<r>()` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `all_type` <br/>
     * 0 <= `first[r]` < `last[r]` <= `src.extent(r)` <br/>
 
 Postcondition: <br/>
     * `E::rank()==K` <br/>
-    * Let `I...` be a multi-index such that `I[k] < sub.extents(k)` and `J...` be a multi-index where `J[R[k]]=first[R[k]]+I[k]` or `J[r]=first[r]` for `r` not in `R`, then `sub(I...)` and `src(J...)` refer to the same element.
-    * `sub.extent(k)==last[R[k]]-first[R[k]]`.
-    * If `src.is_strided()` then `sub.is_strided()` and `sub.stride(k)==src.stride(R[k])` <br/>
-    * If `src.static_extent(R[k]) != dynamic_extent` and `slices[R[k]]` is convertable to `all_type` then `sub.static_extent(k) == src.static_extent(R[k])`.
+    * Let `I...` be a multi-index such that `I[k] < sub.extents(k)` and
+      `J...` be a multi-index where `J[R[k]]=first[R[k]]+I[k]` or `J[r]=first[r]` for `r` not in `R`.
+      Then, `sub(I...)` and `src(J...)` refer to the same element.
+    * `sub.extent(k)` equals `last[R[k]] - first[R[k]]`.
+    * If `src.is_strided()`, then `sub.is_strided()` and `sub.stride(k)` equals `src.stride(R[k])`. <br/>
+    * If `src.static_extent(R[k])` does not equal `dynamic_extent` and
+      `slices_tuple.get<R[k]>()` is convertible to `all_type`, 
+      then `sub.static_extent(k)` equals `src.static_extent(R[k])`.
 <br/>
 
 * Examples:
