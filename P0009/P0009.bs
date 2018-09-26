@@ -2459,19 +2459,31 @@ and is implementation defined.
 The `SliceSpecifier` parameters indicate the subset that the return value references.
 <br/>
 
-Define `slices_tuple` as `auto slices_tuple = forward_as_tuple(slices...);`. <br/>
-Define `first[r]` as follows: <br/>
-    * If `slices_tuple.get<r>()` is convertible to `ptrdiff_t`, then `first[r]` equals `slices_tuple.get<r>()`. <br/>
-    * Otherwise, if `slices_tuple.get<r>()` is convertible to `pair<ptrdiff_t,ptrdiff_t>`,
-      then `first[r]` equals `pair<ptrdiff_t,ptrdiff_t>(slices_tuple.get<r>()).first`. <br/>
-    * Otherwise, if `slices_tuple.get<r>()` is convertible to `all_type`, then `first[r]` equals `0`. <br/>
-Define `last[r]` as follows: <br/>
-    * If `slices_tuple.get<r>()` is convertible to `ptrdiff_t`,
-      then `last[r]` equals `slices_tuple.get<r>()+1`. <br/>
-    * Otherwise, if `slices_tuple.get<r>()` is convertible to `pair<ptrdiff_t,ptrdiff_t>`,
-      then `last[r]` equals `pair<ptrdiff_t,ptrdiff_t>(slices_tuple.get<r>()).second`. <br/>
-    * Otherwise, if `slices_tuple.get<r>()` is convertible to `all_type`,
-      then `last[r]` equals `src.extent(r)`. <br/>
+<pre highlight="c++">
+  auto slices_tuple = forward_as_tuple(slices...);
+  array<ptrdiff_t, sizeof...(slices)> first;
+  array<ptrdiff_t, sizeof...(slices)> last;
+  for(size_t r=0; r&lt;sizeof...(slices); r++) {
+    if constexpr (is_convertible_v<decltype(slices_tuple.get<r>()), ptrdiff_t>) {
+      first[r] = slices_tuple.get<r>();
+      last[r] = first[r] + 1;
+    }
+    else if constexpr (is_convertible_v<decltype(slices_tuple.get<r>()), pair<ptrdiff_t,ptrdiff_t>>) {
+      const pair<ptrdiff_t, ptrdiff_t> slices_r = slices_tuple.get<r>();
+      first[r] = slices_r.first;
+      last[r] = slices_r.second;      
+    }
+    else if constexpr (is_convertible_v<slices_tuple.get<r>(), all_type>) {
+      first[r] = 0;
+      last[r] = src.extent(r);
+    }
+    else {
+      // <i>emit an implementation-defined diagnostic</i>
+      static_assert(false);
+    }
+  }
+</pre>
+
 Define `R[K]` as follows: <br/>
 <pre highlight="c++">
   size_t k = 0;
