@@ -2422,6 +2422,9 @@ namespace experimental {
 namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
+  template&lt;class ... Args>
+  constexpr size_t mdspan_subspan_rank_v = <i>see below</i>;<i> // exposition only</i>
+
   template&lt;class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
   struct mdspan_subspan { // <i>exposition only</i>
@@ -2447,7 +2450,27 @@ namespace fundamentals_v3 {
 }}}
 </pre>
 
-<!-- basic_mdspan&lt;ElementType, E /* see-below */, L /* see-below */, typename AccessorPolicy::offset_policy > -->
+Define the exposition-only metafunction `mdspan_subspan_rank_v` as follows:<br/>
+<pre highlight="c++">
+  template&lt;class ... Args>
+  struct mdspan_subspan_rank;
+
+  template&lt;class First, class ... Rest>
+  struct mdspan_subspan_rank&lt;First, Rest...> {
+    constexpr size_t value =
+      ((is_convertible_v&lt;First, pair&lt;ptrdiff_t, ptrdiff_t>> ||
+        is_convertible_v&lt;First, all_type>) ? 1 : 0) +
+      mdspan_subspan_rank&lt;Rest...>::value;
+  };
+  
+  template&lt;>
+  struct mdspan_subspan_rank&lt;> {
+    constexpr size_t value = 0;
+  };
+
+  template&lt;class ... Args>
+  constexpr size_t mdspan_subspan_rank_v = mdspan_subspan_rank&lt;Args...>::value;
+</pre>
 
 The exposition-only `struct mdspan_subspan` defines the type returned by `subspan`.
 The `extents_t` type alias is a specialization of `extents` **[mdspan.extents]**
@@ -2460,15 +2483,25 @@ The `SliceSpecifier` parameters indicate the subset that the return value refere
 <br/>
 
 <pre highlight="c++">
-  constexpr size_t slices_result_rank () {
-    return 0;
-  }
+  template&lt;class ... Args>
+  struct mdspan_subspan_rank;
+
   template&lt;class First, class ... Rest>
-  constexpr size_t slices_result_rank (First, Rest... args) {
-    constexpr bool conv_to_pair = is_convertible_v<First, pair&lt;ptrdiff_t, ptrdiff_t>>;
-    constexpr bool conv_to_all = is_convertible_v<First, all_type>;
-    return (conv_to_pair || conv_to_all ? 1 : 0) + slices_result_rank (args...);
-  }
+  struct mdspan_subspan_rank&lt;First, Rest...> {
+    constexpr size_t value =
+      (is_convertible_v<First, pair&lt;ptrdiff_t, ptrdiff_t>> ||
+       is_convertible_v<First, all_type> ? 1 : 0) +
+      mdspan_subspan_rank<Rest...>::value;
+  };
+  
+  template&lt;>
+  struct mdspan_subspan_rank&lt;> {
+    constexpr size_t value = 0;
+  };
+
+  template&lt;class ... Args>
+  constexpr size_t mdspan_subspan_rank_v = mdspan_subspan_rank<Args...>::value;
+
   constexpr size_t result_rank = slices_result_rank(slices...);
 
   auto slices_tuple = forward_as_tuple(slices...);
