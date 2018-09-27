@@ -842,7 +842,7 @@ public:
   template&lt;ptrdiff_t... OtherExtents>
   constexpr extents& operator=(const extents&lt;OtherExtents...>& other);
 
-  // [mdspan.extents.obs], Observers of the domain multi-index space
+  // [mdspan.extents.obs], Observers of the domain multidimensional index space
   static constexpr size_t rank() noexcept;
   static constexpr size_t rank_dynamic() noexcept;
   static constexpr index_type static_extent(size_t) noexcept;
@@ -900,49 +900,50 @@ constexpr extents(const extents<OtherExtents...>& other);
 
 <br/>
 
-<!-- TODO BELOW HERE -->
-
 ```c++
 template<class... IndexType>
 constexpr extents(IndexType... dynamic_extents) noexcept;
 ```
 
-<!-- TODO look at how parameter pack expansions are specified in, e.g., integer_sequence -->
-
-* *Requires:* `((dynamic_extents>=0) && ...)`
-* *Effects:* Aggregate-initializes `dynamic_extents_` to `{dynamic_extents...}`
-* *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to the *i*th entry in the parameter pack `dynamic_extents`
-* *Remarks:* This constructor shall not participate in overload resolution unless:
-    + `(is_convertible_v<IndexType, index_type> && ...)`
-    + and `sizeof...(dynamic_extents)==rank_dynamic()`
+* *Requires:* `((dynamic_extents>=0) && ...)` is `true`.
+* *Constraints:* `(is_convertible_v<IndexType, index_type> && ...) && sizeof...(dynamic_extents)==rank_dynamic()` is `true`.
+* *Effects:* Aggregate-initializes `dynamic_extents_` to `{dynamic_extents...}`.
+* *Ensures:* `extent(`*DynamicRank[i]*`)` is equal to the *i*th entry in the parameter pack `dynamic_extents`.
 
 ```c++
 template<class IndexType, size_t rank_dynamic>
 constexpr extents(const array<IndexType, rank_dynamic> & dynamic_extents) noexcept;
 ```
 
-* *Requires:* `dynamic_extents[i]>=0` for all `i` where 0 <= `i` < `rank_dynamic()`
-* *Effects:* Initializes `dynamic_extents_` with `dynamic_extents`
-* *Postconditions:* `extent(`*DynamicRank[i]*`)` is equal to `dynamic_extents[i]`
-* *Remarks:* This constructor shall not participate in overload resolution unless:
-    + `is_convertible_v<IndexType, index_type>`
+* *Requires:* Let <math>D</math> equal `rank_dynamic()`.
+             <math>&forall; `i` &isin; [0, D)</math>, 
+             `dynamic_extents[i] >= 0` is `true`.
+* *Constraints:* `is_convertible_v<IndexType, index_type>` is `true`.
+* *Effects:* Initializes `dynamic_extents_` with `dynamic_extents`.
+* *Ensures:* `extent(`*DynamicRank[i]*`)` equals `dynamic_extents[i]`.
 
 ```c++
 template<ptrdiff_t... OtherExtents>
 constexpr extents& operator=(const extents<OtherExtents...>& other);
 ```
 
-* *Requires:* For each `r` in the range `[0, rank())`, `static_extent(r) != dynamic_extent || static_extent(r) == other.extent(r)` is `true`.
-* *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r)` equals `dynamic_extent`, assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
-* *Throws:* Nothing.
-* *Postconditions:* `*this==other`
+* *Requires:* Let <math>R</math> equal `rank()`.
+              <math>&forall; `r` &isin; [0, R)</math>, 
+              `static_extent(r) != dynamic_extent || static_extent(r) == other.extent(r)` is `true`.
+* *Constraints:* `sizeof...(Extents)==sizeof...(OtherExtents)` is `true`.
+* *Effects:* Let <math>R</math> equal `rank()`.
+              <math>&forall; `r` &isin; [0, R)</math>,
+             if `static_extent(r)` equals `dynamic_extent`, 
+             assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
+* *Ensures:* `*this==other`.
 * *Returns:* `*this`.
-* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(Extents)==sizeof...(OtherExtents)`.
+* *Throws:* Nothing.
 
+<!-- TODO FIX EASY STUFF BELOW HERE -->
 <br/>
 
 <br/>
-<b>26.7.�.3 Observers of the domain multi-index space [mdspan.extents.obs]</b>
+<b>26.7.�.3 Observers of the domain multidimensional index space [mdspan.extents.obs]</b>
 
 <br/>
 ```c++
@@ -1020,9 +1021,9 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 4. In Table �:
     * `MP` denotes a layout mapping policy.
     * `E` denotes a specialization of `extents`.
-    * `e` denotes an object of type `E` defining a domain multi-index space.
+    * `e` denotes an object of type `E` defining a domain multidimensional index space.
     * `r` is a value of an integral type such that 0 <= `r` < `e.rank()`.
-    * `i...` and `j...` are packs of an integer type denoting values in the multi-index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i)==E::rank()`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()`, and 0 <= `j[r]` < `e.extent(r)`.
+    * `i...` and `j...` are packs of an integer type denoting values in the multidimensional index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i)==E::rank()`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()`, and 0 <= `j[r]` < `e.extent(r)`.
     * `M` denotes a layout mapping class.
     * `m` denotes an object of type `M` that maps a multi-index `i...` to an integral value.
 
@@ -1990,7 +1991,7 @@ public:
     constexpr reference operator()(const array&lt;IndexType, N>& indices) const noexcept;
   accessor_type accessor() const;
 
-  // [mdspan.basic.domobs], basic_mdspan observers of the domain multi-index space
+  // [mdspan.basic.domobs], basic_mdspan observers of the domain multidimensional index space
   static constexpr int rank() noexcept;
   static constexpr int rank_dynamic() noexcept;
   static constexpr index_type static_extent(size_t) noexcept;
@@ -2263,7 +2264,7 @@ accessor_type accessor() const;
 
 -->
 <br/>
-<b>26.7.�.3 `basic_mdspan` observers of the domain multi-index space [mdspan.basic.domobs]</b>
+<b>26.7.�.3 `basic_mdspan` observers of the domain multidimensional index space [mdspan.basic.domobs]</b>
 
 ```c++
 static constexpr int rank() noexcept;
