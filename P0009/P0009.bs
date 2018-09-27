@@ -2472,23 +2472,25 @@ The `SliceSpecifier` parameters indicate the subset that the return value refere
   constexpr size_t result_rank = slices_result_rank(slices...);
 
   auto slices_tuple = forward_as_tuple(slices...);
-  array<ptrdiff_t, sizeof...(slices)> first;
-  array<ptrdiff_t, sizeof...(slices)> last;
-  array<size_t, result_rank> R;
+  array&lt;ptrdiff_t, sizeof...(slices)> first;
+  array&lt;ptrdiff_t, sizeof...(slices)> last;
+  array&lt;size_t, result_rank> R;
   
   size_t current_R_position = 0;
   for(size_t r=0; r&lt;sizeof...(slices); r++) {
-    if constexpr (is_convertible_v<decltype(slices_tuple.get<r>()), ptrdiff_t>) {
+    using cur_type = decltype(slices_tuple.get&lt;r>());
+
+    if constexpr (is_convertible_v&lt;cur_type, ptrdiff_t>) {
       first[r] = slices_tuple.get<r>();
       last[r] = first[r] + 1;
     }
-    else if constexpr (is_convertible_v<decltype(slices_tuple.get<r>()), pair<ptrdiff_t,ptrdiff_t>>) {
-      const pair<ptrdiff_t, ptrdiff_t> slices_r = slices_tuple.get<r>();
+    else if constexpr (is_convertible_v&lt;cur_type, pair&lt;ptrdiff_t, ptrdiff_t>>) {
+      const pair&lt;ptrdiff_t, ptrdiff_t> slices_r = slices_tuple.get&lt;r>();
       first[r] = slices_r.first;
       last[r] = slices_r.second;
       R[current_R_position++] = r;      
     }
-    else if constexpr (is_convertible_v<slices_tuple.get<r>(), all_type>) {
+    else if constexpr (is_convertible_v&lt;cur_type, all_type>) {
       first[r] = 0;
       last[r] = src.extent(r);
       R[current_R_position++] = r;      
