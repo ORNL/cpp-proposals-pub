@@ -2460,9 +2460,23 @@ The `SliceSpecifier` parameters indicate the subset that the return value refere
 <br/>
 
 <pre highlight="c++">
+  constexpr size_t slices_result_rank () {
+    return 0;
+  }
+  template&lt;class First, class ... Rest>
+  constexpr size_t slices_result_rank (First, Rest... args) {
+    constexpr bool conv_to_pair = is_convertible_v<First, pair&lt;ptrdiff_t, ptrdiff_t>>;
+    constexpr bool conv_to_all = is_convertible_v<First, all_type>;
+    return (conv_to_pair || conv_to_all ? 1 : 0) + slices_result_rank (args...);
+  }
+  constexpr size_t result_rank = slices_result_rank(slices...);
+
   auto slices_tuple = forward_as_tuple(slices...);
   array<ptrdiff_t, sizeof...(slices)> first;
   array<ptrdiff_t, sizeof...(slices)> last;
+  array<size_t, result_rank> R;
+  
+  size_t current_R_position = 0;
   for(size_t r=0; r&lt;sizeof...(slices); r++) {
     if constexpr (is_convertible_v<decltype(slices_tuple.get<r>()), ptrdiff_t>) {
       first[r] = slices_tuple.get<r>();
@@ -2471,44 +2485,44 @@ The `SliceSpecifier` parameters indicate the subset that the return value refere
     else if constexpr (is_convertible_v<decltype(slices_tuple.get<r>()), pair<ptrdiff_t,ptrdiff_t>>) {
       const pair<ptrdiff_t, ptrdiff_t> slices_r = slices_tuple.get<r>();
       first[r] = slices_r.first;
-      last[r] = slices_r.second;      
+      last[r] = slices_r.second;
+      R[current_R_position++] = r;      
     }
     else if constexpr (is_convertible_v<slices_tuple.get<r>(), all_type>) {
       first[r] = 0;
       last[r] = src.extent(r);
+      R[current_R_position++] = r;      
     }
     else {
       // <i>emit an implementation-defined diagnostic</i>
       static_assert(false);
     }
   }
+
 </pre>
 
-Define `R[K]` as follows: <br/>
-<pre highlight="c++">
-  size_t k = 0;
-  for(size_t r=0; r&lt;sizeof...(slices); r++)
-    if ( slices_tuple.get<r>() <i>convertible to</i> pair&lt;ptrdiff_t,ptrdiff_t> <i>or</i> all_type ) R[k++] = r;
-  size_t K = k;
-</pre>
-Let `sub` be the return value of `subspan`,
+Let `sub` be the return value of `subspan(src, slices...)`,
 and let `E` be `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t`.
 <br/>
 
 Requires: <br/>
-    * `sizeof(slices...)==src.rank()` <br/>
-    * `slices_tuple.get<r>()` is convertible to `ptrdiff_t`, `pair<ptrdiff_t,ptrdiff_t>` or `all_type` <br/>
-    * 0 <= `first[r]` < `last[r]` <= `src.extent(r)` <br/>
+    * `sizeof(slices...)` equals `src.rank()`. <br/>
+    * For all `r` in `0`, `1`, ..., `sizeof...(slices)-1`,
+      `0 <= first[r] && first[r] < last[r] && last[r] <= src.extent(r)` is `true`.
 
-Postcondition: <br/>
-    * `E::rank()==K` <br/>
+Mandates: <br/>
+    * For all types `T` in the parameter pack `SliceSpecifiers...`,
+      `is_convertible_v<T, ptrdiff_t> || is_convertible_v<T, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<T, all_type>` is `true`. <br/>
+
+Ensures: <br/>
+    * `E::rank()` equals `result_rank`. <br/>
     * Let `I...` be a multi-index such that `I[k] < sub.extents(k)` and
       `J...` be a multi-index where `J[R[k]]=first[R[k]]+I[k]` or `J[r]=first[r]` for `r` not in `R`.
       Then, `sub(I...)` and `src(J...)` refer to the same element.
     * `sub.extent(k)` equals `last[R[k]] - first[R[k]]`.
     * If `src.is_strided()`, then `sub.is_strided()` and `sub.stride(k)` equals `src.stride(R[k])`. <br/>
     * If `src.static_extent(R[k])` does not equal `dynamic_extent` and
-      `slices_tuple.get<R[k]>()` is convertible to `all_type`, 
+      `is_convertible_v<decltype(slices_tuple.get<R[k]>()), all_type>` is `true`,
       then `sub.static_extent(k)` equals `src.static_extent(R[k])`.
 <br/>
 
@@ -2534,8 +2548,9 @@ auto a_sub = subspan(a,1,std::pair<int,int>(4,6),std::pair<int,int>(1,6));
 
 // Print values of subspan
 for(int i0=0; i0<a_sub.extent(0); i0++) {
-  for(int i1=0; i1<a_sub.extent(1); i1++)
+  for(int i1=0; i1<a_sub.extent(1); i1++) {
     std::cout << a_sub(i0,i1) << " ";
+  }
   std::cout << std::endl;
 }
 
