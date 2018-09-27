@@ -689,9 +689,10 @@ needed for `basic_mdspan`.
 
 �. The header `<mdspan>` defines the view `basic_mdspan`, the type alias `mdspan`, 
 and other facilities for interacting with these views.
-The `basic_mdspan` object maps a multi-index within its domain
+The `basic_mdspan` object maps a multidimensional index within its domain
 to a reference of an element in the codomain.
 The *domain* of a `basic_mdspan` object is a multidimensional index space.
+A *multidimensional index space* is a Cartesian product <math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ...</math> of half-open integer intervals.
 The *codomain* of a `basic_mdspan` object is a `span` of elements.
 
 �. The `subspan` function generates a `basic_mdspan` with a *domain*
@@ -754,6 +755,9 @@ namespace fundamentals_v3 {
     constexpr bool operator!=(const extents&lt;LHS...>& lhs, const extents&lt;RHS...>& rhs) noexcept;
 
   // [mdspan.subspan], subspan creation
+  template&lt;class ... Args>
+  constexpr size_t mdspan_subspan_rank_v = <i>see below</i>;<i> // exposition only</i>
+
   template&lt;class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
   struct mdspan_subspan { // <i>exposition only</i>
@@ -799,10 +803,10 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 
 <b>26.7.�.1 Overview [mdspan.extents.overview]</b>
 
-1. An `extents` object defines a *multidimensional index space* which is the Cartesian product of integers extents `[0..N0) * [0..N1) *`....
-2. The *dynamic extents* of an `extents` object correspond to the `StaticExtents` template parameters that are equal to `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th such extent in the `StaticExtents` template parameter pack, and let *DynamicIndex[r]* indicate the number of such extents in the first *r* entries of the `StaticExtents` parameter pack
+1. An `extents` object defines a multidimensional index space.
+2. The *dynamic extents* of an `extents` object correspond to the template arguments in the `Extents` parameter pack that equal `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th dynamic extent in the `Extents` template parameter pack, and let *DynamicIndex[r]* indicate the number of dynamic extents in the first *r* entries of the `Extents` parameter pack.
 3. An `extents` object is expected to store dynamic extents.  *[Note:* An implementation should not consume storage for static extents. *— end note]* 
-4. If any of `StaticExtents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
+4. If any template arguments in `Extents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
 
 <!-- TODO review change to make rank() and rank_dynamic() size_t -->
 <!-- TODO review addition of array constructor -->
@@ -815,7 +819,7 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-template&lt;ptrdiff_t... StaticExtents>
+template&lt;ptrdiff_t... Extents>
 class extents {
 public:
   // types
@@ -829,14 +833,14 @@ public:
   constexpr extents(IndexType... dynamic_extents) noexcept;
   template&lt;class IndexType, size_t rank_dynamic>
   constexpr extents(const array&lt;IndexType, rank_dynamic>&) noexcept;
-  template&lt;ptrdiff_t... OtherStaticExtents>
-  constexpr extents(const extents&lt;OtherStaticExtents...>& other);
+  template&lt;ptrdiff_t... OtherExtents>
+  constexpr extents(const extents&lt;OtherExtents...>& other);
   ~extents() = default;
 
   constexpr extents& operator=(const extents&) noexcept = default;
   constexpr extents& operator=(extents&&) noexcept = default;
-  template&lt;ptrdiff_t... OtherStaticExtents>
-  constexpr extents& operator=(const extents&lt;OtherStaticExtents...>& other);
+  template&lt;ptrdiff_t... OtherExtents>
+  constexpr extents& operator=(const extents&lt;OtherExtents...>& other);
 
   // [mdspan.extents.obs], Observers of the domain multi-index space
   static constexpr size_t rank() noexcept;
@@ -857,8 +861,11 @@ private:
 constexpr extents() noexcept;
 ```
 
-* *Effects:* Aggregate-initializes `dynamic_extents_` to `{ }`
-* *Postconditions:* `extent(r)` if `static_extent(r)==dynamic_extent` for all `r` in the range `[0, rank())`
+* *Effects:* Aggregate-initializes `dynamic_extents_` to `{ }`.
+* *Ensures:* Let <math>R</math> equal `rank()`.
+             <math>&forall; `r` &isin; [0, R)</math>, 
+             if `static_extent(r)` equals `dynamic_extent`, then
+             `extent(r)` equals `0`.
 
 <br/>
 
@@ -867,23 +874,33 @@ constexpr extents(const extents& other);
 constexpr extents(extents&& other);
 ```
 
-* *Effects:* Initializes `dynamic_extents_` with `other.dynamic_extents_`
-* *Postconditions:* `extent(r)==other.extent(r)` for all `r` in the range `[0, rank())`
+* *Effects:* Initializes `dynamic_extents_` with `other.dynamic_extents_`.
+* *Ensures:* Let <math>R</math> equal `rank()`.
+             <math>&forall; `r` &isin; [0, R)</math>, 
+             `extent(r)` equals `other.extent(r)`.
 
 <br/>
 
 ```c++
-template<ptrdiff_t... OtherStaticExtents>
-constexpr extents(const extents<OtherStaticExtents...>& other);
+template<ptrdiff_t... OtherExtents>
+constexpr extents(const extents<OtherExtents...>& other);
 ```
 
-* *Requires:* For each `r` in the range `[0, rank())`, if `static_extent(r)!=dynamic_extent`, then `static_extent(r)==other.extent(r)`.
-* *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r)==dynamic_extent`, initializes `dynamic_extents_[`*DynamicRank[*`r`*]*`]` with `other.extent(r)`.
+* *Requires:* Let <math>R</math> equal `rank()`.
+             <math>&forall; `r` &isin; [0, R)</math>, 
+             if `static_extent(r)` does not equal `dynamic_extent`, 
+             then `static_extent(r)` equals `other.extent(r)`.
+* *Constraints:* `sizeof...(Extents)` equals `sizeof...(OtherExtents)`.
+* *Effects:* Let <math>R</math> equal `rank()`.
+             <math>&forall; `r` &isin; [0, R)</math>, 
+             if `static_extent(r)` equals `dynamic_extent`, 
+             then this initializes `dynamic_extents_[`*DynamicRank[*`r`*]*`]` with `other.extent(r)`.
+* *Ensures:* `*this == other` is `true`.
 * *Throws:* Nothing.
-* *Postconditions:* `*this==other`
-* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents)==sizeof...(OtherStaticExtents)`.
 
 <br/>
+
+<!-- TODO BELOW HERE -->
 
 ```c++
 template<class... IndexType>
@@ -911,16 +928,16 @@ constexpr extents(const array<IndexType, rank_dynamic> & dynamic_extents) noexce
     + `is_convertible_v<IndexType, index_type>`
 
 ```c++
-template<ptrdiff_t... OtherStaticExtents>
-constexpr extents& operator=(const extents<OtherStaticExtents...>& other);
+template<ptrdiff_t... OtherExtents>
+constexpr extents& operator=(const extents<OtherExtents...>& other);
 ```
 
-* *Requires:* For each `r` in the range `[0, rank())`, if `static_extent(r)!=dynamic_extent`, then `static_extent(r)==other.extent(r)`.
-* *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r)==dynamic_extent`, assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
+* *Requires:* For each `r` in the range `[0, rank())`, `static_extent(r) != dynamic_extent || static_extent(r) == other.extent(r)` is `true`.
+* *Effects:* For each `r` in the range `[0, rank())`, if `static_extent(r)` equals `dynamic_extent`, assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
 * *Throws:* Nothing.
 * *Postconditions:* `*this==other`
 * *Returns:* `*this`.
-* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(StaticExtents)==sizeof...(OtherStaticExtents)`.
+* *Remarks:* This constructor shall not participate in overload resolution unless `sizeof...(Extents)==sizeof...(OtherExtents)`.
 
 <br/>
 
@@ -932,20 +949,20 @@ constexpr extents& operator=(const extents<OtherStaticExtents...>& other);
 static constexpr size_t rank() const noexcept;
 ```
 
-* *Returns:* `sizeof...(StaticExtents)`
+* *Returns:* `sizeof...(Extents)`
 
 <br/>
 ```c++
 static constexpr size_t rank_dynamic() const noexcept;
 ```
-* *Returns:* `((StaticExtents==dynamic_extent)+...)` *[Note:* This is the number of dynamic extents *—end note]*
+* *Returns:* `((Extents==dynamic_extent)+...)` *[Note:* This is the number of dynamic extents *—end note]*
 
 <br/>
 ```c++
 static constexpr index_type static_extent(size_t r) const noexcept;
 ```
 
-* *Returns:* The `r`th entry in the `StaticExtents` parameter pack if 0 <= `r` < `rank()`, or 1 otherwise.
+* *Returns:* The `r`th entry in the `Extents` parameter pack if 0 <= `r` < `rank()`, or 1 otherwise.
 
 <br/>
 ```c++
