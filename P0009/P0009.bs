@@ -935,7 +935,7 @@ constexpr extents& operator=(const extents<OtherExtents...>& other);
               <math>&forall; `r` &isin; [0, R)</math>,
              if `static_extent(r)` equals `dynamic_extent`, 
              assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
-* *Ensures:* `*this==other`.
+* *Ensures:* `*this==other` is `true`.
 * *Returns:* `*this`.
 * *Throws:* Nothing.
 
@@ -1282,21 +1282,20 @@ template<class... Indices>
   typename Extents::index_type operator()(Indices... i) const;
 ```
 
-Let `i[k]` denote the `k`*th* member of `i...`.
+* *Constraints:* 
+    * `sizeof...(Indices)==extents().rank()` is `true`, and
+    * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
+* *Returns:* The sum of <math>i<sub>k</sub></math> * `stride(k)` for 0 <= k < `extents.rank()`, where <math>i<sub>k</sub></math> denotes the k-th member of `i...`, and the sum of zero terms is zero.
 
-* *Constraints:* `sizeof...(Indices)==extents().rank() && (is_convertible_v<Indices, typename Extents::index_type> && ...)` is `true`.
-* *Returns:* Equivalent to `offset` in
-
+<!--
+* *Returns:* Equivalent to `offset` in the following:
 ```
 Extents::index_type offset = 0 ;
 for(size_t k=0; k<extents.rank(); ++k) 
-  offset += i[k]*stride(k);
+  offset += i_k * stride(k);
 ```
+-->
 
-
-
-```
-```
 
 <br/>
 ```c++
@@ -1508,16 +1507,21 @@ template<class... Indices>
   typename Extents::index_type operator()(Indices... i) const noexcept;
 ```
 
+* *Constraints:* 
+    * `sizeof...(Indices)==extents().rank()` is `true`, and
+    * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
+* *Returns:* The sum of <math>i<sub>k</sub></math> * `stride(k)` for 0 <= k < `Extents::rank()`, where <math>i<sub>k</sub></math> denotes the k-th member of `i...`, and the sum of zero terms is zero.
+
+<!--
 Let `i[k]` denote the `k`*th* member of `i...`.
 
-* *Constraints:* `sizeof...(Indices)==extents().rank() && (is_convertible_v<Indices, typename Extents::index_type> && ...)` is `true`.
 * *Returns:* Equivalent to `offset` in
-
 ```
 index_type offset = 0;
 for(size_t k=0; k<Extents::rank(); ++k) 
   offset += i[k]*stride(k);
 ```
+-->
 
 <br/>
 
@@ -1670,10 +1674,12 @@ constexpr mapping(mapping&& other) noexcept;
 constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()> s) noexcept;
 ```
 * *Requires:*
-   + `s[i]>0` for 0 < `i` <= `Extents::rank()`
-   + There exists a permutation `o(i)` of the numbers `0`, ..., `Extents::rank()-1` 
-     with 0 <= `i` < `Extents::rank()` such that
-     `s(o(i))>=s(o(i-1))*e.extent(o(i-1))` for 1 <= `i` < `Extents::rank()`. <!-- FIXME CODE TO MATH -->
+    * `s[i]>0` is `true` for 0 < `i` <= `Extents::rank()`.
+    * If `Extents::rank()` is nonzero, then there exists a permutation `o(i)` 
+      of the integers `0`, ..., `Extents::rank()-1` 
+      with 0 <= `i` < `Extents::rank()` such that
+      `s(o(i))>=s(o(i-1))*e.extent(o(i-1))` is `true` 
+      for 1 <= `i` < `Extents::rank()`. <!-- FIXME CODE TO MATH -->
 * *Effects:* Initializes `extents_` with `e` and `strides_` with `s`.
 * *Ensures:* `extents()==e && strides()==s` is `true`.
 * *Throws:* Nothing.
@@ -1711,8 +1717,8 @@ template <class... Indices>
   typename Extents::index_type operator()(Indices... i) const noexcept;
 ```
 * *Constraints:*
-  * `sizeof...(Indices)==Extents::rank()` is `true`, and
-  * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
+    * `sizeof...(Indices)==Extents::rank()` is `true`, and
+    * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
 * *Returns:* If `i...` is `i0, i1, i2`, ..., `ik` (where `k==Extents::rank() - 1` is `true`) and `s` is `strides()`, returns `i0*s[1]+i1*s[2]+`...`+ik*s[k]`. <!-- FIXME CODE TO MATH -->
 
 
@@ -1733,7 +1739,7 @@ static constexpr bool is_always_contiguous() noexcept;
 ```c++
 constexpr bool is_contiguous() const noexcept;
 ```
-* *Returns:* `true` if there is a permutation `o(i)` of the numbers `0`, ..., `Extents::rank()-1` with 0 <= `i` < `Extents::rank()` such that `min(stride(o(i))==1` is `true` and `stride(o(i))==stride(o(i-1))*extents().extent(o(i-1))` with 1 <= `i` < `Extents::rank()`.  Otherwise, returns `false`. <!-- FIXME CODE TO MATH -->
+* *Returns:* `true` if there is a permutation `o(i)` of the numbers `0`, ..., `Extents::rank()-1` with 0 <= `i` < `Extents::rank()` such that `min(stride(o(i))==1` is `true` and `stride(o(i))==stride(o(i-1))*extents().extent(o(i-1))` with 1 <= `i` < `Extents::rank()`.  Otherwise, returns `false`. <!-- FIXME CODE TO MATH --> <!-- FIXME what if zero length? -->
 
 ```c++
 typename Extents::index_type stride(size_t r) const noexcept;
@@ -2503,26 +2509,7 @@ The `SliceSpecifier` parameters indicate the subset that the return value refere
 <br/>
 
 <pre highlight="c++">
-  template&lt;class ... Args>
-  struct mdspan_subspan_rank;
-
-  template&lt;class First, class ... Rest>
-  struct mdspan_subspan_rank&lt;First, Rest...> {
-    constexpr size_t value =
-      (is_convertible_v<First, pair&lt;ptrdiff_t, ptrdiff_t>> ||
-       is_convertible_v<First, all_type> ? 1 : 0) +
-      mdspan_subspan_rank<Rest...>::value;
-  };
-  
-  template&lt;>
-  struct mdspan_subspan_rank&lt;> {
-    constexpr size_t value = 0;
-  };
-
-  template&lt;class ... Args>
-  constexpr size_t mdspan_subspan_rank_v = mdspan_subspan_rank<Args...>::value;
-
-  constexpr size_t result_rank = slices_result_rank(slices...);
+  constexpr size_t result_rank = mdspan_subspan_rank_v(slices...);
 
   auto slices_tuple = forward_as_tuple(slices...);
   array&lt;ptrdiff_t, sizeof...(slices)> first;
@@ -2548,10 +2535,6 @@ The `SliceSpecifier` parameters indicate the subset that the return value refere
       last[r] = src.extent(r);
       R[current_R_position++] = r;      
     }
-    else {
-      // <i>emit an implementation-defined diagnostic</i>
-      static_assert(false);
-    }
   }
 
 </pre>
@@ -2560,22 +2543,20 @@ Let `sub` be the return value of `subspan(src, slices...)`,
 and let `E` be `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t`.
 <br/>
 
-Requires: <br/>
-    * `sizeof(slices...)` equals `src.rank()`. <br/>
+* *Requires:*
+    * `sizeof(slices...)` equals `src.rank()`.
     * For all `r` in `0`, `1`, ..., `sizeof...(slices)-1`,
       `0 <= first[r] && first[r] < last[r] && last[r] <= src.extent(r)` is `true`.
-
-Mandates: <br/>
+* *Constraints:*
     * For all types `T` in the parameter pack `SliceSpecifiers...`,
-      `is_convertible_v<T, ptrdiff_t> || is_convertible_v<T, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<T, all_type>` is `true`. <br/>
-
-Ensures: <br/>
-    * `E::rank()` equals `result_rank`. <br/>
+      `is_convertible_v<T, ptrdiff_t> || is_convertible_v<T, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<T, all_type>` is `true`.
+* *Ensures:*
+    * `E::rank()` equals `result_rank`.
     * Let `I...` be a multi-index such that `I[k] < sub.extents(k)` and
       `J...` be a multi-index where `J[R[k]]=first[R[k]]+I[k]` or `J[r]=first[r]` for `r` not in `R`.
       Then, `sub(I...)` and `src(J...)` refer to the same element.
     * `sub.extent(k)` equals `last[R[k]] - first[R[k]]`.
-    * If `src.is_strided()`, then `sub.is_strided()` and `sub.stride(k)` equals `src.stride(R[k])`. <br/>
+    * If `src.is_strided()`, then `sub.is_strided()` and `sub.stride(k)` equals `src.stride(R[k])`.
     * If `src.static_extent(R[k])` does not equal `dynamic_extent` and
       `is_convertible_v<decltype(slices_tuple.get<R[k]>()), all_type>` is `true`,
       then `sub.static_extent(k)` equals `src.static_extent(R[k])`.
