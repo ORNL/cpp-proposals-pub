@@ -1903,7 +1903,7 @@ Table �: Accessor policy requirements
 <tr>
   <td>`A::offset_policy`</td>
   <td></td>
-  <td>Accessor policy which can access a pointer that has been return by `a.offset(p,i)`.</td>
+  <td>Accessor policy which can access a pointer that has been returned by `a.offset(p,i)`.</td>
 </tr>
 <tr>
   <td>`a.decay(p)`</td>
@@ -1913,12 +1913,12 @@ Table �: Accessor policy requirements
 <tr>
   <td>`a.access(p,i)`</td>
   <td>`A::reference`</td>
-  <td>*Returns:* An object which provides access to the `i`*th* element in the contiguous set.</td>
+  <td>*Returns:* An object which provides access to the `i`-th element in the contiguous set.</td>
 </tr>
 <tr>
   <td>`a.offset(p,i)`</td>
   <td>`A::offset_policy::pointer`</td>
-  <td>*Returns:* A pointer for the contiguous span of elements offset by `i`.  *Requires:* `A::decay(p)+i == A::offset_policy::decay(A::offset(p,i))`.</td>
+  <td>*Returns:* A pointer to the contiguous span of elements offset by `i`.  *Requires:* `A::decay(p)+i` equals `A::offset_policy::decay(A::offset(p,i))`.</td>
 </tr>
 </table>
 
@@ -2583,15 +2583,46 @@ The `SliceSpecifier` template argument(s)
 and the corresponding value(s) of the arguments of `subspan` after `src`
 determine the subset of `src` that the return value views.
 
-Define the exposition-only `array`s `first`, `last`, and `R` as 
+Define the exposition-only function `mdspan_subspan_fill_first_and_last` as follows:
 
 <pre highlight="c++">
-template&lt;class ... SliceSpecifier>
-void first_last_and_R (array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& first,
-                       array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& last,
-                       array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& R,
-		       SliceSpecifier... slices)
+template&lt;class... SliceSpecifier, size_t r>
+constexpr void mdspan_subspan_fill_first_and_last(
+  array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& first,
+  array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& last,
+  SliceSpecifier... slices)
 {
+  auto slices_tuple = forward_as_tuple(slices...);
+  using cur_type = decltype(slices_tuple.get&lt;r>());
+
+  if constexpr (is_convertible_v&lt;cur_type, ptrdiff_t>) {
+    first[r] = slices_tuple.get&lt;r>();
+    last[r] = first[r] + 1;
+  }
+  else if constexpr (is_convertible_v&lt;cur_type, pair&lt;ptrdiff_t, ptrdiff_t>>) {
+    const pair&lt;ptrdiff_t, ptrdiff_t> slices_r = slices_tuple.get&lt;r>();
+    first[r] = slices_r.first;
+    last[r] = slices_r.second;
+  }
+  else if constexpr (is_convertible_v&lt;cur_type, all_type>) {
+    first[r] = 0;
+    last[r] = src.extent(r);
+  }
+}
+</pre>
+
+Define the exposition-only struct `mdspan_subspan_first_and_last` as follows:
+
+Let `first` and `last` be exposition-only 
+`array<ptrdiff_t, sizeof...(SliceSpecifier)`.
+Define `first` and `last` as in the following code:
+
+Let `R` be an exposition-only
+`array<ptrdiff_t, mdspan_subspan_rank_v<SliceSpecifier...>>`.
+Define `R` as in the following code:
+
+
+<pre highlight="c++">
   constexpr size_t result_rank = mdspan_subspan_rank_v(slices...);
   constexpr size_t num_args = sizeof...(SliceSpecifier);
   
@@ -2620,7 +2651,17 @@ void first_last_and_R (array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& first,
 
 </pre>
 
+*[Note:* The code above is not a suggested implementation. *— end note]*
+
+
 Let `sub` be the return value of `subspan(src, slices...)`.
+Let &rho; equal `sub.rank()`.
+Denote the value of the <math>k</math>-th member of `slices...`
+by <math>s<sub>k</sub></math>.
+If `i...` is a pack of integers other than `slices...`,
+then denote the value of the
+<math>k</math>-th member of `i...` by <math>i<sub>k</sub></math>.
+We say that the integer r "is not in `R`" when, for 0 <= k < &rho;, r &ne; `R[k]`.
 
 * *Requires:*
     * `sizeof(slices...)` equals `src.rank()`.
@@ -2631,18 +2672,27 @@ Let `sub` be the return value of `subspan(src, slices...)`.
       `is_convertible_v<T, ptrdiff_t> || is_convertible_v<T, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<T, all_type>` is `true`.
 * *Ensures:*
     * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals `result_rank`.
-    * Let `I...` be a multi-index such that `I[k] < sub.extents(k)` and
-      `J...` be a multi-index where `J[R[k]]=first[R[k]]+I[k]` or `J[r]=first[r]` for `r` not in `R`.
-      Then, `sub(I...)` and `src(J...)` refer to the same element.
+    * Let the pack `i...` denote a multi-index in the domain of `sub`
+      such that i<sub>k</sub></math> < `sub.extents(k)` for 0 <= `k` < &rho;.
+      Let the pack `j...` denote a multi-index in the domain of `src` where
+      <math>j<sub>`R[k]`</sub></math> equals `first[R[k]]` + <math>i<sub>k</sub></math>
+      for 0 <= `k` < <math>&rho;</math>, 
+      and <math>j<sub>r</sub></math> equals `first[r]`
+      for all `r` such that 0 <= `r` < `src.rank()` and `r` is not in `R`.
+      Then, `sub(i...)` and `src(j...)` refer to the same element.
     * `sub.extent(k)` equals `last[R[k]] - first[R[k]]`.
     * If `src.is_strided()`, then `sub.is_strided()` is `true` and
       `sub.stride(k)` equals `src.stride(R[k])`.
-    * If `src.static_extent(R[k])` does not equal `dynamic_extent` and
+    * Let `slices_tuple` equal `forward_as_tuple(slices...)`.
+      For all 0 <= k < &rho;, 
+      if `src.static_extent(R[k])` does not equal `dynamic_extent` and
       `is_convertible_v<decltype(slices_tuple.get<R[k]>()), all_type>` is `true`,
       then `sub.static_extent(k)` equals `src.static_extent(R[k])`.
+      *[Note:* `R[k]` is a `constexpr` integer. *— end note]*
+
 <br/>
 
-* Examples:
+*[Note:* Example of `subspan` use:
 
 ```c++
 // Create a mapping
@@ -2675,7 +2725,7 @@ for(int i0=0; i0<a_sub.extent(0); i0++) {
 10501 10502 10503 10504 10505
 */
 ```
-
+*- end note]*
 
 
 
