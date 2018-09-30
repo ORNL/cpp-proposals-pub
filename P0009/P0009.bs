@@ -607,24 +607,30 @@ Description
 ===========
 
 The proposed polymorphic multidimensional array reference (`mdspan`)
-defines types and functions for mapping indices from the **domain**, a
-**multidimensional index space**, to the **codomain**, elements of a
-contiguous span of objects. A multidimensional index space is defined as
-the Cartesian product of integer extents, `[0..N0) * [0..N1) * [0..N2) `....
+defines types and functions for mapping multidimensional indices
+in its **domain**, a
+multidimensional index space, to the `mdspan`'s **codomain**,
+elements of a contiguous span of objects.
+A **multidimensional index space** of **rank** <math>r</math>
+is the Cartesian product 
+<math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>r-1</sub>)</math>
+of half-open integer intervals.
+A **multidimensional index** or **multi-index**
+is a member of a multidimensional index space.
 An `mdspan` has two policies: the **layout mapping**
 and the **accessor**. The layout mapping specifies the formula, and
 properties of the formula, for mapping a multi-index from the domain to
 an element in the codomain. The accessor is an extension point that
-allows modification of how elements are accessed. For example, the
-Accessors paper (P0367) proposed a rich set of potential access
-properties.
+allows modification of how elements are accessed. For example,
+\[P0367](http://wg21.link/p0367)
+proposed a rich set of potential access properties.
 
-**A multidimensional array is not an array-of-array-of-array-of-array...**
+**A multidimensional array is not an array-of-array-of-array-of...**
 
 The multidimensional array abstraction has been fundamental to numerical
 computations for over five decades. However, the C/C++ language provides
 only a one-dimensional array abstraction which can be composed into
-array-of-array-of-array... types. While such types have some similarity
+array-of-array-of-array-of... types. While such types have some similarity
 to multidimensional arrays, they do not provide adequate multidimensional
 array functionality of this proposal. Two critical functionality
 differences are (1) multiple dynamic extents and (2) polymorphic mapping
@@ -632,11 +638,11 @@ of multi-indices to element objects.
 
 **Optimized Implementation of Layout Mapping**
 
-The layout mapping of a multi-index is intended to be an O(1) `constexpr`
-operation that is trivially inlined and optimized. Note that Fortran
-compilers' optimizations include loop invariant code motion, including
-partial evaluation of multi-index layout mappings when indices are
-loop-invariant.
+We intend the layout mapping of a multi-index to be a constant-time
+`constexpr` operation that is trivially inlined and optimized.
+Compiler vendors may apply optimizations such as loop-invariant code
+motion, including partial evaluation of multi-index layout mappings
+when indices are loop invariant.
 
 Editing Notes
 =============
@@ -687,17 +693,24 @@ needed for `basic_mdspan`.
 <br/>
 *Add the following paragraphs to* **[views.general]**:
 
-�. The header `<mdspan>` defines the view `basic_mdspan`, the type alias `mdspan`, 
+�. The header `<mdspan>` defines the view `basic_mdspan`,
+the type alias `mdspan`, 
 and other facilities for interacting with these views.
-The `basic_mdspan` object maps a multidimensional index within its domain
+The `basic_mdspan` object maps a multidimensional index
+within its domain
 to a reference of an element in the codomain.
 The *domain* of a `basic_mdspan` object is a multidimensional index space.
-A *multidimensional index space* is a Cartesian product <math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ...</math> of half-open integer intervals.
+A *multidimensional index space* of *rank* <math>r</math>
+is the Cartesian product 
+<math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>r-1</sub>)</math>
+of half-open integer intervals.
+A **multidimensional index** or **multi-index**
+is a member of a multidimensional index space.
 The *codomain* of a `basic_mdspan` object is a `span` of elements.
 
-�. The `subspan` function generates a `basic_mdspan` with a *domain*
-contained within the input `basic_mdspan` domain and codomain contained
-within the input `basic_mdspan` codomain.
+�. The `subspan` function generates a `basic_mdspan`
+with a *domain* contained within the input `basic_mdspan` domain,
+and a codomain contained within the input `basic_mdspan` codomain.
 
 ---
 
@@ -905,8 +918,10 @@ template<class... IndexType>
 constexpr extents(IndexType... dynamic_extents) noexcept;
 ```
 
-* *Requires:* `((dynamic_extents>=0) && ...)` is `true`.
-* *Constraints:* `(is_convertible_v<IndexType, index_type> && ...) && sizeof...(dynamic_extents)==rank_dynamic()` is `true`.
+* *Requires:* `(dynamic_extents>=0) && ...` is `true`.
+* *Constraints:* 
+    * `is_convertible_v<IndexType, index_type> && ...` is `true`, and
+    * `sizeof...(dynamic_extents)==rank_dynamic()` is `true`.
 * *Effects:* Aggregate-initializes `dynamic_extents_` to `{dynamic_extents...}`.
 * *Ensures:* `extent(`*DynamicRank[i]*`)` is equal to the *i*th entry in the parameter pack `dynamic_extents`.
 
@@ -939,9 +954,6 @@ constexpr extents& operator=(const extents<OtherExtents...>& other);
 * *Returns:* `*this`.
 * *Throws:* Nothing.
 
-<!-- TODO FIX EASY STUFF BELOW HERE -->
-<br/>
-
 <br/>
 <b>26.7.�.3 Observers of the domain multidimensional index space [mdspan.extents.obs]</b>
 
@@ -956,21 +968,29 @@ static constexpr size_t rank() const noexcept;
 ```c++
 static constexpr size_t rank_dynamic() const noexcept;
 ```
-* *Returns:* `((Extents==dynamic_extent)+...)`. *[Note:* This is the number of dynamic extents. *—end note]*
+* *Returns:* 
+    * If `sizeof...(Extents)==0` is `true`, then zero;
+    * Otherwise, `((Extents==dynamic_extent)+...)`. 
+
+*[Note:* This is the number of dynamic extents. *—end note]*
 
 <br/>
 ```c++
 static constexpr index_type static_extent(size_t r) const noexcept;
 ```
 
-* *Returns:* The `r`th entry in the `Extents` parameter pack if 0 <= `r` < `rank()`, or 1 otherwise.
+* *Returns:* 
+    * If 0 <= `r` < `rank()`, then the `r`th entry 
+      in the `Extents` parameter pack;
+    * Otherwise, 1.
 
 <br/>
 ```c++
 constexpr index_type extent(size_t r) const noexcept;
 ```
 * *Returns:* 
-    * If `static_extent(r)==dynamic_extent`, then `dynamic_extents_[`*DynamicRank[*`r`*]*`]`.
+    * If `static_extent(r)==dynamic_extent`, then
+      `dynamic_extents_[`*DynamicRank[*`r`*]*`]`;
     * Otherwise, `static_extent(r)`.
 
 <br/>
@@ -982,7 +1002,10 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
   constexpr bool operator==(const extents<LHS...>& lhs, const extents<RHS...>& rhs) noexcept;
 ```
 
-* *Returns:* `true` if `lhs.rank()==rhs.rank()` and `lhs.extents(r)==rhs.extents(r)` for all `r` in the range `[0, lhs.rank())`, or `false` otherwise.
+* *Returns:* 
+    * If `lhs.rank()==rhs.rank() && lhs.extents(r)==rhs.extents(r)` is `true`
+      for all `r` in the range `[0, lhs.rank())`, then `true`; 
+    * Otherwise, `false`.
 
 <br/>
 ```c++
@@ -1023,9 +1046,9 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     * `E` denotes a specialization of `extents`.
     * `e` denotes an object of type `E` defining a domain multidimensional index space.
     * `r` is a value of an integral type such that 0 <= `r` < `e.rank()`.
-    * `i...` and `j...` are packs of an integer type denoting values in the multidimensional index space `e`, the `r`*th member of packs `i...` and `j...` are denoted by `i[r]` and `j[r]`, and `sizeof...(i)==E::rank()`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()`, and 0 <= `j[r]` < `e.extent(r)`.
+    * `i...` and `j...` are packs of an integer type denoting values in the multidimensional index space `e`. Denote the `r`*th member of packs `i...` and `j...` by `i[r]` and `j[r]`, respectively. `sizeof...(i)==E::rank()` is `true`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()`, and 0 <= `j[r]` < `e.extent(r)`.
     * `M` denotes a layout mapping class.
-    * `m` denotes an object of type `M` that maps a multi-index `i...` to an integral value.
+    * `m` denotes an object of type `M` that maps a pack `i...` denoting a multi-index to an integral value.
 
 Table � — Layout mapping policy and layout mapping requirements
 <table border=1>
@@ -1055,24 +1078,24 @@ Table � — Layout mapping policy and layout mapping requirements
   <td>`m(i...)`</td>
   <td>`E::index_type`</td>
   <td>*Returns:* Mapping of a multi-index `i...` </td>
-  <td>*Requires:* `0 <= m(i...)` </td>
+  <td>*Requires:* `0 <= m(i...)` is `true`. </td>
 </tr>
 <tr>
   <td>`m.required_span_size()`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* one plus the maximum value of `m(i...)`.</td>
+  <td>*Returns:* 1 plus the maximum value of `m(i...)`.</td>
   <td></td>
 </tr>
 <tr>
   <td>`m.is_unique()`</td>
   <td>`bool`</td>
-  <td>*Returns:* `true` if for every `i...!=j...`, `m(i...)!=m(j...)`. </td>
+  <td>*Returns:* `true` if for every `i...!=j...`, `m(i...)!=m(j...)` is `true`. </td>
   <td></td>
 </tr>
 <tr>
   <td>`m.is_contiguous()`</td>
   <td>`bool`</td>
-  <td>*Returns:* `true` if the set of values defined by `m(i)...` is equal to the set of values consisting of `0`...`m.required_span_size()-1`. </td>
+  <td>*Returns:* `true` if the set defined by `m(i)...` equals the set {0, ..., `m.required_span_size()-1`}. </td>
   <td></td>
 </tr>
 <tr>
@@ -1285,17 +1308,11 @@ template<class... Indices>
 * *Constraints:* 
     * `sizeof...(Indices)==extents().rank()` is `true`, and
     * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
-* *Returns:* The sum of <math>i<sub>k</sub></math> * `stride(k)` for 0 <= k < `extents.rank()`, where <math>i<sub>k</sub></math> denotes the k-th member of `i...`, and the sum of zero terms is zero.
-
-<!--
-* *Returns:* Equivalent to `offset` in the following:
-```
-Extents::index_type offset = 0 ;
-for(size_t k=0; k<extents.rank(); ++k) 
-  offset += i_k * stride(k);
-```
--->
-
+* *Returns:* 
+    * If `extents.rank()` is zero, then zero;
+    * Otherwise, the sum of <math>i<sub>k</sub></math> &#10799; `stride(k)` 
+      for 0 <= k < `extents.rank()`, where <math>i<sub>k</sub></math>
+      denotes the k-th member of `i...` .
 
 <br/>
 ```c++
@@ -1315,13 +1332,11 @@ constexpr bool is_strided() const;
 typename Extents::index_type stride(size_t r) const;
 ```
 
-* *Returns:* Equivalent to `s` in
-
-```
-Extents::index_type s = 1;
-for(size_t k=0; k<r; ++k)
-  s *= extents().extent(k);
-```
+* *Returns:*
+    * If `r` is zero, then `1`;
+    * Otherwise, the product of `extents().extent(k)`
+      for 0 <= k < `r`, where <math>i<sub>k</sub></math>
+      denotes the k-th member of `i...` .
 
 <br/>
 ```c++
@@ -2449,7 +2464,8 @@ namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
   template&lt;class ... Args>
-  constexpr size_t mdspan_subspan_rank_v = <i>see below</i>;<i> // exposition only</i>
+  constexpr size_t mdspan_subspan_rank_v =
+    <i>see below</i>;<i> // exposition only</i>
 
   template&lt;class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
@@ -2471,12 +2487,16 @@ namespace fundamentals_v3 {
     mdspan_subspan_t&lt;ElementType, Extents, LayoutPolicy,
                      AccessorPolicy, SliceSpecifiers...>
       subspan(const basic_mdspan&lt;ElementType, Extents, LayoutPolicy,
-                                 AccessorPolicy>& src, SliceSpecifiers ... slices) noexcept;
+                                 AccessorPolicy>& src,
+				 SliceSpecifiers ... slices) noexcept;
 
 }}}
 </pre>
 
-Define the exposition-only metafunction `mdspan_subspan_rank_v` as follows:<br/>
+The exposition-only metafunction `mdspan_subspan_rank_v`,
+specifies the rank of the `basic_mdspan` returned by `subspan`.
+Define `mdspan_subspan_rank_v` as follows:
+
 <pre highlight="c++">
   template&lt;class ... Args>
   struct mdspan_subspan_rank;
@@ -2498,23 +2518,35 @@ Define the exposition-only metafunction `mdspan_subspan_rank_v` as follows:<br/>
   constexpr size_t mdspan_subspan_rank_v = mdspan_subspan_rank&lt;Args...>::value;
 </pre>
 
-The exposition-only `struct mdspan_subspan` defines the type returned by `subspan`.
-The `extents_t` type alias is a specialization of `extents` **[mdspan.extents]**
-determined by the pre- and postconditions of `subspan` specified below.
-The `layout_t` type alias meets the requirements of a layout mapping policy **[mdspan.layout.reqs]**
-and is implementation defined.
+In the exposition-only `struct mdspan_subspan`,
 
-`subspan` creates a `basic_mdspan` that is a view of a (potentially trivial) subset of another `basic_mdspan`.
-The `SliceSpecifier` parameters indicate the subset that the return value references.
-<br/>
+    * The `extents_t` type alias is a specialization of
+      `extents` **[mdspan.extents]**, and is determined by
+      the description of the semantics of `subspan` given below;
+    * The `layout_t` type alias meets the requirements
+      of a layout mapping policy **[mdspan.layout.reqs]**
+      and is implementation defined; and
+    * The `type` type alias specifies the type returned by `subspan`.
+
+The `subspan` function creates a `basic_mdspan` that is a view
+of a (potentially trivial) subset of another `basic_mdspan`.
+The `SliceSpecifier` template argument(s)
+and the corresponding value(s) of the arguments of `subspan` after `src`
+determine the subset of `src` that the return value views.
+
+Define the exposition-only `array`s `first`, `last`, and `R` as 
 
 <pre highlight="c++">
+template&lt;class ... SliceSpecifier>
+void first_last_and_R (array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& first,
+                       array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& last,
+                       array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& R,
+		       SliceSpecifier... slices)
+{
   constexpr size_t result_rank = mdspan_subspan_rank_v(slices...);
-
+  constexpr size_t num_args = sizeof...(SliceSpecifier);
+  
   auto slices_tuple = forward_as_tuple(slices...);
-  array&lt;ptrdiff_t, sizeof...(slices)> first;
-  array&lt;ptrdiff_t, sizeof...(slices)> last;
-  array&lt;size_t, result_rank> R;
   
   size_t current_R_position = 0;
   for(size_t r=0; r&lt;sizeof...(slices); r++) {
@@ -2539,24 +2571,23 @@ The `SliceSpecifier` parameters indicate the subset that the return value refere
 
 </pre>
 
-Let `sub` be the return value of `subspan(src, slices...)`,
-and let `E` be `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t`.
-<br/>
+Let `sub` be the return value of `subspan(src, slices...)`.
 
 * *Requires:*
     * `sizeof(slices...)` equals `src.rank()`.
-    * For all `r` in `0`, `1`, ..., `sizeof...(slices)-1`,
+    * For all `r` in 0, 1, ..., `sizeof...(slices)-1`,
       `0 <= first[r] && first[r] < last[r] && last[r] <= src.extent(r)` is `true`.
 * *Constraints:*
     * For all types `T` in the parameter pack `SliceSpecifiers...`,
       `is_convertible_v<T, ptrdiff_t> || is_convertible_v<T, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<T, all_type>` is `true`.
 * *Ensures:*
-    * `E::rank()` equals `result_rank`.
+    * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals `result_rank`.
     * Let `I...` be a multi-index such that `I[k] < sub.extents(k)` and
       `J...` be a multi-index where `J[R[k]]=first[R[k]]+I[k]` or `J[r]=first[r]` for `r` not in `R`.
       Then, `sub(I...)` and `src(J...)` refer to the same element.
     * `sub.extent(k)` equals `last[R[k]] - first[R[k]]`.
-    * If `src.is_strided()`, then `sub.is_strided()` and `sub.stride(k)` equals `src.stride(R[k])`.
+    * If `src.is_strided()`, then `sub.is_strided()` is `true` and
+      `sub.stride(k)` equals `src.stride(R[k])`.
     * If `src.static_extent(R[k])` does not equal `dynamic_extent` and
       `is_convertible_v<decltype(slices_tuple.get<R[k]>()), all_type>` is `true`,
       then `sub.static_extent(k)` equals `src.static_extent(R[k])`.
