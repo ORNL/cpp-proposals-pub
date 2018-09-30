@@ -1046,7 +1046,16 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     * `E` denotes a specialization of `extents`.
     * `e` denotes an object of type `E` defining a domain multidimensional index space.
     * `r` is a value of an integral type such that 0 <= `r` < `e.rank()`.
-    * `i...` and `j...` are packs of an integer type denoting values in the multidimensional index space `e`. Denote the `r`*th member of packs `i...` and `j...` by `i[r]` and `j[r]`, respectively. `sizeof...(i)==E::rank()` is `true`, 0 <= `i[r]` < `e.extent(r)`, `sizeof...(j)==E::rank()`, and 0 <= `j[r]` < `e.extent(r)`.
+    * If `k...` is a pack of an integer type, we say that "`k...` is in `e`" 
+      if `k...` denotes a multi-index in `e`.
+      Let the packs of integer type `i...` and `j...` be in `e`.
+      Denote the <math>r</math>-th member of packs `i...` and `j...` by 
+      <math>i<sub>r</sub></math> and <math>j<sub>r</sub></math>, respectively. 
+      Let `r` equal <math>r</math>.
+      `sizeof...(i)==E::rank()` is `true`, 
+      0 <= <math>i<sub>r</sub></math> < `e.extent(r)`, 
+      `sizeof...(j)==E::rank()`, and
+      0 <= <math>j<sub>r</sub></math> < `e.extent(r)`.
     * `M` denotes a layout mapping class.
     * `m` denotes an object of type `M` that maps a pack `i...` denoting a multi-index to an integral value.
 
@@ -1078,7 +1087,7 @@ Table � — Layout mapping policy and layout mapping requirements
   <td>`m(i...)`</td>
   <td>`E::index_type`</td>
   <td>*Returns:* Mapping of a multi-index `i...` </td>
-  <td>*Requires:* `0 <= m(i...)` is `true`. </td>
+  <td>*Requires:* 0 <= `m(i...)`. </td>
 </tr>
 <tr>
   <td>`m.required_span_size()`</td>
@@ -1101,7 +1110,12 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m.is_strided()`</td>
   <td>`bool`</td>
-  <td>*Returns:* `true` if `m(j...) - m(i...) = s[r]` when all members of `j...` and `i...` are equal except for exactly one `r`*th* member such that `j[r]==i[r]+1`. `s[r]` is the *stride* of ordinate `r`.</td>
+  <td>*Returns:* `true` if there exists an integer <math>s<sub>r</sub></math>
+       such that, for all `j...` and `i...` in `e`,
+       if all members of `j...` and `i...` are equal
+       except for exactly one r-th member where
+       <math>j<sub>r</sub></math> equals <math>i<sub>r</sub></math> + 1, 
+       then `m(j...) - m(i...)` equals <math>s<sub>r</sub></math>.</td>
   <td></td>
 </tr>
 <tr>
@@ -1125,7 +1139,8 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m.stride(r)`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* `m(j...) - m(i...)` when all members of `j...` and `i...` are equal except for the `r`*th* member such that `j[r]==i[r]+1`.</td>
+  <td>*Returns:* <math>s<sub>r</sub></math>, as defined for `m.is_strided()` above.
+      We say that <math>s<sub>r</sub></math> is the *stride* of ordinate `r`. </td>
   <td>*Requires:* `m.is_strided()` is `true`. </td>
 </tr>
 </table>
@@ -1149,9 +1164,9 @@ Table � — Layout mapping policy and layout mapping requirements
 <br/>
 <b>26.7.�.2 Class layout_left [mdspan.layout.left]</b>
 
-1. `layout_left` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_left::template mapping` meets the requirements of layout mapping *—end note]*
+1. `layout_left` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_left::template mapping` meets the requirements of layout mapping. *—end note]*
 2. `layout_left` gives a layout mapping where the left-most extent is stride one and strides increase left-to-right as the product of extents.
-3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
+3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, then the program is ill-formed.
 
 <pre highlight="c++">
 namespace std {
@@ -1293,9 +1308,7 @@ Extents extents() const noexcept;
 typename Extents::index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* The product of `extents().extent(r)` for all `r` where 0 <= `r` < `extents().rank()`. <!-- TODO WHAT IF rank is zero?!? -->
-
-<!-- TODO FIX EASY STUFF BELOW HERE -->
+* *Returns:* The product of `extents().extent(r)` for all `r` where 0 <= `r` < `extents().rank()`. <!-- FIXME (mfh 29 Sep 2018) See GitHub Issue #71 -->
 
 <!-- --- -->
 
@@ -1308,11 +1321,10 @@ template<class... Indices>
 * *Constraints:* 
     * `sizeof...(Indices)==extents().rank()` is `true`, and
     * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
-* *Returns:* 
-    * If `extents.rank()` is zero, then zero;
+* *Returns:* Let <math>i<sub>k</sub></math> denote the k-th member of `i...`, and let R equal `extents::rank()`:
+    * If R is zero, then zero;
     * Otherwise, the sum of <math>i<sub>k</sub></math> &#10799; `stride(k)` 
-      for 0 <= k < `extents.rank()`, where <math>i<sub>k</sub></math>
-      denotes the k-th member of `i...` .
+      for 0 <= k < R.
 
 <br/>
 ```c++
@@ -1333,7 +1345,7 @@ typename Extents::index_type stride(size_t r) const;
 ```
 
 * *Returns:*
-    * If `r` is zero, then `1`;
+    * If `r` is zero, then one;
     * Otherwise, the product of `extents().extent(k)`
       for 0 <= k < `r`, where <math>i<sub>k</sub></math>
       denotes the k-th member of `i...` .
@@ -1368,7 +1380,7 @@ template<class OtherExtents>
 <br/>
 <b>26.7.�.3 Class layout_right [mdspan.layout.right]</b>
 
-1. `layout_right` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_right::template mapping` meets the requirements of layout mapping *—end note]*
+1. `layout_right` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_right::template mapping` meets the requirements of layout mapping. *—end note]*
 2. The layout mapping property `layout_right` gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
 
@@ -1525,7 +1537,10 @@ template<class... Indices>
 * *Constraints:* 
     * `sizeof...(Indices)==extents().rank()` is `true`, and
     * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
-* *Returns:* The sum of <math>i<sub>k</sub></math> * `stride(k)` for 0 <= k < `Extents::rank()`, where <math>i<sub>k</sub></math> denotes the k-th member of `i...`, and the sum of zero terms is zero.
+* *Returns:* Let <math>i<sub>k</sub></math> denote the k-th member of `i...`, and let R equal `Extents::rank()`:
+    * If R is zero, then zero;
+    * Otherwise, the sum of <math>i<sub>k</sub></math> &#10799; `stride(k)`
+      for 0 <= k < R.
 
 <!--
 Let `i[k]` denote the `k`*th* member of `i...`.
@@ -1557,8 +1572,7 @@ constexpr bool is_strided() const noexcept;
 typename Extents::index_type stride(size_t r) const noexcept;
 ```
 
-* *Returns:* Equivalent to `s` in
-
+* *Returns:* Equivalent to `s` in the following:
 ```
 Extents::index_type s = 1;
 for(size_t k=r+1; k<extents().rank(); ++k)
@@ -1670,19 +1684,25 @@ struct layout_stride {
 constexpr mapping() noexcept;
 ```
 * *Effects:* Default-initializes `extents_`.
-* *Ensures:* `extents()==Extents() && strides()==array<typename Extents::index_type, Extents::rank()>()` is `true`.
+* *Ensures:*
+    * `extents()==Extents()` is `true`, and
+    * `strides()==array<typename Extents::index_type, Extents::rank()>()` is `true`.
 
 ```c++
 constexpr mapping(const mapping& other) noexcept;
 ```
 * *Effects:* Initializes `extents_` with `other.extents_`.
-* *Ensures:* `extents()==other.extents() && strides()==other.strides()` is `true`.
+* *Ensures:* 
+    * `extents()==other.extents()` is `true`, and
+    * `strides()==other.strides()` is `true`.
 
 ```c++
 constexpr mapping(mapping&& other) noexcept;
 ```
 * *Effects:* Initializes `extents_` with `move(other.extents_)`.
-* *Ensures:* `extents()` equals the result of `other.extents()` before the invocation of the move, and `strides()` equals the result of `other.strides()` before the invocation of the move.
+* *Ensures:*
+    * `extents()` equals the result of `other.extents()` before the invocation of the move, and
+    * `strides()` equals the result of `other.strides()` before the invocation of the move.
 
 
 ```c++
@@ -1734,8 +1754,16 @@ template <class... Indices>
 * *Constraints:*
     * `sizeof...(Indices)==Extents::rank()` is `true`, and
     * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
-* *Returns:* If `i...` is `i0, i1, i2`, ..., `ik` (where `k==Extents::rank() - 1` is `true`) and `s` is `strides()`, returns `i0*s[1]+i1*s[2]+`...`+ik*s[k]`. <!-- FIXME CODE TO MATH -->
+* *Returns:* Let <math>i<sub>k</sub></math> denote the k-th member of `i...`, let R equal `Extents::rank()`, and let `s` be `strides()`:
+    * If R is zero, then zero;
+    * Otherwise, the sum of <math>i<sub>k</sub> &#10799; `s[k]` for 0 <= k < R.
 
+<!-- FIXME (mfh 29 Sep 2018) This used to say:
+
+* *Returns:* If `i...` is `i0, i1, i2`, ..., `ik` (where `k==Extents::rank() - 1` is `true`) and `s` is `strides()`, returns `i0*s[1]+i1*s[2]+`...`+ik*s[k]`.
+
+THAT LOOKS WRONG, so I fixed it.
+-->
 
 ```c++
 static constexpr bool is_always_unique() noexcept;
