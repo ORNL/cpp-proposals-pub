@@ -1708,13 +1708,21 @@ constexpr mapping(mapping&& other) noexcept;
 ```c++
 constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()> s) noexcept;
 ```
+Let R equal `Extents::rank()`.
+If <math>p</math> is a permutation of the integers 0, ..., R-1,
+then let `p` be an exposition-only array of `size_t` of length R
+such that `p[i]` equals <math>p<sub>i</sub></math> for 0 <= i < R.
+
+<!-- FIXME (mfh 2x Sep 2018) See GitHub Issue #72 -->
+
 * *Requires:*
-    * `s[i]>0` is `true` for 0 < `i` <= `Extents::rank()`.
-    * If `Extents::rank()` is nonzero, then there exists a permutation `o(i)` 
-      of the integers `0`, ..., `Extents::rank()-1` 
-      with 0 <= `i` < `Extents::rank()` such that
-      `s(o(i))>=s(o(i-1))*e.extent(o(i-1))` is `true` 
-      for 1 <= `i` < `Extents::rank()`. <!-- FIXME CODE TO MATH -->
+    * `s[i] > 0` is `true` for 0 < `i` <= R.
+    * If R is nonzero, then
+      there exists a permutation <math>p</math>
+      of the integers 0, ..., R-1
+      with 0 <= i < R such that
+      `s(p[i]) >= s(p[i-1])*e.extent(p[i-1])` is `true` 
+      for 1 <= `i` < R.
 * *Effects:* Initializes `extents_` with `e` and `strides_` with `s`.
 * *Ensures:* `extents()==e && strides()==s` is `true`.
 * *Throws:* Nothing.
@@ -1782,7 +1790,20 @@ static constexpr bool is_always_contiguous() noexcept;
 ```c++
 constexpr bool is_contiguous() const noexcept;
 ```
-* *Returns:* `true` if there is a permutation `o(i)` of the numbers `0`, ..., `Extents::rank()-1` with 0 <= `i` < `Extents::rank()` such that `min(stride(o(i))==1` is `true` and `stride(o(i))==stride(o(i-1))*extents().extent(o(i-1))` with 1 <= `i` < `Extents::rank()`.  Otherwise, returns `false`. <!-- FIXME CODE TO MATH --> <!-- FIXME what if zero length? -->
+Let R equal `Extents::rank()`.
+If <math>p</math> is a permutation of the integers 0, ..., R-1,
+then let `p` be an exposition-only array of `size_t` of length R
+such that `p[i]` equals <math>p<sub>i</sub></math> for 0 <= i < R.
+
+* *Returns:*
+    * If `R` is zero, then `true`;
+    * Else, if there is a permutation <math>p</math> 
+      of the integers 0, ..., R-1
+      with 0 <= i < R such that
+      `min(stride(p[i])==1` is `true` and
+      `stride(p[i])==stride(p[i-1])*extents().extent(p[i-1])` 
+      with 1 <= `i` < R, then `true`;
+    * Otherwise, `false`.
 
 ```c++
 typename Extents::index_type stride(size_t r) const noexcept;
