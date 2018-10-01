@@ -2583,85 +2583,103 @@ The `SliceSpecifier` template argument(s)
 and the corresponding value(s) of the arguments of `subspan` after `src`
 determine the subset of `src` that the return value views.
 
-Define the exposition-only function `mdspan_subspan_fill_first_and_last` as follows:
+<!-- TODO add `mdspan_subspan_compute_bounds` to synopsis (2x above) -->
+
+Define the exposition-only function `mdspan_subspan_compute_bounds` as follows:
 
 <pre highlight="c++">
-template&lt;class... SliceSpecifier, size_t r>
-constexpr void mdspan_subspan_fill_first_and_last(
-  array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& first,
-  array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& last,
-  SliceSpecifier... slices)
-{
-  auto slices_tuple = forward_as_tuple(slices...);
-  using cur_type = decltype(slices_tuple.get&lt;r>());
+template&lt;class ElementType, class Extents, class LayoutPolicy,
+	 class AccessorPolicy, size_t N, size_t r,
+	 class... SliceSpecifiers>
+struct mdspan_subspan_compute_bounds_impl {};
 
-  if constexpr (is_convertible_v&lt;cur_type, ptrdiff_t>) {
-    first[r] = slices_tuple.get&lt;r>();
-    last[r] = first[r] + 1;
+template&lt;class ElementType, class Extents, class LayoutPolicy,
+	 class AccessorPolicy, size_t N, size_t r>
+struct mdspan_subspan_compute_bounds_impl&lt;ElementType, Extents, LayoutPolicy,
+                                          AccessorPolicy, N, r>
+{
+  using array_type = array&lt;ptrdiff_t, N>;
+  using mdspan_type = basic_mdspan&lt;ElementType, Extents, LayoutPolicy,
+				   AccessorPolicy>;
+  static void run (array_type& first, array_type& last, const mdspan_type&) {}
+};
+
+template&lt;class ElementType, class Extents, class LayoutPolicy,
+	 class AccessorPolicy, size_t N, size_t r,
+	 class HeadSliceSpecifier, class... TailSliceSpecifiers>
+struct mdspan_subspan_compute_bounds_impl&lt;ElementType, Extents, LayoutPolicy,
+                                          AccessorPolicy, N, r, HeadSliceSpecifier,
+                                          TailSliceSpecifiers...>
+{
+  using array_type = array&lt;ptrdiff_t, N>;
+  using mdspan_type = basic_mdspan&lt;ElementType, Extents, LayoutPolicy,
+				   AccessorPolicy>;
+  static void run (array_type& first, array_type& last, const mdspan_type& src,
+		   HeadSliceSpecifier head, TailSliceSpecifiers... tail)
+  {
+    if constexpr (is_convertible_v&lt;HeadSliceSpecifier, ptrdiff_t>) {
+      first[r] = head;
+      last[r] = first[r] + 1;
+    }
+    else if constexpr (is_convertible_v&lt;HeadSliceSpecifier,
+		                        pair&lt;ptrdiff_t, ptrdiff_t>>) {
+      const pair&lt;ptrdiff_t, ptrdiff_t> cur_bounds = head;
+      first[r] = cur_bounds.first;
+      last[r] = cur_bounds.second;
+    }
+    else if constexpr (is_convertible_v&lt;HeadSliceSpecifier, all_type>) {
+      first[r] = 0;
+      last[r] = src.extent(r);
+    }
+
+    using recurse_type =
+      mdspan_subspan_compute_bounds_impl&lt;ElementType, Extents, LayoutPolicy,
+					 AccessorPolicy, N, r+1,
+					 TailSliceSpecifiers...>;
+    recurse_type::run (first, last, src, tail...);
   }
-  else if constexpr (is_convertible_v&lt;cur_type, pair&lt;ptrdiff_t, ptrdiff_t>>) {
-    const pair&lt;ptrdiff_t, ptrdiff_t> slices_r = slices_tuple.get&lt;r>();
-    first[r] = slices_r.first;
-    last[r] = slices_r.second;
-  }
-  else if constexpr (is_convertible_v&lt;cur_type, all_type>) {
-    first[r] = 0;
-    last[r] = src.extent(r);
-  }
+};
+
+template&lt;class ElementType, class Extents, class LayoutPolicy,
+	 class AccessorPolicy, class... SliceSpecifier>
+void mdspan_subspan_compute_bounds (array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& first,
+				    array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& last,
+				    const basic_mdspan&lt;ElementType, Extents, LayoutPolicy, AccessorPolicy>& src,
+				    SliceSpecifier... slices)
+{
+  constexpr size_t N = sizeof...(SliceSpecifier);
+  constexpr size_t r = 0;
+  using impl_type =
+    mdspan_subspan_compute_bounds_impl&lt;ElementType, Extents, LayoutPolicy,
+				       AccessorPolicy, N, r, SliceSpecifier...>;
+  impl_type::run (first, last, src, slices...);
 }
 </pre>
 
-Define the exposition-only struct `mdspan_subspan_first_and_last` as follows:
-
-Let `first` and `last` be exposition-only 
-`array<ptrdiff_t, sizeof...(SliceSpecifier)`.
-Define `first` and `last` as in the following code:
-
-Let `R` be an exposition-only
-`array<ptrdiff_t, mdspan_subspan_rank_v<SliceSpecifier...>>`.
-Define `R` as in the following code:
-
-
+Let `first` and `last` be exposition-only `array<ptrdiff_t, sizeof...(SliceSpecifier)>`, computed as if in the code that follows, where `src` and `slices...` are the arguments given to `subspan`:
 <pre highlight="c++">
-  constexpr size_t result_rank = mdspan_subspan_rank_v(slices...);
-  constexpr size_t num_args = sizeof...(SliceSpecifier);
-  
-  auto slices_tuple = forward_as_tuple(slices...);
-  
-  size_t current_R_position = 0;
-  for(size_t r=0; r&lt;sizeof...(slices); r++) {
-    using cur_type = decltype(slices_tuple.get&lt;r>());
-
-    if constexpr (is_convertible_v&lt;cur_type, ptrdiff_t>) {
-      first[r] = slices_tuple.get<r>();
-      last[r] = first[r] + 1;
-    }
-    else if constexpr (is_convertible_v&lt;cur_type, pair&lt;ptrdiff_t, ptrdiff_t>>) {
-      const pair&lt;ptrdiff_t, ptrdiff_t> slices_r = slices_tuple.get&lt;r>();
-      first[r] = slices_r.first;
-      last[r] = slices_r.second;
-      R[current_R_position++] = r;      
-    }
-    else if constexpr (is_convertible_v&lt;cur_type, all_type>) {
-      first[r] = 0;
-      last[r] = src.extent(r);
-      R[current_R_position++] = r;      
-    }
-  }
-
+array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>> first;
+array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>> last;
+mdspan_subspan_compute_bounds (first, last, src, slices...);
 </pre>
 
-*[Note:* The code above is not a suggested implementation. *— end note]*
-
-
-Let `sub` be the return value of `subspan(src, slices...)`.
-Let &rho; equal `sub.rank()`.
-Denote the value of the <math>k</math>-th member of `slices...`
-by <math>s<sub>k</sub></math>.
 If `i...` is a pack of integers other than `slices...`,
 then denote the value of the
 <math>k</math>-th member of `i...` by <math>i<sub>k</sub></math>.
-We say that the integer r "is not in `R`" when, for 0 <= k < &rho;, r &ne; `R[k]`.
+
+Let &rho; equal `sub.rank()`.
+
+Denote the value of the <math>k</math>-th member of `slices...`
+by <math>s<sub>k</sub></math>.
+
+Define `rank_map` as the length &rho; `std::integer_sequence` of `ptrdiff_t` consisting of all k such that `is_convertible_v<`<math>s<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>s<sub>k</sub></math>`, all_type>` is `true`.
+
+Define the exposition-only `constexpr` function `get_seq<k>(seq)` as the function returning the `k`-th entry of the `std::integer_sequence` `seq`.
+
+We say that the integer r "is not in `rank_map`" when,
+for 0 <= `k` < &rho;, r does not equal `get_seq<k>(rank_map)`.
+
+Let `sub` be the return value of `subspan(src, slices...)`.
 
 * *Requires:*
     * `sizeof(slices...)` equals `src.rank()`.
@@ -2671,24 +2689,27 @@ We say that the integer r "is not in `R`" when, for 0 <= k < &rho;, r &ne; `R[k]
     * For all types `T` in the parameter pack `SliceSpecifiers...`,
       `is_convertible_v<T, ptrdiff_t> || is_convertible_v<T, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<T, all_type>` is `true`.
 * *Ensures:*
-    * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals `result_rank`.
+    * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals &rho;.
     * Let the pack `i...` denote a multi-index in the domain of `sub`
       such that i<sub>k</sub></math> < `sub.extents(k)` for 0 <= `k` < &rho;.
       Let the pack `j...` denote a multi-index in the domain of `src` where
-      <math>j<sub>`R[k]`</sub></math> equals `first[R[k]]` + <math>i<sub>k</sub></math>
+      the `get_seq<k>(rank_map)`-th entry of `j`
+      equals `first[get_seq<k>(rank_map)]` + <math>i<sub>k</sub></math>
       for 0 <= `k` < <math>&rho;</math>, 
       and <math>j<sub>r</sub></math> equals `first[r]`
-      for all `r` such that 0 <= `r` < `src.rank()` and `r` is not in `R`.
+      for all `r` such that 0 <= `r` < `src.rank()` and `r` is not in `rank_map`.
       Then, `sub(i...)` and `src(j...)` refer to the same element.
-    * `sub.extent(k)` equals `last[R[k]] - first[R[k]]`.
+    * `sub.extent(k)` equals
+      `last[get_seq<k>(rank_map)] - first[get_seq<k>(rank_map)]`.
     * If `src.is_strided()`, then `sub.is_strided()` is `true` and
-      `sub.stride(k)` equals `src.stride(R[k])`.
+      `sub.stride(k)` equals `src.stride(get_seq<k>(rank_map))`.
     * Let `slices_tuple` equal `forward_as_tuple(slices...)`.
-      For all 0 <= k < &rho;, 
-      if `src.static_extent(R[k])` does not equal `dynamic_extent` and
-      `is_convertible_v<decltype(slices_tuple.get<R[k]>()), all_type>` is `true`,
-      then `sub.static_extent(k)` equals `src.static_extent(R[k])`.
-      *[Note:* `R[k]` is a `constexpr` integer. *— end note]*
+      For all 0 <= `k` < &rho;, 
+      if `src.static_extent(get_seq<k>(rank_map))` does not equal
+      `dynamic_extent` and
+      `is_convertible_v<decltype(slices_tuple.get<get_seq<k>(rank_map)>()), all_type>` is `true`,
+      then `sub.static_extent(k)` equals
+      `src.static_extent(get_seq<k>(rank_map))`.
 
 <br/>
 
