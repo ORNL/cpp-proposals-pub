@@ -1041,7 +1041,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 4. In Table �:
     * `MP` denotes a layout mapping policy.
     * `E` denotes a specialization of `extents`.
-    * `e` denotes an object of type `E` defining a domain multidimensional index space.
+    * `e` denotes an object of type `E` defining a multidimensional index space.
     * `r` is a value of an integral type such that 0 <= `r` < `e.rank()`.
     * If `k...` is a pack of an integer type, we say that "`k...` is in `e`" 
       if `k...` denotes a multi-index in `e`.
@@ -1089,7 +1089,8 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m.required_span_size()`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* 1 plus the maximum value of `m(i...)`.</td>
+  <td>*Returns:* If the multidimensional index space that `e` defines is empty, then zero,
+      else 1 plus the maximum value of `m(i...)` for all `i...` in `e`.</td>
   <td></td>
 </tr>
 <tr>
