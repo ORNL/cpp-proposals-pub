@@ -768,9 +768,6 @@ namespace fundamentals_v3 {
     constexpr bool operator!=(const extents&lt;LHS...>& lhs, const extents&lt;RHS...>& rhs) noexcept;
 
   // [mdspan.subspan], subspan creation
-  template&lt;class ... Args>
-  constexpr size_t mdspan_subspan_rank_v = <i>see below</i>;<i> // exposition only</i>
-
   template&lt;class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
   struct mdspan_subspan { // <i>exposition only</i>
@@ -2512,10 +2509,6 @@ namespace experimental {
 namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
-  template&lt;class ... Args>
-  constexpr size_t mdspan_subspan_rank_v =
-    <i>see below</i>;<i> // exposition only</i>
-
   template&lt;class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
   struct mdspan_subspan { // <i>exposition only</i>
@@ -2542,30 +2535,30 @@ namespace fundamentals_v3 {
 }}}
 </pre>
 
-The exposition-only metafunction `mdspan_subspan_rank_v`,
-specifies the rank of the `basic_mdspan` returned by `subspan`.
-Define `mdspan_subspan_rank_v` as follows:
+The `subspan` function creates a `basic_mdspan` that is a view
+of a (potentially trivial) subset of another `basic_mdspan`.
+The `SliceSpecifier` template argument(s)
+and the corresponding value(s) of the arguments of `subspan` after `src`
+determine the subset of `src` that the return value views.
 
-<pre highlight="c++">
-  template&lt;class ... Args>
-  struct mdspan_subspan_rank;
+Let `sub` be the return value of `subspan(src, slices...)`.
+Denote the value of the <math>k</math>-th member of `slices...`
+by <math>s<sub>k</sub></math>.
+Denote the type of the <math>k</math>-th member of `slices...`
+by <math>S<sub>k</sub></math>.
 
-  template&lt;class First, class ... Rest>
-  struct mdspan_subspan_rank&lt;First, Rest...> {
-    constexpr size_t value =
-      ((is_convertible_v&lt;First, pair&lt;ptrdiff_t, ptrdiff_t>> ||
-        is_convertible_v&lt;First, all_type>) ? 1 : 0) +
-      mdspan_subspan_rank&lt;Rest...>::value;
-  };
-  
-  template&lt;>
-  struct mdspan_subspan_rank&lt;> {
-    constexpr size_t value = 0;
-  };
+Let &rho; be `sub.rank()`.
+&rho; equals the number of `k`
+such that `is_convertible_v<`<math>S<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>S<sub>k</sub></math>`, all_type>` is `true`.
 
-  template&lt;class ... Args>
-  constexpr size_t mdspan_subspan_rank_v = mdspan_subspan_rank&lt;Args...>::value;
-</pre>
+Define `rank_map` as the length &rho; `std::integer_sequence` of `ptrdiff_t`
+consisting of the unique values of `k`, in increasing order, such that
+`is_convertible_v<`<math>S<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>S<sub>k</sub></math>`, all_type>` is `true`.
+Define the exposition-only `constexpr` function `get_seq<k>(seq)`,
+where `k` is an integer,
+as the function returning the `k`-th entry of the `std::integer_sequence` `seq`.
+We say that the integer r "is not in `rank_map`" when,
+for 0 <= `k` < &rho;, r does not equal `get_seq<k>(rank_map)`.
 
 In the exposition-only `struct mdspan_subspan`,
 
@@ -2577,117 +2570,42 @@ In the exposition-only `struct mdspan_subspan`,
       and is implementation defined; and
     * The `type` type alias specifies the type returned by `subspan`.
 
-The `subspan` function creates a `basic_mdspan` that is a view
-of a (potentially trivial) subset of another `basic_mdspan`.
-The `SliceSpecifier` template argument(s)
-and the corresponding value(s) of the arguments of `subspan` after `src`
-determine the subset of `src` that the return value views.
+*[Note:* High-quality implementations will avoid `layout_stride` whenever possible,
+if the input layout is `layout_left` or `layout_right`. *— end note]* 
 
-<!-- TODO add `mdspan_subspan_compute_bounds` to synopsis (2x above) -->
+Let `first` and `last` be exposition-only `array<ptrdiff_t, sizeof...(SliceSpecifier)>`,
+where `SliceSpecifier...` is the same parameter pack as `subspan`'s.
+For 0 <= `r` < `sizeof...(SliceSpecifier)`,
+define the values of `first[r]` and `last[r]` as follows,
+where `src` and `slices...` are the arguments of `subspan`.
 
-Define the exposition-only function `mdspan_subspan_compute_bounds` as follows:
-
-<pre highlight="c++">
-template&lt;class ElementType, class Extents, class LayoutPolicy,
-	 class AccessorPolicy, size_t N, size_t r,
-	 class... SliceSpecifiers>
-struct mdspan_subspan_compute_bounds_impl {};
-
-template&lt;class ElementType, class Extents, class LayoutPolicy,
-	 class AccessorPolicy, size_t N, size_t r>
-struct mdspan_subspan_compute_bounds_impl&lt;ElementType, Extents, LayoutPolicy,
-                                          AccessorPolicy, N, r>
-{
-  using array_type = array&lt;ptrdiff_t, N>;
-  using mdspan_type = basic_mdspan&lt;ElementType, Extents, LayoutPolicy,
-				   AccessorPolicy>;
-  static void run (array_type& first, array_type& last, const mdspan_type&) {}
-};
-
-template&lt;class ElementType, class Extents, class LayoutPolicy,
-	 class AccessorPolicy, size_t N, size_t r,
-	 class HeadSliceSpecifier, class... TailSliceSpecifiers>
-struct mdspan_subspan_compute_bounds_impl&lt;ElementType, Extents, LayoutPolicy,
-                                          AccessorPolicy, N, r, HeadSliceSpecifier,
-                                          TailSliceSpecifiers...>
-{
-  using array_type = array&lt;ptrdiff_t, N>;
-  using mdspan_type = basic_mdspan&lt;ElementType, Extents, LayoutPolicy,
-				   AccessorPolicy>;
-  static void run (array_type& first, array_type& last, const mdspan_type& src,
-		   HeadSliceSpecifier head, TailSliceSpecifiers... tail)
-  {
-    if constexpr (is_convertible_v&lt;HeadSliceSpecifier, ptrdiff_t>) {
-      first[r] = head;
-      last[r] = first[r] + 1;
-    }
-    else if constexpr (is_convertible_v&lt;HeadSliceSpecifier,
-		                        pair&lt;ptrdiff_t, ptrdiff_t>>) {
-      const pair&lt;ptrdiff_t, ptrdiff_t> cur_bounds = head;
-      first[r] = cur_bounds.first;
-      last[r] = cur_bounds.second;
-    }
-    else if constexpr (is_convertible_v&lt;HeadSliceSpecifier, all_type>) {
-      first[r] = 0;
-      last[r] = src.extent(r);
-    }
-
-    using recurse_type =
-      mdspan_subspan_compute_bounds_impl&lt;ElementType, Extents, LayoutPolicy,
-					 AccessorPolicy, N, r+1,
-					 TailSliceSpecifiers...>;
-    recurse_type::run (first, last, src, tail...);
-  }
-};
-
-template&lt;class ElementType, class Extents, class LayoutPolicy,
-	 class AccessorPolicy, class... SliceSpecifier>
-void mdspan_subspan_compute_bounds (array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& first,
-				    array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>& last,
-				    const basic_mdspan&lt;ElementType, Extents, LayoutPolicy, AccessorPolicy>& src,
-				    SliceSpecifier... slices)
-{
-  constexpr size_t N = sizeof...(SliceSpecifier);
-  constexpr size_t r = 0;
-  using impl_type =
-    mdspan_subspan_compute_bounds_impl&lt;ElementType, Extents, LayoutPolicy,
-				       AccessorPolicy, N, r, SliceSpecifier...>;
-  impl_type::run (first, last, src, slices...);
-}
-</pre>
-
-Let `first` and `last` be exposition-only `array<ptrdiff_t, sizeof...(SliceSpecifier)>`, computed as if in the code that follows, where `src` and `slices...` are the arguments given to `subspan`:
-<pre highlight="c++">
-array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>> first;
-array&lt;ptrdiff_t, sizeof...(SliceSpecifier)>> last;
-mdspan_subspan_compute_bounds (first, last, src, slices...);
-</pre>
+    * If `is_convertible_v<`<math>S<sub>`r`</sub></math>`, ptrdiff_t>`, 
+      then `first[r]` equals <math>s<sub>`r`</sub></math>, and
+      `last[r]` equals `first[r]` + 1;
+    * Else, if `is_convertible_v<`<math>S<sub>`r`</sub></math>`, pair<ptrdiff_t, ptrdiff_t>>`,
+      then `first[r]` equals `p.first`, and `last[r]` equals `p.second`,
+      where `p` is the result of converting <math>s<sub>`r`</sub></math>
+      to `pair<ptrdiff_t, ptrdiff_t>`;
+    * Else, if `is_convertible_v<`<math>S<sub>`r`</sub></math>`, all_type>`,
+      then `first[r] = 0`, and `last[r]` equals `src.extent(r)`.
 
 If `i...` is a pack of integers other than `slices...`,
 then denote the value of the
 <math>k</math>-th member of `i...` by <math>i<sub>k</sub></math>.
 
-Let &rho; equal `sub.rank()`.
-
-Denote the value of the <math>k</math>-th member of `slices...`
-by <math>s<sub>k</sub></math>.
-
-Define `rank_map` as the length &rho; `std::integer_sequence` of `ptrdiff_t` consisting of all k such that `is_convertible_v<`<math>s<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>s<sub>k</sub></math>`, all_type>` is `true`.
-
-Define the exposition-only `constexpr` function `get_seq<k>(seq)` as the function returning the `k`-th entry of the `std::integer_sequence` `seq`.
-
-We say that the integer r "is not in `rank_map`" when,
-for 0 <= `k` < &rho;, r does not equal `get_seq<k>(rank_map)`.
-
-Let `sub` be the return value of `subspan(src, slices...)`.
-
 * *Requires:*
     * `sizeof(slices...)` equals `src.rank()`.
-    * For all `r` in 0, 1, ..., `sizeof...(slices)-1`,
+    * For 0 <= `r` < `sizeof...(slices)`,
       `0 <= first[r] && first[r] < last[r] && last[r] <= src.extent(r)` is `true`.
 * *Constraints:*
-    * For all types `T` in the parameter pack `SliceSpecifiers...`,
-      `is_convertible_v<T, ptrdiff_t> || is_convertible_v<T, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<T, all_type>` is `true`.
+    * `LayoutPolicy` is `layout_left`, `layout_right`, `layout_stride`,
+       or any type in a possibly empty set of implementation-defined types,
+       each of which meets the requirements of a layout mapping policy
+       **[mdspan.layout.reqs]**.
+       *[Note:* Valid and useful layout mapping policies exist,
+       for which taking an arbitrary `subspan` does not make sense. *— end note]* 
+    * For 0 <= `k` < `sizeof...(slices)`,
+      `is_convertible_v<`<math>S<sub>k</sub></math>`, ptrdiff_t> || is_convertible_v<`<math>S<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>S<sub>k</sub></math>`, all_type>` is `true`.
 * *Ensures:*
     * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals &rho;.
     * Let the pack `i...` denote a multi-index in the domain of `sub`
@@ -2699,17 +2617,16 @@ Let `sub` be the return value of `subspan(src, slices...)`.
       and <math>j<sub>r</sub></math> equals `first[r]`
       for all `r` such that 0 <= `r` < `src.rank()` and `r` is not in `rank_map`.
       Then, `sub(i...)` and `src(j...)` refer to the same element.
-    * `sub.extent(k)` equals
+    * For 0 <= `k` < &rho;, `sub.extent(k)` equals
       `last[get_seq<k>(rank_map)] - first[get_seq<k>(rank_map)]`.
-    * If `src.is_strided()`, then `sub.is_strided()` is `true` and
+    * If `src.is_strided()`, then `sub.is_strided()` is `true`,
+      and for 0 <= `k` < &rho;,
       `sub.stride(k)` equals `src.stride(get_seq<k>(rank_map))`.
-    * Let `slices_tuple` equal `forward_as_tuple(slices...)`.
-      For all 0 <= `k` < &rho;, 
-      if `src.static_extent(get_seq<k>(rank_map))` does not equal
-      `dynamic_extent` and
-      `is_convertible_v<decltype(slices_tuple.get<get_seq<k>(rank_map)>()), all_type>` is `true`,
-      then `sub.static_extent(k)` equals
-      `src.static_extent(get_seq<k>(rank_map))`.
+    * For 0 <= `k` < &rho;,
+      let `rmk` equal `get_seq<k>(rank_map)`; then,
+      if `src.static_extent(rmk)` does not equal `dynamic_extent` and
+      `is_convertible_v<`<math>S<sub>`rmk`</sub></math>`, all_type>` is `true`,
+      then `sub.static_extent(k)` equals `src.static_extent(rmk)`.
 
 <br/>
 
