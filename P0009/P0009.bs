@@ -1083,7 +1083,7 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m(i...)`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* Mapping of a multi-index `i...` </td>
+  <td>*Returns:* Mapping of a multi-index `i...` . </td>
   <td>*Requires:* 0 <= `m(i...)`. </td>
 </tr>
 <tr>
@@ -1321,8 +1321,8 @@ template<class... Indices>
     * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
 * *Returns:* Let <math>i<sub>k</sub></math> denote the k-th member of `i...`, and let R equal `extents::rank()`:
     * If R is zero, then zero;
-    * Otherwise, the sum of <math>i<sub>k</sub></math> &#10799; `stride(k)` 
-      for 0 <= k < R.
+    * Otherwise, the sum of <math>i<sub>`k`</sub></math> &#10799; `stride(k)` 
+      for 0 <= `k` < R.
 
 <br/>
 ```c++
@@ -1334,7 +1334,7 @@ constexpr bool is_contiguous() const;
 constexpr bool is_strided() const;
 ```
 
-* *Returns:* `true`
+* *Returns:* `true`.
 
 <br/>
 
@@ -1494,7 +1494,7 @@ template<class OtherExtents>
 * *Requires:* `other.extents()` meets the requirements for use in the initialization of `extents_`.
 * *Effects:* Initializes `extents_` with `other.extents()`.
 * *Ensures:* `extents()==other.extents()` is `true`.
-* *Throws:* nothing.
+* *Throws:* Nothing.
 <!-- --- -->
 
 <br/>
@@ -1709,7 +1709,7 @@ constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()
 Let R equal `Extents::rank()`.
 If <math>p</math> is a permutation of the integers 0, ..., R-1,
 then let `p` be an exposition-only array of `size_t` of length R
-such that `p[i]` equals <math>p<sub>i</sub></math> for 0 <= i < R.
+such that `p[i]` equals <math>p<sub>`i`</sub></math> for 0 <= `i` < R.
 
 <!-- FIXME (mfh 2x Sep 2018) See GitHub Issue #72 -->
 
@@ -1791,7 +1791,7 @@ constexpr bool is_contiguous() const noexcept;
 Let R equal `Extents::rank()`.
 If <math>p</math> is a permutation of the integers 0, ..., R-1,
 then let `p` be an exposition-only array of `size_t` of length R
-such that `p[i]` equals <math>p<sub>i</sub></math> for 0 <= i < R.
+such that `p[i]` equals <math>p<sub>`i`</sub></math> for 0 <= `i` < R.
 
 * *Returns:*
     * If `R` is zero, then `true`;
@@ -2005,7 +2005,7 @@ constexpr pointer decay(pointer p) const noexcept;
 <b>26.7.� Class template `basic_mdspan` [mdspan.basic]</b>
 
 1. The `basic_mdspan` class template maps a multi-index within a multi-index *domain* to a reference to an element in the *codomain* `span`.
-2. The multi-index domain space is the Cartesian product of the extents: `[0, extent(0)) * [0, extent(1)) *` ... `* [0, extent(rank() - 1))`. Each extent may be statically or dynamically specified. <!-- FIXME CODE TO MATH -->
+2. The multi-index domain space is the Cartesian product of the extents: <math>[0, `extent(0)`) &#10799; [0, `extent(1)`) &#10799; ... &#10799; [0, `extent(rank()-1)`)</math>.  Each extent may be statically or dynamically specified.
 2. As with `span`, the storage of the objects in the codomain `span` of a `basic_mdspan` is owned by some other object.
 3. `ElementType` is required to be a complete object type that is not an abstract class type or an array type.
 4. `Extents` is required to be a (cv-unqualified) specialization of `extents`.
