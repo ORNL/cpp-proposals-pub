@@ -1845,32 +1845,33 @@ template<class OtherExtents>
 <b>26.7.� Accessor Policy [mdspan.accessor]</b>
 
 An *accessor policy* defines types and operations by which
-a contiguous set of objects of type *ElementType* are accessed. 
+a contiguous set of objects of a particular type are accessed. 
 
 <br/>
 <b>26.7.�.1 Accessor policy requirements [mdspan.accessor.reqs]</b>
 
-An accessor policy defines
-a type through which a single element is accessed,
-a type through which the contiguous set of elements is accessed, 
-and the following operations:
-  * Access to elements in a subscripting-like **[expr.sub]** way,
-  * Conversion to a pointer **[conv.array]**, and
-  * Offsetting a pointer.
+An accessor policy defines:
 
-The access operation returns an object that gives access to the indexed element.
-The type of this object need not necessarily be `T&`.
-The offset operation returns an object that gives access to the contiguous subset of elements beginning at the offset value; 
-the returned object need not necessarily have the same type as the object giving access to the original contiguous set of elements.
+    * a handle to a single element of type `element_type`;
+    * a handle to a contiguous set of elements of type `element_type`, 
+      accessible only through the policy's `access` function;
+    * conversion of a handle to a contiguous set of elements, 
+      to a pointer **[conv.array]**; and
+    * getting a handle to the contiguous subset of elements 
+      beginning at an integer offset value.
+
+*[Note:* The type of `reference` need not be `element_type&`. 
+  The type of `pointer` need not be `element_type*`. *— end note]* 
+
 The constructor of the object representing the contiguous set of objects
 may impose additional restrictions on the contiguous set of objects, 
-such as restricting `T` to be trivially copyable or 
-requiring a larger alignment than `alignment_of_v<T>`.
+such as restricting `element_type` to be trivially copyable or 
+requiring a larger alignment than `alignment_of_v<element_type>`.
 
 In Table �:
   * `A` denotes an accessor policy.
   * `a` denotes an object of type `A`.
-  * `p` denotes an object of type `typename A::pointer`.
+  * `p` denotes an object of type `A::pointer`.
   * `i` denotes a `ptrdiff_t` value.
 
 Table �: Accessor policy requirements
@@ -1878,12 +1879,12 @@ Table �: Accessor policy requirements
 <tr>
   <th>Expression</th>
   <th>Return Type</th>
-  <th>Requirements/Notes</th>
+  <th>Notes/Returns/Requires</th>
 </tr>
 <tr>
   <td>`A::element_type`</td>
   <td></td>
-  <td>Type of elements accessed</td>
+  <td>Type of each element in the contiguous set of elements.</td>
 </tr>
 <tr>
   <td>`A::pointer`</td>
@@ -1895,12 +1896,14 @@ Table �: Accessor policy requirements
 <tr>
   <td>`A::reference`</td>
   <td></td>
-  <td>Type through which an element is accessed</td>
+  <td>Type through which an element is accessed. </td>
 </tr>
 <tr>
   <td>`A::offset_policy`</td>
   <td></td>
-  <td>Accessor policy which can access a pointer that has been returned by `a.offset(p,i)`.</td>
+  <td>Accessor policy for accessing a pointer returned by `a.offset(p,i)`. 
+      *Requires:* `A::offset_policy` meets the requirements of an accessor policy in Table �.
+  </td>
 </tr>
 <tr>
   <td>`a.decay(p)`</td>
@@ -1910,7 +1913,7 @@ Table �: Accessor policy requirements
 <tr>
   <td>`a.access(p,i)`</td>
   <td>`A::reference`</td>
-  <td>*Returns:* An object which provides access to the `i`-th element in the contiguous set.</td>
+  <td>*Returns:* An object which provides access to the `i`-th element in the contiguous set of elements. </td>
 </tr>
 <tr>
   <td>`a.offset(p,i)`</td>
