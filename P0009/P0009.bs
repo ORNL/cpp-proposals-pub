@@ -611,9 +611,9 @@ defines types and functions for mapping multidimensional indices
 in its **domain**, a
 multidimensional index space, to the `mdspan`'s **codomain**,
 elements of a contiguous span of objects.
-A **multidimensional index space** of **rank** <math>r</math>
+A **multidimensional index space** of **rank** <math>R</math>
 is the Cartesian product 
-<math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>r-1</sub>)</math>
+<math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math>
 of half-open integer intervals.
 A **multidimensional index** or **multi-index**
 is a member of a multidimensional index space.
@@ -639,8 +639,8 @@ of multi-indices to element objects.
 **Optimized Implementation of Layout Mapping**
 
 We intend the layout mapping of a multi-index to be a constant-time
-`constexpr` operation that is trivially inlined and optimized.
-Compiler vendors may apply optimizations such as loop-invariant code
+`constexpr` operation that is trivially inlined and optimized when possible.
+Compiler vendors may apply optimizations such as loop invariant code
 motion, including partial evaluation of multi-index layout mappings
 when indices are loop invariant.
 
@@ -700,9 +700,9 @@ The `basic_mdspan` object maps a multidimensional index
 within its domain
 to a reference of an element in the codomain.
 The *domain* of a `basic_mdspan` object is a multidimensional index space.
-A *multidimensional index space* of *rank* <math>r</math>
+A *multidimensional index space* of *rank* <math>R</math>
 is the Cartesian product 
-<math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>r-1</sub>)</math>
+<math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math>
 of half-open integer intervals.
 A **multidimensional index** or **multi-index**
 is a member of a multidimensional index space.
@@ -814,9 +814,10 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <b>26.7.�.1 Overview [mdspan.extents.overview]</b>
 
 1. An `extents` object defines a multidimensional index space.
-2. The *dynamic extents* of an `extents` object correspond to the template arguments in the `Extents` parameter pack that equal `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th dynamic extent in the `Extents` template parameter pack, and let *DynamicIndex[r]* indicate the number of dynamic extents in the first *r* entries of the `Extents` parameter pack.
-3. An `extents` object is expected to store dynamic extents.  *[Note:* An implementation should not consume storage for static extents. *— end note]* 
-4. If any template arguments in `Extents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
+2. A **multidimensional index space** of **rank** <math>R</math> is the Cartesian product <math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math> of half-open integer intervals.
+3. The *dynamic extents* of an `extents` object correspond to the template arguments in the `Extents` parameter pack that equal `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th dynamic extent in the `Extents` template parameter pack, and let *DynamicIndex[r]* indicate the number of dynamic extents in the first *r* entries of the `Extents` parameter pack.
+4. An `extents` object is expected to store dynamic extents.  *[Note:* An implementation should not consume storage for static extents. *— end note]* 
+5. If any template arguments in `Extents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
 
 <!-- TODO review change to make rank() and rank_dynamic() size_t -->
 <!-- TODO review addition of array constructor -->
@@ -1279,7 +1280,7 @@ constexpr mapping(const mapping<OtherExtents>& other);
 
 * *Requires:* `other.extents()` meets the requirements for use in the initialization of `extents_`.
 * *Effects:* Initializes `extents_` with `other.extents()`.
-* *Ensures:* `extents()==other.extents_` is `true`.
+* *Ensures:* `extents()==other.extents()` is `true`.
 * *Throws:* Nothing.
 
 <br/>
@@ -1720,8 +1721,12 @@ such that `p[i]` equals <math>p<sub>`i`</sub></math> for 0 <= `i` < R.
       of the integers 0, ..., R-1 such that
       `s(p[i]) >= s(p[i-1])*e.extent(p[i-1])` is `true` 
       for 1 <= `i` < R.
-* *Effects:* Initializes `extents_` with `e` and `strides_` with `s`.
-* *Ensures:* `extents()==e && strides()==s` is `true`.
+* *Effects:*
+    * Initializes `extents_` with `e`, and
+    * initializes `strides_` with `s`.
+* *Ensures:*
+    * `extents()==e` is `true`, and
+    * `strides()==s` is `true`.
 * *Throws:* Nothing.
 
 ```c++
@@ -1729,8 +1734,12 @@ template<class OtherExtents>
   constexpr mapping(const mapping<OtherExtents>& other);
 ```
 * *Requires:* `other.extents()` meets the requirements for use in the initialization of `extents_`.
-* *Effects:* Initializes `extents_` with `other.extents()`, and initializes `strides_` with `other.strides()`.
-* *Ensures:* `extents()==other.extents() && strides()==other.strides()` is `true`.
+* *Effects:*
+    * Initializes `extents_` with `other.extents()`, and
+    * initializes `strides_` with `other.strides()`.
+* *Ensures:*
+    * `extents()==other.extents()` is `true`, and
+    * `strides()==other.strides()` is `true`.
 * *Throws:* Nothing.
 
 
@@ -1763,13 +1772,6 @@ template <class... Indices>
     * If R is zero, then zero;
     * Otherwise, the sum of <math>i<sub>`k`</sub> &#10799; `s[k]`
       for 0 <= `k` < R.
-
-<!-- FIXME (mfh 29 Sep 2018) This used to say:
-
-* *Returns:* If `i...` is `i0, i1, i2`, ..., `ik` (where `k==Extents::rank() - 1` is `true`) and `s` is `strides()`, returns `i0*s[1]+i1*s[2]+`...`+ik*s[k]`.
-
-THAT LOOKS WRONG, so I fixed it.
--->
 
 ```c++
 static constexpr bool is_always_unique() noexcept;
@@ -1890,7 +1892,7 @@ Table �: Accessor policy requirements
   <td>`A::pointer`</td>
   <td></td>
   <td>Type through which the contiguous set of elements are accessed. 
-      <br>*Requires:* *Cpp17DefaultConstructible*, *Cpp17CopyConstructible*, and *Cpp17CopyAssignable*.
+      <br/>*Requires:* *Cpp17DefaultConstructible*, *Cpp17CopyConstructible*, and *Cpp17CopyAssignable*.
   </td>
 </tr>
 <tr>
@@ -1902,7 +1904,7 @@ Table �: Accessor policy requirements
   <td>`A::offset_policy`</td>
   <td></td>
   <td>Accessor policy for accessing a pointer returned by `a.offset(p,i)`. 
-      *Requires:* `A::offset_policy` meets the requirements of an accessor policy in Table �.
+      <br/> *Requires:* `A::offset_policy` meets the requirements of an accessor policy in Table �.
   </td>
 </tr>
 <tr>
@@ -1918,7 +1920,8 @@ Table �: Accessor policy requirements
 <tr>
   <td>`a.offset(p,i)`</td>
   <td>`A::offset_policy::pointer`</td>
-  <td>*Returns:* A pointer to the contiguous span of elements offset by `i`.  *Requires:* `A::decay(p)+i` equals `A::offset_policy::decay(A::offset(p,i))`.</td>
+  <td>*Returns:* A pointer to the contiguous span of elements offset by `i`.
+      <br/> *Requires:* `A::decay(p)+i` equals `A::offset_policy::decay(A::offset(p,i))`.</td>
 </tr>
 </table>
 
@@ -2228,7 +2231,6 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
 ```
 
 * *Constraints:*
-    + `is_convertible_v<OtherElementType(*)[], ElementType(*)[]>` is `true`, <!-- lifted directly from span wording -->
     + `is_convertible_v<OtherLayoutPolicy::template mapping<OtherExtents>, mapping_type` is `true`,
     + `is_convertible_v<OtherAccessor, Accessor>` is `true`, and
     + `is_convertible_v<OtherAccessor::pointer, pointer>` is `true`.
@@ -2252,7 +2254,6 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
 
 <!-- NOTE is_assignable_v<T,U> means T is assignable from U -->
 * *Constraints:*
-    + `is_assignable_v<ElementType(*)[], OtherElementType(*)[]>` is `true`, <!-- lifted directly from span wording -->
     + `is_assignable_v<mapping_type, OtherLayoutPolicy::template mapping<OtherExtents>>` is `true`,
     + `is_assignable_v<Accessor, OtherAccessor>` is `true`, and
     + `is_assignable_v<pointer, OtherAccessor::pointer>` is `true`.
@@ -2606,6 +2607,7 @@ where `src` and `slices...` are the arguments of `subspan`.
     * For 0 <= `k` < `sizeof...(slices)`,
       `is_convertible_v<`<math>S<sub>k</sub></math>`, ptrdiff_t> || is_convertible_v<`<math>S<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>S<sub>k</sub></math>`, all_type>` is `true`.
 * *Ensures:*
+    * `sub.rank()` equals &rho;.
     * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals &rho;.
     * Let the pack `i...` denote a multi-index in the domain of `sub`
       such that <math>i<sub>`k`</sub></math> < `sub.extents(k)` for 0 <= `k` < &rho;,
