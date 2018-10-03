@@ -1345,8 +1345,8 @@ typename Extents::index_type stride(size_t r) const;
 * *Returns:*
     * If `r` is zero, then one;
     * Otherwise, the product of `extents().extent(k)`
-      for 0 <= k < `r`, where <math>i<sub>k</sub></math>
-      denotes the k-th member of `i...` .
+      for 0 <= `k` < `r`, where <math>i<sub>`k`</sub></math>
+      denotes the `k`-th member of `i...` .
 
 <br/>
 ```c++
@@ -1537,8 +1537,8 @@ template<class... Indices>
     * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
 * *Returns:* Let <math>i<sub>k</sub></math> denote the k-th member of `i...`, and let R equal `Extents::rank()`:
     * If R is zero, then zero;
-    * Otherwise, the sum of <math>i<sub>k</sub></math> &#10799; `stride(k)`
-      for 0 <= k < R.
+    * Otherwise, the sum of <math>i<sub>`k`</sub></math> &#10799; `stride(k)`
+      for 0 <= `k` < R.
 
 <!--
 Let `i[k]` denote the `k`*th* member of `i...`.
@@ -1717,8 +1717,7 @@ such that `p[i]` equals <math>p<sub>`i`</sub></math> for 0 <= `i` < R.
     * `s[i] > 0` is `true` for 0 < `i` <= R.
     * If R is nonzero, then
       there exists a permutation <math>p</math>
-      of the integers 0, ..., R-1
-      with 0 <= i < R such that
+      of the integers 0, ..., R-1 such that
       `s(p[i]) >= s(p[i-1])*e.extent(p[i-1])` is `true` 
       for 1 <= `i` < R.
 * *Effects:* Initializes `extents_` with `e` and `strides_` with `s`.
@@ -1762,7 +1761,8 @@ template <class... Indices>
     * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
 * *Returns:* Let <math>i<sub>k</sub></math> denote the k-th member of `i...`, let R equal `Extents::rank()`, and let `s` be `strides()`:
     * If R is zero, then zero;
-    * Otherwise, the sum of <math>i<sub>k</sub> &#10799; `s[k]` for 0 <= k < R.
+    * Otherwise, the sum of <math>i<sub>`k`</sub> &#10799; `s[k]`
+      for 0 <= `k` < R.
 
 <!-- FIXME (mfh 29 Sep 2018) This used to say:
 
@@ -1796,11 +1796,10 @@ such that `p[i]` equals <math>p<sub>`i`</sub></math> for 0 <= `i` < R.
 * *Returns:*
     * If `R` is zero, then `true`;
     * Else, if there is a permutation <math>p</math> 
-      of the integers 0, ..., R-1
-      with 0 <= i < R such that
-      `min(stride(p[i])==1` is `true` and
-      `stride(p[i])==stride(p[i-1])*extents().extent(p[i-1])` 
-      with 1 <= `i` < R, then `true`;
+      of the integers 0, ..., R-1 such that
+      `min(stride(p[i])` equals 1 for 0 <= `i` < R, and
+      `stride(p[i])` equals `stride(p[i-1])*extents().extent(p[i-1])`
+      for 1 <= `i` < R, then `true`;
     * Otherwise, `false`.
 
 ```c++
@@ -1855,7 +1854,7 @@ An accessor policy defines:
 
     * a handle to a single element of type `element_type`;
     * a handle to a contiguous set of elements of type `element_type`, 
-      accessible only through the policy's `access` function;
+      accessible through the policy's `access` function;
     * conversion of a handle to a contiguous set of elements, 
       to a pointer **[conv.array]**; and
     * getting a handle to the contiguous subset of elements 
@@ -2593,10 +2592,6 @@ where `src` and `slices...` are the arguments of `subspan`.
     * Else, if `is_convertible_v<`<math>S<sub>`r`</sub></math>`, all_type>`,
       then `first[r] = 0`, and `last[r]` equals `src.extent(r)`.
 
-If `i...` is a pack of integers other than `slices...`,
-then denote the value of the
-<math>k</math>-th member of `i...` by <math>i<sub>k</sub></math>.
-
 * *Requires:*
     * `sizeof(slices...)` equals `src.rank()`.
     * For 0 <= `r` < `sizeof...(slices)`,
@@ -2613,12 +2608,13 @@ then denote the value of the
 * *Ensures:*
     * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals &rho;.
     * Let the pack `i...` denote a multi-index in the domain of `sub`
-      such that i<sub>k</sub></math> < `sub.extents(k)` for 0 <= `k` < &rho;.
+      such that <math>i<sub>`k`</sub></math> < `sub.extents(k)` for 0 <= `k` < &rho;,
+      where <math>i<sub>`k`</sub></math> denotes the `k`-th member of `i...` .
       Let the pack `j...` denote a multi-index in the domain of `src` where
-      the `get_seq<k>(rank_map)`-th entry of `j`
-      equals `first[get_seq<k>(rank_map)]` + <math>i<sub>k</sub></math>
+      the `get_seq<k>(rank_map)`-th member of `j...`
+      equals `first[get_seq<k>(rank_map)]` + <math>i<sub>`k`</sub></math>
       for 0 <= `k` < <math>&rho;</math>, 
-      and <math>j<sub>r</sub></math> equals `first[r]`
+      and the `r`-th member of `j...` equals `first[r]`
       for all `r` such that 0 <= `r` < `src.rank()` and `r` is not in `rank_map`.
       Then, `sub(i...)` and `src(j...)` refer to the same element.
     * For 0 <= `k` < &rho;, `sub.extent(k)` equals
