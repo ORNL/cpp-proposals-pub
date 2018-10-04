@@ -1895,7 +1895,7 @@ Table �: Accessor policy requirements
 <tr>
   <td>`A::pointer`</td>
   <td></td>
-  <td>Type through which the contiguous set of elements are accessed. 
+  <td>Type through which the range of elements are accessed. 
       <br/>*Requires:* *Cpp17DefaultConstructible*, *Cpp17CopyConstructible*, and *Cpp17CopyAssignable*.
   </td>
 </tr>
@@ -1911,28 +1911,29 @@ Table �: Accessor policy requirements
       <br/>
       *Requires:*
       + `A::offset_policy` meets the requirements of an accessor policy in Table �.
-      + `is_convertible_v<A, A::offset_policy>` is `true`
+      + `is_convertible_v<A, A::offset_policy>` is `true` and `A::offset_policy(a)` is valid.
   </td>
 </tr>
 <tr>
   <td>`a.decay(p)`</td>
   <td>`A::element_type*`</td>
-  <td>*Returns:* A pointer to the object accessed by `p`.</td>
+  <!-- lifted from [pointer.traits.optmem] -->
+  <td>*Returns:* A pointer that references the same location as `p`.</td>
 </tr>
 <tr>
   <td>`a.access(p,i)`</td>
   <td>`A::reference`</td>
-  <td>*Returns:* An object which provides access to the `i`-th element in the contiguous set of elements. </td>
+  <td>*Returns:* An object which provides access to the `i`-th element in range of elements that starts at `p`.</td>
 </tr>
 <tr>
   <td>`a.offset(p,i)`</td>
   <td>`A::offset_policy::pointer`</td>
   <td>
   
-      *Returns:* A pointer to the contiguous span of elements offset by `i`.
+      *Returns:* A pointer that references the same location as `a.decay(p)+i`.
 
       *Requires:* 
-      + `a.decay(p)+i` equals `A::offset_policy(a).decay(A::offset(p,i))`
+      + `a.decay(p)+i` equals `A::offset_policy(a).decay(a.offset(p,i))`
       + `A::offset_policy(a).access(a.offset(p,i),j)` is valid if `a.access(p,i+j)` is valid.
   </td>
 </tr>
