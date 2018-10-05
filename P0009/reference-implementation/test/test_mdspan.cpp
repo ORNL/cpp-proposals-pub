@@ -1,6 +1,6 @@
-#include<mdspan>
+#include<experimental/mdspan>
 #include<cstdio>
-#include<gtest/gtest.h>
+#include"gtest/gtest.h"
 
 using namespace std::experimental::fundamentals_v3;
 
@@ -38,7 +38,7 @@ struct test_mdspan {
   typedef typename mdspan_type::pointer        pointer_type;
 
   mdspan_type my_mdspan_extents,my_mdspan_array,my_mdspan_mapping,my_mdspan_map_acc,my_mdspan_copy;
- 
+
   template<class ... ED>
   test_mdspan(ED ... e) {
     mapping_type map(extents_type(e...));
@@ -85,7 +85,7 @@ struct test_mdspan {
       ASSERT_EQ(my_mdspan_copy.   stride(r),a[r]);
     }
   }
-   
+
   void check_properties_internal(mdspan_type my_mdspan, bool always_unique, bool always_contiguous, bool always_strided,
                         bool unique, bool contiguous, bool strided) {
     ASSERT_EQ(my_mdspan.is_always_unique()?1:0,always_unique?1:0);
@@ -102,7 +102,7 @@ struct test_mdspan {
     check_properties_internal(my_mdspan_map_acc,always_unique,always_contiguous,always_strided,unique,contiguous,strided);
     check_properties_internal(my_mdspan_extents,always_unique,always_contiguous,always_strided,unique,contiguous,strided);
     check_properties_internal(my_mdspan_copy   ,always_unique,always_contiguous,always_strided,unique,contiguous,strided);
-  }   
+  }
 
   void check_operator() {
     extents_type e = my_mdspan_mapping.extents();
@@ -112,10 +112,10 @@ struct test_mdspan {
     for(ptrdiff_t i3 = 0; i3<e.extent(3); i3++)
     for(ptrdiff_t i4 = 0; i4<e.extent(4); i4++) {
       element_type value = i0*10000+i1*1000+i2*100+i3*10+i4;
-      ASSERT_EQ(my_mdspan_mapping(i0,i1,i2,i3,i4),value);    
-      ASSERT_EQ(my_mdspan_map_acc(i0,i1,i2,i3,i4),value);    
-      ASSERT_EQ(my_mdspan_extents(i0,i1,i2,i3,i4),value);    
-      ASSERT_EQ(my_mdspan_copy   (i0,i1,i2,i3,i4),value);    
+      ASSERT_EQ(my_mdspan_mapping(i0,i1,i2,i3,i4),value);
+      ASSERT_EQ(my_mdspan_map_acc(i0,i1,i2,i3,i4),value);
+      ASSERT_EQ(my_mdspan_extents(i0,i1,i2,i3,i4),value);
+      ASSERT_EQ(my_mdspan_copy   (i0,i1,i2,i3,i4),value);
     }
   }
 };
@@ -163,7 +163,7 @@ TEST_F(mdspan_,operator_right) {
   typedef basic_mdspan<int,extents<5,dynamic_extent,3,dynamic_extent,1>,
                  layout_right,accessor_basic<int> > mdspan_type;
   test_mdspan<mdspan_type> test(4,2);
-   
+
   test.check_operator();
 }
 
@@ -171,7 +171,7 @@ TEST_F(mdspan_,operator_left) {
   typedef basic_mdspan<int,extents<5,dynamic_extent,3,dynamic_extent,1>,
                  layout_left,accessor_basic<int> > mdspan_type;
   test_mdspan<mdspan_type> test(4,2);
-   
+
   test.check_operator();
 }
 

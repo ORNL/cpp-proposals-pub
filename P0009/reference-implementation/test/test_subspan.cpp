@@ -1,6 +1,6 @@
-#include<mdspan>
+#include<experimental/mdspan>
 #include<cstdio>
-#include<gtest/gtest.h>
+#include"gtest/gtest.h"
 
 using namespace std::experimental::fundamentals_v3;
 
@@ -116,10 +116,10 @@ TEST_F(subspan_,basic_mdspan_layout_right) {
   extents_type e(4,2);
   layout_right::mapping<extents_type> map(e);
   int* ptr = new int[map.required_span_size()];
-  typedef basic_mdspan<int,extents_type,layout_right,accessor_basic<int> > mdspan_type;  
+  typedef basic_mdspan<int,extents_type,layout_right,accessor_basic<int> > mdspan_type;
 
   mdspan_type a(ptr,e);
-  
+
   auto sub = subspan(a,ptrdiff_t(2),std::pair<int,int>(1,3),all_type(),all_type(),ptrdiff_t(0));
   ASSERT_EQ(sub.rank(),3);
   ASSERT_EQ(sub.rank_dynamic(),2);
@@ -153,10 +153,10 @@ TEST_F(subspan_,basic_mdspan_layout_left) {
   extents_type e(4,2);
   layout_left::mapping<extents_type> map(e);
   int* ptr = new int[map.required_span_size()];
-  typedef basic_mdspan<int,extents_type,layout_left,accessor_basic<int> > mdspan_type;  
+  typedef basic_mdspan<int,extents_type,layout_left,accessor_basic<int> > mdspan_type;
 
   mdspan_type a(ptr,e);
-  
+
   auto sub = subspan(a,ptrdiff_t(2),std::pair<int,int>(1,3),all_type(),all_type(),ptrdiff_t(0));
   ASSERT_EQ(sub.rank(),3);
   ASSERT_EQ(sub.rank_dynamic(),2);

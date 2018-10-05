@@ -1,6 +1,6 @@
-#include<mdspan>
+#include<experimental/mdspan>
 #include<cstdio>
-#include<gtest/gtest.h>
+#include"gtest/gtest.h"
 
 using std::experimental::fundamentals_v3::extents;
 using std::experimental::fundamentals_v3::dynamic_extent;
@@ -24,7 +24,7 @@ struct test_layouts {
   typedef typename Layout::template mapping<extents_type> mapping_type;
 
   mapping_type my_mapping_explicit,my_mapping_copy;
- 
+
   template<class ... E>
   test_layouts(E ... e) {
     my_mapping_explicit = mapping_type(extents_type(e...));
@@ -59,7 +59,7 @@ struct test_layouts {
     ASSERT_EQ(my_mapping_explicit.required_span_size(),size);
     ASSERT_EQ(my_mapping_copy.required_span_size(),size);
   }
- 
+
   void check_properties(bool always_unique, bool always_contiguous, bool always_strided,
                         bool unique, bool contiguous, bool strided) {
     ASSERT_EQ(my_mapping_explicit.is_always_unique()?1:0,always_unique?1:0);
@@ -74,7 +74,7 @@ struct test_layouts {
     ASSERT_EQ(my_mapping_copy.is_unique()?1:0,unique?1:0);
     ASSERT_EQ(my_mapping_copy.is_contiguous()?1:0,contiguous?1:0);
     ASSERT_EQ(my_mapping_copy.is_strided()?1:0,strided?1:0);
-  } 
+  }
 
   template<class ... E>
   void check_operator(ptrdiff_t offset, E ... e) {
@@ -117,14 +117,14 @@ TEST_F(layouts_,properties_left) {
 
 TEST_F(layouts_,operator_right) {
   test_layouts<layout_right,5,dynamic_extent,3,dynamic_extent,1> test(4,2);
-   
+
   test.check_operator(107,4,1,2,1,0);
   test.check_operator(0,0,0,0,0,0);
 }
 
 TEST_F(layouts_,operator_left) {
   test_layouts<layout_left,5,dynamic_extent,3,dynamic_extent,1> test(4,2);
-   
+
   test.check_operator(109,4,1,2,1,0);
   test.check_operator(0,0,0,0,0,0);
 }

@@ -3,7 +3,7 @@
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 // [mdspan.layout]
 class layout_right ;
@@ -18,7 +18,7 @@ class layout_stride ;
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 class layout_right {
 
@@ -104,7 +104,7 @@ public:
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 class layout_left {
 public:
@@ -188,7 +188,7 @@ public:
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 class layout_stride {
 public:
