@@ -1,5 +1,5 @@
 #include <cstddef> // std::ptrdiff_t
-#include <array>
+#include <array> // std::array
 
 namespace std {
 namespace experimental {
@@ -39,8 +39,8 @@ namespace detail {
 
     typedef extents_analyse<R-1,StaticExtents...> next_extents_analyse;
 
-    static constexpr size_t rank() noexcept { return next_extents_analyse::rank()+1; }
-    static constexpr size_t rank_dynamic() noexcept { return next_extents_analyse::rank_dynamic(); }
+    static constexpr std::size_t rank() noexcept { return next_extents_analyse::rank()+1; }
+    static constexpr std::size_t rank_dynamic() noexcept { return next_extents_analyse::rank_dynamic(); }
 
     next_extents_analyse next;
 
@@ -49,8 +49,8 @@ namespace detail {
     template<class...DynamicExtents>
     extents_analyse(DynamicExtents...de):next(de...) {}
 
-    template<size_t Rank>
-    extents_analyse(const array<std::ptrdiff_t,Rank>& de,const size_t r):next(de,r) {}
+    template<std::size_t Rank>
+    extents_analyse(const array<std::ptrdiff_t,Rank>& de,const std::size_t r):next(de,r) {}
 
     template<std::ptrdiff_t...OtherStaticExtents>
     extents_analyse(extents_analyse<R,OtherStaticExtents...> rhs):next(rhs.next) {}    
@@ -61,11 +61,11 @@ namespace detail {
       return *this;
     }
     
-    constexpr std::ptrdiff_t extent(const size_t r) const noexcept {
+    constexpr std::ptrdiff_t extent(const std::size_t r) const noexcept {
       if(r==R) return E0;
       return next.extent(r); 
     }
-    static constexpr std::ptrdiff_t static_extent(const size_t r) noexcept {
+    static constexpr std::ptrdiff_t static_extent(const std::size_t r) noexcept {
       if(r==R) return E0;
       return next_extents_analyse::static_extent(r);
     }
@@ -75,8 +75,8 @@ namespace detail {
   struct extents_analyse<R,dynamic_extent,StaticExtents...> {
     typedef extents_analyse<R-1,StaticExtents...> next_extents_analyse;
 
-    static constexpr size_t rank() noexcept { return next_extents_analyse::rank()+1; }
-    static constexpr size_t rank_dynamic() noexcept { return next_extents_analyse::rank_dynamic()+1; }
+    static constexpr std::size_t rank() noexcept { return next_extents_analyse::rank()+1; }
+    static constexpr std::size_t rank_dynamic() noexcept { return next_extents_analyse::rank_dynamic()+1; }
 
     next_extents_analyse next;
     std::ptrdiff_t this_extent;
@@ -86,8 +86,8 @@ namespace detail {
     template<class...DynamicExtents>
     extents_analyse(std::ptrdiff_t E, DynamicExtents...de):next(de...),this_extent(E) {}
 
-    template<size_t Rank>
-    extents_analyse(const array<std::ptrdiff_t,Rank>& de, const size_t r):next(de,r+1),this_extent(de[r]) {}
+    template<std::size_t Rank>
+    extents_analyse(const array<std::ptrdiff_t,Rank>& de, const std::size_t r):next(de,r+1),this_extent(de[r]) {}
 
     template<std::ptrdiff_t...OtherStaticExtents>
     extents_analyse(extents_analyse<R,OtherStaticExtents...> rhs):next(rhs.next),this_extent(rhs.extent(R)) {}    
@@ -99,11 +99,11 @@ namespace detail {
       return *this;
     }    
 
-    constexpr std::ptrdiff_t extent(const size_t r) const noexcept {
+    constexpr std::ptrdiff_t extent(const std::size_t r) const noexcept {
       if(r==R) return this_extent; 
       else return next.extent(r);
     }
-    static constexpr std::ptrdiff_t static_extent(const size_t r) noexcept {
+    static constexpr std::ptrdiff_t static_extent(const std::size_t r) noexcept {
       if(r==R) return dynamic_extent;
       return next_extents_analyse::static_extent(r);
     }
@@ -111,20 +111,20 @@ namespace detail {
 
   template<>
   struct extents_analyse<0> {
-    static constexpr size_t rank() noexcept { return 0; }
-    static constexpr size_t rank_dynamic() noexcept { return 0; }
+    static constexpr std::size_t rank() noexcept { return 0; }
+    static constexpr std::size_t rank_dynamic() noexcept { return 0; }
 
     extents_analyse() {}
 
-    template<size_t Rank>
-    extents_analyse(const array<std::ptrdiff_t,Rank>&, const size_t) {}
+    template<std::size_t Rank>
+    extents_analyse(const array<std::ptrdiff_t,Rank>&, const std::size_t) {}
 
     //extents_analyse & operator=(extents_analyse) = default;
 
-    constexpr std::ptrdiff_t extent(const size_t) const noexcept {
+    constexpr std::ptrdiff_t extent(const std::size_t) const noexcept {
       return 1;
     }
-    static constexpr std::ptrdiff_t static_extent(const size_t) noexcept {
+    static constexpr std::ptrdiff_t static_extent(const std::size_t) noexcept {
       return 1;
     }
 
@@ -175,16 +175,16 @@ public:
 
   // [mdspan.extents.obs]
 
-  static constexpr size_t rank() noexcept
+  static constexpr std::size_t rank() noexcept
     { return sizeof...(StaticExtents); }
 
-  static constexpr size_t rank_dynamic() noexcept 
+  static constexpr std::size_t rank_dynamic() noexcept 
     { return extents_analyse_t::rank_dynamic() ; }
 
-  static constexpr index_type static_extent(size_t k) noexcept
+  static constexpr index_type static_extent(std::size_t k) noexcept
     { return extents_analyse_t::static_extent(rank()-k); }
 
-  constexpr index_type extent(size_t k) const noexcept
+  constexpr index_type extent(std::size_t k) const noexcept
     { return impl.extent(rank()-k); }
 
 };
@@ -193,7 +193,7 @@ template<std::ptrdiff_t... LHS, std::ptrdiff_t... RHS>
 constexpr bool operator==(const extents<LHS...>& lhs,
                           const extents<RHS...>& rhs) noexcept { 
   bool equal = lhs.rank() == rhs.rank();
-  for(size_t r = 0; r<lhs.rank(); r++)
+  for(std::size_t r = 0; r<lhs.rank(); r++)
     equal = equal && ( lhs.extent(r) == rhs.extent(r) ); 
   return equal; 
 }

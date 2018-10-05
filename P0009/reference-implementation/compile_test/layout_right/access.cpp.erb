@@ -1,0 +1,30 @@
+
+#include <experimental/mdspan>
+#include <cstring> // std::memset
+
+int main(int argc, char** argv) {
+  using mdspan_type = std::experimental::basic_mdspan<
+    int, std::experimental::extents<<%=([n]*n).join(', ')%>>,
+    std::experimental::layout_right
+  >;
+
+  auto* data = new int[<%= n**n %>];
+  std::memset(data, 314, <%= n**n %>);
+  auto span = mdspan_type(data);
+
+  int value = 0;
+#ifdef METABENCH
+  value =
+    37
+    <% (0..(n-1)).to_a.repeated_combination(n).to_a.cycle(50).to_a.sample(10000, random: Random.new(314159)).each do |idxs| %>
+    + span(<%= idxs.join(', ') %>)
+    
+    <% end %>
+    ;
+#endif
+
+  delete[] data;
+
+  return value;
+
+}

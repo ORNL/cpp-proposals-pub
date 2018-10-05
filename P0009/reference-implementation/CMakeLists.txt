@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 ################################################################################
 
 option(MDSPAN_ENABLE_TESTING "Enable tests." Off)
+option(MDSPAN_ENABLE_COMPILE_BENCHMARK "Enable compile-time benchmarking." Off)
 
 ################################################################################
 
@@ -59,4 +60,8 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/MDSpanConfig.cmake ${CMAKE_CURRENT_BIN
 
 if(MDSPAN_ENABLE_TESTING)
   add_subdirectory(test)
+endif()
+
+if(MDSPAN_ENABLE_COMPILE_BENCHMARK)
+  add_subdirectory(compile_test)
 endif()

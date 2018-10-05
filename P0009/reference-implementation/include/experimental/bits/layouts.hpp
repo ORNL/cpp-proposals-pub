@@ -58,7 +58,7 @@ public:
       { return sum; }
 
     template<class ... Indices >
-    constexpr index_type
+    inline constexpr index_type
     offset( const size_t r, ptrdiff_t sum, const index_type i, Indices... indices) const noexcept
       {
         return offset( r+1 , sum * m_extents.extent(r) + i, indices...);
