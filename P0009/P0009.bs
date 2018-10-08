@@ -1775,6 +1775,7 @@ template <class... Indices>
     * If R is zero, then zero;
     * Otherwise, the sum of <math>i<sub>`k`</sub> &#10799; `s[k]`
       for 0 <= `k` < R.
+* *Throws:* Nothing.
 
 ```c++
 static constexpr bool is_always_unique() noexcept;
@@ -1878,7 +1879,7 @@ In Table �:
   * `A` denotes an accessor policy.
   * `a` denotes an object of type `A`.
   * `p` denotes an object of type `A::pointer`.
-  * `i` and `j` denote a `ptrdiff_t` value.
+  * `i` and `j` each denote a `ptrdiff_t` value.
 
 Table �: Accessor policy requirements
 <table border=1>
@@ -1923,7 +1924,7 @@ Table �: Accessor policy requirements
 <tr>
   <td>`a.access(p,i)`</td>
   <td>`A::reference`</td>
-  <td>*Returns:* An object which provides access to the `i`-th element in range of elements that starts at `p`.</td>
+  <td>*Returns:* An object which provides access to the `i`-th element in the range of elements that starts at `p`.</td>
 </tr>
 <tr>
   <td>`a.offset(p,i)`</td>
@@ -2246,7 +2247,7 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
     + `is_convertible_v<OtherLayoutPolicy::template mapping<OtherExtents>, mapping_type` is `true`,
     + `is_convertible_v<OtherAccessor, Accessor>` is `true`, and
     + `is_convertible_v<OtherAccessor::pointer, pointer>` is `true`.
-    + `OtherExtents::rank() == rank()` is `true`
+    + `is_convertible_v<OtherExtents, extents_type>` is `true`
     + For all `r` in the range `[0, rank())`, if `other.static_extent(r)!=dynamic_extent && static_extent(r)!=dynamic_extent` is `true`, then `other.static_extent(r)==static_extent(r)` is `true`.
 * *Requires:*
     + For all `r` in the range `[0, rank())`, if `other.static_extent(r)==dynamic_extent || static_extent(r)==dynamic_extent` is `true`, then `other.extent(r)==extent(r)` is `true`.
