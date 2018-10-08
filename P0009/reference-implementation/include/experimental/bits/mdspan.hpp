@@ -6,7 +6,7 @@
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 
 
@@ -33,7 +33,7 @@ class all_type { public: constexpr explicit all_type() = default; };
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 template<class ElementType, class Extents, class LayoutPolicy, class AccessorPolicy>
 class basic_mdspan {

@@ -3,7 +3,7 @@
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 // [mdspan.layout]
 class layout_right ;
@@ -18,7 +18,7 @@ class layout_stride ;
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 class layout_right {
 
@@ -58,7 +58,7 @@ public:
       { return sum; }
 
     template<class ... Indices >
-    constexpr index_type
+    inline constexpr index_type
     offset( const size_t r, ptrdiff_t sum, const index_type i, Indices... indices) const noexcept
       {
         return offset( r+1 , sum * m_extents.extent(r) + i, indices...);
@@ -104,7 +104,7 @@ public:
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 class layout_left {
 public:
@@ -188,7 +188,7 @@ public:
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 class layout_stride {
 public:

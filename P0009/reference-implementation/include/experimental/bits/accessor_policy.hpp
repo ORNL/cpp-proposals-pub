@@ -3,7 +3,7 @@
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 // [mdspan.accessor.basic]
 template<class ElementType>

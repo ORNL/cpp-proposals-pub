@@ -3,7 +3,7 @@
 
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 namespace detail {
 
 template<class ExtentsNew, class ExtentsOld, class ... SliceSpecifiers>
