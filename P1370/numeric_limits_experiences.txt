@@ -1,24 +1,42 @@
 #+TITLE: Generic numerical algorithm development with(out) numeric_limits
 #+AUTHOR: Mark Hoemmen (mhoemme@sandia.gov) and Damien Lebrun-Grandie (qdi@ornl.gov)
-#+DATE: 19 Nov 2018
+#+DATE: 20 Nov 2018
 
-* Abstract
+* Proposal
 
-Developers of generic numerical algorithms find some parts of
-~numeric_limits~ useful, and other parts confusing.  They may need to
-write their own traits classes, since they need more traits than what
-~numeric_limits~ offers.  However, these developers would still like
-to help improve ~numeric_limits~, so they can use its successors as a
-building block for their own traits.  In this experience paper, we
-will go through two use cases that show the value of making the
-following changes to ~numeric_limits~:
+[[wg21.link/P0437R1][P0437R1]] proposes to "[b]reak the monolithic ~numeric_limits~ class
+template apart into a lot of individual trait templates, so that new
+traits can be added easily."  We find this uncontroversial, and agree
+that use of a trait should require (in the SFINAE sense) that the
+trait makes sense for the template argument.  For example, the
+"maximum finite value" of an implementation-specific
+arbitrary-precision floating-point type could be unbounded per
+instance of the type, as in MPFR[fn:1], or it could depend on a
+run-time option, as in ARPREC.[fn:2]
 
-  1. Split out different traits into separate traits classes.
-  2. Don't let those classes compile for types for which they do not
-     make sense.
-  3. For floating-point types ~T~, rename the equivalent of
-     ~numeric_limits<T>::min~ to something more indicative of its
-     purpose in generic algorithms.
+Creating new traits also gives us the opportunity to fix the
+inconsistent definition of ~numeric_limits<T>::min~ for integer
+vs. floating-point types ~T~.  For integer types, this function
+returns the minimum value, which for signed types is the negative
+value of largest magnitude.  However, for floating-point types, it
+returns the smallest positive (!) value.  This is surprising, and can
+lead to errors when writing algorithms meant for either integers or
+floating-point values.  Nevertheless, the actual value is useful in
+practice for writing generic numerical algorithms.
+
+We propose the following:
+
+  1. Whatever trait replaces ~numeric_limits<T>::min~, should always
+     give the minimum finite value of ~T~.  For floating-point types,
+     it should give the same value as ~numeric_limits<T>::lowest()~
+     does now.
+     
+  2. The actual current value of ~numeric_limits<T>::min()~ for
+     floating-point types ~T~ is useful for writing generic numerical
+     algorithms, but the name "min" is confusing.  We propose
+     bikeshedding a different name, and suggest ~safe_minimum_v<T>~,
+     based on the equivalent value in the LAPACK linear algebra
+     library.
 
 * Terms
 
@@ -34,103 +52,78 @@ came out in 1985, and the latest revision was released in 2008.  (The
 IEEE 754 Floating Point Standards Committee approved a new draft on 20
 July 2018, as reported by Committee member James Demmel over e-mail.)
 
-* Background
-
-The ~numeric_limits~ traits class in the standard library helps
-developers write generic code.  It provides useful number properties,
-like whether a number type is signed, or the min or max finite value.
-However, it has a few problems:
-
-  1. All the traits are defined and have a value for all number types,
-     even though some traits only make sense for certain types.  For
-     example, ~numeric_limits<T>::min_exponent~ only makes sense for
-     floating-point types, but exists and is 0 for integer types.
-
-  2. Users can specialize ~numeric_limits~ for their own types, but
-     the existing traits may not make as much sense.  For example,
-     what's the "maximum finite value" of an arbitrary-precision
-     floating-point type?
-
-  3. The ~numeric_limits<T>::min~ function does not behave
-     consistently for integer vs. floating-point types.  For integer
-     types, it returns the minimum value, which for signed types is
-     the negative value of largest magnitude.  However, for
-     floating-point types, it returns the smallest positive (!) value.
-     This is surprising, and can lead to errors when writing
-     algorithms meant for either integers or floating-point values.
-     Nevertheless, the actual value is useful in practice (see below).
-
-At the 2018 San Diego WG21 meeting, in the Monday SG6 (Numerics Study
-Group) session, Walter Brown proposed separating out traits from the
-current big ~numeric_limits~ class into separate traits that use the
-C++14 variable template idiom ~_v~.  For example, we would replace
-~numeric_limits<int>::min()~ with ~min_v<int>~ (a value, not a
-function).  Traits that don't make sense for some types simply would
-not exist (at compile time).  As Walter said during the meeting, "We
-didn't know how to do traits design back then."
-
-Walter's proposed change would address issues (1) and (2) above, but
-not (3).  The two authors of this paper proposed that we should take
-this opportunity to fix ~min~ for floating-point types.  Walter then
-invited us to coauthor this paper on our experiences using (or not
-using) ~numeric_limits~.
-
-* LAPACK's numeric traits and "safe minimum"
+* LAPACK's numeric "traits" and safe minimum
 
 In this section, we will show that while ~numeric_limits<T>::min~ is
 not informatively named for floating-point types, it is still a useful
 constant for writing generic numerical algorithms.  In fact, the
-LAPACK[fn:3] linear algebra library uses it.  LAPACK takes a "generic"
-approach to algorithms for different data types.  It implements
-algorithms for four different data types:
+LAPACK[fn:3] linear algebra library uses this value.
+
+** LAPACK is a library of generic numerical algorithms
+
+LAPACK is a Fortran library, but it takes a "generic" approach to
+algorithms for different data types.  LAPACK implements algorithms for
+four different data types:
 
   - Single-precision real (S)
   - Double-precision real (D)
   - Single-precision complex (C)
   - Double-precision complex (Z)
 
-In so far as it makes sense for the algorithm, LAPACK provides the
-same algorithm and even the same routines for all four data types.
-LAPACK uses a proper subset of Fortran 90 and does not rely on Fortran
-generics, the closest analog to C++ templates.  However, most of
-LAPACK's routines are implemented in such a way that one could
-generate all four versions automatically from a single "template."[fn:4]
+LAPACK does not rely on Fortran generic procedures or parameterized
+derived types, the closest analogs in Fortran to C++ templates.
+However, most of LAPACK's routines are implemented in such a way that
+one could generate all four versions automatically from a single
+"template."[fn:4]  As a result, we find LAPACK a useful analog to a C++
+library of generic numerical algorithms, written using templates and
+traits classes.  Numerical algorithm developers who are not C++
+programmers have plenty of experience writing generic numerical
+algorithms.  See, for example, "Templates for the Solution of Linear
+Systems,"[fn:5] where "templates" means "recipes," not C++ templates.
+Thus, it should not be surprising to find design patterns in common
+between generic numerical algorithms not specifically using C++, and
+generic C++ libraries.  In fact, our motivating example for keeping
+but renaming ~numeric_limits<T>::min~ for floating-point types ~T~,
+will come from LAPACK's "floating-point traits" routine ~_LAMCH~.
 
-LAPACK routines have a uniform naming convention, where the first
-letter indicates the data type.  LAPACK convention refers to the
-"generic" algorithm by omitting the first letter.  For example,
-~_GEQRF~ represents the same QR factorization for all data types for
-which it is implemented, in this case, ~SGEQRF~, ~DGEQRF~, ~CGEQRF~,
-and ~ZGEQRF~.
-
-This "generic" approach means that algorithm developers need a way to
-access floating-point arithmetic properties as a function of data
+LAPACK's "generic" approach means that algorithm developers need a way
+to access floating-point arithmetic properties as a function of data
 type, just as if a C++ developer were writing an algorithm templated
 on a floating-point type.  Many linear algebra algorithms depend on
 those properties to avoid unwarranted overflow or underflow, and to
 get accurate results.  As a result, LAPACK provides the ~SLAMCH~ and
 ~DLAMCH~ routines, that return machine parameters for the given real
-floating-point type.  (One can derive from this the properties for
-corresponding complex numbers.)
+floating-point type (single-precision real resp. double-precision
+real).  (One can derive from these the properties for corresponding
+complex numbers.)
+
+LAPACK routines have a uniform naming convention, where the first
+letter indicates the data type.  LAPACK developers refer to the
+"generic" algorithm by omitting the first letter.  For example,
+~_GEQRF~ represents the same QR factorization for all data types for
+which it is implemented, in this case, ~SGEQRF~, ~DGEQRF~, ~CGEQRF~,
+and ~ZGEQRF~.  Hence, we refer to the "floating-point traits" routines
+~SLAMCH~ and ~DLAMCH~ generically as ~_LAMCH~.
 
 ~_LAMCH~ was designed to work on computers that may have non-IEEE-754
-floating-point arithmetic, and would actually compute the machine
-parameters.  This is what LAPACK 3.1.1 does.[fn:5]  More recent
-versions of LAPACK, including the most recent version, 3.8.0, rely on
-Fortran 90 intrinsics to access machine parameters.[fn:6]
+floating-point arithmetic.  Older versions of the routine would
+actually compute the machine parameters.  This is what LAPACK 3.1.1
+does.[fn:6] More recent versions of LAPACK, including the most recent
+version, 3.8.0, rely on Fortran 90 intrinsics to get the values of
+most of the machine parameters.[fn:7]
 
 ~_LAMCH~ thus offers functionality analogous to ~numeric_traits~, for
 different real floating-point types.  LAPACK's authors chose this
 functionality specifically for the needs of linear algebra algorithm
 development.  ~_LAMCH~ gives developers several constants.  The one
-most corresponding to ~numeric_traits<T>::min~ is the "safe minimum"
-~sfmin~, which is the smallest (or nearly the smallest) value ~sfmin~
-such that ~T (1.0) / sfmin~ does not overflow.  This is useful for
-algorithms (e.g., equilibration and balancing) that scale the rows
-and/or columns of a matrix to improve accuracy of a subsequent
-factorization.  In the process of improving accuracy, one would not
-want to divide by too small of a number, and thus cause unwarranted
-underflow.
+most corresponding to the value of ~numeric_traits<T>::min()~ is the
+"safe minimum" ~sfmin~, which is the smallest (or nearly the smallest)
+value ~sfmin~ such that ~T (1.0) / sfmin~ does not overflow.  This is
+useful for algorithms (e.g., equilibration and balancing) that scale
+the rows and/or columns of a matrix to improve accuracy of a
+subsequent factorization.  In the process of improving accuracy, one
+would not want to divide by too small of a number, and thus cause
+unwarranted underflow.
 
 In the most recent version of LAPACK, 3.8.0, LAPACK uses Fortran 90
 intrinsic functions to compute ~sfmin~ as follows:
@@ -166,195 +159,60 @@ T safe_minimum (const T& /* ignored */) {
 
 For IEEE 754 ~float~ and ~double~, the ~IF~ branch never gets taken.
 (LAPACK was originally written to work on computers that did not
-implement IEEE 754 arithmetic.)  Thus, for ~T=float~ and ~T=double~,
-~sfmin~ always equals ~numeric_limits<T>::min()~.
+implement IEEE 754 arithmetic, so the extra branches may have made
+sense for earlier computer architectures.  They are also useful as a
+conservative check of floating-point properties.)  Thus, for ~T=float~
+and ~T=double~, ~sfmin~ always equals ~numeric_limits<T>::min()~.
 
 This example shows that algorithm developers do actually want the
 value returned by ~numeric_limits<T>::min()~ for real floating-point
-types ~T~.  However, they would prefer to give it a name that reflects
+types ~T~.  However, we would prefer to give it a name that reflects
 its actual use, namely as a lower bound on the absolute value of a
-scaling factor.
+scaling factor.  We suggest ~safe_minimum_v<T>~ as the new name of
+this trait.  We would accept other names, like ~tiny_v<T>~ (from the
+Fortran intrinsic ~TINY~).
 
-* Trilinos: Developers define their own traits
+* Conclusion
 
-The Trilinos software project[fn:10] includes many generic numerical
-algorithms.  Trilinos mostly uses C++, with some C, Python, and
-Fortran components.  The project focuses on solvers for large sparse
-linear systems, and thus provides sparse matrix operations, iterative
-and direct linear solvers, preconditioners, and algebraic multigrid,
-among other operations.  Trilinos has traits classes to help
-developers implement generic versions of these algorithms.
-
-For the first few years of Trilinos' life (starting circa 1999),
-Trilinos had to work on supercomputers which lacked full C++98
-support.  This made Trilinos' developers initially cautious about
-adopting language features like templates and Standard Library
-components that use templates.  It was also only for the past four
-years that most Trilinos components have started requiring C++11.
-This means that Trilinos may lag behind current C++ idioms.
-Nevertheless, Trilinos developers have some experience writing
-"generic" numerical algorithms.
-
-** ScalarTraits: Single source for Scalar traits
-
-Trilinos developers refer to their generic algorithms' data type
-template parameter as the "Scalar" type.  Most of Trilinos' generic
-numerical algorithms support the same four Scalar types that LAPACK
-supports: real and complex versions of single- and double-precision.
-The algorithms also work with other Scalar types.  Trilinos provides
-some of these; they implement functionality such as automatic
-differentiation, tightly coupled ensemble calculations, and
-discretizations for solving stochastic partial differential equations.
-Others are platform-specific, like GCC libquadmath's ~__float128~ or
-Intel's ~_Quad~.  (In many C++ implementations, ~long double~ has the
-same length and arithmetic as ~double~, so ~long double~ is not a
-portable option for the next larger precision after ~double~.)  Still
-others are extended- or even arbitrary-precision real types that come
-from external libraries, like "quad double"[fn:1] or ARPREC.[fn:2]
-
-** Why not numeric_limits?
-
-In practice, Trilinos developers could use ~numeric_limits~ for some
-traits of Scalar types.  However, Trilinos instead provides its own
-"ScalarTraits" class for this purpose.  There are four reasons for
-this:
-
-  1. Trilinos developers need more traits than what ~numeric_limits~
-     provides.  For example, in order to implement generic
-     mixed-precision algorithms, one needs to know the "next less
-     precise" ("half precision") and "next more precise" ("double
-     precision") types corresponding to the current Scalar type.
-  2. Some ~numeric_limits~ traits do not make sense for all supported
-     data types.  For example, an arbitrary-precision real
-     floating-point type may not have a "minimum exponent" or "maximum
-     finite value" (as in MPFR[fn:7]), or those values may depend on a
-     run-time option (as in ARPREC).
-  3. ScalarTraits was written for C++98, without the benefit of ~auto~
-     or ~decltype~, so users needed typedefs for things like the type
-     of a Scalar's absolute value (e.g., real for a complex type).
-  4. Trilinos had to work with C++ compilers that were not fully C++98
-     compliant, so developers tended to distrust some Standard Library
-     components.
-
-** ScalarTraits lumps all traits into a single class
-
-For most traits, ScalarTraits takes the same approach as
-~numeric_limits~, of putting all the traits in the same class and
-defining all of them, whether or not the definitions make sense for
-the template argument.  This was for two reasons.  First, Trilinos
-developers prioritized getting generic code to compile, even if it
-wasn't well tested.  (Try to imagine a novice Trilinos developer,
-often a student intern just starting to learn how templates work,
-trying to get Trilinos just to compile so that they could check in
-their new solver and finish their summer project.)  Second, algorithm
-developers (especially novice ones) appreciate having a single
-explicit source for all properties of Scalar that they are allowed to
-use, other than overloaded arithmetic operators.  This was likely also
-the reason why Trilinos did not use the standard idiom of overloading
-free functions, as the Standard Library does with ~std::abs~ and
-~std::sqrt~.  Instead, ScalarTraits provides those functions as static
-methods.
-
-We do not necessarily advocate ScalarTraits' design.  The point is to
-see how designs evolve, so that we can do better.  It's also helpful
-to see that this is a common design pattern.  For example, the Eigen
-linear algebra library has an analogous NumTraits class, though Eigen
-prefers the more modern C++ idiom of overloading free functions to
-support a new Scalar type, rather than providing functions as static
-methods in a traits class.[fn:11]
-
-** ScalarTraits first exercised for Krylov subspace methods
-
-Many Trilinos components use ScalarTraits, but the traits class got
-its first true workout in Trilinos' Anasazi and Belos packages.[fn:9]
-Both implement a class of algorithms called "Krylov subspace methods."
-Anasazi provides Krylov-based eigenvalue solvers, and Belos provides
-Krylov-based linear solvers.  Krylov subspace methods can work with
-linear algebra objects (matrices, preconditioners, and vectors)
-through an abstract interface that does not require access to the
-actual data in matrices or vectors.  The numerical linear algebra
-community as a whole, not just C++ developers, understands the
-abstract nature of Krylov subspace methods.[fn:8]
-
-Anasazi and Belos were designed from the beginning to work with linear
-algebra objects abstractly; for example, they access linear algebra
-objects through a traits interface.  Algorithm developers in these
-packages use ScalarTraits to manage the "scalar" (not a vector)
-results of vector dot products and norms.  Many Krylov subspace
-methods require only that these Scalar types can perform basic
-construction, the four arithmetic operations, absolute values, and
-square roots.  This means that ScalarTraits does not need all the
-properties that ~numeric_limits~ provides.  That helps ScalarTraits
-avoid some of the aforementioned problems with ~numeric_limits~, like
-the need to define traits that don't make sense for certain Scalar
-types.
-
-Trilinos developers have exploited the abstractions in Anasazi and
-Belos to develop new algorithms.  For example, Belos lets the result
-of a vector dot product have a different type than that of an entry of
-a vector or matrix.  The Stokhos package in Trilinos uses this feature
-when solving linear systems whose individual entries are collections
-of values representing a discretization along stochastic dimension(s)
-of a partial differential equation (so-called "polynomial chaos
-expansions").  Whatever design flaws ScalarTraits might have, it is an
-essential part of Anasazi and Belos, and has enabled both numerical
-algorithms research and practical simulations.
-
-ScalarTraits evolved organically, with a focus on the modest needs of
-Krylov subspace methods.  It would likely still exist even if the
-aforementioned flaws of ~numeric_limits~ were fixed.  However, fixing
-them would make it easier to maintain ScalarTraits and any future
-replacements.
-
-* Summary
-
-The above two examples in LAPACK and Trilinos show that while
-~numeric_limits~ is useful, developers could benefit from the
-following changes to ~numeric_limits~:
+We (the authors) have experience as developers and users of a C++
+library of generic numerical algorithms, namely Trilinos.[fn:8]  Many
+other such libraries exist, including Eigen[fn:9].  We also use the
+LAPACK library extensively, and have some experience modifying LAPACK
+algorithms.[fn:10]  We use and write traits classes that sometimes
+make use of ~numeric_limits~.  While we have found ~numeric_limits~
+useful, we think it could benefit from the following changes:
 
   1. Split out different traits into separate traits classes.
   2. Don't let those classes compile for types for which they do not
      make sense.
   3. For floating-point types ~T~, rename the equivalent of
      ~numeric_limits<T>::min~ to something more indicative of its
-     purpose in generic algorithms.
+     purpose in generic algorithms, e.g., ~safe_minimum_v<T>~ or
+     ~tiny_v<T>~.
 
 * Footnotes
 
-[fn:1] Y. Hida, X. S. Li, and D. H. Bailey, "Algorithms for
-Quad-Double Precision Floating Point Arithmetic," in Proceedings of
-15th IEEE Symposium on Computer Arithmetic (ARITH-15), June 2001.  See
-also the following online tech report:
-http://crd-legacy.lbl.gov/~xiaoye/arith15.pdf.
+[fn:1] L. Fousse, G. Hanrot, V. Lefèvre, P. Pélissier, and
+P. Zimmermann, "MPFR: A multiple-precision binary floating-point
+library with correct rounding," ACM Transactions on Mathematical
+Software, Vol. 33, No. 2, June 2007.
 
 [fn:2] D. H. Bailey, Y. Hida, X. S. Li, and B. Thompson, "ARPREC: An
 Arbitrary Precision Computation Package," Lawrence Berkeley National
 Laboratory Technical Report LBNL-53651, 2002.
 
-[fn:3] L. S. Blackford, J. Choi, A. Cleary, E. D’Azevedo, J. Demmel,
-I. Dhillon, J. Dongarra, S. Hammarling, G. Henry, A. Petitet,
-K. Stanley, D. Walker, and R. C. Whaley, "ScaLAPACK Users' Guide,"
-Society for Industrial and Applied Mathematics, Philadelphia, PA,
-USA, 1997.
+[fn:3] E. Anderson, Z. Bai, C. Bischof, S. Blackford, J. Demmel,
+J. Dongarra, J. Du Croz, A. Greenbaum, S. Hammarling, A. McKenney, and
+D. Sorensen, "LAPACK Users' Guide," 3rd ed., Society for Industrial
+and Applied Mathematics, Philadelphia, PA, USA,
+1999.
 
 [fn:4] J.J. Dongarra, oral history interview by T. Haigh, 26
 Apr. 2004, Society for Industrial and Applied Mathematics,
 Philadelphia, PA, USA; available from
 http://history.siam.org/oralhistories/dongarra.htm.
 
-[fn:5] For example, here is the implementation of ~DLAMCH~ in LAPACK
-3.1.1: http://www.netlib.org/lapack/explore-3.1.1-html/dlamch.f.html
-
-[fn:6] See, for example, the much shorter implementation of ~DLAMCH~
-in LAPACK 3.8.0:
-http://www.netlib.org/lapack/explore-html/d5/dd4/dlamch_8f_a06d6aa332f6f66e062e9b96a41f40800.html#a06d6aa332f6f66e062e9b96a41f40800
-
-[fn:7] L. Fousse, G. Hanrot, V. Lefèvre, P. Pélissier, and
-P. Zimmermann, "MPFR: A multiple-precision binary floating-point
-library with correct rounding," ACM Transactions on Mathematical
-Software, Vol. 33, No. 2, June 2007.
-
-[fn:8] See, for example, R. Barrett, M. Berry, T. F. Chan, J. Demmel,
+[fn:5] See, for example, R. Barrett, M. Berry, T. F. Chan, J. Demmel,
 J. Donato, J. Dongarra, V. Eijkhout, R. Pozo, C. Romine, and H. Van
 der Vorst, "Templates for the Solution of Linear Systems: Building
 Blocks for Iterative Methods," 2nd Edition, Society for Industrial and
@@ -362,19 +220,31 @@ Applied Mathematics, Philadelphia, PA, USA, 1994.  "Templates" in the
 title does not mean C++ templates; it means something more like
 "design patterns."
 
-[fn:9] E. Bavier, M. Hoemmen, S. Rajamanickam, and Heidi Thornquist,
-"Amesos2 and Belos: Direct and Iterative Solvers for Large Sparse
-Linear Systems," Scientific Programming, Vol. 20, No. 3, 2012,
-pp. 241-255.
+[fn:6] For example, here is the implementation of ~DLAMCH~ in LAPACK
+3.1.1: http://www.netlib.org/lapack/explore-3.1.1-html/dlamch.f.html
 
-[fn:10] M. A. Heroux et al., "An overview of the Trilinos project,"
+[fn:7] See, for example, the much shorter implementation of ~DLAMCH~
+in LAPACK 3.8.0:
+http://www.netlib.org/lapack/explore-html/d5/dd4/dlamch_8f_a06d6aa332f6f66e062e9b96a41f40800.html#a06d6aa332f6f66e062e9b96a41f40800
+
+[fn:8] M. A. Heroux et al., "An overview of the Trilinos project,"
 ACM Transactions on Mathematical Software, Vol. 31, No. 3, Sep. 2005,
 pp. 397-423; M. A. Heroux and J. M. Willenbring, "A New Overview of
 The Trilinos Project," Scientific Programming, Vol 20, No. 2, 2012,
-pp. 83-88.  See also [[https://github.com/trilinos/Trilinos][Trilinos' GitHub site]].
+pp. 83-88.  See also: [[https://github.com/trilinos/Trilinos][Trilinos' GitHub site]], and E. Bavier,
+M. Hoemmen, S. Rajamanickam, and Heidi Thornquist, "Amesos2 and Belos:
+Direct and Iterative Solvers for Large Sparse Linear Systems,"
+Scientific Programming, Vol. 20, No. 3, 2012, pp. 241-255.
 
-[fn:11] See e.g., Eigen's documentation for "Using custom scalar
-types":
-http://eigen.tuxfamily.org/dox/TopicCustomizing_CustomScalar.html
+[fn:9] Gaël Guennebaud, Benoît Jacob, et al., "Eigen v3,"
+http://eigen.tuxfamily.org, 2010 [last accessed Nov. 2018].  See also
+Eigen's documentation for "Using custom scalar types":
+http://eigen.tuxfamily.org/dox/TopicCustomizing_CustomScalar.html.
 
-
+[fn:10] See e.g., J. W. Demmel, M. Hoemmen, Y. Hida, and E. J. Riedy,
+"Nonnegative Diagonals and High Performance on Low-Profile Matrices
+from Householder QR," SIAM J. Sci. Comput., Vol. 31, No. 4, 2009,
+pp. 2832-2841.  The authors later found out via a Matlab bug report
+that these changes to LAPACK's Householder reflector computation had
+subtle rounding error issues that broke one of LAPACK's dense
+eigensolver routines, so we ended up backing them out.
