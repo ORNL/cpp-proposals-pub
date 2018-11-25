@@ -1,10 +1,10 @@
 <pre class='metadata'>
 Title: Giving <code>atomic_ref</code> implementers more flexibility by providing customization points for non-lock-free implementation  
-Shortname: D1372
+Shortname: P1372
 URL: wg21.link/P1372
 Revision: 0
 Audience: SG1, LEWG
-Status: D
+Status: P
 Group: WG21
 Issue Tracking: GitHub https://github.com/ORNL/cpp-proposals-pub
 No Abstract: yes
@@ -16,14 +16,14 @@ Editor: David S. Hollman, dshollm@sandia.gov
 Revision History
 ================
  
-## D1372R0
+## P1372R0
 
 - Initial version
 
 Motivation
 ==========
 
-[[P1298R0]], presented at the 2018-11 San Diego meeting, revealed by way of motivation a number of difficulties surrounding the implementation of `atomic_ref`.  Though the author withdrew the paper, its presence has served as a catalyst for further discussion.  The basic issue surrounded the implementation of `atomic_ref` for types that cannot be supported in a lockfree manner on certain platforms.  In the absense of transactional memory, the current proposal essentially mandates that `atomic_ref` for these types must use an address-based, sharded lock table.  For many implementations dealing with issues on the fringe of standard C++ (such as dynamic loading of shared libraries and heterogeneity), implementers have expressed the concern that this approach is impractical or impossible.  While this paper does not provide a fix for this in the absolutely most general case, it provides a portable means for users to opt in to an alternative implementation that could be significantly more efficient or practical in those cases.
+[[P1298R0]], presented at the 2018-11 San Diego meeting, revealed by way of motivation a number of difficulties surrounding the implementation of `atomic_ref`.  Though the author withdrew the paper, its presence has served as a catalyst for further discussion.  The basic issue surrounded the implementation of `atomic_ref` for types that cannot be supported in a lock-free manner on certain platforms.  In the absence of transactional memory, the current proposal essentially mandates that `atomic_ref` for these types must use an address-based, sharded lock table.  For many implementations dealing with issues on the fringe of standard C++ (such as dynamic loading of shared libraries and heterogeneity), implementors have expressed the concern that this approach is impractical or impossible.  While this paper does not provide a fix for this in the absolutely most general case, it provides a portable means for users to opt in to an alternative implementation that could be significantly more efficient or practical in those cases.
 
 Design
 ======
@@ -33,10 +33,15 @@ We propose a pair of customization point objects, named `lock_reference` and `un
 * Should this customization point be used only when `atomic_ref<T>::is_always_lock_free` is `false`, or should the customization also be used in the `true` case?
     + *Argument in favor*: if the user has a reason (e.g., debugging) for customizing the case where lock-free atomics are available, perhaps the implementation should honor this desire.
     + *Argument against*: in portable code, the user may wish to provide the customizations because some target implementations will support lock-free atomics on the given type and some will not.
-    + **Desision**: given that one of the design goals `atomic_ref<T>` in the first place is portable use of atomic semantics across lock-free and non-lock-free implementations, the design of the customization point should mirror this design intent and allow customization of `T` to be ignored when a lock-free implementation is available.
+    + **Decision**: given that one of the design goals `atomic_ref<T>` in the first place is portable use of atomic semantics across lock-free and non-lock-free implementations, the design of the customization point should mirror this design intent and allow customization of `T` to be ignored when a lock-free implementation is available.
+
+* Should the implementation be *required* to use the customization point when `atomic_ref<T>::is_always_lock_free` is `false`?
+    + *Argument in favor*: Consistency, simplicity, predictable behavior.
+    + *Argument against*: Some implementations may have access to strategies that, while not technically lock-free, may be significantly more efficient than a user can provide in an implementation-independent context (such as OS-emulated transactional memory).
+    + **Decision**: Make it optional for now, but change paper to reflect results of straw poll along these lines.
   
 * Should freestanding implementations be allowed to omit `atomic_ref<T>` for types that do not provide a customization of this property?
-    + *Argument in favor*: In general, creation of an efficient sharded lock table may be impractical or impossible in freestanding implementations, particularly when those implementations need to interoperate with a variety of full implementations.
+    + *Argument in favor*: In general, creation of an efficient sharded lock table may be impractical or impossible in freestanding implementations, particularly when those implementations need to inter-operate with a variety of full implementations.
     + **Decision**: Address this in a follow-up paper to limit the scope of the current paper.
   
 * Should the memory order argument be propagated to the customization points?
