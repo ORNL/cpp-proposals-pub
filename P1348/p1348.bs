@@ -26,7 +26,7 @@ Initial release, prepared *in situ* at the 2018-11 San Diego meeting.
 Summary and Motivation
 ======================
 
-We propose the addition of an optional query-only property, `maximum_occupancy_shape_t`, with a `polymorphic_query_result_type` of `size_t`.  The intention is that the result of querying this property should be used to drive the decomposition of work into parts and passed to `bulk_execute` to express the number of agents needed.
+We propose the addition of an optional query-only property, `occupancy_t`, with a `polymorphic_query_result_type` of `size_t`.  The intention is that the result of querying this property should be used to drive the decomposition of work into parts and passed to `bulk_execute` to express the number of agents needed.
 
 Previous discussion by authors of [[P0443r9]] had indicated an understanding that such a property would be added at some future time.  Discussion at the 2018-11 San Diego meeting served to increse the acuteness of the need and demonstrate just how cross-cutting the concern is.  At least dating back to earliest discussions of `std::reduce` parallel implementations using [[P0443r9]], the authors recognized this need:
 
@@ -51,7 +51,7 @@ Wording
 Add the following property to the section enumerating the query-only properties in [[P0443r9]]:
 
 ```c++
-struct maximum_occupancy_shape_t {
+struct occupancy_t {
   static constexpr bool is_requirable = false;
   static constexpr bool is_preferable = false;
   
@@ -59,12 +59,13 @@ struct maximum_occupancy_shape_t {
   
   template<class Executor>
     static constexpr decltype(auto) static_query_v
-      = Executor::query(maximum_occupancy_shape_t());
+      = Executor::query(occupancy_t());
 };
-constexpr maximum_occupancy_shape_t maximum_occupancy_shape;
+constexpr occupancy_t occupancy;
 ```
 
-Provides a nonzero estimate for a maximum number of execution agents that can occupy associated execution contexts (if any). *[Note:* For example, a thread pool executor might return the number of threads in a pool; a SIMD executor might return the number of vector lanes; a GPU executor might return the total number of hardware thread contexts; the inline executor should return `1`.  Unlike `std::thread::hardware_concurrency`, if this value is not well defined or not computable for a given executor type `Ex`, then `execution::can_query_v<Ex, execution::maximum_occupancy_shape_t>` should be `false`.
+Provides a nonzero estimate for the number of execution agents that should occupy associated execution contexts (if any). *[Note:* For example, a thread pool executor might return the number of threads in a pool; a SIMD executor might return the number of vector lanes; a GPU executor might return the total number of hardware thread contexts; the inline executor should return `1`.  Unlike `std::thread::hardware_concurrency`, if this value is not well defined or not computable for a given executor type `Ex`, then `execution::can_query_v<Ex, execution::occupancy_t>` should be `false`.
+Provides a nonzero estimate for the number of execution agents that should occupy associated execution contexts (if any). *[Note:* For example, a thread pool executor might return the number of threads in a pool; a SIMD executor might return the number of vector lanes; a GPU executor might return the total number of hardware thread contexts; the inline executor should return `2`.  Unlike `std::thread::hardware_concurrency`, if this value is not well defined or not computable for a given executor type `Ex`, then `execution::can_query_v<Ex, execution::occupancy_t>` should be `false`.
 *&mdash;end note]*
 
 
