@@ -1,14 +1,14 @@
 //@HEADER
 // ************************************************************************
-//
+// 
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-//
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
 //
 // Kokkos is licensed under 3-clause BSD terms of use:
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,39 +37,6 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
-
-//--------------------------------------------------------------------------
-//--------------------------------------------------------------------------
-
-namespace std {
-namespace experimental {
-inline namespace fundamentals_v3 {
-
-// [mdspan.accessor.basic]
-template<class ElementType>
-class accessor_basic;
-
-
-template<class ElementType>
-class accessor_basic {
-public:
-  using element_type  = ElementType;
-  using pointer       = ElementType*;
-  using offset_policy = accessor_basic;
-  using reference     = ElementType&;
-
-  constexpr typename offset_policy::pointer
-    offset( pointer p , ptrdiff_t i ) const noexcept
-      { return typename offset_policy::pointer(p+i); }
-
-  constexpr reference access( pointer p , ptrdiff_t i ) const noexcept
-    { return p[i]; }
-
-  constexpr ElementType* decay( pointer p ) const noexcept
-    { return p; }
-};
-
-}}} // std::experimental::fundamentals_v3
