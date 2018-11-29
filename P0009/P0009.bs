@@ -813,11 +813,11 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 
 <b>26.7.�.1 Overview [mdspan.extents.overview]</b>
 
-1. An `extents` object defines a multidimensional index space.
-2. A **multidimensional index space** of **rank** <math>R</math> is the Cartesian product <math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math> of half-open integer intervals.
-3. The *dynamic extents* of an `extents` object correspond to the template arguments in the `Extents` parameter pack that equal `dynamic_extent`.  Let *DynamicRank[i]* denote the index of the *i*th dynamic extent in the `Extents` template parameter pack, and let *DynamicIndex[r]* indicate the number of dynamic extents in the first *r* entries of the `Extents` parameter pack.
-4. An `extents` object is expected to store dynamic extents.  *[Note:* An implementation should not consume storage for static extents. *— end note]* 
-5. If any template arguments in `Extents` are negative and not equal to `dynamic_extent`, the program is ill-formed.
+1. A *multidimensional index space* is the Cartesian product <math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math> of half-open integer intervals.
+2. The *rank* of a multidimensional index space is the number of intervals <math>R</math>.
+3. An `extents` object `e` defines a multidimensional index space where <math>R</math> is `e.rank()` and <math>N<sub>r</sub><math> is `e.extent(r)`.
+4. A *multidimensional index value* in a multidimensional index space defined by 'e' is represented by a pack of integer type `i...` such that `sizeof...(i)==e.rank()` and `0<=i[r]<e.extent(r)` where `i[r]` denotes the <math>r<sup>th</sup></math> member of `i...`.
+
 
 <!-- TODO review change to make rank() and rank_dynamic() size_t -->
 <!-- TODO review addition of array constructor -->
@@ -830,7 +830,7 @@ namespace std {
 namespace experimental {
 namespace fundamentals_v3 {
 
-template&lt;ptrdiff_t... Extents>
+template&lt;ptrdiff_t... StaticExtents>
 class extents {
 public:
   // types
@@ -839,17 +839,15 @@ public:
   // [mdspan.extents.cons], Constructors and assignment
   constexpr extents() noexcept;
   constexpr extents(const extents&) noexcept;
-  constexpr extents(extents&&) noexcept;
   template&lt;class... IndexType>
-  constexpr extents(IndexType... dynamic_extents) noexcept;
-  template&lt;class IndexType, size_t rank_dynamic>
-  constexpr extents(const array&lt;IndexType, rank_dynamic>&) noexcept;
+  constexpr extents(IndexType... dynamic) noexcept;
+  template&lt;class IndexType>
+  constexpr extents(const array&lt;IndexType, rank_dynamic()>& dynamic) noexcept;
   template&lt;ptrdiff_t... OtherExtents>
   constexpr extents(const extents&lt;OtherExtents...>& other);
   ~extents() = default;
 
   constexpr extents& operator=(const extents&) noexcept = default;
-  constexpr extents& operator=(extents&&) noexcept = default;
   template&lt;ptrdiff_t... OtherExtents>
   constexpr extents& operator=(const extents&lt;OtherExtents...>& other);
 
@@ -860,11 +858,27 @@ public:
   constexpr index_type extent(size_t) const noexcept;
 
 private:
-  array&lt;index_type, rank_dynamic()> dynamic_extents_; // <i>exposition only</i>
+  array&lt;index_type, (size_t(StaticExtents==std::dynamic_extent)+...> dynamic_extents_; // <i>exposition only</i>
+  static size_t dynamic_rank(size_t); // <i>exposition only</i>
 };
 
 }}}
 </pre>
+
+5. Expects `((StaticExtents>=0)||(StaticExtents==std::dynamic_extent)&&...)`, otherwise the prigram is ill-formed.
+6. Each member of the `StaticExtents` pack equal to `std::dynamic_extent` denotes a *dynamic extent*.
+6. The exposition only `dynamic_extents_` member contains an element for each dynamic extent.
+7. Let `StaticExtent[r]` denote the r-th member of the `StaticExtents` pack.  The exposition only `dynamic_rank` member function is defined as
+<pre highlight="c++">
+  static size_t dynamic_rank(size_t i) // exposition only
+  {
+    size_t j=0;
+    for ( size_t r = 0; r < i ; ++r ) 
+      if ( StaticExtents[r] == std::dynamic_extent ) ++j ; 
+    return j ; 
+  }
+</pre>
+
 
 <b>26.7.�.2 Constructors and assignment [mdspan.extents.cons]</b>
 
@@ -872,23 +886,15 @@ private:
 constexpr extents() noexcept;
 ```
 
-* *Effects:* Aggregate-initializes `dynamic_extents_` to `{ }`.
-* *Ensures:* Let <math>R</math> equal `rank()`.
-             <math>&forall; `r` &isin; [0, R)</math>, 
-             if `static_extent(r)` equals `dynamic_extent`, then
-             `extent(r)` equals `0`.
+* *Effects:* Value-initializes `dynamic_extents_ { }`.
 
 <br/>
 
 ```c++
 constexpr extents(const extents& other);
-constexpr extents(extents&& other);
 ```
 
 * *Effects:* Initializes `dynamic_extents_` with `other.dynamic_extents_`.
-* *Ensures:* Let <math>R</math> equal `rank()`.
-             <math>&forall; `r` &isin; [0, R)</math>, 
-             `extent(r)` equals `other.extent(r)`.
 
 <br/>
 
@@ -897,60 +903,46 @@ template<ptrdiff_t... OtherExtents>
 constexpr extents(const extents<OtherExtents...>& other);
 ```
 
-* *Requires:* Let <math>R</math> equal `rank()`.
-             <math>&forall; `r` &isin; [0, R)</math>, 
-             if `static_extent(r)` does not equal `dynamic_extent`, 
-             then `static_extent(r)` equals `other.extent(r)`.
-* *Constraints:* `sizeof...(Extents)` equals `sizeof...(OtherExtents)`.
-* *Effects:* Let <math>R</math> equal `rank()`.
-             <math>&forall; `r` &isin; [0, R)</math>, 
-             if `static_extent(r)` equals `dynamic_extent`, 
-             then this initializes `dynamic_extents_[`*DynamicRank[*`r`*]*`]` with `other.extent(r)`.
-* *Ensures:* `*this == other` is `true`.
+* *Constraints:* `sizeof...(StaticExtents)` equals `sizeof...(OtherExtents)`.
+* *Expects:* `static_extent(r)==std::dynamic_extent` or
+             `static_extent(r)==other.extent(r)`
+	     for each `r` in range `[0,rank())`.
+* *Effects:* For each `r` in range `[0,rank())` where `static_extent(r)==std::dynamic_extent`, initializes `dynamic_extent[dynamic_rank(r)]` with `other.extent(r)`.
 * *Throws:* Nothing.
 
 <br/>
 
 ```c++
 template<class... IndexType>
-constexpr extents(IndexType... dynamic_extents) noexcept;
+constexpr extents(IndexType... dynamic) noexcept;
 ```
 
-* *Requires:* `(dynamic_extents>=0) && ...` is `true`.
 * *Constraints:* 
-    * `is_convertible_v<IndexType, index_type> && ...` is `true`, and
-    * `sizeof...(dynamic_extents)==rank_dynamic()` is `true`.
-* *Effects:* Aggregate-initializes `dynamic_extents_` to `{dynamic_extents...}`.
-* *Ensures:* `extent(`*DynamicRank[i]*`)` is equal to the *i*th entry in the parameter pack `dynamic_extents`.
+    * `(is_convertible_v<IndexType, index_type> && ...)` is `true` and
+    * `sizeof...(dynamic)==rank_dynamic()` is `true`.
+* *Expects:* `((dynamic_extents>=0) && ...)` is `true`.
+* *Effects:* Initializes `dynamic_extents_` with `dynamic...`.
 
 ```c++
-template<class IndexType, size_t rank_dynamic>
-constexpr extents(const array<IndexType, rank_dynamic> & dynamic_extents) noexcept;
+template<class IndexType>
+constexpr extents(const array<IndexType, rank_dynamic()> & dynamic) noexcept;
 ```
 
-* *Requires:* Let <math>D</math> equal `rank_dynamic()`.
-             <math>&forall; `i` &isin; [0, D)</math>, 
-             `dynamic_extents[i] >= 0` is `true`.
 * *Constraints:* `is_convertible_v<IndexType, index_type>` is `true`.
-* *Effects:* Initializes `dynamic_extents_` with `dynamic_extents`.
-* *Ensures:* `extent(`*DynamicRank[i]*`)` equals `dynamic_extents[i]`.
+* *Expects:* `dynamic[i]>=0` for all `i` in range `[0,rank_dynamic())`.
+* *Effects:* Initializes `dynamic_extents_` with `dynamic`.
 
 ```c++
 template<ptrdiff_t... OtherExtents>
 constexpr extents& operator=(const extents<OtherExtents...>& other);
 ```
 
-* *Requires:* Let <math>R</math> equal `rank()`.
-              <math>&forall; `r` &isin; [0, R)</math>, 
-              `static_extent(r) != dynamic_extent || static_extent(r) == other.extent(r)` is `true`.
-* *Constraints:* `sizeof...(Extents)==sizeof...(OtherExtents)` is `true`.
-* *Effects:* Let <math>R</math> equal `rank()`.
-              <math>&forall; `r` &isin; [0, R)</math>,
-             if `static_extent(r)` equals `dynamic_extent`, 
-             assigns `dynamic_extents_[`*DynamicRank[*`r`*]*`]` to `other.extent(r)`.
-* *Ensures:* `*this==other` is `true`.
-* *Returns:* `*this`.
-* *Throws:* Nothing.
+* *Constraints:* `sizeof...(StaticExtents)` equals `sizeof...(OtherExtents)`.
+* *Expects:* `static_extent(r)==std::dynamic_extent` or
+             `static_extent(r)==other.extent(r)`
+	     for all `r` in range `[0,rank())`.
+* *Effects* For each `r` in the range `[0,rank())` where `static_extent(r)==std::dynamic_extent`, assigns `dynamic_extent[dynamic_rank(r)]` to `other.extent(r)`.
+
 
 <br/>
 <b>26.7.�.3 Observers of the domain multidimensional index space [mdspan.extents.obs]</b>
@@ -960,17 +952,15 @@ constexpr extents& operator=(const extents<OtherExtents...>& other);
 static constexpr size_t rank() const noexcept;
 ```
 
-* *Returns:* `sizeof...(Extents)`
+* *Returns:* `sizeof...(StaticExtents)`
 
 <br/>
 ```c++
 static constexpr size_t rank_dynamic() const noexcept;
 ```
 * *Returns:* 
-    * If `sizeof...(Extents)==0` is `true`, then zero;
-    * Otherwise, `((Extents==dynamic_extent)+...)`. 
-
-*[Note:* This is the number of dynamic extents. *—end note]*
+    * If `sizeof...(StaticExtents)==0` is `true`, then zero;
+    * Otherwise, `((StaticExtents==dynamic_extent)+...)`. 
 
 <br/>
 ```c++
@@ -978,8 +968,8 @@ static constexpr index_type static_extent(size_t r) const noexcept;
 ```
 
 * *Returns:* 
-    * If 0 <= `r` < `rank()`, then the `r`th entry 
-      in the `Extents` parameter pack;
+    * If `r` is in the range `[0,rank())`, then the r-th entry 
+      in the `StaticExtents` parameter pack;
     * Otherwise, 1.
 
 <br/>
@@ -987,8 +977,7 @@ static constexpr index_type static_extent(size_t r) const noexcept;
 constexpr index_type extent(size_t r) const noexcept;
 ```
 * *Returns:* 
-    * If `static_extent(r)==dynamic_extent`, then
-      `dynamic_extents_[`*DynamicRank[*`r`*]*`]`;
+    * If `static_extent(r)==std::dynamic_extent` is `true`, then `dynamic_extents_[dynamic_rank(r)]`;
     * Otherwise, `static_extent(r)`.
 
 <br/>
@@ -1035,27 +1024,18 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 
 1. A *layout mapping policy* is a class that contains a *layout mapping*, a nested class template.
 
-2. A *layout mapping policy* meets the requirements in Table �.
+2. A *layout mapping policy* and its *layout mapping* nested class template meet the requirements in Table �.
 
 3. A *layout mapping* meets the requirements of *Cpp17DefaultConstructible*, *Cpp17CopyAssignable*, *Cpp17EqualityComparable*, and the requirements in Table �.
 
 4. In Table �:
     * `MP` denotes a layout mapping policy.
+    * `M` denotes a specialization of the layout mapping policy's nested layout mapping template class.
     * `E` denotes a specialization of `extents`.
-    * `e` denotes an object of type `E` defining a multidimensional index space.
-    * `r` is a value of an integral type such that 0 <= `r` < `e.rank()`.
-    * If `k...` is a pack of an integer type, we say that "`k...` is in `e`" 
-      if `k...` denotes a multi-index in `e`.
-      Let the packs of integer type `i...` and `j...` be in `e`.
-      Denote the <math>r</math>-th member of packs `i...` and `j...` by 
-      <math>i<sub>r</sub></math> and <math>j<sub>r</sub></math>, respectively. 
-      Let `r` equal <math>r</math>.
-      `sizeof...(i)==E::rank()` is `true`, 
-      0 <= <math>i<sub>r</sub></math> < `e.extent(r)`, 
-      `sizeof...(j)==E::rank()`, and
-      0 <= <math>j<sub>r</sub></math> < `e.extent(r)`.
-    * `M` denotes a layout mapping class.
-    * `m` denotes an object of type `M` that maps a pack `i...` denoting a multi-index to an integral value.
+    * `e` denotes an extents object of type `E`
+    * `m` denotes a layout mapping object of type `M`.
+    * `i...` and `j...` are multidimensional index values in the multidimensional index space defined by `e`.
+    * `r` is an integral value in the range `[0,e.rank())`
 
 Table � — Layout mapping policy and layout mapping requirements
 <table border=1>
@@ -1074,17 +1054,13 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m.extents()`</td>
   <td>`E`</td>
-  <td>
-  
-  *Returns:* `e`.
-  
-  </td>
+  <td> *Returns:* `e`, extents of the layout mapping. </td>
   <td></td>
 </tr>
 <tr>
   <td>`m(i...)`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* Mapping of a multi-index `i...` . </td>
+  <td>*Returns:* Layout mapping of a multi-index `i...` . </td>
   <td>*Requires:* 0 <= `m(i...)`. </td>
 </tr>
 <tr>
