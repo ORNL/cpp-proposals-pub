@@ -2563,7 +2563,7 @@ Define the exposition-only `constexpr` function `get_seq<k>(seq)`,
 where `k` is an integer,
 as the function returning the `k`-th entry of the `std::integer_sequence` `seq`.
 We say that the integer r "is not in `rank_map`" when,
-for 0 <= `k` < &rho;, r does not equal `get_seq<k>(rank_map)`.
+for all `k` in the range `[0,` &rho`)`;, r does not equal `get_seq<k>(rank_map)`.
 
 In the exposition-only `struct mdspan_subspan`,
 
@@ -2580,9 +2580,9 @@ if the input layout is `layout_left` or `layout_right`. *— end note]*
 
 Let `first` and `last` be exposition-only `array<ptrdiff_t, sizeof...(SliceSpecifier)>`,
 where `SliceSpecifier...` is the same parameter pack as `subspan`'s.
-For 0 <= `r` < `sizeof...(SliceSpecifier)`,
+For `r` in the range `[0, sizeof...(SliceSpecifier))`,
 define the values of `first[r]` and `last[r]` as follows,
-where `src` and `slices...` are the arguments of `subspan`.
+where `src` and `slices...` are the arguments of `subspan`:
 
     * If `is_convertible_v<`<math>S<sub>`r`</sub></math>`, ptrdiff_t>`,
       then `first[r]` equals <math>s<sub>`r`</sub></math>, and
@@ -2605,29 +2605,29 @@ where `src` and `slices...` are the arguments of `subspan`.
        **[mdspan.layout.reqs]**.
        *[Note:* Valid and useful layout mapping policies exist,
        for which taking an arbitrary `subspan` does not make sense. *— end note]*
-    * For 0 <= `k` < `sizeof...(slices)`,
+    * For all `k` in the range `[0, sizeof...(slices))`,
       `is_convertible_v<`<math>S<sub>k</sub></math>`, ptrdiff_t> || is_convertible_v<`<math>S<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>S<sub>k</sub></math>`, all_type>` is `true`.
 * *Ensures:*
     * `sub.rank()` equals &rho;.
     * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals &rho;.
     * Let the pack `i...` denote a multi-index in the domain of `sub`
-      such that <math>i<sub>`k`</sub></math> < `sub.extents(k)` for 0 <= `k` < &rho;,
+      such that <math>i<sub>`k`</sub></math> < `sub.extents(k)` for all `k` in the range `[0,` &rho;`)`,
       where <math>i<sub>`k`</sub></math> denotes the `k`-th element of `i...`.
       Let the pack `j...` denote a multi-index in the domain of `src` where
       the `get_seq<k>(rank_map)`-th element of `j...`
       equals `first[get_seq<k>(rank_map)]` + <math>i<sub>`k`</sub></math>
-      for 0 <= `k` < <math>&rho;</math>,
+      for all `k` in the range `[0,` &rho;`)`,
       and the `r`-th element of `j...` equals `first[r]`
-      for all `r` such that 0 <= `r` < `src.rank()` and `r` is not in `rank_map`.
+      for all `r` in the range `[0, src.rank())` such that `r` is not in `rank_map`.
       Then, `sub(i...)` and `src(j...)` refer to the same element.
     * For 0 <= `k` < &rho;, `sub.extent(k)` equals
       `last[get_seq<k>(rank_map)] - first[get_seq<k>(rank_map)]`.
     * If `src.is_strided()`, then `sub.is_strided()` is `true`,
-      and for 0 <= `k` < &rho;,
+      and for all `k` in the range `[0,` &rho;`)`,
       `sub.stride(k)` equals `src.stride(get_seq<k>(rank_map))`.
-    * For 0 <= `k` < &rho;,
-      let `rmk` equal `get_seq<k>(rank_map)`; then,
-      if `src.static_extent(rmk)` does not equal `dynamic_extent` and
+    * For all `k` in the range `[0,` &rho;`)`,
+      let `rmk` equal `get_seq<k>(rank_map)`.
+      If `src.static_extent(rmk)` does not equal `dynamic_extent` and
       `is_convertible_v<`<math>S<sub>`rmk`</sub></math>`, all_type>` is `true`,
       then `sub.static_extent(k)` equals `src.static_extent(rmk)`.
 
