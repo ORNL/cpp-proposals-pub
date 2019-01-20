@@ -816,7 +816,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 1. A *multidimensional index space* is the Cartesian product <math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math> of half-open integer intervals.
 2. The *rank* of a multidimensional index space is the number of intervals <math>R</math>.
 3. An `extents` object `e` defines a multidimensional index space where <math>R</math> is `e.rank()` and <math>N<sub>r</sub><math> is `e.extent(r)`.
-4. A *multidimensional index value* in a multidimensional index space defined by `e` is represented by a pack of integer type `i...` such that `sizeof...(i) == e.rank()` and `0 <= i[r] < e.extent(r)` where `i[r]` denotes the <math>r<sup>th</sup></math> element of `i...`.
+4. A *multidimensional index value* in a multidimensional index space defined by `e` is represented by a pack of integer type `i...` such that `sizeof...(i) == e.rank()` and `i[r]` is in the range `[0, e.extent(r))`, where `i[r]` denotes the <math>r<sup>th</sup></math> element of `i...`.
 
 
 <!-- TODO review change to make rank() and rank_dynamic() size_t -->
@@ -865,7 +865,7 @@ private:
 }}}
 </pre>
 
-5. Expects `((StaticExtents >= 0) || (StaticExtents == dynamic_extent) && ...)`, otherwise the program is ill-formed.
+5. If `((StaticExtents >= 0) || (StaticExtents == dynamic_extent) && ...)` is `false`, then the program is ill-formed.
 6. Each element of the `StaticExtents` pack equal to `dynamic_extent` denotes a *dynamic extent*.
 6. The exposition only `dynamic_extents_` member contains an element for each dynamic extent.
 7. Let `StaticExtent[r]` denote the `r`-th element of the `StaticExtents` pack.  The exposition only `dynamic_rank` member function is defined as
@@ -1252,7 +1252,7 @@ constexpr mapping(mapping&& other) noexcept;
 <br/>
 
 ```c++
-constexpr mapping(const Extents & e) noexcept;
+constexpr mapping(const Extents& e) noexcept;
 ```
 
 * *Effects:* Initializes `extents_` with `e`.
@@ -1265,6 +1265,7 @@ template<class OtherExtents>
 constexpr mapping(const mapping<OtherExtents>& other);
 ```
 
+<!-- TODO 19 Jan 2019 Constraints -->
 * *Requires:* `other.extents()` meets the requirements for use in the initialization of `extents_`.
 * *Effects:* Initializes `extents_` with `other.extents()`.
 * *Ensures:* `extents() == other.extents()` is `true`.
@@ -1294,7 +1295,7 @@ Extents extents() const noexcept;
 typename Extents::index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* The product of `extents().extent(r)` for all `r` where 0 <= `r` < `extents().rank()`. <!-- FIXME (mfh 29 Sep 2018) See GitHub Issue #71 -->
+* *Returns:* The product of `extents().extent(r)` for all `r` in the range `[0, extents().rank())`.
 
 <!-- --- -->
 
@@ -1311,7 +1312,7 @@ template<class... Indices>
 * *Returns:* Let <math>i<sub>k</sub></math> denote the k-th element of `i...`, and let <math>R</math> equal `extents().rank()`:
     * If <math>R</math> is zero, then zero;
     * Otherwise, the sum of <math>i<sub>`k`</sub></math> &#10799; `stride(k)`
-      for 0 <= `k` < <math>R</math>.
+      for all `k` in the range `[0,` <math>R</math>`)`.
 
 <br/>
 ```c++
@@ -1334,8 +1335,7 @@ typename Extents::index_type stride(size_t r) const;
 * *Returns:*
     * If `r` is zero, then one;
     * Otherwise, the product of `extents().extent(k)`
-      for 0 <= `k` < `r`, where <math>i<sub>`k`</sub></math>
-      denotes the `k`-th element of `i...`.
+      for all `k` in the range `[0, r)`.
 
 <br/>
 ```c++
@@ -1351,6 +1351,7 @@ template<class OtherExtents>
   constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
+<!-- TODO mfh 19 Jan 2019 Constraints? should be implied by "Effects: Equivalent to:"? -->
 * *Returns:* `extents() != other.extents()` is `true`.
 
 
@@ -1384,7 +1385,7 @@ struct layout_right {
     constexpr mapping() noexcept;
     constexpr mapping(const mapping& other) noexcept;
     constexpr mapping(mapping&& other) noexcept;
-    constexpr mapping(Extents e) noexcept;
+    constexpr mapping(const Extents& e) noexcept;
     template&lt;class OtherExtents>
       constexpr mapping(const mapping&lt;OtherExtents>& other);
 
@@ -1467,7 +1468,7 @@ constexpr mapping(mapping&& other) noexcept;
 <br/>
 
 ```c++
-constexpr mapping(Extents e) noexcept;
+constexpr mapping(const Extents& e) noexcept;
 ```
 
 * *Effects:* Initializes `extents_` with `e`.
@@ -1480,6 +1481,7 @@ template<class OtherExtents>
   constexpr mapping(const mapping<OtherExtents>& other);
 ```
 
+<!-- TODO mfh 19 Jan 2019: Constraints? See above TODO. -->
 * *Requires:* `other.extents()` meets the requirements for use in the initialization of `extents_`.
 * *Effects:* Initializes `extents_` with `other.extents()`.
 * *Ensures:* `extents() == other.extents()` is `true`.
@@ -1510,7 +1512,7 @@ Extents extents() const noexcept;
 typename Extents::index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* The product of `extents().extent(r)` for all `r` where 0 <= `r` < `extents().rank()`.
+* *Returns:* The product of `extents().extent(r)` for all `r` in the range `[0, extents().rank())`.
 
 <!-- --- -->
 
@@ -1522,24 +1524,13 @@ template<class... Indices>
 ```
 
 * *Constraints:*
-    * `sizeof...(Indices)==extents().rank()` is `true`, and
-    * `is_convertible_v<Indices, typename Extents::index_type> && ...` is `true`.
+    * `sizeof...(Indices) == extents().rank()` is `true`, and
+    * `(is_convertible_v<Indices, typename Extents::index_type> && ...)` is `true`.
 * *Requires:* 0 <= `array{i...}[r]` < `extents().extent(r)` for all `r` in the range `[0, extents().rank())`.
 * *Returns:* Let <math>i<sub>k</sub></math> denote the k-th element of `i...`, and let <math>R</math> equal `extents().rank()`:
     * If <math>R</math> is zero, then zero;
     * Otherwise, the sum of <math>i<sub>`k`</sub></math> &#10799; `stride(k)`
-      for 0 <= `k` < <math>R</math>.
-
-<!--
-Let `i[k]` denote the `k`-*th* element of `i...`.
-
-* *Returns:* Equivalent to `offset` in
-```
-index_type offset = 0;
-for(size_t k = 0; k < Extents::rank(); ++k)
-  offset += i[k] * stride(k);
-```
--->
+      for all `k` in the range `[0,` <math>R</math>`)`.
 
 <br/>
 
@@ -1560,11 +1551,12 @@ constexpr bool is_strided() const noexcept;
 typename Extents::index_type stride(size_t r) const noexcept;
 ```
 
-* *Returns:* Equivalent to `s` in the following:
-```
+* *Effects:* Equivalent to:
+```c++
 Extents::index_type s = 1;
-for(size_t k=r+1; k<extents().rank(); ++k)
+for(size_t k = r+1; k < extents().rank(); ++k)
   s *= extents().extent(r);
+return s;
 ```
 
 <br/>
@@ -1694,22 +1686,22 @@ constexpr mapping(mapping&& other) noexcept;
 
 
 ```c++
-constexpr mapping(Extents e, array<typename Extents::index_type, Extents::rank()> s) noexcept;
+constexpr mapping(const Extents& e, array<typename Extents::index_type, Extents::rank()> s) noexcept;
 ```
-Let R equal `Extents::rank()`.
-If <math>p</math> is a permutation of the integers 0, ..., R-1,
-then let `p` be an exposition-only array of `size_t` of length R
-such that `p[i]` equals <math>p<sub>`i`</sub></math> for 0 <= `i` < R.
+Let <math>R</math> equal `Extents::rank()`.
+If <math>p</math> is a permutation of the integers 0, ..., <math>R-1</math>,
+then let `p` be an exposition-only array of `size_t` of length <math>R</math>
+such that `p[i]` equals <math>p<sub>`i`</sub></math> for all `i` in the range `[0,` <math>R</math>`)`.
 
 <!-- FIXME (mfh 2x Sep 2018) See GitHub Issue #72 -->
 
 * *Requires:*
-    * `s[i] > 0` is `true` for 0 < `i` <= R.
+    * `s[i] > 0` is `true` for all `i` in the range `[0,` <math>R</math>`)`.
     * If R is nonzero, then
       there exists a permutation <math>p</math>
-      of the integers 0, ..., R-1 such that
-      `s(p[i]) >= s(p[i-1])*e.extent(p[i-1])` is `true`
-      for 1 <= `i` < R.
+      of the integers 0, ..., <math>R-1</math> such that
+      `s(p[i]) >= s(p[i-1]) * e.extent(p[i-1])` is `true`
+      for `i` in the range `[1,` <math>R</math>`)`.
 * *Effects:*
     * Initializes `extents_` with `e`, and
     * initializes `strides_` with `s`.
@@ -1747,7 +1739,7 @@ array<typename Extents::index_type, Extents::rank()> strides() const noexcept;
 ```c++
 typename Extents::index_type required_span_size() const noexcept;
 ```
-* *Returns:* The maximum of `extents().extent(r)*stride(r)` for all `r` in the range `[0, extents().rank())`.
+* *Returns:* The maximum of `extents().extent(r) * stride(r)` for all `r` in the range `[0, extents().rank())`.
 
 
 ```c++
@@ -1761,7 +1753,7 @@ template <class... Indices>
 * *Returns:* Let <math>i<sub>k</sub></math> denote the k-th element of `i...`, let <math>R</math> equal `Extents::rank()`, and let `s` be `strides()`:
     * If <math>R</math> is zero, then zero;
     * Otherwise, the sum of <math>i<sub>`k`</sub> &#10799; `s[k]`
-      for 0 <= `k` < <math>R</math>.
+      for all `k` in the range `[0,` <math>R</math>`)`.
 * *Throws:* Nothing.
 
 ```c++
@@ -1782,17 +1774,17 @@ static constexpr bool is_always_contiguous() noexcept;
 constexpr bool is_contiguous() const noexcept;
 ```
 Let R equal `Extents::rank()`.
-If <math>p</math> is a permutation of the integers 0, ..., R-1,
-then let `p` be an exposition-only array of `size_t` of length R
-such that `p[i]` equals <math>p<sub>`i`</sub></math> for 0 <= `i` < R.
+If <math>p</math> is a permutation of the integers 0, ..., <math>R-1</math>,
+then let `p` be an exposition-only array of `size_t` of length <math>R</math>
+such that `p[i]` equals <math>p<sub>`i`</sub></math> for all `i` in the range `[0,` <math>R</math>`)`.
 
 * *Returns:*
-    * If `R` is zero, then `true`;
+    * If <math>R</math> is zero, then `true`;
     * Else, if there is a permutation <math>p</math>
-      of the integers 0, ..., R-1 such that
-      `min(stride(p[i])` equals 1 for 0 <= `i` < R, and
-      `stride(p[i])` equals `stride(p[i-1])*extents().extent(p[i-1])`
-      for 1 <= `i` < R, then `true`;
+      of the integers 0, ..., <math>R-1</math> such that
+      `min(stride(p[i])` equals 1 for `i` in the range `[0,` <math>R</math>`)`, and
+      `stride(p[i])` equals `stride(p[i-1]) * extents().extent(p[i-1])`
+      for `i` in the range `[1,` <math>R</math>`)`, then `true`;
     * Otherwise, `false`.
 
 ```c++
@@ -1807,6 +1799,7 @@ template<class OtherExtents>
   constexpr bool operator==(const mapping<OtherExtents>& other) const noexcept;
 ```
 
+<!-- TODO mfh 19 Jan 2019 Add Constraints clause? -->
 * *Returns:* `extents() == other.extents()`.
 
 <br/>
@@ -1815,6 +1808,7 @@ template<class OtherExtents>
   constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
+<!-- TODO mfh 19 Jan 2019 Add Constraints clause? -->
 * *Returns:* `extents() != other.extents()`.
 
 
@@ -1968,7 +1962,7 @@ namespace fundamentals_v3 {
 
 ```c++
 constexpr typename offset_policy::pointer
-  offset(pointer p, ptrdiff_t i ) const noexcept;
+  offset(pointer p, ptrdiff_t i) const noexcept;
 ```
 
 * *Requires:* `p + i` is dereferenceable.
@@ -2164,7 +2158,7 @@ template<class... IndexType>
 
 * *Constraints:*
     + `(is_convertible_v<IndexType, index_type> && ...)` is `true`,
-    + `sizeof...(dynamic_extents)==rank_dynamic()` is `true`,
+    + `sizeof...(dynamic_extents) == rank_dynamic()` is `true`,
     + `is_constructible_v<mapping_type, Extents>` is `true`, and
     + `is_default_constructible_v<accessor_type>` is `true`.
 * *Effects:*
@@ -2188,7 +2182,7 @@ template<class IndexType, size_t N>
     + `N == rank_dynamic()` is `true`,
     + `is_constructible_v<mapping_type, Extents>` is `true`, and
     + `is_default_constructible_v<accessor_type>` is `true`.
-* *Effects:* Equivalent to `basic_mdspan(p, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
+* *Effects:* Equivalent to: `basic_mdspan(p, dynamic_extents[Rs]...)`, with `Rs...` from `index_sequence<Rs...>` matching `make_index_sequence<N>`.
 * *Throws:* Nothing.
 
 <br/>
@@ -2224,7 +2218,6 @@ constexpr basic_mdspan(pointer p, const mapping_type& m, const accessor_type& a)
 
 <br/>
 
-<!-- TODO review this wording! -->
 ```c++
 template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessor>
   constexpr basic_mdspan(const basic_mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>& other);
@@ -2291,7 +2284,7 @@ constexpr reference operator[](index_type i) const;
 
 * *Constraints:* `rank() == 1` is `true`.
 * *Requires:* `acc_.access(ptr_, map_(i))` shall be valid.
-* *Effects:* Equivalent to `return (*this)(i);`.
+* *Effects:* Equivalent to: `return (*this)(i);`.
 
 <br/>
 
@@ -2304,7 +2297,7 @@ template<class... IndexType>
     + `(is_convertible_v<IndexType, index_type> && ...)` is `true`, and
     + `sizeof...(IndexType) == rank()` is `true`.
 * *Requires:* `acc_.access(ptr_, map_(indices...))` shall be valid.
-* *Effects:* Equivalent to `return acc_.access(ptr_, map_(indices...));`.
+* *Effects:* Equivalent to: `return acc_.access(ptr_, map_(indices...));`.
 * *Throws:* Nothing.
 
 <!-- * Moving this to mapping requirements *Requires:* 0 <= `array<index_type, sizeof...(indices)>{indices...}[r]` < `extent(r)` for all `r` in the range `[0, rank())`. -->
@@ -2321,7 +2314,7 @@ template<class IndexType, size_t N>
     + `is_convertible_v<IndexType, index_type>` is `true`, and
     + `rank() == N` is `true`.
 * *Requires:* `acc_.access(ptr_, std::apply(map_, indices))` shall be valid.
-* *Effects:* Equivalent to `return std::apply(*this, indices);`.
+* *Effects:* Equivalent to: `return std::apply(*this, indices);`.
 * *Throws:* nothing.
 
 ```c++
@@ -2410,7 +2403,7 @@ constexpr index_type unique_size() const noexcept;
 constexpr span<element_type> span() const noexcept;
 ```
 
-* *Returns:* Equivalent to `span<element_type>(acc_.decay(ptr_), required_span_size())`.
+* *Effects:* Equivalent to: `return span<element_type>(acc_.decay(ptr_), required_span_size());`.
 
 ```c++
 constexpr pointer data() const noexcept;
