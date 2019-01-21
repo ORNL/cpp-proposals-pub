@@ -729,7 +729,7 @@ Y88b  d88P Y88b 888 888  888 Y88..88P 888 d88P      X88 888      X88
 <pre highlight="c++">
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
   // [mdspan.extents], class template extents
   template&lt;ptrdiff_t... StaticExtents>
     class extents;
@@ -747,7 +747,7 @@ namespace fundamentals_v3 {
   template&lt;class ElementType,
            class Extents,
            class LayoutPolicy = layout_right,
-           class AccessorPolicy = accessor_basic&lt;ElementType> >
+           class AccessorPolicy = accessor_basic&lt;ElementType>>
     class basic_mdspan;
 
   template&lt;class T, ptrdiff_t... Extents>
@@ -821,7 +821,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <pre highlight="c++">
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 template&lt;ptrdiff_t... StaticExtents>
 class extents {
@@ -833,7 +833,7 @@ public:
   constexpr extents() noexcept;
   constexpr extents(const extents&) noexcept;
   template&lt;class... IndexType>
-  constexpr extents(IndexType... dynamic) noexcept;
+  constexpr explicit extents(IndexType... dynamic);
   template&lt;class IndexType>
   constexpr extents(const array&lt;IndexType, rank_dynamic()>& dynamic) noexcept;
   template&lt;ptrdiff_t... OtherExtents>
@@ -885,7 +885,7 @@ constexpr extents() noexcept;
 <br/>
 
 ```c++
-constexpr extents(const extents& other);
+constexpr extents(const extents& other) noexcept;
 ```
 
 * *Effects:* Initializes `dynamic_extents_` with `other.dynamic_extents_`.
@@ -913,18 +913,19 @@ constexpr extents(const extents<OtherExtents...>& other);
 
 ```c++
 template<class... IndexType>
-constexpr extents(IndexType... dynamic) noexcept;
+constexpr explicit extents(IndexType... dynamic);
 ```
 
 * *Constraints:*
     * `(is_convertible_v<IndexType, index_type> && ...)` is `true` and
-    * `sizeof...(dynamic) == rank_dynamic()` is `true`.
+    * `sizeof...(dynamic) == rank_dynamic()` is `true`.  *[Note:* If `rank_dynamic()` is zero, overload resolution will unambiguously pick the default constructor of `extents` over this constructor. *—end note]*
 * *Expects:* `((dynamic_extents >= 0) && ...)` is `true`.
 * *Effects:* Initializes `dynamic_extents_` with `dynamic...`.
+* *Throws:* Nothing.
 
 ```c++
 template<class IndexType>
-constexpr extents(const array<IndexType, rank_dynamic()> & dynamic) noexcept;
+constexpr extents(const array<IndexType, rank_dynamic()>& dynamic) noexcept;
 ```
 
 * *Constraints:* `is_convertible_v<IndexType, index_type>` is `true`.
@@ -994,7 +995,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 ```
 
 * *Returns:*
-    * If `lhs.rank() == rhs.rank() && lhs.extents(r) == rhs.extents(r)` is `true`
+    * If `lhs.rank() == rhs.rank() && lhs.extent(r) == rhs.extent(r)` is `true`
       for all `r` in the range `[0, lhs.rank())`, then `true`;
     * Otherwise, `false`.
 
@@ -1004,7 +1005,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
   constexpr bool operator!=(const extents<LHS...>& lhs, const extents<RHS...>& rhs) noexcept;
 ```
 
-* *Effects:* Equivalent to: `!(lhs == rhs)`.
+* *Effects:* Equivalent to: `return !(lhs == rhs)`.
 
 <!--
 888                                     888                                                  d8b
@@ -1151,7 +1152,7 @@ Table � — Layout mapping policy and layout mapping requirements
 <pre highlight="c++">
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 struct layout_left {
   template&lt;class Extents>
@@ -1369,7 +1370,7 @@ template<class OtherExtents>
 <pre highlight="c++">
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 struct layout_right {
   template&lt;class Extents>
@@ -1600,7 +1601,7 @@ layout_stride
 <pre highlight="c++">
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 struct layout_stride {
   template&lt;class Extents>
@@ -1932,7 +1933,7 @@ Table �: Accessor policy requirements
 ```c++
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
   template<class ElementType>
   struct accessor_basic {
@@ -2009,7 +2010,7 @@ constexpr pointer decay(pointer p) const noexcept;
 <pre highlight="c++">
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
 template&lt;class ElementType, class Extents, class LayoutPolicy, class AccessorPolicy>
 class basic_mdspan {
@@ -2521,7 +2522,7 @@ subspan
 <pre highlight="c++">
 namespace std {
 namespace experimental {
-namespace fundamentals_v3 {
+inline namespace fundamentals_v3 {
 
   // [mdspan.subspan], subspan creation
   template&lt;class ElementType, class Extents, class LayoutPolicy,
