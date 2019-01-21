@@ -612,18 +612,18 @@ Description
 
 The proposed polymorphic multidimensional array reference (`mdspan`)
 defines types and functions for mapping multidimensional indices
-in its **domain**, a
-multidimensional index space, to the `mdspan`'s **codomain**,
+in its *domain*, a
+multidimensional index space, to the `mdspan`'s *codomain*,
 elements of a contiguous span of objects.
-A **multidimensional index space** of **rank** <math>R</math>
+A *multidimensional index space* of *rank* <math>R</math>
 is the Cartesian product
 <math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math>
 of half-open integer intervals.
-A **multidimensional index** or **multi-index**
-is a member of a multidimensional index space.
-An `mdspan` has two policies: the **layout mapping**
-and the **accessor**. The layout mapping specifies the formula, and
-properties of the formula, for mapping a multi-index from the domain to
+A *multidimensional index*
+is a element of a multidimensional index space.
+An `mdspan` has two policies: the *layout mapping*
+and the *accessor*. The layout mapping specifies the formula, and
+properties of the formula, for mapping a multidimensional index from the domain to
 an element in the codomain. The accessor is an extension point that
 allows modification of how elements are accessed. For example,
 \[P0367](http://wg21.link/p0367)
@@ -638,14 +638,14 @@ array-of-array-of-array-of... types. While such types have some similarity
 to multidimensional arrays, they do not provide adequate multidimensional
 array functionality of this proposal. Two critical functionality
 differences are (1) multiple dynamic extents and (2) polymorphic mapping
-of multi-indices to element objects.
+of multidimensional indices to element objects.
 
 **Optimized Implementation of Layout Mapping**
 
-We intend the layout mapping of a multi-index to be a constant-time
+We intend the layout mapping of a multidimensional index to be a constant-time
 `constexpr` operation that is trivially inlined and optimized when possible.
 Compiler vendors may apply optimizations such as loop invariant code
-motion, including partial evaluation of multi-index layout mappings
+motion, including partial evaluation of multidimensional index layout mappings
 when indices are loop invariant.
 
 Editing Notes
@@ -657,7 +657,8 @@ as of \[N4750](http://wg21.link/n4750).
 The � character is used to denote a placeholder section number, table number,
 or paragraph number which the editor shall determine.
 
-Add the header `<mdspan>` to the "C++ library headers" table in **[headers]**.
+Add the header `<mdspan>` to the "C++ library headers" table in **[headers]**,
+in a place that respects the table's current alphabetic order.
 
 Add the header `<mdspan>` to the "Containers library summary" table in
 **[containers.general]** below the listing for `<span>`.
@@ -695,26 +696,13 @@ needed for `basic_mdspan`.
 ---
 
 <br/>
-*Add the following paragraphs to* **[views.general]**:
+*Add the following paragraphs to* **[views.general]**,
+*after the current text, which consists only of the following sentence:*
+"The header `<span>` defines the view span."
 
 �. The header `<mdspan>` defines the view `basic_mdspan`,
 the type alias `mdspan`,
 and other facilities for interacting with these views.
-The `basic_mdspan` object maps a multidimensional index
-within its domain
-to a reference of an element in the codomain.
-The *domain* of a `basic_mdspan` object is a multidimensional index space.
-A *multidimensional index space* of *rank* <math>R</math>
-is the Cartesian product
-<math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math>
-of half-open integer intervals.
-A **multidimensional index** or **multi-index**
-is a member of a multidimensional index space.
-The *codomain* of a `basic_mdspan` object is a `span` of elements.
-
-�. The `subspan` function generates a `basic_mdspan`
-with a *domain* contained within the input `basic_mdspan` domain,
-and a codomain contained within the input `basic_mdspan` codomain.
 
 ---
 
@@ -820,8 +808,9 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 1. A *multidimensional index space* is the Cartesian product <math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math> of half-open integer intervals.
 2. The *rank* of a multidimensional index space is the number of intervals <math>R</math>.
 3. An `extents` object `e` defines a multidimensional index space where <math>R</math> is `e.rank()` and <math>N<sub>r</sub><math> is `e.extent(r)`.
-4. A *multidimensional index value* in a multidimensional index space defined by `e` is represented by a pack of integer type `i...` such that `sizeof...(i) == e.rank()` and `i[r]` is in the range `[0, e.extent(r))`, where `i[r]` denotes the <math>r<sup>th</sup></math> element of `i...`.
-
+4. A *multidimensional index* is an element of a multidimensional index space.  We may identify a pack of integer type `i...` with a multidimensional index in the multidimensional index space defined by an `extents` object `e`, as long as:
+    * `sizeof...(i) == e.rank()` is `true`; and
+    * for all `r` in the range `[0, e.rank())`, the `r`-th element of `i...` is in the range `[0, e.extent(r))`.
 
 <!-- TODO review change to make rank() and rank_dynamic() size_t -->
 <!-- TODO review addition of array constructor -->
@@ -910,14 +899,14 @@ constexpr extents(const extents<OtherExtents...>& other);
 
 * *Constraints:*
     * `sizeof...(StaticExtents)` equals `sizeof...(OtherExtents)`; and
-    * For each `r` in the range `[0, rank())` where
+    * For all `r` in the range `[0, rank())` where
       `static_extent(r) != dynamic_extent` and
-      `other.static_extent(r) != dynamic_extent`,
-      `static_extent(r) == other.static_extent(r)`.
-* *Expects:* `static_extent(r) == dynamic_extent` or
-             `static_extent(r) == other.extent(r)`
-	     for each `r` in the range `[0, rank())`.
-* *Effects:* For each `r` in the range `[0, rank())` where `static_extent(r) == dynamic_extent`, initializes `dynamic_extent[dynamic_rank(r)]` with `other.extent(r)`.
+      `other.static_extent(r) != dynamic_extent` are both `true`,
+      `static_extent(r) == other.static_extent(r)` is `true`.
+* *Expects:* For all `r` in the range `[0, rank())`, 
+             `static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)` is `true`.
+* *Effects:* For each `r` in the range `[0, rank())` where `static_extent(r) == dynamic_extent` is `true`,
+             initializes `dynamic_extent[dynamic_rank(r)]` with `other.extent(r)`.
 * *Throws:* Nothing.
 
 <br/>
@@ -949,14 +938,14 @@ constexpr extents& operator=(const extents<OtherExtents...>& other);
 
 * *Constraints:*
     * `sizeof...(StaticExtents)` equals `sizeof...(OtherExtents)`; and
-    * For each `r` in the range `[0, rank())` where
+    * For all `r` in the range `[0, rank())` where
       `static_extent(r) != dynamic_extent` and
-      `other.static_extent(r) != dynamic_extent`,
-      `static_extent(r) == other.static_extent(r)`.
-* *Expects:* `static_extent(r) == dynamic_extent` or
-             `static_extent(r) == other.extent(r)`
-	     for all `r` in range `[0, rank())`.
-* *Effects:* For each `r` in the range `[0, rank())` where `static_extent(r) == dynamic_extent`, assigns `other.extent(r)` to `dynamic_extent[dynamic_rank(r)]`.
+      `other.static_extent(r) != dynamic_extent` are both `true`,
+      `static_extent(r) == other.static_extent(r)` is `true`.
+* *Expects:* For all `r` in the range `[0, rank())`, 
+             `static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)` is `true`.
+* *Effects:* For each `r` in the range `[0, rank())` where `static_extent(r) == dynamic_extent` is `true`,
+             assigns `other.extent(r)` to `dynamic_extent[dynamic_rank(r)]`.
 
 
 <br/>
@@ -1015,7 +1004,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
   constexpr bool operator!=(const extents<LHS...>& lhs, const extents<RHS...>& rhs) noexcept;
 ```
 
-* *Returns:* `!(lhs == rhs)`.
+* *Effects:* Equivalent to: `!(lhs == rhs)`.
 
 <!--
 888                                     888                                                  d8b
@@ -1039,9 +1028,9 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 
 1. A *layout mapping policy* is a class that contains a *layout mapping*, a nested class template.
 
-2. A *layout mapping policy* and its *layout mapping* nested class template meet the requirements in Table �.
+2. A layout mapping policy and its layout mapping nested class template meet the requirements in Table �.
 
-3. A *layout mapping* meets the requirements of *Cpp17DefaultConstructible*, *Cpp17CopyAssignable*, *Cpp17EqualityComparable*, and the requirements in Table �.
+3. A layout mapping meets the requirements of *Cpp17DefaultConstructible*, *Cpp17CopyAssignable*, *Cpp17EqualityComparable*, and the requirements in Table �.
 
 4. In Table �:
     * `MP` denotes a layout mapping policy.
@@ -1049,7 +1038,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
     * `E` denotes a specialization of `extents`.
     * `e` denotes an object of type `E`.
     * `m` denotes an object of type `M`.
-    * `i...` and `j...` are multidimensional index values in the multidimensional index space defined by `e`.
+    * `i...` and `j...` are multidimensional indices in the multidimensional index space defined by `e`.
     * `r` is an integral value in the range `[0, e.rank())`.
 
 Table � — Layout mapping policy and layout mapping requirements
@@ -1075,7 +1064,7 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m(i...)`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* Layout mapping of a multi-index `i...`. </td>
+  <td>*Returns:* Layout mapping of a multidimensional index `i...`. </td>
   <td>*Requires:* 0 <= `m(i...)`. </td>
 </tr>
 <tr>
@@ -1152,9 +1141,10 @@ Table � — Layout mapping policy and layout mapping requirements
 
 <br/>
 <br/>
-<b>26.7.�.2 Class layout_left [mdspan.layout.left]</b>
+<b>26.7.�.2 Class template `layout_left` [mdspan.layout.left]</b>
 
-1. `layout_left` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_left::template mapping` meets the requirements of layout mapping. *—end note]*
+1. `layout_left` meets the requirements of layout mapping policy.
+<!-- *[Note:* Thus, any well-formed specialization of `layout_left::template mapping` meets the requirements of layout mapping. *—end note]* -->
 2. `layout_left` gives a layout mapping where the left-most extent is stride one and strides increase left-to-right as the product of extents.
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, then the program is ill-formed.
 
@@ -1347,7 +1337,7 @@ template<class OtherExtents>
   constexpr bool operator==(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `extents() == other.extents()` is `true`.
+* *Effects:* Equivalent to: `return extents() == other.extents();`.
 
 <br/>
 ```c++
@@ -1355,8 +1345,7 @@ template<class OtherExtents>
   constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-<!-- TODO mfh 19 Jan 2019 Constraints? should be implied by "Effects: Equivalent to:"? -->
-* *Returns:* `extents() != other.extents()` is `true`.
+* *Effects:* Equivalent to: `return extents() != other.extents();`.
 
 
 <!--
@@ -1370,11 +1359,12 @@ template<class OtherExtents>
 
 <br/>
 <br/>
-<b>26.7.�.3 Class layout_right [mdspan.layout.right]</b>
+<b>26.7.�.3 Class template `layout_right` [mdspan.layout.right]</b>
 
-1. `layout_right` meets the requirements of layout mapping policy.  *[Note:* Thus, any well-formed specialization of `layout_right::template mapping` meets the requirements of layout mapping. *—end note]*
+1. `layout_right` meets the requirements of layout mapping policy.
+<!-- *[Note:* Thus, any well-formed specialization of `layout_right::template mapping` meets the requirements of layout mapping. *—end note]* -->
 2. The layout mapping property `layout_right` gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.
-3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
+3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, then the program is ill-formed.
 
 <pre highlight="c++">
 namespace std {
@@ -1569,7 +1559,7 @@ template<class OtherExtents>
   constexpr bool operator==(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `extents() == other.extents()` is `true`.
+* *Effects:* Equivalent to: `return extents() == other.extents();`.
 
 <br/>
 ```c++
@@ -1577,7 +1567,7 @@ template<class OtherExtents>
   constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-* *Returns:* `extents() != other.extents()` is `true`.
+* *Effects:* Equivalent to: `return extents() != other.extents();`.
 
 
 <!--
@@ -1599,11 +1589,11 @@ layout_stride
 
 <br/>
 <br/>
-<b>26.7.�.4 Class `layout_stride` [mdspan.layout.stride]</b>
+<b>26.7.�.4 Class template `layout_stride` [mdspan.layout.stride]</b>
 
 1. `layout_stride` meets the requirements of layout mapping policy.
 2. The layout mapping property `layout_stride` gives a layout mapping where the strides are user defined.
-3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, the program is ill-formed.
+3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, then the program is ill-formed.
 
 <br/>
 
@@ -1803,8 +1793,7 @@ template<class OtherExtents>
   constexpr bool operator==(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-<!-- TODO mfh 19 Jan 2019 Add Constraints clause? -->
-* *Returns:* `extents() == other.extents()`.
+* *Effects:* Equivalent to: `return extents() == other.extents();`.
 
 <br/>
 ```c++
@@ -1812,8 +1801,7 @@ template<class OtherExtents>
   constexpr bool operator!=(const mapping<OtherExtents>& other) const noexcept;
 ```
 
-<!-- TODO mfh 19 Jan 2019 Add Constraints clause? -->
-* *Returns:* `extents() != other.extents()`.
+* *Effects:* Equivalent to: `return extents() != other.extents();`.
 
 
 
@@ -1936,10 +1924,10 @@ Table �: Accessor policy requirements
 -->
 
 <br/>
-<b>26.7.�.2 Class `accessor_basic` [mdspan.accessor.basic]</b>
+<b>26.7.�.2 Class template `accessor_basic` [mdspan.accessor.basic]</b>
 
 1. `accessor_basic` meets the requirements of accessor policy.
-2. If `T` is not an object type or is an array type, the program is ill-formed.
+2. `ElementType` is required to be a complete object type that is neither an abstract class type nor an array type. <!-- mfh 20 Jan 2019: This imitates [span.overview] para 4 wording, with an additional restriction -->
 
 ```c++
 namespace std {
@@ -1999,7 +1987,6 @@ constexpr pointer decay(pointer p) const noexcept;
                                                                                  888
 -->
 
-<!-- TODO: Consider moving Accessor to replace ElementType, since it's never used -->
 <!-- TODO: section references in synopsis -->
 <!-- TODO: Shouldn't we also have converting move constructors? -->
 <!-- TODO: review addition of mapping() and extents() -->
@@ -2008,14 +1995,16 @@ constexpr pointer decay(pointer p) const noexcept;
 <br/>
 <b>26.7.� Class template `basic_mdspan` [mdspan.basic]</b>
 
-1. The `basic_mdspan` class template maps a multi-index within a multi-index *domain* to a reference to an element in the *codomain* `span`.
-2. The multi-index domain space is the Cartesian product of the extents: <math>[0, `extent(0)`) &#10799; [0, `extent(1)`) &#10799; ... &#10799; [0, `extent(rank()-1)`)</math>.  Each extent may be statically or dynamically specified.
-2. As with `span`, the storage of the objects in the codomain `span` of a `basic_mdspan` is owned by some other object.
-3. `ElementType` is required to be a complete object type that is not an abstract class type or an array type.
-4. `Extents` is required to be a (cv-unqualified) specialization of `extents`.
-5. `LayoutPolicy` is required to meet the layout mapping policy requirements, otherwise the program is ill-formed.
-6. `AccessorPolicy` is required to meet the accessor policy requirements and `std::is_same_v<typename AccessorPolicy::element_type,ElementType>` must be `false`, otherwise the program is ill-formed.
+<br/>
+<b>26.7.�.1 `basic_mdspan` overview [mdspan.basic.overview]</b>
 
+1. `basic_mdspan` maps a multidimensional index in its domain
+   to a reference to an element in its codomain `span`.
+2. The *domain* of a `basic_mdspan` object is a multidimensional index space, defined by
+   <math>[0, `extent(0)`) &#10799; [0, `extent(1)`) &#10799; ... &#10799; [0, `extent(rank()-1)`)</math>.
+   Each extent may be statically or dynamically specified.
+3. The *codomain* of a `basic_mdspan` object is a `span` of elements.
+4. As with `span`, the storage of the objects in the codomain `span` of a `basic_mdspan` is owned by some other object.
 
 <pre highlight="c++">
 namespace std {
@@ -2058,7 +2047,7 @@ public:
   template&lt;class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherAccessorPolicy>
     constexpr basic_mdspan& operator=(const basic_mdspan&lt;OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessorPolicy>& other) noexcept;
 
-  // [mdspan.basic.mapping], basic_mdspan mapping domain multi-index to access codomain element
+  // [mdspan.basic.mapping], basic_mdspan mapping domain multidimensional index to access codomain element
   constexpr reference operator[](index_type) const noexcept;
   template&lt;class... IndexType>
     constexpr reference operator()(IndexType... indices) const noexcept;
@@ -2100,6 +2089,17 @@ private:
 }}}
 </pre>
 
+<!-- mfh 20 Jan 2019: Putting the template parameters after the class declaration imitates [span.overview]. -->
+
+5. `ElementType` is required to be a complete object type that is neither an abstract class type nor an array type. <!-- mfh 20 Jan 2019: This imitates [span.overview] para 4 wording, with an additional restriction -->
+6. If `Extents` is not a (cv-unqualified) specialization of `extents`,
+   then the program is ill-formed.
+7. If `LayoutPolicy` does not meet the layout mapping policy requirements,
+   then the program is ill-formed.
+8. If `AccessorPolicy` does not meet the accessor policy requirements or
+   if `std::is_same_v<typename AccessorPolicy::element_type,ElementType>` is `false`,
+   then the program is ill-formed.
+
 <!--
 
  ##              #               #
@@ -2111,13 +2111,12 @@ private:
 -->
 <br/>
 <b>26.7.�.1 `basic_mdspan` constructors, assignment, and destructor [mdspan.basic.cons]</b>
-  // Mapping domain multi-index to access codomain element
+  // Mapping domain multidimensional index to access codomain element
 
 ```c++
 constexpr basic_mdspan() noexcept = default;
 ```
 
-<!-- TODO: decide if we want to include invocation of `span()` in the postconditions. An accessor may want to make this undefined behavior. -->
 * *Effects:*
     * Zero-initializes `ptr_`,
     * Value-initializes `map_`, and
@@ -2228,10 +2227,10 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
 ```
 
 * *Constraints:*
-    + `is_convertible_v<OtherLayoutPolicy::template mapping<OtherExtents>, mapping_type` is `true`,
-    + `is_convertible_v<OtherAccessor, Accessor>` is `true`, and
-    + `is_convertible_v<OtherAccessor::pointer, pointer>` is `true`.
-    + `is_convertible_v<OtherExtents, extents_type>` is `true`
+    + `is_convertible_v<OtherLayoutPolicy::template mapping<OtherExtents>, mapping_type` is `true`;
+    + `is_convertible_v<OtherAccessor, Accessor>` is `true`;
+    + `is_convertible_v<OtherAccessor::pointer, pointer>` is `true`;
+    + `is_convertible_v<OtherExtents, extents_type>` is `true`; and
     + For all `r` in the range `[0, rank())`, if `other.static_extent(r) != dynamic_extent && static_extent(r) != dynamic_extent` is `true`, then `other.static_extent(r) == static_extent(r)` is `true`.
 * *Requires:*
     + For all `r` in the range `[0, rank())`, if `other.static_extent(r) == dynamic_extent || static_extent(r) == dynamic_extent` is `true`, then `other.extent(r) == extent(r)` is `true`.
@@ -2253,10 +2252,10 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
 
 <!-- NOTE is_assignable_v<T, U> means T is assignable from U -->
 * *Constraints:*
-    + `is_assignable_v<mapping_type, OtherLayoutPolicy::template mapping<OtherExtents>>` is `true`,
-    + `is_assignable_v<Accessor, OtherAccessor>` is `true`, and
-    + `is_assignable_v<pointer, OtherAccessor::pointer>` is `true`.
-    + `OtherExtents::rank() == rank()` is `true`
+    + `is_assignable_v<mapping_type, OtherLayoutPolicy::template mapping<OtherExtents>>` is `true`;
+    + `is_assignable_v<Accessor, OtherAccessor>` is `true`;
+    + `is_assignable_v<pointer, OtherAccessor::pointer>` is `true`;
+    + `OtherExtents::rank() == rank()` is `true`; and
     + For all `r` in the range `[0, rank())`, if `other.static_extent(r) != dynamic_extent && static_extent(r) != dynamic_extent` is `true`, then `other.static_extent(r) == static_extent(r)` is `true`.
 * *Requires:*
     + For all `r` in the range `[0, rank())`, if `other.static_extent(r) == dynamic_extent || static_extent(r) == dynamic_extent` is `true`, then `other.extent(r) == extent(r)` is `true`.
@@ -2280,7 +2279,7 @@ template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, cl
 -->
 
 <br/>
-<b>26.7.�.2 `basic_mdspan` mapping domain multi-index to access codomain element [mdspan.basic.mapping]</b>
+<b>26.7.�.2 `basic_mdspan` mapping domain multidimensional index to access codomain element [mdspan.basic.mapping]</b>
 
 ```c++
 constexpr reference operator[](index_type i) const;
@@ -2512,6 +2511,13 @@ subspan
 <br/>
 <b>26.7.� subspan [mdspan.subspan]</b>
 
+1. The `subspan` function creates a `basic_mdspan`
+   with a domain that is a subset of the input `basic_mdspan`'s domain,
+   and a codomain that is a subset of the input `basic_mdspan`'s codomain.
+2. The `SliceSpecifier` template argument(s)
+   and the corresponding value(s) of the arguments of `subspan` after `src`
+   determine the subset of `src` that the return value views.
+
 <pre highlight="c++">
 namespace std {
 namespace experimental {
@@ -2544,32 +2550,27 @@ namespace fundamentals_v3 {
 }}}
 </pre>
 
-The `subspan` function creates a `basic_mdspan` that is a view
-of a (potentially trivial) subset of another `basic_mdspan`.
-The `SliceSpecifier` template argument(s)
-and the corresponding value(s) of the arguments of `subspan` after `src`
-determine the subset of `src` that the return value views.
-
-Let `sub` be the return value of `subspan(src, slices...)`.
+3. Let `sub` be the return value of `subspan(src, slices...)`.
 Denote the value of the <math>k</math>-th element of `slices...`
 by <math>s<sub>k</sub></math>.
 Denote the type of the <math>k</math>-th element of `slices...`
 by <math>S<sub>k</sub></math>.
 
-Let &rho; be `sub.rank()`.
+4. Let &rho; be `sub.rank()`.
 &rho; equals the number of `k`
 such that `is_convertible_v<`<math>S<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>S<sub>k</sub></math>`, all_type>` is `true`.
 
-Define `rank_map` as the length &rho; `std::integer_sequence` of `ptrdiff_t`
+5. Define `rank_map` as the length &rho; `std::integer_sequence` of `ptrdiff_t`
 consisting of the unique values of `k`, in increasing order, such that
 `is_convertible_v<`<math>S<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>S<sub>k</sub></math>`, all_type>` is `true`.
-Define the exposition-only `constexpr` function `get_seq<k>(seq)`,
+
+6. Define the exposition-only `constexpr` function `get_seq<k>(seq)`,
 where `k` is an integer,
 as the function returning the `k`-th entry of the `std::integer_sequence` `seq`.
 We say that the integer r "is not in `rank_map`" when,
 for all `k` in the range `[0,` &rho`)`;, r does not equal `get_seq<k>(rank_map)`.
 
-In the exposition-only `struct mdspan_subspan`,
+7. In the exposition-only `struct mdspan_subspan`,
 
     * The `extents_t` type alias is a specialization of
       `extents` **[mdspan.extents]**, and is determined by
@@ -2582,7 +2583,7 @@ In the exposition-only `struct mdspan_subspan`,
 *[Note:* High-quality implementations will avoid `layout_stride` whenever possible,
 if the input layout is `layout_left` or `layout_right`. *— end note]*
 
-Let `first` and `last` be exposition-only `array<ptrdiff_t, sizeof...(SliceSpecifier)>`,
+8. Let `first` and `last` be exposition-only `array<ptrdiff_t, sizeof...(SliceSpecifier)>`,
 where `SliceSpecifier...` is the same parameter pack as `subspan`'s.
 For `r` in the range `[0, sizeof...(SliceSpecifier))`,
 define the values of `first[r]` and `last[r]` as follows,
@@ -2599,25 +2600,26 @@ where `src` and `slices...` are the arguments of `subspan`:
       then `first[r] = 0`, and `last[r]` equals `src.extent(r)`.
 
 * *Requires:*
-    * `sizeof(slices...)` equals `src.rank()`.
+    * `sizeof(slices...)` equals `src.rank()`; and
     * For 0 <= `r` < `sizeof...(slices)`,
       `0 <= first[r] && first[r] < last[r] && last[r] <= src.extent(r)` is `true`.
 * *Constraints:*
     * `LayoutPolicy` is `layout_left`, `layout_right`, `layout_stride`,
        or any type in a possibly empty set of implementation-defined types,
        each of which meets the requirements of a layout mapping policy
-       **[mdspan.layout.reqs]**.
+       **[mdspan.layout.reqs]**
        *[Note:* Valid and useful layout mapping policies exist,
-       for which taking an arbitrary `subspan` does not make sense. *— end note]*
+       for which taking an arbitrary `subspan` does not make sense. *— end note]*;
+       and
     * For all `k` in the range `[0, sizeof...(slices))`,
       `is_convertible_v<`<math>S<sub>k</sub></math>`, ptrdiff_t> || is_convertible_v<`<math>S<sub>k</sub></math>`, pair<ptrdiff_t, ptrdiff_t>> || is_convertible_v<`<math>S<sub>k</sub></math>`, all_type>` is `true`.
-* *Ensures:*
+* *Ensures:* All of the following:
     * `sub.rank()` equals &rho;.
     * `mdspan_subspan<ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...>::extents_t::rank()` equals &rho;.
-    * Let the pack `i...` denote a multi-index in the domain of `sub`
+    * Let the pack `i...` denote a multidimensional index in the domain of `sub`
       such that <math>i<sub>`k`</sub></math> < `sub.extents(k)` for all `k` in the range `[0,` &rho;`)`,
       where <math>i<sub>`k`</sub></math> denotes the `k`-th element of `i...`.
-      Let the pack `j...` denote a multi-index in the domain of `src` where
+      Let the pack `j...` denote a multidimensional index in the domain of `src` where
       the `get_seq<k>(rank_map)`-th element of `j...`
       equals `first[get_seq<k>(rank_map)]` + <math>i<sub>`k`</sub></math>
       for all `k` in the range `[0,` &rho;`)`,
@@ -2699,7 +2701,7 @@ object. For example, the *atomic* `AccessorPolicy` in **P0860** defines
 
 -   **P0122** : span: bounds-safe views for sequences of objects The
     `mdspan` codomain concept of *span* is well-aligned with this paper.
--   **P0367** : Accessors The P0367 Accessors proposal includes
+-   **P0367** : Accessors: The P0367 Accessors proposal includes
     polymorphic mechanisms for accessing the memory an object or span of
     objects. The `AccessorPolicy` extension point in this proposal is
     intended to include such memory access properties.
