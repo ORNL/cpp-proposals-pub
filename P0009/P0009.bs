@@ -1027,7 +1027,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 
 <b>26.7.�.1 Layout mapping requirements [mdspan.layout.reqs]</b>
 
-1. A *layout mapping policy* is a class that contains a *layout mapping*, a nested class template.
+1. A *layout mapping policy* is a class that contains a *layout mapping*, which is a nested class template.
 
 2. A layout mapping policy and its layout mapping nested class template meet the requirements in Table �.
 
@@ -1065,13 +1065,13 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m(i...)`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* Layout mapping of a multidimensional index `i...`. </td>
-  <td>*Requires:* 0 <= `m(i...)`. </td>
+  <td>*Returns:* A nonnegative value, the layout mapping of `i...`. </td>
+  <td></td>
 </tr>
 <tr>
   <td>`m.required_span_size()`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* If the multidimensional index space that `e` defines is empty, then zero,
+  <td>*Returns:* If `e.extent(r)` is zero for any `r` in the range `[0, e.rank())`, then zero,
       else 1 plus the maximum value of `m(i...)` for all `i...` in `e`.</td>
   <td></td>
 </tr>
@@ -1090,12 +1090,14 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`m.is_strided()`</td>
   <td>`bool`</td>
-  <td>*Returns:* `true` if there exists an integer <math>&sigma;<sub>r</sub></math>
-       such that, for all `j...` and `i...` in `e`,
+  <td>*Returns:* `true` if,
+       for all <math>r</math> in `[0, e.rank())`,
+       there exists an integer <math>K<sub>r</sub></math>,
+       such that for all `j...` and `i...` in `e`,
        if all elements of `j...` and `i...` are equal
-       except for exactly one r-th element where
+       except for the <math>r</math>-th element, where
        <math>j<sub>r</sub></math> equals <math>i<sub>r</sub></math> + 1,
-       then `m(j...) - m(i...)` equals <math>&sigma;<sub>r</sub></math>.</td>
+       then <math>K<sub>r</sub></math> equals `m(j...) - m(i...)`. </td>
   <td></td>
 </tr>
 <tr>
@@ -1113,14 +1115,21 @@ Table � — Layout mapping policy and layout mapping requirements
 <tr>
   <td>`M::is_always_strided()`</td>
   <td>`bool`</td>
-  <td>*Returns:* true if `m.is_strided()` is `true` for any object of type `M`.</td>
+  <td>*Returns:* `true` if `m.is_strided()` is `true` for any object of type `M`.</td>
   <td></td>
 </tr>
 <tr>
   <td>`m.stride(r)`</td>
   <td>`E::index_type`</td>
-  <td>*Returns:* <math>&sigma;<sub>r</sub></math>, as defined for `m.is_strided()` above.
-      We say that <math>&sigma;<sub>r</sub></math> is the *stride* of ordinate `r`. </td>
+  <td>*Returns:* 
+       The integer <math>K<sub>r</sub></math>,
+       such that for all `j...` and `i...` in `e`,
+       if all elements of `j...` and `i...` are equal
+       except for the <math>r</math>-th element, where
+       <math>j<sub>r</sub></math> equals <math>i<sub>r</sub></math> + 1,
+       then <math>K<sub>r</sub></math> equals `m(j...) - m(i...)`.
+       *[Note:* <math>K<sub>r</sub></math> has the same definition here as in `m.is_strided()` above. *—end note]*
+       We call <math>K<sub>r</sub></math> the *stride of ordinate* `r`. </td>
   <td>*Requires:* `m.is_strided()` is `true`. </td>
 </tr>
 </table>
@@ -1145,7 +1154,6 @@ Table � — Layout mapping policy and layout mapping requirements
 <b>26.7.�.2 Class template `layout_left` [mdspan.layout.left]</b>
 
 1. `layout_left` meets the requirements of layout mapping policy.
-<!-- *[Note:* Thus, any well-formed specialization of `layout_left::template mapping` meets the requirements of layout mapping. *—end note]* -->
 2. `layout_left` gives a layout mapping where the left-most extent is stride one and strides increase left-to-right as the product of extents.
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, then the program is ill-formed.
 
@@ -1363,7 +1371,6 @@ template<class OtherExtents>
 <b>26.7.�.3 Class template `layout_right` [mdspan.layout.right]</b>
 
 1. `layout_right` meets the requirements of layout mapping policy.
-<!-- *[Note:* Thus, any well-formed specialization of `layout_right::template mapping` meets the requirements of layout mapping. *—end note]* -->
 2. The layout mapping property `layout_right` gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.
 3. If `Extents` is not a (possibly cv-qualified) specialization of `extents`, then the program is ill-formed.
 
@@ -2569,7 +2576,7 @@ consisting of the unique values of `k`, in increasing order, such that
 where `k` is an integer,
 as the function returning the `k`-th entry of the `std::integer_sequence` `seq`.
 We say that the integer r "is not in `rank_map`" when,
-for all `k` in the range `[0,` &rho`)`;, r does not equal `get_seq<k>(rank_map)`.
+for all `k` in the range `[0,` &rho;`)`, r does not equal `get_seq<k>(rank_map)`.
 
 7. In the exposition-only `struct mdspan_subspan`,
 
