@@ -917,7 +917,7 @@ constexpr explicit extents(IndexType... dynamic);
 ```
 
 * *Constraints:*
-    * `(is_convertible_v<IndexType, index_type> && ...)` is `true` and
+    * `(is_convertible_v<IndexType, index_type> && ...)` is `true`, and
     * `sizeof...(dynamic) == rank_dynamic()` is `true`.  *[Note:* If `rank_dynamic()` is zero, overload resolution will unambiguously pick the default constructor of `extents` over this constructor. *—end note]*
 * *Expects:* `((dynamic_extents >= 0) && ...)` is `true`.
 * *Effects:* Initializes `dynamic_extents_` with `dynamic...`.
@@ -954,22 +954,22 @@ constexpr extents& operator=(const extents<OtherExtents...>& other);
 
 <br/>
 ```c++
-static constexpr size_t rank() const noexcept;
+static constexpr size_t rank() noexcept;
 ```
 
 * *Returns:* `sizeof...(StaticExtents)`.
 
 <br/>
 ```c++
-static constexpr size_t rank_dynamic() const noexcept;
+static constexpr size_t rank_dynamic() noexcept;
 ```
 * *Returns:*
     * If `(sizeof...(StaticExtents) == 0)` is `true`, then zero;
-    * Otherwise, `((StaticExtents == dynamic_extent) + ...)`.
+    * Otherwise, the number of elements of `StaticExtents...` that equal `dynamic_extent`.
 
 <br/>
 ```c++
-static constexpr index_type static_extent(size_t r) const noexcept;
+static constexpr index_type static_extent(size_t r) noexcept;
 ```
 
 * *Returns:*
@@ -995,7 +995,7 @@ template<ptrdiff_t... LHS, ptrdiff_t... RHS>
 ```
 
 * *Returns:*
-    * If `lhs.rank() == rhs.rank() && lhs.extent(r) == rhs.extent(r)` is `true`
+    * If `lhs.rank() == rhs.rank()` is `true`, and if `lhs.extent(r) == rhs.extent(r)` is `true`
       for all `r` in the range `[0, lhs.rank())`, then `true`;
     * Otherwise, `false`.
 
