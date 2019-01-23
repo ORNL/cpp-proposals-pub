@@ -167,8 +167,8 @@ public:
   static constexpr int rank_dynamic() noexcept
     { return extents_type::rank_dynamic(); }
 
-  constexpr index_type static_extent( size_t k ) const noexcept
-    { return map_.extents().static_extent( k ); }
+  static constexpr index_type static_extent( size_t k ) noexcept
+    { return extents_type::static_extent( k ); }
 
   constexpr index_type extent( int k ) const noexcept
     { return map_.extents().extent( k ); }
