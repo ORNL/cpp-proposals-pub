@@ -2,9 +2,9 @@
 Title: An Executor Property for Occupancy of Execution Agents
 Shortname: P1348
 URL: wg21.link/P1348
-Revision: 0
-Audience: SG1, LEWG
-Status: P
+Revision: 1
+Audience: LEWG
+Status: D
 Group: WG21
 No Abstract: yes
 Markup Shorthands: markdown yes
@@ -26,6 +26,17 @@ Revision History
 ## P1348R0
 
 - Changed `maximum_occupancy_shape_t` to `occupancy_t` at request of SG1 at San Diego meeting.
+
+## D1348R1
+
+- Changed "thread pool" to "static thread pool" in the non-normative note.
+- Added a non-normative note about this property applying to compute bound use cases.
+- Changed "might" to "should generally" in the non-normative note.
+- Added "always" to non-normative advice on when property should be queryable to address cases where knowability is runtime-determined (a more precise property can be added for this use case later).
+
+After discussion on Tuesday morning in SG1 at the 2019-02 Kona meeting, the following changes were made:
+
+- Changed the normative wording to the phrasing approved by SG1 for forwarding to LEWG via a five-way straw poll with the results 14-6-2-1-0.
 
 Summary and Motivation
 ======================
@@ -68,7 +79,7 @@ struct occupancy_t {
 constexpr occupancy_t occupancy;
 ```
 
-Provides a nonzero estimate for the number of execution agents that should occupy associated execution contexts (if any). *[Note:* For example, a thread pool executor might return the number of threads in a pool; a SIMD executor might return the number of vector lanes; a GPU executor might return the total number of hardware thread contexts; the inline executor should return `1`.  Unlike `std::thread::hardware_concurrency`, if this value is not well defined or not computable for a given executor type `Ex`, then `execution::can_query_v<Ex, execution::occupancy_t>` should be `false`.  *&mdash;end note]*
+An estimate of the number of efficiently supported active execution agents.  *[Note:* This value should only be considered to be a hint.  For example, a static thread pool executor would generally return the number of threads in the pool; a SIMD executor would generally return the number of vector lanes; a GPU executor would generally return the total number of hardware thread contexts; the inline executor would generally return `1`.  Unlike `std::thread::hardware_concurrency`, if this value is not always well-defined or not always computable for a given executor type `Ex`, then `execution::can_query_v<Ex, execution::occupancy_t>` should be `false`.  Like `std::thread::hardware_concurrency`, this hint generally applies to compute-bound use cases.  *&mdash;end note]*
 
 
 Links
