@@ -52,11 +52,10 @@ namespace std {
     @\added{using lock_type = LockT;}@
     using value_type = T;
     static constexpr bool is_always_lock_free = @\impdefx{whether a given \tcode{atomic_ref} type's operations are always lock-free}@;
+    @\added{static constexpr bool never_requires_user_lock = \impdefx{};}@
     static constexpr size_t required_@\added{lock_free}_@alignment = @\impdefx{required alignment for \tcode{atomic_ref} type's operations}@;
     @\added{static constexpr bool can_be_lock_free = required_lock_free_alignment > 0u;}@
     
-    @\added{static constexpr bool never_requires_user_lock = \impdefx{};}@
-
     @\added{\tcode{static bool is_lock_free(const T\&) noexcept;}}@
     @\added{\tcode{static bool requires_user_lock(const T\&) noexcept;}}@
 
@@ -72,7 +71,6 @@ namespace std {
 
     T operator=(T) const noexcept;
     operator T() const noexcept;
-
     bool is_lock_free() const noexcept;
     void store(T, memory_order = memory_order_seq_cst) const noexcept;
     T load(memory_order = memory_order_seq_cst) const noexcept;
@@ -151,6 +149,18 @@ if the \tcode{atomic_ref} type's operations are always lock-free,
 and \tcode{false} otherwise.
 \end{itemdescr}
 
+\begin{addedblock}
+\begin{itemdecl}
+static constexpr bool never_requires_user_lock;
+\end{itemdecl}
+
+\begin{itemdescr}
+\pnum
+Is \tcode{true} if an implementation never requires the user to provide a 
+lock for objects of type \tcode{T} and \tcode{false} otherwise.
+\end{itemdescr}
+\end{addedblock}
+
 \begin{itemdecl}
 static constexpr size_t required_@\added{lock_free_}@alignment;
 \end{itemdecl}
@@ -178,17 +188,6 @@ could be supported only if aligned to \tcode{2*alignof(double)}.
 
 \begin{addedblock}
 \begin{itemdecl}
-static constexpr bool never_requires_user_lock;
-\end{itemdecl}
-
-\begin{itemdescr}
-\pnum
-Is \tcode{true} if an implementation never requires the user to provide a 
-lock for objects of type \tcode{T} and \tcode{false} otherwise.
-\end{itemdescr}
-
-
-\begin{itemdecl}
 static is_lock_free(T& obj) noexcept;
 \end{itemdecl}
 
@@ -197,8 +196,10 @@ static is_lock_free(T& obj) noexcept;
 \tcode{obj} can be lock-free or if the \tcode{lock_type} type is equivalent to 
 \tcode{atomic_ref_assume_lock_free_t}.
 \end{itemdescr}
+\end{addedblock}
 
 
+\begin{addedblock}
 \begin{itemdecl}
 static requires_user_lock(T& obj) noexcept;
 \end{itemdecl}
@@ -523,10 +524,9 @@ namespace std {
     using value_type = @\placeholder{integral}@;
     using difference_type = value_type;
     static constexpr bool is_always_lock_free = @\impdefx{whether a given \tcode{atomic_ref} type's operations are always lock-free}@;
+    @\added{static constexpr bool never_requires_user_lock = \impdefx{};}@
     static constexpr size_t required_@\added{lock_free}_@alignment = @\impdefx{required alignment for \tcode{atomic_ref} type's operations}@;
     @\added{static constexpr bool can_be_lock_free = required_lock_free_alignment > 0u;}@
-    
-    @\added{static constexpr bool never_requires_user_lock = \impdefx{};}@
 
     @\added{\tcode{static bool is_lock_free(const T\&) noexcept;}}@
     @\added{\tcode{static bool requires_user_lock(const T\&) noexcept;}}@
@@ -543,7 +543,6 @@ namespace std {
 
     @\placeholdernc{integral}@ operator=(@\placeholder{integral}@) const noexcept;
     operator @\placeholdernc{integral}@() const noexcept;
-
     bool is_lock_free() const noexcept;
     void store(@\placeholdernc{integral}@, memory_order = memory_order_seq_cst) const noexcept;
     @\placeholdernc{integral}@ load(memory_order = memory_order_seq_cst) const noexcept;
@@ -595,11 +594,10 @@ namespace std {
     using value_type = @\placeholder{floating-point}@;
     using difference_type = value_type;
     static constexpr bool is_always_lock_free = @\impdefx{whether a given \tcode{atomic_ref} type's operations are always lock-free}@;
+    @\added{static constexpr bool never_requires_user_lock = \impdefx{};}@
     static constexpr size_t required_@\added{lock_free}_@alignment = @\impdefx{required alignment for \tcode{atomic_ref} type's operations}@;
     @\added{static constexpr bool can_be_lock_free = required_lock_free_alignment > 0u;}@
     
-    @\added{static constexpr bool never_requires_user_lock = \impdefx{};}@
-
     @\added{\tcode{static bool is_lock_free(const T\&) noexcept;}}@
     @\added{\tcode{static bool requires_user_lock(const T\&) noexcept;}}@
 
@@ -615,7 +613,6 @@ namespace std {
 
     @\placeholder{floating-point}@ operator=(@\placeholder{floating-point}@) noexcept;
     operator @\placeholdernc{floating-point}@() const noexcept;
-
     bool is_lock_free() const noexcept;
     void store(@\placeholder{floating-point}@, memory_order = memory_order_seq_cst) const noexcept;
     @\placeholder{floating-point}@ load(memory_order = memory_order_seq_cst) const noexcept;
@@ -654,11 +651,10 @@ namespace std {
     using value_type = T*;
     using difference_type = ptrdiff_t;
     static constexpr bool is_always_lock_free = @\impdefx{whether a given \tcode{atomic_ref} type's operations are always lock-free}@;
+    @\added{static constexpr bool never_requires_user_lock = \impdefx{};}@
     static constexpr size_t required_@\added{lock_free}_@alignment = @\impdefx{required alignment for \tcode{atomic_ref} type's operations}@;
     @\added{static constexpr bool can_be_lock_free = required_lock_free_alignment > 0u;}@
     
-    @\added{static constexpr bool never_requires_user_lock = \impdefx{};}@
-
     @\added{\tcode{static bool is_lock_free(const T\&) noexcept;}}@
     @\added{\tcode{static bool requires_user_lock(const T\&) noexcept;}}@
 
@@ -674,7 +670,6 @@ namespace std {
 
     T* operator=(T*) const noexcept;
     operator T*() const noexcept;
-
     bool is_lock_free() const noexcept;
     void store(T*, memory_order = memory_order_seq_cst) const noexcept;
     T* load(memory_order = memory_order_seq_cst) const noexcept;
