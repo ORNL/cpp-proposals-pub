@@ -134,7 +134,7 @@ the destructor, and \\ \tcode{is_lock_free()} the following conditional is \tcod
   \oldconcept{Lockable} requirements then 
   the implementation will use \tcode{ulock} to atomically perform these methods.
 \item If \tcode{ulock} is equivalent to \tcode{nullptr} and
-  \tcode{requires_user_lock(obj)} is \tcode{false} then
+  \tcode{requires_user_lock(*ptr)} is \tcode{false} then
   the implementation ensures that these methods happen atomically.
 \item Otherwise, the use of any of these methods can introduce a data race. 
 \end{itemize}
@@ -321,6 +321,37 @@ that references the object referenced by \tcode{ref}.}
 
 \end{itemdescr}
 
+\begin{itemdecl}
+T operator=(T desired) const noexcept;
+\end{itemdecl}
+
+\begin{itemdescr}
+\pnum
+\effects Equivalent to:
+\begin{codeblock}
+  store(desired);
+  return desired;
+\end{codeblock}
+\end{itemdescr}
+
+\begin{itemdecl}
+operator T() const noexcept;
+\end{itemdecl}
+
+\begin{itemdescr}
+\pnum
+\effects Equivalent to: \tcode{return load();}
+\end{itemdescr}
+
+\begin{itemdecl}
+bool is_lock_free() const noexcept;
+\end{itemdecl}
+
+\begin{itemdescr}
+\pnum
+\returns \tcode{true} if the object's operations are lock-free,
+\tcode{false} otherwise.
+\end{itemdescr}
 
 \begin{itemdecl}
 void store(T desired, memory_order order = memory_order_seq_cst) const noexcept;
