@@ -108,10 +108,11 @@ namespace std {
 
 \begin{addedblock}
 \pnum
-The type \tcode{lock_type} can either:
+The type \tcode{lock_type} shall either:
 \begin{itemize}
+\item be equivalent to the unspecified default type,
 \item be equivalent to \tcode{atomic_ref_assume_lock_free_t}, or
-\item the type \tcode{lock_type} meets the \oldconcept{Lockable} requirements.  
+\item meet the \oldconcept{Lockable} requirements.
 \end{itemize}
 Dianostics required if \tcode{lock_type} is equivalent to \tcode{atomic_ref_assume_lock_free_t} 
 and the implementation does not provide lock-free atomic
@@ -130,8 +131,7 @@ equivalent \tcode{atomic_ref} instances does not create a data race\iref{intro.r
 For all \tcode{atomic_ref} member functions excluding static methods, constructors, 
 the destructor, and \\ \tcode{is_lock_free()} the following conditional is \tcode{true}:
 \begin{itemize}
-\item If \tcode{ulock} points to a valid \tcode{lock_type} object which meets the 
-  \oldconcept{Lockable} requirements then 
+\item If \tcode{ulock} points to a valid \tcode{lock_type} object then 
   the implementation will use \tcode{ulock} to atomically perform these methods.
 \item If \tcode{ulock} is equivalent to \tcode{nullptr} and
   \tcode{requires_user_lock(*ptr)} is \tcode{false} then
