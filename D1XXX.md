@@ -30,7 +30,7 @@ In brief, the analogy to `basic_mdspan` can be seen in the declaration of the pr
 template<class ElementType,
          class Extents,
          class LayoutPolicy = layout_right,
-         class ContainerPolicy = @_see-below_@>
+         class ContainerPolicy = see-below>
   class basic_mdarray;
 ```
 
@@ -56,9 +56,41 @@ While not quite as straightforward, the decision to use the same design for `Lay
 
 ## `AccessorPolicy` Replaced by `ContainerPolicy`
 
-By far the most complicated aspect of the design for `basic_mdarray` is the analog of the `AccessorPolicy` in `basic_mdspan`.  The `AccessorPolicy` for `basic_mdspan` is clearly designed with non-owning semantics in mind--it provides a `pointer` type, a `reference` type, and a means of converting from a pointer to a 
+By far the most complicated aspect of the design for `basic_mdarray` is the analog of the `AccessorPolicy` in `basic_mdspan`.  The `AccessorPolicy` for `basic_mdspan` is clearly designed with non-owning semantics in mind--it provides a `pointer` type, a `reference` type, and a means of converting from a pointer and an offset to a reference.  Beyond the lack of an allocation mechanism (that would be needed by `basic_mdarray`), the `AccessorPolicy` requirements address concerns normally addressed by the allocation mechanism itself.  For instance, the C++ named requirements for `Allocator` allow for the provision of the `pointer` type to `std::vector` and other containers.  Arguably, consistency between `basic_mdarray` and standard library containers is far more important than with `basic_mdspan` in this respect.  Several approaches to addressing this incongruity are discussed below.
 
+### Analogs in the Standard Library:  Container Adapters
 
+Perhaps the best analogs for what `basic_mdarray` is doing with respect to allocation and ownership are the container adaptors (**[container.adaptors]**), since they imbue additional semantics to what is otherwise an ordinary container.  These all take a `Container` template parameter, which defaults to `deque` for `stack` and `queue`, and to `vector` for `priority_queue`.  The allocation concern is thus delegated to the container concept, reducing the cognitive load associated with the design.  While this design approach overconstrains the template parameter slightly (i.e., not all of the requirements of the `Container` concept are needed by the container adaptors), the simplicity arising from concept reuse more than justifies the cost of the extra constraints.
+
+It is difficult to say whether the use of `Container` directly, as with the container adaptors, is also the correct approach for `basic_mdarray`.  There are pieces of information that may need to be customized in some very reasonable use cases that are not provided by the standard container concept.  The most important of these is the ability to produce a semantically consistent `AccessorPolicy` when creating a `basic_mdspan` that refers to a `basic_mdarray`.  (Interoperability between `basic_mdspan` and `basic_mdarray` is considered a critical design requirement because of the nearly complete overlap in the set of algorithms that operate on them.)  For instance, given a `Container` instance `c` and an `AccessorPolicy` instance `a`, the behavior of `a.access(p, n)` should be consistent with the behavior of `c[n]` for a `basic_mdspan` wrapping `a` that is a view of a `basic_mdarray` wrapping `c` (if `p` is `c.begin()`).  But because `c[n]` is part of the container requirements and thus may encapsulate any arbitrary mapping from an offset of `c.begin()` to a reference, the only reasonable means of preserving these semantics is to reference the original container directly in the corresponding `AccessorPolicy`.  In other words, the signature for the `view()` method of `mdarray` would need to look something like (ignoring, for the moment, whether the name for the type of the accessor is specified or implementation-defined):
+
+```cpp
+template<class ElementType,
+         class Extents,
+         class LayoutPolicy,
+         class Container>
+struct basic_mdarray {
+ /* ... */
+ basic_mdspan<
+   ElementType, Extents, LayoutPolicy,
+   container_reference_accessor<Container>>
+ view() const noexcept;
+ /* ... */
+};
+
+template <class Container>
+struct container_reference_accessor {
+  using pointer = Container*;
+  /* ... */
+  template <class Integer>
+  reference access(pointer p, Integer offset) {
+    return (*p)[offset];
+  }
+  /* ... */
+};
+```
+
+But this approach comes at the cost of an additional indirection (one for the pointer to the container, and one for the container dereference itself), which is likely unacceptable cost in a facility designed to target performance-sensitive use cases.  The situation for the `offset` requirement (which is used by `subspan`) is potentially even worse for arbitrary non-contiguous containers, adding up to one indirection per invocation of `subspan`.
 
 
 
