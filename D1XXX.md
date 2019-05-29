@@ -30,7 +30,7 @@ In brief, the analogy to `basic_mdspan` can be seen in the declaration of the pr
 template<class ElementType,
          class Extents,
          class LayoutPolicy = layout_right,
-         class ContainerPolicy = see-below>
+         class ContainerPolicy = @*see-below*@>
   class basic_mdarray;
 ```
 
@@ -44,7 +44,12 @@ template<class ElementType,
   class basic_mdspan;
 ```
 
-The details of this design are included below, along with the accompanying logic and an exploration of alternative designs.
+The details of this design are included below, along with the accompanying logic and an exploration of alternative designs.  In a manner exactly analogous to `mdspan`, we also propose the convenience type alias template `mdarray`, defined as:
+
+```cpp
+template <class T, ptrdiff_t... Extents>
+  using mdarray = basic_mdarray<T, extents<Extents...>>;
+```
 
 ## `Extents` Design Reused
 
@@ -57,6 +62,24 @@ While not quite as straightforward, the decision to use the same design for `Lay
 ## `AccessorPolicy` Replaced by `ContainerPolicy`
 
 By far the most complicated aspect of the design for `basic_mdarray` is the analog of the `AccessorPolicy` in `basic_mdspan`.  The `AccessorPolicy` for `basic_mdspan` is clearly designed with non-owning semantics in mind--it provides a `pointer` type, a `reference` type, and a means of converting from a pointer and an offset to a reference.  Beyond the lack of an allocation mechanism (that would be needed by `basic_mdarray`), the `AccessorPolicy` requirements address concerns normally addressed by the allocation mechanism itself.  For instance, the C++ named requirements for `Allocator` allow for the provision of the `pointer` type to `std::vector` and other containers.  Arguably, consistency between `basic_mdarray` and standard library containers is far more important than with `basic_mdspan` in this respect.  Several approaches to addressing this incongruity are discussed below.
+
+### Expected Behavior of Motivating Use Cases
+
+Regardless of the form of the solution, there are several use cases where we have a clear understanding of how we want them to work.  As alluded to above, perhaps *the* most important motivating use case for `mdarray` is that of small, fixed-size extents.  Consider a fictitious (not proposed) function, *get-underlying-container*, that somehow retrieves the underlying storage of an `mdarray`.  For an `mdarray` of entirely fixed sizes, we would expect the default implementation to return something that is (at the very least) convertible to `array` of the correct size:
+
+```cpp
+auto a = mdarray<int, 3, 3>;
+std::array<int, 9> data = @*get-underlying-container*@(a); 
+```
+
+(Whether or not a reference to the underlying container should be obtainable is slightly less clear, though we see no reason why this should not be allowed.)  The default for an `mdarray` with variable extents is only slightly less clear, though it should almost certainly meet the requirements of *contiguous container* (**[container.requirements.general]**/13).  The default model for *contiguous container* in the standard library is `vector`, so an entirely reasonable outcome would be to have:
+
+```cpp
+auto a = mdarray<int, 3, dynamic_extent>;
+std::vector<int> data = @*get-underlying-container*@(a); 
+```
+
+TODO finish this
 
 ### Analogs in the Standard Library:  Container Adapters
 
