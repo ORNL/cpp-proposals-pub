@@ -1,22 +1,22 @@
-# A free function linear algebra interface based on the BLAS
+# D1673R0: A free function linear algebra interface based on the BLAS
 
 ## Authors
 
+* Peter Caday (peter.caday@intel.com) (Intel)
 * Mark Hoemmen (mhoemme@sandia.gov) (Sandia National Laboratories)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
+* Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
+* Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
+* Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
+* Sarah Knepper (sarah.knepper@intel.com) (Intel)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 
 ## Contributors
 
-* Peter Caday (peter.caday@intel.com) (Intel)
 * Timothy Costa (tcosta@nvidia.com) (NVIDIA)
 * Chip Freitag (chip.freitag@amd.com) (AMD)
-* Sarah Knepper (sarah.knepper@intel.com) (Intel)
 * Bryce Lelbach (blelbach@nvidia.com) (NVIDIA)
-* Nevin Liber (nliber@anl.gov) (Argonne National Laboratories)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratories)
-* Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
-* Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
 * Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
