@@ -165,7 +165,7 @@ algebra.
   [(P1417)](wg21.link/p1417)
 * "Evolving a Standard C++ Linear Algebra Library from the BLAS" paper
   (TODO: CITE)
-* `mdspan` [(P0009)](wg21.link/p0009)  
+* `mdspan` [(P0009)](wg21.link/p0009)
 * `mdarray` (TODO: CITE)
 
 ## Notation and conventions
@@ -1210,7 +1210,7 @@ if `i <= j`.  This is also subject to the restrictions of
 struct implicit_unit_diagonal_t {};
 constexpr implicit_unit_diagonal_t implicit_unit_diagonal =
   implicit_unit_diagonal_t ();
-  
+
 struct explicit_diagonal_t {};
 constexpr explicit_diagonal_t explicit_diagonal =
   explicit_diagonal_t ();
@@ -1342,7 +1342,7 @@ constrained, the names of template parameters are used to express type
 requirements.
 
   * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-  
+
   * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
     `explicit_diagonal_t`.
 
@@ -1360,7 +1360,7 @@ class layout_blas_symmetric;
 
 template<class Triangle,
          class DiagonalStorage,
-         class StorageOrder,         
+         class StorageOrder,
          class Packing>
 class layout_blas_triangular;
 ```
@@ -1390,7 +1390,7 @@ matrix argument with a new layout that encapsulates both parameters.
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,          
+basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     explicit_diagonal_t,
@@ -1406,7 +1406,7 @@ triangular_view (basic_mdspan<EltType, Extents, Layout, Accessor> m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,          
+basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     explicit_diagonal_t,
@@ -1419,7 +1419,7 @@ triangular_view (basic_mdarray<EltType, Extents, Layout, Accessor>& m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<const EltType, Extents,          
+basic_mdspan<const EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     explicit_diagonal_t,
@@ -1434,7 +1434,7 @@ triangular_view (const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,          
+basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     implicit_unit_diagonal_t,
@@ -1447,7 +1447,7 @@ triangular_view (basic_mdspan<EltType, Extents, Layout, Accessor> m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,          
+basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     implicit_unit_diagonal_t,
@@ -1460,7 +1460,7 @@ triangular_view (basic_mdarray<EltType, Extents, Layout, Accessor>& m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<const EltType, Extents,          
+basic_mdspan<const EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     implicit_unit_diagonal_t,
@@ -1475,7 +1475,7 @@ triangular_view (const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,          
+basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     implicit_unit_diagonal_t,
@@ -1488,7 +1488,7 @@ triangular_view (basic_mdspan<EltType, Extents, Layout, Accessor> m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,          
+basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     implicit_unit_diagonal_t,
@@ -1501,7 +1501,7 @@ triangular_view (basic_mdarray<EltType, Extents, Layout, Accessor>& m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<const EltType, Extents,          
+basic_mdspan<const EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     implicit_unit_diagonal_t,
@@ -1516,7 +1516,7 @@ triangular_view (const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,          
+basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     explicit_diagonal_t,
@@ -1527,10 +1527,32 @@ triangular_view (basic_mdspan<EltType, Extents, Layout, Accessor> m,
                  lower_triangle_t,
                  explicit_diagonal_t);
 
-// TODO add overload for basic_mdarray
+template<class EltType, class Extents, class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents,
+  layout_blas_triangular_t<
+    lower_triangle_t,
+    explicit_diagonal_t,
+    <i>implementation-defined</i>,
+    unpacked_storage_t>,
+  Accessor>
+triangular_view (basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+                 lower_triangle_t,
+                 explicit_diagonal_t);
+
+template<class EltType, class Extents, class Layout,
+         class Accessor>
+basic_mdspan<const EltType, Extents,
+  layout_blas_triangular_t<
+    lower_triangle_t,
+    explicit_diagonal_t,
+    <i>implementation-defined</i>,
+    unpacked_storage_t>,
+  Accessor>
+triangular_view (const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+                 lower_triangle_t,
+                 explicit_diagonal_t);
 ```
-
-
 
 ### Scaled view of an object
 
@@ -1722,12 +1744,12 @@ template<class T>
 class conjugated_scalar {
 public:
   using value_type = T;
-  
+
   conjugated_scalar(const T& v) : val(v) {}
 
   template<class T2>
   T operator* (const T2 upd) const {
-    return conj (val) * upd;    
+    return conj (val) * upd;
   }
 
   template<class T2>
@@ -1894,7 +1916,7 @@ requirements.
 
 * Algorithms that have a template parameter named `ExecutionPolicy`
   are parallel algorithms **[algorithms.parallel.defns]**.
- 
+
 * `Scalar` is generally a "numeric" value type.
 
 * `Real` is any of the following types: `float`, `double`, or `long
@@ -1941,7 +1963,7 @@ All functions take "input/output" or "output" object parameters as
 follows:
 
 * by nonconst reference if they are `basic_mdarray` (i.e.,
-  `basic_mdarray<T, ...>&` for nonconst `T`); or, 
+  `basic_mdarray<T, ...>&` for nonconst `T`); or,
 
 * by const reference if they are `basic_mdspan` (i.e., `const
   basic_mdspan<T, ...>&` for nonconst `T`).
@@ -2093,7 +2115,7 @@ void linalg_swap(ExecutionPolicy&& exec,
 * *Constraints:*
 
   * `v1.rank()` equals `v2.rank()`.
-  
+
   * For `i...` in the domain of `v2` and `v1`, the
     expression `v2(i...) = v1(i...)` is well formed.
 
@@ -2335,7 +2357,7 @@ void vector_norm2(ExecutionPolicy&& exec,
   2. Let `E` be `in_vector_t::element_type`.  If
 
      * `E` is `float`, `double`, `long double`, `complex<float>`,
-       `complex<double>`, or `complex<long double>`; 
+       `complex<double>`, or `complex<long double>`;
 
      * `Scalar` is `E` or larger in the above list of types; and
 
@@ -2455,7 +2477,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
   * For `i,j` in the domain of `A`, the expression
     `y(i) += A(i,j)*x(j)` is well formed.
 
-* *Effects:* Assign to the elements of `y` the 
+* *Effects:* Assign to the elements of `y` the
   product of the matrix `A` with the vector `x`.
 
 #### Updating matrix-vector product
@@ -2522,7 +2544,7 @@ void matrix_triangular_solve(ExecutionPolicy&& exec,
                              out_object_t x);
 ```
 
-*[Note:* These functions corresponds to the BLAS functions `xTRSV`,
+*[Note:* These functions correspond to the BLAS functions `xTRSV`,
 `xTBSV`, `xTPSV`, and `xTRSM`. --*end note]*
 
 * *Requires:*
@@ -2542,9 +2564,9 @@ void matrix_triangular_solve(ExecutionPolicy&& exec,
 * *Constraints:*
 
   * `A.rank()` equals 2.
-  
+
   * `b.rank()` equals 1 or 2.
-  
+
   * `x.rank()` equals `b.rank()`.
 
   * `A` has triangular layout.
@@ -2648,8 +2670,12 @@ void rank_1_update_c(ExecutionPolicy&& exec,
   * `A.rank()` equals 2, `x.rank()` equals 1, and
     `y.rank()` equals 1.
 
-  * For `i,j` in the domain of `A`, the expression
-    `A(i,j) += x(i)*conj(y(j))` is well formed.
+  * If `in_vector_2_t::element_type` is `complex<T>` for some `T`,
+    then for `i,j` in the domain of `A`, the expression `A(i,j) +=
+    x(i)*conj(y(j))` is well formed.
+
+  * Otherwise, for `i,j` in the domain of `A`, the expression `A(i,j)
+    += x(i)*y(j)` is well formed.
 
   * `A` does not have a symmetric or Hermitian layout.
 
@@ -2674,7 +2700,7 @@ void rank_1_update(ExecutionPolicy&& exec,
                    inout_matrix_t A);
 ```
 
-*[Note:* These functions corresponds to the BLAS functions `xHER`,
+*[Note:* These functions correspond to the BLAS functions `xHER`,
 `xHPR`, `xSYR`, and `xSPR`. --*end note]*
 
 * *Requires:* If `i,j` is in the domain of `A`, then `i` and
@@ -2741,7 +2767,7 @@ void rank_2_update(ExecutionPolicy&& exec,
     `y.rank()` equals 1.
 
   * `A` has a symmetric or Hermitian layout.
-  
+
   * If `A` has a symmetric layout, then for `i,j` in the domain of
     `A`, the expression `A(i,j) += x(i)*y(j) + y(i)*x(j)` is well
     formed.
@@ -2791,7 +2817,7 @@ void matrix_product(ExecutionPolicy&& exec,
                     out_matrix_t C);
 ```
 
-*[Note:* These functions corresponds to the BLAS functions `xGEMM`,
+*[Note:* These functions correspond to the BLAS functions `xGEMM`,
 `xSYMM`, `xHEMM`, and `xTRMM`. --*end note]*
 
 * *Requires:*
@@ -2844,8 +2870,6 @@ void matrix_product(ExecutionPolicy&& exec,
                     out_matrix_t C);
 ```
 
-(TODO (mfh 09 Jun 2019) Say that C and E may the be same.)
-
 *[Note:* These functions correspond to the BLAS functions `xGEMM`,
 `xSYMM`, `xHEMM`, and `xTRMM`. --*end note]*
 
@@ -2859,7 +2883,7 @@ void matrix_product(ExecutionPolicy&& exec,
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `B.rank()` equals 2, 
+  * `A.rank()` equals 2, `B.rank()` equals 2,
     `C.rank()` equals 2, and `E.rank()` equals 2.
 
   * For `i,j` in the domain of `C`, `i,k` in the domain of `A`, and
@@ -2868,6 +2892,9 @@ void matrix_product(ExecutionPolicy&& exec,
 
 * *Effects:* Assigns to the elements of the matrix `C` on output, the
   elementwise sum of `E` and product of the matrices `A` and `B`.
+
+* *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
+  they must have the same layout.
 
 *[Note:* Implementers may wish to give users control over whether the
 matrix product uses a Strassen-type algorithm.  One way they could do
@@ -2891,7 +2918,7 @@ void rank_k_update(ExecutionPolicy&& exec,
                    inout_matrix_t C);
 ```
 
-*[Note:* These functions corresponds to the BLAS functions `xHERK`
+*[Note:* These functions correspond to the BLAS functions `xHERK`
 and `xSYRK`. --*end note]*
 
 * *Requires:* If `i,j` is in the domain of `C`, then there
@@ -2920,7 +2947,7 @@ and `xSYRK`. --*end note]*
     product of A and the conjugate transpose of A.
 
 *[Note:* Users who want to perform a rank-k update of a nonsymmetric
-matrix `C` may use `matrix_product` --*end note]*
+matrix `C` may use `matrix_product`. --*end note]*
 
 ### Rank-2k update of a Symmetric or Hermitian matrix
 
@@ -2942,7 +2969,7 @@ void rank_2k_update(ExecutionPolicy&& exec,
                     out_matrix_t C);
 ```
 
-*[Note:* These functions corresponds to the BLAS functions `xHER2K`
+*[Note:* These functions correspond to the BLAS functions `xHER2K`
 and `xSYR2K`. --*end note]*
 
 * *Requires:* If `i,j` is in the domain of `C`, then there exists `k`
