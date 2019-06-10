@@ -1,4 +1,4 @@
-# Evolving a Standard C++ Linear Algebra Library from the BLAS
+# D1674R0: Evolving a Standard C++ Linear Algebra Library from the BLAS
 
 * Mark Hoemmen (mhoemme@sandia.gov)
 * 11 Mar 2019, 01 Apr 2019, 10 Jun 2019
