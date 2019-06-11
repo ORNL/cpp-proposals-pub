@@ -77,8 +77,9 @@ comes only in a Fortran implementation.  It's also slow; for example,
 its matrix-matrix multiply routine uses nearly the same triply nested
 loops that a naïve developer would write.  The intent of the BLAS is
 that users who care about performance find optimized implementations,
-either by hardware vendors or by projects like ATLAS[^2] or the
-[GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2).
+either by hardware vendors or by projects like ATLAS[^2], the
+[GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2),
+or [OpenBLAS](www.openblas.net).
 
 Suppose that our developer has found an optimized implementation of
 the BLAS, and they want to call some of its routines from C++.  Here
@@ -324,14 +325,16 @@ _are_, and nevertheless we have found it easy to mix up these
 arguments.  Users need to read carefully to see which of M, N, and K
 go with A, B, or C.  Should they reverse these dimensions if taking
 the transpose of A or B?  In some cases, the BLAS will check errors
-for you and report the first argument (by number) that is wrong.  In
-other cases, the BLAS may crash or get the wrong answer.  Since the
-BLAS is a C or Fortran library, whatever debug bounds checking you
-have on your arrays won't help.  It may not have been built with debug
-symbols, so run-time debuggers may not help.  Developers who haven't
-done a careful job wrapping the BLAS in a type-safe interface will
-learn the hard way, for example if they mix up the order of arguments
-and their integers get bitwise reinterpreted as pointers.
+for you and report the first argument (by number) that is wrong.  (The
+BLAS' error reporting has its own issues; see "Error checking and
+handling" below.)  In other cases, the BLAS may crash or get the wrong
+answer.  Since the BLAS is a C or Fortran library, whatever debug
+bounds checking you have on your arrays won't help.  It may not have
+been built with debug symbols, so run-time debuggers may not help.
+Developers who haven't done a careful job wrapping the BLAS in a
+type-safe interface will learn the hard way, for example if they mix
+up the order of arguments and their integers get bitwise reinterpreted
+as pointers.
 
 ### Matrix and vector data structures
 
@@ -367,6 +370,45 @@ This suggests that the next stage of a C++ linear algebra library
 would be a generic C++ wrapper for the BLAS, that takes matrices and
 vectors as `mdspan` of the appropriate ranks.
 
+## Some remaining correctness issues
+
+### Error checking and handling
+
+Section 1.8 of the BLAS Standard requires error checking and reporting
+for the Fortran 95, Fortran 77, and C bindings.  Checking looks at
+dimensions, strides, and bandwidths.  Users of the Fortran Reference
+BLAS see this as program exit in the `XERBLA` routine; users of an
+implementation conformant with the BLAS Standard see this as program
+exit in `BLAS_error` or `blas_error`.  There are a few issues with
+this approach:
+
+1. There is no way to recover from a detected error.
+
+   a. There is no stack unwinding.
+
+   b. Users can replace the default error handler at link time, but it
+      must "print an informative error message describing the error,
+      and halt execution."  There is no way to return control to the
+      caller.
+
+2. Fortran did not define an equivalent of "exit with a nonzero error
+   code" until version 2008 of the Standard.  Thus, programs that use
+   the BLAS' Fortran binding and invoke the BLAS error handler could
+   exit with no indication to an automated caller that something went
+   wrong.
+
+
+
+
+
+
+
+
+For small
+problems, error checking might take more time than actually solving
+the problem.
+
+
 ## Some remaining performance issues
 
 Suppose that at this point, you have a generic C++ BLAS wrapper that
@@ -376,9 +418,10 @@ implementations for other layouts and data types.  Our developer could
 even get rid of the BLAS library without losing functionality.  One
 could write an implementation of BLAS 3 operations, like dense
 matrix-matrix multiply, directly to a matrix abstraction like
-`mdspan`, and still get performance close to that of a fully optimized
-vendor-implemented BLAS library.  See Andrew Lumsdaine’s Kona 2019
-presentation, for example [CITE].
+`mdspan`, and still get performance comparable with that of a fully
+optimized vendor-implemented BLAS library.  That was already possible
+given the state of C++ compiler optimization 20 years ago; see e.g.,
+[^4].
 
 The authors would be ecstatic to have a product like this available in
 the Standard Library.  Nevertheless, some developers would encounter
@@ -796,3 +839,9 @@ its application to Matrix Multiply," LAPACK Working Note 111, 1996.
 [^3]: R. C. Whaley, A. Petitet, and J. Dongarra, "Automated Empirical
 Optimization of Software and the ATLAS Project," Parallel Computing,
 Vol. 27, No. 1-2, Jan. 2001, pp. 3-35.
+
+[^4]: J. Siek and A. Lumsdaine, "The Matrix Template Library: A
+Generic Programming Approach to High Performance Numerical Linear
+Algebra," in proceedings of the Second International Symposium on
+Computing in Object-Oriented Parallel Environments (ISCOPE) 1998,
+Santa Fe, NM, USA, Dec. 1998.
