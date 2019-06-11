@@ -1383,176 +1383,295 @@ parameters.  We can eliminate the `UPLO` (upper or lower triangle) and
 parameters by letting callers annotate an existing General-format
 matrix argument with a new layout that encapsulates both parameters.
 
-#### Create a triangular view of an existing mdspan or mdarray
+#### Requirements
+
+Throughout this Clause, where the template parameters are not
+constrained, the names of template parameters are used to express type
+requirements.
+
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+  * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
+    `explicit_diagonal_t`.
+
+  * `StorageOrder` is either `column_major_t` or `row_major_t`.
+
+  * `Packing` is either `packed_storage_t` or `unpacked_storage_t`.
+
+#### Create an unpacked triangular view of an existing rank-2 object
 
 ```c++
 // Upper triangular, explicit diagonal
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,
+constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     explicit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (basic_mdspan<EltType, Extents, Layout, Accessor> m,
-                 upper_triangle_t,
-                 explicit_diagonal_t d = explicit_diagonal);
-
-// TODO (mfh 10 Jun 2019) Get correct convention for mapping
-// basic_mdarray "accessor" thing to corresponding basic_mdspan Accessor.
+triangular_view(
+  basic_mdspan<EltType, Extents, Layout, Accessor> m,
+  upper_triangle_t,
+  explicit_diagonal_t d = explicit_diagonal);
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,
+constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     explicit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-                 upper_triangle_t,
-                 explicit_diagonal_t d = explicit_diagonal);
+triangular_view(
+  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  upper_triangle_t,
+  explicit_diagonal_t d = explicit_diagonal);
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<const EltType, Extents,
+constexpr basic_mdspan<const EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     explicit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-                 upper_triangle_t,
-                 explicit_diagonal_t d = explicit_diagonal);
+triangular_view(
+  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  upper_triangle_t,
+  explicit_diagonal_t d = explicit_diagonal);
 
 // Upper triangular, implicit unit diagonal
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,
+constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     implicit_unit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (basic_mdspan<EltType, Extents, Layout, Accessor> m,
-                 upper_triangle_t,
-                 implicit_unit_diagonal_t);
+triangular_view(
+  basic_mdspan<EltType, Extents, Layout, Accessor> m,
+  upper_triangle_t,
+  implicit_unit_diagonal_t);
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,
+constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     implicit_unit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-                 upper_triangle_t,
-                 implicit_unit_diagonal_t);
+triangular_view(
+  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  upper_triangle_t,
+  implicit_unit_diagonal_t);
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<const EltType, Extents,
+constexpr basic_mdspan<const EltType, Extents,
   layout_blas_triangular_t<
     upper_triangle_t,
     implicit_unit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-                 upper_triangle_t,
-                 implicit_unit_diagonal_t);
+triangular_view(
+  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  upper_triangle_t,
+  implicit_unit_diagonal_t);
 
 // Lower triangular, implicit unit diagonal
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,
+constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     implicit_unit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (basic_mdspan<EltType, Extents, Layout, Accessor> m,
-                 lower_triangle_t,
-                 implicit_unit_diagonal_t d = implicit_unit_diagonal);
+triangular_view(
+  basic_mdspan<EltType, Extents, Layout, Accessor> m,
+  lower_triangle_t,
+  implicit_unit_diagonal_t d = implicit_unit_diagonal);
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,
+constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     implicit_unit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-                 lower_triangle_t,
-                 implicit_unit_diagonal_t d = implicit_unit_diagonal);
+triangular_view(
+  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  lower_triangle_t,
+  implicit_unit_diagonal_t d = implicit_unit_diagonal);
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<const EltType, Extents,
+constexpr basic_mdspan<const EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     implicit_unit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-                 lower_triangle_t,
-                 implicit_unit_diagonal_t d = implicit_unit_diagonal);
+triangular_view(
+  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  lower_triangle_t,
+  implicit_unit_diagonal_t d = implicit_unit_diagonal);
 
 // Lower triangular, explicit diagonal
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,
+constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     explicit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (basic_mdspan<EltType, Extents, Layout, Accessor> m,
-                 lower_triangle_t,
-                 explicit_diagonal_t);
+triangular_view(
+  basic_mdspan<EltType, Extents, Layout, Accessor> m,
+  lower_triangle_t,
+  explicit_diagonal_t);
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents,
+constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     explicit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-                 lower_triangle_t,
-                 explicit_diagonal_t);
+triangular_view(
+  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  lower_triangle_t,
+  explicit_diagonal_t);
 
 template<class EltType, class Extents, class Layout,
          class Accessor>
-basic_mdspan<const EltType, Extents,
+constexpr basic_mdspan<const EltType, Extents,
   layout_blas_triangular_t<
     lower_triangle_t,
     explicit_diagonal_t,
     <i>implementation-defined</i>,
     unpacked_storage_t>,
   Accessor>
-triangular_view (const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-                 lower_triangle_t,
-                 explicit_diagonal_t);
+triangular_view(
+  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  lower_triangle_t,
+  explicit_diagonal_t);
 ```
+
+#### Create a packed triangular view of an existing rank-1 object
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor,
+         class Triangle,
+         class DiagonalStorage,
+         class StorageOrder>
+constexpr basic_mdspan<EltType,
+  <i>rank-two-extents-see-returns-below</i>,
+  layout_blas_triangular_t<
+    lower_triangle_t,
+    explicit_diagonal_t,
+    <i>implementation-defined</i>,
+    packed_storage_t>,
+  Accessor>
+packed_triangular_view(
+  basic_mdspan<EltType, Extents, Layout, Accessor>& m,
+  typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
+  Triangle,
+  DiagonalStorage,
+  StorageOrder);
+
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor,
+         class Triangle,
+         class DiagonalStorage,
+         class StorageOrder>
+constexpr basic_mdspan<const EltType,
+  <i>rank-two-extents-see-returns-below</i>,
+  layout_blas_triangular_t<
+    lower_triangle_t,
+    explicit_diagonal_t,
+    <i>implementation-defined</i>,
+    packed_storage_t>,
+  Accessor>
+packed_triangular_view(
+  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
+  Triangle,
+  DiagonalStorage,
+  StorageOrder);
+
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor,
+         class Triangle,
+         class DiagonalStorage,
+         class StorageOrder>
+constexpr basic_mdspan<EltType,
+  <i>rank-two-extents-see-returns-below</i>,
+  layout_blas_triangular_t<
+    lower_triangle_t,
+    explicit_diagonal_t,
+    <i>implementation-defined</i>,
+    packed_storage_t>,
+  Accessor>
+packed_triangular_view(
+  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
+  Triangle,
+  DiagonalStorage,
+  StorageOrder);
+```
+
+* *Requires:*
+
+  * If `num_rows` is nonzero and if `DiagonalStorage` is
+    `implicit_unit_diagonal_t`, then `m.extent(0)` is at least
+    `num_rows` * (`num_rows` - 1) / 2.
+
+  * If `num_rows` is nonzero and if `DiagonalStorage` is
+    `explicit_diagonal_t`, then `m.extent(0)` is at least (`num_rows`
+    + 1) * `num_rows` / 2.
+
+* *Constraints:*
+
+  * `Extents::rank()` is one.
+
+  * `m.is_always_contiguous()` and `m.is_always_unique()` are both true.
+
+* *Effects:* Views the given rank-1 contiguous unique `basic_mdspan`
+   or `basic_mdarray` as a packed triangular matrix with the given
+   `Triangle`, `DiagonalStorage`, and `StorageOrder`.
+
+* *Returns:* A rank-2 `basic_mdspan` `r` with packed triangular
+   layout.  If `E_r` is the type of `r.extents()`, then `E_r` has at
+   least as many `StaticExtents` (the number of `extents`'s
+   `ptrdiff_t` template arguments) as the type of `m.extents()` has.
 
 ### Scaled view of an object
 
@@ -3065,13 +3184,14 @@ This is a preliminary proposal.  Besides the usual bikeshedding, we
 also want to present more broad options for voting.  Here is a list;
 we will explain each option below.
 
-1. Use existing C++ Standard algorithms for vector-vector operations?
+1. Omit vector-vector operations in favor of existing C++ Standard algorithms?
 2. Retain "view" functions (modest expression templates)?
-3. Combine functions that differ only by rank of arguments?
-4. Prefer overloads to different function names?
-5. Retain existing BLAS behavior for scalar multipliers?
+3. `triangular_view` redefines `mdspan` "domain"; what to do?
+4. Combine functions that differ only by rank of arguments?
+5. Prefer overloads to different function names?
+6. Retain existing BLAS behavior for scalar multipliers?
 
-### Use existing C++ Standard algorithms for vector-vector operations?
+### Omit vector-vector operations in favor of existing C++ Standard algorithms?
 
 Annex C of the BLAS Standard offers a "Thin BLAS" option for Fortran
 95, where the language itself could replace many BLAS operations.
@@ -3102,23 +3222,27 @@ Here are arguments for this approach:
 
 Here are arguments against this approach:
 
-1. It takes some effort to implement correct and accurate vector
+1. Some of our "vector-vector" operations are actually "object-object"
+   operations that work for matrices too.  Replacing those with
+   existing Standard algorithms would call for iterators on matrices.
+
+2. It takes some effort to implement correct and accurate vector
    norms.  Compare to [POSIX requirements for
    `hypot`](http://pubs.opengroup.org/onlinepubs/9699919799/functions/hypot.html).
    If `hypot` is in the Standard, then perhaps norms should also be.
 
-2. It's easier to apply hardware-specific optimizations to
+3. It's easier to apply hardware-specific optimizations to
    vector-vector operations if they are exposed as such.
 
-3. Exposing a full linear algebra interface would give implementers
+4. Exposing a full linear algebra interface would give implementers
    the option to use extended-precision or even reproducible
    floating-point arithmetic for all linear algebra operations.  This
    can be useful for debugging complicated algorithms.  Compare to
    "checked iterator" debug options for the C++ Standard Library.
 
-4. It helps to have linear algebra names for linear algebra
-   operations.  For example, `string` still exists even though its
-   interface does not differ much from `vector<char>`'s interface.
+5. It helps to have linear algebra names for linear algebra
+   operations.  For example, `string` still exists, even though much
+   of its functionality is covered by `vector<char>`.
 
 ### Retain "view" functions (modest expression templates)?
 
@@ -3160,6 +3284,66 @@ However, the functions have the following disadvantages:
 3. When applied to an `mdarray`, the functions turn the `mdarray` into
    an `mdspan`.  This could introduce (modest) overhead for very small
    vectors or matrices.
+
+Here are the options:
+
+1. Keep "view" functions.
+
+2. Drop "view" functions.  Retain tags and `constexpr` tag values; use
+   them as function arguments to algorithms.
+
+### `triangular_view` redefines `mdspan` "domain"; what to do?
+
+The `triangular_view` function returns an `basic_mdspan`.  However,
+its "domain" -- the set of its valid index pairs `i,j` -- does not, in
+general, include all pairs in the Cartesian product of its extents.
+This differs from the definition of *domain* in
+[P0009](wg21.link/p0009).  In what follows, we will call this an
+*incomplete domain*.
+
+We distinguish between "incomplete" and "sparse" domains.  "Sparse"
+means that at multiindices still in the Cartesian product of extents
+E, but not in some set of "populated entries" P, the matrix elements
+are zero.  Multiindices not in P are still valid multiindices, at
+least for reading.  (It's often more efficient for sparse matrix data
+structures to forbid writing to multiindices not in P.  Recall that
+sparse matrices are just sparse graphs with weighted edges.)
+"Incomplete" means that some multiindices in the Cartesian product of
+extents are not even in the domain.
+
+In the unpacked case, we could consider the result of
+`triangular_view` to have a sparse domain.  For index pairs not in the
+triangular view's domain, the triangular matrix has zero elements.
+The triangular view's accessor could even return zero values for those
+index pairs, though that would come at a run-time cost (an extra
+branch per access).  Those index pairs still live in the domain of a
+"parent" `basic_mdspan` or `basic_mdarray`, so the memory is valid.
+It's just that users of the triangular view promise not to write to
+them.  In the packed case, however, index pairs not in the triangle do
+not map to valid 1-D storage indices.
+
+Here are some options for addressing this issue:
+
+1. "Hack" the layout mapping policy to make it complete.
+   Preserve P0009's definition of *domain*.
+
+2. Introduce a new category of layout mapping policy, "incomplete."
+   Redefine *domain* in P0009.
+
+For both the unpacked and packed cases, we could "hack" the layout
+mapping policy so that indices outside the triangle map to some
+arbitrary valid 1-D index.  That would make the layout no longer
+incomplete, at the cost of making it nonunique.  It may also incur an
+extra branch.  This option "lies," but it avoids touching any existing
+P0009 wording.
+
+The other option is to redefine *domain* in P0009, and add
+"completeness" to the list of layout mapping policy attributes
+(uniqueness, contiguity, and stridedness).  We need the latter because
+incompleteness, like nonuniqueness, prevents algorithm developers from
+writing generic code.  Nonuniqueness prevents genericity on output
+arguments (see discussion above); incompleteness prevents genericity
+on both input and output arguments.
 
 ### Combine functions that differ only by rank of arguments?
 
