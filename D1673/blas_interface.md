@@ -2284,7 +2284,7 @@ void abs_sum(ExecutionPolicy&& exec,
     implementations will use `Scalar`'s precision or greater for
     intermediate terms in the sum.
 
-#### Index of maximum absolute value
+#### Index of maximum absolute value of vector elements
 
 ```c++
 template<class in_vector_t>
@@ -2298,9 +2298,6 @@ void idx_abs_max(ExecutionPolicy&& exec,
                  in_vector_t v,
                  ptrdiff_t& result);
 ```
-
-(TODO (mfh 09 Jun 2019) Could this work for matrices too?
-`ptrdiff_t&... results` doesn't work.)
 
 *[Note:* These functions correspond to the BLAS function `IxAMAX`.
 --*end note]*
