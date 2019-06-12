@@ -25,11 +25,10 @@
 
 This paper proposes a C++ Standard Library dense linear algebra
 interface based on the dense Basic Linear Algebra Subroutines (BLAS).
-This corresponds to most of Chapter 2 and some of Chapter 4 in the
-[BLAS
+This corresponds to a subset of the [BLAS
 Standard](http://www.netlib.org/blas/blast-forum/blas-report.pdf).
-The BLAS supports the following classes of operations on matrices and
-vectors:
+Our proposal implements the following classes of algorithms on
+matrices and vectors:
 
 * Elementwise vector sums
 * Multiplying all elements of a vector or matrix by a scalar
@@ -40,19 +39,16 @@ vectors:
 * Triangular solves with one or more "right-hand side" vectors
 * Generating and applying plane (Givens) rotations
 
-The BLAS works with the following matrix storage formats:
+Our algorithms work with most the matrix storage formats that the BLAS
+Standard supports:
 
 * "General" dense matrices, in column-major or row-major format
-* Dense banded matrices, stored either as general dense matrices,
-  or in a "packed" format
 * Symmetric or Hermitian (for complex numbers only) dense matrices,
   stored either as general dense matrices, or in a packed format
 * Dense triangular matrices, stored either as general dense matrices
   or in a packed format
-* Dense banded triangular matrices, stored in a packed format
 
-We initially propose to implement all these features.  Our proposal
-also has the following distinctive characteristics:
+Our proposal also has the following distinctive characteristics:
 
 * It uses free functions, not arithmetic operator overloading.
 
@@ -69,57 +65,53 @@ also has the following distinctive characteristics:
   four element types.
 
 * Our operations permit "mixed-precision" computation with matrices
-  and vectors that have different element types.  This subsumes the
-  functionality of the Mixed-Precision BLAS specification (see
-  [Chapter 4 of the BLAS
+  and vectors that have different element types.  This subsumes most
+  functionality of the Mixed-Precision BLAS specification (Chapter 4
+  of the [BLAS
   Standard](http://www.netlib.org/blas/blast-forum/blas-report.pdf)).
 
 * Like the C++ Standard Library's algorithms, our operations take an
   optional execution policy argument.  This is a hook to support
-  parallel execution and hierarchical parallelism.  Our proposal also
-  constrains the underlying implementation to prevent conflicts over
-  hardware resources (an issue in historical thread-parallel BLAS
-  implementations).
+  parallel execution and hierarchical parallelism.
 
-* Unlike the BLAS, our proposal has the option to support "batched"
-  operations (see [P1417](wg21.link/p1417)) with almost no interface
-  differences.  This will support machine learning and other
+* Unlike the BLAS, our proposal can be expanded to support "batched"
+  operations (see [P1417R0](wg21.link/p1417r0)) with almost no
+  interface differences.  This will support machine learning and other
   applications that need to do many small matrix or vector operations
   at once.
 
 ## Interoperable with other linear algebra proposals
 
-We do not intend to compete with [P1385](wg21.link/p1385), a proposal
-for a linear algebra library presented at the 2019 Kona WG21 meeting
-that introduces matrix and vector classes and overloaded arithmetic
-operators.  In fact, we think that our proposal would make a natural
-foundation for a library like what P1385 proposes.  We have had
-discussions with the P1385 authors, and they agree on points such as
-the use of `mdspan` for storing matrices and vectors.  They also agree
-that it would be natural to build P1385 on a free-function interface.
+We do not intend to compete with [P1385R1](wg21.link/p1385r1), a
+proposal for a linear algebra library presented at the 2019 Kona WG21
+meeting that introduces matrix and vector classes and overloaded
+arithmetic operators.  In fact, we think that our proposal would make
+a natural foundation for a library like what P1385 proposes.
 
 ## Why include dense linear algebra in the C++ Standard Library?
 
 1. C++ applications in "important application areas" (see
-   [P0939](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf))
-   have depended on linear algebra for a long time.
+   [P0939R0](wg21.link/p0939r0)) have depended on linear algebra for a
+   long time.
+
 2. Linear algebra is like `sort`: obvious algorithms are slow, and the
    fastest implementations call for hardware-specific tuning.
-3. Dense linear algebra is core functionality of most linear algebra
+
+3. Dense linear algebra is core functionality for most of linear
+   algebra, and can also serve as a building block for tensor
    operations.
 
 Linear algebra has had wide use in C++ applications for nearly three
-decades (see e.g., [P1417](wg21.link/p1417), and talks at the 2019
-Kona WG21 meeting).  For much of that time, many third-party C++
-libraries for linear algebra have been available.  Many different
-subject areas depend on linear algebra, including machine learning,
-data mining, web search, statistics, computer graphics, medical
-imaging, geolocation and mapping, and physics-based simulations.
+decades (see [P1417R0](wg21.link/p1417r0) for a historical survey).
+For much of that time, many third-party C++ libraries for linear
+algebra have been available.  Many different subject areas depend on
+linear algebra, including machine learning, data mining, web search,
+statistics, computer graphics, medical imaging, geolocation and
+mapping, and physics-based simulations.
 
-["Directions for ISO C++"
-(P0939)](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf)
-offers the following in support of adding linear algebra to the C++
-Standard Library:
+["Directions for ISO C++" (P0939R0)](wg21.link/p0939r0) offers the
+following in support of adding linear algebra to the C++ Standard
+Library:
 
 * P0939 calls out "Support for demanding applications in important
   application areas, such as medical, finance, automotive, and games
@@ -149,7 +141,10 @@ Furthermore, writing the fastest dense matrix-matrix multiply depends
 on details of a specific computer architecture.  This makes such
 operations comparable to `sort` in the C++ Standard Library: worth
 standardizing, so that Standard Library implementers can get them
-right and hardware vendors can optimize them.
+right and hardware vendors can optimize them.  In fact, almost all C++
+linear algebra libraries end up calling non-C++ implementations of
+these algorithms, especially the implementations in optimized BLAS
+libraries (see below).
 
 Dense linear algebra is the core component of most algorithms and
 applications that use linear algebra, and the component that is most
@@ -159,23 +154,80 @@ linear algebra functions.  Sparse matrix computations get best
 performance when they spend as much time as possible in dense linear
 algebra.
 
-## Related papers
+## Why base a C++ linear algebra library on the BLAS?
 
-* "Historical lessons for C++ linear algebra library standardization"
-  [(P1417)](wg21.link/p1417)
-* "Evolving a Standard C++ Linear Algebra Library from the BLAS"
-  (D1674R0)
-* `mdspan` [(P0009)](wg21.link/p0009)
-* `mdarray` (D1684R0)
+1. The BLAS is a standard that codifies decades of existing practice.
+
+2. The BLAS separates out "performance primitives" for hardware
+   experts to tune, from mathematical operations that rely on those
+   primitives for good performance.
+
+3. Benchmarks reward hardware and system vendors for providing an
+   optimized BLAS implementations.
+
+4. Writing a fast BLAS implementation for common element types is
+   nontrivial, but well understood.
+
+5. Optimized third-party BLAS implementations with liberal software
+   licenses exist.
+
+6. Building a C++ interface on top of the BLAS is a straightforward
+   exercise, but has pitfalls for unaware developers.
+
+Linear algebra has had a cross-language standard, the Basic Linear
+Algebra Subroutines (BLAS), since 2002.  The Standard came out of a
+[standardization process](http://www.netlib.org/blas/blast-forum/)
+that started in 1995 and held meetings three times a year until 1999.
+Participants in the process came from industry, academia, and
+government research laboratories.  The dense linear algebra subset of
+the BLAS codifies forty years of evolving practice, and existed in
+recognizable form since 1990 (see [P1417R0](wg21.link/p1417r0)).
+
+The BLAS interface was specifically designed as the distillation of
+the "computer science" / performance-oriented parts of linear algebra
+algorithms.  It cleanly separates operations most critical for
+performance, from operations whose implementation takes expertise in
+mathematics and rounding-error analysis.  This gives vendors
+opportunities to add value, without asking for expertise outside the
+typical required skill set of a Standard Library implementer.
+
+Well-established benchmarks such as the [LINPACK
+benchmark](https://www.top500.org/project/linpack/) reward computer
+hardware vendors for optimizing their BLAS implementations.  Thus,
+many vendors provide an optimized BLAS library for their computer
+architectures.  Writing fast BLAS-like operations is not trivial, and
+depends on computer architecture.  However, it is not black magic; it
+is a well-understood problem whose solutions could be parameterized
+for a variety of computer architectures.  See, for example, the 2008
+paper ["Anatomy of high-performance matrix
+multiplication,"](https://doi.org/10.1145/1356052.1356053) by K. Goto
+and R. A. van de Geijn.  There are optimized third-party BLAS
+implementations for common architectures, like
+[ATLAS](http://math-atlas.sourceforge.net/) and
+[GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2).
+A (slow but correct) [reference implementation of the
+BLAS](http://www.netlib.org/blas/#_reference_blas_version_3_8_0)
+exists and it has a liberal software license for easy reuse.
+
+We have experience in the exercise of wrapping a C or Fortran BLAS
+implementation for use in portable C++ libraries.  We describe this
+exercise in detail in our paper "Evolving a Standard C++ Linear
+Algebra Library from the BLAS" (D1674R0).  It is straightforward for
+vendors, but has pitfalls for developers.  For example, Fortran's
+application binary interface (ABI) differs across platforms in ways
+that can cause run-time errors (even incorrect results, not just
+crashing).  Historical examples of vendors' C BLAS implementations
+have also had ABI issues that required work-arounds.  This dependence
+on ABI details makes availability in a standard library valuable.
 
 ## Notation and conventions
 
 ### The BLAS uses Fortran terms
 
 The BLAS' "native" language is Fortran.  It has a C binding as well,
-but the BLAS Standard and documentation use Fortran terms.  This paper
-will call out relevant Fortran terms and highlight possibly confusing
-differences with corresponding C++ ideas.
+but the BLAS Standard and documentation use Fortran terms.  Where
+applicable, we will call out relevant Fortran terms and highlight
+possibly confusing differences with corresponding C++ ideas.
 
 ### We call "subroutines" functions
 
@@ -259,7 +311,10 @@ The BLAS Standard includes functionality that appears neither in the
 BLAS](http://www.netlib.org/lapack/explore-html/d1/df9/group__blas.html)
 library, nor in the classic BLAS "level" 1, 2, and 3 papers.  (For
 history of the BLAS "levels" and a bibliography, see
-[P1417](wg21.link/p1417).)  For example, the BLAS Standard has
+[P1417R0](wg21.link/p1417r0).  For a paper describing functions not in
+the Reference BLAS, see "An updated set of basic linear algebra
+subprograms (BLAS)," listed in "Other references" below.)  For
+example, the BLAS Standard has
 
 * several new dense functions, like a fused vector update and dot
   product;
@@ -281,7 +336,7 @@ following reasons:
 3. The Sparse BLAS interface is a stateful interface that is not
    consistent with the rest of the BLAS, and would need more extensive
    redesign to translate into a modern C++ idiom.  See discussion in
-   [P1417](wg21.link/p1417).
+   [P1417R0](wg21.link/p1417r0).
 
 4. Our proposal subsumes some dense mixed-precision functionality (see
    below).
@@ -291,26 +346,26 @@ following reasons:
 The [LAPACK](http://www.netlib.org/lapack/) Fortran library implements
 solvers for the following classes of mathematical problems:
 
-* Linear systems
-* Linear least-squares problems
-* Eigenvalue and singular value problems
+* linear systems,
+* linear least-squares problems, and
+* eigenvalue and singular value problems.
 
 It also provides matrix factorizations and related linear algebra
 operations.  LAPACK deliberately relies on the BLAS for good
 performance; in fact, LAPACK and the BLAS were designed together.  See
-history presented in [P1417](wg21.link/p1417).
+history presented in [P1417R0](wg21.link/p1417r0).
 
 Several C++ libraries provide slices of LAPACK functionality.  Here is
 a brief, noninclusive list, in alphabetical order, of some libraries
 actively being maintained:
 
-* [Armadillo](http://arma.sourceforge.net/)
-* [Boost.uBLAS](https://github.com/boostorg/ublas)
-* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
-* [Matrix Template Library](http://www.simunova.com/de/mtl4/)
-* [Trilinos](https://github.com/trilinos/Trilinos/)
+* [Armadillo](http://arma.sourceforge.net/),
+* [Boost.uBLAS](https://github.com/boostorg/ublas),
+* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page),
+* [Matrix Template Library](http://www.simunova.com/de/mtl4/), and
+* [Trilinos](https://github.com/trilinos/Trilinos/).
 
-[P1417](wg21.link/p1417) gives some history of C++ linear algebra
+[P1417R0](wg21.link/p1417r0) gives some history of C++ linear algebra
 libraries.  The authors of this proposal have
 [written](https://github.com/kokkos/kokkos-kernels) and
 [maintained](https://github.com/trilinos/Trilinos/tree/master/packages/teuchos/numerics/src)
@@ -351,12 +406,12 @@ other than just the four types that the BLAS and LAPACK support.  This
 is easier to do for BLAS-like operations than for the much more
 complicated numerical algorithms in LAPACK.  LAPACK strives for a
 "generic" design (see Jack Dongarra interview summary in
-[P1417](wg21.link/p1417)), but only supports two real floating-point
-types and two complex floating-point types.  Directly translating
-LAPACK source code into a "generic" version could lead to pitfalls.
-Many LAPACK algorithms only make sense for number systems that aim to
-approximate real numbers (or their complex extentions).  Some LAPACK
-functions output error bounds that rely on properties of
+[P1417R0](wg21.link/p1417r0)), but only supports two real
+floating-point types and two complex floating-point types.  Directly
+translating LAPACK source code into a "generic" version could lead to
+pitfalls.  Many LAPACK algorithms only make sense for number systems
+that aim to approximate real numbers (or their complex extentions).
+Some LAPACK functions output error bounds that rely on properties of
 floating-point arithmetic.
 
 For these reasons, we have left LAPACK-like functionality for future
@@ -366,7 +421,7 @@ build on our proposal.
 ### Extended-precision BLAS
 
 Our interface does subsume the functionality of the Mixed-Precision
-BLAS specification (see Ch. 4 of the BLAS Standard).  For example,
+BLAS specification (Chapter 4 of the BLAS Standard).  For example,
 users may multiply two 16-bit floating-point matrices (assuming that a
 16-bit floating-point type exists) and accumulate into a 32-bit
 floating-point matrix, just by providing a 32-bit floating-point
@@ -380,8 +435,8 @@ proposal.  The BLAS Standard lets callers decide at run time whether
 to use extended precision floating-point arithmetic for internal
 evaluations.  We could support this feature at a later time.  One way
 we could do so is by annotating the execution policy argument using
-the [Properties mechanism in P1393](wg21.link/p1393), to `prefer` or
-`require` extended-precision evaluation, if it makes sense for the
+the Properties mechanism in [P1393R0](wg21.link/p1393r0), to `prefer`
+or `require` extended-precision evaluation, if it makes sense for the
 input and output types.  Implementations of our interface will also
 have the freedom to use more accurate evaluation methods than typical
 BLAS implementations.
@@ -394,7 +449,11 @@ We do so for the following reasons:
 1. We propose a low-level, minimal interface.
 
 2. `operator*` could have multiple meanings for matrices and vectors.
-   We prefer to let a higher-level library decide this.
+   Should it mean elementwise product (like `valarray`) or matrix
+   product?  Should libraries reinterpret "vector times vector" as
+   "row vector times column vector"?  Which vector gets conjugated in
+   complex arithmetic?  We prefer to let a higher-level library decide
+   this, and make everything explicit at our lower level.
 
 3. Arithmetic operators require defining the element type of the
    vector or matrix returned by an expression.  Functions let users
@@ -408,8 +467,8 @@ We do so for the following reasons:
    introduce problems such as dangling references and aliasing.
 
 Our goal is to propose a low-level interface.  Other libraries, such
-as that proposed by [P1385](wg21.link/p1385), could use our interface
-to implement overloaded arithmetic for matrices and vectors.
+as that proposed by [P1385R1](wg21.link/p1385r1), could use our
+interface to implement overloaded arithmetic for matrices and vectors.
 [P0939](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf)
 advocates using "an incremental approach to design to benefit from
 actual experience."  A constrained, function-based, BLAS-like
@@ -426,9 +485,9 @@ loses precision.  Some users may want `complex<double>`; others may
 want `complex<long double>` or something else, and others may want to
 choose different types in the same program.
 
-[P1385](wg21.link/p1385) lets users customize the return type of such
-arithmetic expressions.  However, different algorithms may call for
-the same expression with the same inputs to have different output
+[P1385R1](wg21.link/p1385r1) lets users customize the return type of
+such arithmetic expressions.  However, different algorithms may call
+for the same expression with the same inputs to have different output
 types.  For example, iterative refinement of linear systems `Ax=b` can
 work either with an extended-precision intermediate residual vector `r
 = b - A*x`, or with a residual vector that has the same precision as
@@ -449,7 +508,7 @@ allocation.
 Arithmetic expressions on matrices or vectors strongly suggest
 expression templates, as a way to avoid allocation of temporaries and
 to fuse computational kernels.  They do not *require* expression
-templates; for example, `valarray` offers overloaded operators for
+templates.  For example, `valarray` offers overloaded operators for
 vector arithmetic, but the Standard lets implementers decide whether
 to use expression templates.  However, all of the current C++ linear
 algebra libraries that we mentioned above have some form of expression
@@ -460,14 +519,14 @@ lack of mandate for expression templates meant that initial
 implementations were slow, and thus users did not want to rely on it.
 
 Expression templates work well, but have issues.  Our papers
-[P1417](wg21.link/p1417) and "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" (D1674R0) give more detail on these issues.  A
-particularly troublesome one is that modern C++ `auto` makes it easy
-for users to capture expressions before their evaluation and writing
-into an output array.  For matrices and vectors with container
-semantics, this makes it easy to create dangling references.  Users
-might not realize that they need to assign expressions to named types
-before actual work and storage happen.  [Eigen's
+[P1417R0](wg21.link/p1417r0) and "Evolving a Standard C++ Linear
+Algebra Library from the BLAS" (D1674R0) give more detail on these
+issues.  A particularly troublesome one is that modern C++ `auto`
+makes it easy for users to capture expressions before their evaluation
+and writing into an output array.  For matrices and vectors with
+container semantics, this makes it easy to create dangling references.
+Users might not realize that they need to assign expressions to named
+types before actual work and storage happen.  [Eigen's
 documentation](https://eigen.tuxfamily.org/dox/TopicPitfalls.html)
 describes this common problem.
 
@@ -480,6 +539,16 @@ that their input `mdspan` views.  They introduce no more potential for
 dangling references than `mdspan` itself.  The use of views like
 `mdspan` is self-documenting; it tells users that they need to take
 responsibility for scope of the viewed data.
+
+### Banded matrix layouts
+
+This proposal omits the banded and packed banded matrix types.  It
+would be easy to add the required layouts and specializations of
+algorithms later.  The packed and unpacked symmetric and triangular
+layouts in this proposal cover the major concerns that authors of
+banded layouts would encounter, like nonstrided layouts, and layouts
+where users are not allowed to write to all multi-indices in the
+Cartesian product of extents.
 
 ### Tensors
 
@@ -510,71 +579,10 @@ a new `basic_mdarray` variant of `basic_mdspan` with container
 semantics.  We explain the value of these two classes below.
 
 Please refer to our papers "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" [CITE] and "Historical lessons for C++ linear
-algebra library standardization" [(P1417)](wg21.link/p1417).  They
-will give details and references for many of the points that we
-summarize here.
-
-### Why base a C++ linear algebra library on the BLAS?
-
-1. The BLAS is a standard that codifies decades of existing practice.
-2. The BLAS separates out "performance primitives" for hardware
-   experts to tune, from mathematical operations that rely on those
-   primitives for good performance.
-3. Benchmarks reward hardware and system vendors for providing an
-   optimized BLAS implementations.
-4. Writing a fast BLAS implementation for common element types is
-   nontrivial, but well understood.
-5. Optimized third-party BLAS implementations with liberal software
-   licenses exist.
-6. Building a C++ interface on top of the BLAS is a straightforward
-   exercise, but has pitfalls for unaware developers.
-
-Linear algebra has had a cross-language standard, the Basic Linear
-Algebra Subroutines (BLAS), since 2002.  The Standard came out of a
-[standardization process] (http://www.netlib.org/blas/blast-forum/)
-that started in 1995 and held meetings three times a year until 1999.
-Participants in the process came from industry, academia, and
-government research laboratories.  The dense linear algebra subset of
-the BLAS codifies forty years of evolving practice, and existed in
-recognizable form since 1990 (see e.g., [P1417](wg21.link/p1417)).
-
-The BLAS interface was specifically designed as the distillation of
-the "computer science" / performance-oriented parts of linear algebra
-algorithms.  It cleanly separates operations most critical for
-performance, from operations whose implementation takes expertise in
-mathematics and rounding-error analysis.  This gives vendors
-opportunities to add value, without asking for expertise outside the
-typical required skill set of a Standard Library implementer.
-
-Well-established benchmarks such as the [LINPACK
-benchmark](https://www.top500.org/project/linpack/) reward computer
-hardware vendors for optimizing their BLAS implementations.  Thus,
-many vendors provide an optimized BLAS library for their computer
-architectures.  Writing fast BLAS-like operations is not trivial, and
-depends on computer architecture.  However, it is not black magic; it
-is a well-understood problem whose solutions could be parameterized
-for a variety of computer architectures.  See, for example, the 2008
-paper ["Anatomy of high-performance matrix
-multiplication,"](https://doi.org/10.1145/1356052.1356053) by K. Goto
-and R. A. van de Geijn.  There are optimized third-party BLAS
-implementations for common architectures, like
-[ATLAS](http://math-atlas.sourceforge.net/) and
-[GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2).
-A (slow but correct) [reference implementation of the
-BLAS](http://www.netlib.org/blas/#_reference_blas_version_3_8_0)
-exists and it has a liberal software license for easy reuse.
-
-We have experience in the exercise of wrapping a C or Fortran BLAS
-implementation for use in portable C++ libraries.  We describe this
-exercise in detail in our paper "Evolving a Standard C++ Linear
-Algebra Library from the BLAS" (D1674R0).  It is straightforward for
-vendors, but has pitfalls for developers.  For example, Fortran's
-application binary interface (ABI) differs across platforms in ways
-that can cause run-time errors (even incorrect results, not just
-crashing).  Historical examples of vendors' C BLAS implementations
-have also had ABI issues that required work-arounds.  This dependence
-on ABI details makes availability in a standard library valuable.
+Library from the BLAS" (D1674R0) and "Historical lessons for C++
+linear algebra library standardization"
+[(P1417R0)](wg21.link/p1417r0).  They will give details and references
+for many of the points that we summarize here.
 
 ### We do not require using the BLAS library
 
@@ -759,13 +767,13 @@ without other qualifiers, we mean the most general `basic_mdarray`.
 
 Our proposal uses the `Layout` policy of `mdspan` and `mdarray` in
 order to represent different matrix and vector data layouts.  Layouts
-as described by P0009 come in three different categories:
+as described by P0009R9 come in three different categories:
 
 * Unique
 * Contiguous
 * Strided
 
-P0009 includes three different layouts -- `layout_left`,
+P0009R9 includes three different layouts -- `layout_left`,
 `layout_right`, and `layout_stride` -- all of which are unique,
 contiguous, and strided.
 
@@ -781,10 +789,10 @@ These layouts have "tag" template parameters that control their
 behavior; see below.
 
 These layouts would thus be the first additions to the layouts in
-P0009 that are not unique, contiguous, and strided.  We've discussed
+P0009R9 that are not unique, contiguous, and strided.  We've discussed
 above how algorithms cannot be written generically if they have output
 arguments with nonunique layouts.  Furthermore, the unpacked
-triangular layouts introduce a new idea to P0009, namely that some
+triangular layouts introduce a new idea to P0009R9, namely that some
 indices in the Cartesian product of the object's extents are not
 actually valid indices for writing to the object.  The unpacked
 triangular layouts are still unique, but the extents do not suffice to
@@ -798,7 +806,9 @@ Thus, we impose the following rules:
   are not also output objects, as long as they have any of the
   following layouts:
 
-  * any layout defined in P0009 or this proposal, or
+  * `layout_left`, `layout_right`, or `layout_stride` (see P0009R9)
+
+  * Any layout defined in this proposal
 
   * any user-defined layout for which any multi-index in the Cartesian
     product of its extents is a valid multi-index for accessing the
@@ -949,13 +959,13 @@ class layout_blas_general;
 
 These new layouts represent exactly the two General (GE) matrix
 layouts that the BLAS' C interface supports.  Both of these are more
-general than P0009's `layout_left` and `layout_right`, because they
-permit a stride between columns resp. rows that is greater than the
+general than `layout_left` and `layout_right`, because they permit a
+stride between columns resp. rows that is greater than the
 corresponding extent.  This is why BLAS functions take an "LDA"
 (leading dimension of the matrix A) argument separate from the
-dimenions (extents, in `mdspan` terms) of A.  However, these layouts
-are slightly *less* general than P0009's `layout_stride`, because they
-assume contiguous storage of columns resp. rows.
+dimensions (extents, in `mdspan` terms) of A.  However, these layouts
+are slightly *less* general than `layout_stride`, because they assume
+contiguous storage of columns resp. rows.
 
 We could omit these layouts and use `layout_stride` without removing
 functionality.  However, the advantage of these layouts is that
@@ -982,11 +992,12 @@ The definition of each of these layouts would look and work like
 * `layout_blas_general::mapping`'s constructor would take an instance
   of each of these two `extent` specializations.
 
-These new layouts differ intentionally from `layout_stride`, which
-takes strides all as run-time elements in an `array`.  (P0009 may
-later change this to be a second `extents` object.)  We want users to
-be able to express strides as an arbitrary mix of compile-time and
-run-time values, just as they can express dimensions.
+These new layouts differ intentionally from `layout_stride`, which (as
+of P0009R9) takes strides all as run-time elements in an `array`.  (We
+favor changing this in the next revision of P0009, to make
+`layout_stride` take the strides as a second `extents` object.)  We
+want users to be able to express strides as an arbitrary mix of
+compile-time and run-time values, just as they can express dimensions.
 
 #### New unpacked symmetric and triangular layouts
 
@@ -1006,6 +1017,8 @@ requirements.
     `explicit_diagonal_t`.
 
   * `BaseLayout` is a unique, contiguous, and strided layout.
+
+  * `Extents` is a specialization of `extents` (see P0009R9).
 
 ##### Unpacked symmetric layout
 
@@ -1029,11 +1042,40 @@ public:
     constexpr mapping(const base_mapping_type& base_mapping) noexcept :
       base_mapping_ (base_mapping) {}
 
-    // ... TODO more details here; see layout_left ...
+    template<class OtherExtents>
+      constexpr mapping(const mapping<OtherExtents>& other);
+
+    mapping& operator=() noexcept = default;
+    mapping& operator=(const mapping&) noexcept = default;
+
+    template<class OtherExtents>
+      constexpr mapping& operator=(const mapping<OtherExtents>& other);
+
+    Extents extents() const noexcept;
 
     const base_mapping_type base_mapping() const {
       return base_mapping_;
     }
+
+    constexpr typename Extents::index_type required_span_size() const noexcept;
+
+    template<class... Indices>
+      typename Extents::index_type operator()(Indices... is) const;
+
+    static constexpr bool is_always_unique() noexcept;
+    static constexpr bool is_always_contiguous() noexcept;
+    static constexpr bool is_always_strided() noexcept;
+
+    constexpr bool is_unique() const noexcept;
+    constexpr bool is_contiguous() noexcept;
+    constexpr bool is_strided() noexcept;
+
+    template<class OtherExtents>
+      constexpr bool
+      operator==(const mapping<OtherExtents>& other) const noexcept;
+    template<class OtherExtents>
+      constexpr bool
+      operator!=(const mapping<OtherExtents>& other) const noexcept;
 
   private:
     base_mapping_type base_mapping_; // <i>exposition only</i>
@@ -1041,18 +1083,79 @@ public:
 };
 ```
 
-If `Triangle` is `upper_triangle_t`, then this layout's mapping for
-`i,j` invokes the `BaseLayout`'s `i,j` mapping when `i` is greater
-than or equal to `j`, and invokes the `BaseLayout`'s `j,i` mapping
-when `i` is less than `j`.
+* *Constraints:* In `mapping`, `Extents::rank()` is at least 2.
 
-If `Triangle` is `lower_triangle_t`, then this layout's mapping for
-`i,j` invokes the `BaseLayout`'s `i,j` mapping when `i` is less than
-or equal to `j`, and invokes the `BaseLayout`'s `j,i` mapping when `i`
-is greater than `j`.
+We will need to fill in the details here.  Most of them can be copied
+from P0009.  We will highlight a few key features that differ from the
+other layouts in P0009.
+
+###### `layout_blas_symmetric::mapping` operations
+
+```c++
+constexpr typename Extents::index_type
+required_span_size() const noexcept;
+```
+
+* *Returns:* The product of `base_mapping().extents().extent(r)`
+   for all `r` in the range `[0, extents().rank())`.
+
+```c++
+template<class... Indices>
+  typename Extents::index_type operator()(Indices... is) const;
+```
+
+* *Constraints:*
+
+  * `sizeof...(Indices)` equals `Extents::rank()`, and
+
+  * `(is_convertible_v<Indices, typename Extents::index_type> && ...)`
+    is `true`.
+
+* *Requires:* `0 <= array{is...}[r] < extents().extent(r)` for all `r`
+  in the range `[0, extents().rank())`.
+
+* *Returns:*
+
+  * If `sizeof...(Indices)` in `mapping::operator()` is 2, then:
+
+    * If `Triangle` is `upper_triangle_t`, then this layout's mapping
+      for `i,j` invokes the `BaseLayout`'s `i,j` mapping when `i` is
+      greater than or equal to `j`, and invokes the `BaseLayout`'s `j,i`
+      mapping when `i` is less than `j`.
+
+    * If `Triangle` is `lower_triangle_t`, then this layout's mapping
+      for `i,j` invokes the `BaseLayout`'s `i,j` mapping when `i` is
+      less than or equal to `j`, and invokes the `BaseLayout`'s `j,i`
+      mapping when `i` is greater than `j`.
+
+  * Otherwise, if `sizeof...(Indices)` in `mapping::operator()` is
+    greater than 2, the above index swapping happens for the last
+    (rightmost) two indices in the `is` parameter pack.
+
+* *Throws:* Nothing.
 
 *[Note:* Algorithms may avoid the overhead of checking and swapping
 indices by accessing the base mapping. --*end note]*
+
+
+```c++
+static constexpr bool is_always_unique() noexcept;
+static constexpr bool is_always_contiguous() noexcept;
+static constexpr bool is_always_strided() noexcept;
+```
+
+* *Returns:* false.
+
+```c++
+constexpr bool is_unique() const noexcept;
+constexpr bool is_contiguous() noexcept;
+constexpr bool is_strided() noexcept;
+```
+
+* *Returns:* `true` if and only if the product of the extents is less
+  than or equal to 1.
+
+
 
 ##### Unpacked triangular layout
 
@@ -1062,7 +1165,6 @@ template<class Triangle,
          class BaseLayout>
 class layout_blas_triangular;
 ```
-
 
 #### New packed symmetric and triangular layouts
 
@@ -1159,170 +1261,173 @@ requirements.
 
   * `Packing` is either `packed_storage_t` or `unpacked_storage_t`.
 
+  * `BaseLayout` is a unique, contiguous, and strided layout.
+
+
 #### Create an unpacked triangular view of an existing rank-2 object
 
 ```c++
 // Upper triangular, explicit diagonal
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular<
     upper_triangle_t,
     explicit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  basic_mdspan<EltType, Extents, Layout, Accessor> m,
+  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
   upper_triangle_t,
   explicit_diagonal_t d = explicit_diagonal);
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular<
     upper_triangle_t,
     explicit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
   upper_triangle_t,
   explicit_diagonal_t d = explicit_diagonal);
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<const EltType, Extents,
   layout_blas_triangular<
     upper_triangle_t,
     explicit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
   upper_triangle_t,
   explicit_diagonal_t d = explicit_diagonal);
 
 // Upper triangular, implicit unit diagonal
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular<
     upper_triangle_t,
     implicit_unit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  basic_mdspan<EltType, Extents, Layout, Accessor> m,
+  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
   upper_triangle_t,
   implicit_unit_diagonal_t);
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular<
     upper_triangle_t,
     implicit_unit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
   upper_triangle_t,
   implicit_unit_diagonal_t);
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<const EltType, Extents,
   layout_blas_triangular<
     upper_triangle_t,
     implicit_unit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
   upper_triangle_t,
   implicit_unit_diagonal_t);
 
 // Lower triangular, implicit unit diagonal
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular<
     lower_triangle_t,
     implicit_unit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  basic_mdspan<EltType, Extents, Layout, Accessor> m,
+  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
   lower_triangle_t,
   implicit_unit_diagonal_t d = implicit_unit_diagonal);
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular<
     lower_triangle_t,
     implicit_unit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
   lower_triangle_t,
   implicit_unit_diagonal_t d = implicit_unit_diagonal);
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<const EltType, Extents,
   layout_blas_triangular<
     lower_triangle_t,
     implicit_unit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
   lower_triangle_t,
   implicit_unit_diagonal_t d = implicit_unit_diagonal);
 
 // Lower triangular, explicit diagonal
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular<
     lower_triangle_t,
     explicit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  basic_mdspan<EltType, Extents, Layout, Accessor> m,
+  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
   lower_triangle_t,
   explicit_diagonal_t);
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<EltType, Extents,
   layout_blas_triangular<
     lower_triangle_t,
     explicit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
   lower_triangle_t,
   explicit_diagonal_t);
 
-template<class EltType, class Extents, class Layout,
+template<class EltType, class Extents, class BaseLayout,
          class Accessor>
 constexpr basic_mdspan<const EltType, Extents,
   layout_blas_triangular<
     lower_triangle_t,
     explicit_diagonal_t,
-    Layout>,
+    BaseLayout>,
   Accessor>
 triangular_view(
-  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
+  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
   lower_triangle_t,
   explicit_diagonal_t);
 ```
@@ -1330,8 +1435,6 @@ triangular_view(
 * *Constraints:*
 
   * `m.rank()` is at least 2.
-
-  * `Layout` is a unique, contiguous, and strided layout.
 
 #### Create a packed triangular view of an existing rank-1 object
 
@@ -1414,15 +1517,16 @@ packed_triangular_view(
 
   * `Extents::rank()` is one.
 
-  * `m.is_always_contiguous()` and `m.is_always_unique()` are both true.
+  * `Layout` is any unique layout.
 
-* *Effects:* Views the given rank-1 contiguous unique `basic_mdspan`
-   or `basic_mdarray` as a packed triangular matrix with the given
-   `Triangle`, `DiagonalStorage`, and `StorageOrder`.
+* *Effects:* Views the given rank-1 `basic_mdspan` or `basic_mdarray`
+   as a packed triangular matrix with `num_rows` rows and columns, and
+   with the given `Triangle`, `DiagonalStorage`, and `StorageOrder`.
 
 * *Returns:* A rank-2 `basic_mdspan` `r` with packed triangular
-   layout.  If `E_r` is the type of `r.extents()`, then `E_r` has at
-   least as many `StaticExtents` (the number of `extents`'s
+   layout, `r.extent(0)` equal to `num_rows`, and `r.extent(1)` equal
+   to `num_rows`.  If `E_r` is the type of `r.extents()`, then `E_r`
+   has at least as many `StaticExtents` (the number of `extents`'s
    `ptrdiff_t` template arguments) as the type of `m.extents()` has.
 
 ### Scaled view of an object
@@ -1477,8 +1581,29 @@ combine both scalars into a single "alpha" and call `xGEMM` with it.
 #### `scaled_scalar`
 
 `scaled_scalar` expresses a scaled version of an existing scalar.
-This must be read only, in order to avoid unpleasantly surprising
-results.
+This must be read only.  *[Note:* This avoids likely confusion with
+the definition of "assigning to a scaled scalar." --*end note]*
+
+*[Note:*
+
+`scaled_scalar` and `conjugated_scalar` (see below) behave a bit like
+`atomic_ref`, in that they are special `reference` types for the
+Accessors `accessor_scaled` resp. `accessor_conjugate` (see below),
+and that they provide overloaded arithmetic operators that implement a
+limited form of expression templates.  The arithmetic operators are
+templated on their input type, so that they only need to compile if an
+algorithm actually uses them.  The conversion to `T` allows simple
+assignment to `T`, or invocation in functions that take `T`.
+
+There are other surprising results outside the scope of this
+proposal to fix, like the fact that `operator*` does not work for
+`complex<float>` times `double`.  This means `scaled_view(x, 93.0)`
+for `x` with `element_type` `complex<float>` will not compile.
+Neither does `complex<float>(3.0, 4.0) * y`.  Our experience with
+generic numerical algorithms is that floating-point literals need type
+adornment.
+
+-*end note]*
 
 ```c++
 template<class T, class S>
@@ -1487,15 +1612,22 @@ public:
   scaled_scalar(const T& v, const S& s) :
     val(v), scale(s) {}
 
+  operator T() const { return val * scale; }
+
+  // TODO unary operator-
+
   template<class T2>
-  T operator* (const T2 upd) const {
-    return val*scale * upd;
-  }
-  template<class T2>
-  T operator+ (const T2 upd) const {
+  decltype(auto) operator+ (const T2& upd) const {
     return val*scale + upd;
   }
-  //...
+
+  template<class T2>
+  decltype(auto) operator* (const T2 upd) const {
+    return val*scale * upd;
+  }
+
+  // ... add only those operators needed for the functions in this
+  // proposal ...
 
 private:
   const T& val;
@@ -1581,14 +1713,9 @@ complex.
 #### `conjugated_scalar`
 
 `conjugated_scalar` expresses a conjugated version of an existing
-scalar.  This must be read only, in order to avoid unpleasantly
-surprising results.  Otherwise, `conjugated_scalar` behaves a bit like
-`atomic_ref`, in that it is a special `reference` type for the
-Accessor `accessor_conjugate` (see below), and that it provides
-overloaded arithmetic operators that implement a limited form of
-expression templates.  The arithmetic operators are templated on their
-input type, so that they only need to compile if an algorithm actually
-uses them.
+scalar.  This must be read only.  *[Note:* This avoids likely
+confusion with the definition of "assigning to the conjugate of a
+scalar." --*end note]*
 
 The C++ Standard imposes the following requirements on `complex<T>`
 numbers:
@@ -1618,17 +1745,20 @@ public:
 
   conjugated_scalar(const T& v) : val(v) {}
 
+  operator T() const { return conj(val); }
+
   template<class T2>
   T operator* (const T2 upd) const {
-    return conj (val) * upd;
+    return conj(val) * upd;
   }
 
   template<class T2>
   T operator+ (const T2 upd) const {
-    return conj (val) + upd;
+    return conj(val) + upd;
   }
 
-  // ...
+  // ... add only those operators needed for the functions in this
+  // proposal ...
 
 private:
   const T& val;
@@ -3183,3 +3313,69 @@ BLAS versions take a `beta` argument.  In our experience using the
 BLAS, users are more likely to expect that setting `beta=0` causes
 write-only behavior.  Thus, if the interface suggests write-only
 behavior, users are less likely to be unpleasantly surprised.
+
+## References by coathors
+
+* G. Ballard, E. Carson, J. Demmel, M. Hoemmen, N. Knight, and
+  O. Schwartz, ["Communication lower bounds and optimal algorithms for
+  numerical linear
+  algebra,"](https://doi.org/10.1017/S0962492914000038), *Acta
+  Numerica*, Vol. 23, May 2014, pp. 1-155.
+
+* H. C. Edwards, B. A. Lelbach, D. Sunderland, D. Hollman, C. Trott,
+  M. Bianco, B. Sander, A. Iliopoulos, J. Michopoulos, and M. Hoemmen,
+  "`mdspan`: a Non-Owning Multidimensional Array Reference,"
+  [P0009R0](wg21.link/p0009r9), Jan. 2019.
+
+* M. Hoemmen, "Evolving a Standard C++ Linear Algebra Library from the
+  BLAS," D1674R0, Jun. 2019.
+
+* M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
+  J. Michopoulos, "Historical lessons for C++ linear algebra library
+  standardization," [(P1417R0)](wg21.link/p1417r0), Jan. 2019.
+
+* D. Hollman, `mdarray`, D1684R0, Jun. 2019.
+
+* D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
+  M. Dominiak, "A General Property Customization Mechanism,"
+  [P1393R0](wg21.link/p1393r0), Jan. 2019.
+
+## Other references
+
+* [Basic Linear Algebra Subprograms Technical (BLAST) Forum
+  Standard](http://netlib.org/blas/blast-forum/blas-report.pdf),
+  International Journal of High Performance Applications and
+  Supercomputing, Vol. 16. No. 1, Spring 2002.
+
+* L. S. Blackford, J. Demmel, J. Dongarra, I. Duff, S. Hammarling,
+  G. Henry, M. Heroux, L. Kaufman, A. Lumsdaine, A. Petitet, R. Pozo,
+  K. Remington, and R. C. Whaley, ["An updated set of basic linear
+  algebra subprograms (BLAS),"](https://doi.org/10.1145/567806.567807)
+  *ACM Transactions on Mathematical Software* (TOMS), Vol. 28, No. 2,
+  Jun. 2002, pp. 135-151.
+
+* G. Davidson and B. Steagall, "A proposal to add linear algebra
+  support to the C++ standard library," [P1385R1](wg21.link/p1385r1),
+  Mar. 2019.
+
+* B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
+  "Direction for ISO C++," [P0939R0](wg21.link/p0939r0), Feb. 2018.
+
+* J. Dongarra, R. Pozo, and D. Walker, "LAPACK++: A Design Overview of
+  Object-Oriented Extensions for High Performance Linear Algebra," in
+  Proceedings of Supercomputing '93, IEEE Computer Society Press,
+  1993, pp. 162-171.
+
+* M. Gates, P. Luszczek, A. Abdelfattah, J. Kurzak, J. Dongarra,
+  K. Arturov, C. Cecka, and C. Freitag, ["C++ API for BLAS and
+  LAPACK,"](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf)
+  SLATE Working Notes, Innovative Computing Laboratory, University of
+  Tennessee Knoxville, Feb. 2018.
+
+* K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
+  multiplication,"](https://doi.org/10.1145/1356052.1356053), *ACM
+  Transactions on Mathematical Software* (TOMS), Vol. 34, No. 3, May
+  2008.
+
+* M. Kretz, "Data-Parallel Vector Types & Operations,"
+  [P0214r9](wg21.link/p0214r9), Mar. 2018.
