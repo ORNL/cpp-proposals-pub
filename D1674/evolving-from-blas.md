@@ -397,17 +397,395 @@ this approach:
    exit with no indication to an automated caller that something went
    wrong.
 
+## Some remaining feature-completeness issues
 
+### Function argument aliasing and zero scalar multipliers
 
+Summary:
 
+1. The BLAS Standard forbids aliasing any input (read-only) argument
+   with any output (write-only or read-and-write) argument.
 
+2. The BLAS uses `INTENT(INOUT)` (read-and-write) arguments to express
+   "updates" to a vector or matrix.  By contrast, C++ Standard
+   algorithms like `transform` take input and output iterator ranges
+   as different parameters, but may let input and output ranges be the
+   same.
 
+3. The BLAS uses the values of scalar multiplier arguments ("alpha" or
+   "beta") of vectors or matrices at run time, to decide whether to
+   treat the vectors or matrices as write only.  This matters both for
+   performance and semantically, assuming IEEE floating-point
+   arithmetic.
 
+4. We recommend separately, based on the category of BLAS function,
+   how to translate `INTENT(INOUT)` arguments into a C++ idiom:
 
-For small
-problems, error checking might take more time than actually solving
-the problem.
+   a. For in-place triangular solve or triangular multiply, we
+      recommend translating the function to take separate input and
+      output arguments that shall not alias each other.
 
+   b. Else, if the BLAS function unconditionally updates (like
+      `xGER`), we recommend retaining read-and-write behavior for that
+      argument.
+
+   c. Else, if the BLAS function uses a scalar `beta` argument to
+      decide whether to read the output argument as well as write to
+      it (like `xGEMM`), we recommend providing two versions: a
+      write-only version (as if `beta` is zero), and a read-and-write
+      version (as if `beta` is nonzero).
+
+Both the BLAS Standard and the C++ Standard Library's algorithms
+impose constraints on aliasing of their pointer / array arguments.
+However, the BLAS Standard uses different language to express these
+constraints, and has different interface assumptions.  In this
+section, we summarize the BLAS' constraints in C++ Standard terms, and
+explain how an idiomatic C++ interface would differ.
+
+#### Aliasing in the BLAS
+
+The BLAS Standard says that its functions do not permit any aliasing
+of their arguments.  In order to understand this restriction, we must
+look both at Fortran (the BLAS' "native language"), and at the
+`INTENT` specifications of BLAS functions.  It turns out that this
+restriction is no more onerous than that on the input and output
+arguments of `copy` or `memcpy`.  Furthermore, `INTENT(INOUT)` permits
+the BLAS to express linear algebra "update" operations in an idiom
+that linear algebra experts find more natural.  This differs from the
+idiom of C++ Standard Library algorithms like `transform`, that can be
+used to perform update operations.
+
+The [Fortran standard](https://wg5-fortran.org/) rarely refers to
+"aliasing."  The proper Fortran term is *association*.  In C++ terms,
+"association" means something like "is a reference to."  For example,
+Fortran uses the term *argument association* to describe the binding
+of the caller's *actual argument*, to the corresponding *dummy
+argument*.  C++ calls the former an "argument" **[defns.argument]** --
+what the caller puts in the parentheses when calling the function --
+and the latter a "parameter" **[defns.parameter]** -- the thing inside
+the function that gets the value.  (Fortran uses "parameter" in a
+different way than C++, to refer to a named constant.)  *Sequence
+association* means (among other things) that an array argument can
+"point to a subset" of another array, just like it can in C++.  We
+omit details about array slices, but C++ developers can get a rough
+idea of this behavior by thinking of Fortran arrays as pointers.
+
+In the latest Fortran standard (2018), Section 15.5.2.3 gives argument
+association rules, and Section 19.5 defines the different kinds of
+association.  Section 15.5.1.2 explains that "[a]rgument association
+can be sequence association."  This [blog
+post](https://software.intel.com/en-us/blogs/2009/03/31/doctor-fortran-in-ive-come-here-for-an-argument)
+explains argument association and aliasing in detail.
+
+A first-order C++ approximation of Fortran's default behavior is "pass
+scalar values by reference -- nonconst unless declared `INTENT(IN)` --
+and pass arrays by pointer."  Thus, aliasing rules matter even more in
+Fortran than in C++.  Fortran only permits associating the same entity
+with two different dummy arguments if the dummy arguments are both
+explicitly marked read only, through the `INTENT(IN)` attribute.
+Function arguments can have four different `INTENT`s:
+
+* `INTENT(IN)`, read only;
+* `INTENT(OUT)`, write only;
+* `INTENT(INOUT)`, read and write; or
+* unspecified, so the function's behavior defines the actual "intent."
+
+For example, the BLAS' `xAXPY` function performs the vector sum
+operation `Y = Y + ALPHA*X`.  It has the following arguments:
+
+* `ALPHA` (scalar) is `INTENT(IN)`,
+* `X` (vector) is `INTENT(IN)`, and
+* `Y` (vector) is `INTENT(INOUT)`.
+
+"No aliasing" here means that when users call `xAPXY`, they promise
+that neither of their first two actual arguments aliases any elements
+in the third actual argument.  Aliasing two `INTENT(IN)` arguments is
+legal.  For instance, `xGEMM` (matrix-matrix multiply) permits its
+`INTENT(IN)` arguments `A` and `B` to be the same, as long as they do
+not alias the `INTENT(INOUT)` argument `C`.
+
+#### Aliasing in C++ Standard algorithms
+
+The `transform` **[alg.transform]** algorithm is a good analog to
+updating functions like `xAXPY`.  `transform` does not take the C++
+equivalent of an `INTENT(INOUT)` argument.  Instead, `transform` takes
+input and output iterator ranges as separate arguments, but lets its
+output range be equal to either input range.  If so, then `transform`
+implements an "update" that accesses the output in read-and-write
+fashion.  This is the C++ way of expressing a read-and-write argument
+for update operations.
+
+In general, each C++ Standard algorithm (see e.g.,
+**[alg.modifying.operations]**) states its own constraints on its
+input and output iterator ranges.  For example, in **[alg.copy]**,
+
+* Three-argument `copy` requires that the output iterator `result`
+  "shall not be in the range `[first, last)`" (the input iterators).
+
+* The overload of `copy` that takes an `ExecutionPolicy` requires that
+  the "ranges `[first, last)` and `[result, result + (last - first))`
+  shall not overlap."
+
+* `copy_if` in general requires that the input range `[first, last)`
+  and the output range `[result, result + (last - first))` "shall not
+  overlap."
+
+Note the mismatch between the BLAS and the C++ Standard Library.  The
+BLAS has `INTENT(INOUT)` arguments to express the idea of "an input
+that is also an output."  C++ Standard Library algorithms that have
+both input and output ranges take separate arguments for those ranges.
+In some cases, the separate input and output arguments may refer to
+the same ranges, but they are still separate arguments.
+
+#### Read-and-write access is idiomatic
+
+Many linear algebra algorithms assume read-and-write access.  For
+example, Krylov subspace methods compute an update to an existing
+solution or residual vector.  Cholesky, LU, and QR factorizations
+apply a low-rank update to a trailing matrix.  In the latter case
+especially, it may be prohibitively expensive to keep two copies
+(pre-updated and post-updated) of the matrix.
+
+Most of these algorithms have no risk of parallel race conditions, as
+long as users follow the rule that `INTENT(INOUT)` arguments may not
+alias `INTENT(IN)` arguments.  The exceptions in the BLAS are the
+triangular solves `xTRSM` and `xTRMM`, in which the right-hand side
+vector(s) are `INTENT(INOUT)` arguments that the algorithm overwrites
+with the solution vector(s) on output.  In practice, the authors often
+need to keep the original right-hand side vectors, and end up making a
+copy before the triangular solve.  This interface also precludes
+parallel implementations, since the BLAS is not allowed to allocate
+memory for temporary copies.
+
+#### BLAS has special access rules for zero scalar prefactors
+
+BLAS functions have special access rules when their operations
+multiply a vector or matrix by a scalar prefactor.  Whenever the
+scalar prefactor is zero, the BLAS does not actually read the vector's
+or matrix's entries.  For example, the `xGEMM` function performs the
+matrix-matrix multiply update `C := alpha * A * B + beta * C`, where
+`A`, `B`, and `C` are matrices and `alpha` and `beta` are scalars.  If
+`alpha` is zero, the BLAS does not read `A` or `B` and treats that
+entire term as zero.  The `C` argument has declared `INTENT(INOUT)`,
+but if `beta` is zero, the BLAS does not read `C` and treats the `C`
+argument as write only.  This is a run-time decision, based on the
+value(s) of the scalar argument(s).
+
+The point of this rule is so that "multiplying by zero" has the
+expected result of dropping that term in a sum.  This rule matters
+semantically; it is not just a performance optimization.  In IEEE
+floating-point arithmetic, `0.0 * A(i,j)` is `NaN`, not zero, if
+`A(i,j)` is `Inf` or `NaN`.  If users have not initialized an
+`INTENT(INOUT)` argument, then it's possible that some of the
+uninitialized values may be `Inf` or `NaN`.  Linear algebra algorithm
+developers depend on this behavior.  For example, textbook
+formulations of some Krylov subspace methods assume this rule for
+`xAPXY`, as a way to avoid a special case for the first iteration
+(where the input vector may not be initialized).
+
+#### Overloading is more idiomatically C++
+
+The above special access rule is not idiomatic C++ for the following
+reasons:
+
+1. C++ standard algorithms should be generic, but the rule makes sense
+   only for special cases of a particular arithmetic system.
+
+2. The rule forces a branch with a major behavior change based on
+   run-time input values.  This violates both the zero overhead
+   requirement, and the [Single Responsibility
+   Principle](http://www.butunclebob.com/ArticleS.UncleBob.PrinciplesOfOod).
+
+For instance, when we implement BLAS-like computational kernels in the
+[Trilinos](https://github.com/trilinos/Trilinos) project, (2) requires
+us either to put a branch in the inner loop, or to have an outer
+branch that calls into one of two separate kernels.  Neither is zero
+overhead, especially if the vectors or matrices are very small.
+Optimized BLAS implementations likely take the latter approach of
+implementing two separate kernels, since they do not prioritize
+performance for very small problems.
+
+A more idiomatic C++ linear algebra library could express write-only
+vs. read-and-write semantics by overloading.  This would remove the
+dependence of semantics on possibly run-time scalar values, and it
+would match the convention in **[algorithms.requirements]** that
+"[b]oth in-place and copying versions are provided for certain
+algorithms."  For example, the library would have two overloads of
+`xGEMM`:
+
+1. an overload that takes `C` as a strictly write-only argument and
+   performs the operation `C := alpha * A * B`, without regard for the
+   value of `alpha`; and
+
+2. an overload that performs the operation `C := alpha * A * B + beta
+   * D`, permits `D` to be the same as `C` (compare to `transform`), and
+   does so without regard for the values of `alpha` and `beta`.
+
+This would have the side benefit of extending the set of operations
+"for free."  For example, the overloading approach would give users a
+`xWAXPY` operation `W := alpha*X + Y` without adding a new function
+name or increasing implementer effort.  Another advantage is that the
+C++ interface could remove scalar arguments like `alpha` and `beta`,
+and instead accept `scaled_view` (see D1673), without semantic
+wrinkles.
+
+The disadvantage of this approach is that implementations could no
+longer just call the existing BLAS interface directly.  They would
+need to introduce run-time checks (beyond what the BLAS already does)
+for `alpha = 0` or `beta = 0` cases.  However, BLAS implementations
+(that some vendors write already) or other BLAS-like libraries likely
+have internal functions for implementing the different cases, in order
+to avoid branches in inner loops.  Furthermore, a high-quality
+implementation of a C++ standard linear algebra library would want
+special cases for vectors and matrices with very small compile-time
+sizes.
+
+A C++ library could alternately say that any `Inf` or `NaN` values
+(either in input arrays or as the intermediate result of computations,
+like `A * B` in the `alpha * A * B` term) give implementation-defined
+results.  However, this would make the library's specification
+non-generic, and thus nonidiomatic.
+
+#### Unconditionally read-and-write arguments
+
+Many BLAS functions have unconditionally read-and-write behavior for
+their output arguments.  This includes
+
+1. Element-wise functions over vectors or matrices, like `xSCAL`
+   (vector scale: `x := alpha * x`) and `xAXPY` (vector update: `y =
+   alpha * x + y`);
+
+2. rank-1 or rank-2 matrix update functions, like `xGER`;
+
+3. in-place triangular matrix-vector multiply functions, like `xTRMV`
+   and `xTRMM`; and in-place triangular solve functions, like `xTRSV`
+   and `xTRSM`.
+
+We consider each of these separately.  First, any reasonable
+implementation of `xSCAL` should behave like `transform`, in that it
+should work even if the output and input vector elements to be
+different (as long as they do not overlap).  Similarly, an operation
+`w := alpha*x + beta*y` that permits `w` to be the same as `x` or `y`
+would behave like `transform`, and would cover all `xAXPY` use cases.
+The same argument applies to any element-wise function.
+
+Second, rank-1 or rank-2 matrix update functions are idiomatic to the
+implementation of matrix factorizations, in particular for matrices
+with a small number of columns (the "panel" case in LAPACK).  Users
+normally want to update the matrix in place.  The C++ Standard offers
+`sort` as precedent for only including the in-place version of an
+algorithm.
+
+Third, the in-place triangular matrix functions cannot be made
+parallel without overhead (e.g., allocating intermediate storage).
+This means that, unlike most C++ Standard algorithms, they could not
+accept `ExecutionPolicy` overloads for parallel execution -- not even
+for non-threaded vectorization.  Furthermore, in practice, users often
+need to keep the original right-hand side vectors when they do
+triangular solves, so they end up making a copy of the input / output
+vector(s) before calling the BLAS.  Thus, an idiomatic C++ library
+would only include versions of these functions that take separate
+input and output objects, and would forbid aliasing of input and
+output.
+
+#### Summary
+
+A C++ library that wants idiomatic C++ treatment of input and output
+arguments may need to translate each BLAS function with
+`INTENT(INOUT)` arguments separately.
+
+1. For in-place triangular solve or triangular multiply, the function
+   would take separate input and output arguments that do not alias
+   each other.
+
+2. Else, if the BLAS function unconditionally updates (like `xGER`),
+   the corresponding C++ function would read-and-write behavior for
+   that argument.
+
+3. Else, if the BLAS function uses a scalar `beta` argument to decide
+   whether to read the output argument as well as write to it (like
+   `xGEMM`), the C++ library would provide two versions: a write-only
+   version (as if `beta` is zero), and a read-and-write version (as if
+   `beta` is nonzero).
+
+### Support for different matrix layouts
+
+The dense BLAS supports several different dense matrix "types"
+(storage formats).  We list them here, along with the abbreviation
+that BLAS function names use for each.
+
+* General (GE): Either column major or row major (C binding only).
+
+* General Band (GB): Stored like General, but functions take two
+  additional integers, one for the upper band width, and one for the
+  lower band width.
+
+* Symmetric (SY): Stored like General, but with the assumption of
+  symmetry (`A(i,j) == A(j,i)`), so that algorithms only need to
+  access half the matrix.  Functions take an `UPLO` argument to decide
+  whether to access the matrix's upper or lower triangle.
+
+* Symmetric Band (SB): The combination of General Band and Symmetric.
+
+* Symmetric Packed (SP): Assumes symmetry, but stores entries in a
+  contiguous column-major packed format.  The BLAS function takes an
+  `UPLO` argument to decide whether the packed format represents the
+  upper or lower triangle of the matrix.
+
+* Hermitian (HE): Like Symmetric, but assumes the Hermitian property
+  (the complex conjugate of `A(i,j)` equals `A(j,i)`) instead of
+  symmetry.  Symmetry and the Hermitian property only differ if the
+  matrix's element type is complex.
+
+* Hermitian Band (HB): The combination of General Band and Hermitian.
+
+* Hermitian Packed (SP): Like Symmetric Packed, but assumes the
+  Hermitian property instead of symmetry.
+
+* Triangular (TR): Functions take an `UPLO` argument to decide whether
+  to access the matrix's upper or lower triangle, and a `DIAG`
+  argument to decide whether to assume that the matrix has an
+  implicitly stored unit diagonal (all ones).  Both options are
+  relevant for using the results of matrix factorizations like LU and
+  Cholesky.
+
+* Triangular Band (TB): The combination of General Band and
+  Triangular.
+
+* Triangular Packed (TP): Stores entries in a contiguous column-major
+  packed format, like Symmetric Packed.  BLAS functions take the same
+  `UPLO` and `DIAG` arguments as Triangular.
+
+These "matrix types" conflate the equivalent of `mdspan` layout, with
+constraints on algorithms.  For instance, all matrix types but the
+Packed ones actually use the same matrix storage format.  The only
+distinctions are what elements of the matrix the corresponding
+algorithms promise to access, and what assumptions the algorithms make
+about the values of entries they do not access.  Only the Packed
+matrix types use a different layout of their elements in memory.
+
+Another issue is that some of these layouts are not unique (see
+P0009).  Uniqueness of a layout matters especially for output
+arguments of algorithms.  An algorithm that assumes an output argument
+has unique layout, and writes to all the valid multi-indices of the
+argument, will likely give incorrect results.  (Multiplying all
+elements of a matrix by a scalar is one example.)  There are as many
+possible nonunique mappings as there are noninjective functions from
+index pairs to integer offsets, so it is impractical to make all of
+them work for all output arguments.
+
+Nevertheless, it's helpful to represent all of these matrix type
+options as different layouts, for the following reasons:
+
+* Algorithms can specialize on layout type.  This reduces the number
+  of distinct function names.
+
+* Layouts can permit explicit access to implicitly stored values, like
+  the "other triangle" in symmetric, Hermitian, or triangular matrix
+  types.
+
+In our paper D1673R0, we show how to represent the different BLAS
+matrix types with different layouts.
 
 ## Some remaining performance issues
 
