@@ -1396,6 +1396,10 @@ Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
 requirements.
 
+  * `Extents::rank()` is at least 2.
+
+  * `BaseLayout` is a unique, contiguous, and strided layout.
+
   * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
   * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
@@ -1403,12 +1407,81 @@ requirements.
 
   * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
-  * `Packing` is either `packed_storage_t` or `unpacked_storage_t`.
+#### Create an unpacked symmetric view of an existing object
 
-  * `BaseLayout` is a unique, contiguous, and strided layout.
+```c++
+// View the input's upper triangle
 
+template<class EltType, class Extents, class BaseLayout,
+         class Accessor>
+constexpr basic_mdspan<EltType, Extents,
+  layout_blas_symmetric<
+    upper_triangle_t,
+    BaseLayout>,
+  Accessor>
+symmetric_view(
+  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
+  upper_triangle_t);
 
-#### Create an unpacked triangular view of an existing rank-2 object
+template<class EltType, class Extents, class BaseLayout,
+         class Accessor>
+constexpr basic_mdspan<EltType, Extents,
+  layout_blas_symmetric<
+    upper_triangle_t,
+    BaseLayout>,
+  Accessor>
+symmetric_view(
+  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
+  upper_triangle_t);
+
+template<class EltType, class Extents, class BaseLayout,
+         class Accessor>
+constexpr basic_mdspan<const EltType, Extents,
+  layout_blas_symmetric<
+    upper_triangle_t,
+    BaseLayout>,
+  Accessor>
+symmetric_view(
+  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
+  upper_triangle_t);
+
+// View the input's lower triangle
+
+template<class EltType, class Extents, class BaseLayout,
+         class Accessor>
+constexpr basic_mdspan<EltType, Extents,
+  layout_blas_symmetric<
+    lower_triangle_t,
+    BaseLayout>,
+  Accessor>
+symmetric_view(
+  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
+  lower_triangle_t);
+
+template<class EltType, class Extents, class BaseLayout,
+         class Accessor>
+constexpr basic_mdspan<EltType, Extents,
+  layout_blas_symmetric<
+    lower_triangle_t,
+    BaseLayout>,
+  Accessor>
+symmetric_view(
+  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
+  lower_triangle_t);
+
+template<class EltType, class Extents, class BaseLayout,
+         class Accessor>
+constexpr basic_mdspan<const EltType, Extents,
+  layout_blas_symmetric<
+    lower_triangle_t,
+    BaseLayout>,
+  Accessor>
+symmetric_view(
+  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
+  lower_triangle_t);
+```
+
+#### Create an unpacked triangular view of an existing object
 
 ```c++
 // Upper triangular, explicit diagonal
@@ -1576,11 +1649,7 @@ triangular_view(
   explicit_diagonal_t);
 ```
 
-* *Constraints:*
-
-  * `m.rank()` is at least 2.
-
-#### Create a packed triangular view of an existing rank-1 object
+#### Create a packed triangular view of an existing object
 
 ```c++
 template<class EltType,
@@ -1659,19 +1728,30 @@ packed_triangular_view(
 
 * *Constraints:*
 
-  * `Extents::rank()` is one.
+  * `Extents::rank()` is at least one.
 
   * `Layout` is any unique layout.
 
-* *Effects:* Views the given rank-1 `basic_mdspan` or `basic_mdarray`
-   as a packed triangular matrix with `num_rows` rows and columns, and
-   with the given `Triangle`, `DiagonalStorage`, and `StorageOrder`.
+* *Effects:* Views the given `basic_mdspan` or `basic_mdarray` in
+  packed triangular layout, with the given `Triangle`,
+  `DiagonalStorage`, and `StorageOrder`, where each matrix
+  (corresponding to the rightmost two extents of the result) has
+  `num_rows` rows and columns.
 
-* *Returns:* A rank-2 `basic_mdspan` `r` with packed triangular
-   layout, `r.extent(0)` equal to `num_rows`, and `r.extent(1)` equal
-   to `num_rows`.  If `E_r` is the type of `r.extents()`, then `E_r`
-   has at least as many `StaticExtents` (the number of `extents`'s
-   `ptrdiff_t` template arguments) as the type of `m.extents()` has.
+* *Returns:* A `basic_mdspan` `r` with packed triangular layout and
+   the following properties:
+
+  * `r.extent(r.rank()-2)` equals `num_rows`.
+
+  * `r.extent(r.rank()-1)` equals `num_rows`.
+
+  * Let `E_r` be the type of `r.extents()`.  Then,
+
+    * `E_r::rank()` is one plus `Extents::rank()`, and
+
+    * `E_r::rank() - E_r::dynamic_rank()` (the number of static
+      extents) is no less than `Extents::rank() -
+      Extents::dynamic_rank()`.
 
 ### Scaled view of an object
 
