@@ -1104,6 +1104,11 @@ template<class... Indices>
   typename Extents::index_type operator()(Indices... is) const;
 ```
 
+Let `i,j` be the last two (rightmost) indices in the `is` parameter
+pack.  Let `is_rev` denote the parameter pack that is the same as
+`is`, except that the last two (rightmost) indices appear in reverse
+order.
+
 * *Constraints:*
 
   * `sizeof...(Indices)` equals `Extents::rank()`, and
@@ -1116,21 +1121,17 @@ template<class... Indices>
 
 * *Returns:*
 
-  * If `sizeof...(Indices)` in `mapping::operator()` is 2, then:
+  * If `Triangle` is `upper_triangle_t`, then:
 
-    * If `Triangle` is `upper_triangle_t`, then this layout's mapping
-      for `i,j` invokes the `BaseLayout`'s `i,j` mapping when `i` is
-      greater than or equal to `j`, and invokes the `BaseLayout`'s `j,i`
-      mapping when `i` is less than `j`.
+    * If `i` <= `j`, then returns `base_mapping_(is)`;
 
-    * If `Triangle` is `lower_triangle_t`, then this layout's mapping
-      for `i,j` invokes the `BaseLayout`'s `i,j` mapping when `i` is
-      less than or equal to `j`, and invokes the `BaseLayout`'s `j,i`
-      mapping when `i` is greater than `j`.
+    * Else, returns `base_mapping_(is_rev)`.
 
-  * Otherwise, if `sizeof...(Indices)` in `mapping::operator()` is
-    greater than 2, the above index swapping happens for the last
-    (rightmost) two indices in the `is` parameter pack.
+  * If `Triangle` is `lower_triangle_t`, then:
+
+    * If `i` >= `j`, then returns `base_mapping_(is)`;
+
+    * Else, returns `base_mapping_(is_rev)`.
 
 * *Throws:* Nothing.
 
@@ -1155,16 +1156,148 @@ constexpr bool is_strided() noexcept;
 * *Returns:* `true` if and only if the product of the extents is less
   than or equal to 1.
 
-
-
 ##### Unpacked triangular layout
 
 ```c++
 template<class Triangle,
          class DiagonalStorage,
          class BaseLayout>
-class layout_blas_triangular;
+class layout_blas_triangular {
+public:
+  using triangle_type = Triangle;
+  using diagonal_storage_type = DiagonalStorage;
+  using base_layout_type = BaseLayout;
+
+  template<class Extents>
+  class mapping {
+  public:
+    using base_mapping_type = base_layout_type::template mapping<Extents>;
+
+    constexpr mapping() noexcept;
+    constexpr mapping(const mapping&) noexcept;
+    constexpr mapping(mapping&&) noexcept;
+
+    constexpr mapping(const base_mapping_type& base_mapping) noexcept :
+      base_mapping_ (base_mapping) {}
+
+    template<class OtherExtents>
+      constexpr mapping(const mapping<OtherExtents>& other);
+
+    mapping& operator=() noexcept = default;
+    mapping& operator=(const mapping&) noexcept = default;
+
+    template<class OtherExtents>
+      constexpr mapping& operator=(const mapping<OtherExtents>& other);
+
+    Extents extents() const noexcept;
+
+    const base_mapping_type base_mapping() const {
+      return base_mapping_;
+    }
+
+    constexpr typename Extents::index_type required_span_size() const noexcept;
+
+    template<class... Indices>
+      typename Extents::index_type operator()(Indices... is) const;
+
+    static constexpr bool is_always_unique() noexcept;
+    static constexpr bool is_always_contiguous() noexcept;
+    static constexpr bool is_always_strided() noexcept;
+
+    constexpr bool is_unique() const noexcept;
+    constexpr bool is_contiguous() noexcept;
+    constexpr bool is_strided() noexcept;
+
+    template<class OtherExtents>
+      constexpr bool
+      operator==(const mapping<OtherExtents>& other) const noexcept;
+    template<class OtherExtents>
+      constexpr bool
+      operator!=(const mapping<OtherExtents>& other) const noexcept;
+
+  private:
+    base_mapping_type base_mapping_; // <i>exposition only</i>
+  };
+};
 ```
+
+* *Constraints:* In `mapping`, `Extents::rank()` is at least 2.
+
+We will need to fill in the details here.  Most of them can be copied
+from P0009.  We will highlight a few key features that differ from the
+other layouts in P0009.  There is also a major design question about
+accesses "outside the triangle":
+
+1. Should they be forbidden; or
+
+2. should they return some flag value?  If so, should the Accessor
+
+   a. treat that as an error code, or
+
+   b. should it interpret the flag value as "return one if on the
+      diagonal, else return zero"?
+
+Approach 2.b lends itself nicely to generic programming, but only for
+read-only access to the matrix.  Thus, we prefer (1) as the simplest
+approach.
+
+###### `layout_blas_triangular::mapping` operations
+
+```c++
+template<class... Indices>
+  typename Extents::index_type operator()(Indices... is) const;
+```
+
+Let `i,j` be the last two (rightmost) indices in the `is` parameter
+pack.
+
+* *Constraints:*
+
+  * `sizeof...(Indices)` equals `Extents::rank()`, and
+
+  * `(is_convertible_v<Indices, typename Extents::index_type> && ...)`
+    is `true`.
+
+* *Requires:* **(SEE DESIGN QUESTION ABOVE)**
+
+  * `0 <= array{is...}[r] < extents().extent(r)` for all `r` in the
+    range `[0, extents().rank())`.
+
+  * If `Triangle` is `upper_triangle_t`, then `i` is less than or
+    equal to `j`.
+
+  * If `Triangle` is `lower_triangle_t`, then `i` is greater than or
+    equal to `j`.
+
+  * If `DiagonalStorage` is `implicit_unit_diagonal_t`, then `i` does
+    not equal `j`.
+
+* *Returns:*
+
+  * If `Triangle` is `upper_triangle_t`, then:
+
+    * If `DiagonalStorage` is `implicit_unit_diagonal_t`, then:
+
+      * If `i` < `j`, then returns `base_mapping_(is)`;
+
+    * Else, if `DiagonalStorage` is `explicit_diagonal_t`, then:
+
+      * If `i` <= `j`, then returns `base_mapping_(is)`.
+
+  * If `Triangle` is `lower_triangle_t`, then:
+
+    * If `DiagonalStorage` is `implicit_unit_diagonal_t`, then:
+
+      * If `i` > `j`, then returns `base_mapping_(is)`;
+
+    * Else, if `DiagonalStorage` is `explicit_diagonal_t`, then:
+
+      * If `i` >= `j`, then returns `base_mapping_(is)`.
+
+* *Throws:* Nothing.
+
+*[Note:* Algorithms may avoid any index checking overhead by accessing
+the base mapping. --*end note]*
 
 #### New packed symmetric and triangular layouts
 
@@ -1192,7 +1325,18 @@ ordering, they pack entries starting with the topmost (least row
 index) row, and proceeding row by row, from the leftmost (least column
 index) entry.
 
-Let a packed matrix have N rows.
+Packed formats generalize just like the unpacked formats above to
+"batches" of matrices.  The last two (rightmost) indices index within
+a matrix, and the remaining index/indices identify which matrix.
+
+Packed formats also require that the matrix/matrices are square.  That
+is, the rightmost two extents (`extents(extents().rank()-2)` and
+`extents(extents().rank()-1)`) are equal.
+
+Let N be `extents(extents().rank()-1)`.  (That is, each matrix in the
+batch has N rows and N columns.)  Let `i,j` be the last two
+(rightmost) indices in the `is` parameter pack given to the packed
+layout's `mapping::operator()`.
 
 * For the upper triangular, column-major format, index pair i,j maps
   to i + (1 + 2 + ... + j).
