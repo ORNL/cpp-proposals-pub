@@ -2076,10 +2076,10 @@ class layout_transpose {
     mapping(Layout::mapping map):nested_mapping(map) {}
 
     ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const {
-      return nested_mapping(j,i);
+      return nested_mapping(j, i);
     }
-    ptrdiff_t operator() (ptrdiff_t k, ptrdiff_t i, ptrdiff_t j) const {
-      return nested_mapping(k,j,i);
+    ptrdiff_t operator() (ptrdiff_t... rest, ptrdiff_t i, ptrdiff_t j) const {
+      return nested_mapping(rest..., j, i);
     }
   };
 };
