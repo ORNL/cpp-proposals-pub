@@ -57,9 +57,9 @@ also has the following distinctive characteristics:
 * It uses free functions, not arithmetic operator overloading.
 
 * It uses the multidimensional array data structures
-  [`mdspan`](wg21.link/p0009) and `mdarray` (TODO: CITE)
-  to represent matrices and vectors.  In the future, it could support
-  other proposals' matrix and vector data structures.
+  [`mdspan`](wg21.link/p0009) and `mdarray` (D1684R0) to represent
+  matrices and vectors.  In the future, it could support other
+  proposals' matrix and vector data structures.
 
 * The interface permits optimizations for matrices and vectors with
   small compile-time dimensions; the standard BLAS interface does not.
@@ -166,7 +166,7 @@ algebra.
 * "Evolving a Standard C++ Linear Algebra Library from the BLAS"
   (D1674R0)
 * `mdspan` [(P0009)](wg21.link/p0009)
-* `mdarray` (TODO: CITE)
+* `mdarray` (D1684R0)
 
 ## Notation and conventions
 
@@ -461,8 +461,8 @@ implementations were slow, and thus users did not want to rely on it.
 
 Expression templates work well, but have issues.  Our papers
 [P1417](wg21.link/p1417) and "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" (TODO: CITE) give more detail on these issues.
-A particularly troublesome one is that modern C++ `auto` makes it easy
+Library from the BLAS" (D1674R0) give more detail on these issues.  A
+particularly troublesome one is that modern C++ `auto` makes it easy
 for users to capture expressions before their evaluation and writing
 into an output array.  For matrices and vectors with container
 semantics, this makes it easy to create dangling references.  Users
@@ -568,8 +568,8 @@ exists and it has a liberal software license for easy reuse.
 We have experience in the exercise of wrapping a C or Fortran BLAS
 implementation for use in portable C++ libraries.  We describe this
 exercise in detail in our paper "Evolving a Standard C++ Linear
-Algebra Library from the BLAS" (TODO: CITE).  It is straightforward
-for vendors, but has pitfalls for developers.  For example, Fortran's
+Algebra Library from the BLAS" (D1674R0).  It is straightforward for
+vendors, but has pitfalls for developers.  For example, Fortran's
 application binary interface (ABI) differs across platforms in ways
 that can cause run-time errors (even incorrect results, not just
 crashing).  Historical examples of vendors' C BLAS implementations
@@ -727,8 +727,8 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 users a way to allocate a new array, even if the array has all
 compile-time dimensions.  Furthermore, `basic_mdspan` always stores a
 pointer.  For very small matrices or vectors, this is not a
-zero-overhead abstraction.  For these reasons, our paper (TODO: CITE
-paper in progress) proposes a new class `basic_mdarray`.
+zero-overhead abstraction.  For these reasons, our paper (D1684R0)
+proposes a new class `basic_mdarray`.
 
 `basic_mdarray` has the same extension points as `basic_mdspan`, and
 also has the ability to use any *contiguous container* (see
@@ -2284,7 +2284,7 @@ void abs_sum(ExecutionPolicy&& exec,
     implementations will use `Scalar`'s precision or greater for
     intermediate terms in the sum.
 
-#### Index of maximum absolute value [iamax]
+#### Index of maximum absolute value
 
 ```c++
 template<class in_vector_t>
@@ -2299,7 +2299,8 @@ void idx_abs_max(ExecutionPolicy&& exec,
                  ptrdiff_t& result);
 ```
 
-(TODO (mfh 09 Jun 2019) Could this work for matrices too?)
+(TODO (mfh 09 Jun 2019) Could this work for matrices too?
+`ptrdiff_t&... results` doesn't work.)
 
 *[Note:* These functions correspond to the BLAS function `IxAMAX`.
 --*end note]*
@@ -2307,9 +2308,9 @@ void idx_abs_max(ExecutionPolicy&& exec,
 * *Constraints:* For `i` and `j` in the domain of `v`, the expression
   `abs(v(i)) < abs(v(j))` is well formed.
 
-* *Effects:* Assigns to `result` the index of the first element of `v`
-  having largest absolute value.  If `v` has zero elements, then
-  assigns `-1` to `result`.
+* *Effects:* Assigns to `result` the index (in the domain of `v`) of
+  the first element of `v` having largest absolute value.  If `v` has
+  zero elements, then assigns `-1` to `result`.
 
 ## BLAS 2 functions
 
