@@ -1278,7 +1278,7 @@ public:
 
   operator T() const { return val * scale; }
 
-  // TODO unary operator-
+  T operator- () const { return -(val * scale); }
 
   template<class T2>
   decltype(auto) operator+ (const T2& upd) const {
@@ -1290,8 +1290,8 @@ public:
     return val*scale * upd;
   }
 
-  // ... add only those operators needed for the functions in this
-  // proposal ...
+  // ... add only those operators needed for the functions
+  // in this proposal ...
 
 private:
   const T& val;
@@ -1334,14 +1334,19 @@ scaled_view(S s, basic_mdspan<T, Extents, Layout, Accessor> a);
 
 template<class T, class Extents, class Layout,
          class Accessor, class S>
-basic_mdspan<T,Extents,Layout,accessor_scaled<Accessor::offset_policy,S>>
+basic_mdspan<const T, Extents, Layout, <i>see-below</i> >
 scaled_view(S s, const basic_mdarray<T, Extents, Layout, Accessor>& a);
 ```
+
+The Accessor type of the `basic_mdspan` returned by the overload that
+takes `basic_mdarray` is `accessor_scaled<ConstAccessor, S>`, where
+`ConstAccessor` is an implementation-defined type.  See D1684R0 for
+details.
 
 *Example:*
 
 ```c++
-void test_scaled_view(basic_mdspan<double,extents<10>> a)
+void test_scaled_view(basic_mdspan<double, extents<10>> a)
 {
   auto a_scaled = scaled_view(5.0, a);
   for(int i = 0; i < a.extent(0); ++i)
@@ -1460,16 +1465,20 @@ The `conjugate_view` function returns a conjugated view using a new
 accessor.
 
 ```c++
-template<class T, class Extents, class Layout, class Accessor>
-basic_mdspan<T, Extents, Layout,
+template<class EltType, class Extents, class Layout, class Accessor>
+basic_mdspan<EltType, Extents, Layout,
              accessor_conjugate<Accessor>>
-conjugate_view(basic_mdspan<T,Extents,Layout,Accessor> a);
+conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
 
-template<class T, class Extents, class Layout, class Accessor>
-basic_mdspan<T, Extents, Layout,
-             accessor_conjugate<Accessor::offset_policy>>
-conjugate_view(const basic_mdarray<T, Extents, Layout, Accessor>& a);
+template<class EltType, class Extents, class Layout, class Accessor>
+basic_mdspan<const EltType, Extents, Layout, <i>see-below</i> >
+conjugate_view(const basic_mdarray<EltType, Extents, Layout, Accessor>& a);
 ```
+
+The Accessor type of the `basic_mdspan` returned by the overload that
+takes `basic_mdarray` is `accessor_conjugate<ConstAccessor, S>`, where
+`ConstAccessor` is an implementation-defined type.  See D1684R0 for
+details.
 
 *Example:*
 
@@ -1504,8 +1513,8 @@ appropriate run-time BLAS parameters.
 
 #### `layout_transpose`
 
-Layout to wrap other layouts and swap indices. Only defines operators
-for 2D and 3D. Will swap last two indices.
+This layout wraps an existing layout, and swaps its rightmost two
+indices.
 
 ```c++
 template<class Layout>
@@ -1515,9 +1524,14 @@ class layout_transpose {
 
     mapping(Layout::mapping map):nested_mapping(map) {}
 
+    // ... insert other standard mapping things ...
+
+    // for non-batched layouts
     ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const {
       return nested_mapping(j, i);
     }
+
+    // for batched layouts
     ptrdiff_t operator() (ptrdiff_t... rest, ptrdiff_t i, ptrdiff_t j) const {
       return nested_mapping(rest..., j, i);
     }
@@ -1525,15 +1539,20 @@ class layout_transpose {
 };
 ```
 
+* *Constraints:*
+
+  * `Layout` is a layout (in the sense of P0009R9).
+
+  * `Layout::mapping::rank()` is at least 2.
+
 #### `transpose_view`
 
 The `transpose_view` function returns a transposed view of an object.
-For rank-2 objects `mdspan` and `mdarray`, the transposed view swaps
-the row and column indices.  For batched BLAS (rank-3) `mdspan` and
-`mdarray`, the transposed view swaps the last two indices.  (The first
-index indicates which matrix in the batch is being accessed.)
+For rank-2 objects, the transposed view swaps the row and column
+indices.  In the batched (higher rank) case, the transposed view swaps
+the rightmost two indices.
 
-Note that `transpose_view` always returns an `mdspan` with the
+Note that `transpose_view` always returns a `basic_mdspan` with the
 `layout_transpose` argument.  This gives a type-based indication of
 the transpose operation.  However, functions' implementations may
 convert the `layout_transpose` object to an object with a different
@@ -1543,15 +1562,18 @@ of a `layout_blas<column_major_t>` matrix as a
 supporting row-major matrices using the Fortran BLAS interface.)
 
 ```c++
-template<class T, class Extents, class Layout, class Accessor>
-basic_mdspan<T, Extents, layout_transpose<Layout>, Accessor>>
-transpose_view(basic_mdspan<T, Extents, Layout, Accessor> a);
+template<class EltType, class Extents, class Layout, class Accessor>
+basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>>
+transpose_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
 
-template<class T, class Extents, class Layout, class Accessor>
-basic_mdspan<T, Extents, layout_transpose<Layout>,
-             Accessor::offset_policy>>
-transpose_view(const basic_mdarray<T, Extents, Layout, Accessor>& a);
+template<class EltType, class Extents, class Layout, class Accessor>
+basic_mdspan<EltType, Extents, layout_transpose<Layout>, <i>see-below</i> >
+transpose_view(const basic_mdarray<EltType, Extents, Layout, Accessor>& a);
 ```
+
+The Accessor type of the `basic_mdspan` returned by the overload that
+takes `basic_mdarray` is an implementation-defined type.  See D1684R0
+for details.
 
 #### Conjugate transpose view
 
@@ -1560,16 +1582,23 @@ view of an object.  This combines the effects of `transpose_view` and
 `conjugate_view`.
 
 ```c++
-template<class T, class Extents, class Layout, class Accessor>
-basic_mdspan<T, Extents, layout_transpose<Layout>,
+template<class EltType, class Extents, class Layout, class Accessor>
+basic_mdspan<EltType, Extents, layout_transpose<Layout>,
              accessor_conjugate<Accessor>>>
-conjugate_transpose_view(basic_mdspan<T,Extents,Layout,Accessor> a);
+conjugate_transpose_view(
+  basic_mdspan<EltType, Extents, Layout, Accessor> a);
 
-template<class T, class Extents, class Layout, class Accessor>
-basic_mdspan<T, Extents, layout_transpose<Layout>,
-             accessor_conjugate<Accessor::offset_policy>>>
-conjugate_transpose_view(const basic_mdarray<T, Extents, Layout, Accessor>& a)
+template<class EltType, class Extents, class Layout, class Accessor>
+basic_mdspan<EltType, Extents, layout_transpose<Layout>,
+             <i>see-below</i> >
+conjugate_transpose_view(
+  const basic_mdarray<EltType, Extents, Layout, Accessor>& a)
 ```
+
+The Accessor type of the `basic_mdspan` returned by the overload that
+takes `basic_mdarray` is `accessor_conjugate<ConstAccessor, S>`, where
+`ConstAccessor` is an implementation-defined type.  See D1684R0 for
+details.
 
 ## Algorithms
 
