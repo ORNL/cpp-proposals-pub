@@ -53,9 +53,9 @@ Our proposal also has the following distinctive characteristics:
 * It uses free functions, not arithmetic operator overloading.
 
 * It uses the multidimensional array data structures
-  [`mdspan`](wg21.link/p0009) and `mdarray` (D1684R0) to represent
-  matrices and vectors.  In the future, it could support other
-  proposals' matrix and vector data structures.
+  [`basic_mdspan`](wg21.link/p0009) and `basic_mdarray` (D1684R0) to
+  represent matrices and vectors.  In the future, it could support
+  other proposals' matrix and vector data structures.
 
 * The interface permits optimizations for matrices and vectors with
   small compile-time dimensions; the standard BLAS interface does not.
@@ -192,7 +192,7 @@ Algebra Subroutines (BLAS), since 2002.  The Standard came out of a
 that started in 1995 and held meetings three times a year until 1999.
 Participants in the process came from industry, academia, and
 government research laboratories.  The dense linear algebra subset of
-the BLAS codifies forty years of evolving practice, and existed in
+the BLAS codifies forty years of evolving practice, and has existed in
 recognizable form since 1990 (see [P1417R0](wg21.link/p1417r0)).
 
 The BLAS interface was specifically designed as the distillation of
@@ -210,12 +210,10 @@ many vendors provide an optimized BLAS library for their computer
 architectures.  Writing fast BLAS-like operations is not trivial, and
 depends on computer architecture.  However, it is not black magic; it
 is a well-understood problem whose solutions could be parameterized
-for a variety of computer architectures.  See, for example, the 2008
-paper ["Anatomy of high-performance matrix
-multiplication,"](https://doi.org/10.1145/1356052.1356053) by K. Goto
-and R. A. van de Geijn.  There are optimized third-party BLAS
-implementations for common architectures, like
-[ATLAS](http://math-atlas.sourceforge.net/) and
+for a variety of computer architectures.  See, for example, [Goto and
+van de Gaijn 2008](https://doi.org/10.1145/1356052.1356053).  There
+are optimized third-party BLAS implementations for common
+architectures, like [ATLAS](http://math-atlas.sourceforge.net/) and
 [GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2).
 A (slow but correct) [reference implementation of the
 BLAS](http://www.netlib.org/blas/#_reference_blas_version_3_8_0)
@@ -230,7 +228,7 @@ application binary interface (ABI) differs across platforms in ways
 that can cause run-time errors (even incorrect results, not just
 crashing).  Historical examples of vendors' C BLAS implementations
 have also had ABI issues that required work-arounds.  This dependence
-on ABI details makes availability in a standard library valuable.
+on ABI details makes availability in a standard C++ library valuable.
 
 ## Notation and conventions
 
@@ -239,7 +237,9 @@ on ABI details makes availability in a standard library valuable.
 The BLAS' "native" language is Fortran.  It has a C binding as well,
 but the BLAS Standard and documentation use Fortran terms.  Where
 applicable, we will call out relevant Fortran terms and highlight
-possibly confusing differences with corresponding C++ ideas.
+possibly confusing differences with corresponding C++ ideas.  Our
+paper D1674R0 ("Evolving a Standard C++ Linear Algebra Library from
+the BLAS") goes into more detail on these issues.
 
 ### We call "subroutines" functions
 
@@ -282,8 +282,8 @@ Not all BLAS functions exist for all four data types.  These come in
 three categories:
 
 1. The BLAS provides only real-arithmetic (`S` and `D`) versions of
-   the function, since it only makes mathematical sense in real
-   arithmetic.
+   the function, since the function only makes mathematical sense in
+   real arithmetic.
 
 2. The complex-arithmetic versions perform a slightly different
    mathematical operation than the real-arithmetic versions, so
@@ -332,8 +332,8 @@ example, the BLAS Standard has
   product;
 * sparse linear algebra functions, like sparse matrix-vector multiply
   and an interface for constructing sparse matrices; and
-* extended- and mixed-precision dense functions (however, see section
-  below).
+* extended- and mixed-precision dense functions (though we subsume
+  some of their functionality; see below).
 
 Our proposal only includes core Reference BLAS functionality, for the
 following reasons:
@@ -342,11 +342,11 @@ following reasons:
    will want to see and test against an existing reference
    implementation.
 
-2. Sparse linear algebra is not core functionality.  Many applications
-   that use sparse linear algebra also use dense, but not vice versa.
+2. Many applications that use sparse linear algebra also use dense,
+   but not vice versa.
 
 3. The Sparse BLAS interface is a stateful interface that is not
-   consistent with the rest of the BLAS, and would need more extensive
+   consistent with the dense BLAS, and would need more extensive
    redesign to translate into a modern C++ idiom.  See discussion in
    [P1417R0](wg21.link/p1417r0).
 
@@ -389,10 +389,10 @@ proposal, for the following reasons:
 1. LAPACK is a Fortran library, unlike the BLAS, which is a
    multilanguage standard.
 
-2. We intend to support more general element types, like short floats,
-   fixed-point types, and integers.  It's much more straightforward to
-   make a C++ BLAS work for general element types, than to make LAPACK
-   algorithms work generically.
+2. We intend to support more general element types, beyond the four
+   that LAPACK supports.  It's much more straightforward to make a C++
+   BLAS work for general element types, than to make LAPACK algorithms
+   work generically.
 
 First, unlike the BLAS, LAPACK is a Fortran library, not a standard.
 LAPACK was developed concurrently with the "level 3" BLAS functions,
@@ -415,16 +415,17 @@ arithmetic behavior.
 
 Second, we intend to permit use of matrix or vector element types
 other than just the four types that the BLAS and LAPACK support.  This
-is easier to do for BLAS-like operations than for the much more
-complicated numerical algorithms in LAPACK.  LAPACK strives for a
-"generic" design (see Jack Dongarra interview summary in
-[P1417R0](wg21.link/p1417r0)), but only supports two real
-floating-point types and two complex floating-point types.  Directly
-translating LAPACK source code into a "generic" version could lead to
-pitfalls.  Many LAPACK algorithms only make sense for number systems
-that aim to approximate real numbers (or their complex extentions).
-Some LAPACK functions output error bounds that rely on properties of
-floating-point arithmetic.
+includes "short" floating-point types, fixed-point types, integers,
+and user-defined arithmetic types.  Doing this is easier for BLAS-like
+operations than for the much more complicated numerical algorithms in
+LAPACK.  LAPACK strives for a "generic" design (see Jack Dongarra
+interview summary in [P1417R0](wg21.link/p1417r0)), but only supports
+two real floating-point types and two complex floating-point types.
+Directly translating LAPACK source code into a "generic" version could
+lead to pitfalls.  Many LAPACK algorithms only make sense for number
+systems that aim to approximate real numbers (or their complex
+extentions).  Some LAPACK functions output error bounds that rely on
+properties of floating-point arithmetic.
 
 For these reasons, we have left LAPACK-like functionality for future
 work.  It would be natural for a future LAPACK-like C++ library to
@@ -432,26 +433,27 @@ build on our proposal.
 
 ### Extended-precision BLAS
 
-Our interface does subsume the functionality of the Mixed-Precision
-BLAS specification (Chapter 4 of the BLAS Standard).  For example,
-users may multiply two 16-bit floating-point matrices (assuming that a
+Our interface subsumes some functionality of the Mixed-Precision BLAS
+specification (Chapter 4 of the BLAS Standard).  For example, users
+may multiply two 16-bit floating-point matrices (assuming that a
 16-bit floating-point type exists) and accumulate into a 32-bit
 floating-point matrix, just by providing a 32-bit floating-point
 matrix as output.  Users may specify the precision of a dot product
 result.  If it is greater than the input vectors' element type
 precisions (e.g., `double` vs. `float`), then this effectively
-performs accumulation in higher precision.
+performs accumulation in higher precision.  Our proposal imposes
+semantic requirements on some functions, like `vector_norm2`, to
+behave in this way.
 
 However, we do not include the "Extended-Precision BLAS" in this
 proposal.  The BLAS Standard lets callers decide at run time whether
 to use extended precision floating-point arithmetic for internal
-evaluations.  We could support this feature at a later time.  One way
-we could do so is by annotating the execution policy argument using
-the Properties mechanism in [P1393R0](wg21.link/p1393r0), to `prefer`
-or `require` extended-precision evaluation, if it makes sense for the
-input and output types.  Implementations of our interface will also
-have the freedom to use more accurate evaluation methods than typical
-BLAS implementations.
+evaluations.  We could support this feature at a later time.
+Implementations of our interface also have the freedom to use more
+accurate evaluation methods than typical BLAS implementations.  For
+example, it is possible to make floating-point sums completely
+[independent of parallel evaluation
+order](https://bebop.cs.berkeley.edu/reproblas/).
 
 ### Arithmetic operators and associated expression templates
 
@@ -462,10 +464,10 @@ We do so for the following reasons:
 
 2. `operator*` could have multiple meanings for matrices and vectors.
    Should it mean elementwise product (like `valarray`) or matrix
-   product?  Should libraries reinterpret "vector times vector" as
-   "row vector times column vector"?  Which vector gets conjugated in
-   complex arithmetic?  We prefer to let a higher-level library decide
-   this, and make everything explicit at our lower level.
+   product?  Should libraries reinterpret "vector times vector" as a
+   dot product (row vector times column vector)?  We prefer to let a
+   higher-level library decide this, and make everything explicit at
+   our lower level.
 
 3. Arithmetic operators require defining the element type of the
    vector or matrix returned by an expression.  Functions let users
@@ -473,7 +475,7 @@ We do so for the following reasons:
    types for the same input types in different expressions.
 
 4. Arithmetic operators may require allocation of temporary matrix or
-   vector storage.
+   vector storage.  This prevents use of nonowning data structures.
 
 5. Arithmetic operators strongly suggest expression templates.  These
    introduce problems such as dangling references and aliasing.
@@ -481,7 +483,7 @@ We do so for the following reasons:
 Our goal is to propose a low-level interface.  Other libraries, such
 as that proposed by [P1385R1](wg21.link/p1385r1), could use our
 interface to implement overloaded arithmetic for matrices and vectors.
-[P0939](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf)
+[P0939R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf)
 advocates using "an incremental approach to design to benefit from
 actual experience."  A constrained, function-based, BLAS-like
 interface builds incrementally on the many years of BLAS experience.
@@ -510,12 +512,12 @@ explicitly, by calling a named function that takes an output argument
 explicitly, rather than an arithmetic operator.
 
 Arithmetic operators on matrices or vectors may also need to allocate
-temporary storage.  Users may not want that.  `mdspan` is a view of
-existing memory; it does not come with an allocator.  When LAPACK's
-developers switched from Fortran 77 to a subset of Fortran 90, their
-users rejected the option of letting LAPACK functions allocate
-temporary storage on their own.  Users wanted to control memory
-allocation.
+temporary storage.  Users may not want that.  When LAPACK's developers
+switched from Fortran 77 to a subset of Fortran 90, their users
+rejected the option of letting LAPACK functions allocate temporary
+storage on their own.  Users wanted to control memory allocation.
+Also, allocating storage precludes use of nonowning input data
+structures like `basic_mdspan`, that do not know how to allocate.
 
 Arithmetic expressions on matrices or vectors strongly suggest
 expression templates, as a way to avoid allocation of temporaries and
@@ -546,21 +548,23 @@ Our `scaled_view`, `conjugate_view`, and `transpose_view` functions
 make use of one aspect of expression templates, namely modifying the
 array access operator.  However, we intend these functions for use
 only as in-place modifications of arguments of a function call.  Also,
-when modifying `mdspan`, these functions merely view the same data
-that their input `mdspan` views.  They introduce no more potential for
-dangling references than `mdspan` itself.  The use of views like
-`mdspan` is self-documenting; it tells users that they need to take
-responsibility for scope of the viewed data.
+when modifying `basic_mdspan`, these functions merely view the same
+data that their input `basic_mdspan` views.  They introduce no more
+potential for dangling references than `basic_mdspan` itself.  The use
+of views like `basic_mdspan` is self-documenting; it tells users that
+they need to take responsibility for scope of the viewed data.  We
+permit applying these functions to the container `basic_mdarray` (see
+D1684R0), but this has no more risk of dangling references than
+`vector::data` does.
 
 ### Banded matrix layouts
 
-This proposal omits the banded and packed banded matrix types.  It
-would be easy to add the required layouts and specializations of
-algorithms later.  The packed and unpacked symmetric and triangular
-layouts in this proposal cover the major concerns that authors of
-banded layouts would encounter, like nonstrided layouts, and layouts
-where users are not allowed to write to all multi-indices in the
-Cartesian product of extents.
+This proposal omits banded matrix types.  It would be easy to add the
+required layouts and specializations of algorithms later.  The packed
+and unpacked symmetric and triangular layouts in this proposal cover
+the major concerns that would arise in the banded case, like
+nonstrided and nonunique layouts, and matrix types that forbid access
+to some multi-indices in the Cartesian product of extents.
 
 ### Tensors
 
@@ -604,10 +608,10 @@ However, we do not require an underlying BLAS C interface.  Vendors
 should have the freedom to decide whether they want to rely on an
 existing BLAS library.  They may also want to write a "pure" C++
 implementation that does not depend on an external library.  They
-will, in any case, need a "generic" C++ implementation for arbitrary
-matrix and vector element types.
+will, in any case, need a "generic" C++ implementation for matrix and
+vector element types other than the four that the BLAS supports.
 
-### Why use `mdspan` and `mdarray`?
+### Why use `basic_mdspan` and `basic_mdarray`?
 
 * C++ does not currently have a data structure for representing
   multidimensional arrays.
@@ -617,29 +621,29 @@ matrix and vector element types.
   multidimensional array data structures in the C++ interface reduces
   the number of arguments and avoids common errors.
 
-* `mdspan` and `mdarray` support row-major, column-major, and strided
-  layouts out of the box, and have `Layout` as an extension point.
-  This lets our interface support layouts beyond what the BLAS
-  Standard supports (column major for the Fortran interface, row- and
-  column-major for the less widely available C interface).
+* `basic_mdspan` and `basic_mdarray` support row-major, column-major,
+  and strided layouts out of the box, and have `Layout` as an
+  extension point.  This lets our interface support layouts beyond
+  what the BLAS Standard permits.
 
 * They can exploit any dimensions or strides known at compile time.
 
 * They have built-in "slicing" capabilities via `subspan`.
 
-* Their `Layout` and `Accessor` policies will let us simplify our
+* Their layout and accessor policies will let us simplify our
   interfaces even further, by encapsulating transpose, conjugate, and
   scalar arguments.  See below for details.
 
-* `mdspan` and `mdarray` are low level; they impose no mathematical
-  meaning on multidimensional arrays.  This gives users the freedom to
-  develop mathematical libraries with the semantics they want.  (Some
-  users object to calling something a "matrix" or "tensor" if it
-  doesn't have the right mathematical properties.  The word `vector`
-  is already taken.)
+* `basic_mdspan` and `basic_mdarray` are low level; they impose no
+  mathematical meaning on multidimensional arrays.  This gives users
+  the freedom to develop mathematical libraries with the semantics
+  they want.  (Some users object to calling something a "matrix" or
+  "tensor" if it doesn't have the right mathematical properties.  The
+  Standard has already taken the word `vector`.)
 
-* `mdspan` and `mdarray` offer a hook for future expansion to support
-  heterogenous memory spaces.
+* They offer a hook for future expansion to support heterogenous
+  memory spaces.  (This is a key feature of `Kokkos::View`, the data
+  structure that inspired `basic_mdspan`.)
 
 * Their encapsulation of matrix indexing makes C++ implementations of
   BLAS-like operations much less error prone and easier to read.
@@ -659,7 +663,7 @@ matrix and vector element types.
 
 * There is an ongoing interface standardization effort.
 
-## Function argument aliasing and zero scalar multipliers
+### Function argument aliasing and zero scalar multipliers
 
 Summary:
 
@@ -697,20 +701,49 @@ Summary:
 For a detailed analysis, see "Evolving a Standard C++ Linear Algebra
 Library from the BLAS" (D1674R0).
 
-## Support for different matrix layouts
+### Support for different matrix layouts
 
-The dense BLAS supports several different dense matrix "types"
-(storage formats).  Our paper "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" (D1674R0) lists the different matrix types.  In
-this proposal, we represent all of these matrix type options as
-different layouts, for the following reasons:
+Summary:
 
-* Algorithms can specialize on layout type.  This reduces the number
-  of distinct function names.
+1. The dense BLAS supports several different dense matrix "types."
+   Type is a mixture of "storage format" (e.g., packed, banded) and
+   "mathematical property" (e.g., symmetric, Hermitian, triangular).
 
-* Layouts can permit explicit access to implicitly stored values, like
-  the "other triangle" in symmetric, Hermitian, or triangular matrix
-  types.
+2. Some "types" can be expressed as custom `basic_mdspan` layouts;
+   others do not.
+
+3. Thus, a C++ BLAS wrapper cannot overload on matrix "type" simply by
+   overloading on `basic_mdspan` specialization.  The wrapper must use
+   different function names, tags, or some other way to decide what
+   the matrix type is.
+
+For more details, including a list and description of the matrix
+"types" that the dense BLAS supports, see our paper "Evolving a
+Standard C++ Linear Algebra Library from the BLAS" (D1674R0) lists the
+different matrix types.
+
+A C++ linear algebra library has a few possibilities for
+distinguishing the matrix "type":
+
+1. It could use the layout and accessor types in `basic_mdspan` simply
+   as tags to indicate the matrix "type."  Algortithms could
+   specialize on those tags.
+
+2. It could introduce a hierarchy of higher-level classes for
+   representing linear algebra objects, use `basic_mdspan` (or
+   something like it) underneath, and write algorithms to those
+   higher-level classes.
+
+3. It could imitate the BLAS, by introducing different function names,
+   if the layouts and accessors do not sufficiently describe the
+   arguments.
+
+We have chosen Approach 3.  Our view is that a BLAS-like interface
+should be as low-level as possible.  If a different library wants to
+implement a "Matlab in C++," it could then build on this low-level
+library.  We also do not want to pollute `basic_mdspan` -- a simple
+class meant to be easy for the compiler to optimize -- with extra
+baggage for representing what amounts to sparse matrices.
 
 ## Data structures and utilities borrowed from other proposals
 
@@ -747,39 +780,36 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 users a way to allocate a new array, even if the array has all
 compile-time dimensions.  Furthermore, `basic_mdspan` always stores a
 pointer.  For very small matrices or vectors, this is not a
-zero-overhead abstraction.  For these reasons, our paper (D1684R0)
-proposes a new class `basic_mdarray`.
+zero-overhead abstraction.  Also, it's more natural of a programming
+model to pass around very small objects by value.  For these reasons,
+our paper (D1684R0) proposes a new class `basic_mdarray`.
 
-`basic_mdarray` has the same extension points as `basic_mdspan`, and
-also has the ability to use any *contiguous container* (see
-**[container.requirements.general]**) for storage.  Contiguity matters
-because `basic_mdspan` views a subset of a contiguous pointer range.
-`basic_mdarray` also behaves like a container with respect to
-construction and assignment.  For example, copy construction and copy
-assignment do a "deep copy" of all the entries from the input to the
-output.  This means that `basic_mdarray` with compile-time dimensions
-need only store the container; it does not need to store a pointer.
-When the container is `array`, this makes `basic_mdarray` a
-zero-overhead abstraction.  `basic_mdarray` will come with support for
-two different underlying containers: `array` (allowed if all
-dimensions are known at compile time) and `vector`.
+`basic_mdarray` is a new kind of container, with the same deep copy
+behavior as `vector`.  It has the same extension points as
+`basic_mdspan`, and also has the ability to use any *contiguous
+container* (see **[container.requirements.general]**) for storage.
+Contiguity matters because `basic_mdspan` views a subset of a
+contiguous pointer range, and we want to be able to get a
+`basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
+come with support for two different underlying containers: `array` and
+`vector`.  A `subspan` (see [P0009R9](wg21.link/p0009r9)) of a
+`basic_mdarray` will return a `basic_mdspan` with the appropriate
+layout and corresponding accessor.  Users must guard against dangling
+pointers, just as they currently must do when using `span` to view a
+subset of a `vector`.
 
-A `subspan` (see [P0009](wg21.link/p0009)) of a `basic_mdarray` will
-return a `basic_mdspan` with the appropriate `Layout` and matching
-`Accessor`.  Users must guard against dangling pointers, just as they
-currently must do when using `span` to view a subset of a `vector`.
-
-The `basic_mdarray` class has an alias `mdarray` that uses the default
-`Layout` and `Accessor`.  In this paper, when we refer to `mdarray`
-without other qualifiers, we mean the most general `basic_mdarray`.
+The `basic_mdarray` class has an alias `mdarray` that uses default
+policies.  In this paper, when we refer to `mdarray` without other
+qualifiers, we mean `basic_mdarray`.
 
 ## Data structures and utilities
 
 ### Layouts
 
-Our proposal uses the `Layout` policy of `mdspan` and `mdarray` in
-order to represent different matrix and vector data layouts.  Layouts
-as described by P0009R9 come in three different categories:
+Our proposal uses the layout policy of `basic_mdspan` and
+`basic_mdarray` in order to represent different matrix and vector data
+layouts.  Layouts as described by P0009R9 come in three different
+categories:
 
 * Unique
 * Contiguous

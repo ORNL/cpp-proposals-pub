@@ -951,9 +951,9 @@ The C++ interface outlined above has the right hooks to resolve these
 issues.  In summary:
 
 1. The interface already permits specializing algorithms for
-   `basic_mdspan` with compile-time dimensions.  `basic_mdarray` can
-   also eliminate overhead and give convenient value semantics for
-   tiny matrices and vectors.
+   `basic_mdspan` with compile-time dimensions.  `basic_mdarray` (see
+   D1684R0) can also eliminate overhead and give convenient value
+   semantics for tiny matrices and vectors.
 
 2. Just like the existing C++ Standard Algorithms, an optional
    `ExecutionPolicy&&` argument can control parallelism policy,
