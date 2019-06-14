@@ -965,19 +965,8 @@ corresponding extent.  This is why BLAS functions take an "LDA"
 (leading dimension of the matrix A) argument separate from the
 dimensions (extents, in `mdspan` terms) of A.  However, these layouts
 are slightly *less* general than `layout_stride`, because they assume
-contiguous storage of columns resp. rows.
-
-We could omit these layouts and use `layout_stride` without removing
-functionality.  However, the advantage of these layouts is that
-subspans taken by many matrix algorithms preserve the layout type (if
-the stride is a run-time value).  Many matrix algorithms work on
-"submatrices" that are rank-2 subspans of contiguous rows and columns
-of a "parent" matrix.  If the parent matrix is `layout_left`, then in
-general, the submatrix is `layout_stride`, not `layout_left`.
-However, if the parent matrix is `layout_blas_general<column_major_t>`
-or `layout_blas_general<row_major_t>`, such submatrices always have
-the same layout as their parent matrix.  Algorithms on submatrices may
-thus always assume contiguous access along one dimension.
+contiguous storage of columns resp. rows.  See D1673R0 for further
+justification of `layout_blas_general`.
 
 These new layouts have natural generalizations to ranks higher than 2.
 The definition of each of these layouts would look and work like

@@ -1,6 +1,7 @@
 # D1674R0: Evolving a Standard C++ Linear Algebra Library from the BLAS
 
 * Mark Hoemmen (mhoemme@sandia.gov)
+
 * 11 Mar 2019, 01 Apr 2019, 10 Jun 2019
 
 ## Introduction
@@ -86,6 +87,7 @@ the BLAS, and they want to call some of its routines from C++.  Here
 are the first two steps they might take.
 
 1. Access the BLAS library.
+
 2. Write a generic BLAS wrapper in C++.
 
 ### Access the BLAS library
@@ -135,7 +137,7 @@ developers would still need a C or C++ interface to LAPACK.
 
 One advantage of the C BLAS binding is that it works for both
 row-major and column-major matrix data layouts.  Native
-multidimensional arrays in C and C++ have row major layout, but the
+multidimensional arrays in C and C++ have row-major layout, but the
 BLAS' Fortran binding only accepts column-major matrices.  If users
 want code that works for both the Fortran and C BLAS interfaces, they
 will need to use column-major matrices.  The Standard Library
@@ -143,13 +145,20 @@ currently has no way to represent column-major rank-2 arrays (but see
 our proposal [P0009](wg21.link/p0009)).  This leads C++ developers to
 one of the following solutions:
 
-  - Write C-style code for column-major indexing (e.g., `A[i +
-    stride*j]`);
-  - use nonstandard matrix or array classes that use column-major
-    storage; or
-  - cleverly trick the BLAS into working with row-major matrices, by
-    specifying that every operation use the transpose of the input
-    matrix.
+1. Write C-style code for column-major indexing (e.g., `A[i +
+   stride*j]`);
+
+2. use nonstandard matrix or array classes that use column-major
+   storage; or
+
+3. cleverly trick the BLAS into working with row-major matrices, by
+   specifying that every operation use the transpose of the input
+   matrix.
+
+C++ lacks multidimensional arrays with run-time dimensions, so even if
+developers want to use row-major indexing, they would still need to
+write C-style code or use a matrix or array class.  This takes away
+some of the value of a BLAS that can support row-major matrices.
 
 #### Fortran binding
 
@@ -180,24 +189,25 @@ stuck with these problems.
 
 In summary:
 
-a. Users may need to deduce BLAS' Fortran ABI; this is hard.
+1. Users may need to deduce BLAS' Fortran ABI; this is hard.
 
-b. Ignorance of some Fortran ABI issues (e.g., return of complex
+2. Ignorance of some Fortran ABI issues (e.g., return of complex
    values) could cause bugs when porting code to different hardware or
    software.
 
 Once our developer has deduced the Fortran BLAS ABI, they will need to
 do the following:
 
-a. Write `extern "C"` declarations for all the BLAS functions they
+1. Write `extern "C"` declarations for all the BLAS functions they
    want to call, using the deduced ABI to mangle function names and
    correctly handle return values (if applicable).
 
-b. Hide the `extern "C"` declarations and write wrappers to avoid
+2. Hide the `extern "C"` declarations and write wrappers to avoid
    polluting the global namespace.
 
-c. Change wrappers to pass integers by value instead of by pointer,
-   so that users can pass in integer literals if desired.
+3. Change wrappers to pass read-only integers or scalars by value or
+   const reference, instead of by pointer, so that users can pass in
+   integer or scalar literals if desired.
 
 ### Generic C++ wrapper
 
@@ -206,7 +216,9 @@ section.  They have access to the BLAS in their source code, through a
 wrapped C API.  They will next encounter three problems:
 
 * this C API is not type safe;
+
 * it is not generic; and
+
 * it is tied to availability of an external BLAS library.
 
 Our developer's next step for solving these problems would be to write
@@ -219,23 +231,24 @@ matrices of `double` might be satisfied with a C interface to the
 BLAS.  However, if they want to use this interface throughout their
 code, they will discover the following problems.  First, the interface
 is not type safe.  For example, the C BLAS doesn't know about
-`std::complex`, and thus may take pointers to complex numbers as
-`_Complex` or even `void*` (an option I have seen in C bindings of
-BLAS libraries).  Second, the interface is not generic.  It only works
-for four matrix or vector element types: `float`, `double`,
-`complex<float>`, and `complex<double>`.  What if our developer wants
-to compute with matrices of lower-precision or higher-precision
-floating-point types, or custom types?  Most BLAS operations really
-only need addition and multiplication, yet the BLAS does not work with
-matrices of integers.  The function names also depend on the matrix or
+`std::complex`, and thus takes pointers to complex numbers as `void*`.
+Second, the interface is not generic.  It only works for four matrix
+or vector element types: `float`, `double`, `complex<float>`, and
+`complex<double>`.  What if our developer wants to compute with
+matrices of lower-precision or higher-precision floating-point types,
+or custom types?  Most BLAS operations only need addition and
+multiplication, yet the BLAS does not work with matrices of integers.
+The C and Fortran 77 function names also depend on the matrix or
 vector element type, which hinders developing generic algorithms.
-Third, what if the BLAS is not available?  Users might like a
-fall-back implementation, even if it's slow, as a way to remove an
-external library dependency or to test an external BLAS.
+Fortran 95's generic BLAS functions would only create more ABI
+problems for C++ developers.  Third, what if the BLAS is not
+available?  Users might like a fall-back implementation, even if it's
+slow, as a way to remove an external library dependency or to test an
+external BLAS.
 
 The logical solution is to write a generic C++ interface to BLAS
 operations.  "Generic C++ interface" means that users can call some
-function `GEMM` templated on the matrix element type `T`, and the
+function `gemm` templated on the matrix element type `T`, and the
 implementation will either dispatch to the appropriate BLAS call if
 `T` is one of the four types that the BLAS supports, or fall back to a
 default implementation otherwise.  The fall-back implementation can
@@ -350,43 +363,55 @@ calls `slice` "a BLAS-like slice from an array."  However, none of
 these classes can represent a matrix without additional information.
 
 The lack of general multidimensional array data structures in C++ led
-us to propose `mdspan` [(P0009)](wg21.link/p0009).  An `mdspan` with
-the appropriate layout can represent a dense column-major matrix.
-(P0009's `layout_left` corresponds to a column-major matrix with the
-same stride between columns as the number of rows.  Its
-`layout_stride` is too general, since it permits nonunit stride
-between consecutive entries in a column.  It would not be hard to
-write a "`layout_blas`" layout that generalizes `layout_left` to
-permit a stride larger than the number of rows.  Our proposal D1673
-does this.)  Thus, `mdspan` could encapsulate the pointer, dimensions,
-and stride arguments to BLAS functions that represent a matrix.
-Unlike `valarray` slices, `mdspan` can even represent dimensions and
-strides as compile-time values.  We did not intend `mdspan` to satisfy
-all the needs of a matrix data structure, but we think it makes sense
-to use `mdspan` as the minimal common interface for many different
-data structures to interact with libraries like the BLAS.
+us to propose `basic_mdspan` [(P0009R9)](wg21.link/p0009r9).  A
+`basic_mdspan` with the appropriate layout can represent a dense
+column-major matrix.  P0009 does not yet have a layout that exactly
+describes what the BLAS wants, but it's not hard to add a suitable
+layout.  (P0009's `layout_left` corresponds to a column-major matrix
+with the same stride between columns as the number of rows.
+`layout_stride` is too general, since it permits nonunit column and
+row strides.  What we need is a "`layout_blas_general`" that
+generalizes `layout_left` (or `layout_right`, if we want to allow
+row-major storage) to permit a stride larger than the number of rows.
+See our proposal D1673R0 for the definition of `layout_blas_general`.)
+Thus, `basic_mdspan` could encapsulate the pointer, dimensions, and
+stride arguments to BLAS functions that represent a matrix.  Unlike
+`valarray` slices, `basic_mdspan` can even represent dimensions and
+strides as compile-time values.  We did not intend `basic_mdspan` to
+satisfy all the needs of a matrix data structure, but we think it
+makes sense to use `basic_mdspan` as the minimal common interface for
+many different data structures to interact with libraries like the
+BLAS.
 
 This suggests that the next stage of a C++ linear algebra library
 would be a generic C++ wrapper for the BLAS, that takes matrices and
-vectors as `mdspan` of the appropriate ranks.
+vectors as `basic_mdspan` of the appropriate ranks.  What's next?
+There are a few correctness issues and BLAS features that this wrapper
+does not address:
 
-## Some remaining correctness issues
+* BLAS library reports user errors incompatibly with C++
 
-### Error checking and handling
+* Function argument aliasing and zero scalar multipliers
 
-Section 1.8 of the BLAS Standard requires error checking and reporting
-for the Fortran 95, Fortran 77, and C bindings.  Checking looks at
-dimensions, strides, and bandwidths.  Users of the Fortran Reference
-BLAS see this as program exit in the `XERBLA` routine; users of an
-implementation conformant with the BLAS Standard see this as program
-exit in `BLAS_error` or `blas_error`.  There are a few issues with
-this approach:
+* Support for the BLAS' different matrix storage formats
+
+## BLAS library reports user errors incompatibly with C++
+
+The BLAS library checks user input, and reports user errors in a way
+that is incompatible with C++ error handling.  Section 1.8 of the BLAS
+Standard requires error checking and reporting for the Fortran 95,
+Fortran 77, and C bindings.  Checking looks at dimensions, strides,
+and bandwidths.  Users of the Fortran Reference BLAS see this as
+program exit in the `XERBLA` routine; users of an implementation
+conformant with the BLAS Standard see this as program exit in
+`BLAS_error` or `blas_error`.  There are a few issues with the BLAS'
+error reporting approach:
 
 1. There is no way to recover from a detected error.
 
-   a. There is no stack unwinding.
+   1. There is no stack unwinding.
 
-   b. Users can replace the default error handler at link time, but it
+   2. Users can replace the default error handler at link time, but it
       must "print an informative error message describing the error,
       and halt execution."  There is no way to return control to the
       caller.
@@ -397,9 +422,20 @@ this approach:
    exit with no indication to an automated caller that something went
    wrong.
 
-## Some remaining feature-completeness issues
+These problems, as well as the overhead of error checking for small
+problems, help motivate our proposal (D1673R0) for adding linear
+algebra functionality to the C++ Standard.  Developers writing their
+own C++ BLAS wrapper have at least two options to work around these
+issues.
 
-### Function argument aliasing and zero scalar multipliers
+1. Detect user errors in the wrapper.  Try to catch all cases that the
+   BLAS would catch.
+
+2. Declare that user errors invoke undefined behavior, just like
+   passing the wrong pointers to `memcpy`.  Let the BLAS library
+   detect errors if it wants.
+
+## Function argument aliasing and zero scalar multipliers
 
 Summary:
 
@@ -421,15 +457,15 @@ Summary:
 4. We recommend separately, based on the category of BLAS function,
    how to translate `INTENT(INOUT)` arguments into a C++ idiom:
 
-   a. For in-place triangular solve or triangular multiply, we
+   1. For in-place triangular solve or triangular multiply, we
       recommend translating the function to take separate input and
       output arguments that shall not alias each other.
 
-   b. Else, if the BLAS function unconditionally updates (like
+   2. Else, if the BLAS function unconditionally updates (like
       `xGER`), we recommend retaining read-and-write behavior for that
       argument.
 
-   c. Else, if the BLAS function uses a scalar `beta` argument to
+   3. Else, if the BLAS function uses a scalar `beta` argument to
       decide whether to read the output argument as well as write to
       it (like `xGEMM`), we recommend providing two versions: a
       write-only version (as if `beta` is zero), and a read-and-write
@@ -442,7 +478,7 @@ constraints, and has different interface assumptions.  In this
 section, we summarize the BLAS' constraints in C++ Standard terms, and
 explain how an idiomatic C++ interface would differ.
 
-#### Aliasing in the BLAS
+### Aliasing in the BLAS
 
 The BLAS Standard says that its functions do not permit any aliasing
 of their arguments.  In order to understand this restriction, we must
@@ -504,10 +540,10 @@ legal.  For instance, `xGEMM` (matrix-matrix multiply) permits its
 `INTENT(IN)` arguments `A` and `B` to be the same, as long as they do
 not alias the `INTENT(INOUT)` argument `C`.
 
-#### Aliasing in C++ Standard algorithms
+### Aliasing in C++ Standard algorithms
 
-The `transform` **[alg.transform]** algorithm is a good analog to
-updating functions like `xAXPY`.  `transform` does not take the C++
+The `transform` (see **[alg.transform]**) algorithm is a good analog
+to updating functions like `xAXPY`.  `transform` does not take the C++
 equivalent of an `INTENT(INOUT)` argument.  Instead, `transform` takes
 input and output iterator ranges as separate arguments, but lets its
 output range be equal to either input range.  If so, then `transform`
@@ -537,7 +573,7 @@ both input and output ranges take separate arguments for those ranges.
 In some cases, the separate input and output arguments may refer to
 the same ranges, but they are still separate arguments.
 
-#### Read-and-write access is idiomatic
+### Read-and-write access is idiomatic
 
 Many linear algebra algorithms assume read-and-write access.  For
 example, Krylov subspace methods compute an update to an existing
@@ -557,7 +593,7 @@ copy before the triangular solve.  This interface also precludes
 parallel implementations, since the BLAS is not allowed to allocate
 memory for temporary copies.
 
-#### BLAS has special access rules for zero scalar prefactors
+### BLAS has special access rules for zero scalar prefactors
 
 BLAS functions have special access rules when their operations
 multiply a vector or matrix by a scalar prefactor.  Whenever the
@@ -583,7 +619,7 @@ formulations of some Krylov subspace methods assume this rule for
 `xAPXY`, as a way to avoid a special case for the first iteration
 (where the input vector may not be initialized).
 
-#### Overloading is more idiomatically C++
+### Overloading is more idiomatically C++
 
 The above special access rule is not idiomatic C++ for the following
 reasons:
@@ -624,29 +660,32 @@ algorithms."  For example, the library would have two overloads of
 This would have the side benefit of extending the set of operations
 "for free."  For example, the overloading approach would give users a
 `xWAXPY` operation `W := alpha*X + Y` without adding a new function
-name or increasing implementer effort.  Another advantage is that the
-C++ interface could remove scalar arguments like `alpha` and `beta`,
-and instead accept `scaled_view` (see D1673), without semantic
-wrinkles.
+name or increasing implementer effort.  (In our proposal D1673R0, we
+show how `basic_mdspan`'s accessor policy would let us remove scalar
+arguments like `alpha` and `beta` as well.)
 
 The disadvantage of this approach is that implementations could no
 longer just call the existing BLAS interface directly.  They would
 need to introduce run-time checks (beyond what the BLAS already does)
-for `alpha = 0` or `beta = 0` cases.  However, BLAS implementations
-(that some vendors write already) or other BLAS-like libraries likely
-have internal functions for implementing the different cases, in order
-to avoid branches in inner loops.  Furthermore, a high-quality
-implementation of a C++ standard linear algebra library would want
-special cases for vectors and matrices with very small compile-time
-sizes.
+for `alpha = 0` or `beta = 0` cases.  This is one justification for
+proposing the removal of these special cases if adding linear algebra
+to the C++ standard library (see our proposal D1673R0).  BLAS
+implementations (that some vendors write already) or other BLAS-like
+libraries likely have internal functions for implementing the
+different cases, in order to avoid branches in inner loops.  A
+standard library written by vendors could access those internal
+functions.  Furthermore, a C++ linear algebra library for vectors and
+matrices with very small compile-time sizes would in any case not want
+to have these run-time branches.
 
 A C++ library could alternately say that any `Inf` or `NaN` values
 (either in input arrays or as the intermediate result of computations,
 like `A * B` in the `alpha * A * B` term) give implementation-defined
 results.  However, this would make the library's specification
-non-generic, and thus nonidiomatic.
+non-generic on the matrix element type, which would defeat our goal of
+a generic linear algebra library.
 
-#### Unconditionally read-and-write arguments
+### Unconditionally read-and-write arguments
 
 Many BLAS functions have unconditionally read-and-write behavior for
 their output arguments.  This includes
@@ -688,7 +727,7 @@ would only include versions of these functions that take separate
 input and output objects, and would forbid aliasing of input and
 output.
 
-#### Summary
+### Summary
 
 A C++ library that wants idiomatic C++ treatment of input and output
 arguments may need to translate each BLAS function with
@@ -708,7 +747,23 @@ arguments may need to translate each BLAS function with
    version (as if `beta` is zero), and a read-and-write version (as if
    `beta` is nonzero).
 
-### Support for different matrix layouts
+## Support for the BLAS' different matrix storage formats
+
+Summary:
+
+1. The dense BLAS supports several different dense matrix "types."
+   Type is a mixture of "storage format" (e.g., packed, banded) and
+   "mathematical property" (e.g., symmetric, Hermitian, triangular).
+
+2. Some "types" can be expressed as custom `basic_mdspan` layouts;
+   others do not.
+
+3. Thus, a C++ BLAS wrapper cannot overload on matrix "type" simply by
+   overloading on `basic_mdspan` specialization.  The wrapper must use
+   different function names, tags, or some other way to decide what
+   the matrix type is.
+
+### BLAS dense matrix storage formats
 
 The dense BLAS supports several different dense matrix "types"
 (storage formats).  We list them here, along with the abbreviation
@@ -756,13 +811,88 @@ that BLAS function names use for each.
   packed format, like Symmetric Packed.  BLAS functions take the same
   `UPLO` and `DIAG` arguments as Triangular.
 
-These "matrix types" conflate the equivalent of `mdspan` layout, with
-constraints on algorithms.  For instance, all matrix types but the
-Packed ones actually use the same matrix storage format.  The only
+### Matrix storage format is not equivalent to mdspan layout
+
+The BLAS' "matrix types" conflate three different things:
+
+1. the arrangement of matrix elements in memory -- the mapping from a
+   2-D index space (row and column indices) to a 1-D index space (the
+   underlying storage);
+
+2. constraints on what entries of the matrix an algorithm may access --
+   e.g., only the upper or lower triangle, or only the entries within a
+   band; and
+
+3. mathematical properties of a matrix, like symmetric, Hermitian,
+   banded, or triangular.
+
+"The arrangement of matrix elements in memory" is exactly what
+`basic_mdspan` layout intends to express.  However, `basic_mdspan`
+layout cannot properly express "constraints on what entries of the
+matrix an algorithm may access."  P0009R9 defines the "domain" of a
+`basic_mdspan` -- its set of valid multi-indices -- as the Cartesian
+product of the dimensions ("extents," in P0009R9 terms).
+
+This excludes the various Triangular formats, since they do not permit
+access outside the triangle.  One could "hack" the layout, along with
+a special `basic_mdspan` accessor, to return zero values for read-only
+access outside the triangle.  However, `basic_mdspan` does not have a
+way to express "read-only access for some matrix elements, and
+read-and-write access for other matrix elements."  `basic_mdspan` was
+meant to be a low-level multidimensional array, not a fully
+generalizable matrix data structure.
+
+Similarly, there is no way to define a mathematically Hermitian matrix
+using `basic_mdspan` layout and accessor.  The layout could reverse
+row and column indices outside of a specific triangle; that is a way
+to define a mathematically symmetric matrix.  However, there is no way
+for the layout to tell the accessor that the accessor needs to take
+the conjugate for accesses outside the triangle.  Perhaps the accessor
+could reverse-engineer this from the 1-D index, but again, this is
+outside of scope for `basic_mdspan`.
+
+### BLAS General calls for a new mdspan layout
+
+All BLAS matrix types but the Packed types actually assume the same
+layout as General.  In our proposal D1673R0, we call General's layout
+`layout_blas_general`.  It includes both row-major and column-major
+variants: `layout_blas_general<row_major_t>`, and
+`layout_blas_general<column_major_t>`.
+
+`layout_blas_general` expresses a more general layout than
+`layout_left` or `layout_right`, because it permits a stride between
+columns resp. rows that is greater than the corresponding dimension.
+This is why BLAS functions take an "LDA" (leading dimension of the
+matrix A) argument separate from the dimensions of A.  However, these
+layouts are slightly *less* general than `layout_stride`, because they
+assume contiguous storage of columns resp. rows.
+
+One could omit `layout_blas_general` and use `layout_stride` without
+removing functionality.  However, the advantage of these layouts is
+that subspans taken by many matrix algorithms preserve the layout type
+(if the stride is a run-time value).  Many matrix algorithms work on
+"submatrices" that are rank-2 subspans of contiguous rows and columns
+of a "parent" matrix.  If the parent matrix is `layout_left`, then in
+general, the submatrix is `layout_stride`, not `layout_left`.
+However, if the parent matrix is `layout_blas_general<column_major_t>`
+or `layout_blas_general<row_major_t>`, such submatrices always have
+the same layout as their parent matrix.  Algorithms on submatrices may
+thus always assume contiguous access along one dimension.
+
+
+
+
+
+matrix storage format.  The only
 distinctions are what elements of the matrix the corresponding
 algorithms promise to access, and what assumptions the algorithms make
 about the values of entries they do not access.  Only the Packed
 matrix types use a different layout of their elements in memory.
+(We define packed layouts in D1673R0.)
+
+
+
+
 
 Another issue is that some of these layouts are not unique (see
 P0009).  Uniqueness of a layout matters especially for output
@@ -790,29 +920,29 @@ matrix types with different layouts.
 ## Some remaining performance issues
 
 Suppose that at this point, you have a generic C++ BLAS wrapper that
-takes `mdspan`.  It calls into the BLAS (C or Fortran) for layouts and
-data types for which that is possible, and has fall-back
+takes `basic_mdspan`.  It calls into the BLAS (C or Fortran) for
+layouts and data types for which that is possible, and has fall-back
 implementations for other layouts and data types.  Our developer could
 even get rid of the BLAS library without losing functionality.  One
 could write an implementation of BLAS 3 operations, like dense
 matrix-matrix multiply, directly to a matrix abstraction like
-`mdspan`, and still get performance comparable with that of a fully
-optimized vendor-implemented BLAS library.  That was already possible
-given the state of C++ compiler optimization 20 years ago; see e.g.,
-[^4].
+`basic_mdspan`, and still get performance comparable with that of a
+fully optimized vendor-implemented BLAS library.  That was already
+possible given the state of C++ compiler optimization 20 years ago;
+see e.g., [^4].
 
 The authors would be ecstatic to have a product like this available in
 the Standard Library.  Nevertheless, some developers would encounter
 performance issues that relate to limitations in the design of the
 BLAS' interface itself.  Here are three such issues:
 
-a. It is not optimized for tiny matrices and vectors.
+1. It is not optimized for tiny matrices and vectors.
 
-b. It has no way for users to control composition of parallelism, such
+2. It has no way for users to control composition of parallelism, such
    as what parallelism policy to use, or to control nested
    parallelism.
 
-c. Implementations have no way to optimize across multiple linear
+3. Implementations have no way to optimize across multiple linear
    algebra operations.
 
 ### Tiny matrices and vectors
@@ -822,9 +952,9 @@ possible, for the following reasons:
 
 1. The BLAS is a library; it cannot be inlined.
 
-2. The BLAS standard requires error checking and reporting, through a
-   user-replaceable subroutine `XERBLA`.  For small problems, error
-   checking might take more time than actually solving the problem.
+2. The BLAS standard requires error checking and reporting (see
+   above).  For small problems, error checking might take more time
+   than actually solving the problem.
 
 3. The BLAS takes arrays by pointer, with run-time dimensions.
    Neither is optimal for very small matrices and vectors.
@@ -834,31 +964,33 @@ possible, for the following reasons:
 
 It turns out that our hypothetical developer has already laid the
 groundwork for solving the first three problems.  For example,
-`mdspan` permits compile-time dimensions, or mixes of compile-time and
-run-time dimensions.  Our developer could start with the C++
-"fall-back" implementation of BLAS operations, and turn it into an
-inlineable optimized implementation for certain combinations of
-compile-time dimensions.
+`basic_mdspan` permits compile-time dimensions, or mixes of
+compile-time and run-time dimensions.  Our developer could start with
+the C++ "fall-back" implementation of BLAS operations, and turn it
+into an inlineable optimized implementation for certain combinations
+of compile-time dimensions.
 
 The `mdspan` class is a view.  Implementations store a pointer.  Thus,
 it is not totally zero overhead for very small matrices or vectors
 with compile-time dimensions.  A zero-overhead solution would *only*
 store the data at run time, not a pointer to the data; `std::array` is
-an example.  However, we could either fix this in `mdspan`, or use a
-different data structure entirely.  Once we have C++ BLAS wrappers
-that take `mdspan`, it's not much more work to support other matrix
-and vector data structures.  This would also help our developer make
-their linear algebra library more like the C++ Standard Library, in
-that its algorithms would be decoupled from particular data
+an example.  However, we could either fix this in `basic_mdspan`, or
+use a different data structure entirely.  See, for example, our
+`basic_mdarray` proposal (D1684R0).  Once we have C++ BLAS wrappers
+that take `basic_mdspan`, it's not much more work to support other
+matrix and vector data structures.  This would also help our developer
+make their linear algebra library more like the C++ Standard Library,
+in that its algorithms would be decoupled from particular data
 structures.
 
-The `mdspan` class also gives developers efficient ways to represent
-batches of linear algebra problems with the same dimensions.  For
-example, one may store a batch of matrices as a rank-3 `mdspan`, where
-one of the dimensions indexes into a particular matrix.  The various
-layouts and possibility of writing a custom layout make it easier to
-write efficient batched code.  We have some experience doing so in our
-libraries [CITE].
+The `basic_mdspan` class also gives developers efficient ways to
+represent batches of linear algebra problems with the same dimensions.
+For example, one may store a batch of matrices as a rank-3
+`basic_mdspan`, where one of the dimensions indexes into a particular
+matrix.  The various layouts and possibility of writing a custom
+layout make it easier to write efficient batched code.  We have some
+experience doing so in our [github.com/kokkos](Kokkos) and
+[github.com/trilinos/Trilinos](Trilinos) libraries.
 
 ### Composition of parallelism
 
@@ -891,32 +1023,33 @@ and have each thread spin-lock until work arrives.  If both the BLAS
 and our developer do that, the two thread pools will fight constantly
 over resources.
 
-BLAS implementations that use OpenMP generally play nicely with the
-caller's use of OpenMP, as long as the caller uses the same compiler
-and links with the same version of the OpenMP run-time library [CITE].
-Even if the two thread pools play nicely together, what happens if our
-developer calls the BLAS inside of a parallel region?  Intel's MKL
-recognizes this by using the OpenMP API to determine whether it is
-being called inside of a parallel region.  If so, it reverts to
-sequential mode.  A smarter implementation could instead farm out work
-to other threads, if it makes sense for good performance.  However,
-solving this at a system level, without our developer needing to
-change both their code and that of the BLAS implementation, is hard.
-See, for example, the 2010 MIT PhD dissertation by Heidi Pan,
-["Cooperative Hierarchical Resource Management for Efficient
-Composition of Parallel Software."]
-(http://lithe.eecs.berkeley.edu/pubs/pan-phd-thesis.pdf)
+In our experience, BLAS implementations that use OpenMP generally play
+nicely with the caller's use of OpenMP, as long as the caller uses the
+same compiler and links with the same version of the OpenMP run-time
+library.  Even if the two thread pools play nicely together, what
+happens if our developer calls the BLAS inside of a parallel region?
+Intel's Math Kernel Library recognizes this by using the OpenMP API to
+determine whether it is being called inside of a parallel region.  If
+so, it reverts to sequential mode.  A smarter implementation could
+instead farm out work to other threads, if it makes sense for good
+performance.  However, solving this at a system level, without our
+developer needing to change both their code and that of the BLAS
+implementation, is hard.  (For example, [^5] shows how to nest
+parallel libraries and share resources between them without changing
+library code, but the approach is invasive in parallel programming
+run-time environments.)
 
-Our developer could help by providing an execution policy (in the C++
-Standard Library sense) that tells the BLAS what subset of parallel
-resources it may use.  This is a logical extension of the C++ linear
-algebra interface we have been developing.  Just like C++ Standard
-Algorithms, our developer's library could take optional execution
-policies.  The optional execution policy parameter would also serve as
-an extension point for an interface that supports hierarchical
-parallelism (a "team-level BLAS").  That could also help with code
-that wants to solve many tiny linear algebra problems in parallel (see
-above section).
+Our developer could help by providing an optional execution policy
+(see **[execpol]** in the C++ Standard) that tells the BLAS what
+subset of parallel resources it may use.  This is a logical extension
+of the C++ linear algebra interface we have been developing.  Just
+like C++ Standard Algorithms, our developer's library could take
+optional execution policies.  The optional execution policy parameter
+would also serve as an extension point for an interface that supports
+hierarchical parallelism (a "team-level BLAS").  That could also help
+with code that wants to solve many tiny linear algebra problems in
+parallel.  This is the design choice we made in our linear algebra
+library proposal (D1673R0).
 
 ### Optimize across operations
 
@@ -946,13 +1079,16 @@ less value specialized fused kernels may have.
 #### Expression templates?
 
 Many linear algebra libraries use expression templates to optimize
-sequences of linear algebra operations.  See P1417 for an incomplete
-list.  Expression templates have the advantage that they let users
-write in a notation more like mathematics, while avoiding allocation
-of temporaries.  A major motivation for P1385's use of arithmetic
-operator overloading is that the game developer community considers
-concise mathematical notation an essential feature of a linear algebra
-library.
+sequences of linear algebra operations.  See
+[P1417R0](wg21.link/p1417r0) for an incomplete list.  Expression
+templates are a way to implement lazy evaluation, in that they defer
+evaluation of arithmetic until assignment.  This also lets them avoid
+allocation of temporary results.  When used with arithmetic operator
+overloading, expression templates give users a notation more like
+mathematics, with good performance.  Some communities, like game
+developers, strongly prefer arithmetic operator overloading for linear
+algebra, so arithmetic operators on linear algebra objects strongly
+suggest expression templates.
 
 We will consider two examples of linear algebra expressions:
 
@@ -964,14 +1100,7 @@ We will consider two examples of linear algebra expressions:
    dimensions, `operator*` indicates the matrix-matrix product, and
    B*C has many more columns than D.
 
-```
-// Example of (2): A*B*C*x: what if A is short and fat, B tall and
-// skinny, C square?  intermediate vector could be longer than output
-// vector -- need temporary space.  Matlab users just type that and let
-// Matlab allocate intermediate temporaries.
-```
-
-##### First example
+##### First example: Norm of a sum of scaled vectors
 
 The first example is a classic use case for expression templates.  As
 long as all vectors exist and have the same length, one can write an
@@ -1001,7 +1130,7 @@ tricky to implement well, that can justify separate standardization.
 The Standard Library already has the special math functions, which
 arguably have a smaller set of users than dot products and norms.
 
-##### Second example
+##### Second example: Matrix triple product
 
 The second example shows the limits of expression templates in
 optimizing linear algebra expressions.  The compiler can't know the
@@ -1041,16 +1170,16 @@ two vectors y and z, where z = A*x for a matrix A and vector x.  In
 Matlab, one would write `y'*(A*x)`.  In our hypothetical
 named-function library, we could write something like this:
 
-#+BEGIN_SRC C++
+```c++
 auto A_times_x = make_expression(z, prod(A, x));
 double result = dot(y, A_times_x);
-#+END_SRC
+```
 
 or perhaps like this instead:
 
-#+BEGIN_SRC C++
+```c++
 double result = dot(y, prod(z, A, x));
-#+END_SRC
+```
 
 The library would have the option to use z as temporary storage, but
 would not be required to do so.
@@ -1067,10 +1196,11 @@ references problem*.  That is, if expressions do not share ownership
 of their "parent" linear algebra objects' data, then if one permits
 (say) a matrix expression to escape a scope delimiting the lifetime of
 its parent matrix, the expression will have a dangling reference to
-its parent.  This is why, Eigen's documentation recommends against
-assigning linear algebra expressions to `auto` variables.  This is an
-old problem: `valarray` may have the same issue, if the implementation
-takes the freedom afforded to it by the Standard to use expression
+its parent.  This is why Eigen's documentation [recommends
+against](https://eigen.tuxfamily.org/dox/TopicPitfalls.html) assigning
+linear algebra expressions to `auto` variables.  This is an old
+problem: `valarray` has the same issue, if the implementation takes
+the freedom afforded to it by the Standard to use expression
 templates.
 
 Copy elision makes it impossible for an expression type to tell
@@ -1084,59 +1214,40 @@ especially if linear algebra objects may have container semantics.
 
 ##### The aliasing problem and opting out of lazy evaluation
 
-TODO finish this section
+Eigen's documentation also [addresses the issue of aliasing and
+expression
+templates](http://eigen.tuxfamily.org/dox/TopicLazyEvaluation.html}),
+with the following example.  Suppose that `A` is a matrix, and users
+evaluate the matrix-matrix multiplication `A = A*A`.  The expression
+`A = A + A` could work fine with expression templates, since matrix
+addition has no dependencies across different entries of the matrix.
+Computing `A(i,j)` on the left-hand side only requires reading the
+value `A(i,j)` on the right-hand side.  In contrast, for the matrix
+multiplication `A = A*A`, computing `A(i,j)` on the left-hand side
+requires `A(i,k)` and `A(k,j)` on the right-hand side, for all valid
+`k`.  This makes it impossible to compute `A = A*A` in place
+correctly; the implementation needs a temporary matrix in order to get
+the right answer.  This is why the Eigen library's expressions have an
+option to turn off lazy evaluation, and do so by default for some
+kinds of expressions.  Furthermore, allocating a temporary result
+and/or eager evaluation of subexpressions may be faster in some cases.
 
-Suppose that `A` is a matrix, and users evaluate the matrix-matrix
-multiplication `A = A*A`.  The expression `A = A + A` could work fine
-with expression templates, since matrix addition has no dependencies
-across different entries of the matrix.  Computing `A(i,j)` on the
-left-hand side only requires reading the value `A(i,j)` on the
-right-hand side.  In contrast, for the matrix multiplication `A =
-A*A`, computing `A(i,j)` on the left-hand side requires `A(i,k)` and
-`A(k,j)` on the right-hand side, for all valid `k`.  This makes it
-impossible to compute `A = A*A` in place correctly; the implementation
-needs a temporary matrix in order to get the right answer.
-Implementations have a few options:
-
-* They could *forbid* aliasing (possibly detecting it);
-
-* they could allocate their own own temporary space; or
-
-* they could simply not provide expressions that have this problem.
-  Users would instead call a function and provide input and output
-  argument.
-
-C++ expression templates are one way to implement *lazy evaluation* of
-arithmetic expressions involving linear algebra objects.  Natural
-implementations of expression templates lead to fully lazy evaluation:
-No actual computation happens until assignment.  However, multiple C++
-linear algebra libraries have learned the lesson that fully lazy
-evaluation does not always pay.  For example, for algorithms with
-reuse, like dense matrix-matrix multiply, lazy evaluation can give
-incorrect results for expressions where the output alias the input
-(like `A = A * A` where `A` is a matrix).
-
-This is why the Eigen library's expressions have an option
-to turn off lazy evaluation, and do so by default for some kinds of
-expressions.  Furthermore, allocating a temporary result and/or eager
-evaluation of subexpressions may be faster in some cases.\footnote{See
-  \url{http://eigen.tuxfamily.org/dox/TopicLazyEvaluation.html}.}
 This is true not necessarily just for expressions whose computations
 have significant reuse, like matrix-matrix multiply, but also for some
 expressions that ``stream'' through the entries of vectors or
 matrices.  For example, fusing too many loops may thrash the cache or
 cause register spilling, so deciding whether to evaluate eagerly or
-lazily may require hardware-specific information
-\cite{siek2008build}. It's possible to encode many such compilation
-decisions in a pure C++ library with architecture-specific
-parameters.\footnote{See, e.g., the following 2013 Eigen presentation:
-  \url{http://downloads.tuxfamily.org/eigen/eigen_CGLibs_Giugno_Pisa_2013.pdf}.
-  For comparable \texttt{Boost.uBlas} optimizations, see Section
-  \ref{S:uBlas}.}  However, this burdens the library with higher
-implementation complexity and increased compilation time.  Library
-designers may prefer a simpler interface that excludes expressions
-with reuse (that have correctness issues with lazy evaluation) and
-lets users decide where temporaries get allocated.
+lazily may require hardware-specific information (see e.g., [^6]).
+It's possible to encode many such compilation decisions in a pure C++
+library with architecture-specific parameters.  See, e.g., [this 2013
+Eigen
+presentation](http://downloads.tuxfamily.org/eigen/eigen_CGLibs_Giugno_Pisa_2013.pdf),
+and "Lessons learned from `Boost::uBlas` development" in
+[P1417R0](wg21.link/p1417r0).  However, this burdens the library with
+higher implementation complexity and increased compilation time.
+Library designers may prefer a simpler interface that excludes
+expressions with reuse (that have correctness issues with lazy
+evaluation) and lets users decide where temporaries get allocated.
 
 ##### How general should expression rewriting be?
 
@@ -1144,17 +1255,21 @@ We might also ask how many users need to optimize many, different,
 complicated expressions, at compile time.  Would they be better served
 by specialized source-to-source translation tools?
 
+##### Are arithmetic operators even a good idea?
+
 Different application areas have different interpretations of "matrix"
 vs. "vector," row vs. column vectors, and especially `operator*` (dot?
 outer? Hadamard? element-wise? Kronecker?).  This makes introducing
 arithmetic operators for matrices and vectors a bit risky.  Many users
 want this, but it's important to get agreement on what the various
-operators mean.
+operators mean.  A general linear algebra library might prefer to stay
+out of this contentious debate.
 
 ## Some remaining correctness issues
 
-a. Does mixing precisions, real and complex, etc. do the right thing?
-b. Some kinds of number types may call for a different interface.
+1. Does mixing precisions, real and complex, etc. do the right thing?
+
+2. Some kinds of number types may call for a different interface.
 
 ### Mixing precisions in linear algebra expressions
 
@@ -1223,3 +1338,13 @@ Generic Programming Approach to High Performance Numerical Linear
 Algebra," in proceedings of the Second International Symposium on
 Computing in Object-Oriented Parallel Environments (ISCOPE) 1998,
 Santa Fe, NM, USA, Dec. 1998.
+
+[^5]: Heidi Pan, ["Cooperative Hierarchical Resource Management for
+Efficient Composition of Parallel
+Software,"](http://lithe.eecs.berkeley.edu/pubs/pan-phd-thesis.pdf),
+PhD dissertation, Department of Electrical Engineering and Computer
+Science, Massachusetts Institute of Technology, Jun. 2010.
+
+[^6]: J. Siek, I. Karlin, and E. Jessup, "Build to order linear
+algebra kernels," in Proceedings of International Symposium on
+Parallel and Distributed Processing (IPDPS) 2008, pp. 1-8.
