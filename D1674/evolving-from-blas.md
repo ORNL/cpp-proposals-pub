@@ -1303,6 +1303,13 @@ overflow?  How would such interfaces integrate with C++ versions of
 libraries like LAPACK?  We are not experts on fixed-point arithmetic;
 for us, these are all open questions.
 
+## Acknowledgments
+
+Sandia National Laboratories is a multimission laboratory managed and
+operated by National Technology & Engineering Solutions of Sandia,
+LLC, a wholly owned subsidiary of Honeywell International, Inc., for
+the U.S. Department of Energy’s National Nuclear Security
+Administration under contract DE-NA0003525.
 
 ## References
 

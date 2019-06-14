@@ -3527,6 +3527,14 @@ BLAS, users are more likely to expect that setting `beta=0` causes
 write-only behavior.  Thus, if the interface suggests write-only
 behavior, users are less likely to be unpleasantly surprised.
 
+## Acknowledgments
+
+Sandia National Laboratories is a multimission laboratory managed and
+operated by National Technology & Engineering Solutions of Sandia,
+LLC, a wholly owned subsidiary of Honeywell International, Inc., for
+the U.S. Department of Energy’s National Nuclear Security
+Administration under contract DE-NA0003525.
+
 ## References by coathors
 
 * G. Ballard, E. Carson, J. Demmel, M. Hoemmen, N. Knight, and
