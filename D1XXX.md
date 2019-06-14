@@ -302,7 +302,7 @@ public:
   using view_type =
     basic_mdspan<element_type, extents_type, layout_type, ContainerPolicy>;
   using const_view_type =
-    basic_mdspan<const element_type, extents_type, layout_type, @_see-below_@>;
+    basic_mdspan<const element_type, extents_type, layout_type, @*see-below*@>;
 
   // basic_array constructors, assignment, and destructor
   constexpr basic_mdarray() noexcept = default;
@@ -316,8 +316,10 @@ public:
   explicit constexpr basic_mdarray(container_type&& m);
   explicit constexpr basic_mdarray(const mapping_type& m);
   constexpr basic_mdarray(const mapping_type& m, const container_policy& p);
-  constexpr basic_mdarray(const container_type& c, const mapping_type& m, const container_policy& a);
-  constexpr basic_mdarray(container_type&& c, const mapping_type& m, const container_policy& a);
+  constexpr basic_mdarray(
+    const container_type& c, const mapping_type& m, const container_policy& a);
+  constexpr basic_mdarray(
+    container_type&& c, const mapping_type& m, const container_policy& a);
   template<class ET, class Exts, class LP, class CP>
     constexpr basic_mdarray(const basic_mdarray<ET, Exts, LP, CP>& other);
   template<class ET, class Exts, class LP, class CP>
@@ -328,11 +330,14 @@ public:
   constexpr basic_mdarray& operator=(const basic_mdarray&) noexcept = default;
   constexpr basic_mdarray& operator=(basic_mdarray&&) noexcept = default;
   template<class ET, class Exts, class LP, class CP>
-    constexpr basic_mdarray& operator=(const basic_mdarray<ET, Exts, LP, CP>& other) noexcept;
+    constexpr basic_mdarray& operator=(
+      const basic_mdarray<ET, Exts, LP, CP>& other) noexcept;
   template<class ET, class Exts, class LP, class CP>
-    constexpr basic_mdarray& operator=(basic_mdarray<ET, Exts, LP, CP>&& other) noexcept;
+    constexpr basic_mdarray& operator=(
+      basic_mdarray<ET, Exts, LP, CP>&& other) noexcept;
 
-  // basic_mdarray mapping domain multidimensional index to access codomain element (also in basic_mdspan)
+  // basic_mdarray mapping domain multidimensional index to access codomain
+  // element (also in basic_mdspan)
   constexpr reference operator[](index_type) noexcept;
   constexpr const_reference operator[](index_type) const noexcept;
   template<class... IndexType>
@@ -342,9 +347,11 @@ public:
   template<class IndexType, size_t N>
     constexpr reference operator()(const array<IndexType, N>& indices) noexcept;
   template<class IndexType, size_t N>
-    constexpr const_reference operator()(const array<IndexType, N>& indices) const noexcept;
+    constexpr const_reference operator()(
+      const array<IndexType, N>& indices) const noexcept;
 
-  // basic_mdarray observers of the domain multidimensional index space (also in basic_mdspan)
+  // basic_mdarray observers of the domain multidimensional index space
+  // (also in basic_mdspan)
   static constexpr int rank() noexcept;
   static constexpr int rank_dynamic() noexcept;
   static constexpr index_type static_extent(size_t) noexcept;
