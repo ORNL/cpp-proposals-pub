@@ -857,8 +857,8 @@ A C++ linear algebra library has a few possibilities for dealing with
 this.
 
 1. It could use the layout and accessor types in `basic_mdspan` simply
-   as tags to indicate the matrix "type."  Algortithms could
-   specialize on those tags.
+   as tags to indicate the matrix "type."  Algorithms could specialize
+   on those tags.
 
 2. It could introduce a hierarchy of higher-level classes for
    representing linear algebra objects, use `basic_mdspan` (or
