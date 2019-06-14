@@ -821,43 +821,49 @@ contiguous, and strided.
 
 This proposal includes the following additional layouts:
 
-* `layout_blas_general`
-* `layout_blas_symmetric`
-* `layout_blas_symmetric_packed`
-* `layout_blas_triangular`
-* `layout_blas_triangular_packed`
+* `layout_blas_general`: Generalization of `layout_left` and
+  `layout_right`; describes General matrix data layout
+
+* `layout_blas_packed`: Describes layout used by the BLAS' Symmetric
+  Packed (SP), Hermitian Packed (HP), and Triangular Packed (TP)
+  "types"
 
 These layouts have "tag" template parameters that control their
 behavior; see below.
 
-These layouts would thus be the first additions to the layouts in
-P0009R9 that are not unique, contiguous, and strided.  We've discussed
-above how algorithms cannot be written generically if they have output
-arguments with nonunique layouts.  Furthermore, the unpacked
-triangular layouts introduce a new idea to P0009R9, namely that some
-indices in the Cartesian product of the object's extents are not
-actually valid indices for writing to the object.  The unpacked
-triangular layouts are still unique, but the extents do not suffice to
-determine the set of validly writeable indices.  This also means that
-algorithms cannot be written generically, even for supposedly unique
-layouts.  (See the "Options and votes" section below.)
+We do not include layouts for unpacked "types," such as Symmetric
+(SY), Hermitian (HE), and triangular (TR).  D1674R0 explains our
+reasoning.  In summary: Their actual layout -- the arrangement of
+matrix elements in memory -- is the same as General.  The only
+differences are constraints on what entries of the matrix algorithms
+may access, and assumptions about the matrix's mathematical
+properties.  Trying to express those constraints or assumptions as
+"layouts" or "accessors" always violates the spirit of `basic_mdspan`,
+and sometimes the law as well.
 
-Thus, we impose the following rules:
+The packed matrix "types" do describe actual arrangements of matrix
+elements in memory that are not the same as in General.  This is why
+we provide `layout_blas_packed`.  Note that these layouts would thus
+be the first additions to the layouts in P0009R9 that are not unique,
+contiguous, and strided.
+
+Algorithms cannot be written generically if they permit output
+arguments with nonunique layouts.  They must be specialized to the
+layout, since there's no way to know generically at compile time what
+indices map to the same matrix element.  Thus, we impose the following
+rules:
 
 * Unless otherwise specified, our functions accept input objects that
   are not also output objects, as long as they have any of the
   following layouts:
 
-  * `layout_left`, `layout_right`, or `layout_stride` (see P0009R9)
+  * `layout_left`, `layout_right`, or `layout_stride` (as in P0009R9);
+    or
 
-  * Any layout defined in this proposal
-
-  * any user-defined layout for which any multi-index in the Cartesian
-    product of its extents is a valid multi-index for accessing the
-    object.
+  * any layout defined in this proposal.
 
 * Unless otherwise specified, none of our functions of our functions
-  accept output arguments with nonunique or triangular layouts.
+  accept output arguments with nonunique layout.
 
 Some functions explicitly require outputs with specific nonunique
 layouts.  This includes low-rank updates to symmetric or Hermitian
@@ -871,17 +877,14 @@ options:
 
 * "Base" layout (e.g., column major or row major)
 * Symmetric or triangular
-* Access only the upper triangle, or access only the lower triangle
+* Store only the upper triangle, or store only the lower triangle
 * Implicit unit diagonal or explicitly stored diagonal (only for
   triangular)
-* Packed or not
 
 Instead of introducing a large number of layout names, we parameterize
 a small number of layouts with tags.  Layouts take tag types as
-template arguments, and callers of "view" functions use the
-corresponding `constexpr` instances of tag types.  The "packed" option
-cannot be a tag, because packed layouts have different template
-parameters, as we will see below.
+template arguments, and function callers use the corresponding
+`constexpr` instances of tag types.
 
 ##### Storage order tags
 
@@ -894,12 +897,24 @@ constexpr row_major_t row_major = row_major_t ();
 ```
 
 `column_major_t` indicates a column-major order, and `row_major_t`
-indicates a row-major order.  The interpretation of these orders
-depends on the specific layout that uses the tag.  See
-`layout_blas_general`, `layout_blas_symmetric_packed`, and
-`layout_blas_triangular_packed`.
+indicates a row-major order.  The interpretation of each depends on
+the specific layout that uses the tag.  See `layout_blas_general` and
+`layout_blas_packed`.
 
 ##### Triangle tags
+
+Linear algebra algorithms find it convenient to distinguish between
+the "upper triangle," "lower triangle," and "diagonal" of a matrix.
+
+* The *upper triangle* of a matrix `A` is the set of all elements of
+  `A` accessed by `A(i,j)` with `i >= j`.
+
+* The *lower triangle* of `A` is the set of all elements of `A`
+  accessed by `A(i,j)` with `i <= j`.
+
+* The *diagonal* is the set of all elements of `A` accessed by
+  `A(i,i)`.  It is included in both the upper triangle and the lower
+  triangle.
 
 ```c++
 struct upper_triangle_t {};
@@ -911,21 +926,10 @@ constexpr lower_triangle_t lower_triangle = lower_triangle_t ();
 
 These tag classes specify whether algorithms and other users of a
 matrix (represented as a `basic_mdspan` or `basic_mdarray`) should
-access the upper triangle or lower triangle of the matrix.
-
-The tag `upper_triangle_t` indicates that algorithms or other users of
-the view with that tag ("viewer") will only access the upper triangle
-of the matrix being viewed ("viewee") by the viewer.  That is, if the
-viewee is `A`, then the viewee will only access the element `A(i,j)`
-if `i >= j`.  This is also subject to the restrictions of
-`implicit_unit_diagonal_t` if that tag is also applied; see below.
-
-The tag `lower_triangle_t` indicates that algorithms or other users of
-the view with that tag ("viewer") will only access the lower triangle
-of the matrix being viewed ("viewee") by the viewer.  That is, if the
-viewee is `A`, then the viewee will only access the element `A(i,j)`
-if `i <= j`.  This is also subject to the restrictions of
-`implicit_unit_diagonal_t` if that tag is also applied; see below.
+access the upper triangle (`upper_triangular_t`) or lower triangle
+(`lower_triangular_t`) of the matrix.  This is also subject to the
+restrictions of `implicit_unit_diagonal_t` if that tag is also
+applied; see below.
 
 ##### Diagonal tags
 
@@ -944,50 +948,18 @@ These tag classes specify what algorithms and other users of a matrix
 about the diagonal entries of the matrix, and whether algorithms and
 users of the matrix should access those diagonal entries explicitly.
 
-The `implicit_unit_diagonal_t` tag indicates that algorithms or other
-users of the view with that tag ("viewer") will never refer to the
-`i,i` element of the matrix being viewed ("viewee").  Algorithms and
-other users of the view will assume that the matrix has a diagonal of
-ones (a unit diagonal).  *[Note:* Typical BLAS practice is that the
-algorithm never actually needs to form an explicit `1.0`, so there is
-no need to impose a constraint that `1` or `1.0` is convertible to
+The `implicit_unit_diagonal_t` tag indicates two things:
+
+  * callers will never access the `i,i` element of the matrix, and
+  * the matrix has a diagonal of ones (a unit diagonal).
+
+*[Note:* Typical BLAS practice is that the algorithm never actually
+needs to form an explicit `1.0`, so there is no need to impose a
+constraint that `1` or `1.0` is convertible to the matrix's
 `element_type`. --*end note]*
 
 The tag `explicit_diagonal_t` indicates that algorithms and other
-users of the viewer may access the viewee's diagonal entries directly,
-by referring to the `i,i` element (if `i,i` is in the viewee's
-domain).
-
-##### Packed storage tags
-
-```c++
-struct unpacked_storage_t {};
-constexpr unpacked_storage_t unpacked_storage =
-  unpacked_storage_t ();
-
-struct packed_storage_t {};
-constexpr packed_storage_t packed_storage =
-  packed_storage_t ();
-```
-
-These tag classes specify whether the matrix uses a "packed" storage
-format.
-
-The `unpacked_storage_t` tag indicates that the matrix to which the
-tag is applied has any of the unpacked storage formats, that is, any
-format other than the packed format described in this section.
-
-The `packed_storage_t` tag indicates that the matrix to which the tag
-is applied has a packed storage format, which we describe in this
-section.
-
-The actual "packed" format depends on
-
-* whether the format represents the upper or lower triangle of the
-  matrix (see "Triangle tags" above), and
-
-* whether the format uses column-major or row-major ordering to store
-  its entries (see "Storage order tags" above).
+users of the viewer may access the matrix's diagonal entries directly.
 
 #### New "General" layouts
 
@@ -999,16 +971,28 @@ class layout_blas_general;
 * *Constraints:* `StorageOrder` is either `column_major_t` or
   `row_major_t`.
 
-These new layouts represent exactly the two General (GE) matrix
-layouts that the BLAS' C interface supports.  Both of these are more
-general than `layout_left` and `layout_right`, because they permit a
-stride between columns resp. rows that is greater than the
-corresponding extent.  This is why BLAS functions take an "LDA"
-(leading dimension of the matrix A) argument separate from the
-dimensions (extents, in `mdspan` terms) of A.  However, these layouts
-are slightly *less* general than `layout_stride`, because they assume
-contiguous storage of columns resp. rows.  See D1673R0 for further
-justification of `layout_blas_general`.
+These new layouts represent exactly the layout assumed by the General
+(GE) matrix type in the BLAS' C binding.
+
+* `layout_blas_general<column_major_t>` represents a column-major
+  matrix layout, where the stride between columns (in BLAS terms,
+  "leading dimension of the matrix A" or `LDA`) may be greater than or
+  equal to the number of rows.
+
+* `layout_blas_general<row_major_t>` represents a row-major matrix
+  layout, where the stride (again, `LDA`) between rows may be greater
+  than or equal to the number of columns.
+
+These layouts are both always unique and always strided.  They are
+contiguous if and only if the "leading dimension" equals the the
+number of rows resp. columns.  Both layouts are more general than
+`layout_left` and `layout_right`, because they permit a stride between
+columns resp. rows that is greater than the corresponding extent.
+This is why BLAS functions take an `LDA` (leading dimension of the
+matrix A) argument separate from the dimensions (extents, in `mdspan`
+terms) of A.  However, these layouts are slightly *less* general than
+`layout_stride`, because they assume contiguous storage of columns
+resp. rows.  See D1673R0 for further discussion.
 
 These new layouts have natural generalizations to ranks higher than 2.
 The definition of each of these layouts would look and work like
@@ -1030,11 +1014,13 @@ favor changing this in the next revision of P0009, to make
 want users to be able to express strides as an arbitrary mix of
 compile-time and run-time values, just as they can express dimensions.
 
-#### New unpacked symmetric and triangular layouts
+#### Packed layouts
 
-These layouts make sense for rank-2 and rank-3 `mdspan` and `mdarray`.
-In the rank-3 case, they would represent a batch of matrices, where
-the leftmost dimension indicates which matrix.
+```c++
+template<class Triangle,
+         class StorageOrder>
+class layout_blas_packed;
+```
 
 ##### Requirements
 
@@ -1044,325 +1030,37 @@ requirements.
 
   * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
-  * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
-    `explicit_diagonal_t`.
-
-  * `BaseLayout` is a unique, contiguous, and strided layout.
-
-  * `Extents` is a specialization of `extents` (see P0009R9).
-
-##### Unpacked symmetric layout
-
-```c++
-template<class Triangle,
-         class BaseLayout>
-class layout_blas_symmetric {
-public:
-  using triangle_type = Triangle;
-  using base_layout_type = BaseLayout;
-
-  template<class Extents>
-  class mapping {
-  public:
-    using base_mapping_type = base_layout_type::template mapping<Extents>;
-
-    constexpr mapping() noexcept;
-    constexpr mapping(const mapping&) noexcept;
-    constexpr mapping(mapping&&) noexcept;
-
-    constexpr mapping(const base_mapping_type& base_mapping) noexcept :
-      base_mapping_ (base_mapping) {}
-
-    template<class OtherExtents>
-      constexpr mapping(const mapping<OtherExtents>& other);
-
-    mapping& operator=() noexcept = default;
-    mapping& operator=(const mapping&) noexcept = default;
-
-    template<class OtherExtents>
-      constexpr mapping& operator=(const mapping<OtherExtents>& other);
-
-    Extents extents() const noexcept;
-
-    const base_mapping_type base_mapping() const {
-      return base_mapping_;
-    }
-
-    constexpr typename Extents::index_type required_span_size() const noexcept;
-
-    template<class... Indices>
-      typename Extents::index_type operator()(Indices... is) const;
-
-    static constexpr bool is_always_unique() noexcept;
-    static constexpr bool is_always_contiguous() noexcept;
-    static constexpr bool is_always_strided() noexcept;
-
-    constexpr bool is_unique() const noexcept;
-    constexpr bool is_contiguous() noexcept;
-    constexpr bool is_strided() noexcept;
-
-    template<class OtherExtents>
-      constexpr bool
-      operator==(const mapping<OtherExtents>& other) const noexcept;
-    template<class OtherExtents>
-      constexpr bool
-      operator!=(const mapping<OtherExtents>& other) const noexcept;
-
-  private:
-    base_mapping_type base_mapping_; // <i>exposition only</i>
-  };
-};
-```
-
-* *Constraints:* In `mapping`, `Extents::rank()` is at least 2.
-
-We will need to fill in the details here.  Most of them can be copied
-from P0009.  We will highlight a few key features that differ from the
-other layouts in P0009.
-
-###### `layout_blas_symmetric::mapping` operations
-
-```c++
-constexpr typename Extents::index_type
-required_span_size() const noexcept;
-```
-
-* *Returns:* The product of `base_mapping().extents().extent(r)`
-   for all `r` in the range `[0, extents().rank())`.
-
-```c++
-template<class... Indices>
-  typename Extents::index_type operator()(Indices... is) const;
-```
-
-Let `i,j` be the last two (rightmost) indices in the `is` parameter
-pack.  Let `is_rev` denote the parameter pack that is the same as
-`is`, except that the last two (rightmost) indices appear in reverse
-order.
-
-* *Constraints:*
-
-  * `sizeof...(Indices)` equals `Extents::rank()`, and
-
-  * `(is_convertible_v<Indices, typename Extents::index_type> && ...)`
-    is `true`.
-
-* *Requires:* `0 <= array{is...}[r] < extents().extent(r)` for all `r`
-  in the range `[0, extents().rank())`.
-
-* *Returns:*
-
-  * If `Triangle` is `upper_triangle_t`, then:
-
-    * If `i` <= `j`, then returns `base_mapping_(is)`;
-
-    * Else, returns `base_mapping_(is_rev)`.
-
-  * If `Triangle` is `lower_triangle_t`, then:
-
-    * If `i` >= `j`, then returns `base_mapping_(is)`;
-
-    * Else, returns `base_mapping_(is_rev)`.
-
-* *Throws:* Nothing.
-
-*[Note:* Algorithms may avoid the overhead of checking and swapping
-indices by accessing the base mapping. --*end note]*
-
-
-```c++
-static constexpr bool is_always_unique() noexcept;
-static constexpr bool is_always_contiguous() noexcept;
-static constexpr bool is_always_strided() noexcept;
-```
-
-* *Returns:* false.
-
-```c++
-constexpr bool is_unique() const noexcept;
-constexpr bool is_contiguous() noexcept;
-constexpr bool is_strided() noexcept;
-```
-
-* *Returns:* `true` if and only if the product of the extents is less
-  than or equal to 1.
-
-##### Unpacked triangular layout
-
-```c++
-template<class Triangle,
-         class DiagonalStorage,
-         class BaseLayout>
-class layout_blas_triangular {
-public:
-  using triangle_type = Triangle;
-  using diagonal_storage_type = DiagonalStorage;
-  using base_layout_type = BaseLayout;
-
-  template<class Extents>
-  class mapping {
-  public:
-    using base_mapping_type = base_layout_type::template mapping<Extents>;
-
-    constexpr mapping() noexcept;
-    constexpr mapping(const mapping&) noexcept;
-    constexpr mapping(mapping&&) noexcept;
-
-    constexpr mapping(const base_mapping_type& base_mapping) noexcept :
-      base_mapping_ (base_mapping) {}
-
-    template<class OtherExtents>
-      constexpr mapping(const mapping<OtherExtents>& other);
-
-    mapping& operator=() noexcept = default;
-    mapping& operator=(const mapping&) noexcept = default;
-
-    template<class OtherExtents>
-      constexpr mapping& operator=(const mapping<OtherExtents>& other);
-
-    Extents extents() const noexcept;
-
-    const base_mapping_type base_mapping() const {
-      return base_mapping_;
-    }
-
-    constexpr typename Extents::index_type required_span_size() const noexcept;
-
-    template<class... Indices>
-      typename Extents::index_type operator()(Indices... is) const;
-
-    static constexpr bool is_always_unique() noexcept;
-    static constexpr bool is_always_contiguous() noexcept;
-    static constexpr bool is_always_strided() noexcept;
-
-    constexpr bool is_unique() const noexcept;
-    constexpr bool is_contiguous() noexcept;
-    constexpr bool is_strided() noexcept;
-
-    template<class OtherExtents>
-      constexpr bool
-      operator==(const mapping<OtherExtents>& other) const noexcept;
-    template<class OtherExtents>
-      constexpr bool
-      operator!=(const mapping<OtherExtents>& other) const noexcept;
-
-  private:
-    base_mapping_type base_mapping_; // <i>exposition only</i>
-  };
-};
-```
-
-* *Constraints:* In `mapping`, `Extents::rank()` is at least 2.
-
-We will need to fill in the details here.  Most of them can be copied
-from P0009.  We will highlight a few key features that differ from the
-other layouts in P0009.  There is also a major design question about
-accesses "outside the triangle":
-
-1. Should they be forbidden; or
-
-2. should they return some flag value?  If so, should the Accessor
-
-   a. treat that as an error code, or
-
-   b. should it interpret the flag value as "return one if on the
-      diagonal, else return zero"?
-
-Approach 2.b lends itself nicely to generic programming, but only for
-read-only access to the matrix.  Thus, we prefer (1) as the simplest
-approach.
-
-###### `layout_blas_triangular::mapping` operations
-
-```c++
-template<class... Indices>
-  typename Extents::index_type operator()(Indices... is) const;
-```
-
-Let `i,j` be the last two (rightmost) indices in the `is` parameter
-pack.
-
-* *Constraints:*
-
-  * `sizeof...(Indices)` equals `Extents::rank()`, and
-
-  * `(is_convertible_v<Indices, typename Extents::index_type> && ...)`
-    is `true`.
-
-* *Requires:* **(SEE DESIGN QUESTION ABOVE)**
-
-  * `0 <= array{is...}[r] < extents().extent(r)` for all `r` in the
-    range `[0, extents().rank())`.
-
-  * If `Triangle` is `upper_triangle_t`, then `i` is less than or
-    equal to `j`.
-
-  * If `Triangle` is `lower_triangle_t`, then `i` is greater than or
-    equal to `j`.
-
-  * If `DiagonalStorage` is `implicit_unit_diagonal_t`, then `i` does
-    not equal `j`.
-
-* *Returns:*
-
-  * If `Triangle` is `upper_triangle_t`, then:
-
-    * If `DiagonalStorage` is `implicit_unit_diagonal_t`, then:
-
-      * If `i` < `j`, then returns `base_mapping_(is)`;
-
-    * Else, if `DiagonalStorage` is `explicit_diagonal_t`, then:
-
-      * If `i` <= `j`, then returns `base_mapping_(is)`.
-
-  * If `Triangle` is `lower_triangle_t`, then:
-
-    * If `DiagonalStorage` is `implicit_unit_diagonal_t`, then:
-
-      * If `i` > `j`, then returns `base_mapping_(is)`;
-
-    * Else, if `DiagonalStorage` is `explicit_diagonal_t`, then:
-
-      * If `i` >= `j`, then returns `base_mapping_(is)`.
-
-* *Throws:* Nothing.
-
-*[Note:* Algorithms may avoid any index checking overhead by accessing
-the base mapping. --*end note]*
-
-#### New packed symmetric and triangular layouts
-
-Throughout this Clause, where the template parameters are not
-constrained, the names of template parameters are used to express type
-requirements.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
-  * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
-    `explicit_diagonal_t`.
-
   * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
 ##### Packed layout mapping
 
-Both symmetric and triangular packed formats store the represented
-entries of the matrix contiguously, and only represent one triangle of
-the matrix (either upper or lower).  They start at the top left side
-of the matrix.  For column-major ordering, they pack entries starting
-with the leftmost (least column index) column (or the second leftmost
-column, if the diagonal is stored implicitly), and proceeding column
-by column, from the top entry (least row index).  For row-major
-ordering, they pack entries starting with the topmost (least row
-index) row, and proceeding row by row, from the leftmost (least column
-index) entry.
+The BLAS' packed matrix "types" all store the represented entries of
+the matrix contiguously.  They start at the top left side of the
+matrix.
 
-Packed formats generalize just like the unpacked formats above to
-"batches" of matrices.  The last two (rightmost) indices index within
-a matrix, and the remaining index/indices identify which matrix.
+A `StorageOrder` of `column_major_t` indicates column-major ordering.
+This packs matrix elements starting with the leftmost (least column
+index) column, and proceeding column by column, from the top entry
+(least row index).  A `StorageOrder` of `row_major_t` indicates
+row-major ordering.  This packs matrix elements starting with the
+topmost (least row index) row, and proceeding row by row, from the
+leftmost (least column index) entry.
 
-Packed formats also require that the matrix/matrices are square.  That
-is, the rightmost two extents (`extents(extents().rank()-2)` and
+Whether the "type" stores the upper or lower triangle of the matrix
+matters for the layout, not just for the matrix's mathematical
+properties.  Thus, the choice of upper or lower triangle must be part
+of the layout.  `Triangle=upper_triangle_t` means that the layout
+represents the upper triangle; `Triangle=lower_triangle_t` means that
+the layout represents the lower triangle.  We will describe the
+mapping as a function of `StorageOrder` and `Triangle` below.
+
+Packed layouts require that the matrix/matrices are square.  That is,
+the rightmost two extents (`extents(extents().rank()-2)` and
 `extents(extents().rank()-1)`) are equal.
+
+Packed layouts generalize just like unpacked layouts to "batches" of
+matrices.  The last two (rightmost) indices index within a matrix, and
+the remaining index/indices identify which matrix.
 
 Let N be `extents(extents().rank()-1)`.  (That is, each matrix in the
 batch has N rows and N columns.)  Let `i,j` be the last two
@@ -1390,297 +1088,29 @@ layout's `mapping::operator()`.
  to a valid (though wrong) codomain index.  This is why we declare the
  packed layout mappings as "nonunique." --*end note]
 
-##### Layouts
+#### Packed layout views
 
-```c++
-template<class Triangle,
-         class StorageOrder>
-class layout_blas_symmetric_packed;
+The idea behind packed matrix types is that users take an existing 1-D
+array, and view it as a matrix data structure.  We adapt this approach
+to our library by including functions that create a "packed view" of
+an existing `basic_mdspan` or `basic_mdarray`.  The resulting packed
+object has one higher rank.
 
-template<class Triangle,
-         class DiagonalStorage,
-         class StorageOrder>
-class layout_blas_triangular_packed;
-```
-
-### Layout views
-
-BLAS functions often take an existing matrix or vector data structure,
-and "view" a subset of its elements as another data structure.  For
-example, the triangular solve functions take a square matrix in
-General (GE) storage format, and view either its upper or lower
-triangle (TR format).  Matrix factorizations exploit this.  For
-instance, LU (Gaussian elimination) computes the lower triangular
-factor L with an implicitly stored diagonal of ones ("unit diagonal"),
-so that it can overwrite the original matrix A with both L and the
-upper triangular factor U.
-
-One of our design goals is to reduce the number of BLAS function
-parameters.  We can eliminate the `UPLO` (upper or lower triangle) and
-`DIAG` (implicit unit diagonal or explicitly stored diagonal)
-parameters by letting callers annotate an existing General-format
-matrix argument with a new layout that encapsulates both parameters.
-
-#### Requirements
+##### Requirements
 
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
 requirements.
 
-  * `Extents::rank()` is at least 2.
+  * `Extents::rank()` is at least 1.
 
-  * `BaseLayout` is a unique, contiguous, and strided layout.
+  * `Layout` is a unique, contiguous, and strided layout.
 
   * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
-  * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
-    `explicit_diagonal_t`.
-
   * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
-#### Create an unpacked symmetric view of an existing object
-
-```c++
-// View the input's upper triangle
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_symmetric<
-    upper_triangle_t,
-    BaseLayout>,
-  Accessor>
-symmetric_view(
-  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
-  upper_triangle_t);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_symmetric<
-    upper_triangle_t,
-    BaseLayout>,
-  Accessor>
-symmetric_view(
-  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  upper_triangle_t);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<const EltType, Extents,
-  layout_blas_symmetric<
-    upper_triangle_t,
-    BaseLayout>,
-  Accessor>
-symmetric_view(
-  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  upper_triangle_t);
-
-// View the input's lower triangle
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_symmetric<
-    lower_triangle_t,
-    BaseLayout>,
-  Accessor>
-symmetric_view(
-  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
-  lower_triangle_t);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_symmetric<
-    lower_triangle_t,
-    BaseLayout>,
-  Accessor>
-symmetric_view(
-  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  lower_triangle_t);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<const EltType, Extents,
-  layout_blas_symmetric<
-    lower_triangle_t,
-    BaseLayout>,
-  Accessor>
-symmetric_view(
-  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  lower_triangle_t);
-```
-
-#### Create an unpacked triangular view of an existing object
-
-```c++
-// Upper triangular, explicit diagonal
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_triangular<
-    upper_triangle_t,
-    explicit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
-  upper_triangle_t,
-  explicit_diagonal_t d = explicit_diagonal);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_triangular<
-    upper_triangle_t,
-    explicit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  upper_triangle_t,
-  explicit_diagonal_t d = explicit_diagonal);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<const EltType, Extents,
-  layout_blas_triangular<
-    upper_triangle_t,
-    explicit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  upper_triangle_t,
-  explicit_diagonal_t d = explicit_diagonal);
-
-// Upper triangular, implicit unit diagonal
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_triangular<
-    upper_triangle_t,
-    implicit_unit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
-  upper_triangle_t,
-  implicit_unit_diagonal_t);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_triangular<
-    upper_triangle_t,
-    implicit_unit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  upper_triangle_t,
-  implicit_unit_diagonal_t);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<const EltType, Extents,
-  layout_blas_triangular<
-    upper_triangle_t,
-    implicit_unit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  upper_triangle_t,
-  implicit_unit_diagonal_t);
-
-// Lower triangular, implicit unit diagonal
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_triangular<
-    lower_triangle_t,
-    implicit_unit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
-  lower_triangle_t,
-  implicit_unit_diagonal_t d = implicit_unit_diagonal);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_triangular<
-    lower_triangle_t,
-    implicit_unit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  lower_triangle_t,
-  implicit_unit_diagonal_t d = implicit_unit_diagonal);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<const EltType, Extents,
-  layout_blas_triangular<
-    lower_triangle_t,
-    implicit_unit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  lower_triangle_t,
-  implicit_unit_diagonal_t d = implicit_unit_diagonal);
-
-// Lower triangular, explicit diagonal
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_triangular<
-    lower_triangle_t,
-    explicit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  basic_mdspan<EltType, Extents, BaseLayout, Accessor> m,
-  lower_triangle_t,
-  explicit_diagonal_t);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<EltType, Extents,
-  layout_blas_triangular<
-    lower_triangle_t,
-    explicit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  lower_triangle_t,
-  explicit_diagonal_t);
-
-template<class EltType, class Extents, class BaseLayout,
-         class Accessor>
-constexpr basic_mdspan<const EltType, Extents,
-  layout_blas_triangular<
-    lower_triangle_t,
-    explicit_diagonal_t,
-    BaseLayout>,
-  Accessor>
-triangular_view(
-  const basic_mdarray<EltType, Extents, BaseLayout, Accessor>& m,
-  lower_triangle_t,
-  explicit_diagonal_t);
-```
-
-#### Create a packed triangular view of an existing object
+##### Create a packed triangular view of an existing object
 
 ```c++
 template<class EltType,
@@ -1688,20 +1118,17 @@ template<class EltType,
          class Layout,
          class Accessor,
          class Triangle,
-         class DiagonalStorage,
          class StorageOrder>
 constexpr basic_mdspan<EltType,
-  <i>rank-two-extents-see-returns-below</i>,
-  layout_blas_triangular_packed<
+  <i>extents-see-returns-below</i>,
+  layout_blas_packed<
     Triangle,
-    DiagonalStorage,
     StorageOrder>,
   Accessor>
-packed_triangular_view(
+packed_view(
   basic_mdspan<EltType, Extents, Layout, Accessor>& m,
   typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
   Triangle,
-  DiagonalStorage,
   StorageOrder);
 
 template<class EltType,
@@ -1712,17 +1139,15 @@ template<class EltType,
          class DiagonalStorage,
          class StorageOrder>
 constexpr basic_mdspan<const EltType,
-  <i>rank-two-extents-see-returns-below</i>,
-  layout_blas_triangular_packed<
+  <i>extents-see-returns-below</i>,
+  layout_blas_packed<
     Triangle,
-    DiagonalStorage,
     StorageOrder>,
   Accessor>
-packed_triangular_view(
+packed_view(
   const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
   typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
   Triangle,
-  DiagonalStorage,
   StorageOrder);
 
 template<class EltType,
@@ -1733,44 +1158,28 @@ template<class EltType,
          class DiagonalStorage,
          class StorageOrder>
 constexpr basic_mdspan<EltType,
-  <i>rank-two-extents-see-returns-below</i>,
+  <i>extents-see-returns-below</i>,
   layout_blas_triangular_packed<
     Triangle,
-    DiagonalStorage,
     StorageOrder>,
   Accessor>
 packed_triangular_view(
   basic_mdarray<EltType, Extents, Layout, Accessor>& m,
   typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
   Triangle,
-  DiagonalStorage,
   StorageOrder);
 ```
 
-* *Requires:*
-
-  * If `num_rows` is nonzero and if `DiagonalStorage` is
-    `implicit_unit_diagonal_t`, then `m.extent(0)` is at least
-    `num_rows` * (`num_rows` - 1) / 2.
-
-  * If `num_rows` is nonzero and if `DiagonalStorage` is
-    `explicit_diagonal_t`, then `m.extent(0)` is at least (`num_rows`
-    + 1) * `num_rows` / 2.
-
-* *Constraints:*
-
-  * `Extents::rank()` is at least one.
-
-  * `Layout` is any unique layout.
+* *Requires:* If `num_rows` is nonzero, then `m.extent(0)` is at least
+  (`num_rows` + 1) * `num_rows` / 2.
 
 * *Effects:* Views the given `basic_mdspan` or `basic_mdarray` in
-  packed triangular layout, with the given `Triangle`,
-  `DiagonalStorage`, and `StorageOrder`, where each matrix
-  (corresponding to the rightmost two extents of the result) has
-  `num_rows` rows and columns.
+  packed layout, with the given `Triangle` and `StorageOrder`, where
+  each matrix (corresponding to the rightmost two extents of the
+  result) has `num_rows` rows and columns.
 
-* *Returns:* A `basic_mdspan` `r` with packed triangular layout and
-   the following properties:
+* *Returns:* A `basic_mdspan` `r` with packed layout and the following
+  properties:
 
   * `r.extent(r.rank()-2)` equals `num_rows`.
 
