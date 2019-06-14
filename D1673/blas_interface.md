@@ -6,7 +6,7 @@
 * Mark Hoemmen (mhoemme@sandia.gov) (Sandia National Laboratories)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
-* Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratories)
+* Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
 * Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
 * Sarah Knepper (sarah.knepper@intel.com) (Intel)
@@ -101,6 +101,10 @@ a natural foundation for a library like what P1385 proposes.
    algebra, and can also serve as a building block for tensor
    operations.
 
+4. The C++ Standard Library includes plenty of "mathematical
+   functions."  Linear algebra operations like matrix-matrix multiply
+   are at least as broadly useful.
+
 Linear algebra has had wide use in C++ applications for nearly three
 decades (see [P1417R0](wg21.link/p1417r0) for a historical survey).
 For much of that time, many third-party C++ libraries for linear
@@ -113,15 +117,15 @@ mapping, and physics-based simulations.
 following in support of adding linear algebra to the C++ Standard
 Library:
 
-* P0939 calls out "Support for demanding applications in important
+* P0939R0 calls out "Support for demanding applications in important
   application areas, such as medical, finance, automotive, and games
   (e.g., key libraries...)" as an area of general concern that "we
   should not ignore."  All of these areas depend on linear algebra.
 
 * "Is my proposal essential for some important application domain?"
-  Large and small private companies, national laboratories, and
-  academics all depend on linear algebra for multiple application
-  domains.
+  Many large and small private companies, science and engineering
+  laboratories, and academics in many different fields all depend on
+  linear algebra.
 
 * "We need better support for modern hardware": Modern hardware spends
   many of its cycles in linear algebra.  For decades, hardware
@@ -129,8 +133,8 @@ Library:
   continue to provide features specifically to accelerate linear
   algebra operations.  For example, SIMD (single instruction multiple
   data) is a feature added to processors to speed up matrix and vector
-  operations.  [P0214](wg21.link/p0214), a C++ SIMD library, was voted
-  into the C++20 draft.
+  operations.  [P0214R9](wg21.link/p0214r9), a C++ SIMD library, was
+  voted into the C++20 draft.
 
 Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
@@ -153,6 +157,14 @@ computations end up spending most of their time in optimized dense
 linear algebra functions.  Sparse matrix computations get best
 performance when they spend as much time as possible in dense linear
 algebra.
+
+The C++ Standard Library includes many "mathematical special
+functions" (**[sf.cmath]**), like incomplete elliptic integrals,
+Bessel functions, and other polynomials and functions named after
+various mathematicians.  Any of them comes with its own theory and set
+of applications for which robust and accurate implementations are
+indispensible.  We think that linear algebra operations are at least
+as broadly useful.
 
 ## Why base a C++ linear algebra library on the BLAS?
 
