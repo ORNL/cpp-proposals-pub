@@ -1092,13 +1092,13 @@ to a sequence of dot products.  BLAS 2 and 3 exist in part for this
 reason.
 
 This approach can work well if the set of operations to optimize is
-small.  [CITE: Rich Vuduc's dissertation.]  The opaque interface to
-fused kernels gives developers complete freedom to optimize.  However,
-it also makes the interface bigger and harder to understand.  Users
-may miss optimization opportunities because they failed to read that
-last page of documentation with the fancy fused kernels.  Thus, the
-more general the intended audience for a linear algebra library, the
-less value specialized fused kernels may have.
+small.  (See e.g., Vuduc 2004.)  The opaque interface to fused kernels
+gives developers complete freedom to optimize.  However, it also makes
+the interface bigger and harder to understand.  Users may miss
+optimization opportunities because they failed to read that last page
+of documentation with the fancy fused kernels.  Thus, the more general
+the intended audience for a linear algebra library, the less value
+specialized fused kernels may have.
 
 #### Expression templates?
 
@@ -1372,6 +1372,10 @@ Administration under contract DE-NA0003525.
   in proceedings of the Second International Symposium on Computing in
   Object-Oriented Parallel Environments (ISCOPE) 1998, Santa Fe, NM,
   USA, Dec. 1998.
+
+* R. Vuduc, "Automatic performance tuning of sparse matrix kernels,"
+  PhD dissertation, Electrical Engineering and Computer Science,
+  University of California Berkeley, 2004.
 
 * R. C. Whaley, A. Petitet, and J. Dongarra, "Automated Empirical
   Optimization of Software and the ATLAS Project," Parallel Computing,
