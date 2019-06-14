@@ -1611,42 +1611,43 @@ requirements.
 * Algorithms that have a template parameter named `ExecutionPolicy`
   are parallel algorithms **[algorithms.parallel.defns]**.
 
-* `Scalar` is generally a "numeric" value type.
+* `Scalar` meets the requirements of `SemiRegular<Scalar>`.  (Some
+  algorithms below impose further requirements.)
 
 * `Real` is any of the following types: `float`, `double`, or `long
   double`.
 
-* `in_vector_*_t` is a rank-1 `basic_mdspan` or `basic_mdarray` with a
+* `in_vector_*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with a
   `const` element type.  If the algorithm accesses the object, it will
   do so in read-only fashion.
 
-* `inout_vector_*_t` is a rank-1 `basic_mdspan` or `basic_mdarray`
+* `inout_vector_*_t` is a rank-1 `basic_mdarray` or `basic_mdspan`
   with a non-`const` element type.
 
-* `out_vector_*_t` is a rank-1 `basic_mdspan` or `basic_mdarray` with
+* `out_vector_*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with
   a non-`const` element type.  If the algorithm accesses the object,
   it will do so in write-only fashion.
 
-* `in_matrix_*_t` is a rank-2 `basic_mdspan` or `basic_mdarray` with a
+* `in_matrix_*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with a
   `const` element type.  If the algorithm accesses the object, it will
   do so in read-only fashion.
 
-* `inout_matrix_*_t` is a rank-2 `basic_mdspan` or `basic_mdarray`
+* `inout_matrix_*_t` is a rank-2 `basic_mdarray` or `basic_mdspan`
   with a non-`const` element type.
 
-* `out_matrix_*_t` is a rank-2 `basic_mdspan` or `basic_mdarray` with
+* `out_matrix_*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with
   a non-`const` element type.  If the algorithm accesses the object,
   it will do so in write-only fashion.
 
-* `in_object_*_t` is a rank-1 or rank-2 `basic_mdspan` or
-  `basic_mdarray` with a `const` element type.  If the algorithm
+* `in_object_*_t` is a rank-1 or rank-2 `basic_mdarray` or
+  `basic_mdspan` with a `const` element type.  If the algorithm
   accesses the object, it will do so in read-only fashion.
 
-* `inout_object_*_t` is a rank-1 or rank-2 `basic_mdspan` or
-  `basic_mdarray` of a non-`const` element type.
+* `inout_object_*_t` is a rank-1 or rank-2 `basic_mdarray` or
+  `basic_mdspan` with a non-`const` element type.
 
-* `out_object_*_t` is a rank-1 or rank-2 `basic_mdspan` or
-  `basic_mdarray` of a non-`const` element type.
+* `out_object_*_t` is a rank-1 or rank-2 `basic_mdarray` or
+  `basic_mdspan` with a non-`const` element type.
 
 All functions take "input" (read-only) object parameters by const
 reference (e.g., `const basic_mdspan<...>&` or `const
@@ -1659,8 +1660,10 @@ follows:
 * by nonconst reference if they are `basic_mdarray` (i.e.,
   `basic_mdarray<T, ...>&` for nonconst `T`); or,
 
-* by const reference if they are `basic_mdspan` (i.e., `const
-  basic_mdspan<T, ...>&` for nonconst `T`).
+* by value if they are `basic_mdspan` (i.e., `const basic_mdspan<T,
+  ...>&` for nonconst `T`).
+
+
 
 ### BLAS 1 functions
 
