@@ -1258,10 +1258,10 @@ and/or eager evaluation of subexpressions may be faster in some cases.
 
 This is true not necessarily just for expressions whose computations
 have significant reuse, like matrix-matrix multiply, but also for some
-expressions that ``stream'' through the entries of vectors or
-matrices.  For example, fusing too many loops may thrash the cache or
-cause register spilling, so deciding whether to evaluate eagerly or
-lazily may require hardware-specific information (see e.g., Siek et
+expressions that "stream" through the entries of vectors or matrices.
+For example, fusing too many loops may thrash the cache or cause
+register spilling, so deciding whether to evaluate eagerly or lazily
+may require hardware-specific information (see e.g., Siek et
 al. 2008).  It's possible to encode many such compilation decisions in
 a pure C++ library with architecture-specific parameters.  See, e.g.,
 [this 2013 Eigen
@@ -1301,21 +1301,20 @@ out of this contentious debate.
 Suppose that a linear algebra library implements arithmetic operators
 on matrices, and users write "A * B" for a matrix A of
 `complex<float>`, and a matrix B of `double`.  What should the matrix
-element type of the returned matrix be?  The authors of P1385 assert
-that the returned matrix's element type should be complex double,
-since that would preserve accuracy.  Note that `common_type` does
-*not* preserve accuracy in this case: the `common_type` of
-`complex<float>` and `double` is `complex<float>`.  This is one reason
-why P1385 needs matrix type promotion traits.
+element type of the returned matrix be?  [P1385R1](wg21.link/p1385r1)
+asserts that the returned matrix's element type should be
+`complex<double>`, since that would preserve accuracy.  Note that
+`common_type` does *not* preserve accuracy in this case: the
+`common_type` of `complex<float>` and `double` is `complex<float>`.
+(This is one reason why P1385 needs matrix type promotion traits.)
 
 This issue may arise even if the linear algebra library never needs to
-deduce the return type of an expression.  For example, users may need
-care to avoid undesired promotions or compiler errors, such as mixing
-superficially harmless `double` constants like 1.0 (or integers
-promoted to `double` constants!) with matrices of non-floating-point
-types.  Implementers of mixed-precision libraries also need to watch
-out for bugs that silently reduce precision.  See e.g., [this bug in a
-library to which I
+deduce the return type of an expression.  For example, C++ does not
+define `operator*` for `complex<float>` and `double`.  It's pretty
+easy to get a `double`; consider harmless-looking literal constants
+like 1.0.  Implementers of mixed-precision libraries also need to
+watch out for bugs that silently reduce precision.  See e.g., [this
+issue in a library to which I
 contribute](https://github.com/kokkos/kokkos-kernels/issues/101).
 Internal expressions in implementations may need to deduce
 extended-precision types for intermediate values.  For example, a
@@ -1330,6 +1329,13 @@ implementers of mixed-precision linear algebra need to watch out, and
 implementations will need to consult with SG6 and possibly present new
 proposals there.
 
+The C++ interface we present above mostly avoids this issue, because
+users must explicitly specify the types of output matrices and
+vectors.  The interface does not need to deduce return types; users do
+that manually.  This means that users can do computations in extended
+precision, just by specifying an output type with higher precision
+than the input types.
+
 ### Different interface for some kinds of number types?
 
 Given a generic linear algebra library, users will put all sorts of
@@ -1342,6 +1348,16 @@ that call for linear algebra operations that track underflow and
 overflow?  How would such interfaces integrate with C++ versions of
 libraries like LAPACK?  We are not experts on fixed-point arithmetic;
 for us, these are all open questions.
+
+## Summary
+
+We started with a BLAS library, wrapped it in a C++ interface, and
+gradually adapted the interface for a better fit to C++ idioms.
+Without much effort, this development process fixed some serious
+performance and correctness issues that can arise when calling the
+BLAS from C++.  Our paper D1673R0 proposes a linear algebra library
+for the C++ Standard that takes this approach.  Even if such a library
+never enters the Standard, we think this style of interface is useful.
 
 ## Acknowledgments
 
@@ -1367,6 +1383,10 @@ Administration under contract DE-NA0003525.
   PhD dissertation, Department of Electrical Engineering and Computer
   Science, Massachusetts Institute of Technology, Jun. 2010.
 
+* J. Siek, I. Karlin, and E. Jessup, "Build to order linear algebra
+  kernels," in Proceedings of International Symposium on Parallel and
+  Distributed Processing (IPDPS) 2008, pp. 1-8.
+
 * J. Siek and A. Lumsdaine, "The Matrix Template Library: A Generic
   Programming Approach to High Performance Numerical Linear Algebra,"
   in proceedings of the Second International Symposium on Computing in
@@ -1380,7 +1400,3 @@ Administration under contract DE-NA0003525.
 * R. C. Whaley, A. Petitet, and J. Dongarra, "Automated Empirical
   Optimization of Software and the ATLAS Project," Parallel Computing,
   Vol. 27, No. 1-2, Jan. 2001, pp. 3-35.
-
-* J. Siek, I. Karlin, and E. Jessup, "Build to order linear algebra
-  kernels," in Proceedings of International Symposium on Parallel and
-  Distributed Processing (IPDPS) 2008, pp. 1-8.
