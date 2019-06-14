@@ -851,6 +851,29 @@ the conjugate for accesses outside the triangle.  Perhaps the accessor
 could reverse-engineer this from the 1-D index, but again, this is
 outside of scope for `basic_mdspan`.
 
+A C++ linear algebra library has a few approaches for dealing with this.
+
+1. It could use the layout and accessor types in `basic_mdspan` simply
+   as tags to indicate the matrix "type."  Algortithms could
+   specialize on those tags.
+
+2. It could introduce a hierarchy of higher-level classes for
+   representing linear algebra objects, use `basic_mdspan` (or
+   something like it) underneath, and write algorithms to those
+   higher-level classes.
+
+3. It could imitate the BLAS, by introducing different function names,
+   if the layouts and accessors do not sufficiently describe the
+   arguments.
+
+In our proposal D1673R0, we take Approach 3.  Our view is that a
+BLAS-like interface should be as low-level as possible.  If a
+different library wants to implement a "Matlab in C++," it could then
+build on this low-level library.  We also do not want to pollute
+`basic_mdspan` -- a simple class meant to be easy for the compiler to
+optimize -- with extra baggage for representing what amounts to sparse
+matrices.
+
 ### BLAS General calls for a new mdspan layout
 
 All BLAS matrix types but the Packed types actually assume the same
@@ -878,44 +901,6 @@ However, if the parent matrix is `layout_blas_general<column_major_t>`
 or `layout_blas_general<row_major_t>`, such submatrices always have
 the same layout as their parent matrix.  Algorithms on submatrices may
 thus always assume contiguous access along one dimension.
-
-
-
-
-
-matrix storage format.  The only
-distinctions are what elements of the matrix the corresponding
-algorithms promise to access, and what assumptions the algorithms make
-about the values of entries they do not access.  Only the Packed
-matrix types use a different layout of their elements in memory.
-(We define packed layouts in D1673R0.)
-
-
-
-
-
-Another issue is that some of these layouts are not unique (see
-P0009).  Uniqueness of a layout matters especially for output
-arguments of algorithms.  An algorithm that assumes an output argument
-has unique layout, and writes to all the valid multi-indices of the
-argument, will likely give incorrect results.  (Multiplying all
-elements of a matrix by a scalar is one example.)  There are as many
-possible nonunique mappings as there are noninjective functions from
-index pairs to integer offsets, so it is impractical to make all of
-them work for all output arguments.
-
-Nevertheless, it's helpful to represent all of these matrix type
-options as different layouts, for the following reasons:
-
-* Algorithms can specialize on layout type.  This reduces the number
-  of distinct function names.
-
-* Layouts can permit explicit access to implicitly stored values, like
-  the "other triangle" in symmetric, Hermitian, or triangular matrix
-  types.
-
-In our paper D1673R0, we show how to represent the different BLAS
-matrix types with different layouts.
 
 ## Some remaining performance issues
 
