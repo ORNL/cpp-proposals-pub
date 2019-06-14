@@ -20,9 +20,7 @@ author:
 
 Without `mdarray`, use cases that should be owning are awkward to express:
 
-::: tonytable
-
-### P0009 Only
+**P0009 Only:**
 ```cpp
 void make_random_rotation(mdspan<float, 3, 3> output);
 void apply_rotation(mdspan<float, 3, 3>, mdspan<float, 3>);
@@ -36,7 +34,7 @@ void random_rotate(mdspan<float, dynamic_extent, 3> points) {
 }
 ```
 
-### This Work
+**This Work:**
 ```cpp
 mdarray<float, 3, 3> make_random_rotation();
 void apply_rotation(mdarray<float, 3, 3>, mdspan<float, 3>);
@@ -47,8 +45,6 @@ void random_rotate(mdspan<float, dynamic_extent, 3> points) {
   }
 }
 ```
-
-:::
 
 Particularly for small, fixed-dimension `mdspan` use cases, owning semantics can be a lot more convenient and require a lot less in the way of interprocedural analysis to optimize.
 
@@ -210,7 +206,73 @@ private:
 
 This approach solves many of the problems associated with using the `Container` concept directly.  It is the most flexible and provides the best compatibility with `mdspan`.  This comes at the cost of additional cognitive load, but for now, this appears to be justified, since almost half of the functionality in the above sketch is absent from the container hierarchy:  The `make_accessor_policy()` requirement and the sized, allocator-aware container creation (`create(n, alloc)`) have no analogs in the container concept hierarchy.  Non-allocator-aware creation (`create(n)`) is analogous to sized construction from the sequence container concept, the `data()` method is analogous to `begin()` on the contiguous container concept, and `access(n)` is analogous to `operator[]` or `at(n)` from the optional sequence container requirements.  Based on this analysis, we have decided to pursue a `ContainerPolicy` design that is analogous to `AccessorPolicy` as a starting point, with the option to change direction if a different approach builds more consensus. 
 
-TODO more discussion here
+The specific approach above has the significant drawback that the `ContainerPolicy` is, counterintuitively, an owning abstraction.  We initially explored this direction because it avoids having to provide a `basic_mdarray` constructor that takes both a `Container` and a `ContainerPolicy`, which we felt was a "design smell."  Another alternative along these lines is to make the `basic_mdarray` itself own the container instance and have the `ContainerPolicy` (name subject to bikeshedding; maybe `ContainerFactory` or `ContainerAccessor` is more appropriate?) be a non-owning abstraction that describes the container creation and access.  While this approach leads to an ugly `basic_mdarray(container_type, mapping_type, ContainerPolicy)` constructor, the analog that constructor affords to the `basic_mdspan(pointer, mapping_type, AccessorPolicy)` constructor is a reasonable argument in favor of this design.  Furthermore, this approach affords the opportunity to explore a `ContainerPolicy` design that subsumes `AccessorPolicy`, thus providing the needed conversion to `AccessorPolicy` for the analogous `basic_mdspan` by simple subsumption.  A model of `ContainerPolicy` for this sort of approach might look something like:
+
+```cpp
+template <class ElementType, class Allocator=std::allocator<ElementType>>
+struct vector_container_policy // models ContainerPolicy (and thus AccessorPolicy)
+{
+public:
+  using element_type = ElementType;
+  using container_type = std::vector<ElementType, Allocator>;
+  using allocator_type = typename container_type::allocator_type;
+  using pointer = typename container_type::pointer;
+  using const_pointer = typename container_type::const_pointer;
+  using reference = typename container_type::reference;
+  using const_reference = typename container_type::const_reference;
+  using offset_policy = vector_container_policy<ElementType, Allocator>
+
+  // ContainerPolicy requirements:
+  reference access(container_type& c, ptrdiff_t i) { return c[size_t(i)]; }
+  const_reference access(container_type const& ptrdiff_t i) const { return c[size_t(i)]; }
+
+  // ContainerPolicy requirements (interface for sized construction):
+  container_type create(size_t n) {
+    return container_type(n, element_type{});
+  }
+  container_type create(size_t n, allocator_type const& alloc) {
+    return container_type(n, element_type{}, alloc);
+  }
+
+  // AccessorPolicy requirement:
+  reference access(pointer p, ptrdiff_t i) { return p[i]; }
+  // For the const analog of AccessorPolicy:
+  const_reference access(const_pointer p, ptrdiff_t i) const { return p[i]; }
+
+  // AccessorPolicy requirement:
+  pointer offset(pointer p, ptrdiff_t i) { return p + i; }
+  // For the const analog of AccessorPolicy:
+  const_pointer offset(const_pointer p, ptrdiff_t i) const { return p + i; }
+
+  // AccessorPolicy requirement:
+  element_type* decay(pointer p) { return p; }
+  // For the const analog of AccessorPolicy:
+  const element_type* decay(pointer p) const { return p; }
+
+};
+```
+
+The above sketch makes clear the biggest challenge with this approach: the mismatch in shallow versus deep `const`ness in for an abstractions designed to support `basic_mdspan` and `basic_mdarray`, respectively.  The `ContainerPolicy` concept thus requires additional `const`-qualified overloads of the basis operations.  Moreover, while the `ContainerPolicy` itself can be obtained directly from the corresponding `AccessorPolicy` in the case of the non-`const` method for creating the corresponding `basic_mdspan` (provisionally called `view()`), the `const`-qualified version needs to adapt the policy, since the nested types have the wrong names (e.g., `const_pointer` should be named `pointer` from the perspective of the `basic_mdspan` that the `const`-qualified `view()` needs to return).  This could be fixed without too much mess using an adapter (that does not need to be part of the specification):
+
+```cpp
+template <ContainerPolicy P>
+class __const_accessor_policy_adapter { // models AccessorPolicy
+public:
+  using element_type = add_const_t<typename P::element_type>;
+  using pointer = typename P::const_pointer;
+  using reference = typename P::const_reference;
+  using offset_policy = __const_accessor_policy_adapter<typename P::offset_policy>;
+
+  reference access(pointer p, ptrdiff_t i) { return acc_.access(p, i); }
+  pointer offset(pointer p, ptrdiff_t i) { return acc_.offset(p, i); }
+  element_type* decay(pointer p) { return acc_.decay(p); }
+
+private:
+  [[no_unique_address]] add_const_t<P> acc_;
+};
+```
+
+This approach provides the best analog to the design of `basic_mdspan`, offering the best chance of reducing cognitive load for users already familiar with `basic_mdspan`.  Because of this and the other arguments discussed above, we have decided to proceed with this design for `ContainerPolicy` at this point.
 
 # Synopsis
 
@@ -234,10 +296,13 @@ public:
   
   // Domain and codomain types (unique to basic_mdarray)
   using container_policy = ContainerPolicy;
+  using container_type = typename container_policy::container_type;
   using const_pointer = typename container_policy::const_pointer;
   using const_reference = typename container_policy::const_reference;
-  using view_type = basic_mdspan<element_type, extents_type, layout_type, typename container_policy::accessor_policy_type>;
-  using const_view_type = basic_mdspan<element_type, extents_type, layout_type, typename container_policy::const_accessor_policy_type>;
+  using view_type =
+    basic_mdspan<element_type, extents_type, layout_type, ContainerPolicy>;
+  using const_view_type =
+    basic_mdspan<const element_type, extents_type, layout_type, @_see-below_@>;
 
   // basic_array constructors, assignment, and destructor
   constexpr basic_mdarray() noexcept = default;
@@ -247,24 +312,25 @@ public:
     explicit constexpr basic_mdarray(IndexType... dynamic_extents);
   template<class IndexType, size_t N>
     explicit constexpr basic_mdarray(const array<IndexType, N>& dynamic_extents);
-  constexpr basic_mdarray(const mapping_type& m);
-  constexpr basic_mdarray(const mapping_type& m, const container_policy& a);
-  constexpr basic_mdarray(const mapping_type& m, container_policy&& a);
-  constexpr basic_mdarray(const container_policy& a);
-  constexpr basic_mdarray(container_policy&& a);
-  template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherContainerPolicy>
-    constexpr basic_mdarray(const basic_mdarray<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherContainerPolicy>& other);
-  template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherContainerPolicy>
-    constexpr basic_mdarray(basic_mdarray<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherContainerPolicy>&& other);
+  explicit constexpr basic_mdarray(const container_type& m);
+  explicit constexpr basic_mdarray(container_type&& m);
+  explicit constexpr basic_mdarray(const mapping_type& m);
+  constexpr basic_mdarray(const mapping_type& m, const container_policy& p);
+  constexpr basic_mdarray(const container_type& c, const mapping_type& m, const container_policy& a);
+  constexpr basic_mdarray(container_type&& c, const mapping_type& m, const container_policy& a);
+  template<class ET, class Exts, class LP, class CP>
+    constexpr basic_mdarray(const basic_mdarray<ET, Exts, LP, CP>& other);
+  template<class ET, class Exts, class LP, class CP>
+    constexpr basic_mdarray(basic_mdarray<ET, Exts, LP, CP>&& other);
 
   ~basic_mdarray() = default;
 
   constexpr basic_mdarray& operator=(const basic_mdarray&) noexcept = default;
   constexpr basic_mdarray& operator=(basic_mdarray&&) noexcept = default;
-  template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherContainerPolicy>
-    constexpr basic_mdarray& operator=(const basic_mdarray<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherContainerPolicy>& other) noexcept;
-  template<class OtherElementType, class OtherExtents, class OtherLayoutPolicy, class OtherContainerPolicy>
-    constexpr basic_mdarray& operator=(basic_mdarray<OtherElementType, OtherExtents, OtherLayoutPolicy, OtherContainerPolicy>&& other) noexcept;
+  template<class ET, class Exts, class LP, class CP>
+    constexpr basic_mdarray& operator=(const basic_mdarray<ET, Exts, LP, CP>& other) noexcept;
+  template<class ET, class Exts, class LP, class CP>
+    constexpr basic_mdarray& operator=(basic_mdarray<ET, Exts, LP, CP>&& other) noexcept;
 
   // basic_mdarray mapping domain multidimensional index to access codomain element (also in basic_mdspan)
   constexpr reference operator[](index_type) noexcept;
@@ -305,23 +371,13 @@ public:
   constexpr index_type stride(size_t) const;
 
 private:
-  container_policy c_; // exposition only
-  mapping_type map_; // exposition only
+  container_type c_; // @_exposition only_@
+  mapping_type map_; // @_exposition only_@
+  container_policy cp_; // @_exposition only_@
 };
 ```
 
 
 # Wording
 
-Wording will be added after design review is completed, but most of the challenges associated with wording for `basic_mdarray` have already been solved for [@P0009R9].
-
-
-# References
-
-
-
-
-
-
-
-
+Wording will be added after design review is completed and after wording review is completed for [@P0009R9], but most of the challenges associated with wording for `basic_mdarray` have already been solved in the context of [@P0009R9].
