@@ -2569,11 +2569,12 @@ template<class in_matrix_t,
          class DiagonalStorage,
          class in_object_t,
          class out_object_t>
-void triangular_matrix_solve(in_matrix_t A,
-                             Triangle t,
-                             DiagonalStorage d,
-                             in_object_t b,
-                             out_object_t x);
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_object_t b,
+  out_object_t x);
 
 template<class ExecutionPolicy,
          class in_matrix_t,
@@ -2581,38 +2582,28 @@ template<class ExecutionPolicy,
          class DiagonalStorage,
          class in_object_t,
          class out_object_t>
-void triangular_matrix_solve(ExecutionPolicy&& exec,
-                             in_matrix_t A,
-                             Triangle t,
-                             DiagonalStorage d,
-                             in_object_t b,
-                             out_object_t x);
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_object_t b,
+  out_object_t x);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xTRSV`,
-`xTPSV`, and `xTRSM`.  Thus, they present both BLAS 2 and BLAS 3
-functionality as one interface. --*end note]*
+*[Note:* These functions correspond to the BLAS functions `xTRSV` and
+`xTPSV`. --*end note]*
 
 * *Requires:*
 
-  * If `b.rank()` and `x.rank()` equal 1 and `i,j` is in the domain of
-    `A`, then `i` is in the domain of `x` and `j` is in the domain of
-    `b`.
-
-  * If `b.rank()` and `x.rank()` equal 2, then `x.extent(1)` equals
-    `b.extent(1)`.
-
-  * If `b.rank()` and `x.rank()` equal 2, `x.extent(1) != 0`, and
-    `i,j` is in the domain of `A`, then there exists `k` such that
-    `i,k` is in the domain of `x` and `j,k` is in the domain of `b`.
+  * If `i,j` is in the domain of `A`, then `i` is in the domain of `x`
+    and `j` is in the domain of `b`.
 
 * *Constraints:*
 
   * `A.rank()` equals 2.
 
-  * `b.rank()` equals 1 or 2.
-
-  * `x.rank()` equals `b.rank()`.
+  * `b.rank()` equals 1 and `x.rank()` equals 1.
 
   * `in_matrix_t` either has unique layout, or `layout_blas_packed`
     layout.
@@ -2621,29 +2612,15 @@ functionality as one interface. --*end note]*
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
 
-  * If `b.rank()` equals 1:
+  * If `r` is in the domain of `x` and `b`, then the expression
+    `x(r) = y(r)` is well formed.
 
-    * If `r` is in the domain of `x` and `b`, then the expression
-      `x(r) = y(r)` is well formed.
+  * If `r` is in the domain of `x`, then the expression `x(r) -=
+    A(r,c)*x(c)` is well formed.
 
-    * If `r` is in the domain of `x`, then the expression `x(r) -=
-      A(r,c)*x(c)` is well formed.
-
-    * If `r` is in the domain of `x` and `DiagonalStorage` is
-      `explicit_diagonal_t`, then the expression `x(r) /= A(r,r)` is
-      well formed.
-
-  * If `b.rank()` equals 2:
-
-    * If `r,j` is in the domain of `x` and `b`, then the expression
-      `x(r,j) = y(r,j)` is well formed.
-
-    * If `r,j` and `c,j` are in the domain of `x`, then the expression
-      `x(r,j) -= A(r,c)*x(c,j)` is well formed.
-
-    * If `r,j` is in the domain of `x` and `DiagonalStorage` is
-      `explicit_diagonal_t`, then the expression `x(r,j) /= A(r,r)` is
-      well formed.
+  * If `r` is in the domain of `x` and `DiagonalStorage` is
+    `explicit_diagonal_t`, then the expression `x(r) /= A(r,r)` is
+    well formed.
 
 * *Effects:* Assigns to the elements of `x` the result of solving the
   triangular linear system(s) Ax=b.
@@ -2668,18 +2645,20 @@ functionality as one interface. --*end note]*
 template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t>
-void rank_1_update_u(in_vector_1_t x,
-                     in_vector_2_t y,
-                     inout_matrix_t A);
+void matrix_rank_1_update_u(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
 
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t>
-void rank_1_update_u(ExecutionPolicy&& exec,
-                     in_vector_1_t x,
-                     in_vector_2_t y,
-                     inout_matrix_t A);
+void matrix_rank_1_update_u(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
 ```
 
 *[Note:* This function corresponds to the BLAS functions `xGER` and
@@ -2711,18 +2690,20 @@ void rank_1_update_u(ExecutionPolicy&& exec,
 template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t>
-void rank_1_update_c(in_vector_1_t x,
-                     in_vector_2_t y,
-                     inout_matrix_t A);
+void matrix_rank_1_update_c(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
 
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t>
-void rank_1_update_c(ExecutionPolicy&& exec,
-                     in_vector_1_t x,
-                     in_vector_2_t y,
-                     inout_matrix_t A);
+void matrix_rank_1_update_c(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
 ```
 
 *[Note:* This function corresponds to the BLAS functions `xGER` and
@@ -3310,7 +3291,6 @@ void hermitian_matrix_product(
   out_matrix_t C);
 ```
 
-
 * *Requires:*
 
   * `C` and `E` have the same domain.
@@ -3351,7 +3331,7 @@ template<class in_matrix_1_t,
          class in_matrix_2_t,
          class inout_matrix_t,
          class Triangle>
-void symmetric_rank_2k_update(
+void symmetric_matrix_rank_2k_update(
   in_matrix_1_t A,
   in_matrix_2_t B,
   inout_matrix_t C,
@@ -3362,7 +3342,7 @@ template<class ExecutionPolicy,
          class in_matrix_2_t,
          class inout_matrix_t,
          class Triangle>
-void symmetric_rank_2k_update(
+void symmetric_matrix_rank_2k_update(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   in_matrix_2_t B,
@@ -3411,7 +3391,7 @@ template<class in_matrix_1_t,
          class in_matrix_2_t,
          class inout_matrix_t,
          class Triangle>
-void hermitian_rank_2k_update(
+void hermitian_matrix_rank_2k_update(
   in_matrix_1_t A,
   in_matrix_2_t B,
   inout_matrix_t C,
@@ -3422,7 +3402,7 @@ template<class ExecutionPolicy,
          class in_matrix_2_t,
          class inout_matrix_t,
          class Triangle>
-void hermitian_rank_2k_update(
+void hermitian_matrix_rank_2k_update(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   in_matrix_2_t B,
@@ -3465,6 +3445,90 @@ void hermitian_rank_2k_update(
   indices `i,j` outside that triangle, that `C(j,i)` equals
   `conj(C(i,j))`.
 
+### Solve multiple triangular linear systems with the same matrix
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_object_t B,
+  out_object_t X);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_object_t B,
+  out_object_t X);
+```
+
+*[Note:* These functions correspond to the BLAS function `xTRSM`.  The
+Reference BLAS does not have a `xTPSM` function. --*end note]*
+
+* *Requires:*
+
+  * `X.extent(1)` equals `B.extent(1)`.
+
+  * If `X.extent(1) != 0` and `i,j` is in the domain of `A`, then
+    there exists `k` such that `i,k` is in the domain of `X` and `j,k`
+    is in the domain of `B`.
+
+* *Constraints:*
+
+  * `A.rank()` equals 2, `B.rank()` equals 2, and `X.rank()` equals 2.
+
+  * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
+    layout.
+
+  * `in_matrix_2_t` and `out_matrix_t` have unique layout.
+
+  * If `r,j` is in the domain of `X` and `B`, then the expression
+    `X(r,j) = B(r,j)` is well formed.
+
+  * If `r,j` and `c,j` are in the domain of `X`, then the expression
+    `X(r,j) -= A(r,c)*X(c,j)` is well formed.
+
+  * If `r,j` is in the domain of `X` and `DiagonalStorage` is
+    `explicit_diagonal_t`, then the expression `X(r,j) /= A(r,r)` is
+    well formed.
+
+* *Effects:*
+
+  * If `Side` is `left_side_t`, then assigns to the elements of `X`
+    the result of solving the triangular linear system(s) AX=B for X.
+
+  * If `Side` is `right_side_t`, then assigns to the elements of `X`
+    the result of solving the triangular linear system(s) XA=B for X.
+
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
+
+  * If the `DiagonalStorage` template argument has type
+    `implicit_unit_diagonal_t`, then the functions will not access the
+    diagonal of `A`, and will assume that that the diagonal elements
+    of `A` all equal one. *[Note:* This does not imply that the
+    function needs to be able to form an `element_type` value equal to
+    one. --*end note]
+
 ## Examples
 
 ```c++
@@ -3495,15 +3559,6 @@ matrix_vector_product(par, scaled_view(3.0, A), x,
 
 // y = transpose(A) * x;
 matrix_vector_product(par, transpose_view(A), x, y);
-
-// Create matrix
-matrix_t D = ...;
-
-// View D's upper triangle as a representation of a
-// symmetric matrix, and perform a matrix-vector product
-// with the resulting symmetric matrix.
-matrix_vector_product(par, symmetric_view(A, upper_triangle),
-                      x, y);
 ```
 
 ## Batched BLAS
