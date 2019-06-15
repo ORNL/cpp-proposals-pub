@@ -3520,12 +3520,16 @@ This is a preliminary proposal.  Besides the usual bikeshedding, we
 also want to present more broad options for voting.  Here is a list;
 we will explain each option below.
 
-1. Omit vector-vector operations in favor of existing C++ Standard algorithms?
+1. Omit vector-vector operations in favor of existing C++ Standard
+   algorithms?
+
 2. Retain "view" functions (modest expression templates)?
-3. `triangular_view` redefines `mdspan` "domain"; what to do?
-4. Combine functions that differ only by rank of arguments?
-5. Prefer overloads to different function names?
-6. Retain existing BLAS behavior for scalar multipliers?
+
+3. Combine functions that differ only by rank of arguments?
+
+4. Prefer overloads to different function names?
+
+5. Retain existing BLAS behavior for scalar multipliers?
 
 ### Omit vector-vector operations in favor of existing C++ Standard algorithms?
 
@@ -3534,9 +3538,9 @@ Annex C of the BLAS Standard offers a "Thin BLAS" option for Fortran
 Fortran 95 comes with dot products and other vector operations built
 in, so the "Thin BLAS" only retains four "BLAS 1" functions: `SWAP`,
 `ROT`, `NRM2`, and `ROTG`.  By analogy with the "Thin BLAS," we could
-offer a much more limited set of functions, by relying on
-functionality either already in C++, or likely to enter C++ soon.  For
-example, if we defined iterators for rank-1 `mdspan` and `mdarray`, we
+reduce the number of new functions, by relying on functionality either
+already in C++, or likely to enter C++ soon.  For example, if we
+defined iterators for rank-1 `basic_mdspan` and `basic_mdarray`, we
 could rely on `transform` and `transform_reduce` for most of the
 vector-vector operations.
 
@@ -3546,7 +3550,7 @@ natural to implement using `transform` or `transform_reduce`.  They
 are also more likely to get performance benefits from specialized
 implementations.
 
-Here are arguments for this approach:
+Here are arguments _for_ this approach:
 
 1. It reduces the number of new functions.
 
@@ -3556,29 +3560,42 @@ Here are arguments for this approach:
 3. If a hypothetical "parallel Ranges" enters the Standard, it could
    cover many of the use cases for parallel vector-vector operations.
 
-Here are arguments against this approach:
+Here are arguments _against_ this approach:
 
-1. Some of our "vector-vector" operations are actually "object-object"
-   operations that work for matrices too.  Replacing those with
-   existing Standard algorithms would call for iterators on matrices.
-
-2. It takes some effort to implement correct and accurate vector
+1. It takes some effort to implement correct and accurate vector
    norms.  Compare to [POSIX requirements for
    `hypot`](http://pubs.opengroup.org/onlinepubs/9699919799/functions/hypot.html).
    If `hypot` is in the Standard, then perhaps norms should also be.
 
-3. It's easier to apply hardware-specific optimizations to
+2. In general, a linear algebra library can make more specific
+   statements about the precision at which output arguments are
+   computed.
+
+3. Some of our "vector-vector" operations are actually "object-object"
+   operations that work for matrices too.  Replacing those with
+   existing Standard algorithms would call for iterators on matrices.
+
+4. It's easier to apply hardware-specific optimizations to
    vector-vector operations if they are exposed as such.
 
-4. Exposing a full linear algebra interface would give implementers
+5. Exposing a full linear algebra interface would give implementers
    the option to use extended-precision or even reproducible
    floating-point arithmetic for all linear algebra operations.  This
    can be useful for debugging complicated algorithms.  Compare to
    "checked iterator" debug options for the C++ Standard Library.
 
-5. It helps to have linear algebra names for linear algebra
+6. It helps to have linear algebra names for linear algebra
    operations.  For example, `string` still exists, even though much
    of its functionality is covered by `vector<char>`.
+
+_Our preference_:
+
+* We would prefer a complete BLAS-like library, but if we had to give
+  up some BLAS 1 functions, we would prefer to keep at least the
+  vector norms.
+
+* We think that iterators are not always the right way to access
+  multidimensional objects.
 
 ### Retain "view" functions (modest expression templates)?
 
@@ -3587,7 +3604,8 @@ and `conjugate_transpose_view` use `mdspan` accessors to implement a
 modest form of expression templates.  We say "modest" because they
 mitigate several known issues with expression templates:
 
-1. They do not introduce ADL-accessible arithmetic operators.
+1. They do not introduce ADL-accessible arithmetic operators on
+   matrices or vectors.
 
 2. If used with `mdspan`, then they would not introduce any more
    dangling references than `span` (**[views.span]**) would introduce.
@@ -3596,91 +3614,55 @@ mitigate several known issues with expression templates:
    arguments, discourages capture as `auto` (which may result in
    unexpectedly dangling references).
 
-The functions have the following other advantages:
+The functions have the following other _advantages_:
 
 1. They reduce the number of linear algebra function arguments.
 
-2. They only create read-only views.  This avoids potential confusion
-   with what it means to write to, e.g., a "scaled object" (does it
-   multiply the input, ignore it, or divide by it?).
-
-3. They simplify native C++ implementations, especially for BLAS 1 and
+2. They simplify native C++ implementations, especially for BLAS 1 and
    BLAS 2 functions that do not need complicated optimizations in
    order to get reasonable performance.
 
-However, the functions have the following disadvantages:
+However, the functions have the following _disadvantages_:
 
 1. They would be the first instance of required expression templates
    in the C++ Standard Library.  (`valarray` in **[valarray.syn]**
    permits but does not require expression templates.)
 
-2. When applied to an `mdarray`, the functions could introduce
+2. When applied to a `basic_mdarray`, the functions could introduce
    dangling references.  Compare to `gslice_array` for `valarray`.
 
-3. When applied to an `mdarray`, the functions turn the `mdarray` into
-   an `mdspan`.  This could introduce (modest) overhead for very small
-   vectors or matrices.
+3. If users can "tag" a matrix with a scaling factor or the transpose
+   property, why can't they "tag" the matrix with other properties,
+   like symmetry?  That suggests a design in which function parameters
+   are generic "things," convertible to `basic_mdspan` or
+   `basic_mdarray`, with properties (in the sense of
+   [P0939R0](wg21.link/p0939r0)) that the function can query.
 
 Here are the options:
 
-1. Keep "view" functions.
+1. Keep existing "view" functions.
 
-2. Drop "view" functions.  Retain tags and `constexpr` tag values; use
-   them as function arguments to algorithms.
+2. Add a general property tagging mechanism, so users can tag a matrix
+   with mathematical properties like "symmetric," "Hermitian," or
+   "triangular."  Use this mechanism to pass assumptions into
+   functions, and eliminate `symmetric_*`, `hermitian_*`, and (in some
+   cases) `triangular_*` versions of functions.
 
-### `triangular_view` redefines `mdspan` "domain"; what to do?
+3. Drop "view" functions.  Specify scaling, transpose, and conjugation
+   as function parameters.
 
-The `triangular_view` function returns an `basic_mdspan`.  However,
-its "domain" -- the set of its valid index pairs `i,j` -- does not, in
-general, include all pairs in the Cartesian product of its extents.
-This differs from the definition of *domain* in
-[P0009](wg21.link/p0009).  In what follows, we will call this an
-*incomplete domain*.
+_Our preference_: Option 1 (retain existing "view" functions).
 
-It may help to compare this with sparse matrix data structures,
-especially the class of sparse matrix data structures that forbid
-"structure changes."  The sparse matrix comes with a set of
-multi-indices -- the "populated elements" P -- that is a subset of the
-Cartesian product of extents E.  At all multi-indices in E but not in
-P, the matrix elements are zero.  Users may read from them, but not
-write to them.
+Option 2 is interesting but would add a lot of complication.  Would we
+let users customize properties?  Algorithms could never be made
+generic on arbitrary mathematical properties of matrices.  This is
+also closer to the high-level interface -- "Matlab in C++" -- that is
+_not_ our target for this proposal.  In addition, Option 2 would
+generalize well beyond what the BLAS does.  For example, the BLAS'
+`xSYMM` (symmetric matrix-matrix multiply) only specifies that one of
+the input matrices is symmetric.
 
-We could design the unpacked layout `layout_blas_triangular` in the
-same way, by having its mapping and accessor return zero values for
-index pairs not in the triangle.  The mapping would map index pairs
-not in the triangle to some flag value that the accessor would
-interpret as "return a read-only zero value."  This would take extra
-machinery and overhead in the accessor (a different `reference_type`
-with a branch inside), but it's possible.  Just like with
-`layout_blas_symmetric`, algorithms could avoid this overhead by
-extracting the "base layout" but respecting the triangular
-assumptions.
-
-The packed layouts do not have this issue.  All index pairs in the
-Cartesian product of the extents map (nonuniquely) to a valid index in
-the codomain.  For index pairs outside the triangle, the codomain
-index is wrong, but it's still valid.
-
-Here are options for addressing this issue.  We order them by our
-decreasing preference.
-
-1. Add a new "incomplete" category of layout mapping policy to the
-   categories in P0009.  Forbid users of `layout_blas_triangular` (and
-   possibly also `layout_blas_symmetric`) layouts from accessing index
-   pairs outside the layout's triangle.  The layouts will not remap
-   forbidden indices.
-
-2. Add a new "incomplete" category of layout mapping policy to the
-   categories in P0009.  Make `layout_blas_triangular` return
-   unwriteable zero (whatever that means) for index pairs outside the
-   triangle.  Algorithms may get the "base layout" to avoid index
-   remapping and accessor overhead.
-
-3. Change the algorithms to take "triangle" and "diagonal storage"
-   information as separate arguments.  Do not redefine *domain*.
-
-We do not prefer (3), because (1) and (2) open the door to future
-expansion of matrix storage formats.
+We would prefer Option 3 over Option 2.
 
 ### Combine functions that differ only by rank of arguments?
 
@@ -3690,10 +3672,10 @@ when (the Fortran 95 equivalent of) overloads could express the same
 idea.  There are two parts to this:
 
 1. Combine functions that differ only by rank of arguments.
-2. Combine functions that differ only by layout of output arguments.
 
-We only recommend the first part.  The second part has pitfalls that
-we will describe below.
+2. Combine functions that differ only by matrix "type."
+
+The second part especially has pitfalls that we will describe below.
 
 As an example of the first part, the BLAS functions `xSYRK` and
 `xSYR1` differ only by rank of their input arguments.  Both perform a
@@ -3708,30 +3690,38 @@ the case where a "matrix" argument to a BLAS 3 function like `xGEMM`
 has only one column, and thus the function could dispatch to a BLAS 2
 function like `xGEMV`.)
 
-Here are arguments for this approach:
+Here are arguments _for_ this approach:
 
 1. It reduces the number of new functions.
 
 2. Implementations could identify all special cases at compile time.
 
-Here are arguments against this approach:
+Here are arguments _against_ this approach:
 
 1. It adds special cases to implementations.
 
-As an example of the second part, the BLAS functions `xGEMM` and
-`xSYRK` differ mostly just by layout of output arguments.  `xGEMM`
-computes the matrix-matrix product update `C := alpha * A * B + beta *
-C`.  `xSYRK` computes the symmetric matrix-matrix product update `C :=
-alpha * A * A^T + beta * C`, where `C` is assumed to be symmetric and
-the algorithm only accesses either the upper or lower triangle of `C`.
-We could express both algorithms in a single function `gemm`, where
-`C` on input and output has the appropriate symmetric layout (see
-`layout_blas_symmetric` above).  However, this approach easily leads
-to unexpected behavior.  For example, what if `C` has a symmetric
-layout and `A * B` is nonsymmetric, but users request to compute `C :=
-A * B`?  The result `C` would be mathematically incorrect, even though
-it would retain symmetry.  For this reason, we recommend against
-combining functions in this way.
+2. It's easy to make mistakes: for example, `xTRMV` and `xTRMM` differ
+   by `SIDE` argument.  Combining them while ignoring `SIDE` would
+   lose use cases.
+
+3. It calls for a "tagging matrices with properties" mechanism that we
+   rejected above.
+
+For instance, the BLAS functions `xGEMM` and `xSYRK` appear to differ
+just by assumptions on their output argument.  `xGEMM` computes the
+matrix-matrix product update `C := alpha * A * B + beta * C`, and
+assumes that `C` has the General BLAS matrix "type."  `xSYRK` computes
+the symmetric matrix-matrix product update `C := alpha * A * A^T +
+beta * C`, where `C` is assumed to be symmetric and the algorithm only
+accesses either the upper or lower triangle of `C`.  If users could
+"tag" `C` as symmetric, then it seems like we could express both
+algorithms as a single function `gemm`.  However, this approach easily
+leads to unexpected behavior.  What if `C` has a symmetric layout and
+`A * B` is nonsymmetric, but users request to compute `C := A * B`?
+The result `C` would be mathematically incorrect, even though it would
+retain symmetry.
+
+_Our preference_: Do not combine functions in this way.
 
 ### Retain existing BLAS behavior for scalar multipliers?
 
@@ -3741,7 +3731,9 @@ matrix-matrix multiply update `C := alpha * A * B + beta * C` does not
 compute `A*B` if `alpha` is zero, and treats `C` as write only if
 `beta` is zero.  We propose to change this behavior by always
 performing the requested operation, regardless of the values of any
-scalar multipliers.  This has the following advantages:
+scalar multipliers.
+
+This has the following _advantages_:
 
 1. It removes special cases.
 
@@ -3750,7 +3742,7 @@ scalar multipliers.  This has the following advantages:
 
 3. It does not privilege floating-point element types.
 
-However, it has the following disadvantages:
+However, it has the following _disadvantages_:
 
 1. Implementations based on an existing BLAS library must
    "double-check" scaling factors.  If any is zero, the implementation
@@ -3761,12 +3753,15 @@ However, it has the following disadvantages:
 
 2. Users may expect BLAS semantics in a library that imitates BLAS
    functionality.  These users will get unpleasantly surprising
-   results (like `Inf` or `NaN` instead of zero).
+   results (like `Inf` or `NaN` instead of zero, if they set `alpha=0`
+   and assume short circuiting).
 
-We mitigate these disadvantages by offering both write-only and
-read-and-write versions of algorithms like `matrix_product`, whose
-BLAS versions take a `beta` argument.  In our experience using the
-BLAS, users are more likely to expect that setting `beta=0` causes
+_Our preference_: Remove the special short-circuiting cases.
+
+We mitigate the disadvantages by offering both write-only and
+read-and-write versions of algorithms like matrix-matrix multiply,
+whose BLAS versions take a `beta` argument.  In our experience using
+the BLAS, users are more likely to expect that setting `beta=0` causes
 write-only behavior.  Thus, if the interface suggests write-only
 behavior, users are less likely to be unpleasantly surprised.
 
@@ -3777,6 +3772,11 @@ operated by National Technology & Engineering Solutions of Sandia,
 LLC, a wholly owned subsidiary of Honeywell International, Inc., for
 the U.S. Department of Energy’s National Nuclear Security
 Administration under contract DE-NA0003525.
+
+Special thanks to Bob Steagall and Guy Davidson for boldly leading the
+charge to add linear algebra to the C++ Standard Library, and for many
+fruitful discussions.  Thanks also to Andrew Lumsdaine for his
+pioneering efforts and history lessons.
 
 ## References by coathors
 
