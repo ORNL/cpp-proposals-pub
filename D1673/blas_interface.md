@@ -2352,7 +2352,8 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+  indices `i,j` outside that triangle, that `A(j,i)` equals
+  `conj(A(i,j))`.
 
 #### Overwriting matrix-vector product
 
@@ -2861,7 +2862,7 @@ template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t,
          class Triangle>
-void symmetric_rank_2_update(
+void symmetric_matrix_rank_2_update(
   in_vector_1_t x,
   in_vector_2_t y,
   inout_matrix_t A,
@@ -2872,7 +2873,7 @@ template<class ExecutionPolicy,
          class in_vector_2_t,
          class inout_matrix_t,
          class Triangle>
-void symmetric_rank_2_update(
+void symmetric_matrix_rank_2_update(
   ExecutionPolicy&& exec,
   in_vector_1_t x,
   in_vector_2_t y,
@@ -2912,6 +2913,10 @@ void symmetric_rank_2_update(
   and the (outer) product of `y` and the (non-conjugated) transpose of
   `x`.
 
+* *Remarks:* The functions will only access the triangle of `A`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+
 ### Rank-2 update of a Hermitian matrix
 
 ```c++
@@ -2919,7 +2924,7 @@ template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t,
          class Triangle>
-void hermitian_rank_2_update(
+void hermitian_matrix_rank_2_update(
   in_vector_1_t x,
   in_vector_2_t y,
   inout_matrix_t A,
@@ -2930,7 +2935,7 @@ template<class ExecutionPolicy,
          class in_vector_2_t,
          class inout_matrix_t,
          class Triangle>
-void hermitian_rank_2_update(
+void hermitian_matrix_rank_2_update(
   ExecutionPolicy&& exec,
   in_vector_1_t x,
   in_vector_2_t y,
@@ -2968,6 +2973,11 @@ void hermitian_rank_2_update(
 * *Effects:* Assigns to `A` on output the sum of `A` on input, the
   (outer) product of `x` and the conjugate transpose of `y`, and the
   (outer) product of `y` and the conjugate transpose of `x`.
+
+* *Remarks:* The functions will only access the triangle of `A`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `A(j,i)` equals
+  `conj(A(i,j))`.
 
 ## BLAS 3 functions
 
@@ -3072,119 +3082,142 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-*[Note:* Implementers may wish to give users control over whether the
-matrix product uses a Strassen-type algorithm.  One way they could do
-so is by letting users annotate the execution policy argument, for
-example, using the [Properties mechanism in P1393](wg21.link/p1393).
---*end note]*
+### Rank-2k update of a symmetric or Hermitian matrix
 
-### Rank-k update of a Symmetric or Hermitian matrix
+*[Note:* Users can achieve the effect of the `TRANS` argument of these
+BLAS functions, by making `C` a `transpose_view` or
+`conjugate_transpose_view`. --*end note]*
 
-```c++
-template<class in_matrix_t,
-         class inout_matrix_t>
-void rank_k_update(in_matrix_t A,
-                   inout_matrix_t C);
-
-template<class ExecutionPolicy,
-         class in_matrix_t,
-         class inout_matrix_t>
-void rank_k_update(ExecutionPolicy&& exec,
-                   in_matrix_t A,
-                   inout_matrix_t C);
-```
-
-*[Note:* These functions correspond to the BLAS functions `xHERK`
-and `xSYRK`. --*end note]*
-
-* *Requires:* If `i,j` is in the domain of `C`, then there
-  exists `k` such that `i,k` and `j,k` are in the domain of `A`.
-
-* *Constraints:*
-
-  * `A.rank()` equals 2 and `C.rank()` equals 2.
-
-  * `C` has a symmetric or Hermitian layout.
-
-  * If `C` has a symmetric layout, then for `i,j` in the domain of `C`
-    and `i,k` and `j,k` in the domain of `A`, the expression `C(i,j)
-    += A(i,k)*A(j,k)` is well formed.
-
-  * If `C` has a Hermitian layout, then for `i,j` in the domain of `C`
-    and `i,k` and `j,k` in the domain of `A`, the expression `C(i,j)
-    += A(i,k)*conj(A(j,k))` is well formed.
-
-* *Effects*:
-
-  * If `C` has a symmetric layout, then updates `C` with the matrix
-    product of A and the non-conjugated transpose of A.
-
-  * If `C` has a Hermitian layout, then updates `C` with the matrix
-    product of A and the conjugate transpose of A.
-
-*[Note:* Users who want to perform a rank-k update of a nonsymmetric
-matrix `C` may use `matrix_product`. --*end note]*
-
-### Rank-2k update of a Symmetric or Hermitian matrix
+#### Rank-2k update of a symmetric matrix
 
 ```c++
 template<class in_matrix_1_t,
          class in_matrix_2_t,
-         class inout_matrix_t>
-void rank_2k_update(in_matrix_1_t A,
-                    in_matrix_2_t B,
-                    out_matrix_t C);
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_rank_2k_update(
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
 
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class in_matrix_2_t,
-         class inout_matrix_t>
-void rank_2k_update(ExecutionPolicy&& exec,
-                    in_matrix_1_t A,
-                    in_matrix_2_t B,
-                    out_matrix_t C);
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_rank_2k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xHER2K`
-and `xSYR2K`. --*end note]*
+*[Note:* These functions correspond to the BLAS function `xSYR2K`.
+The BLAS "quick reference" has a typo; the "ALPHA" argument of
+`CSYR2K` and `ZSYR2K` should not be conjugated.  --*end note]*
 
-* *Requires:* If `i,j` is in the domain of `C`, then there exists `k`
-  such that `i,k` and `j,k` are in the domain of `A`, and `j,k` and
-  `i,k` are in the domain of `B`.
+* *Requires:*
+
+  * The matrix `C` has either Symmetric or Symmetric Packed "type" in
+    BLAS terms.
+
+  * If `i,j` is in the domain of `C`, then there exists `k` such that
+    `i,k` and `j,k` are in the domain of `A`, and `j,k` and `i,k` are
+    in the domain of `B`.
 
 * *Constraints:*
 
   * `A.rank()` equals 2, `B.rank()` equals 2, and
     `C.rank()` equals 2.
 
-  * `C` has a symmetric or Hermitian layout.
+  * `C` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `C` has a symmetric layout, then for `i,j` in the domain of
-    `C`, `i,k` and `k,i` in the domain of `A`, and `j,k` and `k,j` in
-    the domain of `B`, the expression `C(i,j) += A(i,k)*B(j,k) +
-    B(i,k)*A(j,k)` is well formed.
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
-  * If `C` has a Hermitian layout, then for `i,j` in the domain of
-    `C`, `i,k` and `k,i` in the domain of `A`, and `j,k` and `k,j` in
-    the domain of `B`, the expression `C(i,j) += A(i,k)*conj(B(j,k)) +
-    B(i,k)*conj(A(j,k))` is well formed.
+  * If `C` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
 
-* *Effects*:
+  * For `i,j` in the domain of `C`, `i,k` and `k,i` in the domain of
+    `A`, and `j,k` and `k,j` in the domain of `B`, the expression
+    `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)` is well formed.
 
-  * If `C` has a symmetric layout, then updates `C` with the sum of
-    (the matrix product of A and the non-conjugated transpose of B),
-    and (the matrix product of B and the non-conjugated transpose of
-    A.)
+* *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
+  input with (the matrix product of `A` and the non-conjugated
+  transpose of `B`) and (the matrix product of `B` and the
+  non-conjugated transpose of `A`.)
 
-  * If `C` has a Hermitian layout, then updates `C` with the sum of
-    (the matrix product of A and the conjugate transpose of B), and
-    (the matrix product of B and the conjugate transpose of A.)
+* *Remarks:* The functions will only access the triangle of `C`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-*[Note:* Users can achieve the effect of the `TRANS` argument of these
-BLAS functions, by making `C` a `transpose_view`. --*end note]*
+#### Rank-2k update of a Hermitian matrix
 
-*[Note:* The BLAS "quick reference" has a typo; the "ALPHA" argument
-of `CSYR2K` and `ZSYR2K` should not be conjugated. --*end note]*
+```c++
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_rank_2k_update(
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_rank_2k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+```
+
+*[Note:* These functions correspond to the BLAS function `xHER2K`.
+--*end note]*
+
+* *Requires:*
+
+  * The matrix `C` has either Hermitian or Hermitian Packed "type" in
+    BLAS terms.
+
+  * If `i,j` is in the domain of `C`, then there exists `k` such that
+    `i,k` and `j,k` are in the domain of `A`, and `j,k` and `i,k` are
+    in the domain of `B`.
+
+* *Constraints:*
+
+  * `A.rank()` equals 2, `B.rank()` equals 2, and
+    `C.rank()` equals 2.
+
+  * `C` either has unique layout, or `layout_blas_packed` layout.
+
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+  * If `C` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
+
+  * For `i,j` in the domain of `C`, `i,k` and `k,i` in the domain of
+    `A`, and `j,k` and `k,j` in the domain of `B`, the expression
+    `C(i,j) += A(i,k)*conj(B(j,k)) + B(i,k)*conj(A(j,k))` is well
+    formed.
+
+* *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
+  input with (the matrix product of `A` and the conjugate transpose of
+  `B`) and (the matrix product of `B` and the conjugate transpose of
+  `A`.)
+
+* *Remarks:* The functions will only access the triangle of `C`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `C(j,i)` equals
+  `conj(C(i,j))`.
 
 ## Examples
 
