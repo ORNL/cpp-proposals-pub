@@ -22,6 +22,8 @@
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
+## Date: 2019-06-17
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra

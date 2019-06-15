@@ -1,12 +1,12 @@
 # D1674R0: Evolving a Standard C++ Linear Algebra Library from the BLAS
 
-## Authors:
+## Authors
 
 * Mark Hoemmen (mhoemme@sandia.gov) (Sandia National Laboratories)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 
-* 17 June 2019
+## Date: 2019-06-17
 
 ## Introduction
 
