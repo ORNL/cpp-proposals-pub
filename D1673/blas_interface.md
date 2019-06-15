@@ -2466,7 +2466,6 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-
 #### Overwriting matrix-vector product
 
 ```c++
@@ -2550,26 +2549,37 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 
 ```c++
 template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
          class in_object_t,
          class out_object_t>
-void matrix_triangular_solve(in_matrix_t A,
+void triangular_matrix_solve(in_matrix_t A,
+                             Triangle t,
+                             DiagonalStorage d,
                              in_object_t b,
                              out_object_t x);
 
 template<class ExecutionPolicy,
          class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
          class in_object_t,
          class out_object_t>
-void matrix_triangular_solve(ExecutionPolicy&& exec,
+void triangular_matrix_solve(ExecutionPolicy&& exec,
                              in_matrix_t A,
+                             Triangle t,
+                             DiagonalStorage d,
                              in_object_t b,
                              out_object_t x);
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xTRSV`,
-`xTBSV`, `xTPSV`, and `xTRSM`. --*end note]*
+`xTPSV`, and `xTRSM`. --*end note]*
 
 * *Requires:*
+
+  * The matrix `A` has either Triangular or Triangular Packed "type"
+    in BLAS terms.
 
   * If `b.rank()` and `x.rank()` equal 1, then if `i,j` is in the
     domain of `A`, then `i` is in the domain of `x` and `j` is
@@ -2591,28 +2601,56 @@ void matrix_triangular_solve(ExecutionPolicy&& exec,
 
   * `x.rank()` equals `b.rank()`.
 
-  * `A` has triangular layout.
+  * `in_matrix_t` either has unique layout, or `layout_blas_packed`
+    layout.
+
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+  * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
+    `explicit_diagonal_t`.
+
+  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+    layout's `Triangle` template argument has the same type as
+    the function's `Triangle` template argument.
 
   * If `b.rank()` equals 1:
 
     * If `r` is in the domain of `x` and `b`, then the expression
       `x(r) = y(r)` is well formed.
 
-    * If `A` has implicit unit diagonal layout and `r` is in the
-      domain of `x`, then the expression `x(r) -= A(r,c)*x(c)` is well
-      formed.
+    * If `r` is in the domain of `x`, then the expression `x(r) -=
+      A(r,c)*x(c)` is well formed.
+
+    * If `r` is in the domain of `x` and `DiagonalStorage` is
+      `explicit_diagonal_t`, then the expression `x(r) /= A(r,r)` is
+      well formed.
 
   * If `b.rank()` equals 2:
 
     * If `r,j` is in the domain of `x` and `b`, then the expression
       `x(r,j) = y(r,j)` is well formed.
 
-    * If `A` has implicit unit diagonal layout and `r,j` and `c,j` are
-      in the domain of `x`, then the expression `x(r,j) -=
-      A(r,c)*x(c,j)` is well formed.
+    * If `r,j` and `c,j` are in the domain of `x`, then the expression
+      `x(r,j) -= A(r,c)*x(c,j)` is well formed.
+
+    * If `r,j` is in the domain of `x` and `DiagonalStorage` is
+      `explicit_diagonal_t`, then the expression `x(r,j) /= A(r,r)` is
+      well formed.
 
 * *Effects:* Assigns to the elements of `x` the result of solving the
   triangular linear system(s) Ax=b.
+
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
+
+  * If the `DiagonalStorage` template argument has type
+    `implicit_unit_diagonal_t`, then the functions will not access the
+    diagonal of `A`, and will assume that that the diagonal elements
+    of `A` all equal one. *[Note:* This does not imply that the
+    function needs to be able to form an `element_type` value equal to
+    one. --*end note]
 
 ### Rank-1 update of a matrix
 
