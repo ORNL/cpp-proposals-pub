@@ -2,15 +2,16 @@
 
 ## Authors
 
-* Peter Caday (peter.caday@intel.com) (Intel)
 * Mark Hoemmen (mhoemme@sandia.gov) (Sandia National Laboratories)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
+* Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
+* Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
+* Peter Caday (peter.caday@intel.com) (Intel)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
 * Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
 * Sarah Knepper (sarah.knepper@intel.com) (Intel)
-* Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 
 ## Contributors
 
@@ -53,7 +54,7 @@ Our proposal also has the following distinctive characteristics:
 * It uses free functions, not arithmetic operator overloading.
 
 * It uses the multidimensional array data structures
-  [`basic_mdspan`](wg21.link/p0009) and `basic_mdarray` (D1684R0) to
+  [`basic_mdspan`](wg21.link/p0009) and `basic_mdarray` (P1684R0) to
   represent matrices and vectors.  In the future, it could support
   other proposals' matrix and vector data structures.
 
@@ -211,7 +212,7 @@ architectures.  Writing fast BLAS-like operations is not trivial, and
 depends on computer architecture.  However, it is not black magic; it
 is a well-understood problem whose solutions could be parameterized
 for a variety of computer architectures.  See, for example, [Goto and
-van de Gaijn 2008](https://doi.org/10.1145/1356052.1356053).  There
+van de Geijn 2008](https://doi.org/10.1145/1356052.1356053).  There
 are optimized third-party BLAS implementations for common
 architectures, like [ATLAS](http://math-atlas.sourceforge.net/) and
 [GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2).
@@ -222,7 +223,7 @@ exists and it has a liberal software license for easy reuse.
 We have experience in the exercise of wrapping a C or Fortran BLAS
 implementation for use in portable C++ libraries.  We describe this
 exercise in detail in our paper "Evolving a Standard C++ Linear
-Algebra Library from the BLAS" (D1674R0).  It is straightforward for
+Algebra Library from the BLAS" (P1674R0).  It is straightforward for
 vendors, but has pitfalls for developers.  For example, Fortran's
 application binary interface (ABI) differs across platforms in ways
 that can cause run-time errors (even incorrect results, not just
@@ -238,7 +239,7 @@ The BLAS' "native" language is Fortran.  It has a C binding as well,
 but the BLAS Standard and documentation use Fortran terms.  Where
 applicable, we will call out relevant Fortran terms and highlight
 possibly confusing differences with corresponding C++ ideas.  Our
-paper D1674R0 ("Evolving a Standard C++ Linear Algebra Library from
+paper P1674R0 ("Evolving a Standard C++ Linear Algebra Library from
 the BLAS") goes into more detail on these issues.
 
 ### We call "subroutines" functions
@@ -534,7 +535,7 @@ implementations were slow, and thus users did not want to rely on it.
 
 Expression templates work well, but have issues.  Our papers
 [P1417R0](wg21.link/p1417r0) and "Evolving a Standard C++ Linear
-Algebra Library from the BLAS" (D1674R0) give more detail on these
+Algebra Library from the BLAS" (P1674R0) give more detail on these
 issues.  A particularly troublesome one is that modern C++ `auto`
 makes it easy for users to capture expressions before their evaluation
 and writing into an output array.  For matrices and vectors with
@@ -554,7 +555,7 @@ potential for dangling references than `basic_mdspan` itself.  The use
 of views like `basic_mdspan` is self-documenting; it tells users that
 they need to take responsibility for scope of the viewed data.  We
 permit applying these functions to the container `basic_mdarray` (see
-D1684R0), but this has no more risk of dangling references than
+P1684R0), but this has no more risk of dangling references than
 `vector::data` does.
 
 ### Banded matrix layouts
@@ -595,7 +596,7 @@ a new `basic_mdarray` variant of `basic_mdspan` with container
 semantics.  We explain the value of these two classes below.
 
 Please refer to our papers "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" (D1674R0) and "Historical lessons for C++
+Library from the BLAS" (P1674R0) and "Historical lessons for C++
 linear algebra library standardization"
 [(P1417R0)](wg21.link/p1417r0).  They will give details and references
 for many of the points that we summarize here.
@@ -699,7 +700,7 @@ Summary:
       `beta` is nonzero).
 
 For a detailed analysis, see "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" (D1674R0).
+Library from the BLAS" (P1674R0).
 
 ### Support for different matrix layouts
 
@@ -719,7 +720,7 @@ Summary:
 
 For more details, including a list and description of the matrix
 "types" that the dense BLAS supports, see our paper "Evolving a
-Standard C++ Linear Algebra Library from the BLAS" (D1674R0) lists the
+Standard C++ Linear Algebra Library from the BLAS" (P1674R0) lists the
 different matrix types.
 
 A C++ linear algebra library has a few possibilities for
@@ -782,7 +783,7 @@ compile-time dimensions.  Furthermore, `basic_mdspan` always stores a
 pointer.  For very small matrices or vectors, this is not a
 zero-overhead abstraction.  Also, it's more natural of a programming
 model to pass around very small objects by value.  For these reasons,
-our paper (D1684R0) proposes a new class `basic_mdarray`.
+our paper (P1684R0) proposes a new class `basic_mdarray`.
 
 `basic_mdarray` is a new kind of container, with the same deep copy
 behavior as `vector`.  It has the same extension points as
@@ -832,7 +833,7 @@ These layouts have "tag" template parameters that control their
 behavior; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
-(SY), Hermitian (HE), and triangular (TR).  D1674R0 explains our
+(SY), Hermitian (HE), and triangular (TR).  P1674R0 explains our
 reasoning.  In summary: Their actual layout -- the arrangement of
 matrix elements in memory -- is the same as General.  The only
 differences are constraints on what entries of the matrix algorithms
@@ -1011,7 +1012,7 @@ This is why BLAS functions take an `LDA` (leading dimension of the
 matrix A) argument separate from the dimensions (extents, in `mdspan`
 terms) of A.  However, these layouts are slightly *less* general than
 `layout_stride`, because they assume contiguous storage of columns
-resp. rows.  See D1673R0 for further discussion.
+resp. rows.  See P1674R0 for further discussion.
 
 These new layouts have natural generalizations to ranks higher than 2.
 The definition of each of these layouts would look and work like
@@ -1359,7 +1360,7 @@ scaled_view(S s, const basic_mdarray<T, Extents, Layout, Accessor>& a);
 
 The Accessor type of the `basic_mdspan` returned by the overload that
 takes `basic_mdarray` is `accessor_scaled<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See D1684R0 for
+`ConstAccessor` is an implementation-defined type.  See P1684R0 for
 details.
 
 *Example:*
@@ -1496,7 +1497,7 @@ conjugate_view(const basic_mdarray<EltType, Extents, Layout, Accessor>& a);
 
 The Accessor type of the `basic_mdspan` returned by the overload that
 takes `basic_mdarray` is `accessor_conjugate<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See D1684R0 for
+`ConstAccessor` is an implementation-defined type.  See P1684R0 for
 details.
 
 *Example:*
@@ -1591,7 +1592,7 @@ transpose_view(const basic_mdarray<EltType, Extents, Layout, Accessor>& a);
 ```
 
 The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is an implementation-defined type.  See D1684R0
+takes `basic_mdarray` is an implementation-defined type.  See P1684R0
 for details.
 
 #### Conjugate transpose view
@@ -1616,7 +1617,7 @@ conjugate_transpose_view(
 
 The Accessor type of the `basic_mdspan` returned by the overload that
 takes `basic_mdarray` is `accessor_conjugate<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See D1684R0 for
+`ConstAccessor` is an implementation-defined type.  See P1684R0 for
 details.
 
 ## Algorithms
@@ -3846,14 +3847,16 @@ pioneering efforts and history lessons.
   "`mdspan`: a Non-Owning Multidimensional Array Reference,"
   [P0009R0](wg21.link/p0009r9), Jan. 2019.
 
-* M. Hoemmen, "Evolving a Standard C++ Linear Algebra Library from the
-  BLAS," D1674R0, Jun. 2019.
+* M. Hoemmen, D. Hollman, and C. Trott, "Evolving a Standard C++
+  Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
 
 * M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
   J. Michopoulos, "Historical lessons for C++ linear algebra library
   standardization," [(P1417R0)](wg21.link/p1417r0), Jan. 2019.
 
-* D. Hollman, `mdarray`, D1684R0, Jun. 2019.
+* D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
+  Owning Multidimensional Array Analog of `mdspan`", P1684R0,
+  Jun. 2019.
 
 * D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
   M. Dominiak, "A General Property Customization Mechanism,"

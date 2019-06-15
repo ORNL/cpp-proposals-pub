@@ -1,6 +1,11 @@
 # D1674R0: Evolving a Standard C++ Linear Algebra Library from the BLAS
 
-* Mark Hoemmen (mhoemme@sandia.gov)
+## Authors:
+
+* Mark Hoemmen (mhoemme@sandia.gov) (Sandia National Laboratories)
+* David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
+* Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
+
 * 17 June 2019
 
 ## Introduction
@@ -41,7 +46,7 @@ still be useful.
 
 This paper implicitly argues for inclusion of linear algebra in the
 C++ Standard Library.  It is meant to be read as part of the design
-justification for our C++ Standard Library proposal D1673R0 ("A free
+justification for our C++ Standard Library proposal P1673R0 ("A free
 function linear algebra interface based on the BLAS").
 
 We base this work on our years of experience writing and using linear
@@ -384,7 +389,7 @@ same stride between columns as the number of rows.  `layout_stride` is
 too general, since it permits nonunit column and row strides.  What we
 need is a "`layout_blas_general`" that generalizes `layout_left` (or
 `layout_right`, if we want to allow row-major storage) to permit a
-stride larger than the number of rows.  See our proposal D1673R0 for
+stride larger than the number of rows.  See our proposal P1673R0 for
 the definition of `layout_blas_general`.)  Thus, `basic_mdspan` could
 encapsulate the pointer, dimensions, and stride arguments to BLAS
 functions that represent a matrix.  Unlike `valarray` slices,
@@ -422,7 +427,7 @@ error reporting approach:
    wrong.
 
 These problems, as well as the overhead of error checking for small
-problems, help motivate our proposal (D1673R0) for adding linear
+problems, help motivate our proposal (P1673R0) for adding linear
 algebra functionality to the C++ Standard.  Developers writing their
 own C++ BLAS wrapper have at least two options to work around these
 issues.
@@ -662,7 +667,7 @@ algorithms."  For example, the library would have two overloads of
 This would have the side benefit of extending the set of operations
 "for free."  For example, the overloading approach would give users a
 `xWAXPY` operation `W := alpha*X + Y` without adding a new function
-name or increasing implementer effort.  (In our proposal D1673R0, we
+name or increasing implementer effort.  (In our proposal P1673R0, we
 show how `basic_mdspan`'s accessor policy would let us remove scalar
 arguments like `alpha` and `beta` as well.)
 
@@ -671,7 +676,7 @@ longer just call the existing BLAS interface directly.  They would
 need to introduce run-time checks (beyond what the BLAS already does)
 for `alpha = 0` or `beta = 0` cases.  This is one justification for
 proposing the removal of these special cases if adding linear algebra
-to the C++ standard library (see our proposal D1673R0).  BLAS
+to the C++ standard library (see our proposal P1673R0).  BLAS
 implementations (that some vendors write already) or other BLAS-like
 libraries likely have internal functions for implementing the
 different cases, in order to avoid branches in inner loops.  A
@@ -869,7 +874,7 @@ this.
    if the layouts and accessors do not sufficiently describe the
    arguments.
 
-In our proposal D1673R0, we take Approach 3.  Our view is that a
+In our proposal P1673R0, we take Approach 3.  Our view is that a
 BLAS-like interface should be as low-level as possible.  If a
 different library wants to implement a "Matlab in C++," it could then
 build on this low-level library.  We also do not want to pollute
@@ -880,7 +885,7 @@ matrices.
 #### BLAS General calls for a new mdspan layout
 
 All BLAS matrix types but the Packed types actually assume the same
-layout as General.  In our proposal D1673R0, we call General's layout
+layout as General.  In our proposal P1673R0, we call General's layout
 `layout_blas_general`.  It includes both row-major and column-major
 variants: `layout_blas_general<row_major_t>`, and
 `layout_blas_general<column_major_t>`.
@@ -952,7 +957,7 @@ issues.  In summary:
 
 1. The interface already permits specializing algorithms for
    `basic_mdspan` with compile-time dimensions.  `basic_mdarray` (see
-   D1684R0) can also eliminate overhead and give convenient value
+   P1684R0) can also eliminate overhead and give convenient value
    semantics for tiny matrices and vectors.
 
 2. Just like the existing C++ Standard Algorithms, an optional
@@ -994,9 +999,9 @@ store a pointer.  Thus, it is not totally zero overhead for very small
 matrices or vectors with compile-time dimensions.  A zero-overhead
 solution would *only* store the data at run time, not a pointer to the
 data; `std::array` is an example.  Furthermore, it's awkward to use
-views for very small objects (see example in D1684R0).  Users of small
+views for very small objects (see example in P1684R0).  Users of small
 matrices and vectors often want to handle them by value.  For these
-reasons, we propose `basic_mdarray` (D1684R0), a container version of
+reasons, we propose `basic_mdarray` (P1684R0), a container version of
 `basic_mdspan`.
 
 Once we have C++ functions that take `basic_mdspan`, it's not much
@@ -1073,7 +1078,7 @@ would also serve as an extension point for an interface that supports
 hierarchical parallelism (a "team-level BLAS").  That could also help
 with code that wants to solve many tiny linear algebra problems in
 parallel.  This is the design choice we made in our linear algebra
-library proposal (D1673R0).
+library proposal (P1673R0).
 
 ### Optimize across operations
 
@@ -1355,7 +1360,7 @@ We started with a BLAS library, wrapped it in a C++ interface, and
 gradually adapted the interface for a better fit to C++ idioms.
 Without much effort, this development process fixed some serious
 performance and correctness issues that can arise when calling the
-BLAS from C++.  Our paper D1673R0 proposes a linear algebra library
+BLAS from C++.  Our paper P1673R0 proposes a linear algebra library
 for the C++ Standard that takes this approach.  Even if such a library
 never enters the Standard, we think this style of interface is useful.
 
@@ -1376,6 +1381,14 @@ Administration under contract DE-NA0003525.
 * K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
   multiplication", ACM Transactions of Mathematical Software (TOMS),
   Vol. 34, No. 3, May 2008.
+
+* M. Hoemmen, D. Hollman, N. Liber, C. Trott, D. Sunderland, P. Caday,
+  L.-T. Lo, G. Lopez, P. Luszczek, and S. Knepper, "A free function
+  linear algebra interface based on the BLAS," P1673R0, Jun. 2019.
+
+* D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
+  Owning Multidimensional Array Analog of `mdspan`", P1684R0,
+  Jun. 2019.
 
 * Heidi Pan, ["Cooperative Hierarchical Resource Management for
   Efficient Composition of Parallel
