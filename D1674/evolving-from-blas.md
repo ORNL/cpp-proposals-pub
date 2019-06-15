@@ -585,20 +585,19 @@ the same ranges, but they are still separate arguments.
 Many linear algebra algorithms assume read-and-write access.  For
 example, Krylov subspace methods compute an update to an existing
 solution or residual vector.  Cholesky, LU, and QR factorizations
-apply a low-rank update to a trailing matrix.  In the latter case
-especially, it may be prohibitively expensive to keep two copies
-(pre-updated and post-updated) of the matrix.
+apply a low-rank (outer product) update to a trailing matrix.  Most of
+these algorithms have no risk of parallel race conditions, as long as
+users follow the rule that `INTENT(INOUT)` arguments may not alias
+`INTENT(IN)` arguments.
 
-Most of these algorithms have no risk of parallel race conditions, as
-long as users follow the rule that `INTENT(INOUT)` arguments may not
-alias `INTENT(IN)` arguments.  The exceptions in the BLAS are the
-triangular solves `xTRSM` and `xTRMM`, in which the right-hand side
-vector(s) are `INTENT(INOUT)` arguments that the algorithm overwrites
-with the solution vector(s) on output.  In practice, the authors often
-need to keep the original right-hand side vectors, and end up making a
-copy before the triangular solve.  This interface also precludes
-parallel implementations, since the BLAS is not allowed to allocate
-memory for temporary copies.
+The exceptions in the BLAS are the triangular solves `xTRSM` and
+`xTRMM`, in which the right-hand side vector(s) are `INTENT(INOUT)`
+arguments that the algorithm overwrites with the solution vector(s) on
+output.  In practice, the authors often need to keep the original
+right-hand side vectors, and end up making a copy before the
+triangular solve.  This interface also precludes parallel
+implementations, since the BLAS is not allowed to allocate memory for
+temporary copies.
 
 #### BLAS has special access rules for zero scalar prefactors
 
@@ -718,9 +717,11 @@ The same argument applies to any element-wise function.
 Second, rank-1 or rank-2 matrix update functions are idiomatic to the
 implementation of matrix factorizations, in particular for matrices
 with a small number of columns (the "panel" case in LAPACK).  Users
-normally want to update the matrix in place.  The C++ Standard offers
-`sort` as precedent for only including the in-place version of an
-algorithm.
+normally want to update the matrix in place.  Furthermore, an outer
+product that overwrites a matrix destroys sparsity of the outer
+product representation; updating an already dense matrix with an outer
+product does not destroy sparsity.  The C++ Standard offers `sort` as
+precedent for only including the in-place version of an algorithm.
 
 Third, the in-place triangular matrix functions cannot be made
 parallel without overhead (e.g., allocating intermediate storage).
@@ -745,8 +746,8 @@ and output arguments may need to translate each BLAS function with
    each other.
 
 2. Else, if the BLAS function unconditionally updates (like `xGER`),
-   the corresponding C++ function would read-and-write behavior for
-   that argument.
+   the corresponding C++ function would have read-and-write behavior
+   for that argument.
 
 3. Else, if the BLAS function uses a scalar `beta` argument to decide
    whether to read the output argument as well as write to it (like
