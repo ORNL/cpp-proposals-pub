@@ -534,6 +534,11 @@ this and rely on it for good performance.  This was, indeed, one of
 the major complaints about initial implementations of `valarray`: its
 lack of mandate for expression templates meant that initial
 implementations were slow, and thus users did not want to rely on it.
+(See Josuttis 1999, p. 547, and Vandevoorde and Josuttis 2003, p. 342,
+for a summary of the history.  Fortran has an analogous issue, in
+which (under certain conditions) it is implementation defined whether
+the run-time environment needs to copy noncontiguous slices of an
+array into contiguous temporary storage.)
 
 Expression templates work well, but have issues.  Our papers
 [P1417R0](wg21.link/p1417r0) and "Evolving a Standard C++ Linear
@@ -3901,5 +3906,11 @@ pioneering efforts and history lessons.
   Transactions on Mathematical Software* (TOMS), Vol. 34, No. 3, May
   2008.
 
+* N. A. Josuttis, "The C++ Standard Library: A Tutorial and Reference,"
+  Addison-Wesley, 1999.
+
 * M. Kretz, "Data-Parallel Vector Types & Operations,"
   [P0214r9](wg21.link/p0214r9), Mar. 2018.
+
+* D. Vandevoorde and N. A. Josuttis, "C++ Templates: The Complete
+  Guide," Addison-Wesley Professional, 2003.

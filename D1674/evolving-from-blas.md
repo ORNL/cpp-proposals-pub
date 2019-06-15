@@ -304,12 +304,18 @@ vectors, and extend the above BLAS wrapper to use them.
 
 ### BLAS routines take many, unencapsulated arguments
 
-Neither the C nor the Fortran binding of the BLAS gives users a way to
-encapsulate a matrix or vector in a single data structure.  The four
-BLAS routines for matrix-matrix multiply all have the following form:
+The `extern "C"` version of the BLAS interface violates C++ Core
+Guidelines I.23 and I.24.  Its functions take a large number of
+function arguments, and put together unrelated parameters of the same
+type.  A big reason for this is that neither the C nor the Fortran
+binding of the BLAS gives users a way to encapsulate a matrix or
+vector in a single data structure.  The four BLAS routines for
+matrix-matrix multiply all have the following form:
+
 ```
 xGEMM(TRANSA, TRANSB, M, N, K, ALPHA, A, LDA, B, LDB, BETA, C, LDC)
 ```
+
 where the initial x is one of S, D, C, or Z, depending on the matrix
 element type.  The arguments have the following types:
 
@@ -717,11 +723,14 @@ The same argument applies to any element-wise function.
 Second, rank-1 or rank-2 matrix update functions are idiomatic to the
 implementation of matrix factorizations, in particular for matrices
 with a small number of columns (the "panel" case in LAPACK).  Users
-normally want to update the matrix in place.  Furthermore, an outer
-product that overwrites a matrix destroys sparsity of the outer
-product representation; updating an already dense matrix with an outer
-product does not destroy sparsity.  The C++ Standard offers `sort` as
-precedent for only including the in-place version of an algorithm.
+normally want to update the matrix in place.  Furthermore, _not_
+updating makes a performance mistake.  An outer product that
+overwrites a matrix destroys sparsity of the outer product
+representation; users are better off keeping the vector(s), instead of
+forming their outer product explicitly.  Updating an already dense
+matrix with an outer product does not destroy sparsity.  The C++
+Standard offers `sort` as precedent for only including the in-place
+version of an algorithm.
 
 Third, the in-place triangular matrix functions cannot be made
 parallel without overhead (e.g., allocating intermediate storage).
@@ -971,6 +980,15 @@ issues.  In summary:
 
 ### Tiny matrices and vectors
 
+"Tiny" could mean any of the following:
+
+* It's cheaper to pass the object by value than by pointer.
+
+* Function call or error checking overhead is significant.
+
+* The objects fit in registers or cache; memory bandwidth no longer
+  limits performance.
+
 The BLAS interface is not optimal for solving tiny problems as fast as
 possible, for the following reasons:
 
@@ -1095,7 +1113,9 @@ One way to do this is simply to expand the set of operations in the
 interface, to include more specialized "fused kernels."  The BLAS
 already does this; for example, matrix-vector multiply is equivalent
 to a sequence of dot products.  BLAS 2 and 3 exist in part for this
-reason.
+reason.  `xGEMM` fuses matrix-matrix multiply with matrix addition, in
+part because this is exactly what LAPACK's LU factorization needs for
+trailing matrix updates.
 
 This approach can work well if the set of operations to optimize is
 small.  (See e.g., Vuduc 2004.)  The opaque interface to fused kernels
