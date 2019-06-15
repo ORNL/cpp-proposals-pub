@@ -1086,7 +1086,7 @@ layout's `mapping::operator()`.
  Section 2.2.4 of the BLAS Standard.  It also has the advantage that
  every index pair `i,j` in the Cartesian product of the extents maps
  to a valid (though wrong) codomain index.  This is why we declare the
- packed layout mappings as "nonunique." --*end note]
+ packed layout mappings as "nonunique." --*end note]*
 
 #### Packed layout views
 
@@ -2780,14 +2780,13 @@ void symmetric_matrix_rank_1_update(
 
   * `A.rank()` equals 2 and `x.rank()` equals 1.
 
-  * `in_matrix_t` either has unique layout, or `layout_blas_packed`
-    layout.
+  * `A` either has unique layout, or `layout_blas_packed` layout.
 
   * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
-  * If `in_matrix_t` has `layout_blas_packed` layout, then the
-    layout's `Triangle` template argument has the same type as
-    the function's `Triangle` template argument.
+  * If `A` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
 
   * For `i,j` in the domain of `A`, the expression `A(i,j) +=
     x(i)*x(j)` is well formed.
@@ -2836,14 +2835,13 @@ void hermitian_matrix_rank_1_update(
 
   * `A.rank()` equals 2 and `x.rank()` equals 1.
 
-  * `in_matrix_t` either has unique layout, or `layout_blas_packed`
-    layout.
+  * `A` either has unique layout, or `layout_blas_packed` layout.
 
   * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
-  * If `in_matrix_t` has `layout_blas_packed` layout, then the
-    layout's `Triangle` template argument has the same type as
-    the function's `Triangle` template argument.
+  * If `A` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
 
   * For `i,j` in the domain of `A`, the expression `A(i,j) +=
     x(i)*conj(x(j))` is well formed.
@@ -2856,59 +2854,120 @@ void hermitian_matrix_rank_1_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-### Rank-2 update of a Symmetric or Hermitian matrix
+### Rank-2 update of a symmetric matrix
 
 ```c++
 template<class in_vector_1_t,
          class in_vector_2_t,
-         class inout_matrix_t>
-void rank_2_update(in_vector_1_t x,
-                   in_vector_2_t y,
-                   inout_matrix_t A);
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_rank_2_update(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
 
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t,
-         class inout_matrix_t>
-void rank_2_update(ExecutionPolicy&& exec,
-                   in_vector_1_t x,
-                   in_vector_2_t y,
-                   inout_matrix_t A);
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_rank_2_update(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xHER2`,
-`xHPR2`, `xSYR2`, and `xSPR2`. --*end note]*
+*[Note:* These functions correspond to the BLAS functions `xSYR2` and
+`xSPR2`. --*end note]*
 
-* *Requires:* If `i,j` is in the domain of `A`, then
-  `i` and `j` are in the domain of `x` and `y`.
-  *[Note:* The converse need not be true. --*end note]*
+* *Requires:*
+
+  * The matrix `A` has either Symmetric or Symmetric Packed "type" in
+    BLAS terms.
+
+  * If `i,j` is in the domain of `A`, then `i` and `j` are in the
+    domain of `x` and `y`.
 
 * *Constraints:*
 
   * `A.rank()` equals 2, `x.rank()` equals 1, and
     `y.rank()` equals 1.
 
-  * `A` has a symmetric or Hermitian layout.
+  * `A` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `A` has a symmetric layout, then for `i,j` in the domain of
-    `A`, the expression `A(i,j) += x(i)*y(j) + y(i)*x(j)` is well
-    formed.
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
-  * If `A` has a Hermitian layout, then for `i,j` in the domain of
-    `A`, the expression `A(i,j) += x(i)*conj(y(j)) + y(i)*conj(x(j))`
-    is well formed.
+  * If `A` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
 
-* *Effects:*
+  * For `i,j` in the domain of `A`, the expression
+    `A(i,j) += x(i)*y(j) + y(i)*x(j)` is well formed.
 
-  * If `A` has a symmetric layout, then assigns to `A` on output the
-    sum of `A` on input, the (outer) product of `x` and the
-    (non-conjugated) transpose of `y`, and the (outer) product of `y`
-    and the (non-conjugated) transpose of `x`.
+* *Effects:* Assigns to `A` on output the sum of `A` on input, the
+  (outer) product of `x` and the (non-conjugated) transpose of `y`,
+  and the (outer) product of `y` and the (non-conjugated) transpose of
+  `x`.
 
-  * Else, if `A` has a Hermitian layout, then assigns to `A` on output
-    the sum of `A` on input, the (outer) product of `x` and the
-    conjugate transpose of `y`, and the (outer) product of `y` and the
-    conjugate transpose of `x`.
+### Rank-2 update of a Hermitian matrix
+
+```c++
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_rank_2_update(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_rank_2_update(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+```
+
+*[Note:* These functions correspond to the BLAS functions `xHER2` and
+`xHPR2`. --*end note]*
+
+* *Requires:*
+
+  * The matrix `A` has either Hermitian or Hermitian Packed "type" in
+    BLAS terms.
+
+  * If `i,j` is in the domain of `A`, then `i` and `j` are in the
+    domain of `x` and `y`.
+
+* *Constraints:*
+
+  * `A.rank()` equals 2, `x.rank()` equals 1, and
+    `y.rank()` equals 1.
+
+  * `A` either has unique layout, or `layout_blas_packed` layout.
+
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+  * If `A` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
+
+  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
+    x(i)*conj(y(j)) + y(i)*conj(x(j))` is well formed.
+
+* *Effects:* Assigns to `A` on output the sum of `A` on input, the
+  (outer) product of `x` and the conjugate transpose of `y`, and the
+  (outer) product of `y` and the conjugate transpose of `x`.
 
 ## BLAS 3 functions
 
