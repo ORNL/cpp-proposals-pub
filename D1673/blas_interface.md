@@ -2234,9 +2234,6 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 * *Requires:*
 
-  * The matrix `A` has either Symmetric or Symmetric Packed "type" in
-    BLAS terms.
-
   * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
     and `j` is in the domain of `x`.
 
@@ -2332,9 +2329,6 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 `xHPMV`. --*end note]*
 
 * *Requires:"*
-
-  * The matrix `A` has Hermitian or Hermitian Packed "type" in BLAS
-    terms.
 
   * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
     and `j` is in the domain of `x`.
@@ -2434,9 +2428,6 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 `xTPMV`. --*end note]*
 
 * *Requires:*
-
-  * The matrix `A` has either Triangular or Triangular Packed "type"
-    in BLAS terms.
 
   * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
     and `j` is in the domain of `x`.
@@ -2578,9 +2569,6 @@ void triangular_matrix_solve(ExecutionPolicy&& exec,
 `xTPSV`, and `xTRSM`. --*end note]*
 
 * *Requires:*
-
-  * The matrix `A` has either Triangular or Triangular Packed "type"
-    in BLAS terms.
 
   * If `b.rank()` and `x.rank()` equal 1, then if `i,j` is in the
     domain of `A`, then `i` is in the domain of `x` and `j` is
@@ -2771,9 +2759,6 @@ void symmetric_matrix_rank_1_update(
 
 * *Requires:*
 
-  * The matrix `A` has either Symmetric or Symmetric Packed "type" in
-    BLAS terms.
-
   * If `i,j` is in the domain of `A`, then `i` and `j` are in the
     domain of `x`.
 
@@ -2825,9 +2810,6 @@ void hermitian_matrix_rank_1_update(
 `xHPR`. --*end note]*
 
 * *Requires:*
-
-  * The matrix `A` has either Hermitian or Hermitian Packed "type" in
-    BLAS terms.
 
   * If `i,j` is in the domain of `A`, then `i` and `j` are in the
     domain of `x`.
@@ -2885,9 +2867,6 @@ void symmetric_matrix_rank_2_update(
 `xSPR2`. --*end note]*
 
 * *Requires:*
-
-  * The matrix `A` has either Symmetric or Symmetric Packed "type" in
-    BLAS terms.
 
   * If `i,j` is in the domain of `A`, then `i` and `j` are in the
     domain of `x` and `y`.
@@ -2948,9 +2927,6 @@ void hermitian_matrix_rank_2_update(
 
 * *Requires:*
 
-  * The matrix `A` has either Hermitian or Hermitian Packed "type" in
-    BLAS terms.
-
   * If `i,j` is in the domain of `A`, then `i` and `j` are in the
     domain of `x` and `y`.
 
@@ -3004,7 +2980,7 @@ void matrix_product(ExecutionPolicy&& exec,
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xGEMM`,
-`xSYMM`, `xHEMM`, and `xTRMM`. --*end note]*
+`xSYMM` and `xHEMM`. --*end note]*
 
 * *Requires:*
 
@@ -3120,9 +3096,6 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
 
 * *Requires:*
 
-  * The matrix `C` has either Symmetric or Symmetric Packed "type" in
-    BLAS terms.
-
   * If `i,j` is in the domain of `C`, then there exists `k` such that
     `i,k` and `j,k` are in the domain of `A`, and `j,k` and `i,k` are
     in the domain of `B`.
@@ -3183,9 +3156,6 @@ void hermitian_rank_2k_update(
 --*end note]*
 
 * *Requires:*
-
-  * The matrix `C` has either Hermitian or Hermitian Packed "type" in
-    BLAS terms.
 
   * If `i,j` is in the domain of `C`, then there exists `k` such that
     `i,k` and `j,k` are in the domain of `A`, and `j,k` and `i,k` are
