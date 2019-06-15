@@ -961,6 +961,25 @@ constraint that `1` or `1.0` is convertible to the matrix's
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
 
+##### Side tags
+
+Linear algebra algorithms find it convenient to distinguish between
+applying some operator to the left side of an object, or the right
+side of an object.  *[Note:* Matrix-matrix product and triangular
+solve with a matrix generally do not commute. --*end note]*
+
+```c++
+struct left_side_t {};
+constexpr left_side_t left_side = left_side_t ();
+
+struct right_side_t {};
+constexpr right_side_t right_side = right_side_t ();
+```
+
+These tag classes specify whether algorithms should apply some
+operator to the left side (`left_side_t`) or right side
+(`right_side_t`) of an object.
+
 #### New "General" layouts
 
 ```c++
@@ -1651,6 +1670,13 @@ denote zero characters, `_1`, `_2`, or `_3`.
 * `out_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
   `basic_mdspan` with a non-`const` element type and a unique layout.
 
+* `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+* `DiagonalStorage` is either `implicit_unit_diagonal_t` or
+  `explicit_diagonal_t`.
+
+* `Side` is either `left_side_t` or `right_side_t`.
+
 All functions take "input" (read-only) object parameters by const
 reference (e.g., `const basic_mdspan<...>&` or `const
 basic_mdarray<...>&`).  All such functions have overloads that take
@@ -2249,8 +2275,6 @@ The following requirements apply to all functions in this section.
   * `in_matrix_t` either has unique layout, or `layout_blas_packed`
     layout.
 
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
@@ -2346,8 +2370,6 @@ The following requirements apply to all functions in this section.
 
   * `in_matrix_t` either has unique layout, or `layout_blas_packed`
     layout.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
@@ -2445,11 +2467,6 @@ The following requirements apply to all functions in this section.
 
   * `in_matrix_t` either has unique layout, or `layout_blas_packed`
     layout.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
-  * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
-    `explicit_diagonal_t`.
 
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
@@ -2599,11 +2616,6 @@ functionality as one interface. --*end note]*
 
   * `in_matrix_t` either has unique layout, or `layout_blas_packed`
     layout.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
-  * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
-    `explicit_diagonal_t`.
 
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
@@ -2775,8 +2787,6 @@ void symmetric_matrix_rank_1_update(
 
   * `A` either has unique layout, or `layout_blas_packed` layout.
 
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
   * If `A` has `layout_blas_packed` layout, then the layout's
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
@@ -2826,8 +2836,6 @@ void hermitian_matrix_rank_1_update(
   * `A.rank()` equals 2 and `x.rank()` equals 1.
 
   * `A` either has unique layout, or `layout_blas_packed` layout.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
   * If `A` has `layout_blas_packed` layout, then the layout's
     `Triangle` template argument has the same type as the function's
@@ -2885,8 +2893,6 @@ void symmetric_matrix_rank_2_update(
 
   * `A` either has unique layout, or `layout_blas_packed` layout.
 
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
   * If `A` has `layout_blas_packed` layout, then the layout's
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
@@ -2943,8 +2949,6 @@ void hermitian_matrix_rank_2_update(
     `y.rank()` equals 1.
 
   * `A` either has unique layout, or `layout_blas_packed` layout.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
   * If `A` has `layout_blas_packed` layout, then the layout's
     `Triangle` template argument has the same type as the function's
@@ -3071,13 +3075,9 @@ The following requirements apply to all functions in this section.
   * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
     `out_matrix_t` have unique layout.
 
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
-
-  * `Side` is either `left_side_t` or `right_side_t`.
 
   * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
     `E.rank()` (if applicable) equals 2.
@@ -3216,13 +3216,9 @@ The following requirements apply to all functions in this section.
   * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
     `out_matrix_t` have unique layout.
 
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
-
-  * `Side` is either `left_side_t` or `right_side_t`.
 
   * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
     `E.rank()` (if applicable) equals 2.
@@ -3391,8 +3387,6 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
 
   * `C` either has unique layout, or `layout_blas_packed` layout.
 
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
   * If `C` has `layout_blas_packed` layout, then the layout's
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
@@ -3451,8 +3445,6 @@ void hermitian_rank_2k_update(
     `C.rank()` equals 2.
 
   * `C` either has unique layout, or `layout_blas_packed` layout.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
   * If `C` has `layout_blas_packed` layout, then the layout's
     `Triangle` template argument has the same type as the function's
