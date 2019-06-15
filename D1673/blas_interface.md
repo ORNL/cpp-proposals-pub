@@ -2300,11 +2300,12 @@ template<class in_matrix_t,
          class in_vector_1_t,
          class in_vector_2_t,
          class out_vector_t>
-void symmetric_matrix_vector_product(in_matrix_t A,
-                                     Triangle t,
-                                     in_vector_1_t x,
-                                     in_vector_2_t y,
-                                     out_vector_t z);
+void symmetric_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  out_vector_t z);
 
 template<class ExecutionPolicy,
          class in_matrix_t,
@@ -2312,12 +2313,13 @@ template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t,
          class out_vector_t>
-void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
-                                     in_matrix_t A,
-                                     Triangle t,
-                                     in_vector_1_t x,
-                                     in_vector_2_t y,
-                                     out_vector_t z);
+void symmetric_matrix_vector_product(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  out_vector_t z);
 ```
 
 * *Requires:* `y` and `z` have the same domain.
@@ -2962,7 +2964,24 @@ void hermitian_matrix_rank_2_update(
 
 ## BLAS 3 functions
 
-### Matrix-matrix product
+### General matrix-matrix product
+
+*[Note:* These functions correspond to the BLAS function `xGEMM`.
+--*end note]*
+
+The following requirements apply to all functions in this section.
+
+* *Requires:* If `i,j` is in the domain of `C`, then there exists `k`
+  such that `i,k` is in the domain of `A`, and `k,j` is in the domain
+  of `B`.
+
+* *Constraints:*
+
+  * `in_matrix_1_t`, `in_matrix_2_t`, `in_matrix_3_t` (if applicable),
+    and `out_matrix_t` have unique layout.
+
+  * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
+    `E.rank()` (if applicable) equals 2.
 
 #### Overwriting matrix-matrix product
 
@@ -2984,19 +3003,7 @@ void matrix_product(ExecutionPolicy&& exec,
                     out_matrix_t C);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xGEMM`,
-`xSYMM` and `xHEMM`. --*end note]*
-
-* *Requires:*
-
-  * If `i,j` is in the domain of `C`, then there exists `k`
-    such that `i,k` is in the domain of `A`, and `k,j` is in the
-    domain of `B`.
-
 * *Constraints:*
-
-  * `A.rank()` equals 2, `B.rank()` equals 2, and
-    `C.rank()` equals 2.
 
   * For `i,j` in the domain of `C`, `i,k` in the domain of `A`, and
     `k,j` in the domain of `B`, the expression `C(i,j) +=
@@ -3005,17 +3012,9 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of the matrix `C` the product of
   the matrices `A` and `B`.
 
-*[Note:* Implementers may wish to give users control over whether the
-matrix product uses a Strassen-type algorithm.  One way they could do
-so is by letting users annotate the execution policy argument, for
-example, using the [Properties mechanism in P1393](wg21.link/p1393).
---*end note]*
-
 #### Updating matrix-matrix product
 
 ```c++
-// matrix product update: C = A * B + E [gemm, symm, hemm, trmm]
-
 template<class in_matrix_1_t,
          class in_matrix_2_t,
          class in_matrix_3_t,
@@ -3037,31 +3036,168 @@ void matrix_product(ExecutionPolicy&& exec,
                     out_matrix_t C);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xGEMM`,
-`xSYMM`, `xHEMM`, and `xTRMM`. --*end note]*
-
 * *Requires:*
 
-  * If `i,j` is in the domain of `C`, then there exists `k`
-    such that `i,k` is in the domain of `A`, and `k,j` is in the
-    domain of `B`.
+  * `C` and `E` have the same domain.
+
+* *Constraints:* For `i,j` in the domain of `C`, `i,k` in the domain
+  of `A`, and `k,j` in the domain of `B`, the expression `C(i,j) +=
+  E(i,j) + A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `A` and `B`.
+
+* *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
+  they must have the same layout.
+
+### Symmetric matrix-matrix product
+
+*[Note:* These functions correspond to the BLAS function `xSYMM`.
+Unlike the symmetric rank-1 update functions, these functions assume
+that the input matrix `A` -- not the output matrix `C` -- is
+symmetric. --*end note]*
+
+The following requirements apply to all functions in this section.
+
+* *Requires:* If `i,j` is in the domain of `C`, then there exists `k`
+  such that `i,k` is in the domain of `A`, and `k,j` is in the domain
+  of `B`.
+
+* *Constraints:*
+
+  * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
+    layout.
+
+  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
+    `out_matrix_t` have unique layout.
+
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+    layout's `Triangle` template argument has the same type as
+    the function's `Triangle` template argument.
+
+  * `Side` is either `left_side_t` or `right_side_t`.
+
+  * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
+    `E.rank()` (if applicable) equals 2.
+
+* *Remarks:* The functions will only access the triangle of `A`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+
+#### Overwriting matrix-matrix product
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:*
+
+  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
+    expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+
+  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
+    expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
+
+* *Effects:*
+
+  * If `Side` is `left_side_t`, then assigns to the elements of the
+    matrix `C` the product of the matrices `A` and `B`.
+
+  * If `Side` is `right_side_t`, then assigns to the elements of the
+    matrix `C` the product of the matrices `B` and `A`.
+
+#### Updating matrix-matrix product
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetrix_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+ExecutionPolicy&& exec,
+in_matrix_1_t A,
+Triangle t,
+Side s,
+in_matrix_2_t B,
+in_matrix_3_t E,
+out_matrix_t C);
+```
+
+* *Requires:*
 
   * `C` and `E` have the same domain.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `B.rank()` equals 2,
-    `C.rank()` equals 2, and `E.rank()` equals 2.
+  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
+    expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
 
-  * For `i,j` in the domain of `C`, `i,k` in the domain of `A`, and
-    `k,j` in the domain of `B`, the expression `C(i,j) += E(i,j) +
-    A(i,k)*B(k,j)` is well formed.
+  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
+    expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
 
-* *Effects:* Assigns to the elements of the matrix `C` on output, the
-  elementwise sum of `E` and product of the matrices `A` and `B`.
+* *Effects:*
+
+  * If `Side` is `left_side_t`, then assigns to the elements of the
+    matrix `C` on output, the elementwise sum of `E` and the product of
+    the matrices `A` and `B`.
+
+  * If `Side` is `right_side_t`, then assigns to the elements of the
+    matrix `C` on output, the elementwise sum of `E` and the product of
+    the matrices `B` and `A`.
 
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
+
+### Hermitian matrix-matrix product
+
+TODO
 
 ### Rank-2k update of a symmetric or Hermitian matrix
 
