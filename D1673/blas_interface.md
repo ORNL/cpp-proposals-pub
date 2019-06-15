@@ -2681,8 +2681,8 @@ void rank_1_update_u(ExecutionPolicy&& exec,
 
   * `A` represents a matrix of the General matrix "type."
 
-  * If `i,j` is in the domain of `A`, then
-    `i` is in the domain of `x` and `j` is in the domain of `y`.
+  * If `i,j` is in the domain of `A`, then `i` is in the domain of `x`
+    and `j` is in the domain of `y`.
 
 * *Constraints:*
 
@@ -2720,9 +2720,12 @@ void rank_1_update_c(ExecutionPolicy&& exec,
 *[Note:* This function corresponds to the BLAS functions `xGER` and
 `xGERC`. --*end note]*
 
-* *Requires:* If `i,j` is in the domain of `A`, then
-  `i` is in the domain of `x` and `j` is in the domain of `y`.
-  *[Note:* The converse need not be true. --*end note]*
+* *Requires:*
+
+  * `A` represents a matrix of the General matrix "type."
+
+  * If `i,j` is in the domain of `A`, then `i` is in the domain of `x`
+    and `j` is in the domain of `y`.
 
 * *Constraints:*
 
@@ -2731,67 +2734,127 @@ void rank_1_update_c(ExecutionPolicy&& exec,
 
   * If `in_vector_2_t::element_type` is `complex<T>` for some `T`,
     then for `i,j` in the domain of `A`, the expression `A(i,j) +=
-    x(i)*conj(y(j))` is well formed.
+    x(i)*conj(y(j))` is well formed.  Otherwise, for `i,j` in the
+    domain of `A`, the expression `A(i,j) += x(i)*y(j)` is well
+    formed.
 
-  * Otherwise, for `i,j` in the domain of `A`, the expression `A(i,j)
-    += x(i)*y(j)` is well formed.
-
-  * `A` does not have a symmetric or Hermitian layout.
+  * `A` has a unique layout.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
   (outer) product of `x` and the conjugate transpose of `y`.
 
-#### Rank-1 update of a Symmetric or Hermitian matrix
+#### Rank-1 update of a Symmetric matrix
 
 ```c++
-template<class in_vector_1_t,
-         class in_vector_2_t,
-         class inout_matrix_t>
-void rank_1_update(in_vector_1_t x,
-                   inout_matrix_t A);
+template<class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 
 template<class ExecutionPolicy,
-         class in_vector_1_t,
-         class in_vector_2_t,
-         class out_matrix_t>
-void rank_1_update(ExecutionPolicy&& exec,
-                   in_vector_1_t x,
-                   inout_matrix_t A);
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xHER`,
-`xHPR`, `xSYR`, and `xSPR`. --*end note]*
+*[Note:* These functions correspond to the BLAS functions `xSYR` and
+`xSPR`. --*end note]*
 
-* *Requires:* If `i,j` is in the domain of `A`, then `i` and
-  `j` are in the domain of `x`.  *[Note:* The converse need not be
-  true. --*end note]*
+* *Requires:*
+
+  * The matrix `A` has either Symmetric or Symmetric Packed "type" in
+    BLAS terms.
+
+  * If `i,j` is in the domain of `A`, then `i` and `j` are in the
+    domain of `x`.
 
 * *Constraints:*
 
   * `A.rank()` equals 2 and `x.rank()` equals 1.
 
-  * `A` has a symmetric or Hermitian layout.
+  * `in_matrix_t` either has unique layout, or `layout_blas_packed`
+    layout.
 
-  * If `A` has a symmetric layout, then for `i,j` in the domain of
-    `A`, the expression `A(i,j) += x(i)*x(j)` is well formed.
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
-  * If `A` has a Hermitian layout, then for `i,j` in the domain of
-    `A`, the expression `A(i,j) += x(i)*conj(x(j))` is well formed.
+  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+    layout's `Triangle` template argument has the same type as
+    the function's `Triangle` template argument.
 
-* *Effects:*
+  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
+    x(i)*x(j)` is well formed.
 
-  * If `A` has a symmetric layout, then assigns to `A` on output the
-    sum of `A` on input, and the (outer) product of `x` and the
-    (non-conjugated) transpose of `x`.
+* *Effects:* Assigns to `A` on output the sum of `A` on input, and the
+  (outer) product of `x` and the (non-conjugated) transpose of `x`.
 
-  * Else, if `A` has a Hermitian layout, then assigns to `A` on output
-    the sum of `A` on input, and the (outer) product of `x` and the
-    conjugate transpose of `x`.
+* *Remarks:* The functions will only access the triangle of `A`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-*[Note:* The layout of `A` determines whether the outer product uses
-the conjugate transpose or the (non-conjugated) transpose.  Thus,
-unlike the `xDOTU` and `xDOTC` case, we do not need separate
-functions. --*end note]*
+#### Rank-1 update of a Hermitian matrix
+
+```c++
+template<class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+```
+
+*[Note:* These functions correspond to the BLAS functions `xHER` and
+`xHPR`. --*end note]*
+
+* *Requires:*
+
+  * The matrix `A` has either Hermitian or Hermitian Packed "type" in
+    BLAS terms.
+
+  * If `i,j` is in the domain of `A`, then `i` and `j` are in the
+    domain of `x`.
+
+* *Constraints:*
+
+  * `A.rank()` equals 2 and `x.rank()` equals 1.
+
+  * `in_matrix_t` either has unique layout, or `layout_blas_packed`
+    layout.
+
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+    layout's `Triangle` template argument has the same type as
+    the function's `Triangle` template argument.
+
+  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
+    x(i)*conj(x(j))` is well formed.
+
+* *Effects:* Assigns to `A` on output the sum of `A` on input, and the
+  (outer) product of `x` and the conjugate transpose of `x`.
+
+* *Remarks:* The functions will only access the triangle of `A`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `A(j,i)` equals
+  `conj(A(i,j))`.
 
 ### Rank-2 update of a Symmetric or Hermitian matrix
 
@@ -2846,11 +2909,6 @@ void rank_2_update(ExecutionPolicy&& exec,
     the sum of `A` on input, the (outer) product of `x` and the
     conjugate transpose of `y`, and the (outer) product of `y` and the
     conjugate transpose of `x`.
-
-*[Note:* The layout of `A` determines whether the outer product uses
-the conjugate transpose or the (non-conjugated) transpose.  Thus,
-unlike the `xDOTU` and `xDOTC` case, we do not need separate
-functions. --*end note]*
 
 ## BLAS 3 functions
 
