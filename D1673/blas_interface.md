@@ -2077,11 +2077,14 @@ overflow and underflow.  This excludes naive implementations.
 #### Sum of absolute values
 
 ```c++
-template<class in_vector_t, class Scalar>
+template<class in_vector_t,
+         class Scalar>
 void abs_sum(in_vector_t v,
              Scalar& result);
 
-template<class ExecutionPolicy, class in_vector_t, class Scalar>
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class Scalar>
 void abs_sum(ExecutionPolicy&& exec,
              in_vector_t v,
              Scalar& result);
@@ -2123,7 +2126,6 @@ template<class in_vector_t>
 void idx_abs_max(in_vector_t v,
                  ptrdiff_t& result);
 
-// Index of maximum absolute value [iamax]
 template<class ExecutionPolicy,
          class in_vector_t>
 void idx_abs_max(ExecutionPolicy&& exec,
@@ -2148,8 +2150,19 @@ void idx_abs_max(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
 
-* *Requires:"* For all functions in this section, the matrix `A` has
-  General "type" in BLAS terms.
+* *Requires:"*
+
+  * The matrix `A` has General "type" in BLAS terms.
+
+  * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
+    and `j` is in the domain of `x`.
+
+* *Constraints:* For all functions in this section:
+
+  * `in_matrix_t` has unique layout; and
+
+  * `A.rank()` equals 2, `x.rank()` equals 1, and
+    `y.rank()` equals 1.
 
 #### Overwriting matrix-vector product
 
@@ -2170,15 +2183,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
                            out_vector_t y);
 ```
 
-* *Requires:* If `i,j` is in the domain of `A`, then
-  `i` is in the domain of `y` and `j` is in the domain of `x`.
-
 * *Constraints:*
-
-  * `in_matrix_t` has unique layout.
-
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
 
   * For `i,j` in the domain of `A`, the expression
     `y(i) += A(i,j)*x(j)` is well formed.
@@ -2209,15 +2214,11 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `A`, then `i` is in the
-    domain of `y`, and `j` is in the domain of `x`.
-
   * `y` and `z` have the same domain.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
+  * `z.rank()` equals 1.
 
   * For `i,j` in the domain of `A`, the expression
     `z(i) = y(i) + A(i,j)*x(j)` is well formed.
@@ -2231,35 +2232,46 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
 
-* *Requires:"* For all functions in this section, the matrix `A` has
-  either Symmetric or Symmetric Packed "type" in BLAS terms.
+* *Requires:*
+
+  * The matrix `A` has either Symmetric or Symmetric Packed "type" in
+    BLAS terms.
+
+  * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
+    and `j` is in the domain of `x`.
 
 * *Constraints:*
 
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+  * `in_matrix_t` either has unique layout, or `layout_blas_packed`
+    layout.
 
-  * `in_matrix_t` either has any unique layout, or
-    `layout_blas_packed` layout.
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
-    `Triangle`.
+    the function's `Triangle` template argument.
+
+* *Remarks:* The functions will only access the triangle of `A`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
 #### Overwriting matrix-vector product
 
 ```c++
-template<class ExecutionPolicy,
+template<class in_matrix_t,
+         class Triangle,
          class in_vector_t,
-         class in_matrix_t,
-         class out_vector_t,
-         class Triangle>
+         class out_vector_t>
 void symmetric_matrix_vector_product(in_matrix_t A,
                                      Triangle t,
                                      in_vector_t x,
                                      out_vector_t y);
 
-template<class ExecutionPolicy, class in_vector_t,
-         class in_matrix_t, class out_vector_t>
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
 void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
                                      in_matrix_t A,
                                      Triangle t,
@@ -2267,19 +2279,11 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
                                      out_vector_t y);
 ```
 
-* *Requires:* If `i,j` is in the domain of `A`, then
-  `i` is in the domain of `y` and `j` is in the domain of `x`.
+* *Constraints:* For `i,j` in the domain of `A`, the expression
+  `y(i) += A(i,j)*x(j)` is well formed.
 
-* *Constraints:*
-
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
-
-  * For `i,j` in the domain of `A`, the expression
-    `y(i) += A(i,j)*x(j)` is well formed.
-
-* *Effects:* Assign to the elements of `y` the
-  product of the matrix `A` with the vector `x`.
+* *Effects:* Assign to the elements of `y` the product of the matrix
+  `A` with the vector `x`.
 
 #### Updating matrix-vector product
 
@@ -2309,17 +2313,11 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
                                      out_vector_t z);
 ```
 
-* *Requires:*
-
-  * If `i,j` is in the domain of `A`, then `i` is in the
-    domain of `y`, and `j` is in the domain of `x`.
-
-  * `y` and `z` have the same domain.
+* *Requires:* `y` and `z` have the same domain.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
+  * `z.rank()` equals 1.
 
   * For `i,j` in the domain of `A`, the expression
     `z(i) = y(i) + A(i,j)*x(j)` is well formed.
@@ -2330,11 +2328,223 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 
 ### Hermitian matrix-vector product
 
-TODO
+*[Note:* These functions correspond to the BLAS functions `xHEMV` and
+`xHPMV`. --*end note]*
+
+* *Requires:"*
+
+  * The matrix `A` has Hermitian or Hermitian Packed "type" in BLAS
+    terms.
+
+  * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
+    and `j` is in the domain of `x`.
+
+* *Constraints:*
+
+  * `in_matrix_t` either has unique layout, or `layout_blas_packed`
+    layout.
+
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+    layout's `Triangle` template argument has the same type as
+    the function's `Triangle` template argument.
+
+* *Remarks:* The functions will only access the triangle of `A`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+
+#### Overwriting matrix-vector product
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
+                                     in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+```
+
+* *Constraints:* For `i,j` in the domain of `A`, the expressions
+  `y(i) += A(i,j)*x(j)` and `y(i) += conj(A(j,i))*x(j)` are well
+  formed.
+
+* *Effects:* Assign to the elements of `y` the product of the matrix
+  `A` with the vector `x`.
+
+#### Updating matrix-vector product
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_1_t x,
+                                     in_vector_2_t y,
+                                     out_vector_t z);
+
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
+                                     in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_1_t x,
+                                     in_vector_2_t y,
+                                     out_vector_t z);
+```
+
+* *Requires:* `y` and `z` have the same domain.
+
+* *Constraints:*
+
+  * `z.rank()` equals 1.
+
+  * For `i,j` in the domain of `A`, the expressions `z(i) = y(i) +
+    A(i,j)*x(j)` and `z(i) = y(i) + conj(A(j,i))*x(j)` are well
+    formed.
+
+* *Effects:* Assigns to the elements of `z` the elementwise sum of
+  `y`, with the vector resulting from product of the matrix `A` with
+  the vector `x`.
 
 ### Triangular matrix-vector product
 
-TODO
+*[Note:* These functions correspond to the BLAS functions `xTRMV` and
+`xTPMV`. --*end note]*
+
+* *Requires:*
+
+  * The matrix `A` has either Triangular or Triangular Packed "type"
+    in BLAS terms.
+
+  * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
+    and `j` is in the domain of `x`.
+
+* *Constraints:*
+
+  * `in_matrix_t` either has unique layout, or `layout_blas_packed`
+    layout.
+
+  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+
+  * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
+    `explicit_diagonal_t`.
+
+  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+    layout's `Triangle` template argument has the same type as
+    the function's `Triangle` template argument.
+
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
+
+  * If the `DiagonalStorage` template argument has type
+    `implicit_unit_diagonal_t`, then the functions will not access the
+    diagonal of `A`, and will assume that that the diagonal elements
+    of `A` all equal one. *[Note:* This does not imply that the
+    function needs to be able to form an `element_type` value equal to
+    one. --*end note]
+
+
+#### Overwriting matrix-vector product
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(in_matrix_t A,
+                                      Triangle t,
+                                      DiagonalStorage d,
+                                      in_vector_t x,
+                                      out_vector_t y);
+
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(ExecutionPolicy&& exec,
+                                      in_matrix_t A,
+                                      Triangle t,
+                                      DiagonalStorage d,
+                                      in_vector_t x,
+                                      out_vector_t y);
+```
+
+* *Constraints:* For `i,j` in the domain of `A`, the expression
+  `y(i) += A(i,j)*x(j)` is well formed.
+
+* *Effects:* Assign to the elements of `y` the product of the matrix
+  `A` with the vector `x`.
+
+#### Updating matrix-vector product
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(in_matrix_t A,
+                                      Triangle t,
+                                      DiagonalStorage d,
+                                      in_vector_1_t x,
+                                      in_vector_2_t y,
+                                      out_vector_t z);
+
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(ExecutionPolicy&& exec,
+                                      in_matrix_t A,
+                                      Triangle t,
+                                      DiagonalStorage d,
+                                      in_vector_1_t x,
+                                      in_vector_2_t y,
+                                      out_vector_t z);
+```
+
+* *Requires:* `y` and `z` have the same domain.
+
+* *Constraints:*
+
+  * `z.rank()` equals 1.
+
+  * For `i,j` in the domain of `A`, the expression
+    `z(i) = y(i) + A(i,j)*x(j)` is well formed.
+
+* *Effects:* Assigns to the elements of `z` the elementwise sum of
+  `y`, with the vector resulting from product of the matrix `A` with
+  the vector `x`.
 
 ### Solve a triangular linear system
 
