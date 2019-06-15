@@ -1606,7 +1606,8 @@ details.
 
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
-requirements.
+requirements.  In the requirements below, we use `*` in a typename to
+denote zero characters, `_1`, `_2`, or `_3`.
 
 * Algorithms that have a template parameter named `ExecutionPolicy`
   are parallel algorithms **[algorithms.parallel.defns]**.
@@ -1617,37 +1618,38 @@ requirements.
 * `Real` is any of the following types: `float`, `double`, or `long
   double`.
 
-* `in_vector_*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with a
+* `in_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with a
+  `const` element type and a unique layout.  If the algorithm accesses
+  the object, it will do so in read-only fashion.
+
+* `inout_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan`
+  with a non-`const` element type and a unique layout.
+
+* `out_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with
+  a non-`const` element type and a unique layout.  If the algorithm
+  accesses the object, it will do so in write-only fashion.
+
+* `in_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with a
   `const` element type.  If the algorithm accesses the object, it will
   do so in read-only fashion.
 
-* `inout_vector_*_t` is a rank-1 `basic_mdarray` or `basic_mdspan`
+* `inout_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan`
   with a non-`const` element type.
 
-* `out_vector_*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with
+* `out_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with
   a non-`const` element type.  If the algorithm accesses the object,
   it will do so in write-only fashion.
 
-* `in_matrix_*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with a
-  `const` element type.  If the algorithm accesses the object, it will
-  do so in read-only fashion.
+* `in_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+  `basic_mdspan` with a `const` element type and a unique layout.  If
+  the algorithm accesses the object, it will do so in read-only
+  fashion.
 
-* `inout_matrix_*_t` is a rank-2 `basic_mdarray` or `basic_mdspan`
-  with a non-`const` element type.
+* `inout_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+  `basic_mdspan` with a non-`const` element type and a unique layout.
 
-* `out_matrix_*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with
-  a non-`const` element type.  If the algorithm accesses the object,
-  it will do so in write-only fashion.
-
-* `in_object_*_t` is a rank-1 or rank-2 `basic_mdarray` or
-  `basic_mdspan` with a `const` element type.  If the algorithm
-  accesses the object, it will do so in read-only fashion.
-
-* `inout_object_*_t` is a rank-1 or rank-2 `basic_mdarray` or
-  `basic_mdspan` with a non-`const` element type.
-
-* `out_object_*_t` is a rank-1 or rank-2 `basic_mdarray` or
-  `basic_mdspan` with a non-`const` element type.
+* `out_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+  `basic_mdspan` with a non-`const` element type and a unique layout.
 
 All functions take "input" (read-only) object parameters by const
 reference (e.g., `const basic_mdspan<...>&` or `const
@@ -1662,8 +1664,6 @@ follows:
 
 * by value if they are `basic_mdspan` (i.e., `const basic_mdspan<T,
   ...>&` for nonconst `T`).
-
-
 
 ### BLAS 1 functions
 
@@ -1813,10 +1813,12 @@ void linalg_swap(ExecutionPolicy&& exec,
 
   * `v1.rank()` equals `v2.rank()`.
 
+  * `v1.rank()` is no more than 3.
+
   * For `i...` in the domain of `v2` and `v1`, the
     expression `v2(i...) = v1(i...)` is well formed.
 
-* *Effects:* Swap all corresponding elements of the vectors
+* *Effects:* Swap all corresponding elements of the objects
   `v1` and `v2`.
 
 #### Multiply the elements of an object in place by a scalar
@@ -1838,8 +1840,12 @@ void scale(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS function `xSCAL`.
 --*end note]*
 
-* *Constraints:* For `i...` in the domain of `obj`, the expression
-  `obj(i...) *= alpha` is well formed.
+* *Constraints:*
+
+  * `obj.rank()` is no more than 3.
+
+  * For `i...` in the domain of `obj`, the expression
+    `obj(i...) *= alpha` is well formed.
 
 * *Effects*: Multiply each element of `obj` in place by `alpha`.
 
@@ -1866,7 +1872,7 @@ void linalg_copy(ExecutionPolicy&& exec,
 
   * `x.rank()` equals `y.rank()`.
 
-  * `x.rank()` is less than 3.
+  * `x.rank()` is no more than 3.
 
   * For all `i...` in the domain of `x` and `y`, the expression
     `y(i...) = x(i...)` is well formed.
@@ -1903,9 +1909,9 @@ void linalg_add(ExecutionPolicy&& exec,
 
 * *Constraints:*
 
-  * `x.rank()`, `y.rank()`, and `z.rank()` are all the same.
+  * `x.rank()`, `y.rank()`, and `z.rank()` are all equal.
 
-  * `x.rank()` is less than 3.
+  * `x.rank()` is no more than 3.
 
   * For `i...` in the domain of `x`, `y`, and `z`, the expression
     `z(i...) = x(i...) + y(i...)` is well formed.
@@ -2143,7 +2149,7 @@ void idx_abs_max(ExecutionPolicy&& exec,
 `xGEMV`. --*end note]*
 
 * *Requires:"* For all functions in this section, the matrix `A` has
-General "type" in BLAS terms.
+  General "type" in BLAS terms.
 
 #### Overwriting matrix-vector product
 
@@ -2322,6 +2328,14 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
   `y`, with the vector resulting from product of the matrix `A` with
   the vector `x`.
 
+### Hermitian matrix-vector product
+
+TODO
+
+### Triangular matrix-vector product
+
+TODO
+
 ### Solve a triangular linear system
 
 ```c++
@@ -2394,10 +2408,6 @@ void matrix_triangular_solve(ExecutionPolicy&& exec,
 
 #### Nonsymmetric non-conjugated rank-1 update
 
-(FIXME (mfh 09 Jun 2019) Consider replacing this with
-`matrix_product`, where users apply `transpose_view` or
-`conjugate_transpose_view` to `y`.)
-
 ```c++
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -2419,9 +2429,12 @@ void rank_1_update_u(ExecutionPolicy&& exec,
 *[Note:* This function corresponds to the BLAS functions `xGER` and
 `xGERU`. --*end note]*
 
-* *Requires:* If `i,j` is in the domain of `A`, then
-  `i` is in the domain of `x` and `j` is in the domain of `y`.
-  *[Note:* The converse need not be true. --*end note]*
+* *Requires:*
+
+  * `A` represents a matrix of the General matrix "type."
+
+  * If `i,j` is in the domain of `A`, then
+    `i` is in the domain of `x` and `j` is in the domain of `y`.
 
 * *Constraints:*
 
@@ -2431,7 +2444,7 @@ void rank_1_update_u(ExecutionPolicy&& exec,
   * For `i,j` in the domain of `A`, the expression
     `A(i,j) += x(i)*y(j)` is well formed.
 
-  * `A` does not have a symmetric or Hermitian layout.
+  * `A` has a unique layout.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
   (outer) product of `x` and the (non-conjugated) transpose of `y`.
