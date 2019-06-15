@@ -1667,6 +1667,16 @@ follows:
 
 ### BLAS 1 functions
 
+*[Note:*
+
+The BLAS developed in three "levels": 1, 2, and 3.  BLAS 1 includes
+vector-vector operations, BLAS 2 matrix-vector operations, and BLAS 3
+matrix-matrix operations.  The level coincides with the number of
+nested loops in a naïve sequential implementation of the operation.
+Increasing level also comes with increasing potential for data reuse.
+
+--*end note]*
+
 #### Givens rotations
 
 ##### Compute Givens rotations
@@ -2042,7 +2052,7 @@ void vector_norm2(ExecutionPolicy&& exec,
 
 * *Constraints:* For all `i` in the domain of `v1` and `v2`, the
   expressions `result += abs(v(i))*abs(v(i))` and `sqrt(result)` are
-  well formed.  *[Note:* This does not suggest a recommended
+  well formed.  *[Note:* This does not imply a recommended
   implementation for floating-point types.  See *Remarks*
   below. --*end note]*
 
@@ -2071,8 +2081,8 @@ void vector_norm2(ExecutionPolicy&& exec,
 
 *[Note:* The intent of the second point of *Remarks* is that
 implementations generalize the guarantees of `hypot` regarding
-overflow and underflow.  This excludes naive implementations.
---*end note]*
+overflow and underflow.  This excludes naive implementations for
+floating-point types. --*end note]*
 
 #### Sum of absolute values
 
@@ -2150,9 +2160,9 @@ void idx_abs_max(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
 
-* *Requires:"*
+The following requirements apply to all functions in this section.
 
-  * The matrix `A` has General "type" in BLAS terms.
+* *Requires:"*
 
   * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
     and `j` is in the domain of `x`.
@@ -2161,8 +2171,8 @@ void idx_abs_max(ExecutionPolicy&& exec,
 
   * `in_matrix_t` has unique layout; and
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
+  * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
+    `z.rank()` equals 1.
 
 #### Overwriting matrix-vector product
 
@@ -2183,12 +2193,10 @@ void matrix_vector_product(ExecutionPolicy&& exec,
                            out_vector_t y);
 ```
 
-* *Constraints:*
+* *Constraints:* For `i,j` in the domain of `A`, the expression
+  `y(i) += A(i,j)*x(j)` is well formed.
 
-  * For `i,j` in the domain of `A`, the expression
-    `y(i) += A(i,j)*x(j)` is well formed.
-
-* *Effects:* Assign to the elements of `y` the product of the matrix
+* *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
 #### Updating matrix-vector product
@@ -2218,19 +2226,18 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 * *Constraints:*
 
-  * `z.rank()` equals 1.
-
   * For `i,j` in the domain of `A`, the expression
     `z(i) = y(i) + A(i,j)*x(j)` is well formed.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
-  `y`, with the vector resulting from product of the matrix `A` with
-  the vector `x`.
+  `y`, and the product of the matrix `A` with the vector `x`.
 
 ### Symmetric matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
+
+The following requirements apply to all functions in this section.
 
 * *Requires:*
 
@@ -2247,6 +2254,9 @@ void matrix_vector_product(ExecutionPolicy&& exec,
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
+
+  * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
+    `z.rank()` equals 1.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2279,7 +2289,7 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 * *Constraints:* For `i,j` in the domain of `A`, the expression
   `y(i) += A(i,j)*x(j)` is well formed.
 
-* *Effects:* Assign to the elements of `y` the product of the matrix
+* *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
 #### Updating matrix-vector product
@@ -2312,21 +2322,18 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 
 * *Requires:* `y` and `z` have the same domain.
 
-* *Constraints:*
-
-  * `z.rank()` equals 1.
-
-  * For `i,j` in the domain of `A`, the expression
-    `z(i) = y(i) + A(i,j)*x(j)` is well formed.
+* *Constraints:* For `i,j` in the domain of `A`, the expression
+  `z(i) = y(i) + A(i,j)*x(j)` is well formed.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
-  `y`, with the vector resulting from product of the matrix `A` with
-  the vector `x`.
+  `y`, with the product of the matrix `A` with the vector `x`.
 
 ### Hermitian matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xHEMV` and
 `xHPMV`. --*end note]*
+
+The following requirements apply to all functions in this section.
 
 * *Requires:"*
 
@@ -2343,6 +2350,9 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
+
+  * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
+    `z.rank()` equals 1.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2374,10 +2384,10 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 ```
 
 * *Constraints:* For `i,j` in the domain of `A`, the expressions
-  `y(i) += A(i,j)*x(j)` and `y(i) += conj(A(j,i))*x(j)` are well
+  `y(i) += A(i,j)*x(j)` and `y(i) += conj(A(i,j))*x(j)` are well
   formed.
 
-* *Effects:* Assign to the elements of `y` the product of the matrix
+* *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
 #### Updating matrix-vector product
@@ -2410,22 +2420,19 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 
 * *Requires:* `y` and `z` have the same domain.
 
-* *Constraints:*
-
-  * `z.rank()` equals 1.
-
-  * For `i,j` in the domain of `A`, the expressions `z(i) = y(i) +
-    A(i,j)*x(j)` and `z(i) = y(i) + conj(A(j,i))*x(j)` are well
-    formed.
+* *Constraints:* For `i,j` in the domain of `A`, the expressions
+  `z(i) = y(i) + A(i,j)*x(j)` and `z(i) = y(i) + conj(A(i,j))*x(j)`
+  are well formed.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
-  `y`, with the vector resulting from product of the matrix `A` with
-  the vector `x`.
+  `y`, and the product of the matrix `A` with the vector `x`.
 
 ### Triangular matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xTRMV` and
 `xTPMV`. --*end note]*
+
+The following requirements apply to all functions in this section.
 
 * *Requires:*
 
@@ -2445,6 +2452,9 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
+
+  * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
+    `z.rank()` equals 1.
 
 * *Remarks:*
 
@@ -2489,7 +2499,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Constraints:* For `i,j` in the domain of `A`, the expression
   `y(i) += A(i,j)*x(j)` is well formed.
 
-* *Effects:* Assign to the elements of `y` the product of the matrix
+* *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
 #### Updating matrix-vector product
@@ -2526,16 +2536,11 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 
 * *Requires:* `y` and `z` have the same domain.
 
-* *Constraints:*
-
-  * `z.rank()` equals 1.
-
-  * For `i,j` in the domain of `A`, the expression
-    `z(i) = y(i) + A(i,j)*x(j)` is well formed.
+* *Constraints:* For `i,j` in the domain of `A`, the expression
+  `z(i) = y(i) + A(i,j)*x(j)` is well formed.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
-  `y`, with the vector resulting from product of the matrix `A` with
-  the vector `x`.
+  `y`, with the product of the matrix `A` with the vector `x`.
 
 ### Solve a triangular linear system
 
@@ -2566,21 +2571,21 @@ void triangular_matrix_solve(ExecutionPolicy&& exec,
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xTRSV`,
-`xTPSV`, and `xTRSM`. --*end note]*
+`xTPSV`, and `xTRSM`.  Thus, they present both BLAS 2 and BLAS 3
+functionality as one interface. --*end note]*
 
 * *Requires:*
 
-  * If `b.rank()` and `x.rank()` equal 1, then if `i,j` is in the
-    domain of `A`, then `i` is in the domain of `x` and `j` is
-    in the domain of `b`.
+  * If `b.rank()` and `x.rank()` equal 1 and `i,j` is in the domain of
+    `A`, then `i` is in the domain of `x` and `j` is in the domain of
+    `b`.
 
   * If `b.rank()` and `x.rank()` equal 2, then `x.extent(1)` equals
     `b.extent(1)`.
 
-  * If `b.rank()` and `x.rank()` equal 2 and `x.extent(1) != 0`, then
-    if `i,j` is in the domain of `A`, then there exists `k`
-    such that `i,k` is in the domain of `x` and `j,k` is in the domain
-    of `b`.
+  * If `b.rank()` and `x.rank()` equal 2, `x.extent(1) != 0`, and
+    `i,j` is in the domain of `A`, then there exists `k` such that
+    `i,k` is in the domain of `x` and `j,k` is in the domain of `b`.
 
 * *Constraints:*
 
@@ -2641,7 +2646,7 @@ void triangular_matrix_solve(ExecutionPolicy&& exec,
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-### Rank-1 update of a matrix
+### Rank-1 (outer product) update of a matrix
 
 #### Nonsymmetric non-conjugated rank-1 update
 
