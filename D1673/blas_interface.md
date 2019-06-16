@@ -2060,10 +2060,10 @@ void dot(ExecutionPolicy&& exec,
 real element types), `xDOTC`, and `xDOTU` (for complex element types).
 --*end note]*
 
+* *Requires:* `v1` and `v2` have the same domain.
+
 * *Constraints:* For all `i` in the domain of `v1` and `v2`,
   the expression `result += v1(i)*v2(i)` is well formed.
-
-* *Requires:* `v1` and `v2` have the same domain.
 
 * *Effects:* Assigns to `result` the sum of the products of
   corresponding entries of `v1` and `v2`.
@@ -2688,7 +2688,7 @@ void triangular_matrix_vector_solve(
 template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t>
-void matrix_rank_1_update_u(
+void matrix_rank_1_update(
   in_vector_1_t x,
   in_vector_2_t y,
   inout_matrix_t A);
@@ -2697,35 +2697,35 @@ template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t>
-void matrix_rank_1_update_u(
+void matrix_rank_1_update(
   ExecutionPolicy&& exec,
   in_vector_1_t x,
   in_vector_2_t y,
   inout_matrix_t A);
 ```
 
-*[Note:* This function corresponds to the BLAS functions `xGER` and
-`xGERU`. --*end note]*
+*[Note:* This function corresponds to the BLAS functions `xGER` (for
+real element types), `xGERC`, and `xGERU` (for complex element
+types). --*end note]*
 
 * *Requires:*
-
-  * `A` represents a matrix of the General matrix "type."
 
   * If `i,j` is in the domain of `A`, then `i` is in the domain of `x`
     and `j` is in the domain of `y`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
+  * `A.rank()` equals 2, `x.rank()` equals 1, and `y.rank()` equals 1.
 
   * For `i,j` in the domain of `A`, the expression
     `A(i,j) += x(i)*y(j)` is well formed.
 
-  * `A` has a unique layout.
-
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
-  (outer) product of `x` and the (non-conjugated) transpose of `y`.
+  outer product of `x` and `y`.
+
+*[Note:* Users can get `xGERC` behavior by giving the second argument
+as a `conjugate_view`.  Alternately, they can use the shortcut
+`matrix_rank_1_update_c` below. --*end note]*
 
 ##### Nonsymmetric conjugated rank-1 update
 
@@ -2749,31 +2749,8 @@ void matrix_rank_1_update_c(
   inout_matrix_t A);
 ```
 
-*[Note:* This function corresponds to the BLAS functions `xGER` and
-`xGERC`. --*end note]*
-
-* *Requires:*
-
-  * `A` represents a matrix of the General matrix "type."
-
-  * If `i,j` is in the domain of `A`, then `i` is in the domain of `x`
-    and `j` is in the domain of `y`.
-
-* *Constraints:*
-
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
-
-  * If `in_vector_2_t::element_type` is `complex<T>` for some `T`,
-    then for `i,j` in the domain of `A`, the expression `A(i,j) +=
-    x(i)*conj(y(j))` is well formed.  Otherwise, for `i,j` in the
-    domain of `A`, the expression `A(i,j) += x(i)*y(j)` is well
-    formed.
-
-  * `A` has a unique layout.
-
-* *Effects:* Assigns to `A` on output the sum of `A` on input, and the
-  (outer) product of `x` and the conjugate transpose of `y`.
+* *Effects:* Equivalent to
+  `matrix_rank_1_update(x, conjugate_view(y), A);`.
 
 ##### Rank-1 update of a Symmetric matrix
 
@@ -2819,7 +2796,7 @@ void symmetric_matrix_rank_1_update(
     x(i)*x(j)` is well formed.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
-  (outer) product of `x` and the (non-conjugated) transpose of `x`.
+  outer product of `x` and `x`.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2869,7 +2846,7 @@ void hermitian_matrix_rank_1_update(
     x(i)*conj(x(j))` is well formed.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
-  (outer) product of `x` and the conjugate transpose of `x`.
+  outer product of `x` and the conjugate of `x`.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2925,9 +2902,7 @@ void symmetric_matrix_rank_2_update(
     `A(i,j) += x(i)*y(j) + y(i)*x(j)` is well formed.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, the
-  (outer) product of `x` and the (non-conjugated) transpose of `y`,
-  and the (outer) product of `y` and the (non-conjugated) transpose of
-  `x`.
+  outer product of `x` and `y`, and the outer product of `y` and `x`.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2982,8 +2957,8 @@ void hermitian_matrix_rank_2_update(
     x(i)*conj(y(j)) + y(i)*conj(x(j))` is well formed.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, the
-  (outer) product of `x` and the conjugate transpose of `y`, and the
-  (outer) product of `y` and the conjugate transpose of `x`.
+  outer product of `x` and the conjugate of `y`, and the outer product
+  of `y` and the conjugate of `x`.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
