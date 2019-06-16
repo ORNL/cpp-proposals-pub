@@ -55,6 +55,9 @@ Our proposal also has the following distinctive characteristics:
 
 * It uses free functions, not arithmetic operator overloading.
 
+* The interface is designed in the spirit of the C++ Standard Library's
+  algorithms.
+
 * It uses the multidimensional array data structures
   [`basic_mdspan`](wg21.link/p0009) and `basic_mdarray` (P1684R0) to
   represent matrices and vectors.  In the future, it could support
@@ -85,11 +88,16 @@ Our proposal also has the following distinctive characteristics:
 
 ## Interoperable with other linear algebra proposals
 
-We do not intend to compete with [P1385R1](wg21.link/p1385r1), a
+We believe this proposal is complimentary to [P1385R1](wg21.link/p1385r1), a
 proposal for a linear algebra library presented at the 2019 Kona WG21
 meeting that introduces matrix and vector classes and overloaded
 arithmetic operators.  In fact, we think that our proposal would make
 a natural foundation for a library like what P1385 proposes.
+However, a free function interface - which clearly separates algorithms
+from data structures, more naturally allows for a richer set of operations
+such as is provided by the existing BLAS. A natural extension of the present
+proposal would include allowing math objects from P1385 as input for the
+algorithms proposed here.
 
 ## Why include dense linear algebra in the C++ Standard Library?
 
@@ -114,7 +122,7 @@ For much of that time, many third-party C++ libraries for linear
 algebra have been available.  Many different subject areas depend on
 linear algebra, including machine learning, data mining, web search,
 statistics, computer graphics, medical imaging, geolocation and
-mapping, and physics-based simulations.
+mapping, engineering and physics-based simulations.
 
 ["Directions for ISO C++" (P0939R0)](wg21.link/p0939r0) offers the
 following in support of adding linear algebra to the C++ Standard
@@ -137,7 +145,10 @@ Library:
   algebra operations.  For example, SIMD (single instruction multiple
   data) is a feature added to processors to speed up matrix and vector
   operations.  [P0214R9](wg21.link/p0214r9), a C++ SIMD library, was
-  voted into the C++20 draft.
+  voted into the C++20 draft. Numerous large processor companies 
+  implement optimized linear algebra libraries such as Intels MKL,
+  NVIDIAs CuBLAS, IBMs ESSL and AMDs optimized BLIS.
+
 
 Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
@@ -734,7 +745,7 @@ A C++ linear algebra library has a few possibilities for
 distinguishing the matrix "type":
 
 1. It could use the layout and accessor types in `basic_mdspan` simply
-   as tags to indicate the matrix "type."  Algortithms could
+   as tags to indicate the matrix "type."  Algorithms could
    specialize on those tags.
 
 2. It could introduce a hierarchy of higher-level classes for
@@ -877,6 +888,11 @@ Some functions explicitly require outputs with specific nonunique
 layouts.  This includes low-rank updates to symmetric or Hermitian
 matrices, and matrix-matrix multiplication with symmetric or Hermitian
 matrices.
+
+It is an open question whether our algorithms should also allow any 
+input and output arguments for which `is_always_unique` is true. Any
+general implementation of the BLAS functions (which does not extract
+raw pointers in its implementation) would work with this. 
 
 #### Tag classes for layouts
 
