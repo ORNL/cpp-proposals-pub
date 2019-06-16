@@ -1,4 +1,4 @@
-# D1674R0: Evolving a Standard C++ Linear Algebra Library from the BLAS
+# P1674R0: Evolving a Standard C++ Linear Algebra Library from the BLAS
 
 ## Authors
 
