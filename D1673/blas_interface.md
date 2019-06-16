@@ -787,9 +787,14 @@ lower-level library.  Approach 3 _sounds_ attractive.  However, most
 BLAS matrix "types" do not have a natural representation as layouts.
 Trying to hack them in would pollute `basic_mdspan` -- a simple class
 meant to be easy for the compiler to optimize -- with extra baggage
-for representing what amounts to sparse matrices.  BLAS matrix "type"
-is better represented with a higher-level library that builds on our
-proposal.
+for representing what amounts to sparse matrices.  We think that BLAS
+matrix "type" is better represented with a higher-level library that
+builds on our proposal.
+
+## Caveats
+
+This proposal does not yet have full wording.  We have filled in
+enough wording to make the design clear.
 
 ## Data structures and utilities borrowed from other proposals
 
@@ -954,10 +959,14 @@ the "upper triangle," "lower triangle," and "diagonal" of a matrix.
   triangle.
 
 ```c++
-struct upper_triangle_t { constexpr explicit upper_triangle_t() noexcept = default; };
+struct upper_triangle_t {
+  constexpr explicit upper_triangle_t() noexcept = default;
+};
 inline constexpr upper_triangle_t upper_triangle = { };
 
-struct lower_triangle_t { constexpr explicit lower_triangle_t() noexcept = default; };
+struct lower_triangle_t {
+  constexpr explicit lower_triangle_t() noexcept = default;
+};
 inline constexpr lower_triangle_t lower_triangle = { };
 ```
 
