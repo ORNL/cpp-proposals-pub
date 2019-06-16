@@ -2035,61 +2035,9 @@ void linalg_add(ExecutionPolicy&& exec,
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
-#### Non-conjugated inner product of two vectors
+#### Inner (dot) product of two vectors
 
 ```c++
-template<class in_vector_1_t,
-         class in_vector_2_t,
-         class Scalar>
-void dotu(in_vector_1_t v1,
-          in_vector_2_t v2,
-          Scalar& result);
-template<class ExecutionPolicy,
-         class in_vector_1_t,
-         class in_vector_2_t,
-         class Scalar>
-void dotu(ExecutionPolicy&& exec,
-          in_vector_1_t v1,
-          in_vector_2_t v2,
-          Scalar& result);
-```
-
-*[Note:* These functions correspond to the BLAS functions `xDOT` (for
-real element types) and `xDOTU` (for complex element types).  --*end
-note]*
-
-* *Constraints:* For all `i` in the domain of `v1` and `v2`,
-  the expression `result += v1(i)*v2(i)` is well formed.
-
-* *Requires:* `v1` and `v2` have the same domain.
-
-* *Effects:* Assigns to `result` the sum of the products of
-  corresponding entries of `v1` and `v2`.
-
-* *Remarks:* If `in_vector_t::element_type` and `Scalar` are both
-  floating-point types or complex versions thereof, and if `Scalar`
-  has higher precision than `in_vector_type::element_type`, then
-  implementations will use `Scalar`'s precision or greater for
-  intermediate terms in the sum.
-
-#### Conjugated inner product of two vectors
-
-```c++
-template<class in_vector_1_t,
-         class in_vector_2_t,
-         class Scalar>
-void dotc(in_vector_1_t v1,
-          in_vector_2_t v2,
-          Scalar& result);
-template<class ExecutionPolicy,
-         class in_vector_1_t,
-         class in_vector_2_t,
-         class Scalar>
-void dotc(ExecutionPolicy&& exec,
-          in_vector_1_t v1,
-          in_vector_2_t v2,
-          Scalar& result);
-
 template<class in_vector_1_t,
          class in_vector_2_t,
          class Scalar>
@@ -2107,36 +2055,50 @@ void dot(ExecutionPolicy&& exec,
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xDOT` (for
-real element types) and `xDOTC` (for complex element types).  The
-`dot` functions do the same thing as their `dotc` counterparts, and
-exist so that users who attempt to write a generic code will get
-reasonable default behavior for complex element types. --*end note]*
+real element types), `xDOTC`, and `xDOTU` (for complex element types).
+--*end note]*
 
-* *Constraints:*
-
-  * If `in_vector_1_t::element_type` is `complex<T>` for some `T`,
-    then for all `i` in the domain of `v1` and `v2`, the expression
-    `result += conj(v1(i))*v2(i)` is well formed.
-
-  * Otherwise, for all `i` in the domain of `v1`, the expression
-    `result += v1(i)*v2(i)` is well formed.
+* *Constraints:* For all `i` in the domain of `v1` and `v2`,
+  the expression `result += v1(i)*v2(i)` is well formed.
 
 * *Requires:* `v1` and `v2` have the same domain.
 
-* *Effects:*
-
-  * If `in_vector_1_t::element_type` is `complex<T>` for some `T`,
-    then assigns to `result` the sum of the products of corresponding
-    entries of `conjugate_view(v1)` and `v2`.
-
-  * Otherwise, assigns to `result` the sum of the products of
-    corresponding entries of `v1` and `v2`.
+* *Effects:* Assigns to `result` the sum of the products of
+  corresponding entries of `v1` and `v2`.
 
 * *Remarks:* If `in_vector_t::element_type` and `Scalar` are both
   floating-point types or complex versions thereof, and if `Scalar`
   has higher precision than `in_vector_type::element_type`, then
   implementations will use `Scalar`'s precision or greater for
   intermediate terms in the sum.
+
+*[Note:* Users can get `xDOTC` behavior by giving the second argument
+as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
+below. --*end note]*
+
+#### Conjugated inner (dot) product of two vectors
+
+```c++
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class Scalar>
+void dotc(in_vector_1_t v1,
+          in_vector_2_t v2,
+          Scalar& result);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class Scalar>
+void dotc(ExecutionPolicy&& exec,
+          in_vector_1_t v1,
+          in_vector_2_t v2,
+          Scalar& result);
+```
+
+* *Effects:* Equivalent to `dot(v1, conjugate_view(v2), result);`.
+
+*[Note:* `dotc` exists to give users reasonable default inner product
+behavior for both real and complex element types. --*end note]*
 
 #### Euclidean (2) norm of a vector
 
