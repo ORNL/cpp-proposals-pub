@@ -76,8 +76,8 @@ Our proposal also has the following distinctive characteristics:
 * Like the C++ Standard Library's algorithms, our operations take an
   optional execution policy argument.  This is a hook to support
   parallel execution and hierarchical parallelism (through the
-  proposed executor extensions to execution policies, see 
-  [P1019R2](wg21.link/p1019)).
+  proposed executor extensions to execution policies, see
+  [P1019R2](wg21.link/p1019r2)).
 
 * Unlike the BLAS, our proposal can be expanded to support "batched"
   operations (see [P1417R0](wg21.link/p1417r0)) with almost no
@@ -118,7 +118,7 @@ a natural foundation for a library like what P1385 proposes.
 6. This proposal follows in the footsteps of many recent successful
    incorporations of existing standards into C++, including the
    UTC and TAI standard definitions from the International
-   Telecommunications Union, the time zone database standard from 
+   Telecommunications Union, the time zone database standard from
    the International Assigned Numbers Authority's, and the ongoing
    effort to integrate the ISO unicode standard.
 
@@ -165,7 +165,7 @@ standardizing, so that Standard Library implementers can get them
 right and hardware vendors can optimize them.  In fact, almost all C++
 linear algebra libraries end up calling non-C++ implementations of
 these algorithms, especially the implementations in optimized BLAS
-libraries (see below).  In this respect, linear algebra is also 
+libraries (see below).  In this respect, linear algebra is also
 analogous to standard library features like `random_device`:
 often implemented directly in assembly or even with special
 hardware, and thus an essential component of allowing no room for
@@ -3920,6 +3920,9 @@ pioneering efforts and history lessons.
   multiplication,"](https://doi.org/10.1145/1356052.1356053), *ACM
   Transactions on Mathematical Software* (TOMS), Vol. 34, No. 3, May
   2008.
+
+* J. Hoberock, "Integrating Executors with Parallel Algorithms,"
+  [P1019R2](wg21.link/p1019r2), Jan. 2019.
 
 * N. A. Josuttis, "The C++ Standard Library: A Tutorial and Reference,"
   Addison-Wesley, 1999.
