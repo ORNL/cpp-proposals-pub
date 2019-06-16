@@ -1,4 +1,4 @@
-# D1673R0: A free function linear algebra interface based on the BLAS
+# P1673R0: A free function linear algebra interface based on the BLAS
 
 ## Authors
 
