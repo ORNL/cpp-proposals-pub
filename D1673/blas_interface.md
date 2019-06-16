@@ -1351,13 +1351,21 @@ public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
   using reference     = scaled_scalar<Accessor::reference,S>;
-  using offset_policy = accessor_scaled<Accessor,S>;
+  using offset_policy = accessor_scaled<Accessor::offset_policy,S>;
 
   accessor_scaled(Accessor a, S sval) :
     acc(a), scale_factor(sval) {}
 
-  scaled_scalar<T,S> access(pointer& p, ptrdiff_t i) {
-    return scaled_scalar<T,S>(acc.access(p,i), scale_factor);
+  reference access(pointer& p, ptrdiff_t i) const noexcept {
+    return reference(acc.access(p,i), scale_factor);
+  }
+
+  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return a.offset(p,i);
+  }
+
+  element_type* decay(pointer p) const noexcept {
+    return a.decay(p);
   }
 
 private:
@@ -1480,23 +1488,55 @@ private:
 #### `accessor_conjugate`
 
 The `accessor_conjugate` Accessor makes `basic_mdspan` return a
-`conjugated_scalar`.
+`conjugated_scalar` if the scalar type is `std::complex`.
 
 ```c++
-template<class Accessor, class S>
+template<class Accessor, class T>
 class accessor_conjugate {
 public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
-  using reference     = conjugated_scalar<Accessor::reference,S>;
-  using offset_policy = accessor_conjugate<Accessor,S>;
+  using reference     = Accessor::reference;
+  using offset_policy = Accessor::offset_policy;
 
-  conjugated_scaled(Accessor a) : acc(a) {}
+  accessor_conjugate(Accessor a) : acc(a) {}
 
-  conjugated_scalar<T,S> access(pointer& p, ptrdiff_t i) {
-    return conjugated_scalar<T,S>(acc.access(p,i),scale_factor);
+  reference access(pointer p, ptrdiff_t i) const noexcept {
+    return reference(acc.access(p,i),scale_factor);
   }
 
+  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return a.offset(p,i);
+  }
+
+  element_type* decay(pointer p) const noexcept {
+    return a.decay(p);
+  }
+private:
+  Accessor acc;
+};
+
+template<class Accessor, class T>
+class accessor_conjugate<Accessor,std::complex<T>> {
+public:
+  using element_type  = Accessor::element_type;
+  using pointer       = Accessor::pointer;
+  using reference     = conjugated_scalar<Accessor::reference,std::complex<T>>;
+  using offset_policy = accessor_conjugate<Accessor::offset_policy,std::complex<T>>;
+
+  accessor_conjugate(Accessor a) : acc(a) {}
+
+  reference access(pointer p, ptrdiff_t i) const noexcept {
+    return reference(acc.access(p,i),scale_factor);
+  }
+
+  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return a.offset(p,i);
+  }
+
+  element_type* decay(pointer p) const noexcept {
+    return a.decay(p);
+  }
 private:
   Accessor acc;
 };
@@ -1510,7 +1550,7 @@ accessor.
 ```c++
 template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<EltType, Extents, Layout,
-             accessor_conjugate<Accessor>>
+             accessor_conjugate<Accessor,EltType>>
 conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
 
 template<class EltType, class Extents, class Layout, class Accessor>
@@ -1534,6 +1574,12 @@ void test_conjugate_view(basic_mdspan<complex<double>, extents<10>>)
 }
 ```
 
+*Note:*
+
+Instead of a partial specialisation of `accessor_conjugate` one could
+have different overlaods of `conjugate_view` which returns for non-complex
+scalar types the same accessor as the input argument. 
+
 ### Transpose view of an object
 
 Many BLAS functions of matrices take an argument that specifies
@@ -1548,7 +1594,7 @@ construct a "transposed view" or "conjugate transpose" view of an
 object.  This lets us simplify the interface.
 
 An implementation could dispatch to the BLAS by noticing that the
-first argument has an `layout_transpose` (see below) `Layout` type
+first argument has a `layout_transpose` (see below) `Layout` type
 (in both transposed and conjugate transposed cases), and/or an
 `accessor_conjugate` (see below) `Accessor` type (in the conjugate
 transposed case).  It could use this information to extract the
@@ -1713,7 +1759,7 @@ follows:
   `basic_mdarray<T, ...>&` for nonconst `T`); or,
 
 * by value if they are `basic_mdspan` (i.e., `const basic_mdspan<T,
-  ...>&` for nonconst `T`).
+  ...>` for nonconst `T`).
 
 ### BLAS 1 functions
 
