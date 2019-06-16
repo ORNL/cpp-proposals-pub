@@ -111,16 +111,17 @@ a natural foundation for a library like what P1385 proposes.
    are at least as broadly useful.
 
 5. The set of linear algebra operations in this proposal are derived
-   a well-established, standard set of algorithms that has not
-   changed in decades.  It is one of the strongest possible examples of
-   standardizing existing practice that anyone could bring to C++.
+   from a well-established, standard set of algorithms that has
+   changed very little in decades.  It is one of the strongest
+   possible examples of standardizing existing practice that anyone
+   could bring to C++.
 
 6. This proposal follows in the footsteps of many recent successful
-   incorporations of existing standards into C++, including the
-   UTC and TAI standard definitions from the International
-   Telecommunications Union, the time zone database standard from
-   the International Assigned Numbers Authority's, and the ongoing
-   effort to integrate the ISO unicode standard.
+   incorporations of existing standards into C++, including the UTC
+   and TAI standard definitions from the International
+   Telecommunications Union, the time zone database standard from the
+   International Assigned Numbers Authority, and the ongoing effort to
+   integrate the ISO unicode standard.
 
 Linear algebra has had wide use in C++ applications for nearly three
 decades (see [P1417R0](wg21.link/p1417r0) for a historical survey).
@@ -166,11 +167,11 @@ right and hardware vendors can optimize them.  In fact, almost all C++
 linear algebra libraries end up calling non-C++ implementations of
 these algorithms, especially the implementations in optimized BLAS
 libraries (see below).  In this respect, linear algebra is also
-analogous to standard library features like `random_device`:
-often implemented directly in assembly or even with special
-hardware, and thus an essential component of allowing no room for
-another language "below" C++ (see notes on this philosophy in
-[P0939](wg21.link/p0939) and Stroustrup's seminal work "The Design
+analogous to standard library features like `random_device`: often
+implemented directly in assembly or even with special hardware, and
+thus an essential component of allowing no room for another language
+"below" C++ (see notes on this philosophy in
+[P0939R0](wg21.link/p0939r0) and Stroustrup's seminal work "The Design
 and Evolution of C++").
 
 Dense linear algebra is the core component of most algorithms and
