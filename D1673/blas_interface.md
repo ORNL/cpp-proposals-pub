@@ -2037,6 +2037,8 @@ void linalg_add(ExecutionPolicy&& exec,
 
 #### Inner (dot) product of two vectors
 
+##### Non-conjugated inner (dot) product
+
 ```c++
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -2076,7 +2078,7 @@ real element types), `xDOTC`, and `xDOTU` (for complex element types).
 as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
-#### Conjugated inner (dot) product of two vectors
+##### Conjugated inner (dot) product
 
 ```c++
 template<class in_vector_1_t,
@@ -2220,9 +2222,9 @@ ptrdiff_t vector_idx_abs_max(ExecutionPolicy&& exec,
   `v` having largest absolute value.  If `v` has zero elements, then
   returns `-1`.
 
-## BLAS 2 functions
+### BLAS 2 functions
 
-### General matrix-vector product
+#### General matrix-vector product
 
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
@@ -2241,7 +2243,7 @@ The following requirements apply to all functions in this section.
   * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
     `z.rank()` equals 1.
 
-#### Overwriting matrix-vector product
+##### Overwriting matrix-vector product
 
 ```c++
 template<class ExecutionPolicy,
@@ -2266,7 +2268,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-#### Updating matrix-vector product
+##### Updating matrix-vector product
 
 ```c++
 template<class ExecutionPolicy, class in_vector_1_t,
@@ -2299,7 +2301,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-### Symmetric matrix-vector product
+#### Symmetric matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
@@ -2327,7 +2329,7 @@ The following requirements apply to all functions in this section.
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-#### Overwriting matrix-vector product
+##### Overwriting symmetric matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -2357,7 +2359,7 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-#### Updating matrix-vector product
+##### Updating symmetric matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -2395,7 +2397,7 @@ void symmetric_matrix_vector_product(
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-### Hermitian matrix-vector product
+#### Hermitian matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xHEMV` and
 `xHPMV`. --*end note]*
@@ -2424,7 +2426,7 @@ The following requirements apply to all functions in this section.
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-#### Overwriting matrix-vector product
+##### Overwriting Hermitian matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -2455,7 +2457,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-#### Updating matrix-vector product
+##### Updating Hermitian matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -2492,7 +2494,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-### Triangular matrix-vector product
+#### Triangular matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xTRMV` and
 `xTPMV`. --*end note]*
@@ -2528,7 +2530,7 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-#### Overwriting matrix-vector product
+##### Overwriting triangular matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -2562,7 +2564,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-#### Updating matrix-vector product
+##### Updating triangular matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -2602,7 +2604,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-### Solve a triangular linear system
+#### Solve a triangular linear system
 
 ```c++
 template<class in_matrix_t,
@@ -2678,9 +2680,9 @@ void triangular_matrix_vector_solve(
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-### Rank-1 (outer product) update of a matrix
+#### Rank-1 (outer product) update of a matrix
 
-#### Nonsymmetric non-conjugated rank-1 update
+##### Nonsymmetric non-conjugated rank-1 update
 
 ```c++
 template<class in_vector_1_t,
@@ -2725,7 +2727,7 @@ void matrix_rank_1_update_u(
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
   (outer) product of `x` and the (non-conjugated) transpose of `y`.
 
-#### Nonsymmetric conjugated rank-1 update
+##### Nonsymmetric conjugated rank-1 update
 
 ```c++
 template<class in_vector_1_t,
@@ -2773,7 +2775,7 @@ void matrix_rank_1_update_c(
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
   (outer) product of `x` and the conjugate transpose of `y`.
 
-#### Rank-1 update of a Symmetric matrix
+##### Rank-1 update of a Symmetric matrix
 
 ```c++
 template<class in_vector_t,
@@ -2823,7 +2825,7 @@ void symmetric_matrix_rank_1_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-#### Rank-1 update of a Hermitian matrix
+##### Rank-1 update of a Hermitian matrix
 
 ```c++
 template<class in_vector_t,
@@ -2874,7 +2876,7 @@ void hermitian_matrix_rank_1_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-### Rank-2 update of a symmetric matrix
+#### Rank-2 update of a symmetric matrix
 
 ```c++
 template<class in_vector_1_t,
@@ -2931,7 +2933,7 @@ void symmetric_matrix_rank_2_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-### Rank-2 update of a Hermitian matrix
+#### Rank-2 update of a Hermitian matrix
 
 ```c++
 template<class in_vector_1_t,
@@ -2988,9 +2990,9 @@ void hermitian_matrix_rank_2_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-## BLAS 3 functions
+### BLAS 3 functions
 
-### General matrix-matrix product
+#### General matrix-matrix product
 
 *[Note:* These functions correspond to the BLAS function `xGEMM`.
 --*end note]*
@@ -3009,7 +3011,7 @@ The following requirements apply to all functions in this section.
   * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
     `E.rank()` (if applicable) equals 2.
 
-#### Overwriting matrix-matrix product
+##### Overwriting general matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3038,7 +3040,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of the matrix `C` the product of
   the matrices `A` and `B`.
 
-#### Updating matrix-matrix product
+##### Updating general matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3076,7 +3078,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-### Symmetric matrix-matrix product
+#### Symmetric matrix-matrix product
 
 *[Note:* These functions correspond to the BLAS function `xSYMM`.
 Unlike the symmetric rank-1 update functions, these functions assume
@@ -3108,7 +3110,7 @@ The following requirements apply to all functions in this section.
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-#### Overwriting matrix-matrix product
+##### Overwriting symmetric matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3156,7 +3158,7 @@ void symmetric_matrix_product(
   * If `Side` is `right_side_t`, then assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
-#### Updating matrix-matrix product
+##### Updating symmetric matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3217,7 +3219,7 @@ void symmetric_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-### Hermitian matrix-matrix product
+#### Hermitian matrix-matrix product
 
 *[Note:* These functions correspond to the BLAS function `xHEMM`.
 Unlike the Hermitian rank-1 update functions, these functions assume
@@ -3250,7 +3252,7 @@ The following requirements apply to all functions in this section.
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-#### Overwriting matrix-matrix product
+##### Overwriting Hermitian matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3298,7 +3300,7 @@ void hermitian_matrix_product(
   * If `Side` is `right_side_t`, then assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
-#### Updating matrix-matrix product
+##### Updating Hermitian matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3359,13 +3361,13 @@ void hermitian_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-### Rank-2k update of a symmetric or Hermitian matrix
+#### Rank-2k update of a symmetric or Hermitian matrix
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
 BLAS functions, by making `C` a `transpose_view` or
 `conjugate_transpose_view`. --*end note]*
 
-#### Rank-2k update of a symmetric matrix
+##### Rank-2k update of a symmetric matrix
 
 ```c++
 template<class in_matrix_1_t,
@@ -3425,7 +3427,7 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-#### Rank-2k update of a Hermitian matrix
+##### Rank-2k update of a Hermitian matrix
 
 ```c++
 template<class in_matrix_1_t,
@@ -3486,7 +3488,7 @@ void hermitian_matrix_rank_2k_update(
   indices `i,j` outside that triangle, that `C(j,i)` equals
   `conj(C(i,j))`.
 
-### Solve multiple triangular linear systems with the same matrix
+#### Solve multiple triangular linear systems with the same matrix
 
 ```c++
 template<class in_matrix_t,
