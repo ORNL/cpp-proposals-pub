@@ -2158,15 +2158,15 @@ floating-point types. --*end note]*
 ```c++
 template<class in_vector_t,
          class Scalar>
-void abs_sum(in_vector_t v,
-             Scalar& result);
+void vector_abs_sum(in_vector_t v,
+                    Scalar& result);
 
 template<class ExecutionPolicy,
          class in_vector_t,
          class Scalar>
-void abs_sum(ExecutionPolicy&& exec,
-             in_vector_t v,
-             Scalar& result);
+void vector_abs_sum(ExecutionPolicy&& exec,
+                    in_vector_t v,
+                    Scalar& result);
 ```
 
 *[Note:* This function corresponds to the BLAS functions `SASUM`,
@@ -2202,14 +2202,12 @@ void abs_sum(ExecutionPolicy&& exec,
 
 ```c++
 template<class in_vector_t>
-void idx_abs_max(in_vector_t v,
-                 ptrdiff_t& result);
+ptrdiff_t vector_idx_abs_max(in_vector_t v);
 
 template<class ExecutionPolicy,
          class in_vector_t>
-void idx_abs_max(ExecutionPolicy&& exec,
-                 in_vector_t v,
-                 ptrdiff_t& result);
+ptrdiff_t vector_idx_abs_max(ExecutionPolicy&& exec,
+                             in_vector_t v);
 ```
 
 *[Note:* These functions correspond to the BLAS function `IxAMAX`.
@@ -2218,9 +2216,9 @@ void idx_abs_max(ExecutionPolicy&& exec,
 * *Constraints:* For `i` and `j` in the domain of `v`, the expression
   `abs(v(i)) < abs(v(j))` is well formed.
 
-* *Effects:* Assigns to `result` the index (in the domain of `v`) of
-  the first element of `v` having largest absolute value.  If `v` has
-  zero elements, then assigns `-1` to `result`.
+* *Returns:* The index (in the domain of `v`) of the first element of
+  `v` having largest absolute value.  If `v` has zero elements, then
+  returns `-1`.
 
 ## BLAS 2 functions
 
