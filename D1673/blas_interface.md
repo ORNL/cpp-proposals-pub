@@ -6,8 +6,8 @@
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
-* Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
+* Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
 * Peter Caday (peter.caday@intel.com) (Intel)
@@ -90,15 +90,15 @@ Our proposal also has the following distinctive characteristics:
 
 ## Interoperable with other linear algebra proposals
 
-We believe this proposal is complimentary to [P1385R1](wg21.link/p1385r1), a
+We believe this proposal is complementary to [P1385R1](wg21.link/p1385r1), a
 proposal for a linear algebra library presented at the 2019 Kona WG21
 meeting that introduces matrix and vector classes and overloaded
 arithmetic operators.  In fact, we think that our proposal would make
-a natural foundation for a library like what P1385 proposes.
-However, a free function interface - which clearly separates algorithms
-from data structures, more naturally allows for a richer set of operations
-such as is provided by the existing BLAS. A natural extension of the present
-proposal would include allowing math objects from P1385 as input for the
+a natural foundation for a library like what P1385R1 proposes.
+However, a free function interface -- which clearly separates algorithms
+from data structures -- more naturally allows for a richer set of operations
+such as what the BLAS provides. A natural extension of the present
+proposal would include allowing matrix and vector objects from P1385 as input for the
 algorithms proposed here.
 
 ## Why include dense linear algebra in the C++ Standard Library?
@@ -137,7 +137,7 @@ For much of that time, many third-party C++ libraries for linear
 algebra have been available.  Many different subject areas depend on
 linear algebra, including machine learning, data mining, web search,
 statistics, computer graphics, medical imaging, geolocation and
-mapping, engineering and physics-based simulations.
+mapping, engineering, and physics-based simulations.
 
 ["Directions for ISO C++" (P0939R0)](wg21.link/p0939r0) offers the
 following in support of adding linear algebra to the C++ Standard
@@ -160,10 +160,12 @@ Library:
   algebra operations.  For example, SIMD (single instruction multiple
   data) is a feature added to processors to speed up matrix and vector
   operations.  [P0214R9](wg21.link/p0214r9), a C++ SIMD library, was
-  voted into the C++20 draft. Numerous large processor companies 
-  implement optimized linear algebra libraries such as Intels MKL,
-  NVIDIAs CuBLAS, IBMs ESSL and AMDs optimized BLIS.
-
+  voted into the C++20 draft.  Several large computer system vendors
+  offer optimized linear algebra libraries based on or closely
+  resembling the BLAS; these include AMD's BLIS, ARM Performance
+  Libraries, Cray's LibSci, Intel's Math Kernel Library (MKL), IBM's
+  Engineering and Scientific Subroutine Library (ESSL), and NVIDIA's
+  cuBLAS.
 
 Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
@@ -765,25 +767,29 @@ different matrix types.
 A C++ linear algebra library has a few possibilities for
 distinguishing the matrix "type":
 
-1. It could use the layout and accessor types in `basic_mdspan` simply
-   as tags to indicate the matrix "type."  Algorithms could
-   specialize on those tags.
+1. It could imitate the BLAS, by introducing different function names,
+   if the layouts and accessors do not sufficiently describe the
+   arguments.
 
 2. It could introduce a hierarchy of higher-level classes for
    representing linear algebra objects, use `basic_mdspan` (or
    something like it) underneath, and write algorithms to those
    higher-level classes.
 
-3. It could imitate the BLAS, by introducing different function names,
-   if the layouts and accessors do not sufficiently describe the
-   arguments.
+3. It could use the layout and accessor types in `basic_mdspan` simply
+   as tags to indicate the matrix "type."  Algorithms could specialize
+   on those tags.
 
-We have chosen Approach 3.  Our view is that a BLAS-like interface
-should be as low-level as possible.  If a different library wants to
-implement a "Matlab in C++," it could then build on this low-level
-library.  We also do not want to pollute `basic_mdspan` -- a simple
-class meant to be easy for the compiler to optimize -- with extra
-baggage for representing what amounts to sparse matrices.
+We have chosen Approach 1.  Our view is that a BLAS-like interface
+should be as low-level as possible.  Approach 2 is more like a "Matlab
+in C++"; a library that implements this could build on our proposal's
+lower-level library.  Approach 3 _sounds_ attractive.  However, most
+BLAS matrix "types" do not have a natural representation as layouts.
+Trying to hack them in would pollute `basic_mdspan` -- a simple class
+meant to be easy for the compiler to optimize -- with extra baggage
+for representing what amounts to sparse matrices.  BLAS matrix "type"
+is better represented with a higher-level library that builds on our
+proposal.
 
 ## Data structures and utilities borrowed from other proposals
 
@@ -862,7 +868,7 @@ contiguous, and strided.
 This proposal includes the following additional layouts:
 
 * `layout_blas_general`: Generalization of `layout_left` and
-  `layout_right`; describes General matrix data layout
+  `layout_right`; describes layout used by General matrix "type"
 
 * `layout_blas_packed`: Describes layout used by the BLAS' Symmetric
   Packed (SP), Hermitian Packed (HP), and Triangular Packed (TP)
@@ -887,33 +893,19 @@ we provide `layout_blas_packed`.  Note that these layouts would thus
 be the first additions to the layouts in P0009R9 that are not unique,
 contiguous, and strided.
 
-Algorithms cannot be written generically if they permit output
-arguments with nonunique layouts.  They must be specialized to the
-layout, since there's no way to know generically at compile time what
-indices map to the same matrix element.  Thus, we impose the following
-rules:
+Algorithms cannot be written generically if they permit arguments with
+nonunique layouts, especially output arguments.  Nonunique output
+arguments require specialization of the algorithm to the layout, since
+there's no way to know generically at compile time what indices map to
+the same matrix element.  Thus, we impose the following rule: Any
+`basic_mdspan` or `basic_mdarray` argument to our functions must
+always have unique layout (`is_always_unique()` is `true`), unless
+otherwise specified.
 
-* Unless otherwise specified, our functions accept input objects that
-  are not also output objects, as long as they have any of the
-  following layouts:
-
-  * `layout_left`, `layout_right`, or `layout_stride` (as in P0009R9);
-    or
-
-  * any layout defined in this proposal.
-
-* Unless otherwise specified, none of our functions accept output
-  arguments with nonunique layout.
-
-Some functions explicitly require outputs with specific nonunique
-layouts.  This includes low-rank updates to symmetric or Hermitian
-matrices, and matrix-matrix multiplication with symmetric or Hermitian
-matrices.
-
-It is an open question whether our algorithms should also allow any 
-input and output arguments for which `is_always_unique` is true. Any
-general implementation of the BLAS functions (which does not extract
-raw pointers in its implementation) would work with this. 
+Some of our functions explicitly require outputs with specific
+nonunique layouts.  This includes low-rank updates to symmetric or
+Hermitian matrices, and matrix-matrix multiplication with symmetric or
+Hermitian matrices.
 
 #### Tag classes for layouts
 
@@ -1441,17 +1433,17 @@ Just as we did above with "scaled views" of an object, we can apply
 the complex conjugate operation to each element of an object using a
 special accessor.
 
-What does the complex conjugate mean for non-complex numbers?  One
-convention, which the [Trilinos](https://github.com/trilinos/Trilinos)
-library (among others) uses, is that the "complex conjugate" of a
-non-complex number is just the number.  This makes sense
-mathematically, if we embed a field (of real numbers) in the
-corresponding set of complex numbers over that field, as all complex
-numbers with zero imaginary part.  However, as we will show below,
-this does not work with the C++ Standard Library's definition of
-`conj`.  Thus, the least invasive option for us is to permit creating
-a conjugated view of an object, only if the object's element type is
-complex.
+What does the complex conjugate mean for non-complex numbers?  We use
+the convention that the "complex conjugate" of a non-complex number is
+just the number.  This makes sense mathematically, if we embed a field
+(of real numbers) in the corresponding set of complex numbers over
+that field, as all complex numbers with zero imaginary part.  It's
+also the convention that the
+[Trilinos](https://github.com/trilinos/Trilinos) library (among
+others) uses.  However, as we will show below, this does not work with
+the C++ Standard Library's definition of `conj`.  We deal with this by
+defining `conjugate_view` so that it does not use `conj` for real
+element types.
 
 #### `conjugated_scalar`
 
@@ -1510,8 +1502,10 @@ private:
 
 #### `accessor_conjugate`
 
-The `accessor_conjugate` Accessor makes `basic_mdspan` return a
-`conjugated_scalar` if the scalar type is `std::complex`.
+The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
+`conjugated_scalar` if the scalar type is `std::complex<R>` for some
+`R`.  Otherwise, it makes `basic_mdspan` access return the original
+`basic_mdspan`'s reference type.
 
 ```c++
 template<class Accessor, class T>
@@ -1540,12 +1534,14 @@ private:
 };
 
 template<class Accessor, class T>
-class accessor_conjugate<Accessor,std::complex<T>> {
+class accessor_conjugate<Accessor, std::complex<T>> {
 public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
-  using reference     = conjugated_scalar<Accessor::reference,std::complex<T>>;
-  using offset_policy = accessor_conjugate<Accessor::offset_policy,std::complex<T>>;
+  using reference     =
+    conjugated_scalar<Accessor::reference, std::complex<T>>;
+  using offset_policy =
+    accessor_conjugate<Accessor::offset_policy, std::complex<T>>;
 
   accessor_conjugate(Accessor a) : acc(a) {}
 
@@ -1597,11 +1593,10 @@ void test_conjugate_view(basic_mdspan<complex<double>, extents<10>>)
 }
 ```
 
-*Note:*
-
-Instead of a partial specialisation of `accessor_conjugate` one could
-have different overlaods of `conjugate_view` which returns for non-complex
-scalar types the same accessor as the input argument. 
+*[Note:* Instead of a partial specialization of `accessor_conjugate`,
+one could have different overloads of `conjugate_view` that return fo
+non-complex scalar types the same accessor as the input
+argument. --*end note]*
 
 ### Transpose view of an object
 
