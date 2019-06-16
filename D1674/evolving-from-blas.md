@@ -126,9 +126,27 @@ support many different platforms, and get good performance on all of
 them.  Such developers end up writing build system logic for helping
 installers automatically detect and verify BLAS libraries.  The author
 has some experience writing and maintaining such build system logic as
-part of the [Trilinos](github.com/trilinos/Trilinos) project.  It's
-impossible to make generic.  Developers normally just have special
-cases for all the platforms they can find or need to support.
+part of the [Trilinos](github.com/trilinos/Trilinos) project.  Other
+projects' build system logic takes at least this much effort.  For
+example, the current version of CMake's [`FindBLAS`
+module](https://cmake.org/cmake/help/latest/module/FindBLAS.html) has
+[over 800 lines of CMake
+code](https://github.com/Kitware/CMake/blob/master/Modules/FindBLAS.cmake),
+not counting imported modules.  Other build systems, like GNU
+Autoconf, have BLAS detection with [comparable
+complexity](http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain;f=m4/ax_blas.m4).
+(This example just includes finding the BLAS library, not actually
+deducing the ABI.)
+
+Typical logic for deducing name mangling either tries to link with all
+known name manglings until the link succeeds, or inspects symbol names
+in the BLAS library.  Since the ABI for function arguments and return
+value is not part of the mangled symbol name, some build logic must
+actually try to run code that calls certain BLAS functions (e.g.,
+complex dot product), and make sure that the code does not crash or
+return wrong results.  This hinders cross compilation.  In general,
+it's impossible to make these tests generic.  Developers normally just
+have special cases for known platforms and BLAS ABI bugs.
 
 #### C binding
 
@@ -136,13 +154,16 @@ The C BLAS is not as widely available as Fortran BLAS, but many
 vendors have optimized implementations of both, so requiring the C
 BLAS is not unreasonable.  If they choose the C binding, its header
 file will import many symbols into the global namespace.  Best
-practice would be to write wrapper functions for the C BLAS functions
-they want, and hide the C binding's header file include in a source
-file.  If our developer later wants LAPACK functionality, such as
-solving linear systems, they will discover that there is no standard C
-LAPACK binding.  Implementations that provide a C BLAS generally also
-allow calling the Fortran BLAS from the same application, but
-developers would still need a C or C++ interface to LAPACK.
+practice would be to write wrapper functions for the desired C BLAS
+functions, and hide the C binding's header file include in a source
+file.  This prevents otherwise inevitable collisions with the same
+`extern "C"` declarations in applications or other libraries.
+
+If our developer later wants LAPACK functionality, such as solving
+linear systems, they will discover that there is no standard C LAPACK
+binding.  Implementations that provide a C BLAS generally also allow
+calling the Fortran BLAS from the same application, but developers
+would still need a C or C++ interface to LAPACK.
 
 One advantage of the C BLAS binding is that it works for both
 row-major and column-major matrix data layouts.  Native
@@ -151,8 +172,10 @@ BLAS' Fortran binding only accepts column-major matrices.  If users
 want code that works for both the Fortran and C BLAS interfaces, they
 will need to use column-major matrices.  The Standard Library
 currently has no way to represent column-major rank-2 arrays (but see
-our proposal [P0009R9](wg21.link/p0009r9)).  This leads C++ developers
-to one of the following solutions:
+our [`basic_mdspan` (P0009R9)](wg21.link/p0009r9) and
+[`basic_mdarray`](https://isocpp.org/files/papers/P1684R0.pdf)
+proposals).  This leads C++ developers to one of the following
+solutions:
 
 1. Write C-style code for column-major indexing (e.g., `A[i +
    stride*j]`);
@@ -160,9 +183,10 @@ to one of the following solutions:
 2. use nonstandard matrix or array classes that use column-major
    storage; or
 
-3. cleverly trick the BLAS into working with row-major matrices, by
-   specifying that every operation use the transpose of the input
-   matrix.
+3. trick the BLAS into working with row-major matrices, by specifying
+   that every operation use the transpose of the input matrix.  (This
+   only works for real matrix element types, since BLAS functions have
+   no "take the conjugate but not the transpose" option.)
 
 C++ lacks multidimensional arrays with run-time dimensions, so even if
 developers want to use row-major indexing, they would still need to
@@ -189,13 +213,16 @@ including integers, by the C ABI equivalent of pointer, unless
 otherwise specified.  Fortran ABIs differ in whether they return
 complex numbers on the stack (by value) or by initial output argument,
 and how they pass strings, both of which come up in the BLAS.  We have
-encountered other issues: for instance, functions that claim to return
-`float` might actually return `double`.
+encountered and worked around other issues, including actual BLAS ABI
+bugs.  For instance, functions that claim to return `float` [might
+actually return
+`double`](https://github.com/trilinos/Trilinos/blob/master/packages/teuchos/cmake/CheckBlasFloatReturnsDouble.cmake).
 
-We have written hundreds of lines of CMake code to deduce the BLAS
-ABI, have encountered all of these situations, and expect to encounter
-novel ones in the future.  If our developer wants to use LAPACK as
-well as the BLAS, they will be stuck with these problems.
+We have written hundreds of lines of build system code to deduce the
+BLAS ABI, have encountered all of these situations, and expect to
+encounter novel ones in the future.  Other projects do the same.  If
+our developer wants to use LAPACK as well as the BLAS, they will be
+stuck with these problems.
 
 In summary:
 
@@ -242,40 +269,41 @@ matrix or vector element types, or if the BLAS library is not
 available.
 
 Developers who just want to compute one matrix-matrix multiply for
-matrices of `double` might be satisfied with a C interface to the
-BLAS.  However, if they want to use this interface throughout their
-code, they will discover the following problems.  First, the interface
-is not type safe.  For example, the C BLAS doesn't know about
+matrices of `double` might be satisfied with the BLAS' C binding.
+However, if they want to use this interface throughout their code,
+they will discover the following problems.  First, the interface is
+not type safe.  For example, the C BLAS doesn't know about
 `std::complex`, and thus takes pointers to complex numbers as `void*`.
-Second, the interface is not generic.  It only works for four matrix
-or vector element types: `float`, `double`, `complex<float>`, and
-`complex<double>`.  What if our developer wants to compute with
-matrices of lower-precision or higher-precision floating-point types,
-or custom types?  Most BLAS operations only need addition and
-multiplication, yet the BLAS does not work with matrices of integers.
-The C and Fortran 77 function names also depend on the matrix or
-vector element type, which hinders developing generic algorithms.
-Fortran 95's generic BLAS functions would only create more ABI
-problems for C++ developers.  Third, what if the BLAS is not
+(See C++ Core Guidelines I.4: "Make interfaces precisely and strongly
+typed.")  Second, the interface is not generic.  It only works for
+four matrix or vector element types: `float`, `double`,
+`complex<float>`, and `complex<double>`.  What if our developer wants
+to compute with matrices of lower-precision or higher-precision
+floating-point types, integers, or custom types?  Most BLAS operations
+only need addition and multiplication, yet the BLAS does not work with
+matrices of integers.  The C and Fortran 77 function names also depend
+on the matrix or vector element type, which hinders developing generic
+algorithms.  Fortran 95's generic BLAS functions would only create
+more ABI problems for C++ developers.  Third, what if the BLAS is not
 available?  Users might like a fall-back implementation, even if it's
 slow, as a way to remove an external library dependency or to test an
 external BLAS.
 
 The logical solution is to write a generic C++ interface to BLAS
 operations.  "Generic C++ interface" means that users can call some
-function `gemm` templated on the matrix element type `T`, and the
-implementation will either dispatch to the appropriate BLAS call if
-`T` is one of the four types that the BLAS supports, or fall back to a
-default implementation otherwise.  The fall-back implementation can
-even replace the BLAS library.
+C++ function templated on the matrix or vector element type `T`, and
+the implementation will either dispatch to the appropriate BLAS call
+if `T` is one of the four types that the BLAS supports, or fall back
+to a default implementation otherwise.  The fall-back implementation
+can even replace the BLAS library.
 
 Libraries like the BLAS and LAPACK were written to be as generic as
-possible.  (See our paper [P1417](wg21.link/p1417) for a survey of
+possible.  (See our paper [P1417R0](wg21.link/p1417r0) for a survey of
 their history and the authors' intentions.)  Thus, once one has
 figured out the ABI issues, it's not too much more effort to write a
 generic C++ wrapper.  For example,
 [Trilinos](github.com/trilinos/Trilinos) has one, `Teuchos::BLAS`,
-that has served it for the past decade and a half with few changes.
+that has served it for over 15 years with few changes.
 
 Some subtle issues remain.  For example, some corresponding interfaces
 for real and complex numbers differ.  Our developer must decide
@@ -289,17 +317,17 @@ Many developers may find the above solution satisfactory.  For
 example, the `Teuchos::BLAS` class in
 [Trilinos](github.com/trilinos/Trilinos) is a generic C++ wrapper for
 the BLAS, as we described above.  It has seen use in libraries and
-applications since the mid 2000's, with only a few implementation and
-interface changes.  However, many developers are not familiar with the
-BLAS, and/or find its interface alien to C++.  The BLAS has no
-encapsulation of matrices or vectors.  Its functions take a long list
-of pointer, integer, and scalar arguments in a mysterious order.
-Mixing up the arguments can cause memory corruption, without the
-benefit of debug bounds checking that C++ libraries offer.
-Furthermore, users may need to work with column-major data layouts,
-which are not idiomatic to C++ and may thus cause bugs.  This suggests
-that the next step is to develop C++ data structures for matrices and
-vectors, and extend the above BLAS wrapper to use them.
+applications since the mid 2000's, with rare changes.  However, many
+developers are not familiar with the BLAS, and/or find its interface
+alien to C++.  The BLAS has no encapsulation of matrices or vectors;
+it uses raw pointers.  Its functions take a long list of pointer,
+integer, and scalar arguments in a mysterious order.  Mixing up the
+arguments can cause memory corruption, without the benefit of debug
+bounds checking that C++ libraries offer.  Furthermore, users may need
+to work with column-major data layouts, which are not idiomatic to C++
+and may thus cause bugs.  This suggests that the next step is to
+develop C++ data structures for matrices and vectors, and extend the
+above BLAS wrapper to use them.
 
 ### BLAS routines take many, unencapsulated arguments
 
@@ -372,13 +400,16 @@ integers get bitwise reinterpreted as pointers.
 
 ### Matrix and vector data structures
 
-The C++ Standard Library does not currently provide a BLAS-compatible
-matrix data structure, with column-major storage, including dimensions
-and stride information.  The language's native two-dimensional arrays
-cannot have run-time dimensions and also promise contiguous or
+The BLAS takes matrices and vectors as raw pointers.  This violates
+C++ Core Guidelines I.13: "Do not pass an array as a single pointer."
+However, C++ does not currently provide a BLAS-compatible matrix data
+structure, with column-major storage, including dimensions and stride
+information.  Thus, C++ does not currently give us a standard way
+_not_ to break that rule.  The language's native two-dimensional
+arrays cannot have run-time dimensions and also promise contiguous or
 constant-stride (row-major or column-major) storage.  Other array-like
-data structures in the Standard Library are only one dimensional.  The
-`valarray` class and its slice classes were meant to serve as a
+data structures in the C++ Standard Library are only one dimensional.
+The `valarray` class and its slice classes were meant to serve as a
 building block for vectors and matrices (see footnote in
 **[template.valarray.overview]**).  **[class.slice.overview]** calls
 `slice` "a BLAS-like slice from an array."  However, none of these
@@ -505,13 +536,13 @@ used to perform update operations.
 
 The [Fortran standard](https://wg5-fortran.org/) rarely refers to
 "aliasing."  The proper Fortran term is *association*.  In C++ terms,
-"association" means something like "is a reference to."  For example,
-Fortran uses the term *argument association* to describe the binding
-of the caller's *actual argument*, to the corresponding *dummy
-argument*.  C++ calls the former an "argument" **[defns.argument]** --
-what the caller puts in the parentheses when calling the function --
-and the latter a "parameter" **[defns.parameter]** -- the thing inside
-the function that gets the value.  (Fortran uses "parameter" in a
+"association" means something like "refers to."  For example, Fortran
+uses the term *argument association* to describe the binding of the
+caller's *actual argument*, to the corresponding *dummy argument*.
+C++ calls the former an "argument" **[defns.argument]** -- what the
+caller puts in the parentheses when calling the function -- and the
+latter a "parameter" **[defns.parameter]** -- the thing inside the
+function that gets the value.  (Fortran uses "parameter" in a
 different way than C++, to refer to a named constant.)  *Sequence
 association* means (among other things) that an array argument can
 "point to a subset" of another array, just like it can in C++.  We
@@ -694,7 +725,8 @@ A C++ library could alternately say that any `Inf` or `NaN` values
 like `A * B` in the `alpha * A * B` term) give implementation-defined
 results.  However, this would make the library's specification
 non-generic on the matrix element type, which would defeat our goal of
-a generic linear algebra library.
+a generic linear algebra library.  Thus, we do not favor this
+approach.
 
 #### Unconditionally read-and-write arguments
 
@@ -725,8 +757,8 @@ with a small number of columns (the "panel" case in LAPACK).  Users
 normally want to update the matrix in place.  Furthermore, _not_
 updating makes a performance mistake.  An outer product that
 overwrites a matrix destroys sparsity of the outer product
-representation; users are better off keeping the vector(s), instead of
-forming their outer product explicitly.  Updating an already dense
+representation.  Users are better off keeping the vector(s), instead
+of forming their outer product explicitly.  Updating an already dense
 matrix with an outer product does not destroy sparsity.  The C++
 Standard offers `sort` as precedent for only including the in-place
 version of an algorithm.
