@@ -18,11 +18,10 @@ algorithms can perform asymptotically better than bad ones, and can
 get much more accurate results.  This is why authors (not just us!)
 have proposed adding linear algebra to the C++ Standard Library.
 
-Linear algebra builds on well over 40 years of well-accepted
-libraries, on which science and engineering applications depend.  In
-fact, there is an actual multiple-language standard for a set of
-fundamental operations, called the [Basic Linear Algebra Subprograms
-(BLAS)
+Linear algebra builds on over 40 years of well-accepted libraries, on
+which science and engineering applications depend.  In fact, there is
+an actual multiple-language standard for a set of fundamental
+operations, called the [Basic Linear Algebra Subprograms (BLAS)
 Standard](http://www.netlib.org/blas/blast-forum/blas-report.pdf).
 The BLAS Standard defines a small set of hooks that vendors or experts
 in computer architecture can optimize.  Application developers or
@@ -53,17 +52,17 @@ We base this work on our years of experience writing and using linear
 algebra libraries, and working with people who have done so for much
 longer than we have.  Readers may wish to refer to
 [P1417R0](wg21.link/p1417r0) for a history of linear algebra library
-standardization.  P1417 cites first-hand histories of the development
-of the BLAS, related libraries like LINPACK and LAPACK that use the
-BLAS, and Matlab (which started as a teaching tool that wrapped these
-libraries).
+standardization.  P1417R0 cites first-hand histories of the
+development of the BLAS, related libraries like LINPACK and LAPACK
+that use the BLAS, and Matlab (which started as a teaching tool that
+wrapped these libraries).
 
 ## Wrapping the BLAS
 
 Suppose that a developer wants to write an application in portable
 C++, that needs to compute dense matrix-matrix products and some other
 dense linear algebra operations efficiently.  They discover that
-implementing matrix multiply with a na\"ive triply nested loop is slow
+implementing matrix multiply with a naïve triply nested loop is slow
 for their use cases, and want to try a library.
 
 The C++ Standard Library currently lacks linear algebra operations.
@@ -119,7 +118,7 @@ implementation itself has options, like whether it uses
 for parallelism inside, or whether it uses an LP64 (32-bit `int`) or
 ILP64 (64-bit `int`) interface.  In the best case, getting these wrong
 could cause link-time errors.  Use of the wrong interface through
-`extern` declarations could cause run-time errors.
+`extern "C"` declarations could cause run-time errors.
 
 Some developers only need to support one platform, so they rarely need
 to figure out how to link to the BLAS.  Other developers need to
@@ -1368,9 +1367,9 @@ Given a generic linear algebra library, users will put all sorts of
 number types into it.  However, the BLAS was designed for real and
 complex floating-point numbers.  Does a BLAS-like interface make sense
 for matrices of fixed-point numbers?  Should such matrices carry along
-scaling factors, for example?  What about short floating-point types
-that exclude Inf and NaN to make room for more finite numbers?  Would
-that call for linear algebra operations that track underflow and
+scaling factors, for example?  What about "short" floating-point types
+that exclude `Inf` and `NaN` to make room for more finite numbers?
+Would that call for linear algebra operations that track underflow and
 overflow?  How would such interfaces integrate with C++ versions of
 libraries like LAPACK?  We are not experts on fixed-point arithmetic;
 for us, these are all open questions.
@@ -1398,6 +1397,10 @@ Administration under contract DE-NA0003525.
 * J. Bilmes, K. Asanovíc, J. Demmel, D. Lam, and C. W. Chin, "PHiPAC:
   A Portable, High-Performance, ANSI C Coding Methodology and its
   application to Matrix Multiply," LAPACK Working Note 111, 1996.
+
+* G. Davidson and B. Steagall, "A proposal to add linear algebra
+  support to the C++ standard library," [P1385R1](wg21.link/p1385r1),
+  Mar. 2019.
 
 * K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
   multiplication", ACM Transactions of Mathematical Software (TOMS),
