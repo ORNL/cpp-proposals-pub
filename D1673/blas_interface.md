@@ -1213,7 +1213,7 @@ constexpr basic_mdspan<EltType,
     Triangle,
     StorageOrder>,
   Accessor>
-packed_triangular_view(
+packed_view(
   basic_mdarray<EltType, Extents, Layout, Accessor>& m,
   typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
   Triangle,
