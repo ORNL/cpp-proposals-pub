@@ -4,21 +4,21 @@
 
 * Mark Hoemmen (mhoemme@sandia.gov) (Sandia National Laboratories)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
-* Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
-* Peter Caday (peter.caday@intel.com) (Intel)
+* Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
+* Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
-* Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
+* Peter Caday (peter.caday@intel.com) (Intel)
 * Sarah Knepper (sarah.knepper@intel.com) (Intel)
+* Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
+* Timothy Costa (tcosta@nvidia.com) (NVIDIA)
 
 ## Contributors
 
-* Timothy Costa (tcosta@nvidia.com) (NVIDIA)
 * Chip Freitag (chip.freitag@amd.com) (AMD)
 * Bryce Lelbach (blelbach@nvidia.com) (NVIDIA)
-* Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
@@ -55,6 +55,9 @@ Our proposal also has the following distinctive characteristics:
 
 * It uses free functions, not arithmetic operator overloading.
 
+* The interface is designed in the spirit of the C++ Standard Library's
+  algorithms.
+
 * It uses the multidimensional array data structures
   [`basic_mdspan`](wg21.link/p0009) and `basic_mdarray` (P1684R0) to
   represent matrices and vectors.  In the future, it could support
@@ -87,11 +90,16 @@ Our proposal also has the following distinctive characteristics:
 
 ## Interoperable with other linear algebra proposals
 
-We do not intend to compete with [P1385R1](wg21.link/p1385r1), a
+We believe this proposal is complimentary to [P1385R1](wg21.link/p1385r1), a
 proposal for a linear algebra library presented at the 2019 Kona WG21
 meeting that introduces matrix and vector classes and overloaded
 arithmetic operators.  In fact, we think that our proposal would make
 a natural foundation for a library like what P1385 proposes.
+However, a free function interface - which clearly separates algorithms
+from data structures, more naturally allows for a richer set of operations
+such as is provided by the existing BLAS. A natural extension of the present
+proposal would include allowing math objects from P1385 as input for the
+algorithms proposed here.
 
 ## Why include dense linear algebra in the C++ Standard Library?
 
@@ -129,7 +137,7 @@ For much of that time, many third-party C++ libraries for linear
 algebra have been available.  Many different subject areas depend on
 linear algebra, including machine learning, data mining, web search,
 statistics, computer graphics, medical imaging, geolocation and
-mapping, and physics-based simulations.
+mapping, engineering and physics-based simulations.
 
 ["Directions for ISO C++" (P0939R0)](wg21.link/p0939r0) offers the
 following in support of adding linear algebra to the C++ Standard
@@ -152,7 +160,10 @@ Library:
   algebra operations.  For example, SIMD (single instruction multiple
   data) is a feature added to processors to speed up matrix and vector
   operations.  [P0214R9](wg21.link/p0214r9), a C++ SIMD library, was
-  voted into the C++20 draft.
+  voted into the C++20 draft. Numerous large processor companies 
+  implement optimized linear algebra libraries such as Intels MKL,
+  NVIDIAs CuBLAS, IBMs ESSL and AMDs optimized BLIS.
+
 
 Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
@@ -755,7 +766,7 @@ A C++ linear algebra library has a few possibilities for
 distinguishing the matrix "type":
 
 1. It could use the layout and accessor types in `basic_mdspan` simply
-   as tags to indicate the matrix "type."  Algortithms could
+   as tags to indicate the matrix "type."  Algorithms could
    specialize on those tags.
 
 2. It could introduce a hierarchy of higher-level classes for
@@ -898,6 +909,11 @@ Some functions explicitly require outputs with specific nonunique
 layouts.  This includes low-rank updates to symmetric or Hermitian
 matrices, and matrix-matrix multiplication with symmetric or Hermitian
 matrices.
+
+It is an open question whether our algorithms should also allow any 
+input and output arguments for which `is_always_unique` is true. Any
+general implementation of the BLAS functions (which does not extract
+raw pointers in its implementation) would work with this. 
 
 #### Tag classes for layouts
 
@@ -1358,13 +1374,21 @@ public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
   using reference     = scaled_scalar<Accessor::reference,S>;
-  using offset_policy = accessor_scaled<Accessor,S>;
+  using offset_policy = accessor_scaled<Accessor::offset_policy,S>;
 
   accessor_scaled(Accessor a, S sval) :
     acc(a), scale_factor(sval) {}
 
-  scaled_scalar<T,S> access(pointer& p, ptrdiff_t i) {
-    return scaled_scalar<T,S>(acc.access(p,i), scale_factor);
+  reference access(pointer& p, ptrdiff_t i) const noexcept {
+    return reference(acc.access(p,i), scale_factor);
+  }
+
+  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return a.offset(p,i);
+  }
+
+  element_type* decay(pointer p) const noexcept {
+    return a.decay(p);
   }
 
 private:
@@ -1487,23 +1511,55 @@ private:
 #### `accessor_conjugate`
 
 The `accessor_conjugate` Accessor makes `basic_mdspan` return a
-`conjugated_scalar`.
+`conjugated_scalar` if the scalar type is `std::complex`.
 
 ```c++
-template<class Accessor, class S>
+template<class Accessor, class T>
 class accessor_conjugate {
 public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
-  using reference     = conjugated_scalar<Accessor::reference,S>;
-  using offset_policy = accessor_conjugate<Accessor,S>;
+  using reference     = Accessor::reference;
+  using offset_policy = Accessor::offset_policy;
 
-  conjugated_scaled(Accessor a) : acc(a) {}
+  accessor_conjugate(Accessor a) : acc(a) {}
 
-  conjugated_scalar<T,S> access(pointer& p, ptrdiff_t i) {
-    return conjugated_scalar<T,S>(acc.access(p,i), scale_factor);
+  reference access(pointer p, ptrdiff_t i) const noexcept {
+    return reference(acc.access(p,i),scale_factor);
   }
 
+  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return a.offset(p,i);
+  }
+
+  element_type* decay(pointer p) const noexcept {
+    return a.decay(p);
+  }
+private:
+  Accessor acc;
+};
+
+template<class Accessor, class T>
+class accessor_conjugate<Accessor,std::complex<T>> {
+public:
+  using element_type  = Accessor::element_type;
+  using pointer       = Accessor::pointer;
+  using reference     = conjugated_scalar<Accessor::reference,std::complex<T>>;
+  using offset_policy = accessor_conjugate<Accessor::offset_policy,std::complex<T>>;
+
+  accessor_conjugate(Accessor a) : acc(a) {}
+
+  reference access(pointer p, ptrdiff_t i) const noexcept {
+    return reference(acc.access(p,i),scale_factor);
+  }
+
+  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return a.offset(p,i);
+  }
+
+  element_type* decay(pointer p) const noexcept {
+    return a.decay(p);
+  }
 private:
   Accessor acc;
 };
@@ -1517,8 +1573,8 @@ accessor.
 ```c++
 template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<EltType, Extents, Layout,
-             accessor_conjugate<Accessor>>
-conjugate_view(const basic_mdspan<EltType, Extents, Layout, Accessor>& a);
+             accessor_conjugate<Accessor, EltType>>
+conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
 
 template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<const EltType, Extents, Layout, <i>see-below</i> >
@@ -1541,6 +1597,12 @@ void test_conjugate_view(basic_mdspan<complex<double>, extents<10>>)
 }
 ```
 
+*Note:*
+
+Instead of a partial specialisation of `accessor_conjugate` one could
+have different overlaods of `conjugate_view` which returns for non-complex
+scalar types the same accessor as the input argument. 
+
 ### Transpose view of an object
 
 Many BLAS functions of matrices take an argument that specifies
@@ -1555,7 +1617,7 @@ construct a "transposed view" or "conjugate transpose" view of an
 object.  This lets us simplify the interface.
 
 An implementation could dispatch to the BLAS by noticing that the
-first argument has an `layout_transpose` (see below) `Layout` type
+first argument has a `layout_transpose` (see below) `Layout` type
 (in both transposed and conjugate transposed cases), and/or an
 `accessor_conjugate` (see below) `Accessor` type (in the conjugate
 transposed case).  It could use this information to extract the
