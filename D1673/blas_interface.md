@@ -4,21 +4,21 @@
 
 * Mark Hoemmen (mhoemme@sandia.gov) (Sandia National Laboratories)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
-* Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
-* Peter Caday (peter.caday@intel.com) (Intel)
+* Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
+* Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
-* Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
+* Peter Caday (peter.caday@intel.com) (Intel)
 * Sarah Knepper (sarah.knepper@intel.com) (Intel)
+* Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
+* Timothy Costa (tcosta@nvidia.com) (NVIDIA)
 
 ## Contributors
 
-* Timothy Costa (tcosta@nvidia.com) (NVIDIA)
 * Chip Freitag (chip.freitag@amd.com) (AMD)
 * Bryce Lelbach (blelbach@nvidia.com) (NVIDIA)
-* Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
