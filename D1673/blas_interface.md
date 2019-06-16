@@ -1000,10 +1000,10 @@ solve with a matrix generally do not commute. --*end note]*
 
 ```c++
 struct left_side_t { constexpr explicit left_side_t() noexcept = default; };
-constexpr left_side_t left_side = left_side_t ();
+constexpr left_side_t left_side = { };
 
 struct right_side_t { constexpr explicit right_side_t() noexcept = default; };
-constexpr right_side_t right_side = right_side_t ();
+constexpr right_side_t right_side = { };
 ```
 
 These tag classes specify whether algorithms should apply some
@@ -1175,8 +1175,8 @@ constexpr basic_mdspan<EltType,
     StorageOrder>,
   Accessor>
 packed_view(
-  basic_mdspan<EltType, Extents, Layout, Accessor>& m,
-  typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
+  const basic_mdspan<EltType, Extents, Layout, Accessor>& m,
+  typename basic_mdspan<EltType, Extents, Layout, Accessor>::index_type num_rows,
   Triangle,
   StorageOrder);
 
@@ -1379,7 +1379,7 @@ Return a scaled view using a new accessor.
 template<class T, class Extents, class Layout,
          class Accessor, class S>
 basic_mdspan<T, Extents, Layout, accessor_scaled<Accessor, S>>
-scaled_view(S s, basic_mdspan<T, Extents, Layout, Accessor> a);
+scaled_view(S s, const basic_mdspan<T, Extents, Layout, Accessor>& a);
 
 template<class T, class Extents, class Layout,
          class Accessor, class S>
@@ -1500,7 +1500,7 @@ public:
   conjugated_scaled(Accessor a) : acc(a) {}
 
   conjugated_scalar<T,S> access(pointer& p, ptrdiff_t i) {
-    return conjugated_scalar<T,S>(acc.access(p,i),scale_factor);
+    return conjugated_scalar<T,S>(acc.access(p,i), scale_factor);
   }
 
 private:
@@ -1517,7 +1517,7 @@ accessor.
 template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<EltType, Extents, Layout,
              accessor_conjugate<Accessor>>
-conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
+conjugate_view(const basic_mdspan<EltType, Extents, Layout, Accessor>& a);
 
 template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<const EltType, Extents, Layout, <i>see-below</i> >
@@ -1668,8 +1668,8 @@ denote zero characters, `_1`, `_2`, or `_3`.
   double`.
 
 * `in_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with a
-  `const` element type and a unique layout.  If the algorithm accesses
-  the object, it will do so in read-only fashion.
+  potentially `const` element type and a unique layout.  If the algorithm
+  accesses the object, it will do so in read-only fashion.
 
 * `inout_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan`
   with a non-`const` element type and a unique layout.
@@ -1690,8 +1690,8 @@ denote zero characters, `_1`, `_2`, or `_3`.
   it will do so in write-only fashion.
 
 * `in_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
-  `basic_mdspan` with a `const` element type and a unique layout.  If
-  the algorithm accesses the object, it will do so in read-only
+  `basic_mdspan` with a potentially `const` element type and a unique
+  layout.  If the algorithm accesses the object, it will do so in read-only
   fashion.
 
 * `inout_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
@@ -1707,19 +1707,12 @@ denote zero characters, `_1`, `_2`, or `_3`.
 
 * `Side` is either `left_side_t` or `right_side_t`.
 
-All functions take "input" (read-only) object parameters by const
-reference (e.g., `const basic_mdspan<...>&` or `const
-basic_mdarray<...>&`).  All such functions have overloads that take
-the same parameter by rvalue (`&&`) reference.
+* `in_*_t` template parameters may deduce a `const` lvalue reference
+   or a (non-`const`) rvalue reference to a `basic_mdarray` or a `basic_mdspan`.
 
-All functions take "input/output" or "output" object parameters as
-follows:
-
-* by nonconst reference if they are `basic_mdarray` (i.e.,
-  `basic_mdarray<T, ...>&` for nonconst `T`); or,
-
-* by value if they are `basic_mdspan` (i.e., `const basic_mdspan<T,
-  ...>&` for nonconst `T`).
+* `inout_*_t` and `out_*_t` template parameters may deduce a `const` lvalue
+  reference to a `basic_mdspan`, a (non-`const`) rvalue reference to a
+  `basic_mdspan`, or a non-`const` lvalue reference to a `basic_mdarray`.
 
 ### BLAS 1 functions
 
