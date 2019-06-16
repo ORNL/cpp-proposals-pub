@@ -75,7 +75,9 @@ Our proposal also has the following distinctive characteristics:
 
 * Like the C++ Standard Library's algorithms, our operations take an
   optional execution policy argument.  This is a hook to support
-  parallel execution and hierarchical parallelism.
+  parallel execution and hierarchical parallelism (through the
+  proposed executor extensions to execution policies, see 
+  [P1019R2](wg21.link/p1019)).
 
 * Unlike the BLAS, our proposal can be expanded to support "batched"
   operations (see [P1417R0](wg21.link/p1417r0)) with almost no
@@ -107,6 +109,18 @@ a natural foundation for a library like what P1385 proposes.
 4. The C++ Standard Library includes plenty of "mathematical
    functions."  Linear algebra operations like matrix-matrix multiply
    are at least as broadly useful.
+
+5. The set of linear algebra operations in this proposal are derived
+   a well-established, standard set of algorithms that has not
+   changed in decades.  It is one of the strongest possible examples of
+   standardizing existing practice that anyone could bring to C++.
+
+6. This proposal follows in the footsteps of many recent successful
+   incorporations of existing standards into C++, including the
+   UTC and TAI standard definitions from the International
+   Telecommunications Union, the time zone database standard from 
+   the International Assigned Numbers Authority's, and the ongoing
+   effort to integrate the ISO unicode standard.
 
 Linear algebra has had wide use in C++ applications for nearly three
 decades (see [P1417R0](wg21.link/p1417r0) for a historical survey).
@@ -151,7 +165,13 @@ standardizing, so that Standard Library implementers can get them
 right and hardware vendors can optimize them.  In fact, almost all C++
 linear algebra libraries end up calling non-C++ implementations of
 these algorithms, especially the implementations in optimized BLAS
-libraries (see below).
+libraries (see below).  In this respect, linear algebra is also 
+analogous to standard library features like `random_device`:
+often implemented directly in assembly or even with special
+hardware, and thus an essential component of allowing no room for
+another language "below" C++ (see notes on this philosophy in
+[P0939](wg21.link/p0939) and Stroustrup's seminal work "The Design
+and Evolution of C++").
 
 Dense linear algebra is the core component of most algorithms and
 applications that use linear algebra, and the component that is most
@@ -167,7 +187,7 @@ Bessel functions, and other polynomials and functions named after
 various mathematicians.  Any of them comes with its own theory and set
 of applications for which robust and accurate implementations are
 indispensible.  We think that linear algebra operations are at least
-as broadly useful.
+as broadly useful, and in many cases significantly more so.
 
 ## Why base a C++ linear algebra library on the BLAS?
 
@@ -837,7 +857,7 @@ This proposal includes the following additional layouts:
   "types"
 
 These layouts have "tag" template parameters that control their
-behavior; see below.
+properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
 (SY), Hermitian (HE), and triangular (TR).  P1674R0 explains our
@@ -870,8 +890,8 @@ rules:
 
   * any layout defined in this proposal.
 
-* Unless otherwise specified, none of our functions of our functions
-  accept output arguments with nonunique layout.
+* Unless otherwise specified, none of our functions accept output
+  arguments with nonunique layout.
 
 Some functions explicitly require outputs with specific nonunique
 layouts.  This includes low-rank updates to symmetric or Hermitian
@@ -897,11 +917,11 @@ template arguments, and function callers use the corresponding
 ##### Storage order tags
 
 ```c++
-struct column_major_t {};
-constexpr column_major_t column_major = column_major_t ();
+struct column_major_t { constexpr explicit column_major_t() noexcept = default; };
+inline constexpr column_major_t column_major = { };
 
-struct row_major_t {};
-constexpr row_major_t row_major = row_major_t ();
+struct row_major_t { constexpr explicit row_major_t() noexcept = default; };
+inline constexpr row_major_t row_major = { };
 ```
 
 `column_major_t` indicates a column-major order, and `row_major_t`
@@ -925,11 +945,11 @@ the "upper triangle," "lower triangle," and "diagonal" of a matrix.
   triangle.
 
 ```c++
-struct upper_triangle_t {};
-constexpr upper_triangle_t upper_triangle = upper_triangle_t ();
+struct upper_triangle_t { constexpr explicit upper_triangle_t() noexcept = default; };
+inline constexpr upper_triangle_t upper_triangle = { };
 
-struct lower_triangle_t {};
-constexpr lower_triangle_t lower_triangle = lower_triangle_t ();
+struct lower_triangle_t { constexpr explicit lower_triangle_t() noexcept = default; };
+inline constexpr lower_triangle_t lower_triangle = { };
 ```
 
 These tag classes specify whether algorithms and other users of a
@@ -942,13 +962,15 @@ applied; see below.
 ##### Diagonal tags
 
 ```c++
-struct implicit_unit_diagonal_t {};
-constexpr implicit_unit_diagonal_t implicit_unit_diagonal =
-  implicit_unit_diagonal_t ();
+struct implicit_unit_diagonal_t {
+  constexpr explicit implicit_unit_diagonal_t() noexcept = default;
+};
+inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal = { };
 
-struct explicit_diagonal_t {};
-constexpr explicit_diagonal_t explicit_diagonal =
-  explicit_diagonal_t ();
+struct explicit_diagonal_t {
+  constexpr explicit explicit_diagonal_t() noexcept = default;
+};
+inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
 These tag classes specify what algorithms and other users of a matrix
@@ -977,10 +999,10 @@ side of an object.  *[Note:* Matrix-matrix product and triangular
 solve with a matrix generally do not commute. --*end note]*
 
 ```c++
-struct left_side_t {};
+struct left_side_t { constexpr explicit left_side_t() noexcept = default; };
 constexpr left_side_t left_side = left_side_t ();
 
-struct right_side_t {};
+struct right_side_t { constexpr explicit right_side_t() noexcept = default; };
 constexpr right_side_t right_side = right_side_t ();
 ```
 
