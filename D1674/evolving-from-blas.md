@@ -86,7 +86,7 @@ that users who care about performance find optimized implementations,
 either by hardware vendors or by projects like ATLAS (Whaley et
 al. 2001), the
 [GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2),
-or [OpenBLAS](www.openblas.net).
+or [OpenBLAS](http://www.openblas.net).
 
 Suppose that our developer has found an optimized implementation of
 the BLAS, and they want to call some of its routines from C++.  Here
@@ -1212,8 +1212,13 @@ like many dot products, and thus share these concerns.
 
 Even if C++ already has the tools to implement something, if it's
 tricky to implement well, that can justify separate standardization.
-The Standard Library already has the special math functions, which
-likely have a no larger set of users than dot products and norms.
+The C++ Standard Library already includes many "mathematical special
+functions" (**[sf.cmath]**), like incomplete elliptic integrals,
+Bessel functions, and other polynomials and functions named after
+various mathematicians.  Special functions can be tricky to implement
+robustly and accurately; there are very few developers who are experts
+in this area.  We think that linear algebra operations are at least as
+broadly useful, and in many cases significantly more so.
 
 ##### Second example: Matrix triple product
 

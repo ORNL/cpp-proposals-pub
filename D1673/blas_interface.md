@@ -163,7 +163,7 @@ Library:
   operations.  [P0214R9](http://wg21.link/p0214r9), a C++ SIMD library, was
   voted into the C++20 draft.  Several large computer system vendors
   offer optimized linear algebra libraries based on or closely
-  resembling the BLAS; these include AMD's BLIS, ARM Performance
+  resembling the BLAS; these include AMD's BLIS, ARM's Performance
   Libraries, Cray's LibSci, Intel's Math Kernel Library (MKL), IBM's
   Engineering and Scientific Subroutine Library (ESSL), and NVIDIA's
   cuBLAS.
@@ -341,8 +341,8 @@ but it requires fewer arithmetic operations.
 Examples of the third category include the following:
 
 * non-conjugated dot product `xDOTU` and conjugated dot product
-  `xDOTC`;
-* rank-1 symmetric (`xGERU`) vs. Hermitian (`xGERC`) matrix update
+  `xDOTC`; and
+* rank-1 symmetric (`xGERU`) vs. Hermitian (`xGERC`) matrix update.
 
 The conjugate transpose and the (non-conjugated) transpose are the
 same operation in real arithmetic (if one considers real arithmetic
@@ -415,14 +415,14 @@ actively being maintained:
 * [Matrix Template Library](http://www.simunova.com/de/mtl4/), and
 * [Trilinos](https://github.com/trilinos/Trilinos/).
 
-[P1417R0](http://wg21.link/p1417r0) gives some history of C++ linear algebra
-libraries.  The authors of this proposal have
-[written](https://github.com/kokkos/kokkos-kernels) and
+[P1417R0](http://wg21.link/p1417r0) gives some history of C++ linear
+algebra libraries.  The authors of this proposal have
+[designed](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf),
+[written](https://github.com/kokkos/kokkos-kernels), and
 [maintained](https://github.com/trilinos/Trilinos/tree/master/packages/teuchos/numerics/src)
-LAPACK wrappers in C++.  One of the authors was a student of [an
-LAPACK founder](https://people.eecs.berkeley.edu/~demmel/).
-Nevertheless, we have excluded LAPACK-like functionality from this
-proposal, for the following reasons:
+LAPACK wrappers in C++.  Some authors have LAPACK founders as PhD
+advisors.  Nevertheless, we have excluded LAPACK-like functionality
+from this proposal, for the following reasons:
 
 1. LAPACK is a Fortran library, unlike the BLAS, which is a
    multilanguage standard.
@@ -442,14 +442,14 @@ have been a few efforts by LAPACK contributors to develop C++ LAPACK
 bindings, from [Lapack++](https://math.nist.gov/lapack++/) in
 pre-templates C++ circa 1993, to the recent ["C++ API for BLAS and
 LAPACK"](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf).
-(The latter shares coauthors and contributors with this paper.)
-However, these are still just C++ bindings to a Fortran library.  This
-means that if vendors had to supply C++ functionality equivalent to
-LAPACK, they would either need to start with a Fortran compiler, or
-would need to invest a lot of effort in a C++ reimplementation.
-Mechanical translation from Fortran to C++ introduces risk, because
-many LAPACK functions depend critically on details of floating-point
-arithmetic behavior.
+(The latter shares coauthors with this proposal.)  However, these are
+still just C++ bindings to a Fortran library.  This means that if
+vendors had to supply C++ functionality equivalent to LAPACK, they
+would either need to start with a Fortran compiler, or would need to
+invest a lot of effort in a C++ reimplementation.  Mechanical
+translation from Fortran to C++ introduces risk, because many LAPACK
+functions depend critically on details of floating-point arithmetic
+behavior.
 
 Second, we intend to permit use of matrix or vector element types
 other than just the four types that the BLAS and LAPACK support.  This
@@ -704,7 +704,8 @@ vector element types other than the four that the BLAS supports.
 * Hardware vendors offer both hardware features and optimized
   software libraries to support batched linear algebra.
 
-* There is an ongoing interface standardization effort.
+* There is an ongoing [interface standardization
+  effort](http://icl.utk.edu/bblas/), in which we participate.
 
 ### Function argument aliasing and zero scalar multipliers
 
@@ -795,19 +796,20 @@ builds on our proposal.
 ## Caveats
 
 This proposal does not yet have full wording.  We have filled in
-enough wording to make the design clear.
+enough wording for meaningful design discussions, such as those
+presented in "Options and votes" below.
 
 ## Data structures and utilities borrowed from other proposals
 
 ### `basic_mdspan`
 
-[P0009](http://wg21.link/p0009) is a proposal for adding multidimensional
-arrays to the C++ Standard Library.  `basic_mdspan` is the main class
-in this proposal.  It is a "view" (in the sense of `span`) of a
-multidimensional array.  The rank (number of dimensions) is fixed at
-compile time.  Users may specify some dimensions at run time and
-others at compile time; the type of the `basic_mdspan` expresses this.
-`basic_mdspan` also has two customization points:
+[P0009R9](http://wg21.link/p0009r9) is a proposal for adding
+multidimensional arrays to the C++ Standard Library.  `basic_mdspan`
+is the main class in this proposal.  It is a "view" (in the sense of
+`span`) of a multidimensional array.  The rank (number of dimensions)
+is fixed at compile time.  Users may specify some dimensions at run
+time and others at compile time; the type of the `basic_mdspan`
+expresses this.  `basic_mdspan` also has two customization points:
 
   * `Layout` expresses the array's memory layout: e.g., row-major (C++
     style), column-major (Fortran style), or strided.  We use a custom
@@ -832,9 +834,9 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 users a way to allocate a new array, even if the array has all
 compile-time dimensions.  Furthermore, `basic_mdspan` always stores a
 pointer.  For very small matrices or vectors, this is not a
-zero-overhead abstraction.  Also, it's more natural of a programming
-model to pass around very small objects by value.  For these reasons,
-our paper (P1684R0) proposes a new class `basic_mdarray`.
+zero-overhead abstraction.  Also, it's often more natural to pass
+around very small objects by value.  For these reasons, our paper
+(P1684R0) proposes a new class `basic_mdarray`.
 
 `basic_mdarray` is a new kind of container, with the same deep copy
 behavior as `vector`.  It has the same extension points as
@@ -890,8 +892,8 @@ matrix elements in memory -- is the same as General.  The only
 differences are constraints on what entries of the matrix algorithms
 may access, and assumptions about the matrix's mathematical
 properties.  Trying to express those constraints or assumptions as
-"layouts" or "accessors" always violates the spirit of `basic_mdspan`,
-and sometimes the law as well.
+"layouts" or "accessors" violates the spirit (and sometimes the law)
+of `basic_mdspan`.
 
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
@@ -915,27 +917,22 @@ Hermitian matrices.
 
 #### Tag classes for layouts
 
-The number of possible BLAS layouts is combinatorial in the following
-options:
-
-* "Base" layout (e.g., column major or row major)
-* Symmetric or triangular
-* Store only the upper triangle, or store only the lower triangle
-* Implicit unit diagonal or explicitly stored diagonal (only for
-  triangular)
-
-Instead of introducing a large number of layout names, we parameterize
-a small number of layouts with tags.  Layouts take tag types as
-template arguments, and function callers use the corresponding
-`constexpr` instances of tag types.
+We use tag classes to parameterize a small number of layout names.
+Layouts take tag types as template arguments, and function callers use
+the corresponding `constexpr` instances of tag types for compile-time
+control of function behavior.
 
 ##### Storage order tags
 
 ```c++
-struct column_major_t { constexpr explicit column_major_t() noexcept = default; };
+struct column_major_t {
+  constexpr explicit column_major_t() noexcept = default;
+};
 inline constexpr column_major_t column_major = { };
 
-struct row_major_t { constexpr explicit row_major_t() noexcept = default; };
+struct row_major_t {
+  constexpr explicit row_major_t() noexcept = default;
+};
 inline constexpr row_major_t row_major = { };
 ```
 
@@ -999,7 +996,9 @@ users of the matrix should access those diagonal entries explicitly.
 
 The `implicit_unit_diagonal_t` tag indicates two things:
 
-  * callers will never access the `i,i` element of the matrix, and
+  * the function will never access the `i,i` element of the matrix,
+    and
+
   * the matrix has a diagonal of ones (a unit diagonal).
 
 *[Note:* Typical BLAS practice is that the algorithm never actually
@@ -1018,10 +1017,14 @@ side of an object.  *[Note:* Matrix-matrix product and triangular
 solve with a matrix generally do not commute. --*end note]*
 
 ```c++
-struct left_side_t { constexpr explicit left_side_t() noexcept = default; };
+struct left_side_t {
+  constexpr explicit left_side_t() noexcept = default;
+};
 constexpr left_side_t left_side = { };
 
-struct right_side_t { constexpr explicit right_side_t() noexcept = default; };
+struct right_side_t {
+  constexpr explicit right_side_t() noexcept = default;
+};
 constexpr right_side_t right_side = { };
 ```
 
@@ -1292,7 +1295,8 @@ the input vector `x` and the input / output vector `y` once.  An
 implementation could dispatch to the BLAS by noticing that the first
 argument has an `accessor_scaled` (see below) `Accessor` type,
 extracting the scalar value `alpha`, and calling the corresponding
-`xAXPY` function (assuming that `alpha != 0`; see discussion above).
+`xAXPY` function (assuming that `alpha` is nonzero; see discussion
+above).
 
 The same `linalg_add` interface would then support the operation `w :=
 alpha*x + beta*y`:
@@ -1331,7 +1335,7 @@ There are other surprising results outside the scope of this
 proposal to fix, like the fact that `operator*` does not work for
 `complex<float>` times `double`.  This means `scaled_view(x, 93.0)`
 for `x` with `element_type` `complex<float>` will not compile.
-Neither does `complex<float>(3.0, 4.0) * y`.  Our experience with
+Neither does `complex<float>(5.0, 6.0) * y`.  Our experience with
 generic numerical algorithms is that floating-point literals need type
 adornment.
 
@@ -1791,6 +1795,8 @@ vector-vector operations, BLAS 2 matrix-vector operations, and BLAS 3
 matrix-matrix operations.  The level coincides with the number of
 nested loops in a naïve sequential implementation of the operation.
 Increasing level also comes with increasing potential for data reuse.
+The BLAS traditionally lists computing a Givens rotation among the
+BLAS 1 operations, even though it only operates on scalars.
 
 --*end note]*
 
@@ -1850,47 +1856,53 @@ template<class ExecutionPolicy,
          class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
-void givens_rotation(ExecutionPolicy&& exec,
-                     inout_vector_1_t v1,
-                     inout_vector_2_t v2,
-                     const Real c,
-                     const Real s);
+void givens_rotation_apply(
+  ExecutionPolicy&& exec,
+  inout_vector_1_t v1,
+  inout_vector_2_t v2,
+  const Real c,
+  const Real s);
 
 template<class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
-void givens_rotation(inout_vector_1_t v1,
-                     inout_vector_2_t v2,
-                     const Real c,
-                     const Real s);
+void givens_rotation_apply(
+  inout_vector_1_t v1,
+  inout_vector_2_t v2,
+  const Real c,
+  const Real s);
 
 template<class ExecutionPolicy,
          class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
-void givens_rotation(ExecutionPolicy&& exec,
-                     inout_vector_1_t v1,
-                     inout_vector_2_t v2,
-                     const Real c,
-                     const complex<Real> s);
+void givens_rotation_apply(
+  ExecutionPolicy&& exec,
+  inout_vector_1_t v1,
+  inout_vector_2_t v2,
+  const Real c,
+  const complex<Real> s);
 
 template<class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
-void givens_rotation(inout_vector_1_t v1,
-                     inout_vector_2_t v2,
-                     const Real c,
-                     const complex<Real> s);
+void givens_rotation_apply(
+  inout_vector_1_t v1,
+  inout_vector_2_t v2,
+  const Real c,
+  const complex<Real> s);
 ```
 
-*[Note:* The `givens_rotation` functions correspond to the BLAS
-function `xROT`. --*end note]*
+*[Note:*
+
+These functions correspond to the BLAS function `xROT`.  `c` and `s`
+form a plane (Givens) rotation.  Users normally would compute `c` and
+`s` using `givens_rotation_setup`, but they are not required to do
+this.
+
+--*end note]*
 
 * *Requires:*
-
-  * `c` and `s` form a plane (Givens) rotation.  *[Note:* Users
-    normally would compute `c` and `s` using `givens_rotation_setup`,
-    but they are not required to do this. --*end note]*
 
   * `v1` and `v2` have the same domain.
 
@@ -2162,7 +2174,7 @@ void vector_norm2(ExecutionPolicy&& exec,
 
 *[Note:* The intent of the second point of *Remarks* is that
 implementations generalize the guarantees of `hypot` regarding
-overflow and underflow.  This excludes naive implementations for
+overflow and underflow.  This excludes naïve implementations for
 floating-point types. --*end note]*
 
 #### Sum of absolute values
@@ -2241,7 +2253,7 @@ ptrdiff_t vector_idx_abs_max(ExecutionPolicy&& exec,
 
 The following requirements apply to all functions in this section.
 
-* *Requires:"*
+* *Requires:*
 
   * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
     and `j` is in the domain of `x`.
@@ -2548,11 +2560,12 @@ template<class in_matrix_t,
          class DiagonalStorage,
          class in_vector_t,
          class out_vector_t>
-void triangular_matrix_vector_product(in_matrix_t A,
-                                      Triangle t,
-                                      DiagonalStorage d,
-                                      in_vector_t x,
-                                      out_vector_t y);
+void triangular_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t x,
+  out_vector_t y);
 
 template<class ExecutionPolicy,
          class in_matrix_t,
@@ -2560,12 +2573,13 @@ template<class ExecutionPolicy,
          class DiagonalStorage,
          class in_vector_t,
          class out_vector_t>
-void triangular_matrix_vector_product(ExecutionPolicy&& exec,
-                                      in_matrix_t A,
-                                      Triangle t,
-                                      DiagonalStorage d,
-                                      in_vector_t x,
-                                      out_vector_t y);
+void triangular_matrix_vector_product(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t x,
+  out_vector_t y);
 ```
 
 * *Constraints:* For `i,j` in the domain of `A`, the expression
@@ -3591,11 +3605,14 @@ matrix_vector_product(par, transpose_view(A), x, y);
 
 ## Batched BLAS
 
-Batched BLAS will be handled by simply taking arguments of higher rank
-than specified in BLAS. A nonunique broadcast layout can be used to
-use the same lower rank object in the operation for each of the
-batched operations. The first dimension of the objects is the number
-of operations performed. `extent(0)` of each argument must be equal.
+This proposal has an optional extension to support batched operations.
+Functions that take matrices and/or vectors would simply be overloaded
+to take arguments with one higher rank.  The leftmost dimension of
+each `basic_mdspan` or `basic_mdarray` would refer to a specific
+matrix or vector in the "batch."  A nonunique "broadcast" layout could
+also be used to use the same lower-rank object in the operation for
+each of the batched operations.  Otherwise, the `extent(0)` of each
+`basic_mdspan` or `basic_mdarray` argument must be equal.
 
 ## Options and votes
 
