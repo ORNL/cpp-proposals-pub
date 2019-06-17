@@ -58,10 +58,11 @@ Our proposal also has the following distinctive characteristics:
 * The interface is designed in the spirit of the C++ Standard Library's
   algorithms.
 
-* It uses the multidimensional array data structures
-  [`basic_mdspan`](wg21.link/p0009) and `basic_mdarray` (P1684R0) to
-  represent matrices and vectors.  In the future, it could support
-  other proposals' matrix and vector data structures.
+* It uses the multidimensional array data structures [`basic_mdspan`
+  (P0009R9)](http://wg21.link/p0009) and [`basic_mdarray`
+  (P1684R0)](https://isocpp.org/files/papers/P1684R0.pdf) to represent
+  matrices and vectors.  In the future, it could support other
+  proposals' matrix and vector data structures.
 
 * The interface permits optimizations for matrices and vectors with
   small compile-time dimensions; the standard BLAS interface does not.
@@ -3881,8 +3882,8 @@ pioneering efforts and history lessons.
   standardization," [(P1417R0)](wg21.link/p1417r0), Jan. 2019.
 
 * D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
-  Owning Multidimensional Array Analog of `mdspan`", P1684R0,
-  Jun. 2019.
+  Owning Multidimensional Array Analog of `mdspan`",
+  [P1684R0](https://isocpp.org/files/papers/P1684R0.pdf), Jun. 2019.
 
 * D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
   M. Dominiak, "A General Property Customization Mechanism,"
