@@ -1001,13 +1001,16 @@ issues.  In summary:
    P1684R0) can also eliminate overhead and give convenient value
    semantics for tiny matrices and vectors.
 
-2. Just like the existing C++ Standard Algorithms, an optional
-   `ExecutionPolicy&&` argument can control parallelism policy,
-   including nested parallelism.
+2. Like the C++ Standard Library's algorithms, an optional
+   `ExecutionPolicy&&` argument would be a hook to support parallel
+   execution and hierarchical parallelism (through the proposed
+   executor extensions to execution policies; see
+   [P1019R2](wg21.link/p1019r2)).
 
-3. This is hard.  We talk about different ways to solve this problem.
-   It's not clear whether general solutions belong in the C++ Standard
-   Library.
+3. Optimizing across multiple linear algebra operations is possible,
+   but adds complications.  We talk below about different ways to
+   solve this problem.  It's not clear whether general solutions
+   belong in the C++ Standard Library.
 
 ### Tiny matrices and vectors
 
@@ -1062,11 +1065,12 @@ algorithms would be decoupled from particular data structures.
 
 The `basic_mdspan` class also gives developers efficient ways to
 represent batches of linear algebra problems with the same dimensions.
-For example, one may store a batch of matrices as a rank-3
+For example, one could store a batch of matrices as a rank-3
 `basic_mdspan`, where the leftmost dimension selects the matrix.  The
 various layouts and possibility of writing a custom layout make it
-easier to write efficient batched code.  We have some experience doing
-so in our [github.com/kokkos](Kokkos) and
+easier to write efficient batched code.  For example, one could change
+the layout to facilitate vectorization across matrix operations.  We
+have some experience doing so in our [github.com/kokkos](Kokkos) and
 [github.com/trilinos/Trilinos](Trilinos) libraries.
 
 ### Composition of parallelism
@@ -1209,7 +1213,7 @@ like many dot products, and thus share these concerns.
 Even if C++ already has the tools to implement something, if it's
 tricky to implement well, that can justify separate standardization.
 The Standard Library already has the special math functions, which
-arguably have a smaller set of users than dot products and norms.
+likely have a no larger set of users than dot products and norms.
 
 ##### Second example: Matrix triple product
 
@@ -1301,7 +1305,7 @@ templates](http://eigen.tuxfamily.org/dox/TopicLazyEvaluation.html}),
 with the following example.  Suppose that `A` is a matrix, and users
 evaluate the matrix-matrix multiplication `A = A*A`.  The expression
 `A = A + A` could work fine with expression templates, since matrix
-addition has no dependencies across different entries of the matrix.
+addition has no dependencies across different output matrix elements.
 Computing `A(i,j)` on the left-hand side only requires reading the
 value `A(i,j)` on the right-hand side.  In contrast, for the matrix
 multiplication `A = A*A`, computing `A(i,j)` on the left-hand side
@@ -1327,15 +1331,16 @@ and "Lessons learned from `Boost::uBlas` development" in
 [P1417R0](wg21.link/p1417r0).  However, this burdens the library with
 higher implementation complexity and increased compilation time.
 Library designers may prefer a simpler interface that excludes
-expressions with reuse (that have correctness issues with lazy
-evaluation) and lets users decide where temporaries get allocated.
+expressions with these issues, and lets users decide where temporaries
+get allocated.
 
 ##### How general should expression rewriting be?
 
-We might also ask how many users need to optimize many, different,
-complicated expressions, at compile time.  Would they be better served
-by specialized source-to-source translation tools, like those described
-in Siek et al. 2008?
+How many users actually write applications or libraries that have a
+large number of distinct, complicated linear algebra expressions, that
+are fixed at compile time?  Would they be better served by specialized
+source-to-source translation tools, like those described in Siek et
+al. 2008?
 
 ##### Are arithmetic operators even a good idea?
 
@@ -1356,7 +1361,7 @@ out of this contentious debate.
 ### Mixing precisions in linear algebra expressions
 
 Suppose that a linear algebra library implements arithmetic operators
-on matrices, and users write "A * B" for a matrix A of
+on matrices, and users write `A * B` for a matrix A of
 `complex<float>`, and a matrix B of `double`.  What should the matrix
 element type of the returned matrix be?  [P1385R1](wg21.link/p1385r1)
 asserts that the returned matrix's element type should be
@@ -1382,14 +1387,11 @@ in machine learning.  This may call for traits machinery that doesn’t
 exist in the C++ Standard Library yet.
 
 There's no general solution to this problem.  Both users and
-implementers of mixed-precision linear algebra need to watch out, and
-implementations will need to consult with SG6 and possibly present new
-proposals there.
-
-The C++ interface we present above mostly avoids this issue, because
-users must explicitly specify the types of output matrices and
-vectors.  The interface does not need to deduce return types; users do
-that manually.  This means that users can do computations in extended
+implementers of mixed-precision linear algebra need to watch out.  The
+C++ interface we present above mostly avoids this issue, because users
+must explicitly specify the types of output matrices and vectors.  The
+interface does not need to deduce return types; users do that
+manually.  This means that users can do computations in extended
 precision, just by specifying an output type with higher precision
 than the input types.
 
@@ -1441,6 +1443,9 @@ Administration under contract DE-NA0003525.
 * M. Hoemmen, D. Hollman, N. Liber, C. Trott, D. Sunderland, P. Caday,
   L.-T. Lo, G. Lopez, P. Luszczek, and S. Knepper, "A free function
   linear algebra interface based on the BLAS," P1673R0, Jun. 2019.
+
+* J. Hoberock, "Integrating Executors with Parallel Algorithms,"
+  [P1019R2](wg21.link/p1019r2), Jan. 2019.
 
 * D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
   Owning Multidimensional Array Analog of `mdspan`", P1684R0,

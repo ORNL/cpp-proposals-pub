@@ -90,16 +90,16 @@ Our proposal also has the following distinctive characteristics:
 
 ## Interoperable with other linear algebra proposals
 
-We believe this proposal is complementary to [P1385R1](wg21.link/p1385r1), a
-proposal for a linear algebra library presented at the 2019 Kona WG21
-meeting that introduces matrix and vector classes and overloaded
-arithmetic operators.  In fact, we think that our proposal would make
-a natural foundation for a library like what P1385R1 proposes.
-However, a free function interface -- which clearly separates algorithms
-from data structures -- more naturally allows for a richer set of operations
-such as what the BLAS provides. A natural extension of the present
-proposal would include allowing matrix and vector objects from P1385 as input for the
-algorithms proposed here.
+We believe this proposal is complementary to
+[P1385R1](wg21.link/p1385r1), a proposal for a C++ Standard linear
+algebra library that introduces matrix and vector classes and
+overloaded arithmetic operators.  In fact, we think that our proposal
+would make a natural foundation for a library like what P1385R1
+proposes.  However, a free function interface -- which clearly
+separates algorithms from data structures -- more naturally allows for
+a richer set of operations such as what the BLAS provides.  A natural
+extension of the present proposal would include accepting P1385's
+matrix and vector objects as input for the algorithms proposed here.
 
 ## Why include dense linear algebra in the C++ Standard Library?
 
