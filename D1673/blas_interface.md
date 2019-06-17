@@ -81,10 +81,10 @@ Our proposal also has the following distinctive characteristics:
   optional execution policy argument.  This is a hook to support
   parallel execution and hierarchical parallelism (through the
   proposed executor extensions to execution policies, see
-  [P1019R2](wg21.link/p1019r2)).
+  [P1019R2](http://wg21.link/p1019r2)).
 
 * Unlike the BLAS, our proposal can be expanded to support "batched"
-  operations (see [P1417R0](wg21.link/p1417r0)) with almost no
+  operations (see [P1417R0](http://wg21.link/p1417r0)) with almost no
   interface differences.  This will support machine learning and other
   applications that need to do many small matrix or vector operations
   at once.
@@ -92,7 +92,7 @@ Our proposal also has the following distinctive characteristics:
 ## Interoperable with other linear algebra proposals
 
 We believe this proposal is complementary to
-[P1385R1](wg21.link/p1385r1), a proposal for a C++ Standard linear
+[P1385R1](http://wg21.link/p1385r1), a proposal for a C++ Standard linear
 algebra library that introduces matrix and vector classes and
 overloaded arithmetic operators.  In fact, we think that our proposal
 would make a natural foundation for a library like what P1385R1
@@ -105,7 +105,7 @@ matrix and vector objects as input for the algorithms proposed here.
 ## Why include dense linear algebra in the C++ Standard Library?
 
 1. C++ applications in "important application areas" (see
-   [P0939R0](wg21.link/p0939r0)) have depended on linear algebra for a
+   [P0939R0](http://wg21.link/p0939r0)) have depended on linear algebra for a
    long time.
 
 2. Linear algebra is like `sort`: obvious algorithms are slow, and the
@@ -133,14 +133,14 @@ matrix and vector objects as input for the algorithms proposed here.
    integrate the ISO unicode standard.
 
 Linear algebra has had wide use in C++ applications for nearly three
-decades (see [P1417R0](wg21.link/p1417r0) for a historical survey).
+decades (see [P1417R0](http://wg21.link/p1417r0) for a historical survey).
 For much of that time, many third-party C++ libraries for linear
 algebra have been available.  Many different subject areas depend on
 linear algebra, including machine learning, data mining, web search,
 statistics, computer graphics, medical imaging, geolocation and
 mapping, engineering, and physics-based simulations.
 
-["Directions for ISO C++" (P0939R0)](wg21.link/p0939r0) offers the
+["Directions for ISO C++" (P0939R0)](http://wg21.link/p0939r0) offers the
 following in support of adding linear algebra to the C++ Standard
 Library:
 
@@ -160,7 +160,7 @@ Library:
   continue to provide features specifically to accelerate linear
   algebra operations.  For example, SIMD (single instruction multiple
   data) is a feature added to processors to speed up matrix and vector
-  operations.  [P0214R9](wg21.link/p0214r9), a C++ SIMD library, was
+  operations.  [P0214R9](http://wg21.link/p0214r9), a C++ SIMD library, was
   voted into the C++20 draft.  Several large computer system vendors
   offer optimized linear algebra libraries based on or closely
   resembling the BLAS; these include AMD's BLIS, ARM Performance
@@ -185,7 +185,7 @@ analogous to standard library features like `random_device`: often
 implemented directly in assembly or even with special hardware, and
 thus an essential component of allowing no room for another language
 "below" C++ (see notes on this philosophy in
-[P0939R0](wg21.link/p0939r0) and Stroustrup's seminal work "The Design
+[P0939R0](http://wg21.link/p0939r0) and Stroustrup's seminal work "The Design
 and Evolution of C++").
 
 Dense linear algebra is the core component of most algorithms and
@@ -231,7 +231,7 @@ that started in 1995 and held meetings three times a year until 1999.
 Participants in the process came from industry, academia, and
 government research laboratories.  The dense linear algebra subset of
 the BLAS codifies forty years of evolving practice, and has existed in
-recognizable form since 1990 (see [P1417R0](wg21.link/p1417r0)).
+recognizable form since 1990 (see [P1417R0](http://wg21.link/p1417r0)).
 
 The BLAS interface was specifically designed as the distillation of
 the "computer science" / performance-oriented parts of linear algebra
@@ -361,7 +361,7 @@ The BLAS Standard includes functionality that appears neither in the
 BLAS](http://www.netlib.org/lapack/explore-html/d1/df9/group__blas.html)
 library, nor in the classic BLAS "level" 1, 2, and 3 papers.  (For
 history of the BLAS "levels" and a bibliography, see
-[P1417R0](wg21.link/p1417r0).  For a paper describing functions not in
+[P1417R0](http://wg21.link/p1417r0).  For a paper describing functions not in
 the Reference BLAS, see "An updated set of basic linear algebra
 subprograms (BLAS)," listed in "Other references" below.)  For
 example, the BLAS Standard has
@@ -386,7 +386,7 @@ following reasons:
 3. The Sparse BLAS interface is a stateful interface that is not
    consistent with the dense BLAS, and would need more extensive
    redesign to translate into a modern C++ idiom.  See discussion in
-   [P1417R0](wg21.link/p1417r0).
+   [P1417R0](http://wg21.link/p1417r0).
 
 4. Our proposal subsumes some dense mixed-precision functionality (see
    below).
@@ -403,7 +403,7 @@ solvers for the following classes of mathematical problems:
 It also provides matrix factorizations and related linear algebra
 operations.  LAPACK deliberately relies on the BLAS for good
 performance; in fact, LAPACK and the BLAS were designed together.  See
-history presented in [P1417R0](wg21.link/p1417r0).
+history presented in [P1417R0](http://wg21.link/p1417r0).
 
 Several C++ libraries provide slices of LAPACK functionality.  Here is
 a brief, noninclusive list, in alphabetical order, of some libraries
@@ -415,7 +415,7 @@ actively being maintained:
 * [Matrix Template Library](http://www.simunova.com/de/mtl4/), and
 * [Trilinos](https://github.com/trilinos/Trilinos/).
 
-[P1417R0](wg21.link/p1417r0) gives some history of C++ linear algebra
+[P1417R0](http://wg21.link/p1417r0) gives some history of C++ linear algebra
 libraries.  The authors of this proposal have
 [written](https://github.com/kokkos/kokkos-kernels) and
 [maintained](https://github.com/trilinos/Trilinos/tree/master/packages/teuchos/numerics/src)
@@ -457,7 +457,7 @@ includes "short" floating-point types, fixed-point types, integers,
 and user-defined arithmetic types.  Doing this is easier for BLAS-like
 operations than for the much more complicated numerical algorithms in
 LAPACK.  LAPACK strives for a "generic" design (see Jack Dongarra
-interview summary in [P1417R0](wg21.link/p1417r0)), but only supports
+interview summary in [P1417R0](http://wg21.link/p1417r0)), but only supports
 two real floating-point types and two complex floating-point types.
 Directly translating LAPACK source code into a "generic" version could
 lead to pitfalls.  Many LAPACK algorithms only make sense for number
@@ -519,7 +519,7 @@ We do so for the following reasons:
    introduce problems such as dangling references and aliasing.
 
 Our goal is to propose a low-level interface.  Other libraries, such
-as that proposed by [P1385R1](wg21.link/p1385r1), could use our
+as that proposed by [P1385R1](http://wg21.link/p1385r1), could use our
 interface to implement overloaded arithmetic for matrices and vectors.
 [P0939R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf)
 advocates using "an incremental approach to design to benefit from
@@ -537,7 +537,7 @@ loses precision.  Some users may want `complex<double>`; others may
 want `complex<long double>` or something else, and others may want to
 choose different types in the same program.
 
-[P1385R1](wg21.link/p1385r1) lets users customize the return type of
+[P1385R1](http://wg21.link/p1385r1) lets users customize the return type of
 such arithmetic expressions.  However, different algorithms may call
 for the same expression with the same inputs to have different output
 types.  For example, iterative refinement of linear systems `Ax=b` can
@@ -576,7 +576,7 @@ the run-time environment needs to copy noncontiguous slices of an
 array into contiguous temporary storage.)
 
 Expression templates work well, but have issues.  Our papers
-[P1417R0](wg21.link/p1417r0) and "Evolving a Standard C++ Linear
+[P1417R0](http://wg21.link/p1417r0) and "Evolving a Standard C++ Linear
 Algebra Library from the BLAS" (P1674R0) give more detail on these
 issues.  A particularly troublesome one is that modern C++ `auto`
 makes it easy for users to capture expressions before their evaluation
@@ -640,7 +640,7 @@ semantics.  We explain the value of these two classes below.
 Please refer to our papers "Evolving a Standard C++ Linear Algebra
 Library from the BLAS" (P1674R0) and "Historical lessons for C++
 linear algebra library standardization"
-[(P1417R0)](wg21.link/p1417r0).  They will give details and references
+[(P1417R0)](http://wg21.link/p1417r0).  They will give details and references
 for many of the points that we summarize here.
 
 ### We do not require using the BLAS library
@@ -801,7 +801,7 @@ enough wording to make the design clear.
 
 ### `basic_mdspan`
 
-[P0009](wg21.link/p0009) is a proposal for adding multidimensional
+[P0009](http://wg21.link/p0009) is a proposal for adding multidimensional
 arrays to the C++ Standard Library.  `basic_mdspan` is the main class
 in this proposal.  It is a "view" (in the sense of `span`) of a
 multidimensional array.  The rank (number of dimensions) is fixed at
@@ -844,7 +844,7 @@ Contiguity matters because `basic_mdspan` views a subset of a
 contiguous pointer range, and we want to be able to get a
 `basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
 come with support for two different underlying containers: `array` and
-`vector`.  A `subspan` (see [P0009R9](wg21.link/p0009r9)) of a
+`vector`.  A `subspan` (see [P0009R9](http://wg21.link/p0009r9)) of a
 `basic_mdarray` will return a `basic_mdspan` with the appropriate
 layout and corresponding accessor.  Users must guard against dangling
 pointers, just as they currently must do when using `span` to view a
@@ -3719,7 +3719,7 @@ However, the functions have the following _disadvantages_:
    like symmetry?  That suggests a design in which function parameters
    are generic "things," convertible to `basic_mdspan` or
    `basic_mdarray`, with properties (in the sense of
-   [P0939R0](wg21.link/p0939r0)) that the function can query.
+   [P0939R0](http://wg21.link/p0939r0)) that the function can query.
 
 Here are the options:
 
@@ -3872,14 +3872,14 @@ pioneering efforts and history lessons.
 * H. C. Edwards, B. A. Lelbach, D. Sunderland, D. Hollman, C. Trott,
   M. Bianco, B. Sander, A. Iliopoulos, J. Michopoulos, and M. Hoemmen,
   "`mdspan`: a Non-Owning Multidimensional Array Reference,"
-  [P0009R0](wg21.link/p0009r9), Jan. 2019.
+  [P0009R0](http://wg21.link/p0009r9), Jan. 2019.
 
 * M. Hoemmen, D. Hollman, and C. Trott, "Evolving a Standard C++
   Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
 
 * M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
   J. Michopoulos, "Historical lessons for C++ linear algebra library
-  standardization," [(P1417R0)](wg21.link/p1417r0), Jan. 2019.
+  standardization," [(P1417R0)](http://wg21.link/p1417r0), Jan. 2019.
 
 * D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
   Owning Multidimensional Array Analog of `mdspan`",
@@ -3887,7 +3887,7 @@ pioneering efforts and history lessons.
 
 * D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
   M. Dominiak, "A General Property Customization Mechanism,"
-  [P1393R0](wg21.link/p1393r0), Jan. 2019.
+  [P1393R0](http://wg21.link/p1393r0), Jan. 2019.
 
 ## Other references
 
@@ -3904,11 +3904,11 @@ pioneering efforts and history lessons.
   Jun. 2002, pp. 135-151.
 
 * G. Davidson and B. Steagall, "A proposal to add linear algebra
-  support to the C++ standard library," [P1385R1](wg21.link/p1385r1),
+  support to the C++ standard library," [P1385R1](http://wg21.link/p1385r1),
   Mar. 2019.
 
 * B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
-  "Direction for ISO C++," [P0939R0](wg21.link/p0939r0), Feb. 2018.
+  "Direction for ISO C++," [P0939R0](http://wg21.link/p0939r0), Feb. 2018.
 
 * J. Dongarra, R. Pozo, and D. Walker, "LAPACK++: A Design Overview of
   Object-Oriented Extensions for High Performance Linear Algebra," in
@@ -3927,13 +3927,13 @@ pioneering efforts and history lessons.
   2008.
 
 * J. Hoberock, "Integrating Executors with Parallel Algorithms,"
-  [P1019R2](wg21.link/p1019r2), Jan. 2019.
+  [P1019R2](http://wg21.link/p1019r2), Jan. 2019.
 
 * N. A. Josuttis, "The C++ Standard Library: A Tutorial and Reference,"
   Addison-Wesley, 1999.
 
 * M. Kretz, "Data-Parallel Vector Types & Operations,"
-  [P0214r9](wg21.link/p0214r9), Mar. 2018.
+  [P0214r9](http://wg21.link/p0214r9), Mar. 2018.
 
 * D. Vandevoorde and N. A. Josuttis, "C++ Templates: The Complete
   Guide," Addison-Wesley Professional, 2003.

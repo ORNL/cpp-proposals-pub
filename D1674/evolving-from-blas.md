@@ -51,7 +51,7 @@ function linear algebra interface based on the BLAS").
 We base this work on our years of experience writing and using linear
 algebra libraries, and working with people who have done so for much
 longer than we have.  Readers may wish to refer to
-[P1417R0](wg21.link/p1417r0) for a history of linear algebra library
+[P1417R0](http://wg21.link/p1417r0) for a history of linear algebra library
 standardization.  P1417R0 cites first-hand histories of the
 development of the BLAS, related libraries like LINPACK and LAPACK
 that use the BLAS, and Matlab (which started as a teaching tool that
@@ -172,7 +172,7 @@ BLAS' Fortran binding only accepts column-major matrices.  If users
 want code that works for both the Fortran and C BLAS interfaces, they
 will need to use column-major matrices.  The Standard Library
 currently has no way to represent column-major rank-2 arrays (but see
-our [`basic_mdspan` (P0009R9)](wg21.link/p0009r9) and
+our [`basic_mdspan` (P0009R9)](http://wg21.link/p0009r9) and
 [`basic_mdarray`](https://isocpp.org/files/papers/P1684R0.pdf)
 proposals).  This leads C++ developers to one of the following
 solutions:
@@ -298,7 +298,7 @@ to a default implementation otherwise.  The fall-back implementation
 can even replace the BLAS library.
 
 Libraries like the BLAS and LAPACK were written to be as generic as
-possible.  (See our paper [P1417R0](wg21.link/p1417r0) for a survey of
+possible.  (See our paper [P1417R0](http://wg21.link/p1417r0) for a survey of
 their history and the authors' intentions.)  Thus, once one has
 figured out the ABI issues, it's not too much more effort to write a
 generic C++ wrapper.  For example,
@@ -416,7 +416,7 @@ building block for vectors and matrices (see footnote in
 classes can represent a matrix without additional information.
 
 The lack of general multidimensional array data structures in C++ led
-us to propose `basic_mdspan` [(P0009R9)](wg21.link/p0009r9).  A
+us to propose `basic_mdspan` [(P0009R9)](http://wg21.link/p0009r9).  A
 `basic_mdspan` with the appropriate layout can represent a dense
 column-major matrix.  P0009R9 does not yet have a layout that exactly
 describes what the BLAS wants, but it's not hard to add a suitable
@@ -1005,7 +1005,7 @@ issues.  In summary:
    `ExecutionPolicy&&` argument would be a hook to support parallel
    execution and hierarchical parallelism (through the proposed
    executor extensions to execution policies; see
-   [P1019R2](wg21.link/p1019r2)).
+   [P1019R2](http://wg21.link/p1019r2)).
 
 3. Optimizing across multiple linear algebra operations is possible,
    but adds complications.  We talk below about different ways to
@@ -1165,7 +1165,7 @@ specialized fused kernels may have.
 
 Many linear algebra libraries use expression templates to optimize
 sequences of linear algebra operations.  See
-[P1417R0](wg21.link/p1417r0) for an incomplete list.  Expression
+[P1417R0](http://wg21.link/p1417r0) for an incomplete list.  Expression
 templates are a way to implement lazy evaluation, in that they defer
 evaluation of arithmetic until assignment.  This also lets them avoid
 allocation of temporary results.  When used with arithmetic operator
@@ -1328,7 +1328,7 @@ a pure C++ library with architecture-specific parameters.  See, e.g.,
 [this 2013 Eigen
 presentation](http://downloads.tuxfamily.org/eigen/eigen_CGLibs_Giugno_Pisa_2013.pdf),
 and "Lessons learned from `Boost::uBlas` development" in
-[P1417R0](wg21.link/p1417r0).  However, this burdens the library with
+[P1417R0](http://wg21.link/p1417r0).  However, this burdens the library with
 higher implementation complexity and increased compilation time.
 Library designers may prefer a simpler interface that excludes
 expressions with these issues, and lets users decide where temporaries
@@ -1363,7 +1363,7 @@ out of this contentious debate.
 Suppose that a linear algebra library implements arithmetic operators
 on matrices, and users write `A * B` for a matrix A of
 `complex<float>`, and a matrix B of `double`.  What should the matrix
-element type of the returned matrix be?  [P1385R1](wg21.link/p1385r1)
+element type of the returned matrix be?  [P1385R1](http://wg21.link/p1385r1)
 asserts that the returned matrix's element type should be
 `complex<double>`, since that would preserve accuracy.  Note that
 `common_type` does *not* preserve accuracy in this case: the
@@ -1433,8 +1433,8 @@ Administration under contract DE-NA0003525.
   application to Matrix Multiply," LAPACK Working Note 111, 1996.
 
 * G. Davidson and B. Steagall, "A proposal to add linear algebra
-  support to the C++ standard library," [P1385R1](wg21.link/p1385r1),
-  Mar. 2019.
+  support to the C++ standard library,"
+  [P1385R1](http://wg21.link/p1385r1), Mar. 2019.
 
 * K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
   multiplication", ACM Transactions of Mathematical Software (TOMS),
@@ -1445,7 +1445,7 @@ Administration under contract DE-NA0003525.
   linear algebra interface based on the BLAS," P1673R0, Jun. 2019.
 
 * J. Hoberock, "Integrating Executors with Parallel Algorithms,"
-  [P1019R2](wg21.link/p1019r2), Jan. 2019.
+  [P1019R2](http://wg21.link/p1019r2), Jan. 2019.
 
 * D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
   Owning Multidimensional Array Analog of `mdspan`", P1684R0,
