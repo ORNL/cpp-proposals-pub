@@ -1258,8 +1258,8 @@ expression templates might increase build time, so it would be helpful
 to have the option not to do them.
 
 For example, suppose that someone wants to evaluate the dot product of
-two vectors y and z, where z = A*x for a matrix A and vector x.  In
-Matlab, one would write `y'*(A*x)`.  In our hypothetical
+two vectors `y` and `z`, where `z = A*x` for a matrix `A` and vector
+`x`.  In Matlab, one would write `y'*(A*x)`.  In our hypothetical
 named-function library, we could write something like this:
 
 ```c++
