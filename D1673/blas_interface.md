@@ -1728,7 +1728,8 @@ details.
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
 requirements.  In the requirements below, we use `*` in a typename to
-denote zero characters, `_1`, `_2`, or `_3`.
+denote a "wildcard," that matches zero characters, `_1`, `_2`, `_3`,
+or other things as appropriate.
 
 * Algorithms that have a template parameter named `ExecutionPolicy`
   are parallel algorithms **[algorithms.parallel.defns]**.
@@ -1780,7 +1781,8 @@ denote zero characters, `_1`, `_2`, or `_3`.
 * `Side` is either `left_side_t` or `right_side_t`.
 
 * `in_*_t` template parameters may deduce a `const` lvalue reference
-   or a (non-`const`) rvalue reference to a `basic_mdarray` or a `basic_mdspan`.
+   or a (non-`const`) rvalue reference to a `basic_mdarray` or a
+   `basic_mdspan`.
 
 * `inout_*_t` and `out_*_t` template parameters may deduce a `const` lvalue
   reference to a `basic_mdspan`, a (non-`const`) rvalue reference to a
