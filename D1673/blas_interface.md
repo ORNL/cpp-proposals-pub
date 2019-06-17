@@ -1055,13 +1055,13 @@ These new layouts represent exactly the layout assumed by the General
   than or equal to the number of columns.
 
 These layouts are both always unique and always strided.  They are
-contiguous if and only if the "leading dimension" equals the the
-number of rows resp. columns.  Both layouts are more general than
-`layout_left` and `layout_right`, because they permit a stride between
-columns resp. rows that is greater than the corresponding extent.
-This is why BLAS functions take an `LDA` (leading dimension of the
-matrix A) argument separate from the dimensions (extents, in `mdspan`
-terms) of A.  However, these layouts are slightly *less* general than
+contiguous if and only if the "leading dimension" equals the number of
+rows resp. columns.  Both layouts are more general than `layout_left`
+and `layout_right`, because they permit a stride between columns
+resp. rows that is greater than the corresponding extent.  This is why
+BLAS functions take an `LDA` (leading dimension of the matrix A)
+argument separate from the dimensions (extents, in `mdspan` terms) of
+A.  However, these layouts are slightly *less* general than
 `layout_stride`, because they assume contiguous storage of columns
 resp. rows.  See P1674R0 for further discussion.
 
