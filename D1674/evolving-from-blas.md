@@ -696,8 +696,8 @@ algorithms."  For example, the library would have two overloads of
    performs the operation `C := alpha * A * B`, without regard for the
    value of `alpha`; and
 
-2. an overload that performs the operation `C := alpha * A * B + beta
-   * D`, permits `D` to be the same as `C` (compare to `transform`), and
+2. an overload that performs the operation `C := alpha * A * B + beta * D`,
+   permits `D` to be the same as `C` (compare to `transform`), and
    does so without regard for the values of `alpha` and `beta`.
 
 This would have the side benefit of extending the set of operations
