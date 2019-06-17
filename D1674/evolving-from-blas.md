@@ -1273,7 +1273,7 @@ or perhaps like this instead:
 double result = dot(y, prod(z, A, x));
 ```
 
-The library would have the option to use z as temporary storage, but
+The library would have the option to use `z` as temporary storage, but
 would not be required to do so.
 
 There are two issues with this approach.  First, users would need to
@@ -1383,7 +1383,7 @@ define `operator*` for `complex<float>` and `double`.  It's pretty
 easy to get a `double`; consider harmless-looking literal constants
 like 1.0.  Implementers of mixed-precision libraries also need to
 watch out for bugs that silently reduce precision.  See e.g., [this
-issue in a library to which I
+issue in a library to which we
 contribute](https://github.com/kokkos/kokkos-kernels/issues/101).
 Internal expressions in implementations may need to deduce
 extended-precision types for intermediate values.  For example, a
