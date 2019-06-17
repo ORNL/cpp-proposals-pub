@@ -1072,7 +1072,7 @@ various layouts and possibility of writing a custom layout make it
 easier to write efficient batched code.  For example, one could change
 the layout to facilitate vectorization across matrix operations.  We
 have some experience doing so in our
-[Kokkos](https://github.com/kokkos)(Kokkos) and
+[Kokkos](https://github.com/kokkos) and
 [Trilinos](https://github.com/trilinos/Trilinos) libraries.
 
 ### Composition of parallelism
