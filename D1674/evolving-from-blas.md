@@ -126,9 +126,9 @@ support many different platforms, and get good performance on all of
 them.  Such developers end up writing build system logic for helping
 installers automatically detect and verify BLAS libraries.  The author
 has some experience writing and maintaining such build system logic as
-part of the [Trilinos](github.com/trilinos/Trilinos) project.  Other
-projects' build system logic takes at least this much effort.  For
-example, the current version of CMake's [`FindBLAS`
+part of the [Trilinos](https://github.com/trilinos/Trilinos) project.
+Other projects' build system logic takes at least this much effort.
+For example, the current version of CMake's [`FindBLAS`
 module](https://cmake.org/cmake/help/latest/module/FindBLAS.html) has
 [over 800 lines of CMake
 code](https://github.com/Kitware/CMake/blob/master/Modules/FindBLAS.cmake),
@@ -298,12 +298,13 @@ to a default implementation otherwise.  The fall-back implementation
 can even replace the BLAS library.
 
 Libraries like the BLAS and LAPACK were written to be as generic as
-possible.  (See our paper [P1417R0](http://wg21.link/p1417r0) for a survey of
-their history and the authors' intentions.)  Thus, once one has
-figured out the ABI issues, it's not too much more effort to write a
-generic C++ wrapper.  For example,
-[Trilinos](github.com/trilinos/Trilinos) has one, `Teuchos::BLAS`,
-that has served it for over 15 years with few changes.
+possible.  (See our paper [P1417R0](http://wg21.link/p1417r0) for a
+survey of their history and the authors' intentions.)  Thus, once one
+has figured out the ABI issues, it's not too much more effort to write
+a generic C++ wrapper.  For example,
+[Trilinos](https://github.com/trilinos/Trilinos) has one,
+`Teuchos::BLAS`, that has served it for over 15 years with few
+changes.
 
 Some subtle issues remain.  For example, some corresponding interfaces
 for real and complex numbers differ.  Our developer must decide
@@ -315,19 +316,19 @@ practice.
 
 Many developers may find the above solution satisfactory.  For
 example, the `Teuchos::BLAS` class in
-[Trilinos](github.com/trilinos/Trilinos) is a generic C++ wrapper for
-the BLAS, as we described above.  It has seen use in libraries and
-applications since the mid 2000's, with rare changes.  However, many
-developers are not familiar with the BLAS, and/or find its interface
-alien to C++.  The BLAS has no encapsulation of matrices or vectors;
-it uses raw pointers.  Its functions take a long list of pointer,
-integer, and scalar arguments in a mysterious order.  Mixing up the
-arguments can cause memory corruption, without the benefit of debug
-bounds checking that C++ libraries offer.  Furthermore, users may need
-to work with column-major data layouts, which are not idiomatic to C++
-and may thus cause bugs.  This suggests that the next step is to
-develop C++ data structures for matrices and vectors, and extend the
-above BLAS wrapper to use them.
+[Trilinos](https://github.com/trilinos/Trilinos) is a generic C++
+wrapper for the BLAS, as we described above.  It has seen use in
+libraries and applications since the mid 2000's, with rare changes.
+However, many developers are not familiar with the BLAS, and/or find
+its interface alien to C++.  The BLAS has no encapsulation of matrices
+or vectors; it uses raw pointers.  Its functions take a long list of
+pointer, integer, and scalar arguments in a mysterious order.  Mixing
+up the arguments can cause memory corruption, without the benefit of
+debug bounds checking that C++ libraries offer.  Furthermore, users
+may need to work with column-major data layouts, which are not
+idiomatic to C++ and may thus cause bugs.  This suggests that the next
+step is to develop C++ data structures for matrices and vectors, and
+extend the above BLAS wrapper to use them.
 
 ### BLAS routines take many, unencapsulated arguments
 
@@ -1070,8 +1071,9 @@ For example, one could store a batch of matrices as a rank-3
 various layouts and possibility of writing a custom layout make it
 easier to write efficient batched code.  For example, one could change
 the layout to facilitate vectorization across matrix operations.  We
-have some experience doing so in our [github.com/kokkos](Kokkos) and
-[github.com/trilinos/Trilinos](Trilinos) libraries.
+have some experience doing so in our
+[Kokkos](https://github.com/kokkos)(Kokkos) and
+[Trilinos](https://github.com/trilinos/Trilinos) libraries.
 
 ### Composition of parallelism
 
