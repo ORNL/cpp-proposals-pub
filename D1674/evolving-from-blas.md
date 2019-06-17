@@ -1230,8 +1230,8 @@ optimal order to perform the matrix-matrix multiplications.  Even if
 it knew the dimensions at compile time, optimizing the general problem
 of a chain of matrix multiplications is a nontrivial algorithm that
 could be expensive to evaluate at compile time.  In this case, if the
-compiler evaluates B*C first, it would need to allocate temporary
-storage, since D is not large enough.  Introducing `operator*` for
+compiler evaluates `B*C` first, it would need to allocate temporary
+storage, since `D` is not large enough.  Introducing `operator*` for
 matrix-matrix multiplcation thus forces the implementation to have
 storage for temporary results.  That's fine for some users.  Others
 could reach for named-function alternatives to arithmetic operators,
