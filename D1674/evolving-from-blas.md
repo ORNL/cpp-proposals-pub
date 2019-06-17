@@ -1179,13 +1179,13 @@ suggest expression templates.
 
 We will consider two examples of linear algebra expressions:
 
-1. Compute the 2-norm of w, where w = alpha*x + beta*y + gamma*z (x,
-   y, z, and w are vectors, and alpha, beta, and gamma are scalar
-   constants).
+1. Compute the 2-norm of `w`, where `w = alpha*x + beta*y + gamma*z`
+   (`x`, `y`, `z`, and `w` are vectors, and `alpha`, `beta`, and
+   `gamma` are scalar constants).
 
-2. Compute D = A*B*C, where A, B, and C are matrices with run-time
-   dimensions, `operator*` indicates the matrix-matrix product, and
-   B*C has many more columns than D.
+2. Compute `D = A*B*C`, where `A`, `B`, and `C` are matrices with
+   run-time dimensions, `operator*` indicates the matrix-matrix
+   product, and `B*C` has many more columns than `D`.
 
 ##### First example: Norm of a sum of scaled vectors
 
