@@ -1051,7 +1051,7 @@ of compile-time dimensions.
 The `basic_mdspan` class is a view (**[views]**).  Implementations
 store a pointer.  Thus, it is not totally zero overhead for very small
 matrices or vectors with compile-time dimensions.  A zero-overhead
-solution would *only* store the data at run time, not a pointer to the
+solution would only store the _data_ at run time, not a pointer to the
 data; `std::array` is an example.  Furthermore, it's awkward to use
 views for very small objects (see example in P1684R0).  Users of small
 matrices and vectors often want to handle them by value.  For these
