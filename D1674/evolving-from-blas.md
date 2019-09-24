@@ -746,8 +746,8 @@ their output arguments.  This includes
 
 We consider each of these separately.  First, any reasonable
 implementation of `xSCAL` should behave like `transform`, in that it
-should work even if the output and input vector elements to be
-different (as long as they do not overlap).  Similarly, an operation
+should work whether or not the output and input vectors are the same
+(as long as they do not partially overlap).  Similarly, an operation
 `w := alpha*x + beta*y` that permits `w` to be the same as `x` or `y`
 would behave like `transform`, and would cover all `xAXPY` use cases.
 The same argument applies to any element-wise function.
@@ -1059,10 +1059,11 @@ reasons, we propose `basic_mdarray` (P1684R0), a container version of
 `basic_mdspan`.
 
 Once we have C++ functions that take `basic_mdspan`, it's not much
-more work to overload them other matrix and vector data structures,
-like `basic_mdarray`.  This would also help our developer make their
-linear algebra library more like the C++ Standard Library, in that its
-algorithms would be decoupled from particular data structures.
+more work to overload them to accept other matrix and vector data
+structures, like `basic_mdarray`.  This would also help our developer
+make their linear algebra library more like the C++ Standard Library,
+in that its algorithms would be decoupled from particular data
+structures.
 
 The `basic_mdspan` class also gives developers efficient ways to
 represent batches of linear algebra problems with the same dimensions.
@@ -1209,8 +1210,9 @@ underflow or overflow is tricky.  Consider the norm of a vector whose
 elements are just a little bit larger than the square root of the
 overflow threshold, for example.  The reference implementation of the
 BLAS does extra scaling in its 2-norm and dot product implementations,
-in order to avoid unwarranted overflow.  BLAS 2 and 3 operations are
-like many dot products, and thus share these concerns.
+in order to avoid unwarranted overflow.  Many BLAS 2 and 3 operations
+are mathematically equivalent to a sequence of dot products, and thus
+share these concerns.
 
 Even if C++ already has the tools to implement something, if it's
 tricky to implement well, that can justify separate standardization.
@@ -1380,10 +1382,10 @@ asserts that the returned matrix's element type should be
 This issue may arise even if the linear algebra library never needs to
 deduce the return type of an expression.  For example, C++ does not
 define `operator*` for `complex<float>` and `double`.  It's pretty
-easy to get a `double`; consider harmless-looking literal constants
-like 1.0.  Implementers of mixed-precision libraries also need to
-watch out for bugs that silently reduce precision.  See e.g., [this
-issue in a library to which we
+easy to get a `double` without meaning to; consider harmless-looking
+literal constants like 1.0.  Implementers of mixed-precision libraries
+also need to watch out for bugs that silently reduce precision.  See
+e.g., [this issue in a library to which we
 contribute](https://github.com/kokkos/kokkos-kernels/issues/101).
 Internal expressions in implementations may need to deduce
 extended-precision types for intermediate values.  For example, a
