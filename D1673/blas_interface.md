@@ -1374,32 +1374,18 @@ private:
 
 Accessor to make `basic_mdspan` return a `scaled_scalar`.
 ```c++
-template<class Accessor, class S>
-class accessor_scaled {
-public:
-  using element_type  = Accessor::element_type;
-  using pointer       = Accessor::pointer;
-  using reference     = scaled_scalar<Accessor::reference,S>;
-  using offset_policy = accessor_scaled<Accessor::offset_policy,S>;
-
-  accessor_scaled(Accessor a, S sval) :
-    acc(a), scale_factor(sval) {}
-
-  reference access(pointer& p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p,i), scale_factor);
-  }
-
-  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return a.offset(p,i);
-  }
-
-  element_type* decay(pointer p) const noexcept {
-    return a.decay(p);
-  }
-
+template<class Reference, class ScalingFactor>
+class scaled_scalar {
 private:
-  Accessor acc;
-  S scale_factor;
+  Reference value;
+  const ScalingFactor scaling_factor;
+  
+  using result_type = decltype (value * scaling_factor);
+public:
+  scaled_scalar(Reference v, const ScalingFactor& s) :
+    value(v), scaling_factor(s) {}
+
+  operator result_type() const { return value * scaling_factor; }
 };
 ```
 
@@ -1506,6 +1492,16 @@ public:
     return conj(val) + upd;
   }
 
+  template<class T2>
+  bool operator== (const T2 upd) const {
+    return conj(val) == upd;
+  }
+
+  template<class T2>
+  bool operator!= (const T2 upd) const {
+    return conj(val) != upd;
+  }
+
   // ... add only those operators needed for the functions in this
   // proposal ...
 
@@ -1525,23 +1521,25 @@ The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
 template<class Accessor, class T>
 class accessor_conjugate {
 public:
-  using element_type  = Accessor::element_type;
-  using pointer       = Accessor::pointer;
-  using reference     = Accessor::reference;
-  using offset_policy = Accessor::offset_policy;
+  using element_type  = typename Accessor::element_type;
+  using pointer       = typename Accessor::pointer;
+  using reference     = typename Accessor::reference;
+  using offset_policy = typename Accessor::offset_policy;
 
+  accessor_conjugate() = default;
+  
   accessor_conjugate(Accessor a) : acc(a) {}
 
   reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p,i),scale_factor);
+    return reference(acc.access(p, i));
   }
 
-  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return a.offset(p,i);
+  typename offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return acc.offset(p,i);
   }
 
   element_type* decay(pointer p) const noexcept {
-    return a.decay(p);
+    return acc.decay(p);
   }
 private:
   Accessor acc;
@@ -1550,25 +1548,29 @@ private:
 template<class Accessor, class T>
 class accessor_conjugate<Accessor, std::complex<T>> {
 public:
-  using element_type  = Accessor::element_type;
-  using pointer       = Accessor::pointer;
+  using element_type  = typename Accessor::element_type;
+  using pointer       = typename Accessor::pointer;
+  // FIXME Do we actually need to template conjugated_scalar
+  // on the Reference type as well as T ?
   using reference     =
-    conjugated_scalar<Accessor::reference, std::complex<T>>;
+    conjugated_scalar< /* typename Accessor::reference, */ std::complex<T>>;
   using offset_policy =
-    accessor_conjugate<Accessor::offset_policy, std::complex<T>>;
+    accessor_conjugate<typename Accessor::offset_policy, std::complex<T>>;
+
+  accessor_conjugate() = default;
 
   accessor_conjugate(Accessor a) : acc(a) {}
 
   reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p,i),scale_factor);
+    return reference(acc.access(p, i));
   }
 
-  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return a.offset(p,i);
+  typename offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return acc.offset(p, i);
   }
 
   element_type* decay(pointer p) const noexcept {
-    return a.decay(p);
+    return acc.decay(p);
   }
 private:
   Accessor acc;
@@ -1640,10 +1642,17 @@ indices.
 ```c++
 template<class Layout>
 class layout_transpose {
+public:
+  template<class Extents>
   struct mapping {
-    Layout::mapping nested_mapping;
+  private:
+    using nested_mapping_type = typename Layout::template mapping<Extents>;
+  public:
+    nested_mapping_type nested_mapping;
 
-    mapping(Layout::mapping map):nested_mapping(map) {}
+    mapping() = default;
+
+    mapping(nested_mapping_type map) : nested_mapping(map) {}
 
     // ... insert other standard mapping things ...
 
@@ -1652,10 +1661,12 @@ class layout_transpose {
       return nested_mapping(j, i);
     }
 
-    // for batched layouts
-    ptrdiff_t operator() (ptrdiff_t... rest, ptrdiff_t i, ptrdiff_t j) const {
-      return nested_mapping(rest..., j, i);
-    }
+    // FIXME The overload below doesn't compile
+
+    // // for batched layouts
+    // ptrdiff_t operator() (ptrdiff_t... rest, ptrdiff_t i, ptrdiff_t j) const {
+    //  return nested_mapping(rest..., j, i);
+    // }
   };
 };
 ```
@@ -1684,7 +1695,7 @@ supporting row-major matrices using the Fortran BLAS interface.)
 
 ```c++
 template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>>
+basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
 transpose_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
 
 template<class EltType, class Extents, class Layout, class Accessor>
@@ -1705,7 +1716,7 @@ view of an object.  This combines the effects of `transpose_view` and
 ```c++
 template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-             accessor_conjugate<Accessor>>>
+             accessor_conjugate<Accessor, EltType>>
 conjugate_transpose_view(
   basic_mdspan<EltType, Extents, Layout, Accessor> a);
 
@@ -1811,13 +1822,15 @@ template<class Real>
 void givens_rotation_setup(const Real a,
                            const Real b,
                            Real& c,
-                           Real& s);
+                           Real& s,
+                           Real& r);
 
 template<class Real>
 void givens_rotation_setup(const complex<Real>& a,
-                           const complex<Real>& b,
+                           const complex<Real>& a,
                            Real& c,
-                           complex<Real>& s);
+                           complex<Real>& s,
+                           complex<Real>& r);
 ```
 
 This function computes the plane (Givens) rotation represented by the
@@ -1837,31 +1850,47 @@ result vector whose first component `r` is the Euclidean norm of the
 input vector, and whose second component as zero.  *[Note:* The C++
 Standard Library `conj` function always returns `complex<T>` for some
 `T`, even though overloads exist for non-complex input.  The above
-exprssion uses `conj` as mathematical notation, not as code.  --*end
+expression uses `conj` as mathematical notation, not as code.  --*end
 note]*
 
-*[Note:* This function corresponds to the BLAS function `xROTG`.  It
-has an overload for complex numbers, because the output argument `c`
-(cosine) is a signed magnitude. --*end note]*
+*[Note:* This function corresponds to the LAPACK function `xLARTG`.
+The BLAS variant `xROTG` takes four arguments -- `a`, `b`, `c`, and
+`s`-- and overwrites the input `a` with `r`.  We have chosen
+`xLARTG`'s interface because it separates input and output, and to
+encourage following `xLARTG`'s more careful implementation.  --*end note]*
+
+*[Note:* `givens_rotation_setup` has an overload for complex numbers,
+because the output argument `c` (cosine) is a signed magnitude. --*end
+note]*
 
 * *Constraints:* `Real` is `float`, `double`, or `long double`.
 
 * *Effects:* Assigns to `c` and `s` the plane (Givens) rotation
-  corresponding to the input `a` and `b`.
+  corresponding to the input `a` and `b`.  Assigns to `r` the
+  Euclidean norm of the two-component vector formed by `a` and `b`.
 
 * *Throws:* Nothing.
 
 ##### Apply a computed Givens rotation to vectors
 
 ```c++
+template<class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const Real s);
+
 template<class ExecutionPolicy,
          class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
 void givens_rotation_apply(
   ExecutionPolicy&& exec,
-  inout_vector_1_t v1,
-  inout_vector_2_t v2,
+  inout_vector_1_t x,
+  inout_vector_2_t y,
   const Real c,
   const Real s);
 
@@ -1869,28 +1898,19 @@ template<class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
 void givens_rotation_apply(
-  inout_vector_1_t v1,
-  inout_vector_2_t v2,
-  const Real c,
-  const Real s);
-
-template<class ExecutionPolicy,
-         class inout_vector_1_t,
-         class inout_vector_2_t,
-         class Real>
-void givens_rotation_apply(
-  ExecutionPolicy&& exec,
-  inout_vector_1_t v1,
-  inout_vector_2_t v2,
+  inout_vector_1_t x,
+  inout_vector_2_t y,
   const Real c,
   const complex<Real> s);
 
-template<class inout_vector_1_t,
+template<class ExecutionPolicy,
+         class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
 void givens_rotation_apply(
-  inout_vector_1_t v1,
-  inout_vector_2_t v2,
+  ExecutionPolicy&& exec,
+  inout_vector_1_t x,
+  inout_vector_2_t y,
   const Real c,
   const complex<Real> s);
 ```
@@ -1906,28 +1926,28 @@ this.
 
 * *Requires:*
 
-  * `v1` and `v2` have the same domain.
+  * `x` and `y` have the same domain.
 
 * *Constraints:*
 
   * `Real` is `float`, `double`, or `long double`.
 
-  * `v1.rank()` and `v2.rank()` are both one.
+  * `x.rank()` and `y.rank()` are both one.
 
   * For the overloads that take the last argument `s` as `Real`, for
-    `i` in the domain of `v1` and `j` in the domain of `v2`, the
-    expressions `v1(i) = c*v1(i) + s*v2(j)` and `v2(j) = -s*v1(i) +
-    c*v2(j)` are well formed.
+    `i` in the domain of `x` and `j` in the domain of `y`, the
+    expressions `x(i) = c*x(i) + s*y(j)` and `y(j) = c*y(j) - s*x(i)`
+    are well formed.
 
   * For the overloads that take the last argument `s` as `const
-    complex<Real>`, for `i` in the domain of `v1` and `j` in the
-    domain of `v2`, the expressions `v1(i) = c*v1(i) + s*v2(j)` and
-    `v2(j) = -conj(s)*v1(i) + c*v2(j)` are well formed.
+    complex<Real>`, for `i` in the domain of `x` and `j` in the
+    domain of `y`, the expressions `x(i) = c*x(i) + s*y(j)` and
+    `y(j) = c*y(j) - conj(s)*x(i)` are well formed.
 
 * *Effects:* Applies the plane (Givens) rotation specified by `c` and
-  `s` to the input vectors `v1` and `v2`, as if the rotation were a 2
-  x 2 matrix and the input vectors were successive rows of a matrix
-  with two rows.
+  `s` to the input vectors `x` and `y`, as if the rotation were a 2 x
+  2 matrix and the input vectors were successive rows of a matrix with
+  two rows.
 
 #### Swap matrix or vector elements
 
@@ -2270,16 +2290,17 @@ The following requirements apply to all functions in this section.
 ##### Overwriting matrix-vector product
 
 ```c++
-template<class ExecutionPolicy,
-         class in_vector_t,
+template<class in_vector_t,
          class in_matrix_t,
          class out_vector_t>
 void matrix_vector_product(in_matrix_t A,
                            in_vector_t x,
                            out_vector_t y);
 
-template<class ExecutionPolicy, class in_vector_t,
-         class in_matrix_t, class out_vector_t>
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class in_matrix_t,
+         class out_vector_t>
 void matrix_vector_product(ExecutionPolicy&& exec,
                            in_matrix_t A,
                            in_vector_t x,
@@ -2295,16 +2316,19 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 ##### Updating matrix-vector product
 
 ```c++
-template<class ExecutionPolicy, class in_vector_1_t,
-         class in_matrix_t, class in_vector_2_t,
+template<class in_vector_1_t,
+         class in_matrix_t,
+         class in_vector_2_t,
          class out_vector_t>
 void matrix_vector_product(in_matrix_t A,
                            in_vector_1_t x,
                            in_vector_2_t y,
                            out_vector_t z);
 
-template<class ExecutionPolicy, class in_vector_1_t,
-         class in_matrix_t, class in_vector_2_t,
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_matrix_t,
+         class in_vector_2_t,
          class out_vector_t>
 void matrix_vector_product(ExecutionPolicy&& exec,
                            in_matrix_t A,
@@ -3496,8 +3520,8 @@ template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
          class Side,
-         class in_matrix_t,
-         class out_matrix_t>
+         class in_object_t,
+         class out_object_t>
 void triangular_matrix_matrix_solve(
   in_matrix_t A,
   Triangle t,
@@ -3507,12 +3531,12 @@ void triangular_matrix_matrix_solve(
   out_object_t X);
 
 template<class ExecutionPolicy,
-         class in_matrix_1_t,
+         class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
          class Side,
-         class in_matrix_2_t,
-         class out_matrix_t>
+         class in_object_t,
+         class out_object_t>
 void triangular_matrix_matrix_solve(
   ExecutionPolicy&& exec,
   in_matrix_t A,
