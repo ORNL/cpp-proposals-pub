@@ -24,6 +24,48 @@
 
 ## Date: 2019-06-17
 
+## Revision history
+
+* Revision 0 (pre-Cologne) submitted 2019-06-17
+* Revision 1 (pre-Belfast) to be submitted 2019-10-07
+  * Account for Cologne 2019 LEWGI feedback
+
+    * Assume that future revisions to `basic_mdspan` (P0009) and
+      `basic_mdarray` (P1684) will define either iterators or ranges
+      for rank-1 versions of these objects.
+
+    * Leave to future work the analog of "iterators" or "ranges" for
+      multidimensional (rank greater than one) `basic_mdspan` or
+      `basic_mdarray`.
+
+    * Leave to future work the analog of `copy` for `basic_mdspan` and
+      `basic_mdarray` with rank greater than two.
+
+    * Remove most BLAS 1 functions that could easily be replaced by
+      existing C++ Standard algorithms with no performance penalty and
+      little or no loss of legibility:
+
+      * `linalg_swap`,
+      * `scale`,
+      * `linalg_copy` (for rank-1 objects),
+      * `linalg_add` (for rank-1 objects),
+      * `vector_abs_sum`, and
+      * `vector_idx_abs_max`.
+
+    * Retain `dot` and `dotc`, since implementers can add value to
+      them by improving accuracy and/or parallel reproducibility.
+
+    * Retain `vector_norm2`, since it generalizes `hypot` and shares
+      the same underflow / overflow concerns.
+
+    * Change `dot`, `dotc`, and `vector_norm2` to imitate `reduce`,
+      so that they return their result, instead of taking an output
+      parameter.  Users may set the result type via optional `init`
+      parameter.
+
+  * Minor changes to "expression template" classes, based on
+    implementation experience
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -2086,100 +2128,157 @@ void linalg_add(ExecutionPolicy&& exec,
 ```c++
 template<class in_vector_1_t,
          class in_vector_2_t,
-         class Scalar>
-void dot(in_vector_1_t v1,
-         in_vector_2_t v2,
-         Scalar& result);
+         class T>
+T dot(in_vector_1_t v1,
+      in_vector_2_t v2,
+      T init);
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t,
-         class Scalar>
-void dot(ExecutionPolicy&& exec,
-         in_vector_1_t v1,
-         in_vector_2_t v2,
-         Scalar& result);
+         class T>
+T dot(ExecutionPolicy&& exec,
+      in_vector_1_t v1,
+      in_vector_2_t v2,
+      T init);
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xDOT` (for
 real element types), `xDOTC`, and `xDOTU` (for complex element types).
 --*end note]*
 
-* *Requires:* `v1` and `v2` have the same domain.
+* *Requires:*
 
-* *Constraints:* For all `i` in the domain of `v1` and `v2`,
-  the expression `result += v1(i)*v2(i)` is well formed.
+  * `T` shall be *Cpp17MoveConstructible*.
+  * `init + v1(0)*v2(0)` shall be convertible to `T`.
+  * `v1` and `v2` have the same domain.
 
-* *Effects:* Assigns to `result` the sum of the products of
-  corresponding entries of `v1` and `v2`.
+* *Constraints:* For all `i` in the domain of `v1` and `v2` and for
+  `val` of type `T&`, the expression `val += v1(i)*v2(i)` is well
+  formed.
 
-* *Remarks:* If `in_vector_t::element_type` and `Scalar` are both
-  floating-point types or complex versions thereof, and if `Scalar`
-  has higher precision than `in_vector_type::element_type`, then
-  implementations will use `Scalar`'s precision or greater for
-  intermediate terms in the sum.
+* *Effects:* Let `N` be `v1.extent(0)`.  If `N` is zero, returns
+  `init`, else returns /GENERALIZED_SUM/(`plus<>()`, `init`,
+  `v1(0)*v2(0)`, ..., `v1(N-1)*v2(N-1)`).
+
+* *Remarks:* If `in_vector_t::element_type` and `T` are both
+  floating-point types or complex versions thereof, and if `T` has
+  higher precision than `in_vector_type::element_type`, then
+  implementations will use `T`'s precision or greater for intermediate
+  terms in the sum.
+
+*[Note:* Like `reduce`, `dot` applies binary `operator+` in an
+unspecified order.  This may yield a nondeterministic result for
+non-associative or non-commutative `operator+` such as floating-point
+addition.  However, implementations may perform extra work to make the
+result deterministic.  They may do so for all `dot` overloads, or just
+for specific `ExecutionPolicy` types. --*end note]*
 
 *[Note:* Users can get `xDOTC` behavior by giving the second argument
 as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
+
+##### Non-conjugated inner (dot) product with default result type
+
+```c++
+template<class in_vector_1_t,
+         class in_vector_2_t>
+auto dot(in_vector_1_t v1,
+         in_vector_2_t v2);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t>
+auto dot(ExecutionPolicy&& exec,
+         in_vector_1_t v1,
+         in_vector_2_t v2);
+```
+
+* *Effects:* Let `T` be `decltype(v1(0)*v2(0))`.  Then, the
+  two-parameter overload is equivalent to `dot(v1, v2, T{});`, and the
+  three-parameter overload is equivalent to `dot(exec, v1, v2, T{});`.
 
 ##### Conjugated inner (dot) product
 
 ```c++
 template<class in_vector_1_t,
          class in_vector_2_t,
-         class Scalar>
-void dotc(in_vector_1_t v1,
-          in_vector_2_t v2,
-          Scalar& result);
+         class T>
+T dotc(in_vector_1_t v1,
+       in_vector_2_t v2,
+       T init);
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t,
-         class Scalar>
-void dotc(ExecutionPolicy&& exec,
-          in_vector_1_t v1,
-          in_vector_2_t v2,
-          Scalar& result);
+         class T>
+T dotc(ExecutionPolicy&& exec,
+       in_vector_1_t v1,
+       in_vector_2_t v2,
+       T init);
 ```
 
-* *Effects:* Equivalent to `dot(v1, conjugate_view(v2), result);`.
+* *Effects:* The three-argument overload is equivalent to `dot(v1,
+  conjugate_view(v2), init);`.  The four-argument overload is
+  equivalent to `dot(exec, v1, conjugate_view(v2), init);`.
 
 *[Note:* `dotc` exists to give users reasonable default inner product
 behavior for both real and complex element types. --*end note]*
+
+##### Conjugated inner (dot) product with default result type
+
+```c++
+template<class in_vector_1_t,
+         class in_vector_2_t>
+auto dotc(in_vector_1_t v1,
+          in_vector_2_t v2);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t>
+auto dotc(ExecutionPolicy&& exec,
+          in_vector_1_t v1,
+          in_vector_2_t v2);
+```
+
+* *Effects:* Let `T` be `decltype(v1(0)*conj(v2(0)))`.  Then, the
+  two-parameter overload is equivalent to `dotc(v1, v2, T{});`, and the
+  three-parameter overload is equivalent to `dotc(exec, v1, v2, T{});`.
 
 #### Euclidean (2) norm of a vector
 
 ```c++
 template<class in_vector_t,
-         class Scalar>
-void vector_norm2(in_vector_t v,
-                  Scalar& result);
+         class T>
+T vector_norm2(in_vector_t v,
+               T init);
 
 template<class ExecutionPolicy,
          class in_vector_t,
-         class Scalar>
-void vector_norm2(ExecutionPolicy&& exec,
-                  in_vector_t v,
-                  Scalar& result);
+         class T>
+T vector_norm2(ExecutionPolicy&& exec,
+               in_vector_t v,
+               T init);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xNRM2`.
 --*end note]*
 
-* *Constraints:* For all `i` in the domain of `v1` and `v2`, the
-  expressions `result += abs(v(i))*abs(v(i))` and `sqrt(result)` are
-  well formed.  *[Note:* This does not imply a recommended
-  implementation for floating-point types.  See *Remarks*
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible*.
+  * `init + abs(v(0))*abs(v(0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i` in the domain of `v` and for `val` 
+  of type `T&`, the expressions `val += abs(v(i))*abs(v(i))` and
+  `sqrt(val)` are well formed.  *[Note:* This does not imply a
+  recommended implementation for floating-point types.  See *Remarks*
   below. --*end note]*
 
-* *Effects:* Assigns to `result` the Euclidean (2) norm of the
-  vector `v`.
+* *Effects:* Returns the Euclidean (2) norm of the vector `v`.
 
 * *Remarks:*
 
-  1. If `in_vector_t::element_type` and `Scalar` are both
-     floating-point types or complex versions thereof, and if `Scalar`
+  1. If `in_vector_t::element_type` and `T` are both
+     floating-point types or complex versions thereof, and if `T`
      has higher precision than `in_vector_type::element_type`, then
-     implementations will use `Scalar`'s precision or greater for
+     implementations will use `T`'s precision or greater for
      intermediate terms in the sum.
 
   2. Let `E` be `in_vector_t::element_type`.  If
@@ -2187,7 +2286,7 @@ void vector_norm2(ExecutionPolicy&& exec,
      * `E` is `float`, `double`, `long double`, `complex<float>`,
        `complex<double>`, or `complex<long double>`;
 
-     * `Scalar` is `E` or larger in the above list of types; and
+     * `T` is `E` or larger in the above list of types; and
 
      * `numeric_limits<E>::is_iec559` is `true`;
 
@@ -2198,6 +2297,23 @@ void vector_norm2(ExecutionPolicy&& exec,
 implementations generalize the guarantees of `hypot` regarding
 overflow and underflow.  This excludes naïve implementations for
 floating-point types. --*end note]*
+
+#### Euclidean (2) norm of a vector with default result type
+
+```c++
+template<class in_vector_t>
+auto vector_norm2(in_vector_t v);
+
+template<class ExecutionPolicy,
+         class in_vector_t>
+auto vector_norm2(ExecutionPolicy&& exec,
+                  in_vector_t v);
+```
+
+* *Effects:* Let `T` be `decltype(abs(v1(0)))`.  Then, the
+  one-parameter overload is equivalent to `vector_norm2(v, T{});`,
+  and the two-parameter overload is equivalent to
+  `vector_norm2(exec, v, T{});`.
 
 #### Sum of absolute values
 
