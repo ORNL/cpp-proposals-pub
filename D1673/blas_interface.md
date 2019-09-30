@@ -27,41 +27,58 @@
 ## Revision history
 
 * Revision 0 (pre-Cologne) submitted 2019-06-17
+
+  * Received feedback in Cologne from SG6, LEWGI, and (???).
+
 * Revision 1 (pre-Belfast) to be submitted 2019-10-07
-  * Account for Cologne 2019 LEWGI feedback
+  * Account for Cologne 2019 feedback
 
-    * Assume that future revisions to `basic_mdspan` (P0009) and
-      `basic_mdarray` (P1684) will define either iterators or ranges
-      for rank-1 versions of these objects.
+    * Reduce duplication with existing Standard algorithms
 
-    * Leave to future work the analog of "iterators" or "ranges" for
-      multidimensional (rank greater than one) `basic_mdspan` or
-      `basic_mdarray`.
+      * Assume that future revisions to `basic_mdspan` (P0009) and
+        `basic_mdarray` (P1684) will define iterators for rank-1
+        versions of these objects.
 
-    * Leave to future work the analog of `copy` for `basic_mdspan` and
-      `basic_mdarray` with rank greater than two.
+      * Leave to future work the analog of "iterators" or "ranges" for
+        multidimensional (rank greater than one) `basic_mdspan` or
+        `basic_mdarray`.
 
-    * Remove most BLAS 1 functions that could easily be replaced by
-      existing C++ Standard algorithms with no performance penalty and
-      little or no loss of legibility:
+      * Leave to future work the analogs of `copy`, `move`, and 
+        `swap_ranges` for `basic_mdspan` and `basic_mdarray` with rank
+         greater than one.
 
-      * `linalg_swap`,
-      * `scale`,
-      * `linalg_copy` (for rank-1 objects),
-      * `linalg_add` (for rank-1 objects),
-      * `vector_abs_sum`, and
-      * `vector_idx_abs_max`.
+      * Remove most BLAS 1 functions that could easily be replaced by
+        existing C++ Standard algorithms with no performance penalty and
+        little or no loss of legibility.  (Note that the actual BLAS only
+        implements these for rank-1 objects, so there is no loss of
+        functionality by excluding rank-2 versions.  This proposal does 
+        not aim for feature completeness; it's meant to expose relevant
+        performance primitives from the BLAS.)  We remove the following
+        functions:
 
-    * Retain `dot` and `dotc`, since implementers can add value to
-      them by improving accuracy and/or parallel reproducibility.
+        * `linalg_swap` (replace with `swap_ranges`)
+        * `linalg_copy` (replace with `copy`), and
+        * `vector_idx_abs_max` (replace with `ranges::max_element` with
+          `abs` projection).
 
-    * Retain `vector_norm2`, since it generalizes `hypot` and shares
-      the same underflow / overflow concerns.
+      * Retain `scale` and `linalg_add` as opportunities to optimize,
+        especially for small objects.  However, ask for feedback about
+        their necessity.
 
-    * Change `dot`, `dotc`, and `vector_norm2` to imitate `reduce`,
-      so that they return their result, instead of taking an output
-      parameter.  Users may set the result type via optional `init`
-      parameter.
+      * Retain functions that involve sum reductions (`dot`, `dotc`,
+        and `vector_abs_sum`), since implementers can add value to them
+        by improving accuracy and/or parallel reproducibility (for
+        floating-point arithmetic).
+
+      * Retain `vector_norm2`, since it generalizes `hypot` and shares
+        the same floating-point underflow / overflow concerns.
+
+    * Make interface more consistent with existing Standard algorithms 
+
+      * Change `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` to
+        imitate `reduce`, so that they return their result, instead of
+        taking an output parameter.  Users may set the result type via
+        optional `init` parameter.
 
   * Minor changes to "expression template" classes, based on
     implementation experience
@@ -77,7 +94,7 @@ matrices and vectors:
 
 * Elementwise vector sums
 * Multiplying all elements of a vector or matrix by a scalar
-* 2-norms, 1-norms, and infinity-norms of vectors
+* 2-norms and 1-norms of vectors
 * Vector-vector, matrix-vector, and matrix-matrix products
   (contractions)
 * Low-rank updates of a matrix
@@ -1991,39 +2008,6 @@ this.
   2 matrix and the input vectors were successive rows of a matrix with
   two rows.
 
-#### Swap matrix or vector elements
-
-```c++
-template<class inout_object_1_t,
-         class inout_object_2_t>
-void linalg_swap(inout_object_1_t v1,
-                 inout_object_2_t v2);
-
-template<class ExecutionPolicy,
-         class inout_object_1_t,
-         class inout_object_2_t>
-void linalg_swap(ExecutionPolicy&& exec,
-                 inout_object_1_t v1,
-                 inout_object_2_t v2);
-```
-
-*[Note:* These functions correspond to the BLAS function `xSWAP`.
---*end note]*
-
-* *Requires:* `v1` and `v2` have the same domain.
-
-* *Constraints:*
-
-  * `v1.rank()` equals `v2.rank()`.
-
-  * `v1.rank()` is no more than 3.
-
-  * For `i...` in the domain of `v2` and `v1`, the
-    expression `v2(i...) = v1(i...)` is well formed.
-
-* *Effects:* Swap all corresponding elements of the objects
-  `v1` and `v2`.
-
 #### Multiply the elements of an object in place by a scalar
 
 ```c++
@@ -2051,39 +2035,6 @@ void scale(ExecutionPolicy&& exec,
     `obj(i...) *= alpha` is well formed.
 
 * *Effects*: Multiply each element of `obj` in place by `alpha`.
-
-#### Copy elements of one matrix or vector into another
-
-```c++
-template<class in_object_t,
-         class out_object_t>
-void linalg_copy(in_object_t x,
-                 out_object_t y);
-
-template<class ExecutionPolicy,
-         class in_object_t,
-         class out_object_t>
-void linalg_copy(ExecutionPolicy&& exec,
-                 in_object_t x,
-                 out_object_t y);
-```
-
-*[Note:* These functions correspond to the BLAS function `xCOPY`.
---*end note]*
-
-* *Constraints:*
-
-  * `x.rank()` equals `y.rank()`.
-
-  * `x.rank()` is no more than 3.
-
-  * For all `i...` in the domain of `x` and `y`, the expression
-    `y(i...) = x(i...)` is well formed.
-
-* *Requires:* The domain of `y` equals the domain of `x`.
-
-* *Effects:* Overwrite each element of `y` with the corresponding
-  element of `x`.
 
 #### Add vectors or matrices elementwise
 
@@ -2215,9 +2166,10 @@ T dotc(ExecutionPolicy&& exec,
        T init);
 ```
 
-* *Effects:* The three-argument overload is equivalent to `dot(v1,
-  conjugate_view(v2), init);`.  The four-argument overload is
-  equivalent to `dot(exec, v1, conjugate_view(v2), init);`.
+* *Effects:* The three-argument overload is equivalent to
+  `dot(v1, conjugate_view(v2), init);`.
+  The four-argument overload is equivalent to
+  `dot(exec, v1, conjugate_view(v2), init);`.
 
 *[Note:* `dotc` exists to give users reasonable default inner product
 behavior for both real and complex element types. --*end note]*
@@ -2248,7 +2200,6 @@ template<class in_vector_t,
          class T>
 T vector_norm2(in_vector_t v,
                T init);
-
 template<class ExecutionPolicy,
          class in_vector_t,
          class T>
@@ -2303,15 +2254,15 @@ floating-point types. --*end note]*
 ```c++
 template<class in_vector_t>
 auto vector_norm2(in_vector_t v);
-
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_norm2(ExecutionPolicy&& exec,
                   in_vector_t v);
 ```
 
-* *Effects:* Let `T` be `decltype(abs(v1(0)))`.  Then, the
-  one-parameter overload is equivalent to `vector_norm2(v, T{});`,
+* *Effects:* Let `T` be `decltype(abs(v(0)) * abs(v(0)))`.
+  Then, the one-parameter overload is equivalent to
+  `vector_norm2(v, T{});`,
   and the two-parameter overload is equivalent to
   `vector_norm2(exec, v, T{});`.
 
@@ -2319,68 +2270,65 @@ auto vector_norm2(ExecutionPolicy&& exec,
 
 ```c++
 template<class in_vector_t,
-         class Scalar>
-void vector_abs_sum(in_vector_t v,
-                    Scalar& result);
-
+         class T>
+T vector_abs_sum(in_vector_t v,
+                 T init);
 template<class ExecutionPolicy,
          class in_vector_t,
-         class Scalar>
-void vector_abs_sum(ExecutionPolicy&& exec,
-                    in_vector_t v,
-                    Scalar& result);
+         class T>
+T vector_abs_sum(ExecutionPolicy&& exec,
+                 in_vector_t v,
+                 T init);
 ```
 
 *[Note:* This function corresponds to the BLAS functions `SASUM`,
-`DASUM`, `CSASUM`, and `DZASUM`. --*end note]*
+`DASUM`, `CSASUM`, and `DZASUM`.  The different behavior for complex
+element types is based on the observation that this lower-cost
+approximation of the one-norm serves just as well as the actual
+one-norm for many linear algebra algorithms in practice. --*end note]*
 
-* *Constraints:*
+* *Requires:*
 
-  * If `in_vector_t::element_type` is `complex<T>` for some `T`, then
-    for all `i` in the domain of `v`, the expression `result +=
-    real(v(i)) + imag(v(i))` is well formed.
+  * `T` shall be *Cpp17MoveConstructible*.
+  * `init + v1(0)*v2(0)` shall be convertible to `T`.
 
-  * Else, for all `i` in the domain of `v`, the expression
-    `result += abs(v(i))` is well formed.
+* *Constraints:* For all `i` in the domain of `v` and for
+  `val` of type `T&`, the expression `val += abs(v(i))` is well
+  formed.
 
-* *Effects:*
+* *Effects:* Let `N` be `v.extent(0)`.
 
-  * If `in_vector_t::element_type` is `complex<T>` for some `T`, then
-    assigns to `result` the sum of absolute values of the real and
-    imaginary components of the elements of the vector `v`.
+  * If `N` is zero, returns `init`.
+  
+  * Else, if `in_vector_t::element_type` is `complex<R>` for some `R`,
+    then returns /GENERALIZED_SUM/(`plus<>()`, `init`,
+    `abs(real(v(0))) + abs(imag(v(0)))`, ...,
+    `abs(real(v(N-1))) + abs(imag(v(N-1)))`).
 
-  * Else, assigns to `result` the sum of absolute values of the
-    elements of the vector `v`.
+  * Else, returns /GENERALIZED_SUM/(`plus<>()`, `init`,
+    `abs(v(0))`, ..., `abs(v(N-1))`).
 
-* *Remarks:*
+* *Remarks:* If `in_vector_t::element_type` and `T` are both
+  floating-point types or complex versions thereof, and if `T` has
+  higher precision than `in_vector_type::element_type`, then
+  implementations will use `T`'s precision or greater for intermediate
+  terms in the sum.
 
-  * If `in_vector_t::element_type` and `Scalar` are both
-    floating-point types or complex versions thereof, and if `Scalar`
-    has higher precision than `in_vector_type::element_type`, then
-    implementations will use `Scalar`'s precision or greater for
-    intermediate terms in the sum.
-
-#### Index of maximum absolute value of vector elements
+#### Sum of absolute values with default result type
 
 ```c++
 template<class in_vector_t>
-ptrdiff_t vector_idx_abs_max(in_vector_t v);
-
+auto vector_abs_sum(in_vector_t v);
 template<class ExecutionPolicy,
          class in_vector_t>
-ptrdiff_t vector_idx_abs_max(ExecutionPolicy&& exec,
-                             in_vector_t v);
+auto vector_abs_sum(ExecutionPolicy&& exec,
+                    in_vector_t v);
 ```
 
-*[Note:* These functions correspond to the BLAS function `IxAMAX`.
---*end note]*
-
-* *Constraints:* For `i` and `j` in the domain of `v`, the expression
-  `abs(v(i)) < abs(v(j))` is well formed.
-
-* *Returns:* The index (in the domain of `v`) of the first element of
-  `v` having largest absolute value.  If `v` has zero elements, then
-  returns `-1`.
+* *Effects:* Let `T` be `decltype(abs(v(0)))`.  Then, the
+  one-parameter overload is equivalent to `vector_abs_sum(v, T{});`,
+  and the two-parameter overload is equivalent to
+  `vector_abs_sum(exec, v, T{});`.
 
 ### BLAS 2 functions
 
