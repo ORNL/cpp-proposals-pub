@@ -33,46 +33,6 @@
 * Revision 1 (pre-Belfast) to be submitted 2019-10-07
   * Account for Cologne 2019 feedback
 
-    * Reduce duplication with existing Standard algorithms
-
-      * Assume that future revisions to `basic_mdspan` (P0009) and
-        `basic_mdarray` (P1684) will define iterators for rank-1
-        versions of these objects.
-
-      * Leave to future work the analog of "iterators" or "ranges" for
-        multidimensional (rank greater than one) `basic_mdspan` or
-        `basic_mdarray`.
-
-      * Leave to future work the analogs of `copy`, `move`, and 
-        `swap_ranges` for `basic_mdspan` and `basic_mdarray` with rank
-         greater than one.
-
-      * Remove most BLAS 1 functions that could easily be replaced by
-        existing C++ Standard algorithms with no performance penalty and
-        little or no loss of legibility.  (Note that the actual BLAS only
-        implements these for rank-1 objects, so there is no loss of
-        functionality by excluding rank-2 versions.  This proposal does 
-        not aim for feature completeness; it's meant to expose relevant
-        performance primitives from the BLAS.)  We remove the following
-        functions:
-
-        * `linalg_swap` (replace with `swap_ranges`)
-        * `linalg_copy` (replace with `copy`), and
-        * `vector_idx_abs_max` (replace with `ranges::max_element` with
-          `abs` projection).
-
-      * Retain `scale` and `linalg_add` as opportunities to optimize,
-        especially for small objects.  However, ask for feedback about
-        their necessity.
-
-      * Retain functions that involve sum reductions (`dot`, `dotc`,
-        and `vector_abs_sum`), since implementers can add value to them
-        by improving accuracy and/or parallel reproducibility (for
-        floating-point arithmetic).
-
-      * Retain `vector_norm2`, since it generalizes `hypot` and shares
-        the same floating-point underflow / overflow concerns.
-
     * Make interface more consistent with existing Standard algorithms 
 
       * Change `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` to
@@ -1401,38 +1361,6 @@ adornment.
 -*end note]*
 
 ```c++
-template<class T, class S>
-class scaled_scalar {
-public:
-  scaled_scalar(const T& v, const S& s) :
-    val(v), scale(s) {}
-
-  operator T() const { return val * scale; }
-
-  T operator- () const { return -(val * scale); }
-
-  template<class T2>
-  decltype(auto) operator+ (const T2& upd) const {
-    return val*scale + upd;
-  }
-
-  template<class T2>
-  decltype(auto) operator* (const T2 upd) const {
-    return val*scale * upd;
-  }
-
-  // ... add only those operators needed for the functions
-  // in this proposal ...
-
-private:
-  const T& val;
-  const S scale;
-};
-```
-#### `accessor_scaled`
-
-Accessor to make `basic_mdspan` return a `scaled_scalar`.
-```c++
 template<class Reference, class ScalingFactor>
 class scaled_scalar {
 private:
@@ -1445,6 +1373,39 @@ public:
     value(v), scaling_factor(s) {}
 
   operator result_type() const { return value * scaling_factor; }
+};
+```
+
+#### `accessor_scaled`
+
+Accessor to make `basic_mdspan` return a `scaled_scalar`.
+```c++
+template<class Accessor, class S>
+class accessor_scaled {
+public:
+  using element_type  = Accessor::element_type;
+  using pointer       = Accessor::pointer;
+  using reference     = scaled_scalar<Accessor::reference,S>;
+  using offset_policy = accessor_scaled<Accessor::offset_policy,S>;
+
+  accessor_scaled(Accessor a, S sval) :
+    acc(a), scale_factor(sval) {}
+
+  reference access(pointer& p, ptrdiff_t i) const noexcept {
+    return reference(acc.access(p,i), scale_factor);
+  }
+
+  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
+    return a.offset(p,i);
+  }
+
+  element_type* decay(pointer p) const noexcept {
+    return a.decay(p);
+  }
+
+private:
+  Accessor acc;
+  S scale_factor;
 };
 ```
 
@@ -2008,6 +1969,39 @@ this.
   2 matrix and the input vectors were successive rows of a matrix with
   two rows.
 
+##### Swap matrix or vector elements
+
+```c++
+template<class inout_object_1_t,
+         class inout_object_2_t>
+void linalg_swap(inout_object_1_t x,
+                 inout_object_2_t y);
+
+template<class ExecutionPolicy,
+         class inout_object_1_t,
+         class inout_object_2_t>
+void linalg_swap(ExecutionPolicy&& exec,
+                 inout_object_1_t x,
+                 inout_object_2_t y);
+```
+
+*[Note:* These functions correspond to the BLAS function `xSWAP`.
+--*end note]*
+
+* *Requires:* The domain of `x` equals the domain of `y`.
+
+* *Constraints:*
+
+  * `x.rank()` equals `y.rank()`.
+
+  * `x.rank()` is no more than 3.
+
+  * For `i...` in the domain of `x` and `y`, the
+    expression `x(i...) = y(i...)` is well formed.
+
+* *Effects:* Swap all corresponding elements of the objects
+  `x` and `y`.
+
 #### Multiply the elements of an object in place by a scalar
 
 ```c++
@@ -2035,6 +2029,39 @@ void scale(ExecutionPolicy&& exec,
     `obj(i...) *= alpha` is well formed.
 
 * *Effects*: Multiply each element of `obj` in place by `alpha`.
+
+#### Copy elements of one matrix or vector into another
+
+```c++
+template<class in_object_t,
+         class out_object_t>
+void linalg_copy(in_object_t x,
+                 out_object_t y);
+
+template<class ExecutionPolicy,
+         class in_object_t,
+         class out_object_t>
+void linalg_copy(ExecutionPolicy&& exec,
+                 in_object_t x,
+                 out_object_t y);
+```
+
+*[Note:* These functions correspond to the BLAS function `xCOPY`.
+--*end note]*
+
+* *Requires:* The domain of `y` equals the domain of `x`.
+
+* *Constraints:*
+
+  * `x.rank()` equals `y.rank()`.
+
+  * `x.rank()` is no more than 3.
+
+  * For all `i...` in the domain of `x` and `y`, the expression
+    `y(i...) = x(i...)` is well formed.
+
+* *Effects:* Overwrite each element of `y` with the corresponding
+  element of `x`.
 
 #### Add vectors or matrices elementwise
 
@@ -2329,6 +2356,28 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
   one-parameter overload is equivalent to `vector_abs_sum(v, T{});`,
   and the two-parameter overload is equivalent to
   `vector_abs_sum(exec, v, T{});`.
+
+#### Index of maximum absolute value of vector elements
+
+```c++
+template<class in_vector_t>
+ptrdiff_t idx_abs_max(in_vector_t v);
+
+template<class ExecutionPolicy,
+         class in_vector_t>
+ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
+                 in_vector_t v);
+```
+
+*[Note:* These functions correspond to the BLAS function `IxAMAX`.
+--*end note]*
+
+* *Constraints:* For `i` and `j` in the domain of `v`, the expression
+  `abs(v(i)) < abs(v(j))` is well formed.
+
+* *Effects:* Returns the index (in the domain of `v`) of
+  the first element of `v` having largest absolute value.  If `v` has
+  zero elements, then returns `-1`.
 
 ### BLAS 2 functions
 
