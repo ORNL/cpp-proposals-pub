@@ -43,6 +43,8 @@
   * Minor changes to "expression template" classes, based on
     implementation experience
 
+  * Briefly address LEWGI request of exploring concepts for input arguments.
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -711,6 +713,18 @@ vector element types other than the four that the BLAS supports.
   BLAS-like operations much less error prone and easier to read.
 
 * They make it easier to support an efficient "batched" interface.
+
+#### Defining a `concept` for the data structures instead
+
+LEWGI requested the exploration of using a concept instead of `basic_mdspan`
+to define the arguments for the linear algebra functions. A brief investigation
+of that option leads us to believe that such a concept would largely replicate the 
+definition of `basic_mdspan` since almost all its features are explicitly used in part of 
+this proposal. This includes the `extents`, `layout` and `accessor_policy`
+customization point. At this point it is not clear to us that there would be
+significant benefits of defining lineary algebra functions in terms of such a concept, 
+instead of defining a general customization 
+point `get_mdspan`, allowing acceptance of any object type, which provides it. 
 
 ### Why optionally include batched linear algebra?
 
@@ -3835,6 +3849,11 @@ _Our preference_:
 
 * We think that iterators are not always the right way to access
   multidimensional objects.
+
+* If we allow linear algebra functions as customization points in order
+  to support custom layouts, we need even simple BLAS 1 functions. 
+  Iterators for non-unique layouts are for example ambiguous (do they
+  iterate over each stored element, or over the domain?).
 
 ### Retain "view" functions (modest expression templates)?
 
