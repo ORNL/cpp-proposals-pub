@@ -45,6 +45,8 @@
 
   * Briefly address LEWGI request of exploring concepts for input arguments.
 
+  * Lazy ranges style API was NOT explored. 
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
