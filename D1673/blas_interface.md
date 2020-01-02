@@ -735,12 +735,12 @@ algebra functionality.  We then deviate from that only as much as
 necessary to get algorithms that behave as much as reasonable like the
 existing C++ Standard Library algorithms.  Future work or
 collaboration with other proposals could implement a higher-level
-interface.  
+interface.
 
-We propose to build the initial interface on top of `basic_mdspan`, 
-and plan to extend that later with overloads for a new `basic_mdarray` 
+We propose to build the initial interface on top of `basic_mdspan`,
+and plan to extend that later with overloads for a new `basic_mdarray`
 variant of `basic_mdspan` with container semantics as well as any type
-implementing a `get_mdspan` customization point.  
+implementing a `get_mdspan` customization point.
 We explain the value of these choices below.
 
 Please refer to our papers "Evolving a Standard C++ Linear Algebra
@@ -897,12 +897,6 @@ for representing what amounts to sparse matrices.  We think that BLAS
 matrix "type" is better represented with a higher-level library that
 builds on our proposal.
 
-## Caveats
-
-This proposal does not yet have full wording.  We have filled in
-enough wording for meaningful design discussions, such as those
-presented in "Options and votes" below.
-
 ## Future work
 
 Summary:
@@ -911,9 +905,6 @@ Summary:
    `get_mdspan` customization point, including `basic_mdarray`.
 
 2. Add batched linear algebra overloads.
-
-3. Add dense linear algebra functions that are in the BLAS Standard
-   but not in the Reference BLAS.
 
 ### Generalize function parameters
 
@@ -933,7 +924,7 @@ return a `basic_mdspan` that views its argument's data.
 
 `basic_mdarray`, proposed in [P1684](http://wg21.link/p1684), is the
 container analog of `basic_mdspan`.  It is a new kind of container,
-with the same deep copy behavior as `vector`.  It has the same
+with the same copy behavior as containers like `vector`.  It has the same
 extension points as `basic_mdspan`, and also has the ability to use
 any *contiguous container* (see **[container.requirements.general]**)
 for storage.  Contiguity matters because `basic_mdspan` views a subset
@@ -961,9 +952,11 @@ This would address any concerns about overhead of converting from
 
 ### Batched linear algebra
 
-"Batched" linear algebra functions solve many independent problems all
-at once, in a single function call.  For discussion, see Section 6.2
-of our background paper [P1417R0](http://wg21.link/p1417r0).  Batched
+We plan to write a separate proposal that will add "batched" versions
+of linear algebra functions to this proposal.  "Batched" linear
+algebra functions solve many independent problems all at once, in a
+single function call.  For discussion, see Section 6.2 of our
+background paper [P1417R0](http://wg21.link/p1417r0).  Batched
 interfaces have the following advantages:
 
 * They expose more parallelism and vectorization opportunities for
@@ -981,18 +974,13 @@ interfaces have the following advantages:
 The `basic_mdspan` data structure makes it easy to represent a batch
 of linear algebra objects, and to optimize their data layout.
 
-### Add functions not in Reference BLAS
-
-The BLAS Standard includes dense linear algebra functions that are not
-in the Reference BLAS.  Some of these are covered by our proposal.
-For example, `linalg_add` implements the functionality of `AXPBY` and
-`WAXPBY` (see Section 2.8.4 of the BLAS Standard) via `scaled_view`,
-and its overloads for rank-2 objects implement many of the matrix add
-and accumulate operations (see Section 2.8.7 of the BLAS Standard).
-`AXPY_DOT` (combined `AXPY` and `DOT`) is an example of a function
-"missing" from the Reference BLAS that is not covered by our current
-proposal.  We plan to write a separate proposal to include such
-functions.
+With few exceptions, the extension of this proposal to support batched
+operations will not require new functions or interface changes.  Only
+the requirements on functions will change.  Output arguments can have
+an additional rank; if so, then the leftmost extent will refer to the
+batch dimension.  Input arguments may also have an additional rank to
+match; if they do not, the function will use ("broadcast") the same
+input argument for all the output arguments in the batch.
 
 ## Data structures and utilities borrowed from other proposals
 
@@ -1785,7 +1773,7 @@ public:
 
 The `transpose_view` function returns a transposed view of an object.
 For rank-2 objects, the transposed view swaps the row and column
-indices.  
+indices.
 
 Note that `transpose_view` always returns a `basic_mdspan` with the
 `layout_transpose` argument.  This gives a type-based indication of
