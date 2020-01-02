@@ -653,12 +653,13 @@ algebra functionality.  We then deviate from that only as much as
 necessary to get algorithms that behave as much as reasonable like the
 existing C++ Standard Library algorithms.  Future work or
 collaboration with other proposals could implement a higher-level
-interface.  We also offer an option for an extension to "batched BLAS"
-in order to support machine learning and other use cases.
+interface.  
 
-We propose to build the interface on top of `basic_mdspan`, as well as
-a new `basic_mdarray` variant of `basic_mdspan` with container
-semantics.  We explain the value of these two classes below.
+We propose to build the initial interface on top of `basic_mdspan`, 
+and plan to extend that later with overloads for a new `basic_mdarray` 
+variant of `basic_mdspan` with container semantics as well as any type
+implementing a `get_mdspan` customization point.  
+We explain the value of these choices below.
 
 Please refer to our papers "Evolving a Standard C++ Linear Algebra
 Library from the BLAS" (P1674R0) and "Historical lessons for C++
@@ -727,20 +728,6 @@ customization point. At this point it is not clear to us that there would be
 significant benefits of defining lineary algebra functions in terms of such a concept, 
 instead of defining a general customization 
 point `get_mdspan`, allowing acceptance of any object type, which provides it. 
-
-### Why optionally include batched linear algebra?
-
-* Batched interfaces expose more parallelism for many small linear
-  algebra operations.
-
-* Batched linear algebra operations are useful for many different
-  fields, including machine learning.
-
-* Hardware vendors offer both hardware features and optimized
-  software libraries to support batched linear algebra.
-
-* There is an ongoing [interface standardization
-  effort](http://icl.utk.edu/bblas/), in which we participate.
 
 ### Function argument aliasing and zero scalar multipliers
 
@@ -1692,17 +1679,10 @@ public:
 
     // ... insert other standard mapping things ...
 
-    // for non-batched layouts
     ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const {
       return nested_mapping(j, i);
     }
 
-    // FIXME The overload below doesn't compile
-
-    // // for batched layouts
-    // ptrdiff_t operator() (ptrdiff_t... rest, ptrdiff_t i, ptrdiff_t j) const {
-    //  return nested_mapping(rest..., j, i);
-    // }
   };
 };
 ```
@@ -1717,8 +1697,7 @@ public:
 
 The `transpose_view` function returns a transposed view of an object.
 For rank-2 objects, the transposed view swaps the row and column
-indices.  In the batched (higher rank) case, the transposed view swaps
-the rightmost two indices.
+indices.  
 
 Note that `transpose_view` always returns a `basic_mdspan` with the
 `layout_transpose` argument.  This gives a type-based indication of
@@ -2795,8 +2774,8 @@ void triangular_matrix_vector_solve(
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  in_object_t b,
-  out_object_t x);
+  in_vector_t b,
+  out_vector_t x);
 
 template<class ExecutionPolicy,
          class in_matrix_t,
@@ -2809,8 +2788,8 @@ void triangular_matrix_vector_solve(
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  in_object_t b,
-  out_object_t x);
+  in_vector_t b,
+  out_vector_t x);
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xTRSV` and
@@ -3664,16 +3643,16 @@ template<class ExecutionPolicy,
          class Triangle,
          class DiagonalStorage,
          class Side,
-         class in_object_t,
-         class out_object_t>
+         class in_matrix_t,
+         class out_matrix_t>
 void triangular_matrix_matrix_solve(
   ExecutionPolicy&& exec,
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
   Side s,
-  in_object_t B,
-  out_object_t X);
+  in_matrix_t B,
+  out_matrix_t X);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xTRSM`.  The
@@ -3757,17 +3736,6 @@ matrix_vector_product(par, scaled_view(3.0, A), x,
 // y = transpose(A) * x;
 matrix_vector_product(par, transpose_view(A), x, y);
 ```
-
-## Batched BLAS
-
-This proposal has an optional extension to support batched operations.
-Functions that take matrices and/or vectors would simply be overloaded
-to take arguments with one higher rank.  The leftmost dimension of
-each `basic_mdspan` or `basic_mdarray` would refer to a specific
-matrix or vector in the "batch."  A nonunique "broadcast" layout could
-also be used to use the same lower-rank object in the operation for
-each of the batched operations.  Otherwise, the `extent(0)` of each
-`basic_mdspan` or `basic_mdarray` argument must be equal.
 
 ## Options and votes
 
