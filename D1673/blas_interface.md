@@ -82,8 +82,7 @@ Our proposal also has the following distinctive characteristics:
   algorithms.
 
 * It uses the multidimensional array data structures [`basic_mdspan`
-  (P0009R9)](http://wg21.link/p0009) and [`basic_mdarray`
-  (P1684R0)](https://isocpp.org/files/papers/P1684R0.pdf) to represent
+  (P0009R9)](http://wg21.link/p0009) to represent
   matrices and vectors.  In the future, it could support other
   proposals' matrix and vector data structures.
 
@@ -618,10 +617,7 @@ when modifying `basic_mdspan`, these functions merely view the same
 data that their input `basic_mdspan` views.  They introduce no more
 potential for dangling references than `basic_mdspan` itself.  The use
 of views like `basic_mdspan` is self-documenting; it tells users that
-they need to take responsibility for scope of the viewed data.  We
-permit applying these functions to the container `basic_mdarray` (see
-P1684R0), but this has no more risk of dangling references than
-`vector::data` does.
+they need to take responsibility for scope of the viewed data.
 
 ### Banded matrix layouts
 
@@ -637,7 +633,7 @@ to some multi-indices in the Cartesian product of extents.
 We exclude tensors from this proposal, for the following reasons.
 First, tensor libraries naturally build on optimized dense linear
 algebra libraries like the BLAS, so a linear algebra library is a good
-first step.  Second, `mdspan` and `mdarray` have natural use as a
+first step.  Second, `mdspan` has natural use as a
 low-level representation of dense tensors, so we are already partway
 there.  Third, even simple tensor operations that naturally generalize
 the BLAS have infintely many more cases than linear algebra.  It's not
@@ -678,7 +674,7 @@ implementation that does not depend on an external library.  They
 will, in any case, need a "generic" C++ implementation for matrix and
 vector element types other than the four that the BLAS supports.
 
-### Why use `basic_mdspan` and `basic_mdarray`?
+### Why use `basic_mdspan`?
 
 * C++ does not currently have a data structure for representing
   multidimensional arrays.
@@ -688,7 +684,7 @@ vector element types other than the four that the BLAS supports.
   multidimensional array data structures in the C++ interface reduces
   the number of arguments and avoids common errors.
 
-* `basic_mdspan` and `basic_mdarray` support row-major, column-major,
+* `basic_mdspan` supports row-major, column-major,
   and strided layouts out of the box, and have `Layout` as an
   extension point.  This lets our interface support layouts beyond
   what the BLAS Standard permits.
@@ -701,7 +697,7 @@ vector element types other than the four that the BLAS supports.
   interfaces even further, by encapsulating transpose, conjugate, and
   scalar arguments.  See below for details.
 
-* `basic_mdspan` and `basic_mdarray` are low level; they impose no
+* `basic_mdspan` is low level; it imposes no
   mathematical meaning on multidimensional arrays.  This gives users
   the freedom to develop mathematical libraries with the semantics
   they want.  (Some users object to calling something a "matrix" or
@@ -850,40 +846,12 @@ The `basic_mdspan` class has an alias `mdspan` that uses the default
 `Layout` and `Accessor`.  In this paper, when we refer to `mdspan`
 without other qualifiers, we mean the most general `basic_mdspan`.
 
-### `basic_mdarray`
-
-`basic_mdspan` views an existing memory allocation.  It does not give
-users a way to allocate a new array, even if the array has all
-compile-time dimensions.  Furthermore, `basic_mdspan` always stores a
-pointer.  For very small matrices or vectors, this is not a
-zero-overhead abstraction.  Also, it's often more natural to pass
-around very small objects by value.  For these reasons, our paper
-(P1684R0) proposes a new class `basic_mdarray`.
-
-`basic_mdarray` is a new kind of container, with the same deep copy
-behavior as `vector`.  It has the same extension points as
-`basic_mdspan`, and also has the ability to use any *contiguous
-container* (see **[container.requirements.general]**) for storage.
-Contiguity matters because `basic_mdspan` views a subset of a
-contiguous pointer range, and we want to be able to get a
-`basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
-come with support for two different underlying containers: `array` and
-`vector`.  A `subspan` (see [P0009R9](http://wg21.link/p0009r9)) of a
-`basic_mdarray` will return a `basic_mdspan` with the appropriate
-layout and corresponding accessor.  Users must guard against dangling
-pointers, just as they currently must do when using `span` to view a
-subset of a `vector`.
-
-The `basic_mdarray` class has an alias `mdarray` that uses default
-policies.  In this paper, when we refer to `mdarray` without other
-qualifiers, we mean `basic_mdarray`.
-
 ## Data structures and utilities
 
 ### Layouts
 
-Our proposal uses the layout policy of `basic_mdspan` and
-`basic_mdarray` in order to represent different matrix and vector data
+Our proposal uses the layout policy of `basic_mdspan`
+in order to represent different matrix and vector data
 layouts.  Layouts as described by P0009R9 come in three different
 categories:
 
@@ -928,7 +896,7 @@ nonunique layouts, especially output arguments.  Nonunique output
 arguments require specialization of the algorithm to the layout, since
 there's no way to know generically at compile time what indices map to
 the same matrix element.  Thus, we impose the following rule: Any
-`basic_mdspan` or `basic_mdarray` argument to our functions must
+`basic_mdspan` argument to our functions must
 always have unique layout (`is_always_unique()` is `true`), unless
 otherwise specified.
 
@@ -991,7 +959,7 @@ inline constexpr lower_triangle_t lower_triangle = { };
 ```
 
 These tag classes specify whether algorithms and other users of a
-matrix (represented as a `basic_mdspan` or `basic_mdarray`) should
+matrix (represented as a `basic_mdspan`) should
 access the upper triangle (`upper_triangular_t`) or lower triangle
 (`lower_triangular_t`) of the matrix.  This is also subject to the
 restrictions of `implicit_unit_diagonal_t` if that tag is also
@@ -1012,7 +980,7 @@ inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
 These tag classes specify what algorithms and other users of a matrix
-(represented as a `basic_mdspan` or `basic_mdarray`) should assume
+(represented as a `basic_mdspan`) should assume
 about the diagonal entries of the matrix, and whether algorithms and
 users of the matrix should access those diagonal entries explicitly.
 
@@ -1186,7 +1154,7 @@ layout's `mapping::operator()`.
 The idea behind packed matrix types is that users take an existing 1-D
 array, and view it as a matrix data structure.  We adapt this approach
 to our library by including functions that create a "packed view" of
-an existing `basic_mdspan` or `basic_mdarray`.  The resulting packed
+an existing `basic_mdspan`.  The resulting packed
 object has one higher rank.
 
 ##### Requirements
@@ -1223,50 +1191,12 @@ packed_view(
   typename basic_mdspan<EltType, Extents, Layout, Accessor>::index_type num_rows,
   Triangle,
   StorageOrder);
-
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor,
-         class Triangle,
-         class DiagonalStorage,
-         class StorageOrder>
-constexpr basic_mdspan<const EltType,
-  <i>extents-see-returns-below</i>,
-  layout_blas_packed<
-    Triangle,
-    StorageOrder>,
-  Accessor>
-packed_view(
-  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-  typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
-  Triangle,
-  StorageOrder);
-
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor,
-         class Triangle,
-         class DiagonalStorage,
-         class StorageOrder>
-constexpr basic_mdspan<EltType,
-  <i>extents-see-returns-below</i>,
-  layout_blas_triangular_packed<
-    Triangle,
-    StorageOrder>,
-  Accessor>
-packed_view(
-  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-  typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
-  Triangle,
-  StorageOrder);
 ```
 
 * *Requires:* If `num_rows` is nonzero, then `m.extent(0)` is at least
   (`num_rows` + 1) * `num_rows` / 2.
 
-* *Effects:* Views the given `basic_mdspan` or `basic_mdarray` in
+* *Effects:* Views the given `basic_mdspan` in
   packed layout, with the given `Triangle` and `StorageOrder`, where
   each matrix (corresponding to the rightmost two extents of the
   result) has `num_rows` rows and columns.
@@ -1420,17 +1350,7 @@ template<class T, class Extents, class Layout,
          class Accessor, class S>
 basic_mdspan<T, Extents, Layout, accessor_scaled<Accessor, S>>
 scaled_view(S s, const basic_mdspan<T, Extents, Layout, Accessor>& a);
-
-template<class T, class Extents, class Layout,
-         class Accessor, class S>
-basic_mdspan<const T, Extents, Layout, <i>see-below</i> >
-scaled_view(S s, const basic_mdarray<T, Extents, Layout, Accessor>& a);
 ```
-
-The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is `accessor_scaled<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See P1684R0 for
-details.
 
 *Example:*
 
@@ -1610,16 +1530,7 @@ template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<EltType, Extents, Layout,
              accessor_conjugate<Accessor, EltType>>
 conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
-
-template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<const EltType, Extents, Layout, <i>see-below</i> >
-conjugate_view(const basic_mdarray<EltType, Extents, Layout, Accessor>& a);
 ```
-
-The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is `accessor_conjugate<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See P1684R0 for
-details.
 
 *Example:*
 
@@ -1712,15 +1623,7 @@ supporting row-major matrices using the Fortran BLAS interface.)
 template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
 transpose_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
-
-template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>, <i>see-below</i> >
-transpose_view(const basic_mdarray<EltType, Extents, Layout, Accessor>& a);
 ```
-
-The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is an implementation-defined type.  See P1684R0
-for details.
 
 #### Conjugate transpose view
 
@@ -1734,18 +1637,7 @@ basic_mdspan<EltType, Extents, layout_transpose<Layout>,
              accessor_conjugate<Accessor, EltType>>
 conjugate_transpose_view(
   basic_mdspan<EltType, Extents, Layout, Accessor> a);
-
-template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-             <i>see-below</i> >
-conjugate_transpose_view(
-  const basic_mdarray<EltType, Extents, Layout, Accessor>& a)
 ```
-
-The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is `accessor_conjugate<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See P1684R0 for
-details.
 
 ## Algorithms
 
@@ -1766,37 +1658,37 @@ or other things as appropriate.
 * `Real` is any of the following types: `float`, `double`, or `long
   double`.
 
-* `in_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with a
+* `in_vector*_t` is a rank-1 `basic_mdspan` with a
   potentially `const` element type and a unique layout.  If the algorithm
   accesses the object, it will do so in read-only fashion.
 
-* `inout_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan`
+* `inout_vector*_t` is a rank-1 `basic_mdspan`
   with a non-`const` element type and a unique layout.
 
-* `out_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with
+* `out_vector*_t` is a rank-1 `basic_mdspan` with
   a non-`const` element type and a unique layout.  If the algorithm
   accesses the object, it will do so in write-only fashion.
 
-* `in_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with a
+* `in_matrix*_t` is a rank-2 `basic_mdspan` with a
   `const` element type.  If the algorithm accesses the object, it will
   do so in read-only fashion.
 
-* `inout_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan`
+* `inout_matrix*_t` is a rank-2 `basic_mdspan`
   with a non-`const` element type.
 
-* `out_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with
+* `out_matrix*_t` is a rank-2 `basic_mdspan` with
   a non-`const` element type.  If the algorithm accesses the object,
   it will do so in write-only fashion.
 
-* `in_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+* `in_object*_t` is a rank-1 or rank-2
   `basic_mdspan` with a potentially `const` element type and a unique
   layout.  If the algorithm accesses the object, it will do so in read-only
   fashion.
 
-* `inout_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+* `inout_object*_t` is a rank-1 or rank-2
   `basic_mdspan` with a non-`const` element type and a unique layout.
 
-* `out_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+* `out_object*_t` is a rank-1 or rank-2
   `basic_mdspan` with a non-`const` element type and a unique layout.
 
 * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
@@ -1807,12 +1699,11 @@ or other things as appropriate.
 * `Side` is either `left_side_t` or `right_side_t`.
 
 * `in_*_t` template parameters may deduce a `const` lvalue reference
-   or a (non-`const`) rvalue reference to a `basic_mdarray` or a
-   `basic_mdspan`.
+   or a (non-`const`) rvalue reference to a `basic_mdspan`.
 
 * `inout_*_t` and `out_*_t` template parameters may deduce a `const` lvalue
-  reference to a `basic_mdspan`, a (non-`const`) rvalue reference to a
-  `basic_mdspan`, or a non-`const` lvalue reference to a `basic_mdarray`.
+  reference to a `basic_mdspan`, or a (non-`const`) rvalue reference to a
+  `basic_mdspan`.
 
 ### BLAS 1 functions
 
