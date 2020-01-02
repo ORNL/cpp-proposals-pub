@@ -49,6 +49,90 @@
 
 * Revision 2 (pre-Cologne) to be submitted 2020-01-13
 
+  * Added "Future work" section.
+
+  * Removed "Options and votes" section (which were addressed in SG6,
+    SG14, and LEWGI).
+
+  * Removed `basic_mdarray` overloads.
+
+  * Removed batched linear algebra operations.
+
+  * Removed over- and underflow requirement for `vector_norm2`.
+
+### Over- and underflow wording for vector 2-norm
+
+SG6 recommended to us at Belfast 2019 to change the special overflow /
+underflow wording for `vector_norm2` to imitate the BLAS Standard more
+closely.  The BLAS Standard does say something about overflow and
+underflow for vector 2-norms.  We reviewed this wording and conclude
+that it is either a nonbinding quality of implementation (QoI)
+recommendation, or too vaguely stated to translate directly into C++
+Standard wording.  Thus, we removed the special overflow / underflow
+wording entirely.
+
+Previous versions of this paper asked implementations to compute
+vector 2-norms "without undue overflow or underflow at intermediate
+stages of the computation."  "Undue" imitates existing C++ Standard
+wording for `hypot`.  This wording hints at the stricter requirements
+in F.9 (normative, but optional) of the C Standard for math library
+functions like `hypot`, without mandating those requirements.  In
+particular, paragraph 9 of F.9 says:
+
+> Whether or when library functions raise an undeserved "underflow"
+> floating-point exception is unspecified.  Otherwise, as implied by
+> F.7.6, the **<math.h>** functions do not raise spurious
+> floating-point exceptions (detectable by the user) [including the
+> "overflow" exception discussed in paragraph 6], other than the
+> "inexact" floating-point exception.
+
+However, these requirements are for math library functions like
+`hypot`, not for general algorithms that return floating-point values.
+SG6 did not raise a concern that we should treat `vector_norm2` like a
+math library function; their concern was that we imitate the BLAS
+Standard's wording.
+
+The BLAS Standard says of several operations, including vector 2-norm:
+"Here are the exceptional routines where we ask for particularly
+careful implementations to avoid unnecessary over/underflows, that
+could make the output unnecessarily inaccurate or unreliable" (p. 35).
+
+The BLAS Standard does not define phrases like "unnecessary
+over/underflows."  The likely intent is to avoid naïve implementations
+that simply add up the squares of the vector elements.  These would
+overflow even if the norm in exact arithmetic is significantly less
+than the overflow threshold.  The POSIX Standard (IEEE Std
+1003.1-2017) analogously says that `hypot` must "take precautions
+against overflow during intermediate steps of the computation."
+
+The phrase "precautions against overflow" is too vague for us to
+translate into a requirement.  The authors likely meant to exclude
+naïve implementations, but not require implementations to know whether
+a result computed in exact arithmetic would overflow or underflow.
+The latter is a special case of computing floating-point sums exactly,
+which is costly for vectors of arbitrary length.  While it would be a
+useful feature, it is difficult enough that we do not want to require
+it, especially since the BLAS Standard itself does not.
+
+For all of the functions listed on p. 35 of the BLAS Standard as
+needing "particularly careful implementations," *except* vector norm,
+the BLAS Standard has an "Advice to implementors" section with extra
+accuracy requirements.  The BLAS Standard does have an "Advice to
+implementors" section for matrix norms (see Section 2.8.7, p. 69),
+which have similar over- and underflow concerns as vector norms.
+However, the Standard merely states that "[h]igh-quality
+implementations of these routines should be accurate" and should
+document their accuracy, and gives examples of "accurate
+implementations" in LAPACK.
+
+The BLAS Standard never defines what "Advice to implementors" means.
+However, the BLAS Standard shares coauthors and audience with the
+Message Passing Interface (MPI) Standard, which defines "Advice to
+implementors" as "primarily commentary to implementors" and
+permissible to skip (see e.g., MPI 3.0, Section 2.1, p. 9).  We thus
+interpret "Advice to implementors" in the BLAS Standard as a
+nonbinding quality of implementation (QoI) recommendation.
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -2238,22 +2322,9 @@ T vector_norm2(ExecutionPolicy&& exec,
      implementations will use `T`'s precision or greater for
      intermediate terms in the sum.
 
-  2. Let `E` be `in_vector_t::element_type`.  If
-
-     * `E` is `float`, `double`, `long double`, `complex<float>`,
-       `complex<double>`, or `complex<long double>`;
-
-     * `T` is `E` or larger in the above list of types; and
-
-     * `numeric_limits<E>::is_iec559` is `true`;
-
-     then implementations compute without undue overflow or
-     underflow at intermediate stages of the computation.
-
-*[Note:* The intent of the second point of *Remarks* is that
-implementations generalize the guarantees of `hypot` regarding
-overflow and underflow.  This excludes naïve implementations for
-floating-point types. --*end note]*
+*[Note:* We recommend that implementers document their guarantees
+regarding overflow and underflow of `vector_norm2` for floating-point
+return types. --*end note]*
 
 #### Euclidean (2) norm of a vector with default result type
 
