@@ -1,4 +1,4 @@
-# P1673R0: A free function linear algebra interface based on the BLAS
+# P1673R2: A free function linear algebra interface based on the BLAS
 
 ## Authors
 
@@ -33,7 +33,7 @@
 * Revision 1 (pre-Belfast) to be submitted 2019-10-07
   * Account for Cologne 2019 feedback
 
-    * Make interface more consistent with existing Standard algorithms 
+    * Make interface more consistent with existing Standard algorithms
 
       * Change `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` to
         imitate `reduce`, so that they return their result, instead of
@@ -45,7 +45,9 @@
 
   * Briefly address LEWGI request of exploring concepts for input arguments.
 
-  * Lazy ranges style API was NOT explored. 
+  * Lazy ranges style API was NOT explored.
+
+* Revision 2 (pre-Cologne) to be submitted 2020-01-13
 
 ## Purpose of this paper
 
@@ -65,7 +67,7 @@ matrices and vectors:
 * Triangular solves with one or more "right-hand side" vectors
 * Generating and applying plane (Givens) rotations
 
-Our algorithms work with most the matrix storage formats that the BLAS
+Our algorithms work with most of the matrix storage formats that the BLAS
 Standard supports:
 
 * "General" dense matrices, in column-major or row-major format
@@ -717,13 +719,13 @@ vector element types other than the four that the BLAS supports.
 
 LEWGI requested the exploration of using a concept instead of `basic_mdspan`
 to define the arguments for the linear algebra functions. A brief investigation
-of that option leads us to believe that such a concept would largely replicate the 
-definition of `basic_mdspan` since almost all its features are explicitly used in part of 
+of that option leads us to believe that such a concept would largely replicate the
+definition of `basic_mdspan` since almost all its features are explicitly used in part of
 this proposal. This includes the `extents`, `layout` and `accessor_policy`
 customization point. At this point it is not clear to us that there would be
-significant benefits of defining lineary algebra functions in terms of such a concept, 
-instead of defining a general customization 
-point `get_mdspan`, allowing acceptance of any object type, which provides it. 
+significant benefits of defining lineary algebra functions in terms of such a concept,
+instead of defining a general customization
+point `get_mdspan`, allowing acceptance of any object type, which provides it.
 
 ### Function argument aliasing and zero scalar multipliers
 
@@ -816,6 +818,97 @@ builds on our proposal.
 This proposal does not yet have full wording.  We have filled in
 enough wording for meaningful design discussions, such as those
 presented in "Options and votes" below.
+
+## Future work
+
+Summary:
+
+1. Generalize function parameters to take any type that implements the
+   `get_mdspan` customization point, including `basic_mdarray`.
+
+2. Add batched linear algebra overloads.
+
+3. Add dense linear algebra functions that are in the BLAS Standard
+   but not in the Reference BLAS.
+
+### Generalize function parameters
+
+Our functions differ from the C++ Standard algorithms, in that they
+take a concrete type `basic_mdspan` with template parameters, rather
+than any type that satisfies a concept.  We think that the template
+parameters of `basic_mdspan` fully describe the multidimensional
+equivalent of a multipass iterator, and that "conceptification" of
+multidimensional arrays would unnecessarily delay both this proposal
+and [P0009](http://wg21.link/p0009) (the `basic_mdspan` proposal).
+
+In a future proposal, we plan to generalize our function's template
+parameters, to permit any type besides `basic_mdspan` that implements
+the `get_mdspan` customization point, as long as the return value of
+`get_mdspan` satisfies the current requirements.  `get_mdspan` will
+return a `basic_mdspan` that views its argument's data.
+
+`basic_mdarray`, proposed in [P1684](http://wg21.link/p1684), is the
+container analog of `basic_mdspan`.  It is a new kind of container,
+with the same deep copy behavior as `vector`.  It has the same
+extension points as `basic_mdspan`, and also has the ability to use
+any *contiguous container* (see **[container.requirements.general]**)
+for storage.  Contiguity matters because `basic_mdspan` views a subset
+of a contiguous pointer range, and we want to be able to get a
+`basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
+come with support for two different underlying containers: `array` and
+`vector`.  A `subspan` (see [P0009](http://wg21.link/p0009)) of a
+`basic_mdarray` will return a `basic_mdspan` with the appropriate
+layout and corresponding accessor.  Users must guard against dangling
+pointers, just as they currently must do when using `span` to view a
+subset of a `vector`.
+
+Previous versions of this proposal included function overloads that
+took `basic_mdarray` directly.  The goals were user convenience, and
+to avoid any potential overhead of conversion to `basic_mdspan`,
+especially for very small matrices and vectors.  In a future revision
+of P1684, `basic_mdarray` will implement `get_mdspan`.  This will let
+users use `basic_mdarray` directly in our functions.  This
+customization point approach would also simplify using our functions
+with other matrix and vector types, such as those proposed by
+[P1385(http://wg21.link/p1385).  Implementations may optionally add
+direct overloads of our functions for `basic_mdarray` or other types.
+This would address any concerns about overhead of converting from
+`basic_mdarray` to `basic_mdspan`.
+
+### Batched linear algebra
+
+"Batched" linear algebra functions solve many independent problems all
+at once, in a single function call.  For discussion, see Section 6.2
+of our background paper [P1417R0](http://wg21.link/p1417r0).  Batched
+interfaces have the following advantages:
+
+* They expose more parallelism and vectorization opportunities for
+  many small linear algebra operations.
+
+* They are useful for many different fields, including machine
+  learning.
+
+* Hardware vendors currently offer both hardware features and
+  optimized software libraries to support batched linear algebra.
+
+* There is an ongoing [interface standardization
+  effort](http://icl.utk.edu/bblas/), in which we participate.
+
+The `basic_mdspan` data structure makes it easy to represent a batch
+of linear algebra objects, and to optimize their data layout.
+
+### Add functions not in Reference BLAS
+
+The BLAS Standard includes dense linear algebra functions that are not
+in the Reference BLAS.  Some of these are covered by our proposal.
+For example, `linalg_add` implements the functionality of `AXPBY` and
+`WAXPBY` (see Section 2.8.4 of the BLAS Standard) via `scaled_view`,
+and its overloads for rank-2 objects implement many of the matrix add
+and accumulate operations (see Section 2.8.7 of the BLAS Standard).
+`AXPY_DOT` (combined `AXPY` and `DOT`) is an example of a function
+"missing" from the Reference BLAS that is not covered by our current
+proposal.  We plan to write a separate proposal to include such
+functions.
 
 ## Data structures and utilities borrowed from other proposals
 
@@ -1299,7 +1392,7 @@ class scaled_scalar {
 private:
   Reference value;
   const ScalingFactor scaling_factor;
-  
+
   using result_type = decltype (value * scaling_factor);
 public:
   scaled_scalar(Reference v, const ScalingFactor& s) :
@@ -1470,7 +1563,7 @@ public:
   using offset_policy = typename Accessor::offset_policy;
 
   accessor_conjugate() = default;
-  
+
   accessor_conjugate(Accessor a) : acc(a) {}
 
   reference access(pointer p, ptrdiff_t i) const noexcept {
@@ -2129,7 +2222,7 @@ T vector_norm2(ExecutionPolicy&& exec,
   * `T` shall be *Cpp17MoveConstructible*.
   * `init + abs(v(0))*abs(v(0))` shall be convertible to `T`.
 
-* *Constraints:* For all `i` in the domain of `v` and for `val` 
+* *Constraints:* For all `i` in the domain of `v` and for `val`
   of type `T&`, the expressions `val += abs(v(i))*abs(v(i))` and
   `sqrt(val)` are well formed.  *[Note:* This does not imply a
   recommended implementation for floating-point types.  See *Remarks*
@@ -2212,7 +2305,7 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
 * *Effects:* Let `N` be `v.extent(0)`.
 
   * If `N` is zero, returns `init`.
-  
+
   * Else, if `in_vector_t::element_type` is `complex<R>` for some `R`,
     then returns /GENERALIZED_SUM/(`plus<>()`, `init`,
     `abs(real(v(0))) + abs(imag(v(0)))`, ...,
