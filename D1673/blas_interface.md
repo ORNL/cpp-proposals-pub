@@ -84,8 +84,7 @@ Our proposal also has the following distinctive characteristics:
   algorithms.
 
 * It uses the multidimensional array data structures [`basic_mdspan`
-  (P0009R9)](http://wg21.link/p0009) and [`basic_mdarray`
-  (P1684R0)](https://isocpp.org/files/papers/P1684R0.pdf) to represent
+  (P0009R9)](http://wg21.link/p0009) to represent
   matrices and vectors.  In the future, it could support other
   proposals' matrix and vector data structures.
 
@@ -620,10 +619,7 @@ when modifying `basic_mdspan`, these functions merely view the same
 data that their input `basic_mdspan` views.  They introduce no more
 potential for dangling references than `basic_mdspan` itself.  The use
 of views like `basic_mdspan` is self-documenting; it tells users that
-they need to take responsibility for scope of the viewed data.  We
-permit applying these functions to the container `basic_mdarray` (see
-P1684R0), but this has no more risk of dangling references than
-`vector::data` does.
+they need to take responsibility for scope of the viewed data.
 
 ### Banded matrix layouts
 
@@ -639,7 +635,7 @@ to some multi-indices in the Cartesian product of extents.
 We exclude tensors from this proposal, for the following reasons.
 First, tensor libraries naturally build on optimized dense linear
 algebra libraries like the BLAS, so a linear algebra library is a good
-first step.  Second, `mdspan` and `mdarray` have natural use as a
+first step.  Second, `mdspan` has natural use as a
 low-level representation of dense tensors, so we are already partway
 there.  Third, even simple tensor operations that naturally generalize
 the BLAS have infintely many more cases than linear algebra.  It's not
@@ -655,12 +651,13 @@ algebra functionality.  We then deviate from that only as much as
 necessary to get algorithms that behave as much as reasonable like the
 existing C++ Standard Library algorithms.  Future work or
 collaboration with other proposals could implement a higher-level
-interface.  We also offer an option for an extension to "batched BLAS"
-in order to support machine learning and other use cases.
+interface.  
 
-We propose to build the interface on top of `basic_mdspan`, as well as
-a new `basic_mdarray` variant of `basic_mdspan` with container
-semantics.  We explain the value of these two classes below.
+We propose to build the initial interface on top of `basic_mdspan`, 
+and plan to extend that later with overloads for a new `basic_mdarray` 
+variant of `basic_mdspan` with container semantics as well as any type
+implementing a `get_mdspan` customization point.  
+We explain the value of these choices below.
 
 Please refer to our papers "Evolving a Standard C++ Linear Algebra
 Library from the BLAS" (P1674R0) and "Historical lessons for C++
@@ -679,7 +676,7 @@ implementation that does not depend on an external library.  They
 will, in any case, need a "generic" C++ implementation for matrix and
 vector element types other than the four that the BLAS supports.
 
-### Why use `basic_mdspan` and `basic_mdarray`?
+### Why use `basic_mdspan`?
 
 * C++ does not currently have a data structure for representing
   multidimensional arrays.
@@ -689,7 +686,7 @@ vector element types other than the four that the BLAS supports.
   multidimensional array data structures in the C++ interface reduces
   the number of arguments and avoids common errors.
 
-* `basic_mdspan` and `basic_mdarray` support row-major, column-major,
+* `basic_mdspan` supports row-major, column-major,
   and strided layouts out of the box, and have `Layout` as an
   extension point.  This lets our interface support layouts beyond
   what the BLAS Standard permits.
@@ -702,7 +699,7 @@ vector element types other than the four that the BLAS supports.
   interfaces even further, by encapsulating transpose, conjugate, and
   scalar arguments.  See below for details.
 
-* `basic_mdspan` and `basic_mdarray` are low level; they impose no
+* `basic_mdspan` is low level; it imposes no
   mathematical meaning on multidimensional arrays.  This gives users
   the freedom to develop mathematical libraries with the semantics
   they want.  (Some users object to calling something a "matrix" or
@@ -729,20 +726,6 @@ customization point. At this point it is not clear to us that there would be
 significant benefits of defining lineary algebra functions in terms of such a concept,
 instead of defining a general customization
 point `get_mdspan`, allowing acceptance of any object type, which provides it.
-
-### Why optionally include batched linear algebra?
-
-* Batched interfaces expose more parallelism for many small linear
-  algebra operations.
-
-* Batched linear algebra operations are useful for many different
-  fields, including machine learning.
-
-* Hardware vendors offer both hardware features and optimized
-  software libraries to support batched linear algebra.
-
-* There is an ongoing [interface standardization
-  effort](http://icl.utk.edu/bblas/), in which we participate.
 
 ### Function argument aliasing and zero scalar multipliers
 
@@ -956,40 +939,12 @@ The `basic_mdspan` class has an alias `mdspan` that uses the default
 `Layout` and `Accessor`.  In this paper, when we refer to `mdspan`
 without other qualifiers, we mean the most general `basic_mdspan`.
 
-### `basic_mdarray`
-
-`basic_mdspan` views an existing memory allocation.  It does not give
-users a way to allocate a new array, even if the array has all
-compile-time dimensions.  Furthermore, `basic_mdspan` always stores a
-pointer.  For very small matrices or vectors, this is not a
-zero-overhead abstraction.  Also, it's often more natural to pass
-around very small objects by value.  For these reasons, our paper
-(P1684R0) proposes a new class `basic_mdarray`.
-
-`basic_mdarray` is a new kind of container, with the same deep copy
-behavior as `vector`.  It has the same extension points as
-`basic_mdspan`, and also has the ability to use any *contiguous
-container* (see **[container.requirements.general]**) for storage.
-Contiguity matters because `basic_mdspan` views a subset of a
-contiguous pointer range, and we want to be able to get a
-`basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
-come with support for two different underlying containers: `array` and
-`vector`.  A `subspan` (see [P0009R9](http://wg21.link/p0009r9)) of a
-`basic_mdarray` will return a `basic_mdspan` with the appropriate
-layout and corresponding accessor.  Users must guard against dangling
-pointers, just as they currently must do when using `span` to view a
-subset of a `vector`.
-
-The `basic_mdarray` class has an alias `mdarray` that uses default
-policies.  In this paper, when we refer to `mdarray` without other
-qualifiers, we mean `basic_mdarray`.
-
 ## Data structures and utilities
 
 ### Layouts
 
-Our proposal uses the layout policy of `basic_mdspan` and
-`basic_mdarray` in order to represent different matrix and vector data
+Our proposal uses the layout policy of `basic_mdspan`
+in order to represent different matrix and vector data
 layouts.  Layouts as described by P0009R9 come in three different
 categories:
 
@@ -1034,7 +989,7 @@ nonunique layouts, especially output arguments.  Nonunique output
 arguments require specialization of the algorithm to the layout, since
 there's no way to know generically at compile time what indices map to
 the same matrix element.  Thus, we impose the following rule: Any
-`basic_mdspan` or `basic_mdarray` argument to our functions must
+`basic_mdspan` argument to our functions must
 always have unique layout (`is_always_unique()` is `true`), unless
 otherwise specified.
 
@@ -1097,7 +1052,7 @@ inline constexpr lower_triangle_t lower_triangle = { };
 ```
 
 These tag classes specify whether algorithms and other users of a
-matrix (represented as a `basic_mdspan` or `basic_mdarray`) should
+matrix (represented as a `basic_mdspan`) should
 access the upper triangle (`upper_triangular_t`) or lower triangle
 (`lower_triangular_t`) of the matrix.  This is also subject to the
 restrictions of `implicit_unit_diagonal_t` if that tag is also
@@ -1118,7 +1073,7 @@ inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
 These tag classes specify what algorithms and other users of a matrix
-(represented as a `basic_mdspan` or `basic_mdarray`) should assume
+(represented as a `basic_mdspan`) should assume
 about the diagonal entries of the matrix, and whether algorithms and
 users of the matrix should access those diagonal entries explicitly.
 
@@ -1292,7 +1247,7 @@ layout's `mapping::operator()`.
 The idea behind packed matrix types is that users take an existing 1-D
 array, and view it as a matrix data structure.  We adapt this approach
 to our library by including functions that create a "packed view" of
-an existing `basic_mdspan` or `basic_mdarray`.  The resulting packed
+an existing `basic_mdspan`.  The resulting packed
 object has one higher rank.
 
 ##### Requirements
@@ -1329,50 +1284,12 @@ packed_view(
   typename basic_mdspan<EltType, Extents, Layout, Accessor>::index_type num_rows,
   Triangle,
   StorageOrder);
-
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor,
-         class Triangle,
-         class DiagonalStorage,
-         class StorageOrder>
-constexpr basic_mdspan<const EltType,
-  <i>extents-see-returns-below</i>,
-  layout_blas_packed<
-    Triangle,
-    StorageOrder>,
-  Accessor>
-packed_view(
-  const basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-  typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
-  Triangle,
-  StorageOrder);
-
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor,
-         class Triangle,
-         class DiagonalStorage,
-         class StorageOrder>
-constexpr basic_mdspan<EltType,
-  <i>extents-see-returns-below</i>,
-  layout_blas_triangular_packed<
-    Triangle,
-    StorageOrder>,
-  Accessor>
-packed_view(
-  basic_mdarray<EltType, Extents, Layout, Accessor>& m,
-  typename basic_mdarray<EltType, Extents, Layout, Accessor>::index_type num_rows,
-  Triangle,
-  StorageOrder);
 ```
 
 * *Requires:* If `num_rows` is nonzero, then `m.extent(0)` is at least
   (`num_rows` + 1) * `num_rows` / 2.
 
-* *Effects:* Views the given `basic_mdspan` or `basic_mdarray` in
+* *Effects:* Views the given `basic_mdspan` in
   packed layout, with the given `Triangle` and `StorageOrder`, where
   each matrix (corresponding to the rightmost two extents of the
   result) has `num_rows` rows and columns.
@@ -1526,17 +1443,7 @@ template<class T, class Extents, class Layout,
          class Accessor, class S>
 basic_mdspan<T, Extents, Layout, accessor_scaled<Accessor, S>>
 scaled_view(S s, const basic_mdspan<T, Extents, Layout, Accessor>& a);
-
-template<class T, class Extents, class Layout,
-         class Accessor, class S>
-basic_mdspan<const T, Extents, Layout, <i>see-below</i> >
-scaled_view(S s, const basic_mdarray<T, Extents, Layout, Accessor>& a);
 ```
-
-The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is `accessor_scaled<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See P1684R0 for
-details.
 
 *Example:*
 
@@ -1716,16 +1623,7 @@ template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<EltType, Extents, Layout,
              accessor_conjugate<Accessor, EltType>>
 conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
-
-template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<const EltType, Extents, Layout, <i>see-below</i> >
-conjugate_view(const basic_mdarray<EltType, Extents, Layout, Accessor>& a);
 ```
-
-The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is `accessor_conjugate<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See P1684R0 for
-details.
 
 *Example:*
 
@@ -1785,17 +1683,10 @@ public:
 
     // ... insert other standard mapping things ...
 
-    // for non-batched layouts
     ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const {
       return nested_mapping(j, i);
     }
 
-    // FIXME The overload below doesn't compile
-
-    // // for batched layouts
-    // ptrdiff_t operator() (ptrdiff_t... rest, ptrdiff_t i, ptrdiff_t j) const {
-    //  return nested_mapping(rest..., j, i);
-    // }
   };
 };
 ```
@@ -1810,8 +1701,7 @@ public:
 
 The `transpose_view` function returns a transposed view of an object.
 For rank-2 objects, the transposed view swaps the row and column
-indices.  In the batched (higher rank) case, the transposed view swaps
-the rightmost two indices.
+indices.  
 
 Note that `transpose_view` always returns a `basic_mdspan` with the
 `layout_transpose` argument.  This gives a type-based indication of
@@ -1826,15 +1716,7 @@ supporting row-major matrices using the Fortran BLAS interface.)
 template<class EltType, class Extents, class Layout, class Accessor>
 basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
 transpose_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
-
-template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>, <i>see-below</i> >
-transpose_view(const basic_mdarray<EltType, Extents, Layout, Accessor>& a);
 ```
-
-The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is an implementation-defined type.  See P1684R0
-for details.
 
 #### Conjugate transpose view
 
@@ -1848,18 +1730,7 @@ basic_mdspan<EltType, Extents, layout_transpose<Layout>,
              accessor_conjugate<Accessor, EltType>>
 conjugate_transpose_view(
   basic_mdspan<EltType, Extents, Layout, Accessor> a);
-
-template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-             <i>see-below</i> >
-conjugate_transpose_view(
-  const basic_mdarray<EltType, Extents, Layout, Accessor>& a)
 ```
-
-The Accessor type of the `basic_mdspan` returned by the overload that
-takes `basic_mdarray` is `accessor_conjugate<ConstAccessor, S>`, where
-`ConstAccessor` is an implementation-defined type.  See P1684R0 for
-details.
 
 ## Algorithms
 
@@ -1880,37 +1751,37 @@ or other things as appropriate.
 * `Real` is any of the following types: `float`, `double`, or `long
   double`.
 
-* `in_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with a
+* `in_vector*_t` is a rank-1 `basic_mdspan` with a
   potentially `const` element type and a unique layout.  If the algorithm
   accesses the object, it will do so in read-only fashion.
 
-* `inout_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan`
+* `inout_vector*_t` is a rank-1 `basic_mdspan`
   with a non-`const` element type and a unique layout.
 
-* `out_vector*_t` is a rank-1 `basic_mdarray` or `basic_mdspan` with
+* `out_vector*_t` is a rank-1 `basic_mdspan` with
   a non-`const` element type and a unique layout.  If the algorithm
   accesses the object, it will do so in write-only fashion.
 
-* `in_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with a
+* `in_matrix*_t` is a rank-2 `basic_mdspan` with a
   `const` element type.  If the algorithm accesses the object, it will
   do so in read-only fashion.
 
-* `inout_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan`
+* `inout_matrix*_t` is a rank-2 `basic_mdspan`
   with a non-`const` element type.
 
-* `out_matrix*_t` is a rank-2 `basic_mdarray` or `basic_mdspan` with
+* `out_matrix*_t` is a rank-2 `basic_mdspan` with
   a non-`const` element type.  If the algorithm accesses the object,
   it will do so in write-only fashion.
 
-* `in_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+* `in_object*_t` is a rank-1 or rank-2
   `basic_mdspan` with a potentially `const` element type and a unique
   layout.  If the algorithm accesses the object, it will do so in read-only
   fashion.
 
-* `inout_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+* `inout_object*_t` is a rank-1 or rank-2
   `basic_mdspan` with a non-`const` element type and a unique layout.
 
-* `out_object*_t` is a rank-1 or rank-2 `basic_mdarray` or
+* `out_object*_t` is a rank-1 or rank-2
   `basic_mdspan` with a non-`const` element type and a unique layout.
 
 * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
@@ -1921,12 +1792,11 @@ or other things as appropriate.
 * `Side` is either `left_side_t` or `right_side_t`.
 
 * `in_*_t` template parameters may deduce a `const` lvalue reference
-   or a (non-`const`) rvalue reference to a `basic_mdarray` or a
-   `basic_mdspan`.
+   or a (non-`const`) rvalue reference to a `basic_mdspan`.
 
 * `inout_*_t` and `out_*_t` template parameters may deduce a `const` lvalue
-  reference to a `basic_mdspan`, a (non-`const`) rvalue reference to a
-  `basic_mdspan`, or a non-`const` lvalue reference to a `basic_mdarray`.
+  reference to a `basic_mdspan`, or a (non-`const`) rvalue reference to a
+  `basic_mdspan`.
 
 ### BLAS 1 functions
 
@@ -2888,8 +2758,8 @@ void triangular_matrix_vector_solve(
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  in_object_t b,
-  out_object_t x);
+  in_vector_t b,
+  out_vector_t x);
 
 template<class ExecutionPolicy,
          class in_matrix_t,
@@ -2902,8 +2772,8 @@ void triangular_matrix_vector_solve(
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  in_object_t b,
-  out_object_t x);
+  in_vector_t b,
+  out_vector_t x);
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xTRSV` and
@@ -3757,16 +3627,16 @@ template<class ExecutionPolicy,
          class Triangle,
          class DiagonalStorage,
          class Side,
-         class in_object_t,
-         class out_object_t>
+         class in_matrix_t,
+         class out_matrix_t>
 void triangular_matrix_matrix_solve(
   ExecutionPolicy&& exec,
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
   Side s,
-  in_object_t B,
-  out_object_t X);
+  in_matrix_t B,
+  out_matrix_t X);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xTRSM`.  The
@@ -3850,273 +3720,6 @@ matrix_vector_product(par, scaled_view(3.0, A), x,
 // y = transpose(A) * x;
 matrix_vector_product(par, transpose_view(A), x, y);
 ```
-
-## Batched BLAS
-
-This proposal has an optional extension to support batched operations.
-Functions that take matrices and/or vectors would simply be overloaded
-to take arguments with one higher rank.  The leftmost dimension of
-each `basic_mdspan` or `basic_mdarray` would refer to a specific
-matrix or vector in the "batch."  A nonunique "broadcast" layout could
-also be used to use the same lower-rank object in the operation for
-each of the batched operations.  Otherwise, the `extent(0)` of each
-`basic_mdspan` or `basic_mdarray` argument must be equal.
-
-## Options and votes
-
-This is a preliminary proposal.  Besides the usual bikeshedding, we
-also want to present more broad options for voting.  Here is a list;
-we will explain each option below.
-
-1. Omit vector-vector operations in favor of existing C++ Standard
-   algorithms?
-
-2. Retain "view" functions (modest expression templates)?
-
-3. Combine functions that differ only by rank of arguments?
-
-4. Prefer overloads to different function names?
-
-5. Retain existing BLAS behavior for scalar multipliers?
-
-### Omit vector-vector operations in favor of existing C++ Standard algorithms?
-
-Annex C of the BLAS Standard offers a "Thin BLAS" option for Fortran
-95, where the language itself could replace many BLAS operations.
-Fortran 95 comes with dot products and other vector operations built
-in, so the "Thin BLAS" only retains four "BLAS 1" functions: `SWAP`,
-`ROT`, `NRM2`, and `ROTG`.  By analogy with the "Thin BLAS," we could
-reduce the number of new functions, by relying on functionality either
-already in C++, or likely to enter C++ soon.  For example, if we
-defined iterators for rank-1 `basic_mdspan` and `basic_mdarray`, we
-could rely on `transform` and `transform_reduce` for most of the
-vector-vector operations.
-
-Matrix-vector ("BLAS 2") and matrix-matrix ("BLAS 3") operations
-require iteration over two or three dimensions, and are thus less
-natural to implement using `transform` or `transform_reduce`.  They
-are also more likely to get performance benefits from specialized
-implementations.
-
-Here are arguments _for_ this approach:
-
-1. It reduces the number of new functions.
-
-2. It focuses on "performance primitives" most likely to benefit from
-   vendor optimization.
-
-3. If a hypothetical "parallel Ranges" enters the Standard, it could
-   cover many of the use cases for parallel vector-vector operations.
-
-Here are arguments _against_ this approach:
-
-1. It takes some effort to implement correct and accurate vector
-   norms.  Compare to [POSIX requirements for
-   `hypot`](http://pubs.opengroup.org/onlinepubs/9699919799/functions/hypot.html).
-   If `hypot` is in the Standard, then perhaps norms should also be.
-
-2. In general, a linear algebra library can make more specific
-   statements about the precision at which output arguments are
-   computed.
-
-3. Some of our "vector-vector" operations are actually "object-object"
-   operations that work for matrices too.  Replacing those with
-   existing Standard algorithms would call for iterators on matrices.
-
-4. It's easier to apply hardware-specific optimizations to
-   vector-vector operations if they are exposed as such.
-
-5. Exposing a full linear algebra interface would give implementers
-   the option to use extended-precision or even reproducible
-   floating-point arithmetic for all linear algebra operations.  This
-   can be useful for debugging complicated algorithms.  Compare to
-   "checked iterator" debug options for the C++ Standard Library.
-
-6. It helps to have linear algebra names for linear algebra
-   operations.  For example, `string` still exists, even though much
-   of its functionality is covered by `vector<char>`.
-
-_Our preference_:
-
-* We would prefer a complete BLAS-like library, but if we had to give
-  up some BLAS 1 functions, we would prefer to keep at least the
-  vector norms.
-
-* We think that iterators are not always the right way to access
-  multidimensional objects.
-
-* If we allow linear algebra functions as customization points in order
-  to support custom layouts, we need even simple BLAS 1 functions.
-  Iterators for non-unique layouts are for example ambiguous (do they
-  iterate over each stored element, or over the domain?).
-
-### Retain "view" functions (modest expression templates)?
-
-The four functions `scaled_view`, `conjugate_view`, `transpose_view`,
-and `conjugate_transpose_view` use `mdspan` accessors to implement a
-modest form of expression templates.  We say "modest" because they
-mitigate several known issues with expression templates:
-
-1. They do not introduce ADL-accessible arithmetic operators on
-   matrices or vectors.
-
-2. If used with `mdspan`, then they would not introduce any more
-   dangling references than `span` (**[views.span]**) would introduce.
-
-3. Their intended use case, as temporary "decorators" for function
-   arguments, discourages capture as `auto` (which may result in
-   unexpectedly dangling references).
-
-The functions have the following other _advantages_:
-
-1. They reduce the number of linear algebra function arguments.
-
-2. They simplify native C++ implementations, especially for BLAS 1 and
-   BLAS 2 functions that do not need complicated optimizations in
-   order to get reasonable performance.
-
-However, the functions have the following _disadvantages_:
-
-1. They would be the first instance of required expression templates
-   in the C++ Standard Library.  (`valarray` in **[valarray.syn]**
-   permits but does not require expression templates.)
-
-2. When applied to a `basic_mdarray`, the functions could introduce
-   dangling references.  Compare to `gslice_array` for `valarray`.
-
-3. If users can "tag" a matrix with a scaling factor or the transpose
-   property, why can't they "tag" the matrix with other properties,
-   like symmetry?  That suggests a design in which function parameters
-   are generic "things," convertible to `basic_mdspan` or
-   `basic_mdarray`, with properties (in the sense of
-   [P0939R0](http://wg21.link/p0939r0)) that the function can query.
-
-Here are the options:
-
-1. Keep existing "view" functions.
-
-2. Add a general property tagging mechanism, so users can tag a matrix
-   with mathematical properties like "symmetric," "Hermitian," or
-   "triangular."  Use this mechanism to pass assumptions into
-   functions, and eliminate `symmetric_*`, `hermitian_*`, and (in some
-   cases) `triangular_*` versions of functions.
-
-3. Drop "view" functions.  Specify scaling, transpose, and conjugation
-   as function parameters.
-
-_Our preference_: Option 1 (retain existing "view" functions).
-
-Option 2 is interesting but would add a lot of complication.  Would we
-let users customize properties?  Algorithms could never be made
-generic on arbitrary mathematical properties of matrices.  This is
-also closer to the high-level interface -- "Matlab in C++" -- that is
-_not_ our target for this proposal.  In addition, Option 2 would
-generalize well beyond what the BLAS does.  For example, the BLAS'
-`xSYMM` (symmetric matrix-matrix multiply) only specifies that one of
-the input matrices is symmetric.
-
-We would prefer Option 3 over Option 2.
-
-### Combine functions that differ only by rank of arguments?
-
-This relates to the "thin BLAS" proposal mentioned above.  Another
-part of that proposal was the elimination of separate function names,
-when (the Fortran 95 equivalent of) overloads could express the same
-idea.  There are two parts to this:
-
-1. Combine functions that differ only by rank of arguments.
-
-2. Combine functions that differ only by matrix "type."
-
-The second part especially has pitfalls that we will describe below.
-
-As an example of the first part, the BLAS functions `xSYRK` and
-`xSYR1` differ only by rank of their input arguments.  Both perform a
-symmetric outer-product update of their input/output matrix argument
-`C`.  `xSYRK` could implement `xSYR1` by taking an input "matrix" `A`
-with a single column.  This is not necessarily the fastest way to
-implement `xSYR1`.  However, since the rank of an `mdspan` or
-`mdarray` is known at compile time, implementations could dispatch to
-the appropriate low-level computational kernel with no run-time
-overhead.  (Existing BLAS implementations do not always optimize for
-the case where a "matrix" argument to a BLAS 3 function like `xGEMM`
-has only one column, and thus the function could dispatch to a BLAS 2
-function like `xGEMV`.)
-
-Here are arguments _for_ this approach:
-
-1. It reduces the number of new functions.
-
-2. Implementations could identify all special cases at compile time.
-
-Here are arguments _against_ this approach:
-
-1. It adds special cases to implementations.
-
-2. It's easy to make mistakes: for example, `xTRMV` and `xTRMM` differ
-   by `SIDE` argument.  Combining them while ignoring `SIDE` would
-   lose use cases.
-
-3. It calls for a "tagging matrices with properties" mechanism that we
-   rejected above.
-
-For instance, the BLAS functions `xGEMM` and `xSYRK` appear to differ
-just by assumptions on their output argument.  `xGEMM` computes the
-matrix-matrix product update `C := alpha * A * B + beta * C`, and
-assumes that `C` has the General BLAS matrix "type."  `xSYRK` computes
-the symmetric matrix-matrix product update `C := alpha * A * A^T +
-beta * C`, where `C` is assumed to be symmetric and the algorithm only
-accesses either the upper or lower triangle of `C`.  If users could
-"tag" `C` as symmetric, then it seems like we could express both
-algorithms as a single function `gemm`.  However, this approach easily
-leads to unexpected behavior.  What if `C` has a symmetric layout and
-`A * B` is nonsymmetric, but users request to compute `C := A * B`?
-The result `C` would be mathematically incorrect, even though it would
-retain symmetry.
-
-_Our preference_: Do not combine functions in this way.
-
-### Retain existing BLAS behavior for scalar multipliers?
-
-The BLAS Standard treats zero values of `alpha` or `beta` scalar
-multipliers as special short-circuiting cases.  For example, the
-matrix-matrix multiply update `C := alpha * A * B + beta * C` does not
-compute `A*B` if `alpha` is zero, and treats `C` as write only if
-`beta` is zero.  We propose to change this behavior by always
-performing the requested operation, regardless of the values of any
-scalar multipliers.
-
-This has the following _advantages_:
-
-1. It removes special cases.
-
-2. It avoids branches, which could affect performance for small
-   problems.
-
-3. It does not privilege floating-point element types.
-
-However, it has the following _disadvantages_:
-
-1. Implementations based on an existing BLAS library must
-   "double-check" scaling factors.  If any is zero, the implementation
-   cannot call the BLAS and must perform the scaling manually.  This
-   will likely reduce performance for a case that users intend to be
-   fast, unless the implementation has access to internal BLAS details
-   that can skip the special cases.
-
-2. Users may expect BLAS semantics in a library that imitates BLAS
-   functionality.  These users will get unpleasantly surprising
-   results (like `Inf` or `NaN` instead of zero, if they set `alpha=0`
-   and assume short circuiting).
-
-_Our preference_: Remove the special short-circuiting cases.
-
-We mitigate the disadvantages by offering both write-only and
-read-and-write versions of algorithms like matrix-matrix multiply,
-whose BLAS versions take a `beta` argument.  In our experience using
-the BLAS, users are more likely to expect that setting `beta=0` causes
-write-only behavior.  Thus, if the interface suggests write-only
-behavior, users are less likely to be unpleasantly surprised.
 
 ## Acknowledgments
 
