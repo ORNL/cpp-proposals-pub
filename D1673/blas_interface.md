@@ -1,4 +1,4 @@
-# P1673R0: A free function linear algebra interface based on the BLAS
+# P1673R2: A free function linear algebra interface based on the BLAS
 
 ## Authors
 
@@ -45,7 +45,9 @@
 
   * Briefly address LEWGI request of exploring concepts for input arguments.
 
-  * Lazy ranges style API was NOT explored. 
+  * Lazy ranges style API was NOT explored.
+
+* Revision 2 (pre-Cologne) to be submitted 2020-01-13
 
 ## Purpose of this paper
 
