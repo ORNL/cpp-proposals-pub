@@ -1311,9 +1311,9 @@ another for the vector add).  However, scalar arguments complicate the
 interface.
 
 We can solve all these issues in C++ by introducing a "scaled view" of
-an existing vector or matrix, via a changed `basic_mdspan` `Accessor`.
-For example, users could imitate what `xAXPY` does by using our
-`linalg_add` function (see below) as follows:
+an existing vector or matrix, via a changed `basic_mdspan` `Accessor`
+(see below).  For example, users could imitate what `xAXPY` does by
+using our `linalg_add` function (see below) as follows:
 
 ```c++
 mdspan<double, extents<dynamic_extent>> y = ...;
@@ -1338,88 +1338,73 @@ alpha*x + beta*y`:
 linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
 ```
 
-Note that this operation could not dispatch to an existing BLAS
-library, unless the library implements the `xWAXPBY` function
-specified in the BLAS Standard.  However, implementations could
-specialize on the result of a `scaled_view`, in order to transform the
-user's arguments into something suitable for a BLAS library call.  For
-example, if the user calls `matrix_product` (see below) with `A` and
-`B` both results of `scaled_view`, then the implementation could
-combine both scalars into a single "alpha" and call `xGEMM` with it.
-
 #### `scaled_scalar`
 
-`scaled_scalar` expresses a scaled version of an existing scalar.
-This must be read only.  *[Note:* This avoids likely confusion with
-the definition of "assigning to a scaled scalar." --*end note]*
-
-*[Note:*
-
-`scaled_scalar` and `conjugated_scalar` (see below) behave a bit like
-`atomic_ref`, in that they are special `reference` types for the
-Accessors `accessor_scaled` resp. `accessor_conjugate` (see below),
-and that they provide overloaded arithmetic operators that implement a
-limited form of expression templates.  The arithmetic operators are
-templated on their input type, so that they only need to compile if an
-algorithm actually uses them.  The conversion to `T` allows simple
-assignment to `T`, or invocation in functions that take `T`.
-
-There are other surprising results outside the scope of this
-proposal to fix, like the fact that `operator*` does not work for
-`complex<float>` times `double`.  This means `scaled_view(x, 93.0)`
-for `x` with `element_type` `complex<float>` will not compile.
-Neither does `complex<float>(5.0, 6.0) * y`.  Our experience with
-generic numerical algorithms is that floating-point literals need type
-adornment.
-
--*end note]*
+`scaled_scalar` expresses a read-only scaled version of an existing
+scalar.  It is part of the implementation of `scaled_accessor` (see
+below).  *[Note:* It is read only to avoid confusion with the
+definition of "assigning to a scaled scalar." --*end note]*
 
 ```c++
-template<class Reference, class ScalingFactor>
+template<class ScalingFactor, class Reference>
 class scaled_scalar {
 private:
-  Reference value;
-  const ScalingFactor scaling_factor;
+  const ScalingFactor scaling_factor; // exposition only
+  Reference value; // exposition only
+  using result_type = decltype (scaling_factor * value); // exposition only
 
-  using result_type = decltype (value * scaling_factor);
 public:
-  scaled_scalar(Reference v, const ScalingFactor& s) :
-    value(v), scaling_factor(s) {}
+  scaled_scalar(const ScalingFactor& s, Reference v) :
+    scaling_factor(s), value(v) {}
 
-  operator result_type() const { return value * scaling_factor; }
+  operator result_type() const { return scaling_factor * value; }
 };
 ```
+
+* *Requires:*
+
+  * `ScalingFactor` and `Reference` shall be *Cpp17CopyConstructible*.
+
+* *Constraints:*
+
+  * The expression `scaling_factor * value` is well formed.
+
+```c++
+operator result_type() const;
+```
+
+* *Effects:* Equivalent to `return scaling_factor * value;`.
 
 #### `accessor_scaled`
 
 Accessor to make `basic_mdspan` return a `scaled_scalar`.
 ```c++
-template<class Accessor, class S>
+template<class ScalingFactor, class Accessor>
 class accessor_scaled {
 public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
-  using reference     = scaled_scalar<Accessor::reference,S>;
-  using offset_policy = accessor_scaled<Accessor::offset_policy,S>;
+  using reference     = scaled_scalar<ScalingFactor, Accessor::reference>;
+  using offset_policy = accessor_scaled<ScalingFactor, Accessor::offset_policy>;
 
-  accessor_scaled(Accessor a, S sval) :
-    acc(a), scale_factor(sval) {}
+  accessor_scaled(const ScalingFactor& s, Accessor a) :
+    scaling_factor(s), accessor(a) {}
 
-  reference access(pointer& p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p,i), scale_factor);
+  reference access(pointer p, ptrdiff_t i) const noexcept {
+    return reference(accessor.access(p, i), scaling_factor);
   }
 
   offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return a.offset(p,i);
+    return accessor.offset(p, i);
   }
 
   element_type* decay(pointer p) const noexcept {
-    return a.decay(p);
+    return accessor.decay(p);
   }
 
 private:
-  Accessor acc;
-  S scale_factor;
+  ScalingFactor scaling_factor;
+  Accessor accessor;
 };
 ```
 
@@ -1427,10 +1412,24 @@ private:
 
 Return a scaled view using a new accessor.
 ```c++
-template<class T, class Extents, class Layout,
-         class Accessor, class S>
-basic_mdspan<T, Extents, Layout, accessor_scaled<Accessor, S>>
-scaled_view(S s, const basic_mdspan<T, Extents, Layout, Accessor>& a);
+template<class ScalingFactor,
+         class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout,
+             accessor_scaled<ScalingFactor, Accessor>>
+scaled_view(
+  const ScalingFactor& s,
+  const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<ElementType, Extents, Layout,
+  accessor_scaled<ScalingFactor, Accessor>>(a.data(),
+    a.mapping(), accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
 ```
 
 *Example:*
@@ -1439,8 +1438,9 @@ scaled_view(S s, const basic_mdspan<T, Extents, Layout, Accessor>& a);
 void test_scaled_view(basic_mdspan<double, extents<10>> a)
 {
   auto a_scaled = scaled_view(5.0, a);
-  for(int i = 0; i < a.extent(0); ++i)
+  for(int i = 0; i < a.extent(0); ++i) {
     assert(a_scaled(i) == 5.0 * a(i));
+  }
 }
 ```
 
