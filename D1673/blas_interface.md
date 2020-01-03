@@ -3865,6 +3865,217 @@ void hermitian_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
+#### Triangular matrix-matrix product
+
+*[Note:* These functions correspond to the BLAS function `xTRMM`.
+--*end note]*
+
+The following requirements apply to all functions in this section.
+
+* *Requires:*
+
+  * `A.extent(0)` equals `A.extent(1)`.
+
+  * `C.extent(0)` equals `E.extent(0)` (if applicable).
+
+  * `C.extent(1)` equals `E.extent(1)` (if applicable).
+
+  * If `Side` is `left_side_t`, then
+
+     * `A.extent(1)` equals `B.extent(0)`,
+
+     * `A.extent(0)` equals `C.extent(0)`, and
+
+     * `B.extent(1)` equals `C.extent(1)`.
+
+  * Otherwise, if `Side` is `right_side_t`, then
+
+     * `B.extent(1)` equals `A.extent(0)`,
+
+     * `B.extent(0)` equals `C.extent(0)`, and
+
+     * `A.extent(1)` equals `C.extent(1)`.
+
+* *Constraints:*
+
+  * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
+    layout.
+
+  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
+    `out_matrix_t` have unique layout.
+
+  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+    layout's `Triangle` template argument has the same type as
+    the function's `Triangle` template argument.
+
+  * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
+    `E.rank()` (if applicable) equals 2.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
+
+  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
+    `C.static_extent(r)` nor `E.static_extent(r)` equals
+    `dynamic_extent`, then `C.static_extent(r)` equals
+    `E.static_extent(r)` (if applicable).
+
+  * If `Side` is `left_side_t`, then
+
+    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+      `dynamic_extent`, then `A.static_extent(1)` equals
+      `B.static_extent(0)`;
+
+    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+      `dynamic_extent`, then `A.static_extent(0)` equals
+      `C.static_extent(0)`; and
+
+    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+      `dynamic_extent`, then `B.static_extent(1)` equals
+      `C.static_extent(1)`.
+
+  * Otherwise, if `Side` is `right_side_t`, then
+
+    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+      `dynamic_extent`, then `B.static_extent(1)` equals
+      `A.static_extent(0)`;
+
+    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+      `dynamic_extent`, then `B.static_extent(0)` equals
+      `C.static_extent(0)`; and
+
+    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+      `dynamic_extent`, then `A.static_extent(1)` equals
+      `C.static_extent(1)`.
+
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
+
+  * If the `DiagonalStorage` template argument has type
+    `implicit_unit_diagonal_t`, then the functions will not access the
+    diagonal of `A`, and will assume that that the diagonal elements
+    of `A` all equal one. *[Note:* This does not imply that the
+    function needs to be able to form an `element_type` value equal to
+    one. --*end note]
+
+##### Overwriting triangular matrix-matrix product
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:*
+
+  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
+    expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+
+  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
+    expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
+
+* *Effects:*
+
+  * If `Side` is `left_side_t`, then assigns to the elements of the
+    matrix `C` the product of the matrices `A` and `B`.
+
+  * If `Side` is `right_side_t`, then assigns to the elements of the
+    matrix `C` the product of the matrices `B` and `A`.
+
+##### Updating triangular matrix-matrix product
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+```
+
+
+* *Constraints:*
+
+  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
+    expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
+
+  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
+    expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
+
+* *Effects:*
+
+  * If `Side` is `left_side_t`, then assigns to the elements of the
+    matrix `C` on output, the elementwise sum of `E` and the product of
+    the matrices `A` and `B`.
+
+  * If `Side` is `right_side_t`, then assigns to the elements of the
+    matrix `C` on output, the elementwise sum of `E` and the product of
+    the matrices `B` and `A`.
+
+* *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
+  they must have the same layout.
+
 #### Rank-2k update of a symmetric or Hermitian matrix
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
