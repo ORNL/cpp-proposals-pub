@@ -65,6 +65,8 @@
 
   * Add missing `triangular_matrix_product` function.
 
+  * Remove `packed_view` function.
+
 ### Over- and underflow wording for vector 2-norm
 
 SG6 recommended to us at Belfast 2019 to change the special overflow /
@@ -1294,73 +1296,6 @@ columns.)  Let `i,j` be the indices given to the packed layout's
   `Triangle` is `lower_triangle_t`,
   then index pair i,j maps to j + i(i+1)/2 if j >= i,
   else index pair i,j maps to i + j(j+1)/2.
-
-#### Packed layout views
-
-The idea behind packed matrix types is that users take an existing 1-D
-array, and view it as a matrix data structure.  We adapt this approach
-to our library by including functions that create a "packed view" of
-an existing `basic_mdspan`.  The resulting packed
-object has one higher rank.
-
-##### Requirements
-
-Throughout this Clause, where the template parameters are not
-constrained, the names of template parameters are used to express type
-requirements.
-
-  * `Extents::rank()` is at least 1.
-
-  * `Layout` is a unique, contiguous, and strided layout.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
-  * `StorageOrder` is either `column_major_t` or `row_major_t`.
-
-##### Create a packed triangular view of an existing object
-
-```c++
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor,
-         class Triangle,
-         class StorageOrder>
-constexpr basic_mdspan<EltType,
-  <i>extents-see-returns-below</i>,
-  layout_blas_packed<
-    Triangle,
-    StorageOrder>,
-  Accessor>
-packed_view(
-  const basic_mdspan<EltType, Extents, Layout, Accessor>& m,
-  typename basic_mdspan<EltType, Extents, Layout, Accessor>::index_type num_rows,
-  Triangle,
-  StorageOrder);
-```
-
-* *Requires:* If `num_rows` is nonzero, then `m.extent(0)` is at least
-  (`num_rows` + 1) * `num_rows` / 2.
-
-* *Effects:* Views the given `basic_mdspan` in
-  packed layout, with the given `Triangle` and `StorageOrder`, where
-  each matrix (corresponding to the rightmost two extents of the
-  result) has `num_rows` rows and columns.
-
-* *Returns:* A `basic_mdspan` `r` with packed layout and the following
-  properties:
-
-  * `r.extent(r.rank()-2)` equals `num_rows`.
-
-  * `r.extent(r.rank()-1)` equals `num_rows`.
-
-  * Let `E_r` be the type of `r.extents()`.  Then,
-
-    * `E_r::rank()` is one plus `Extents::rank()`, and
-
-    * `E_r::rank() - E_r::dynamic_rank()` (the number of static
-      extents) is no less than `Extents::rank() -
-      Extents::dynamic_rank()`.
 
 ### Scaled view of an object
 
