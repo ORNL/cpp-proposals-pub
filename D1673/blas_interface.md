@@ -2929,8 +2929,11 @@ void triangular_matrix_vector_solve(
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `A`, then `i` is in the domain of `x`
-    and `j` is in the domain of `b`.
+  * `A.extent(0)` equals `A.extent(1)`.
+
+  * `A.extent(1)` equals `b.extent(0)`.
+
+  * `A.extent(0)` equals `x.extent(0)`.
 
 * *Constraints:*
 
@@ -2956,6 +2959,10 @@ void triangular_matrix_vector_solve(
     well formed.
 
 * *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
 
   * If neither `A.static_extent(1)` nor `b.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
