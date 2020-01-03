@@ -3853,9 +3853,11 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `C`, then there exists `k` such that
-    `i,k` and `j,k` are in the domain of `A`, and `j,k` and `i,k` are
-    in the domain of `B`.
+  * `A.extent(0)` equals `C.extent(0)`.
+
+  * `B.extent(1)` equals `C.extent(0)`.
+
+  * `C.extent(0)` equals `C.extent(1)`.
 
 * *Constraints:*
 
@@ -3881,6 +3883,10 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
   * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
     `dynamic_extent`, then `B.static_extent(1)` equals
     `C.static_extent(0)`.
+
+  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
   input with (the matrix product of `A` and the non-conjugated
@@ -3922,9 +3928,11 @@ void hermitian_matrix_rank_2k_update(
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `C`, then there exists `k` such that
-    `i,k` and `j,k` are in the domain of `A`, and `j,k` and `i,k` are
-    in the domain of `B`.
+  * `A.extent(0)` equals `C.extent(0)`.
+
+  * `B.extent(1)` equals `C.extent(0)`.
+
+  * `C.extent(0)` equals `C.extent(1)`.
 
 * *Constraints:*
 
@@ -3951,6 +3959,10 @@ void hermitian_matrix_rank_2k_update(
   * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
     `dynamic_extent`, then `B.static_extent(1)` equals
     `C.static_extent(0)`.
+
+  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
   input with (the matrix product of `A` and the conjugate transpose of
