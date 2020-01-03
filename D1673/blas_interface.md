@@ -1998,9 +1998,7 @@ this.
 
 --*end note]*
 
-* *Requires:*
-
-  * `x` and `y` have the same domain.
+* *Requires:* `x.extent(0)` equals `y.extent(0)`.
 
 * *Constraints:*
 
@@ -2044,7 +2042,8 @@ void linalg_swap(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS function `xSWAP`.
 --*end note]*
 
-* *Requires:* The domain of `x` equals the domain of `y`.
+* *Requires:* For all `r` in 0, 1, ..., `x.rank()` - 1,
+  `x.extent(r)` equals `y.extent(r)`.
 
 * *Constraints:*
 
@@ -2110,7 +2109,8 @@ void linalg_copy(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS function `xCOPY`.
 --*end note]*
 
-* *Requires:* The domain of `y` equals the domain of `x`.
+* *Requires:* For all `r` in 0, 1, ..., `x.rank()` - 1,
+  `x.extent(r)` equals `y.extent(r)`.
 
 * *Constraints:*
 
@@ -2152,7 +2152,11 @@ void linalg_add(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS function `xAXPY`.
 --*end note]*
 
-* *Requires:* The domain of `z` equals the domains of `x` and `y`.
+* *Requires:* For all `r` in 0, 1, ..., `x.rank()` - 1,
+
+  * `x.extent(r)` equals `z.extent(r)`.
+
+  * `y.extent(r)` equals `z.extent(r)`.
 
 * *Constraints:*
 
@@ -2165,10 +2169,6 @@ void linalg_add(ExecutionPolicy&& exec,
 
 * *Mandates:* For all `r` in 0, 1, ..., `x.rank()` - 1,
 
-  * if neither `x.static_extent(r)` nor `y.static_extent(r)` equals
-    `dynamic_extent`, then `x.static_extent(r)` equals
-    `y.static_extent(r)`;
-
   * if neither `x.static_extent(r)` nor `z.static_extent(r)` equals
     `dynamic_extent`, then `x.static_extent(r)` equals
     `z.static_extent(r)`; and
@@ -2176,6 +2176,10 @@ void linalg_add(ExecutionPolicy&& exec,
   * if neither `y.static_extent(r)` nor `z.static_extent(r)` equals
     `dynamic_extent`, then `y.static_extent(r)` equals
     `z.static_extent(r)`.
+
+  * if neither `x.static_extent(r)` nor `y.static_extent(r)` equals
+    `dynamic_extent`, then `x.static_extent(r)` equals
+    `y.static_extent(r)`;
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
@@ -3370,7 +3374,9 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * `C` and `E` have the same domain (if applicable).
+  * `C.extent(0)` equals `E.extent(0)` (if applicable).
+
+  * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
   * `A.extent(1)` equals `B.extent(0)`.
 
@@ -3477,7 +3483,9 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * `C` and `E` have the same domain (if applicable).
+  * `C.extent(0)` equals `E.extent(0)` (if applicable).
+
+  * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
   * If `Side` is `left_side_t`, then
 
@@ -3665,7 +3673,9 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * `C` and `E` have the same domain (if applicable).
+  * `C.extent(0)` equals `E.extent(0)` (if applicable).
+
+  * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
   * If `Side` is `left_side_t`, then
 
