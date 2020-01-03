@@ -2015,6 +2015,10 @@ this.
     domain of `y`, the expressions `x(i) = c*x(i) + s*y(j)` and
     `y(j) = c*y(j) - conj(s)*x(i)` are well formed.
 
+* *Mandates:* If neither `x.static_extent(0)` nor `y.static_extent(0)`
+  equals `dynamic_extent`, then `x.static_extent(0)` equals
+  `y.static_extent(0)`.
+
 * *Effects:* Applies the plane (Givens) rotation specified by `c` and
   `s` to the input vectors `x` and `y`, as if the rotation were a 2 x
   2 matrix and the input vectors were successive rows of a matrix with
@@ -2045,10 +2049,15 @@ void linalg_swap(ExecutionPolicy&& exec,
 
   * `x.rank()` equals `y.rank()`.
 
-  * `x.rank()` is no more than 3.
+  * `x.rank()` is no more than 2.
 
   * For `i...` in the domain of `x` and `y`, the
     expression `x(i...) = y(i...)` is well formed.
+
+* *Mandates:* For all `r` in 0, 1, ..., `x.rank()` - 1, if neither
+  `x.static_extent(r)` nor `y.static_extent(r)` equals
+  `dynamic_extent`, then `x.static_extent(r)` equals
+  `y.static_extent(r)`.
 
 * *Effects:* Swap all corresponding elements of the objects
   `x` and `y`.
@@ -2106,10 +2115,15 @@ void linalg_copy(ExecutionPolicy&& exec,
 
   * `x.rank()` equals `y.rank()`.
 
-  * `x.rank()` is no more than 3.
+  * `x.rank()` is no more than 2.
 
   * For all `i...` in the domain of `x` and `y`, the expression
     `y(i...) = x(i...)` is well formed.
+
+* *Mandates:* For all `r` in 0, 1, ..., `x.rank()` - 1, if neither
+  `x.static_extent(r)` nor `y.static_extent(r)` equals
+  `dynamic_extent`, then `x.static_extent(r)` equals
+  `y.static_extent(r)`.
 
 * *Effects:* Overwrite each element of `y` with the corresponding
   element of `x`.
@@ -2143,10 +2157,24 @@ void linalg_add(ExecutionPolicy&& exec,
 
   * `x.rank()`, `y.rank()`, and `z.rank()` are all equal.
 
-  * `x.rank()` is no more than 3.
+  * `x.rank()` is no more than 2.
 
   * For `i...` in the domain of `x`, `y`, and `z`, the expression
     `z(i...) = x(i...) + y(i...)` is well formed.
+
+* *Mandates:* For all `r` in 0, 1, ..., `x.rank()` - 1,
+
+  * if neither `x.static_extent(r)` nor `y.static_extent(r)` equals
+    `dynamic_extent`, then `x.static_extent(r)` equals
+    `y.static_extent(r)`;
+
+  * if neither `x.static_extent(r)` nor `z.static_extent(r)` equals
+    `dynamic_extent`, then `x.static_extent(r)` equals
+    `z.static_extent(r)`; and
+
+  * if neither `y.static_extent(r)` nor `z.static_extent(r)` equals
+    `dynamic_extent`, then `y.static_extent(r)` equals
+    `z.static_extent(r)`.
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
@@ -2184,6 +2212,11 @@ real element types), `xDOTC`, and `xDOTU` (for complex element types).
 * *Constraints:* For all `i` in the domain of `v1` and `v2` and for
   `val` of type `T&`, the expression `val += v1(i)*v2(i)` is well
   formed.
+
+* *Mandates:* For all `r` in 0, 1, ..., `v1.rank()` - 1, if neither
+  `v1.static_extent(r)` nor `v2.static_extent(r)` equals
+  `dynamic_extent`, then `v1.static_extent(r)` equals
+  `v2.static_extent(r)`.
 
 * *Effects:* Let `N` be `v1.extent(0)`.  If `N` is zero, returns
   `init`, else returns /GENERALIZED_SUM/(`plus<>()`, `init`,
@@ -2438,6 +2471,16 @@ The following requirements apply to all functions in this section.
   * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
     `z.rank()` equals 1.
 
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `y.static_extent(0)`.
+
 ##### Overwriting matrix-vector product
 
 ```c++
@@ -2497,6 +2540,10 @@ void matrix_vector_product(ExecutionPolicy&& exec,
   * For `i,j` in the domain of `A`, the expression
     `z(i) = y(i) + A(i,j)*x(j)` is well formed.
 
+* *Mandates:* If neither `y.static_extent(0)` nor `z.static_extent(0)`
+  equals `dynamic_extent`, then `y.static_extent(0)` equals
+  `z.static_extent(0)`.
+
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
@@ -2523,6 +2570,16 @@ The following requirements apply to all functions in this section.
 
   * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
     `z.rank()` equals 1.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `y.static_extent(0)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2593,6 +2650,10 @@ void symmetric_matrix_vector_product(
 * *Constraints:* For `i,j` in the domain of `A`, the expression
   `z(i) = y(i) + A(i,j)*x(j)` is well formed.
 
+* *Mandates:* If neither `y.static_extent(0)` nor `z.static_extent(0)`
+  equals `dynamic_extent`, then `y.static_extent(0)` equals
+  `z.static_extent(0)`.
+
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
@@ -2619,6 +2680,16 @@ The following requirements apply to all functions in this section.
 
   * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
     `z.rank()` equals 1.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `y.static_extent(0)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2690,6 +2761,10 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
   `z(i) = y(i) + A(i,j)*x(j)` and `z(i) = y(i) + conj(A(i,j))*x(j)`
   are well formed.
 
+* *Mandates:* If neither `y.static_extent(0)` nor `z.static_extent(0)`
+  equals `dynamic_extent`, then `y.static_extent(0)` equals
+  `z.static_extent(0)`.
+
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
@@ -2716,6 +2791,16 @@ The following requirements apply to all functions in this section.
 
   * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
     `z.rank()` equals 1.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `y.static_extent(0)`.
 
 * *Remarks:*
 
@@ -2802,6 +2887,10 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Constraints:* For `i,j` in the domain of `A`, the expression
   `z(i) = y(i) + A(i,j)*x(j)` is well formed.
 
+* *Mandates:* If neither `y.static_extent(0)` nor `z.static_extent(0)`
+  equals `dynamic_extent`, then `y.static_extent(0)` equals
+  `z.static_extent(0)`.
+
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
@@ -2866,6 +2955,16 @@ void triangular_matrix_vector_solve(
     `explicit_diagonal_t`, then the expression `x(r) /= A(r,r)` is
     well formed.
 
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `b.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `b.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `x.static_extent(0)`.
+
 * *Effects:* Assigns to the elements of `x` the result of solving the
   triangular linear system(s) Ax=b.
 
@@ -2920,6 +3019,16 @@ types). --*end note]*
 
   * For `i,j` in the domain of `A`, the expression
     `A(i,j) += x(i)*y(j)` is well formed.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `y.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `x.static_extent(0)`.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
   outer product of `x` and `y`.
@@ -2996,6 +3105,16 @@ void symmetric_matrix_rank_1_update(
   * For `i,j` in the domain of `A`, the expression `A(i,j) +=
     x(i)*x(j)` is well formed.
 
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `x.static_extent(0)`.
+
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
   outer product of `x` and `x`.
 
@@ -3045,6 +3164,16 @@ void hermitian_matrix_rank_1_update(
 
   * For `i,j` in the domain of `A`, the expression `A(i,j) +=
     x(i)*conj(x(j))` is well formed.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `x.static_extent(0)`.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
   outer product of `x` and the conjugate of `x`.
@@ -3102,6 +3231,24 @@ void symmetric_matrix_rank_2_update(
   * For `i,j` in the domain of `A`, the expression
     `A(i,j) += x(i)*y(j) + y(i)*x(j)` is well formed.
 
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(1)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `y.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `y.static_extent(0)`.
+
 * *Effects:* Assigns to `A` on output the sum of `A` on input, the
   outer product of `x` and `y`, and the outer product of `y` and `x`.
 
@@ -3157,6 +3304,24 @@ void hermitian_matrix_rank_2_update(
   * For `i,j` in the domain of `A`, the expression `A(i,j) +=
     x(i)*conj(y(j)) + y(i)*conj(x(j))` is well formed.
 
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `x.static_extent(0)`.
+
+  * If neither `A.static_extent(1)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `y.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `y.static_extent(0)`.
+
 * *Effects:* Assigns to `A` on output the sum of `A` on input, the
   outer product of `x` and the conjugate of `y`, and the outer product
   of `y` and the conjugate of `x`.
@@ -3186,6 +3351,28 @@ The following requirements apply to all functions in this section.
 
   * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
     `E.rank()` (if applicable) equals 2.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `B.static_extent(0)`.
+
+  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`.
+
+  * If neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(1)`.
+
+  * If neither `C.static_extent(0)` nor `E.static_extent(0)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `E.static_extent(0)` (if applicable).
+
+  * If neither `C.static_extent(1)` nor `E.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(1)` equals
+    `E.static_extent(1)` (if applicable).
 
 ##### Overwriting general matrix-matrix product
 
@@ -3281,6 +3468,44 @@ The following requirements apply to all functions in this section.
 
   * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
     `E.rank()` (if applicable) equals 2.
+
+* *Mandates:*
+
+  * If neither `C.static_extent(0)` nor `E.static_extent(0)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `E.static_extent(0)` (if applicable).
+
+  * If neither `C.static_extent(1)` nor `E.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(1)` equals
+    `E.static_extent(1)` (if applicable).
+
+  * If `Side` is `left_side_t`, then
+
+    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+      `dynamic_extent`, then `A.static_extent(1)` equals
+      `B.static_extent(0)`;
+
+    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+      `dynamic_extent`, then `A.static_extent(0)` equals
+      `C.static_extent(0)`; and
+
+    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+      `dynamic_extent`, then `B.static_extent(1)` equals
+      `C.static_extent(1)`.
+
+  * Otherwise, if `Side` is `right_side_t`, then
+
+    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+      `dynamic_extent`, then `B.static_extent(1)` equals
+      `A.static_extent(0)`;
+
+    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+      `dynamic_extent`, then `B.static_extent(0)` equals
+      `C.static_extent(0)`; and
+
+    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+      `dynamic_extent`, then `A.static_extent(1)` equals
+      `C.static_extent(1)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -3422,6 +3647,44 @@ The following requirements apply to all functions in this section.
 
   * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
     `E.rank()` (if applicable) equals 2.
+
+* *Mandates:*
+
+  * If neither `C.static_extent(0)` nor `E.static_extent(0)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `E.static_extent(0)` (if applicable).
+
+  * If neither `C.static_extent(1)` nor `E.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(1)` equals
+    `E.static_extent(1)` (if applicable).
+
+  * If `Side` is `left_side_t`, then
+
+    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+      `dynamic_extent`, then `A.static_extent(1)` equals
+      `B.static_extent(0)`;
+
+    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+      `dynamic_extent`, then `A.static_extent(0)` equals
+      `C.static_extent(0)`; and
+
+    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+      `dynamic_extent`, then `B.static_extent(1)` equals
+      `C.static_extent(1)`.
+
+  * Otherwise, if `Side` is `right_side_t`, then
+
+    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+      `dynamic_extent`, then `B.static_extent(1)` equals
+      `A.static_extent(0)`;
+
+    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+      `dynamic_extent`, then `B.static_extent(0)` equals
+      `C.static_extent(0)`; and
+
+    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+      `dynamic_extent`, then `A.static_extent(1)` equals
+      `C.static_extent(1)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -3594,6 +3857,16 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
     `A`, and `j,k` and `k,j` in the domain of `B`, the expression
     `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)` is well formed.
 
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`.
+
+  * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(0)`.
+
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
   input with (the matrix product of `A` and the non-conjugated
   transpose of `B`) and (the matrix product of `B` and the
@@ -3654,6 +3927,16 @@ void hermitian_matrix_rank_2k_update(
     `C(i,j) += A(i,k)*conj(B(j,k)) + B(i,k)*conj(A(j,k))` is well
     formed.
 
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`.
+
+  * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(0)`.
+
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
   input with (the matrix product of `A` and the conjugate transpose of
   `B`) and (the matrix product of `B` and the conjugate transpose of
@@ -3703,11 +3986,16 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
 
 * *Requires:*
 
-  * `X.extent(1)` equals `B.extent(1)`.
+  * For all `r` in 0, 1, ..., `X.rank()` - 1,
+    `X.extent(r)` equals `B.extent(r)`.
 
-  * If `X.extent(1) != 0` and `i,j` is in the domain of `A`, then
-    there exists `k` such that `i,k` is in the domain of `X` and `j,k`
-    is in the domain of `B`.
+  * `A.extent(0)` equals `A.extent(1)`.
+
+  * If `Side` is `left_side_t`, then
+    `A.extent(1)` equals `B.extent(0)`.
+
+  * Otherwise, if `Side` is `right_side_t`, then
+    `A.extent(1)` equals `B.extent(1)`.
 
 * *Constraints:*
 
@@ -3721,12 +4009,37 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
   * If `r,j` is in the domain of `X` and `B`, then the expression
     `X(r,j) = B(r,j)` is well formed.
 
-  * If `r,j` and `c,j` are in the domain of `X`, then the expression
-    `X(r,j) -= A(r,c)*X(c,j)` is well formed.
-
-  * If `r,j` is in the domain of `X` and `DiagonalStorage` is
-    `explicit_diagonal_t`, then the expression `X(r,j) /= A(r,r)` is
+  * If `Side` is `left_side_t`, and if `i,j` and `i,k` are in the
+    domain of `X`, then the expression `X(i,j) -= A(i,k) * X(k,j)` is
     well formed.
+
+  * If `Side` is `right_side_t`, and if `i,j` and `i,k` are in the
+    domain of `X`, then the expression `X(i,j) -= X(i,k) * A(k,j)` is
+    well formed.
+
+  * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
+    domain of `X`, then the expression `X(i,j) /= A(i,i)` is well
+    formed.
+
+* *Mandates:*
+
+  * For all `r` in 0, 1, ..., `X.rank()` - 1, if neither
+    `X.static_extent(r)` nor `B.static_extent(r)` equals
+    `dynamic_extent`, then `X.static_extent(r)` equals
+    `B.static_extent(r)`.
+
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
+
+  * If `Side` is `left_side_t`, then if neither `A.static_extent(1)`
+    nor `B.static_extent(0)` equals `dynamic_extent`, then
+    `A.static_extent(1)` equals `B.static_extent(0)`.
+
+  * Otherwise, if `Side` is `right_side_t`, then if neither
+    `A.static_extent(1)` nor `B.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `B.static_extent(1)`.
 
 * *Effects:*
 
