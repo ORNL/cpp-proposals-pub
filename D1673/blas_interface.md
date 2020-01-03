@@ -808,15 +808,20 @@ vector element types other than the four that the BLAS supports.
 
 #### Defining a `concept` for the data structures instead
 
-LEWGI requested the exploration of using a concept instead of `basic_mdspan`
-to define the arguments for the linear algebra functions. A brief investigation
-of that option leads us to believe that such a concept would largely replicate the
-definition of `basic_mdspan` since almost all its features are explicitly used in part of
-this proposal. This includes the `extents`, `layout` and `accessor_policy`
-customization point. At this point it is not clear to us that there would be
-significant benefits of defining lineary algebra functions in terms of such a concept,
-instead of defining a general customization
-point `get_mdspan`, allowing acceptance of any object type, which provides it.
+LEWGI requested in the 2019 Cologne meeting that we explore using a
+concept instead of `basic_mdspan` to define the arguments for the
+linear algebra functions.  Our investigation of this option leads us
+to believe that such a concept would largely replicate the definition
+of `basic_mdspan`.  This proposal refers to all of its customization
+points: `extents`, `layout`, and `accessor_policy`.  We expect
+implementations to use all of them for optimizations, for example to
+extract the scaling factor from a `scaled_view` result in order to
+call an optimized BLAS library directly.  At this point it is not
+clear to us that there would be significant benefits to defining
+linear algebra functions in terms of such a concept, instead of
+defining a general customization point `get_mdspan`, allowing
+acceptance of any object type, which provides it.  After further
+discussion at the 2019 Belfast meeting, LEWGI accepted our position.
 
 ### Function argument aliasing and zero scalar multipliers
 
