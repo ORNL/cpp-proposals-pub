@@ -2003,8 +2003,6 @@ this.
 
   * `Real` is `float`, `double`, or `long double`.
 
-  * `x.rank()` and `y.rank()` are both one.
-
   * For the overloads that take the last argument `s` as `Real`, for
     `i` in the domain of `x` and `j` in the domain of `y`, the
     expressions `x(i) = c*x(i) + s*y(j)` and `y(j) = c*y(j) - s*x(i)`
@@ -2206,17 +2204,18 @@ real element types), `xDOTC`, and `xDOTU` (for complex element types).
 * *Requires:*
 
   * `T` shall be *Cpp17MoveConstructible*.
+
   * `init + v1(0)*v2(0)` shall be convertible to `T`.
-  * `v1` and `v2` have the same domain.
+
+  * `v1.extent(0)` equals `v2.extent(0)`.
 
 * *Constraints:* For all `i` in the domain of `v1` and `v2` and for
   `val` of type `T&`, the expression `val += v1(i)*v2(i)` is well
   formed.
 
-* *Mandates:* For all `r` in 0, 1, ..., `v1.rank()` - 1, if neither
-  `v1.static_extent(r)` nor `v2.static_extent(r)` equals
-  `dynamic_extent`, then `v1.static_extent(r)` equals
-  `v2.static_extent(r)`.
+* *Mandates:* If neither `v1.static_extent(0)` nor
+  `v2.static_extent(0)` equals `dynamic_extent`, then
+  `v1.static_extent(0)` equals `v2.static_extent(0)`.
 
 * *Effects:* Let `N` be `v1.extent(0)`.  If `N` is zero, returns
   `init`, else returns /GENERALIZED_SUM/(`plus<>()`, `init`,
@@ -2437,7 +2436,7 @@ ptrdiff_t idx_abs_max(in_vector_t v);
 template<class ExecutionPolicy,
          class in_vector_t>
 ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
-                 in_vector_t v);
+                      in_vector_t v);
 ```
 
 *[Note:* These functions correspond to the BLAS function `IxAMAX`.
