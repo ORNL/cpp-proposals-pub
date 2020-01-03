@@ -60,8 +60,8 @@
 
   * Removed over- and underflow requirement for `vector_norm2`.
 
-  * If any matrix or vector dimension compatibility checks can be done
-    at compile time, check them at compile time (via Mandates clause).
+  * *Mandate* any extent compatibility checks that can be done at
+    compile time.
 
 ### Over- and underflow wording for vector 2-norm
 
