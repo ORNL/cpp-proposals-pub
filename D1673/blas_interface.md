@@ -3483,6 +3483,8 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
+  * `A.extent(0)` equals `A.extent(1)`.
+
   * `C.extent(0)` equals `E.extent(0)` (if applicable).
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
@@ -3519,6 +3521,10 @@ The following requirements apply to all functions in this section.
     `E.rank()` (if applicable) equals 2.
 
 * *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
 
   * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
     `C.static_extent(r)` nor `E.static_extent(r)` equals
@@ -3673,6 +3679,8 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
+  * `A.extent(0)` equals `A.extent(1)`.
+
   * `C.extent(0)` equals `E.extent(0)` (if applicable).
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
@@ -3709,6 +3717,10 @@ The following requirements apply to all functions in this section.
     `E.rank()` (if applicable) equals 2.
 
 * *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
 
   * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
     `C.static_extent(r)` nor `E.static_extent(r)` equals
