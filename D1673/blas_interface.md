@@ -3089,8 +3089,9 @@ void symmetric_matrix_rank_1_update(
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `A`, then `i` and `j` are in the
-    domain of `x`.
+  * `A.extent(0)` equals `A.extent(1)`.
+
+  * `A.extent(0)` equals `x.extent(0)`.
 
 * *Constraints:*
 
@@ -3107,9 +3108,9 @@ void symmetric_matrix_rank_1_update(
 
 * *Mandates:*
 
-  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `x.static_extent(0)`.
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
 
   * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
@@ -3149,8 +3150,9 @@ void hermitian_matrix_rank_1_update(
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `A`, then `i` and `j` are in the
-    domain of `x`.
+  * `A.extent(0)` equals `A.extent(1)`.
+
+  * `A.extent(0)` equals `x.extent(0)`.
 
 * *Constraints:*
 
@@ -3167,9 +3169,9 @@ void hermitian_matrix_rank_1_update(
 
 * *Mandates:*
 
-  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `x.static_extent(0)`.
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
 
   * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
