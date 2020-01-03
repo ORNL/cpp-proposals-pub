@@ -60,6 +60,9 @@
 
   * Removed over- and underflow requirement for `vector_norm2`.
 
+  * If any matrix or vector dimension compatibility checks can be done
+    at compile time, check them at compile time (via Mandates clause).
+
 ### Over- and underflow wording for vector 2-norm
 
 SG6 recommended to us at Belfast 2019 to change the special overflow /
