@@ -3342,13 +3342,13 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
+  * `C` and `E` have the same domain (if applicable).
+
   * `A.extent(1)` equals `B.extent(0)`.
 
   * `A.extent(0)` equals `C.extent(0)`.
 
   * `B.extent(1)` equals `C.extent(1)`.
-
-  * `C` and `E` have the same domain (if applicable).
 
 * *Constraints:*
 
@@ -3359,6 +3359,11 @@ The following requirements apply to all functions in this section.
     `E.rank()` (if applicable) equals 2.
 
 * *Mandates:*
+
+  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
+    `C.static_extent(r)` nor `E.static_extent(r)` equals
+    `dynamic_extent`, then `C.static_extent(r)` equals
+    `E.static_extent(r)` (if applicable).
 
   * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
@@ -3371,11 +3376,6 @@ The following requirements apply to all functions in this section.
   * If neither `B.static_extent(1)` nor `C.static_extent(1)` equals
     `dynamic_extent`, then `B.static_extent(1)` equals
     `C.static_extent(1)`.
-
-  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
-    `C.static_extent(r)` nor `E.static_extent(r)` equals
-    `dynamic_extent`, then `C.static_extent(r)` equals
-    `E.static_extent(r)` (if applicable).
 
 ##### Overwriting general matrix-matrix product
 
@@ -3397,11 +3397,9 @@ void matrix_product(ExecutionPolicy&& exec,
                     out_matrix_t C);
 ```
 
-* *Constraints:*
-
-  * For `i,j` in the domain of `C`, `i,k` in the domain of `A`, and
-    `k,j` in the domain of `B`, the expression `C(i,j) +=
-    A(i,k)*B(k,j)` is well formed.
+* *Constraints:* For `i,j` in the domain of `C`, `i,k` in the domain
+  of `A`, and `k,j` in the domain of `B`, the expression `C(i,j) +=
+  A(i,k)*B(k,j)` is well formed.
 
 * *Effects:* Assigns to the elements of the matrix `C` the product of
   the matrices `A` and `B`.
@@ -3430,10 +3428,6 @@ void matrix_product(ExecutionPolicy&& exec,
                     out_matrix_t C);
 ```
 
-* *Requires:*
-
-  * `C` and `E` have the same domain.
-
 * *Constraints:* For `i,j` in the domain of `C`, `i,k` in the domain
   of `A`, and `k,j` in the domain of `B`, the expression `C(i,j) +=
   E(i,j) + A(i,k)*B(k,j)` is well formed.
@@ -3453,9 +3447,25 @@ note]*
 
 The following requirements apply to all functions in this section.
 
-* *Requires:* If `i,j` is in the domain of `C`, then there exists `k`
-  such that `i,k` is in the domain of `A`, and `k,j` is in the domain
-  of `B`.
+* *Requires:*
+
+  * `C` and `E` have the same domain (if applicable).
+
+  * If `Side` is `left_side_t`, then
+
+     * `A.extent(1)` equals `B.extent(0)`,
+
+     * `A.extent(0)` equals `C.extent(0)`, and
+
+     * `B.extent(1)` equals `C.extent(1)`.
+
+  * Otherwise, if `Side` is `right_side_t`, then
+
+     * `B.extent(1)` equals `A.extent(0)`,
+
+     * `B.extent(0)` equals `C.extent(0)`, and
+
+     * `A.extent(1)` equals `C.extent(1)`.
 
 * *Constraints:*
 
@@ -3474,13 +3484,10 @@ The following requirements apply to all functions in this section.
 
 * *Mandates:*
 
-  * If neither `C.static_extent(0)` nor `E.static_extent(0)` equals
-    `dynamic_extent`, then `C.static_extent(0)` equals
-    `E.static_extent(0)` (if applicable).
-
-  * If neither `C.static_extent(1)` nor `E.static_extent(1)` equals
-    `dynamic_extent`, then `C.static_extent(1)` equals
-    `E.static_extent(1)` (if applicable).
+  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
+    `C.static_extent(r)` nor `E.static_extent(r)` equals
+    `dynamic_extent`, then `C.static_extent(r)` equals
+    `E.static_extent(r)` (if applicable).
 
   * If `Side` is `left_side_t`, then
 
@@ -3595,10 +3602,6 @@ void symmetric_matrix_product(
   in_matrix_3_t E,
   out_matrix_t C);
 ```
-
-* *Requires:*
-
-  * `C` and `E` have the same domain.
 
 * *Constraints:*
 
