@@ -1563,6 +1563,10 @@ public:
   element_type* decay(pointer p) const noexcept {
     return acc.decay(p);
   }
+
+  Accessor nested_accessor() const {
+    return acc;
+  }
 private:
   Accessor acc;
 };
@@ -1579,21 +1583,26 @@ public:
 
   accessor_conjugate() = default;
 
-  accessor_conjugate(Accessor a) : accessor(a) {}
+  accessor_conjugate(Accessor a) : acc(a) {}
 
   reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(accessor.access(p, i));
+    return reference(acc.access(p, i));
   }
 
   typename offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return accessor.offset(p, i);
+    return acc.offset(p, i);
   }
 
   element_type* decay(pointer p) const noexcept {
-    return accessor.decay(p);
+    return acc.decay(p);
   }
+
+  Accessor nested_accessor() const {
+    return acc;
+  }
+
 private:
-  Accessor accessor;
+  Accessor acc;
 };
 ```
 
@@ -1618,6 +1627,23 @@ conjugate_view(basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 return basic_mdspan<ElementType, Extents, Layout,
   accessor_conjugate<Accessor, ElementType>>(a.data(),
     a.mapping(), accessor_conjugate<Accessor, ElementType>(a.accessor()));
+```
+
+```c++
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout, Accessor>
+conjugate_view(basic_mdspan<ElementType, Extents, Layout,
+  accessor_conjugate<Accessor, ElementType>> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<ElementType, Extents, Layout, Accessor>(a.data(),
+    a.mapping(), a.accessor().nested_accessor());
 ```
 
 *Example:*
@@ -1664,20 +1690,21 @@ public:
   template<class Extents>
   struct mapping {
   private:
-    using nested_mapping_type = typename Layout::template mapping<Extents>;
+    using nested_mapping_type =
+      typename Layout::template mapping<Extents>; // exposition only
+    nested_mapping_type nested_mapping_; // exposition only
   public:
-    nested_mapping_type nested_mapping;
-
     mapping() = default;
 
-    mapping(nested_mapping_type map) : nested_mapping(map) {}
+    mapping(nested_mapping_type map) : nested_mapping_(map) {}
 
     // ... insert other standard mapping things ...
 
     ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const {
-      return nested_mapping(j, i);
+      return nested_mapping_(j, i);
     }
 
+    nested_mapping() const { return nested_mapping_; }
   };
 };
 ```
@@ -1686,15 +1713,16 @@ public:
 
   * `Layout` is a unique layout.
 
-  * `Layout::mapping::rank()` is at least 2.
+  * `Layout::mapping::rank()` is 2.
 
 #### `transpose_view`
 
-The `transpose_view` function returns a transposed view of an object.
-For rank-2 objects, the transposed view swaps the row and column
-indices.
+The `transpose_view` function returns a transposed view of a rank-2
+`basic_mdspan`.  The transposed view swaps the indices.
 
-Note that `transpose_view` always returns a `basic_mdspan` with the
+*[Note:*
+
+`transpose_view` always returns a `basic_mdspan` with the
 `layout_transpose` argument.  This gives a type-based indication of
 the transpose operation.  However, functions' implementations may
 convert the `layout_transpose` object to an object with a different
@@ -1703,10 +1731,39 @@ of a `layout_blas<column_major_t>` matrix as a
 `layout_blas<row_major_t>` matrix.  (This is a classic technique for
 supporting row-major matrices using the Fortran BLAS interface.)
 
+--*end note]*
+
 ```c++
-template<class EltType, class Extents, class Layout, class Accessor>
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
 basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
 transpose_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>(a.data(),
+  typename layout_transpose<Layout>::template mapping<Extents>(a.mapping()),
+  a.accessor());
+```
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, Layout, Accessor>
+transpose_view(basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
+  a.mapping().nested_mapping(), a.accessor());
 ```
 
 #### Conjugate transpose view
@@ -1716,11 +1773,78 @@ view of an object.  This combines the effects of `transpose_view` and
 `conjugate_view`.
 
 ```c++
-template<class EltType, class Extents, class Layout, class Accessor>
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
 basic_mdspan<EltType, Extents, layout_transpose<Layout>,
              accessor_conjugate<Accessor, EltType>>
 conjugate_transpose_view(
   basic_mdspan<EltType, Extents, Layout, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, layout_transpose<Layout>,
+  accessor_conjugate<Accessor, EltType>>(a.data(),
+    a.mapping(), a.accessor());
+```
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, Layout,
+             accessor_conjugate<Accessor, EltType>>
+conjugate_transpose_view(
+  basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, Layout,
+  accessor_conjugate<Accessor, EltType>>(a.data(),
+    a.mapping().nested_mapping(), a.accessor());
+```
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
+conjugate_transpose_view(
+  basic_mdspan<EltType, Extents, Layout,
+               accessor_conjugate<Accessor, EltType>> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents,
+  layout_transpose<Layout>, Accessor>(a.data(),
+    a.mapping(), a.accessor().nested_accessor());
+```
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, Layout, Accessor>
+conjugate_transpose_view(
+  basic_mdspan<EltType, Extents, layout_transpose<Layout>,
+               accessor_conjugate<Accessor, EltType>> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
+    a.mapping().nested_mapping(), a.accessor().nested_accessor());
 ```
 
 ## Algorithms
