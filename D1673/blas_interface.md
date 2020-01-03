@@ -326,7 +326,7 @@ as broadly useful, and in many cases significantly more so.
    experts to tune, from mathematical operations that rely on those
    primitives for good performance.
 
-3. Benchmarks reward hardware and system vendors for providing an
+3. Benchmarks reward hardware and system vendors for providing
    optimized BLAS implementations.
 
 4. Writing a fast BLAS implementation for common element types is
@@ -360,12 +360,12 @@ benchmark](https://www.top500.org/project/linpack/) reward computer
 hardware vendors for optimizing their BLAS implementations.  Thus,
 many vendors provide an optimized BLAS library for their computer
 architectures.  Writing fast BLAS-like operations is not trivial, and
-depends on computer architecture.  However, it is not black magic; it
-is a well-understood problem whose solutions could be parameterized
-for a variety of computer architectures.  See, for example, [Goto and
-van de Geijn 2008](https://doi.org/10.1145/1356052.1356053).  There
-are optimized third-party BLAS implementations for common
-architectures, like [ATLAS](http://math-atlas.sourceforge.net/) and
+depends on computer architecture.  However, it is a well-understood
+problem whose solutions could be parameterized for a variety of
+computer architectures.  See, for example, [Goto and van de Geijn
+2008](https://doi.org/10.1145/1356052.1356053).  There are optimized
+third-party BLAS implementations for common architectures, like
+[ATLAS](http://math-atlas.sourceforge.net/) and
 [GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2).
 A (slow but correct) [reference implementation of the
 BLAS](http://www.netlib.org/blas/#_reference_blas_version_3_8_0)
@@ -373,14 +373,15 @@ exists and it has a liberal software license for easy reuse.
 
 We have experience in the exercise of wrapping a C or Fortran BLAS
 implementation for use in portable C++ libraries.  We describe this
-exercise in detail in our paper "Evolving a Standard C++ Linear
-Algebra Library from the BLAS" (P1674R0).  It is straightforward for
-vendors, but has pitfalls for developers.  For example, Fortran's
-application binary interface (ABI) differs across platforms in ways
-that can cause run-time errors (even incorrect results, not just
-crashing).  Historical examples of vendors' C BLAS implementations
-have also had ABI issues that required work-arounds.  This dependence
-on ABI details makes availability in a standard C++ library valuable.
+exercise in detail in our paper ["Evolving a Standard C++ Linear
+Algebra Library from the BLAS" (P1674)](http://wg21.link/p1674).  It
+is straightforward for vendors, but has pitfalls for developers.  For
+example, Fortran's application binary interface (ABI) differs across
+platforms in ways that can cause run-time errors (even incorrect
+results, not just crashing).  Historical examples of vendors' C BLAS
+implementations have also had ABI issues that required work-arounds.
+This dependence on ABI details makes availability in a standard C++
+library valuable.
 
 ## Notation and conventions
 
