@@ -63,6 +63,8 @@
   * *Mandate* any extent compatibility checks that can be done at
     compile time.
 
+  * Add missing `triangular_matrix_product` function.
+
 ### Over- and underflow wording for vector 2-norm
 
 SG6 recommended to us at Belfast 2019 to change the special overflow /
@@ -203,10 +205,10 @@ Our proposal also has the following distinctive characteristics:
 ## Interoperable with other linear algebra proposals
 
 We believe this proposal is complementary to
-[P1385R1](http://wg21.link/p1385r1), a proposal for a C++ Standard linear
+[P1385](http://wg21.link/p1385), a proposal for a C++ Standard linear
 algebra library that introduces matrix and vector classes and
 overloaded arithmetic operators.  In fact, we think that our proposal
-would make a natural foundation for a library like what P1385R1
+would make a natural foundation for a library like what P1385
 proposes.  However, a free function interface -- which clearly
 separates algorithms from data structures -- more naturally allows for
 a richer set of operations such as what the BLAS provides.  A natural
@@ -269,15 +271,16 @@ Library:
   many of its cycles in linear algebra.  For decades, hardware
   vendors, some represented at WG21 meetings, have provided and
   continue to provide features specifically to accelerate linear
-  algebra operations.  For example, SIMD (single instruction multiple
-  data) is a feature added to processors to speed up matrix and vector
-  operations.  [P0214R9](http://wg21.link/p0214r9), a C++ SIMD library, was
-  voted into the C++20 draft.  Several large computer system vendors
-  offer optimized linear algebra libraries based on or closely
-  resembling the BLAS; these include AMD's BLIS, ARM's Performance
-  Libraries, Cray's LibSci, Intel's Math Kernel Library (MKL), IBM's
-  Engineering and Scientific Subroutine Library (ESSL), and NVIDIA's
-  cuBLAS.
+  algebra operations.  Some of them even implement specific linear
+  algebra operations directly in hardware.  Examples include NVIDIA's
+  [Tensor Cores](https://www.nvidia.com/en-us/data-center/tensorcore/)
+  and Cerebras' [Wafer Scale
+  Engine](https://www.cerebras.net/product/#chip).  Several large
+  computer system vendors offer optimized linear algebra libraries
+  based on or closely resembling the BLAS; these include AMD's BLIS,
+  ARM's Performance Libraries, Cray's LibSci, Intel's Math Kernel
+  Library (MKL), IBM's Engineering and Scientific Subroutine Library
+  (ESSL), and NVIDIA's cuBLAS.
 
 Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
@@ -630,7 +633,7 @@ We do so for the following reasons:
    introduce problems such as dangling references and aliasing.
 
 Our goal is to propose a low-level interface.  Other libraries, such
-as that proposed by [P1385R1](http://wg21.link/p1385r1), could use our
+as that proposed by [P1385](http://wg21.link/p1385), could use our
 interface to implement overloaded arithmetic for matrices and vectors.
 [P0939R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf)
 advocates using "an incremental approach to design to benefit from
@@ -648,7 +651,7 @@ loses precision.  Some users may want `complex<double>`; others may
 want `complex<long double>` or something else, and others may want to
 choose different types in the same program.
 
-[P1385R1](http://wg21.link/p1385r1) lets users customize the return type of
+[P1385](http://wg21.link/p1385) lets users customize the return type of
 such arithmetic expressions.  However, different algorithms may call
 for the same expression with the same inputs to have different output
 types.  For example, iterative refinement of linear systems `Ax=b` can
@@ -948,7 +951,7 @@ of P1684, `basic_mdarray` will implement `get_mdspan`.  This will let
 users use `basic_mdarray` directly in our functions.  This
 customization point approach would also simplify using our functions
 with other matrix and vector types, such as those proposed by
-[P1385(http://wg21.link/p1385).  Implementations may optionally add
+[P1385](http://wg21.link/p1385).  Implementations may optionally add
 direct overloads of our functions for `basic_mdarray` or other types.
 This would address any concerns about overhead of converting from
 `basic_mdarray` to `basic_mdspan`.
@@ -4437,8 +4440,8 @@ pioneering efforts and history lessons.
   Jun. 2002, pp. 135-151.
 
 * G. Davidson and B. Steagall, "A proposal to add linear algebra
-  support to the C++ standard library," [P1385R1](http://wg21.link/p1385r1),
-  Mar. 2019.
+  support to the C++ standard library,"
+  [P1385R4](http://wg21.link/p1385r4), Nov. 2019.
 
 * B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
   "Direction for ISO C++," [P0939R0](http://wg21.link/p0939r0), Feb. 2018.
