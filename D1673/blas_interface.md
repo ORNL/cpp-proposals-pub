@@ -3340,9 +3340,15 @@ void hermitian_matrix_rank_2_update(
 
 The following requirements apply to all functions in this section.
 
-* *Requires:* If `i,j` is in the domain of `C`, then there exists `k`
-  such that `i,k` is in the domain of `A`, and `k,j` is in the domain
-  of `B`.
+* *Requires:*
+
+  * `A.extent(1)` equals `B.extent(0)`.
+
+  * `A.extent(0)` equals `C.extent(0)`.
+
+  * `B.extent(1)` equals `C.extent(1)`.
+
+  * `C` and `E` have the same domain (if applicable).
 
 * *Constraints:*
 
@@ -3366,13 +3372,10 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `B.static_extent(1)` equals
     `C.static_extent(1)`.
 
-  * If neither `C.static_extent(0)` nor `E.static_extent(0)` equals
-    `dynamic_extent`, then `C.static_extent(0)` equals
-    `E.static_extent(0)` (if applicable).
-
-  * If neither `C.static_extent(1)` nor `E.static_extent(1)` equals
-    `dynamic_extent`, then `C.static_extent(1)` equals
-    `E.static_extent(1)` (if applicable).
+  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
+    `C.static_extent(r)` nor `E.static_extent(r)` equals
+    `dynamic_extent`, then `C.static_extent(r)` equals
+    `E.static_extent(r)` (if applicable).
 
 ##### Overwriting general matrix-matrix product
 
