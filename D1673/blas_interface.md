@@ -2461,15 +2461,18 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
-    and `j` is in the domain of `x`.
+  * `A.extent(1)` equals `x.extent(0)`.
+
+  * `A.extent(0)` equals `y.extent(0)`.
+
+  * `y.extent(0)` equals `z.extent(0)` (if applicable).
 
 * *Constraints:* For all functions in this section:
 
   * `in_matrix_t` has unique layout; and
 
   * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
-    `z.rank()` equals 1.
+    `z.rank()` equals 1 (if applicable).
 
 * *Mandates:*
 
@@ -2480,6 +2483,10 @@ The following requirements apply to all functions in this section.
   * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
     `y.static_extent(0)`.
+
+  * If neither `y.static_extent(0)` nor `z.static_extent(0)` equals
+    `dynamic_extent`, then `y.static_extent(0)` equals
+    `z.static_extent(0)` (if applicable).
 
 ##### Overwriting matrix-vector product
 
@@ -2531,18 +2538,8 @@ void matrix_vector_product(ExecutionPolicy&& exec,
                            out_vector_t z);
 ```
 
-* *Requires:*
-
-  * `y` and `z` have the same domain.
-
-* *Constraints:*
-
-  * For `i,j` in the domain of `A`, the expression
-    `z(i) = y(i) + A(i,j)*x(j)` is well formed.
-
-* *Mandates:* If neither `y.static_extent(0)` nor `z.static_extent(0)`
-  equals `dynamic_extent`, then `y.static_extent(0)` equals
-  `z.static_extent(0)`.
+* *Constraints:* For `i,j` in the domain of `A`,
+  the expression `z(i) = y(i) + A(i,j)*x(j)` is well formed.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
@@ -2556,8 +2553,13 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
-    and `j` is in the domain of `x`.
+  * `A.extent(0)` equals `A.extent(1)`.
+
+  * `A.extent(1)` equals `x.extent(0)`.
+
+  * `A.extent(0)` equals `y.extent(0)`.
+
+  * `y.extent(0)` equals `z.extent(0)` (if applicable).
 
 * *Constraints:*
 
@@ -2569,9 +2571,13 @@ The following requirements apply to all functions in this section.
     the function's `Triangle` template argument.
 
   * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
-    `z.rank()` equals 1.
+    `z.rank()` equals 1 (if applicable).
 
 * *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
 
   * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
@@ -2580,6 +2586,10 @@ The following requirements apply to all functions in this section.
   * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
     `y.static_extent(0)`.
+
+  * If neither `y.static_extent(0)` nor `z.static_extent(0)` equals
+    `dynamic_extent`, then `y.static_extent(0)` equals
+    `z.static_extent(0)` (if applicable).
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2645,14 +2655,8 @@ void symmetric_matrix_vector_product(
   out_vector_t z);
 ```
 
-* *Requires:* `y` and `z` have the same domain.
-
 * *Constraints:* For `i,j` in the domain of `A`, the expression
   `z(i) = y(i) + A(i,j)*x(j)` is well formed.
-
-* *Mandates:* If neither `y.static_extent(0)` nor `z.static_extent(0)`
-  equals `dynamic_extent`, then `y.static_extent(0)` equals
-  `z.static_extent(0)`.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
@@ -2666,8 +2670,13 @@ The following requirements apply to all functions in this section.
 
 * *Requires:"*
 
-  * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
-    and `j` is in the domain of `x`.
+  * `A.extent(0)` equals `A.extent(1)`.
+
+  * `A.extent(1)` equals `x.extent(0)`.
+
+  * `A.extent(0)` equals `y.extent(0)`.
+
+  * `y.extent(0)` equals `z.extent(0)` (if applicable).
 
 * *Constraints:*
 
@@ -2683,6 +2692,10 @@ The following requirements apply to all functions in this section.
 
 * *Mandates:*
 
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
+
   * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
     `x.static_extent(0)`.
@@ -2690,6 +2703,10 @@ The following requirements apply to all functions in this section.
   * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
     `y.static_extent(0)`.
+
+  * If neither `y.static_extent(0)` nor `z.static_extent(0)` equals
+    `dynamic_extent`, then `y.static_extent(0)` equals
+    `z.static_extent(0)` (if applicable).
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -2755,15 +2772,9 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
                                      out_vector_t z);
 ```
 
-* *Requires:* `y` and `z` have the same domain.
-
 * *Constraints:* For `i,j` in the domain of `A`, the expressions
   `z(i) = y(i) + A(i,j)*x(j)` and `z(i) = y(i) + conj(A(i,j))*x(j)`
   are well formed.
-
-* *Mandates:* If neither `y.static_extent(0)` nor `z.static_extent(0)`
-  equals `dynamic_extent`, then `y.static_extent(0)` equals
-  `z.static_extent(0)`.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
@@ -2777,8 +2788,13 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `A`, then `i` is in the domain of `y`
-    and `j` is in the domain of `x`.
+  * `A.extent(0)` equals `A.extent(1)`.
+
+  * `A.extent(1)` equals `x.extent(0)`.
+
+  * `A.extent(0)` equals `y.extent(0)`.
+
+  * `y.extent(0)` equals `z.extent(0)` (if applicable).
 
 * *Constraints:*
 
@@ -2794,6 +2810,10 @@ The following requirements apply to all functions in this section.
 
 * *Mandates:*
 
+  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `A.static_extent(1)`.
+
   * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
     `x.static_extent(0)`.
@@ -2801,6 +2821,10 @@ The following requirements apply to all functions in this section.
   * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
     `y.static_extent(0)`.
+
+  * If neither `y.static_extent(0)` nor `z.static_extent(0)` equals
+    `dynamic_extent`, then `y.static_extent(0)` equals
+    `z.static_extent(0)` (if applicable).
 
 * *Remarks:*
 
@@ -2882,14 +2906,8 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
                                       out_vector_t z);
 ```
 
-* *Requires:* `y` and `z` have the same domain.
-
 * *Constraints:* For `i,j` in the domain of `A`, the expression
   `z(i) = y(i) + A(i,j)*x(j)` is well formed.
-
-* *Mandates:* If neither `y.static_extent(0)` nor `z.static_extent(0)`
-  equals `dynamic_extent`, then `y.static_extent(0)` equals
-  `z.static_extent(0)`.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
