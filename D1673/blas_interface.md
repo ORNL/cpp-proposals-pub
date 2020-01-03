@@ -3010,8 +3010,9 @@ types). --*end note]*
 
 * *Requires:*
 
-  * If `i,j` is in the domain of `A`, then `i` is in the domain of `x`
-    and `j` is in the domain of `y`.
+  * `A.extent(0)` equals `x.extent(0)`.
+
+  * `A.extent(1)` equals `y.extent(0)`.
 
 * *Constraints:*
 
@@ -3022,13 +3023,13 @@ types). --*end note]*
 
 * *Mandates:*
 
-  * If neither `A.static_extent(1)` nor `y.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `y.static_extent(0)`.
-
   * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
     `x.static_extent(0)`.
+
+  * If neither `A.static_extent(1)` nor `y.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `y.static_extent(0)`.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
   outer product of `x` and `y`.
