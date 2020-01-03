@@ -1391,7 +1391,7 @@ public:
     scaling_factor(s), accessor(a) {}
 
   reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(accessor.access(p, i), scaling_factor);
+    return reference(scaling_factor, accessor.access(p, i));
   }
 
   offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
@@ -1471,8 +1471,9 @@ element types.
 
 #### `conjugated_scalar`
 
-`conjugated_scalar` expresses a conjugated version of an existing
-scalar.  This must be read only.  *[Note:* This avoids likely
+`conjugated_scalar` expresses a read-only conjugated version of an
+existing scalar.  It is part of the implementation of
+`accessor_conjugate`.  *[Note:* This is read only to avoid likely
 confusion with the definition of "assigning to the conjugate of a
 scalar." --*end note]*
 
@@ -1497,48 +1498,45 @@ in the sense of **[namespace.std]**.  Our definition of
 Standard to permit `complex<T>` for other `T`.)
 
 ```c++
-template<class T>
+template<class Reference, class T>
 class conjugated_scalar {
 public:
   using value_type = T;
 
-  conjugated_scalar(const T& v) : val(v) {}
+  conjugated_scalar(Reference v);
 
-  operator T() const { return conj(val); }
-
-  template<class T2>
-  T operator* (const T2 upd) const {
-    return conj(val) * upd;
-  }
-
-  template<class T2>
-  T operator+ (const T2 upd) const {
-    return conj(val) + upd;
-  }
-
-  template<class T2>
-  bool operator== (const T2 upd) const {
-    return conj(val) == upd;
-  }
-
-  template<class T2>
-  bool operator!= (const T2 upd) const {
-    return conj(val) != upd;
-  }
-
-  // ... add only those operators needed for the functions in this
-  // proposal ...
+  operator value_type() const;
 
 private:
-  const T& val;
+  Reference val; // exposition only
 };
 ```
+* *Requires:* `Reference` shall be *Cpp17CopyConstructible*.
+
+* *Constraints:*
+
+  * `T` is `complex<R>` for some type `R`.
+
+  * The expression `conj(val)` is well formed and
+    is convertible to `T`.
+
+```c++
+conjugated_scalar(Reference v);
+```
+
+* *Effects:* Initializes `val` with `v`.
+
+```c++
+operator value_type() const;
+```
+
+* *Effects:* Equivalent to `return conj(val);`.
 
 #### `accessor_conjugate`
 
 The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
-`conjugated_scalar` if the scalar type is `std::complex<R>` for some
-`R`.  Otherwise, it makes `basic_mdspan` access return the original
+`conjugated_scalar` if the scalar type is `std::complex<T>` for some
+`T`.  Otherwise, it makes `basic_mdspan` access return the original
 `basic_mdspan`'s reference type.
 
 ```c++
@@ -1574,30 +1572,28 @@ class accessor_conjugate<Accessor, std::complex<T>> {
 public:
   using element_type  = typename Accessor::element_type;
   using pointer       = typename Accessor::pointer;
-  // FIXME Do we actually need to template conjugated_scalar
-  // on the Reference type as well as T ?
   using reference     =
-    conjugated_scalar< /* typename Accessor::reference, */ std::complex<T>>;
+    conjugated_scalar<typename Accessor::reference, std::complex<T>>;
   using offset_policy =
     accessor_conjugate<typename Accessor::offset_policy, std::complex<T>>;
 
   accessor_conjugate() = default;
 
-  accessor_conjugate(Accessor a) : acc(a) {}
+  accessor_conjugate(Accessor a) : accessor(a) {}
 
   reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p, i));
+    return reference(accessor.access(p, i));
   }
 
   typename offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return acc.offset(p, i);
+    return accessor.offset(p, i);
   }
 
   element_type* decay(pointer p) const noexcept {
-    return acc.decay(p);
+    return accessor.decay(p);
   }
 private:
-  Accessor acc;
+  Accessor accessor;
 };
 ```
 
@@ -1607,10 +1603,21 @@ The `conjugate_view` function returns a conjugated view using a new
 accessor.
 
 ```c++
-template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<EltType, Extents, Layout,
-             accessor_conjugate<Accessor, EltType>>
-conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout,
+             accessor_conjugate<Accessor, ElementType>>
+conjugate_view(basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<ElementType, Extents, Layout,
+  accessor_conjugate<Accessor, ElementType>>(a.data(),
+    a.mapping(), accessor_conjugate<Accessor, ElementType>(a.accessor()));
 ```
 
 *Example:*
@@ -1619,15 +1626,11 @@ conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
 void test_conjugate_view(basic_mdspan<complex<double>, extents<10>>)
 {
   auto a_conj = conjugate_view(a);
-  for(int i = 0; i < a.extent(0); ++i)
+  for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj(i) == conj(a(i));
+  }
 }
 ```
-
-*[Note:* Instead of a partial specialization of `accessor_conjugate`,
-one could have different overloads of `conjugate_view` that return fo
-non-complex scalar types the same accessor as the input
-argument. --*end note]*
 
 ### Transpose view of an object
 
