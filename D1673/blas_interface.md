@@ -1264,46 +1264,36 @@ topmost (least row index) row, and proceeding row by row, from the
 leftmost (least column index) entry.
 
 Whether the "type" stores the upper or lower triangle of the matrix
-matters for the layout, not just for the matrix's mathematical
-properties.  Thus, the choice of upper or lower triangle must be part
-of the layout.  `Triangle=upper_triangle_t` means that the layout
-represents the upper triangle; `Triangle=lower_triangle_t` means that
-the layout represents the lower triangle.  We will describe the
-mapping as a function of `StorageOrder` and `Triangle` below.
+matters for the memory mapping, so the choice of upper or lower
+triangle must be part of the layout.  We will describe the mapping as
+a function of `StorageOrder` and `Triangle` below.
 
 Packed layouts require that the matrix/matrices are square.  That is,
-the rightmost two extents (`extents(extents().rank()-2)` and
-`extents(extents().rank()-1)`) are equal.
+the two extents are equal.
 
-Packed layouts generalize just like unpacked layouts to "batches" of
-matrices.  The last two (rightmost) indices index within a matrix, and
-the remaining index/indices identify which matrix.
+Let N be `extents(1)`.  (That is, the matrix has N rows and N
+columns.)  Let `i,j` be the indices given to the packed layout's
+`mapping::operator()`.
 
-Let N be `extents(extents().rank()-1)`.  (That is, each matrix in the
-batch has N rows and N columns.)  Let `i,j` be the last two
-(rightmost) indices in the `is` parameter pack given to the packed
-layout's `mapping::operator()`.
+* If `StorageOrder` is `column_major_t` and
+  `Triangle` is `upper_triangle_t`,
+  then index pair i,j maps to i + j(j+1)/2 if i >= j,
+  else index pair i,j maps to j + i(i+1)/2.
 
-* For the upper triangular, column-major format, index pair i,j maps
-  to i + (1 + 2 + ... + j).
+* If `StorageOrder` is `column_major_t` and
+  `Triangle` is `lower_triangle_t`,
+  then index pair i,j maps to i + Nj - j(j+1)/2 if i <= j,
+  else index pair i,j maps to j + Ni - i(i+1)/2.
 
-* For the lower triangular, column-major format, index pair i,j maps
-  to i + (1 + 2 + ... + N-j-1).
+* If `StorageOrder` is `row_major_t` and
+  `Triangle` is `upper_triangle_t`,
+  then index pair i,j maps to j + Ni - i(i+1)/2 if j <= i,
+  else index pair i,j maps to i + Nj - j(j+1)/2.
 
-* For the upper triangular, row-major format, index pair i,j maps
-  to j + (1 + 2 + ... + i).
-
-* For the lower triangular, row-major format, index pair i,j maps
-  to j + (1 + 2 + ... + N-i-1).
-
-*[Note:* Whether or not the storage format has an implicit unit
- diagonal (see the `implicit_unit_diagonal_t` tag above) does not
- change the mapping.  This means that packed matrix storage "wastes"
- the unit diagonal, if present.  This follows BLAS convention; see
- Section 2.2.4 of the BLAS Standard.  It also has the advantage that
- every index pair `i,j` in the Cartesian product of the extents maps
- to a valid (though wrong) codomain index.  This is why we declare the
- packed layout mappings as "nonunique." --*end note]*
+* If `StorageOrder` is `row_major_t` and
+  `Triangle` is `lower_triangle_t`,
+  then index pair i,j maps to j + i(i+1)/2 if j >= i,
+  else index pair i,j maps to i + j(j+1)/2.
 
 #### Packed layout views
 
