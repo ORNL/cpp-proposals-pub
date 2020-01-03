@@ -812,12 +812,12 @@ LEWGI requested in the 2019 Cologne meeting that we explore using a
 concept instead of `basic_mdspan` to define the arguments for the
 linear algebra functions.  Our investigation of this option leads us
 to believe that such a concept would largely replicate the definition
-of `basic_mdspan`.  This proposal refers to all of its customization
-points: `extents`, `layout`, and `accessor_policy`.  We expect
-implementations to use all of them for optimizations, for example to
-extract the scaling factor from a `scaled_view` result in order to
-call an optimized BLAS library directly.  At this point it is not
-clear to us that there would be significant benefits to defining
+of `basic_mdspan`.  This proposal refers to almost all of its
+features, including `extents`, `layout`, and `accessor_policy`.  We
+expect implementations to use all of them for optimizations, for
+example to extract the scaling factor from a `scaled_view` result in
+order to call an optimized BLAS library directly.  At this point it is
+not clear to us that there would be significant benefits to defining
 linear algebra functions in terms of such a concept, instead of
 defining a general customization point `get_mdspan`, allowing
 acceptance of any object type, which provides it.  After further
@@ -869,8 +869,10 @@ Summary:
    Type is a mixture of "storage format" (e.g., packed, banded) and
    "mathematical property" (e.g., symmetric, Hermitian, triangular).
 
-2. Some "types" can be expressed as custom `basic_mdspan` layouts;
-   others do not.
+2. Some "types" can be expressed as custom `basic_mdspan` layouts.
+   Other types actually represent algorithmic constraints: for
+   instance, what entries of the matrix the algorithm is allowed to
+   access.
 
 3. Thus, a C++ BLAS wrapper cannot overload on matrix "type" simply by
    overloading on `basic_mdspan` specialization.  The wrapper must use
@@ -1027,23 +1029,22 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 
 ### Layouts
 
-Our proposal uses the layout policy of `basic_mdspan`
-in order to represent different matrix and vector data
-layouts.  Layouts as described by P0009R9 come in three different
-categories:
+Our proposal uses the layout policy of `basic_mdspan` in order to
+represent different matrix and vector data layouts.  Layouts as
+described by P0009R9 have three basic properties:
 
 * Unique
 * Contiguous
 * Strided
 
 P0009R9 includes three different layouts -- `layout_left`,
-`layout_right`, and `layout_stride` -- all of which are unique,
-contiguous, and strided.
+`layout_right`, and `layout_stride` -- all of which are unique and
+strided.  Only `layout_left` and `layout_right` are contiguous.
 
 This proposal includes the following additional layouts:
 
 * `layout_blas_general`: Generalization of `layout_left` and
-  `layout_right`; describes layout used by General matrix "type"
+  `layout_right`; describes layout used by General (GE) matrix "type"
 
 * `layout_blas_packed`: Describes layout used by the BLAS' Symmetric
   Packed (SP), Hermitian Packed (HP), and Triangular Packed (TP)
@@ -1053,33 +1054,32 @@ These layouts have "tag" template parameters that control their
 properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
-(SY), Hermitian (HE), and triangular (TR).  P1674R0 explains our
+(SY), Hermitian (HE), and Triangular (TR).  P1674R0 explains our
 reasoning.  In summary: Their actual layout -- the arrangement of
 matrix elements in memory -- is the same as General.  The only
 differences are constraints on what entries of the matrix algorithms
 may access, and assumptions about the matrix's mathematical
 properties.  Trying to express those constraints or assumptions as
 "layouts" or "accessors" violates the spirit (and sometimes the law)
-of `basic_mdspan`.
+of `basic_mdspan`.  We address these different matrix types with
+different function names.
 
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that these layouts would thus
-be the first additions to the layouts in P0009R9 that are not unique,
-contiguous, and strided.
+be the first additions to the layouts in P0009R9 that are not unique
+and strided.
 
-Algorithms cannot be written generically if they permit arguments with
-nonunique layouts, especially output arguments.  Nonunique output
-arguments require specialization of the algorithm to the layout, since
-there's no way to know generically at compile time what indices map to
-the same matrix element.  Thus, we impose the following rule: Any
-`basic_mdspan` argument to our functions must
-always have unique layout (`is_always_unique()` is `true`), unless
-otherwise specified.
+Algorithms cannot be written generically if they permit output
+arguments with nonunique layouts.  Nonunique output arguments require
+specialization of the algorithm to the layout, since there's no way to
+know generically at compile time what indices map to the same matrix
+element.  Thus, we impose the following rule: Any `basic_mdspan`
+output argument to our functions must always have unique layout
+(`is_always_unique()` is `true`), unless otherwise specified.
 
 Some of our functions explicitly require outputs with specific
 nonunique layouts.  This includes low-rank updates to symmetric or
-Hermitian matrices, and matrix-matrix multiplication with symmetric or
 Hermitian matrices.
 
 #### Tag classes for layouts
@@ -1092,14 +1092,10 @@ control of function behavior.
 ##### Storage order tags
 
 ```c++
-struct column_major_t {
-  constexpr explicit column_major_t() noexcept = default;
-};
+struct column_major_t { };
 inline constexpr column_major_t column_major = { };
 
-struct row_major_t {
-  constexpr explicit row_major_t() noexcept = default;
-};
+struct row_major_t { };
 inline constexpr row_major_t row_major = { };
 ```
 
@@ -1124,14 +1120,10 @@ the "upper triangle," "lower triangle," and "diagonal" of a matrix.
   triangle.
 
 ```c++
-struct upper_triangle_t {
-  constexpr explicit upper_triangle_t() noexcept = default;
-};
+struct upper_triangle_t { };
 inline constexpr upper_triangle_t upper_triangle = { };
 
-struct lower_triangle_t {
-  constexpr explicit lower_triangle_t() noexcept = default;
-};
+struct lower_triangle_t { };
 inline constexpr lower_triangle_t lower_triangle = { };
 ```
 
@@ -1145,14 +1137,10 @@ applied; see below.
 ##### Diagonal tags
 
 ```c++
-struct implicit_unit_diagonal_t {
-  constexpr explicit implicit_unit_diagonal_t() noexcept = default;
-};
+struct implicit_unit_diagonal_t { };
 inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal = { };
 
-struct explicit_diagonal_t {
-  constexpr explicit explicit_diagonal_t() noexcept = default;
-};
+struct explicit_diagonal_t { };
 inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
@@ -1168,11 +1156,6 @@ The `implicit_unit_diagonal_t` tag indicates two things:
 
   * the matrix has a diagonal of ones (a unit diagonal).
 
-*[Note:* Typical BLAS practice is that the algorithm never actually
-needs to form an explicit `1.0`, so there is no need to impose a
-constraint that `1` or `1.0` is convertible to the matrix's
-`element_type`. --*end note]*
-
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
 
@@ -1184,14 +1167,10 @@ side of an object.  *[Note:* Matrix-matrix product and triangular
 solve with a matrix generally do not commute. --*end note]*
 
 ```c++
-struct left_side_t {
-  constexpr explicit left_side_t() noexcept = default;
-};
+struct left_side_t { };
 constexpr left_side_t left_side = { };
 
-struct right_side_t {
-  constexpr explicit right_side_t() noexcept = default;
-};
+struct right_side_t { };
 constexpr right_side_t right_side = { };
 ```
 
