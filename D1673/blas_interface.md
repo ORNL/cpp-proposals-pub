@@ -67,6 +67,11 @@
 
   * Remove `packed_view` function.
 
+  * (Re)add `Reference` template parameter to `conjugated_scalar`.
+
+  * Make sure that `{conjugate,transpose}_view` applied 2x undoes
+    the original conjugation / transposition.
+
 ### Over- and underflow wording for vector 2-norm
 
 SG6 recommended to us at Belfast 2019 to change the special overflow /
