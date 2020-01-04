@@ -1471,7 +1471,8 @@ scaled_view(
 ```c++
 return basic_mdspan<ElementType, Extents, Layout,
   accessor_scaled<ScalingFactor, Accessor>>(a.data(),
-    a.mapping(), accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
+    a.mapping(),
+    accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
 ```
 
 *Example:*
@@ -1488,28 +1489,21 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 
 ### Conjugated view of an object
 
-Some BLAS functions of matrices also take an argument that specifies
-whether to view the transpose or conjugate transpose of the matrix.
-The BLAS uses this argument to modify a read-only input transiently.
-This means that users can let the BLAS work with the data in place,
-without needing to compute the transpose or conjugate transpose
-explicitly.  However, it complicates the BLAS interface.
+Some BLAS functions of matrices also take one or more `TRANS*`
+arguments that specifies whether to view the transpose or conjugate
+transpose of the matrix or matrices.  This means that users can let
+the BLAS work with the data in place, without needing to compute the
+transpose or conjugate transpose explicitly.  However, it complicates
+the BLAS interface.  Just as we did above with "scaled views" of an
+object, we can apply the complex conjugate operation to each element
+of an object using a special accessor.  This lets us get rid of the
+`TRANS*` function arguments.
 
-Just as we did above with "scaled views" of an object, we can apply
-the complex conjugate operation to each element of an object using a
-special accessor.
-
-What does the complex conjugate mean for non-complex numbers?  We use
-the convention that the "complex conjugate" of a non-complex number is
-just the number.  This makes sense mathematically, if we embed a field
-(of real numbers) in the corresponding set of complex numbers over
-that field, as all complex numbers with zero imaginary part.  It's
-also the convention that the
-[Trilinos](https://github.com/trilinos/Trilinos) library (among
-others) uses.  However, as we will show below, this does not work with
-the C++ Standard Library's definition of `conj`.  We deal with this by
-defining `conjugate_view` so that it does not use `conj` for real
-element types.
+For non-complex numbers, we use the convention that the "complex
+conjugate" of a non-complex number is just the number.  However, as we
+will show below, this does not work with the C++ Standard Library's
+definition of `conj`.  We deal with this by defining `conjugate_view`
+so that it does not use `conj` for real element types.
 
 #### `conjugated_scalar`
 
@@ -1553,6 +1547,7 @@ private:
   Reference val; // exposition only
 };
 ```
+
 * *Requires:* `Reference` shall be *Cpp17CopyConstructible*.
 
 * *Constraints:*
@@ -1590,63 +1585,90 @@ public:
   using reference     = typename Accessor::reference;
   using offset_policy = typename Accessor::offset_policy;
 
-  accessor_conjugate() = default;
+  accessor_conjugate(Accessor a);
 
-  accessor_conjugate(Accessor a) : acc(a) {}
+  reference access(pointer p, ptrdiff_t i) const noexcept;
 
-  reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p, i));
-  }
+  typename offset_policy::pointer
+  offset(pointer p, ptrdiff_t i) const noexcept;
 
-  typename offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return acc.offset(p,i);
-  }
+  element_type* decay(pointer p) const noexcept;
 
-  element_type* decay(pointer p) const noexcept {
-    return acc.decay(p);
-  }
+  Accessor nested_accessor() const;
 
-  Accessor nested_accessor() const {
-    return acc;
-  }
 private:
-  Accessor acc;
+  Accessor acc; // exposition only
 };
 
-template<class Accessor, class T>
-class accessor_conjugate<Accessor, std::complex<T>> {
+template<class Accessor, class Real>
+class accessor_conjugate<Accessor, std::complex<Real>> {
 public:
   using element_type  = typename Accessor::element_type;
   using pointer       = typename Accessor::pointer;
   using reference     =
-    conjugated_scalar<typename Accessor::reference, std::complex<T>>;
+    conjugated_scalar<typename Accessor::reference,
+                      std::complex<Real>>;
   using offset_policy =
-    accessor_conjugate<typename Accessor::offset_policy, std::complex<T>>;
+    accessor_conjugate<typename Accessor::offset_policy,
+                       std::complex<Real>>;
 
-  accessor_conjugate() = default;
+  accessor_conjugate(Accessor a);
 
-  accessor_conjugate(Accessor a) : acc(a) {}
+  reference access(pointer p, ptrdiff_t i) const noexcept;
 
-  reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p, i));
-  }
+  typename offset_policy::pointer
+  offset(pointer p, ptrdiff_t i) const noexcept;
 
-  typename offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return acc.offset(p, i);
-  }
+  element_type* decay(pointer p) const noexcept;
 
-  element_type* decay(pointer p) const noexcept {
-    return acc.decay(p);
-  }
-
-  Accessor nested_accessor() const {
-    return acc;
-  }
+  Accessor nested_accessor() const;
 
 private:
-  Accessor acc;
+  Accessor acc; // exposition only
 };
 ```
+
+* *Requires:*
+
+  * `Accessor` shall be *Cpp17CopyConstructible*.
+
+  * `Accessor` shall meet the `basic_mdspan` accessor policy
+    requirements (see *[mdspan.accessor.reqs]* in P0009).
+
+  * `T` shall be a complete object type that is neither an abstract
+    class type nor an array type (see *[mdspan.basic.overview]* in
+    P0009).
+
+```c++
+accessor_conjugate(Accessor a);
+```
+
+* *Effects:* Initializes `acc` with `a`.
+
+```c++
+reference access(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Effects:* Equivalent to `return reference(acc.access(p, i));`.
+
+```c++
+typename offset_policy::pointer
+offset(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Effects:* Equivalent to `return acc.offset(p,i);`.
+
+```c++
+element_type* decay(pointer p) const noexcept;
+```
+
+* *Effects:* Equivalent to `return acc.decay(p);`.
+
+```c++
+Accessor nested_accessor() const;
+```
+
+* *Effects:* Equivalent to `return acc;`.
 
 #### `conjugate_view`
 
