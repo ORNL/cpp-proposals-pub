@@ -1396,29 +1396,59 @@ class accessor_scaled {
 public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
-  using reference     = scaled_scalar<ScalingFactor, Accessor::reference>;
-  using offset_policy = accessor_scaled<ScalingFactor, Accessor::offset_policy>;
+  using reference     =
+    scaled_scalar<ScalingFactor, Accessor::reference>;
+  using offset_policy =
+    accessor_scaled<ScalingFactor, Accessor::offset_policy>;
 
-  accessor_scaled(const ScalingFactor& s, Accessor a) :
-    scaling_factor(s), accessor(a) {}
+  accessor_scaled(const ScalingFactor& s, Accessor a);
 
-  reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(scaling_factor, accessor.access(p, i));
-  }
+  reference access(pointer p, ptrdiff_t i) const noexcept;
 
-  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return accessor.offset(p, i);
-  }
+  offset_policy::pointer
+  offset(pointer p, ptrdiff_t i) const noexcept;
 
-  element_type* decay(pointer p) const noexcept {
-    return accessor.decay(p);
-  }
+  element_type* decay(pointer p) const noexcept;
 
 private:
-  ScalingFactor scaling_factor;
-  Accessor accessor;
+  ScalingFactor scaling_factor; // exposition only
+  Accessor accessor; // exposition only
 };
 ```
+
+* *Requires:*
+
+  * `ScalingFactor` and `Accessor` shall be *Cpp17CopyConstructible*.
+
+  * `Accessor` shall meet the `basic_mdspan` accessor policy
+    requirements (see *[mdspan.accessor.reqs]* in P0009).
+
+```c++
+accessor_scaled(const ScalingFactor& s, Accessor a);
+```
+
+* *Effects:* Initializes `scaling_factor` with `s`, and
+  initializes `accessor` with `a`.
+
+```c++
+reference access(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Effects:* Equivalent to
+  `return reference(scaling_factor, accessor.access(p, i));`.
+
+```c++
+offset_policy::pointer
+offset(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Effects:* Equivalent to `return accessor.offset(p, i);`.
+
+```c++
+element_type* decay(pointer p) const noexcept;
+```
+
+* *Effects:* Equivalent to `return accessor.decay(p);`.
 
 #### `scaled_view`
 
