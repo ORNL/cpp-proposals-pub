@@ -1356,13 +1356,13 @@ class scaled_scalar {
 private:
   const ScalingFactor scaling_factor; // exposition only
   Reference value; // exposition only
-  using result_type = decltype (scaling_factor * value); // exposition only
+  using result_type =
+    decltype (scaling_factor * value); // exposition only
 
 public:
-  scaled_scalar(const ScalingFactor& s, Reference v) :
-    scaling_factor(s), value(v) {}
+  scaled_scalar(const ScalingFactor& s, Reference v);
 
-  operator result_type() const { return scaling_factor * value; }
+  operator result_type() const;
 };
 ```
 
@@ -1373,6 +1373,13 @@ public:
 * *Constraints:*
 
   * The expression `scaling_factor * value` is well formed.
+
+```c++
+scaled_scalar(const ScalingFactor& s, Reference v);
+```
+
+* *Effects:* Initializes `scaling_factor` with `s`, and
+  initializes `value` with `v`.
 
 ```c++
 operator result_type() const;
