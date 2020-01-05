@@ -1713,11 +1713,28 @@ return basic_mdspan<ElementType, Extents, Layout, Accessor>(a.data(),
 *Example:*
 
 ```c++
-void test_conjugate_view(basic_mdspan<complex<double>, extents<10>>)
+void test_conjugate_view_complex(
+  basic_mdspan<complex<double>, extents<10>>)
 {
   auto a_conj = conjugate_view(a);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj(i) == conj(a(i));
+  }
+  auto a_conj_conj = conjugate_view(a_conj);
+  for(int i = 0; i < a.extent(0); ++i) {
+    assert(a_conj_conj(i) == a(i));
+  }
+}
+
+void test_conjugate_view_real(basic_mdspan<double, extents<10>>)
+{
+  auto a_conj = conjugate_view(a);
+  for(int i = 0; i < a.extent(0); ++i) {
+    assert(a_conj(i) == a(i));
+  }
+  auto a_conj_conj = conjugate_view(a_conj);
+  for(int i = 0; i < a.extent(0); ++i) {
+    assert(a_conj_conj(i) == a(i));
   }
 }
 ```
@@ -1748,6 +1765,13 @@ This layout wraps an existing layout, and swaps its rightmost two
 indices.
 
 ```c++
+template<class InputExtents>
+using transpose_extents_t = /* see below */; // exposition only
+
+template<class InputExtents>
+transpose_extents_t<InputExtents>
+transpose_extents(const InputExtents e); // exposition only
+
 template<class Layout>
 class layout_transpose {
 public:
@@ -1757,60 +1781,179 @@ public:
     using nested_mapping_type =
       typename Layout::template mapping<Extents>; // exposition only
     nested_mapping_type nested_mapping_; // exposition only
+
   public:
-    mapping() = default;
+    mapping(nested_mapping_type map);
 
-    mapping(nested_mapping_type map) : nested_mapping_(map) {}
-
-    // ... insert other standard mapping things ...
-
-    ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const {
-      return nested_mapping_(j, i);
-    }
+    ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const;
 
     nested_mapping() const { return nested_mapping_; }
+
+    template<class OtherExtents>
+    bool operator==(const mapping<OtherExtents>& m) const noexcept;
+
+    template<class OtherExtents>
+    bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+
+    Extents extents() const noexcept;
+
+    typename Extents::index_type required_span_size() const noexcept;
+
+    bool is_unique() const noexcept;
+
+    bool is_contiguous() const noexcept;
+
+    bool is_strided() const noexcept;
+
+    static constexpr bool is_always_unique();
+
+    static constexpr bool is_always_contiguous();
+
+    static constexpr bool is_always_strided();
+
+    typename Extents::index_type
+    stride(typename Extents::index_type r) const noexcept;
   };
 };
 ```
 
+*[Note:*
+
+One cannot create a layout_transpose::mapping correctly, simply by
+passing in the original nested mapping.  One must first create a new
+`extents` object which has the rightmost two extents swapped, then
+rebind the nested mapping to use that new `extents` objext.  This is
+because the `basic_mdspan` layout mapping requirements require that
+the return type of `extents()` be `Extents`.
+
+--*end note]*
+
+* *Requires:*
+
+  * `Layout` shall meet the `basic_mdspan` layout mapping policy
+    requirements (see *[mdspan.layout.reqs]* in P0009).
+
 * *Constraints:*
 
-  * `Layout` is a unique layout.
+  * `Layout::is_always_unique()` is `true`.
 
   * `Layout::mapping::rank()` is 2.
+
+```c++
+mapping(nested_mapping_type map);
+```
+
+* *Effects:* Initializes `nested_mapping_` with `map`.
+
+```c++
+ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const;
+```
+
+* *Effects:* Equivalent to `return nested_mapping_(j, i);`.
+
+```c++
+nested_mapping() const;
+```
+
+* *Effects:* Equivalent to `return nested_mapping_;`.
+
+```c++
+template<class OtherExtents>
+bool operator==(const mapping<OtherExtents>& m) const noexcept;
+```
+
+* *Effects:* Equivalent to `nested_mapping_ == m.nested_mapping_;`.
+
+```c++
+template<class OtherExtents>
+bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+```
+
+* *Effects:* Equivalent to `nested_mapping_ != m.nested_mapping_;`.
+
+```c++
+Extents extents() const noexcept;
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.extents();'.
+
+```c++
+typename Extents::index_type
+required_span_size() const noexcept;
+```
+
+* *Effects:* Equivalent to
+  `return nested_mapping_.required_span_size();'.
+
+```c++
+bool is_unique() const noexcept;
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_unique();'.
+
+```c++
+bool is_contiguous() const noexcept;
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_contiguous();'.
+
+```c++
+bool is_strided() const noexcept;
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_strided();'.
+
+```c++
+static constexpr bool is_always_unique();
+```
+
+* *Effects:* Equivalent to
+  `return nested_mapping_type::is_always_unique();'.
+
+```c++
+static constexpr bool is_always_contiguous();
+```
+
+* *Effects:* Equivalent to
+  `return nested_mapping_type::is_always_contiguous();'.
+
+```c++
+static constexpr bool is_always_strided();
+```
+
+* *Effects:* Equivalent to
+  `return nested_mapping_type::is_always_strided();'.
+
+```c++
+typename Extents::index_type
+stride(typename Extents::index_type r) const noexcept;
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.stride(s);',
+  where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
 #### `transpose_view`
 
 The `transpose_view` function returns a transposed view of a rank-2
 `basic_mdspan`.  The transposed view swaps the indices.
 
-*[Note:*
-
-`transpose_view` always returns a `basic_mdspan` with the
-`layout_transpose` argument.  This gives a type-based indication of
-the transpose operation.  However, functions' implementations may
-convert the `layout_transpose` object to an object with a different
-but equivalent layout.  For example, functions can view the transpose
-of a `layout_blas<column_major_t>` matrix as a
-`layout_blas<row_major_t>` matrix.  (This is a classic technique for
-supporting row-major matrices using the Fortran BLAS interface.)
-
---*end note]*
-
 ```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
-transpose_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
+basic_mdspan<ElementType, transpose_extents_t<Extents>,
+             layout_transpose<Layout>, Accessor>
+transpose_view(
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
 
 ```c++
-return basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>(a.data(),
-  typename layout_transpose<Layout>::template mapping<Extents>(a.mapping()),
+return basic_mdspan<ElementType, transpose_extents_t<Extents>,
+                    layout_transpose<Layout>, Accessor>(a.data(),
+  typename layout_transpose<Layout>::template mapping<transpose_extents_t<Extents>>(a.mapping(), transpose_extents(a.mapping().extents())),
   a.accessor());
 ```
 
