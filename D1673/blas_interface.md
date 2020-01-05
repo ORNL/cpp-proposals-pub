@@ -1786,25 +1786,30 @@ public:
   public:
     mapping(nested_mapping_type map);
 
-    ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const;
+    ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
+      noexcept(noexcept(nested_mapping_(j, i)));
 
-    nested_mapping() const { return nested_mapping_; }
-
-    template<class OtherExtents>
-    bool operator==(const mapping<OtherExtents>& m) const noexcept;
+    nested_mapping() const;
 
     template<class OtherExtents>
-    bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+    bool operator==(const mapping<OtherExtents>& m) const;
+
+    template<class OtherExtents>
+    bool operator!=(const mapping<OtherExtents>& m) const;
 
     Extents extents() const noexcept;
 
-    typename Extents::index_type required_span_size() const noexcept;
+    typename Extents::index_type required_span_size() const
+      noexcept(noexcept(nested_mapping_.required_span_size()));
 
-    bool is_unique() const noexcept;
+    bool is_unique() const
+      noexcept(noexcept(nested_mapping_.is_unique()));
 
-    bool is_contiguous() const noexcept;
+    bool is_contiguous() const
+      noexcept(noexcept(nested_mapping_.is_contiguous()));
 
-    bool is_strided() const noexcept;
+    bool is_strided() const
+      noexcept(noexcept(nested_mapping_.is_strided()));
 
     static constexpr bool is_always_unique();
 
@@ -1813,7 +1818,8 @@ public:
     static constexpr bool is_always_strided();
 
     typename Extents::index_type
-    stride(typename Extents::index_type r) const noexcept;
+    stride(typename Extents::index_type r) const
+      noexcept(noexcept(nested_mapping_.stride(r)));
   };
 };
 ```
@@ -1847,7 +1853,8 @@ mapping(nested_mapping_type map);
 * *Effects:* Initializes `nested_mapping_` with `map`.
 
 ```c++
-ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const;
+ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
+  noexcept(noexcept(nested_mapping_(j, i)));
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_(j, i);`.
@@ -1860,14 +1867,14 @@ nested_mapping() const;
 
 ```c++
 template<class OtherExtents>
-bool operator==(const mapping<OtherExtents>& m) const noexcept;
+bool operator==(const mapping<OtherExtents>& m) const;
 ```
 
 * *Effects:* Equivalent to `nested_mapping_ == m.nested_mapping_;`.
 
 ```c++
 template<class OtherExtents>
-bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+bool operator!=(const mapping<OtherExtents>& m) const;
 ```
 
 * *Effects:* Equivalent to `nested_mapping_ != m.nested_mapping_;`.
@@ -1880,26 +1887,30 @@ Extents extents() const noexcept;
 
 ```c++
 typename Extents::index_type
-required_span_size() const noexcept;
+required_span_size() const
+  noexcept(noexcept(nested_mapping_.required_span_size()));
 ```
 
 * *Effects:* Equivalent to
   `return nested_mapping_.required_span_size();'.
 
 ```c++
-bool is_unique() const noexcept;
+bool is_unique() const
+  noexcept(noexcept(nested_mapping_.is_unique()));
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_.is_unique();'.
 
 ```c++
-bool is_contiguous() const noexcept;
+bool is_contiguous() const
+  noexcept(noexcept(nested_mapping_.is_contiguous()));
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_.is_contiguous();'.
 
 ```c++
-bool is_strided() const noexcept;
+bool is_strided() const
+  noexcept(noexcept(nested_mapping_.is_strided()));
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_.is_strided();'.
@@ -1927,7 +1938,8 @@ static constexpr bool is_always_strided();
 
 ```c++
 typename Extents::index_type
-stride(typename Extents::index_type r) const noexcept;
+stride(typename Extents::index_type r) const
+  noexcept(noexcept(nested_mapping_.stride(r)));
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_.stride(s);',
