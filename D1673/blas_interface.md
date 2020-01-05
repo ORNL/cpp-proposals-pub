@@ -1714,7 +1714,7 @@ return basic_mdspan<ElementType, Extents, Layout, Accessor>(a.data(),
 
 ```c++
 void test_conjugate_view_complex(
-  basic_mdspan<complex<double>, extents<10>>)
+  basic_mdspan<complex<double>, extents<10>> a)
 {
   auto a_conj = conjugate_view(a);
   for(int i = 0; i < a.extent(0); ++i) {
@@ -1726,7 +1726,8 @@ void test_conjugate_view_complex(
   }
 }
 
-void test_conjugate_view_real(basic_mdspan<double, extents<10>>)
+void test_conjugate_view_real(
+  basic_mdspan<double, extents<10>> a)
 {
   auto a_conj = conjugate_view(a);
   for(int i = 0; i < a.extent(0); ++i) {
@@ -1971,6 +1972,40 @@ transpose_view(basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor
 ```c++
 return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
   a.mapping().nested_mapping(), a.accessor());
+```
+
+*Example:*
+
+```c++
+void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
+{
+  const ptrdiff_t num_rows = a.extent(0);
+  const ptrdiff_t num_cols = a.extent(1);
+
+  auto a_t = transpose_view(a);
+  assert(num_rows == a_t.extent(1));
+  assert(num_cols == a_t.extent(0));
+  assert(a.stride(0) == a_t.stride(1));
+  assert(a.stride(1) == a_t.stride(0));
+
+  for(ptrdiff_t row = 0; row < num_rows; ++row) {
+    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+      assert(a(row, col) == a_t(col, row));
+    }
+  }
+
+  auto a_t_t = transpose_view(a_t);
+  assert(num_rows == a_t_t.extent(0));
+  assert(num_cols == a_t_t.extent(1));
+  assert(a.stride(0) == a_t_t.stride(0));
+  assert(a.stride(1) == a_t_t.stride(1));
+
+  for(ptrdiff_t row = 0; row < num_rows; ++row) {
+    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+      assert(a(row, col) == a_t_t(row, col));
+    }
+  }
+}
 ```
 
 #### Conjugate transpose view
