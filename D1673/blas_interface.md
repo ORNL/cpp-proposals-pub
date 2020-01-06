@@ -1406,74 +1406,208 @@ constexpr bool is_contiguous() const noexcept;
     `true` if `stride(0)` equals `extent(1)`, else `false`.
 
 ```c++
-constexpr bool is_always_strided() const noexcept;
+constexpr bool is_strided() const noexcept;
 ```
 
 * *Returns:* `true`.
 
 #### `layout_blas_packed`
 
+`layout_blas_packed` is a `basic_mdspan` layout mapping policy that
+represents a square matrix that stores only the entries in one
+triangle, in a packed contiguous format.  Its `Triangle` template
+parameter determines whether an `basic_mdspan` with this layout stores
+the upper or lower triangle of the matrix.  Its `StorageOrder`
+template parameter determines whether the layout packs the matrix's
+elements in column-major or row-major order.
+
+A `StorageOrder` of `column_major_t` indicates column-major ordering.
+This packs matrix elements starting with the leftmost (least column
+index) column, and proceeding column by column, from the top entry
+(least row index).
+
+A `StorageOrder` of `row_major_t` indicates row-major ordering.  This
+packs matrix elements starting with the topmost (least row index) row,
+and proceeding row by row, from the leftmost (least column index)
+entry.
+
+*[Note:*
+
+`layout_blas_packed` describes the data layout used by the BLAS'
+Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
+(TP) matrix types.
+
+--*end note]*
+
 ```c++
 template<class Triangle,
          class StorageOrder>
-class layout_blas_packed;
+class layout_blas_packed {
+public:
+  template<class Extents>
+  struct mapping {
+  private:
+    Extents extents_; // exposition only
+
+  public:
+    constexpr mapping(const Extents& e,
+      const typename Extents::index_type s);
+
+    typename Extents::index_type
+    operator() (typename Extents::index_type i,
+                typename Extents::index_type j) const;
+
+    template<class OtherExtents>
+    bool operator==(const mapping<OtherExtents>& m) const noexcept;
+
+    template<class OtherExtents>
+    bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+
+    constexpr typename Extents::index_type
+    stride(typename Extents::index_type r) const noexcept;
+
+    constexpr typename Extents::index_type
+    required_span_size() const noexcept;
+
+    constexpr Extents extents() const noexcept;
+
+    static constexpr bool is_always_unique();
+    static constexpr bool is_always_contiguous();
+    static constexpr bool is_always_strided();
+
+    constexpr bool is_unique() const noexcept;
+    constexpr bool is_contiguous() const noexcept;
+    constexpr bool is_strided() const noexcept;
+};
 ```
 
-##### Requirements
-
-Throughout this Clause, where the template parameters are not
-constrained, the names of template parameters are used to express type
-requirements.
+* *Constraints:*
 
   * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
   * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
-##### Packed layout mapping
+  * `Extents::rank()` equals 2.
 
-The BLAS' packed matrix "types" all store the represented entries of
-the matrix contiguously.  They start at the top left side of the
-matrix.
+```c++
+constexpr mapping(const Extents& e);
+```
 
-A `StorageOrder` of `column_major_t` indicates column-major ordering.
-This packs matrix elements starting with the leftmost (least column
-index) column, and proceeding column by column, from the top entry
-(least row index).  A `StorageOrder` of `row_major_t` indicates
-row-major ordering.  This packs matrix elements starting with the
-topmost (least row index) row, and proceeding row by row, from the
-leftmost (least column index) entry.
+* *Requires:* `e.extent(0)` equals `e.extent(1)`.
 
-Whether the "type" stores the upper or lower triangle of the matrix
-matters for the memory mapping, so the choice of upper or lower
-triangle must be part of the layout.  We will describe the mapping as
-a function of `StorageOrder` and `Triangle` below.
+* *Effects:* Initializes `extents_` with `e`.
 
-Packed layouts require that the matrix/matrices are square.  That is,
-the two extents are equal.
+```c++
+typename Extents::index_type
+operator() (typename Extents::index_type i,
+            typename Extents::index_type j) const;
+```
 
-Let N be `extents(1)`.  (That is, the matrix has N rows and N
-columns.)  Let `i,j` be the indices given to the packed layout's
-`mapping::operator()`.
+* *Requires:*
 
-* If `StorageOrder` is `column_major_t` and
-  `Triangle` is `upper_triangle_t`,
-  then index pair i,j maps to i + j(j+1)/2 if i >= j,
-  else index pair i,j maps to j + i(i+1)/2.
+  * 0 ≤ `i` < `extent(0)`, and
 
-* If `StorageOrder` is `column_major_t` and
-  `Triangle` is `lower_triangle_t`,
-  then index pair i,j maps to i + Nj - j(j+1)/2 if i <= j,
-  else index pair i,j maps to j + Ni - i(i+1)/2.
+  * 0 ≤ `j` < `extent(1)`.
 
-* If `StorageOrder` is `row_major_t` and
-  `Triangle` is `upper_triangle_t`,
-  then index pair i,j maps to j + Ni - i(i+1)/2 if j <= i,
-  else index pair i,j maps to i + Nj - j(j+1)/2.
+* *Returns:* Let `N` equal `extent(0)`.  Then:
 
-* If `StorageOrder` is `row_major_t` and
-  `Triangle` is `lower_triangle_t`,
-  then index pair i,j maps to j + i(i+1)/2 if j >= i,
-  else index pair i,j maps to i + j(j+1)/2.
+  * If `StorageOrder` is `column_major_t` and
+
+    * if `Triangle` is `upper_triangle_t`,
+      then `i + j(j+1)/2` if `i` >= `j`,
+      else `j + i(i+1)/2`;
+
+    * else, if `Triangle` is `lower_triangle_t`,
+      then `i + Nj - j(j+1)/2` if `i` <= `j`,
+      else `j + Ni - i(i+1)/2`;
+
+  * else, if `StorageOrder` is `row_major_t` and
+
+    * if `Triangle` is `upper_triangle_t`,
+      then `j + Ni - i(i+1)/2` if `j` <= `i`,
+      else `i + Nj - j(j+1)/2`;
+
+    * else, if `Triangle` is `lower_triangle_t`,
+      then `j + i(i+1)/2` if `j` >= `i`,
+      else `i + j(j+1)/2`.
+
+```c++
+template<class OtherExtents>
+bool operator==(const mapping<OtherExtents>& m) const;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* `true` if and only if
+  for 0 ≤ `r` < `rank()`,
+  `m.extent(r)` equals `extent(r)`.
+
+```c++
+template<class OtherExtents>
+bool operator!=(const mapping<OtherExtents>& m) const;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* `true` if and only if
+   there exists `r` with 0 ≤ `r` < `rank()` such that
+  `m.extent(r)` does not equal `extent(r)`.
+
+```c++
+constexpr typename Extents::index_type
+stride(typename Extents::index_type r) const noexcept;
+```
+
+* *Returns:* 1 if `extent(0)` is less than 2, else 0.
+
+```c++
+constexpr typename Extents::index_type
+required_span_size() const noexcept;
+```
+
+* *Returns:* `extent(0)*(extent(0) - 1)/2`.
+
+```c++
+constexpr Extents extents() const noexcept;
+```
+
+* *Effects:* Equivalent to `return extents_;`.
+
+```c++
+static constexpr bool is_always_unique();
+```
+
+* *Returns:* `false`.
+
+```c++
+static constexpr bool is_always_contiguous();
+```
+
+* *Returns:* `true`.
+
+```c++
+static constexpr bool is_always_strided();
+```
+
+* *Returns:* `false`.
+
+```c++
+constexpr bool is_unique() const noexcept;
+```
+
+* *Returns:* `true` if `extent(0)` is less than 2, else `false`.
+
+```c++
+constexpr bool is_contiguous() const noexcept;
+```
+
+* *Returns:* `true`.
+
+```c++
+constexpr bool is_strided() const noexcept;
+```
+
+* *Returns:* `true` if `extent(0)` is less than 2, else `false`.
 
 ### Scaled transformation of an object
 
