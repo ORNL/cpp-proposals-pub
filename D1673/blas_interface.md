@@ -2117,6 +2117,41 @@ conjugate_transpose_view(
 * *Effects:* Equivalent to
   `return conjugate_view(transpose_view(a));`.
 
+*Example:*
+
+```c++
+void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
+{
+  const ptrdiff_t num_rows = a.extent(0);
+  const ptrdiff_t num_cols = a.extent(1);
+
+  auto a_ct = conjugate_transpose_view(a);
+  assert(num_rows == a_ct.extent(1));
+  assert(num_cols == a_ct.extent(0));
+  assert(a.stride(0) == a_ct.stride(1));
+  assert(a.stride(1) == a_ct.stride(0));
+
+  for(ptrdiff_t row = 0; row < num_rows; ++row) {
+    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+      assert(a(row, col) == conj(a_ct(col, row)));
+    }
+  }
+
+  auto a_ct_ct = conjugate_transpose_view(a_ct);
+  assert(num_rows == a_ct_ct.extent(0));
+  assert(num_cols == a_ct_ct.extent(1));
+  assert(a.stride(0) == a_ct_ct.stride(0));
+  assert(a.stride(1) == a_ct_ct.stride(1));
+
+  for(ptrdiff_t row = 0; row < num_rows; ++row) {
+    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+      assert(a(row, col) == a_ct_ct(row, col));
+      assert(conj(a_ct(col, row)) == a_ct_ct(row, col));
+    }
+  }
+}
+```
+
 ## Algorithms
 
 ### Requirements
