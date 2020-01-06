@@ -63,6 +63,10 @@
   * *Mandate* any extent compatibility checks that can be done at
     compile time.
 
+  * Add missing `triangular_matrix_product` function.
+
+  * Remove `packed_view` function.
+
 ### Over- and underflow wording for vector 2-norm
 
 SG6 recommended to us at Belfast 2019 to change the special overflow /
@@ -203,10 +207,10 @@ Our proposal also has the following distinctive characteristics:
 ## Interoperable with other linear algebra proposals
 
 We believe this proposal is complementary to
-[P1385R1](http://wg21.link/p1385r1), a proposal for a C++ Standard linear
+[P1385](http://wg21.link/p1385), a proposal for a C++ Standard linear
 algebra library that introduces matrix and vector classes and
 overloaded arithmetic operators.  In fact, we think that our proposal
-would make a natural foundation for a library like what P1385R1
+would make a natural foundation for a library like what P1385
 proposes.  However, a free function interface -- which clearly
 separates algorithms from data structures -- more naturally allows for
 a richer set of operations such as what the BLAS provides.  A natural
@@ -269,15 +273,16 @@ Library:
   many of its cycles in linear algebra.  For decades, hardware
   vendors, some represented at WG21 meetings, have provided and
   continue to provide features specifically to accelerate linear
-  algebra operations.  For example, SIMD (single instruction multiple
-  data) is a feature added to processors to speed up matrix and vector
-  operations.  [P0214R9](http://wg21.link/p0214r9), a C++ SIMD library, was
-  voted into the C++20 draft.  Several large computer system vendors
-  offer optimized linear algebra libraries based on or closely
-  resembling the BLAS; these include AMD's BLIS, ARM's Performance
-  Libraries, Cray's LibSci, Intel's Math Kernel Library (MKL), IBM's
-  Engineering and Scientific Subroutine Library (ESSL), and NVIDIA's
-  cuBLAS.
+  algebra operations.  Some of them even implement specific linear
+  algebra operations directly in hardware.  Examples include NVIDIA's
+  [Tensor Cores](https://www.nvidia.com/en-us/data-center/tensorcore/)
+  and Cerebras' [Wafer Scale
+  Engine](https://www.cerebras.net/product/#chip).  Several large
+  computer system vendors offer optimized linear algebra libraries
+  based on or closely resembling the BLAS; these include AMD's BLIS,
+  ARM's Performance Libraries, Cray's LibSci, Intel's Math Kernel
+  Library (MKL), IBM's Engineering and Scientific Subroutine Library
+  (ESSL), and NVIDIA's cuBLAS.
 
 Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
@@ -323,7 +328,7 @@ as broadly useful, and in many cases significantly more so.
    experts to tune, from mathematical operations that rely on those
    primitives for good performance.
 
-3. Benchmarks reward hardware and system vendors for providing an
+3. Benchmarks reward hardware and system vendors for providing
    optimized BLAS implementations.
 
 4. Writing a fast BLAS implementation for common element types is
@@ -357,12 +362,12 @@ benchmark](https://www.top500.org/project/linpack/) reward computer
 hardware vendors for optimizing their BLAS implementations.  Thus,
 many vendors provide an optimized BLAS library for their computer
 architectures.  Writing fast BLAS-like operations is not trivial, and
-depends on computer architecture.  However, it is not black magic; it
-is a well-understood problem whose solutions could be parameterized
-for a variety of computer architectures.  See, for example, [Goto and
-van de Geijn 2008](https://doi.org/10.1145/1356052.1356053).  There
-are optimized third-party BLAS implementations for common
-architectures, like [ATLAS](http://math-atlas.sourceforge.net/) and
+depends on computer architecture.  However, it is a well-understood
+problem whose solutions could be parameterized for a variety of
+computer architectures.  See, for example, [Goto and van de Geijn
+2008](https://doi.org/10.1145/1356052.1356053).  There are optimized
+third-party BLAS implementations for common architectures, like
+[ATLAS](http://math-atlas.sourceforge.net/) and
 [GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2).
 A (slow but correct) [reference implementation of the
 BLAS](http://www.netlib.org/blas/#_reference_blas_version_3_8_0)
@@ -370,14 +375,15 @@ exists and it has a liberal software license for easy reuse.
 
 We have experience in the exercise of wrapping a C or Fortran BLAS
 implementation for use in portable C++ libraries.  We describe this
-exercise in detail in our paper "Evolving a Standard C++ Linear
-Algebra Library from the BLAS" (P1674R0).  It is straightforward for
-vendors, but has pitfalls for developers.  For example, Fortran's
-application binary interface (ABI) differs across platforms in ways
-that can cause run-time errors (even incorrect results, not just
-crashing).  Historical examples of vendors' C BLAS implementations
-have also had ABI issues that required work-arounds.  This dependence
-on ABI details makes availability in a standard C++ library valuable.
+exercise in detail in our paper ["Evolving a Standard C++ Linear
+Algebra Library from the BLAS" (P1674)](http://wg21.link/p1674).  It
+is straightforward for vendors, but has pitfalls for developers.  For
+example, Fortran's application binary interface (ABI) differs across
+platforms in ways that can cause run-time errors (even incorrect
+results, not just crashing).  Historical examples of vendors' C BLAS
+implementations have also had ABI issues that required work-arounds.
+This dependence on ABI details makes availability in a standard C++
+library valuable.
 
 ## Notation and conventions
 
@@ -630,7 +636,7 @@ We do so for the following reasons:
    introduce problems such as dangling references and aliasing.
 
 Our goal is to propose a low-level interface.  Other libraries, such
-as that proposed by [P1385R1](http://wg21.link/p1385r1), could use our
+as that proposed by [P1385](http://wg21.link/p1385), could use our
 interface to implement overloaded arithmetic for matrices and vectors.
 [P0939R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf)
 advocates using "an incremental approach to design to benefit from
@@ -648,7 +654,7 @@ loses precision.  Some users may want `complex<double>`; others may
 want `complex<long double>` or something else, and others may want to
 choose different types in the same program.
 
-[P1385R1](http://wg21.link/p1385r1) lets users customize the return type of
+[P1385](http://wg21.link/p1385) lets users customize the return type of
 such arithmetic expressions.  However, different algorithms may call
 for the same expression with the same inputs to have different output
 types.  For example, iterative refinement of linear systems `Ax=b` can
@@ -804,15 +810,20 @@ vector element types other than the four that the BLAS supports.
 
 #### Defining a `concept` for the data structures instead
 
-LEWGI requested the exploration of using a concept instead of `basic_mdspan`
-to define the arguments for the linear algebra functions. A brief investigation
-of that option leads us to believe that such a concept would largely replicate the
-definition of `basic_mdspan` since almost all its features are explicitly used in part of
-this proposal. This includes the `extents`, `layout` and `accessor_policy`
-customization point. At this point it is not clear to us that there would be
-significant benefits of defining lineary algebra functions in terms of such a concept,
-instead of defining a general customization
-point `get_mdspan`, allowing acceptance of any object type, which provides it.
+LEWGI requested in the 2019 Cologne meeting that we explore using a
+concept instead of `basic_mdspan` to define the arguments for the
+linear algebra functions.  Our investigation of this option leads us
+to believe that such a concept would largely replicate the definition
+of `basic_mdspan`.  This proposal refers to almost all of its
+features, including `extents`, `layout`, and `accessor_policy`.  We
+expect implementations to use all of them for optimizations, for
+example to extract the scaling factor from a `scaled_view` result in
+order to call an optimized BLAS library directly.  At this point it is
+not clear to us that there would be significant benefits to defining
+linear algebra functions in terms of such a concept, instead of
+defining a general customization point `get_mdspan`, allowing
+acceptance of any object type, which provides it.  After further
+discussion at the 2019 Belfast meeting, LEWGI accepted our position.
 
 ### Function argument aliasing and zero scalar multipliers
 
@@ -860,8 +871,10 @@ Summary:
    Type is a mixture of "storage format" (e.g., packed, banded) and
    "mathematical property" (e.g., symmetric, Hermitian, triangular).
 
-2. Some "types" can be expressed as custom `basic_mdspan` layouts;
-   others do not.
+2. Some "types" can be expressed as custom `basic_mdspan` layouts.
+   Other types actually represent algorithmic constraints: for
+   instance, what entries of the matrix the algorithm is allowed to
+   access.
 
 3. Thus, a C++ BLAS wrapper cannot overload on matrix "type" simply by
    overloading on `basic_mdspan` specialization.  The wrapper must use
@@ -948,7 +961,7 @@ of P1684, `basic_mdarray` will implement `get_mdspan`.  This will let
 users use `basic_mdarray` directly in our functions.  This
 customization point approach would also simplify using our functions
 with other matrix and vector types, such as those proposed by
-[P1385(http://wg21.link/p1385).  Implementations may optionally add
+[P1385](http://wg21.link/p1385).  Implementations may optionally add
 direct overloads of our functions for `basic_mdarray` or other types.
 This would address any concerns about overhead of converting from
 `basic_mdarray` to `basic_mdspan`.
@@ -1018,23 +1031,22 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 
 ### Layouts
 
-Our proposal uses the layout policy of `basic_mdspan`
-in order to represent different matrix and vector data
-layouts.  Layouts as described by P0009R9 come in three different
-categories:
+Our proposal uses the layout policy of `basic_mdspan` in order to
+represent different matrix and vector data layouts.  Layouts as
+described by P0009R9 have three basic properties:
 
 * Unique
 * Contiguous
 * Strided
 
 P0009R9 includes three different layouts -- `layout_left`,
-`layout_right`, and `layout_stride` -- all of which are unique,
-contiguous, and strided.
+`layout_right`, and `layout_stride` -- all of which are unique and
+strided.  Only `layout_left` and `layout_right` are contiguous.
 
 This proposal includes the following additional layouts:
 
 * `layout_blas_general`: Generalization of `layout_left` and
-  `layout_right`; describes layout used by General matrix "type"
+  `layout_right`; describes layout used by General (GE) matrix "type"
 
 * `layout_blas_packed`: Describes layout used by the BLAS' Symmetric
   Packed (SP), Hermitian Packed (HP), and Triangular Packed (TP)
@@ -1044,33 +1056,32 @@ These layouts have "tag" template parameters that control their
 properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
-(SY), Hermitian (HE), and triangular (TR).  P1674R0 explains our
+(SY), Hermitian (HE), and Triangular (TR).  P1674R0 explains our
 reasoning.  In summary: Their actual layout -- the arrangement of
 matrix elements in memory -- is the same as General.  The only
 differences are constraints on what entries of the matrix algorithms
 may access, and assumptions about the matrix's mathematical
 properties.  Trying to express those constraints or assumptions as
 "layouts" or "accessors" violates the spirit (and sometimes the law)
-of `basic_mdspan`.
+of `basic_mdspan`.  We address these different matrix types with
+different function names.
 
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that these layouts would thus
-be the first additions to the layouts in P0009R9 that are not unique,
-contiguous, and strided.
+be the first additions to the layouts in P0009R9 that are not unique
+and strided.
 
-Algorithms cannot be written generically if they permit arguments with
-nonunique layouts, especially output arguments.  Nonunique output
-arguments require specialization of the algorithm to the layout, since
-there's no way to know generically at compile time what indices map to
-the same matrix element.  Thus, we impose the following rule: Any
-`basic_mdspan` argument to our functions must
-always have unique layout (`is_always_unique()` is `true`), unless
-otherwise specified.
+Algorithms cannot be written generically if they permit output
+arguments with nonunique layouts.  Nonunique output arguments require
+specialization of the algorithm to the layout, since there's no way to
+know generically at compile time what indices map to the same matrix
+element.  Thus, we impose the following rule: Any `basic_mdspan`
+output argument to our functions must always have unique layout
+(`is_always_unique()` is `true`), unless otherwise specified.
 
 Some of our functions explicitly require outputs with specific
 nonunique layouts.  This includes low-rank updates to symmetric or
-Hermitian matrices, and matrix-matrix multiplication with symmetric or
 Hermitian matrices.
 
 #### Tag classes for layouts
@@ -1083,14 +1094,10 @@ control of function behavior.
 ##### Storage order tags
 
 ```c++
-struct column_major_t {
-  constexpr explicit column_major_t() noexcept = default;
-};
+struct column_major_t { };
 inline constexpr column_major_t column_major = { };
 
-struct row_major_t {
-  constexpr explicit row_major_t() noexcept = default;
-};
+struct row_major_t { };
 inline constexpr row_major_t row_major = { };
 ```
 
@@ -1115,14 +1122,10 @@ the "upper triangle," "lower triangle," and "diagonal" of a matrix.
   triangle.
 
 ```c++
-struct upper_triangle_t {
-  constexpr explicit upper_triangle_t() noexcept = default;
-};
+struct upper_triangle_t { };
 inline constexpr upper_triangle_t upper_triangle = { };
 
-struct lower_triangle_t {
-  constexpr explicit lower_triangle_t() noexcept = default;
-};
+struct lower_triangle_t { };
 inline constexpr lower_triangle_t lower_triangle = { };
 ```
 
@@ -1136,14 +1139,10 @@ applied; see below.
 ##### Diagonal tags
 
 ```c++
-struct implicit_unit_diagonal_t {
-  constexpr explicit implicit_unit_diagonal_t() noexcept = default;
-};
+struct implicit_unit_diagonal_t { };
 inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal = { };
 
-struct explicit_diagonal_t {
-  constexpr explicit explicit_diagonal_t() noexcept = default;
-};
+struct explicit_diagonal_t { };
 inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
@@ -1159,11 +1158,6 @@ The `implicit_unit_diagonal_t` tag indicates two things:
 
   * the matrix has a diagonal of ones (a unit diagonal).
 
-*[Note:* Typical BLAS practice is that the algorithm never actually
-needs to form an explicit `1.0`, so there is no need to impose a
-constraint that `1` or `1.0` is convertible to the matrix's
-`element_type`. --*end note]*
-
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
 
@@ -1175,14 +1169,10 @@ side of an object.  *[Note:* Matrix-matrix product and triangular
 solve with a matrix generally do not commute. --*end note]*
 
 ```c++
-struct left_side_t {
-  constexpr explicit left_side_t() noexcept = default;
-};
+struct left_side_t { };
 constexpr left_side_t left_side = { };
 
-struct right_side_t {
-  constexpr explicit right_side_t() noexcept = default;
-};
+struct right_side_t { };
 constexpr right_side_t right_side = { };
 ```
 
@@ -1276,113 +1266,36 @@ topmost (least row index) row, and proceeding row by row, from the
 leftmost (least column index) entry.
 
 Whether the "type" stores the upper or lower triangle of the matrix
-matters for the layout, not just for the matrix's mathematical
-properties.  Thus, the choice of upper or lower triangle must be part
-of the layout.  `Triangle=upper_triangle_t` means that the layout
-represents the upper triangle; `Triangle=lower_triangle_t` means that
-the layout represents the lower triangle.  We will describe the
-mapping as a function of `StorageOrder` and `Triangle` below.
+matters for the memory mapping, so the choice of upper or lower
+triangle must be part of the layout.  We will describe the mapping as
+a function of `StorageOrder` and `Triangle` below.
 
 Packed layouts require that the matrix/matrices are square.  That is,
-the rightmost two extents (`extents(extents().rank()-2)` and
-`extents(extents().rank()-1)`) are equal.
+the two extents are equal.
 
-Packed layouts generalize just like unpacked layouts to "batches" of
-matrices.  The last two (rightmost) indices index within a matrix, and
-the remaining index/indices identify which matrix.
+Let N be `extents(1)`.  (That is, the matrix has N rows and N
+columns.)  Let `i,j` be the indices given to the packed layout's
+`mapping::operator()`.
 
-Let N be `extents(extents().rank()-1)`.  (That is, each matrix in the
-batch has N rows and N columns.)  Let `i,j` be the last two
-(rightmost) indices in the `is` parameter pack given to the packed
-layout's `mapping::operator()`.
+* If `StorageOrder` is `column_major_t` and
+  `Triangle` is `upper_triangle_t`,
+  then index pair i,j maps to i + j(j+1)/2 if i >= j,
+  else index pair i,j maps to j + i(i+1)/2.
 
-* For the upper triangular, column-major format, index pair i,j maps
-  to i + (1 + 2 + ... + j).
+* If `StorageOrder` is `column_major_t` and
+  `Triangle` is `lower_triangle_t`,
+  then index pair i,j maps to i + Nj - j(j+1)/2 if i <= j,
+  else index pair i,j maps to j + Ni - i(i+1)/2.
 
-* For the lower triangular, column-major format, index pair i,j maps
-  to i + (1 + 2 + ... + N-j-1).
+* If `StorageOrder` is `row_major_t` and
+  `Triangle` is `upper_triangle_t`,
+  then index pair i,j maps to j + Ni - i(i+1)/2 if j <= i,
+  else index pair i,j maps to i + Nj - j(j+1)/2.
 
-* For the upper triangular, row-major format, index pair i,j maps
-  to j + (1 + 2 + ... + i).
-
-* For the lower triangular, row-major format, index pair i,j maps
-  to j + (1 + 2 + ... + N-i-1).
-
-*[Note:* Whether or not the storage format has an implicit unit
- diagonal (see the `implicit_unit_diagonal_t` tag above) does not
- change the mapping.  This means that packed matrix storage "wastes"
- the unit diagonal, if present.  This follows BLAS convention; see
- Section 2.2.4 of the BLAS Standard.  It also has the advantage that
- every index pair `i,j` in the Cartesian product of the extents maps
- to a valid (though wrong) codomain index.  This is why we declare the
- packed layout mappings as "nonunique." --*end note]*
-
-#### Packed layout views
-
-The idea behind packed matrix types is that users take an existing 1-D
-array, and view it as a matrix data structure.  We adapt this approach
-to our library by including functions that create a "packed view" of
-an existing `basic_mdspan`.  The resulting packed
-object has one higher rank.
-
-##### Requirements
-
-Throughout this Clause, where the template parameters are not
-constrained, the names of template parameters are used to express type
-requirements.
-
-  * `Extents::rank()` is at least 1.
-
-  * `Layout` is a unique, contiguous, and strided layout.
-
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
-
-  * `StorageOrder` is either `column_major_t` or `row_major_t`.
-
-##### Create a packed triangular view of an existing object
-
-```c++
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor,
-         class Triangle,
-         class StorageOrder>
-constexpr basic_mdspan<EltType,
-  <i>extents-see-returns-below</i>,
-  layout_blas_packed<
-    Triangle,
-    StorageOrder>,
-  Accessor>
-packed_view(
-  const basic_mdspan<EltType, Extents, Layout, Accessor>& m,
-  typename basic_mdspan<EltType, Extents, Layout, Accessor>::index_type num_rows,
-  Triangle,
-  StorageOrder);
-```
-
-* *Requires:* If `num_rows` is nonzero, then `m.extent(0)` is at least
-  (`num_rows` + 1) * `num_rows` / 2.
-
-* *Effects:* Views the given `basic_mdspan` in
-  packed layout, with the given `Triangle` and `StorageOrder`, where
-  each matrix (corresponding to the rightmost two extents of the
-  result) has `num_rows` rows and columns.
-
-* *Returns:* A `basic_mdspan` `r` with packed layout and the following
-  properties:
-
-  * `r.extent(r.rank()-2)` equals `num_rows`.
-
-  * `r.extent(r.rank()-1)` equals `num_rows`.
-
-  * Let `E_r` be the type of `r.extents()`.  Then,
-
-    * `E_r::rank()` is one plus `Extents::rank()`, and
-
-    * `E_r::rank() - E_r::dynamic_rank()` (the number of static
-      extents) is no less than `Extents::rank() -
-      Extents::dynamic_rank()`.
+* If `StorageOrder` is `row_major_t` and
+  `Triangle` is `lower_triangle_t`,
+  then index pair i,j maps to j + i(i+1)/2 if j >= i,
+  else index pair i,j maps to i + j(j+1)/2.
 
 ### Scaled view of an object
 
@@ -1398,9 +1311,9 @@ another for the vector add).  However, scalar arguments complicate the
 interface.
 
 We can solve all these issues in C++ by introducing a "scaled view" of
-an existing vector or matrix, via a changed `basic_mdspan` `Accessor`.
-For example, users could imitate what `xAXPY` does by using our
-`linalg_add` function (see below) as follows:
+an existing vector or matrix, via a changed `basic_mdspan` `Accessor`
+(see below).  For example, users could imitate what `xAXPY` does by
+using our `linalg_add` function (see below) as follows:
 
 ```c++
 mdspan<double, extents<dynamic_extent>> y = ...;
@@ -1425,88 +1338,73 @@ alpha*x + beta*y`:
 linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
 ```
 
-Note that this operation could not dispatch to an existing BLAS
-library, unless the library implements the `xWAXPBY` function
-specified in the BLAS Standard.  However, implementations could
-specialize on the result of a `scaled_view`, in order to transform the
-user's arguments into something suitable for a BLAS library call.  For
-example, if the user calls `matrix_product` (see below) with `A` and
-`B` both results of `scaled_view`, then the implementation could
-combine both scalars into a single "alpha" and call `xGEMM` with it.
-
 #### `scaled_scalar`
 
-`scaled_scalar` expresses a scaled version of an existing scalar.
-This must be read only.  *[Note:* This avoids likely confusion with
-the definition of "assigning to a scaled scalar." --*end note]*
-
-*[Note:*
-
-`scaled_scalar` and `conjugated_scalar` (see below) behave a bit like
-`atomic_ref`, in that they are special `reference` types for the
-Accessors `accessor_scaled` resp. `accessor_conjugate` (see below),
-and that they provide overloaded arithmetic operators that implement a
-limited form of expression templates.  The arithmetic operators are
-templated on their input type, so that they only need to compile if an
-algorithm actually uses them.  The conversion to `T` allows simple
-assignment to `T`, or invocation in functions that take `T`.
-
-There are other surprising results outside the scope of this
-proposal to fix, like the fact that `operator*` does not work for
-`complex<float>` times `double`.  This means `scaled_view(x, 93.0)`
-for `x` with `element_type` `complex<float>` will not compile.
-Neither does `complex<float>(5.0, 6.0) * y`.  Our experience with
-generic numerical algorithms is that floating-point literals need type
-adornment.
-
--*end note]*
+`scaled_scalar` expresses a read-only scaled version of an existing
+scalar.  It is part of the implementation of `scaled_accessor` (see
+below).  *[Note:* It is read only to avoid confusion with the
+definition of "assigning to a scaled scalar." --*end note]*
 
 ```c++
-template<class Reference, class ScalingFactor>
+template<class ScalingFactor, class Reference>
 class scaled_scalar {
 private:
-  Reference value;
-  const ScalingFactor scaling_factor;
+  const ScalingFactor scaling_factor; // exposition only
+  Reference value; // exposition only
+  using result_type = decltype (scaling_factor * value); // exposition only
 
-  using result_type = decltype (value * scaling_factor);
 public:
-  scaled_scalar(Reference v, const ScalingFactor& s) :
-    value(v), scaling_factor(s) {}
+  scaled_scalar(const ScalingFactor& s, Reference v) :
+    scaling_factor(s), value(v) {}
 
-  operator result_type() const { return value * scaling_factor; }
+  operator result_type() const { return scaling_factor * value; }
 };
 ```
+
+* *Requires:*
+
+  * `ScalingFactor` and `Reference` shall be *Cpp17CopyConstructible*.
+
+* *Constraints:*
+
+  * The expression `scaling_factor * value` is well formed.
+
+```c++
+operator result_type() const;
+```
+
+* *Effects:* Equivalent to `return scaling_factor * value;`.
 
 #### `accessor_scaled`
 
 Accessor to make `basic_mdspan` return a `scaled_scalar`.
 ```c++
-template<class Accessor, class S>
+template<class ScalingFactor, class Accessor>
 class accessor_scaled {
 public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
-  using reference     = scaled_scalar<Accessor::reference,S>;
-  using offset_policy = accessor_scaled<Accessor::offset_policy,S>;
+  using reference     = scaled_scalar<ScalingFactor, Accessor::reference>;
+  using offset_policy = accessor_scaled<ScalingFactor, Accessor::offset_policy>;
 
-  accessor_scaled(Accessor a, S sval) :
-    acc(a), scale_factor(sval) {}
+  accessor_scaled(const ScalingFactor& s, Accessor a) :
+    scaling_factor(s), accessor(a) {}
 
-  reference access(pointer& p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p,i), scale_factor);
+  reference access(pointer p, ptrdiff_t i) const noexcept {
+    return reference(scaling_factor, accessor.access(p, i));
   }
 
   offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return a.offset(p,i);
+    return accessor.offset(p, i);
   }
 
   element_type* decay(pointer p) const noexcept {
-    return a.decay(p);
+    return accessor.decay(p);
   }
 
 private:
-  Accessor acc;
-  S scale_factor;
+  ScalingFactor scaling_factor;
+  Accessor accessor;
 };
 ```
 
@@ -1514,10 +1412,24 @@ private:
 
 Return a scaled view using a new accessor.
 ```c++
-template<class T, class Extents, class Layout,
-         class Accessor, class S>
-basic_mdspan<T, Extents, Layout, accessor_scaled<Accessor, S>>
-scaled_view(S s, const basic_mdspan<T, Extents, Layout, Accessor>& a);
+template<class ScalingFactor,
+         class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout,
+             accessor_scaled<ScalingFactor, Accessor>>
+scaled_view(
+  const ScalingFactor& s,
+  const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<ElementType, Extents, Layout,
+  accessor_scaled<ScalingFactor, Accessor>>(a.data(),
+    a.mapping(), accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
 ```
 
 *Example:*
@@ -1526,8 +1438,9 @@ scaled_view(S s, const basic_mdspan<T, Extents, Layout, Accessor>& a);
 void test_scaled_view(basic_mdspan<double, extents<10>> a)
 {
   auto a_scaled = scaled_view(5.0, a);
-  for(int i = 0; i < a.extent(0); ++i)
+  for(int i = 0; i < a.extent(0); ++i) {
     assert(a_scaled(i) == 5.0 * a(i));
+  }
 }
 ```
 
@@ -1558,8 +1471,9 @@ element types.
 
 #### `conjugated_scalar`
 
-`conjugated_scalar` expresses a conjugated version of an existing
-scalar.  This must be read only.  *[Note:* This avoids likely
+`conjugated_scalar` expresses a read-only conjugated version of an
+existing scalar.  It is part of the implementation of
+`accessor_conjugate`.  *[Note:* This is read only to avoid likely
 confusion with the definition of "assigning to the conjugate of a
 scalar." --*end note]*
 
@@ -1584,48 +1498,45 @@ in the sense of **[namespace.std]**.  Our definition of
 Standard to permit `complex<T>` for other `T`.)
 
 ```c++
-template<class T>
+template<class Reference, class T>
 class conjugated_scalar {
 public:
   using value_type = T;
 
-  conjugated_scalar(const T& v) : val(v) {}
+  conjugated_scalar(Reference v);
 
-  operator T() const { return conj(val); }
-
-  template<class T2>
-  T operator* (const T2 upd) const {
-    return conj(val) * upd;
-  }
-
-  template<class T2>
-  T operator+ (const T2 upd) const {
-    return conj(val) + upd;
-  }
-
-  template<class T2>
-  bool operator== (const T2 upd) const {
-    return conj(val) == upd;
-  }
-
-  template<class T2>
-  bool operator!= (const T2 upd) const {
-    return conj(val) != upd;
-  }
-
-  // ... add only those operators needed for the functions in this
-  // proposal ...
+  operator value_type() const;
 
 private:
-  const T& val;
+  Reference val; // exposition only
 };
 ```
+* *Requires:* `Reference` shall be *Cpp17CopyConstructible*.
+
+* *Constraints:*
+
+  * `T` is `complex<R>` for some type `R`.
+
+  * The expression `conj(val)` is well formed and
+    is convertible to `T`.
+
+```c++
+conjugated_scalar(Reference v);
+```
+
+* *Effects:* Initializes `val` with `v`.
+
+```c++
+operator value_type() const;
+```
+
+* *Effects:* Equivalent to `return conj(val);`.
 
 #### `accessor_conjugate`
 
 The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
-`conjugated_scalar` if the scalar type is `std::complex<R>` for some
-`R`.  Otherwise, it makes `basic_mdspan` access return the original
+`conjugated_scalar` if the scalar type is `std::complex<T>` for some
+`T`.  Otherwise, it makes `basic_mdspan` access return the original
 `basic_mdspan`'s reference type.
 
 ```c++
@@ -1652,6 +1563,10 @@ public:
   element_type* decay(pointer p) const noexcept {
     return acc.decay(p);
   }
+
+  Accessor nested_accessor() const {
+    return acc;
+  }
 private:
   Accessor acc;
 };
@@ -1661,10 +1576,8 @@ class accessor_conjugate<Accessor, std::complex<T>> {
 public:
   using element_type  = typename Accessor::element_type;
   using pointer       = typename Accessor::pointer;
-  // FIXME Do we actually need to template conjugated_scalar
-  // on the Reference type as well as T ?
   using reference     =
-    conjugated_scalar< /* typename Accessor::reference, */ std::complex<T>>;
+    conjugated_scalar<typename Accessor::reference, std::complex<T>>;
   using offset_policy =
     accessor_conjugate<typename Accessor::offset_policy, std::complex<T>>;
 
@@ -1683,6 +1596,11 @@ public:
   element_type* decay(pointer p) const noexcept {
     return acc.decay(p);
   }
+
+  Accessor nested_accessor() const {
+    return acc;
+  }
+
 private:
   Accessor acc;
 };
@@ -1694,10 +1612,38 @@ The `conjugate_view` function returns a conjugated view using a new
 accessor.
 
 ```c++
-template<class EltType, class Extents, class Layout, class Accessor>
-basic_mdspan<EltType, Extents, Layout,
-             accessor_conjugate<Accessor, EltType>>
-conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout,
+             accessor_conjugate<Accessor, ElementType>>
+conjugate_view(basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<ElementType, Extents, Layout,
+  accessor_conjugate<Accessor, ElementType>>(a.data(),
+    a.mapping(), accessor_conjugate<Accessor, ElementType>(a.accessor()));
+```
+
+```c++
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout, Accessor>
+conjugate_view(basic_mdspan<ElementType, Extents, Layout,
+  accessor_conjugate<Accessor, ElementType>> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<ElementType, Extents, Layout, Accessor>(a.data(),
+    a.mapping(), a.accessor().nested_accessor());
 ```
 
 *Example:*
@@ -1706,15 +1652,11 @@ conjugate_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
 void test_conjugate_view(basic_mdspan<complex<double>, extents<10>>)
 {
   auto a_conj = conjugate_view(a);
-  for(int i = 0; i < a.extent(0); ++i)
+  for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj(i) == conj(a(i));
+  }
 }
 ```
-
-*[Note:* Instead of a partial specialization of `accessor_conjugate`,
-one could have different overloads of `conjugate_view` that return fo
-non-complex scalar types the same accessor as the input
-argument. --*end note]*
 
 ### Transpose view of an object
 
@@ -1748,20 +1690,21 @@ public:
   template<class Extents>
   struct mapping {
   private:
-    using nested_mapping_type = typename Layout::template mapping<Extents>;
+    using nested_mapping_type =
+      typename Layout::template mapping<Extents>; // exposition only
+    nested_mapping_type nested_mapping_; // exposition only
   public:
-    nested_mapping_type nested_mapping;
-
     mapping() = default;
 
-    mapping(nested_mapping_type map) : nested_mapping(map) {}
+    mapping(nested_mapping_type map) : nested_mapping_(map) {}
 
     // ... insert other standard mapping things ...
 
     ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const {
-      return nested_mapping(j, i);
+      return nested_mapping_(j, i);
     }
 
+    nested_mapping() const { return nested_mapping_; }
   };
 };
 ```
@@ -1770,15 +1713,16 @@ public:
 
   * `Layout` is a unique layout.
 
-  * `Layout::mapping::rank()` is at least 2.
+  * `Layout::mapping::rank()` is 2.
 
 #### `transpose_view`
 
-The `transpose_view` function returns a transposed view of an object.
-For rank-2 objects, the transposed view swaps the row and column
-indices.
+The `transpose_view` function returns a transposed view of a rank-2
+`basic_mdspan`.  The transposed view swaps the indices.
 
-Note that `transpose_view` always returns a `basic_mdspan` with the
+*[Note:*
+
+`transpose_view` always returns a `basic_mdspan` with the
 `layout_transpose` argument.  This gives a type-based indication of
 the transpose operation.  However, functions' implementations may
 convert the `layout_transpose` object to an object with a different
@@ -1787,10 +1731,39 @@ of a `layout_blas<column_major_t>` matrix as a
 `layout_blas<row_major_t>` matrix.  (This is a classic technique for
 supporting row-major matrices using the Fortran BLAS interface.)
 
+--*end note]*
+
 ```c++
-template<class EltType, class Extents, class Layout, class Accessor>
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
 basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
 transpose_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>(a.data(),
+  typename layout_transpose<Layout>::template mapping<Extents>(a.mapping()),
+  a.accessor());
+```
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, Layout, Accessor>
+transpose_view(basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
+  a.mapping().nested_mapping(), a.accessor());
 ```
 
 #### Conjugate transpose view
@@ -1800,11 +1773,78 @@ view of an object.  This combines the effects of `transpose_view` and
 `conjugate_view`.
 
 ```c++
-template<class EltType, class Extents, class Layout, class Accessor>
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
 basic_mdspan<EltType, Extents, layout_transpose<Layout>,
              accessor_conjugate<Accessor, EltType>>
 conjugate_transpose_view(
   basic_mdspan<EltType, Extents, Layout, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, layout_transpose<Layout>,
+  accessor_conjugate<Accessor, EltType>>(a.data(),
+    a.mapping(), a.accessor());
+```
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, Layout,
+             accessor_conjugate<Accessor, EltType>>
+conjugate_transpose_view(
+  basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, Layout,
+  accessor_conjugate<Accessor, EltType>>(a.data(),
+    a.mapping().nested_mapping(), a.accessor());
+```
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
+conjugate_transpose_view(
+  basic_mdspan<EltType, Extents, Layout,
+               accessor_conjugate<Accessor, EltType>> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents,
+  layout_transpose<Layout>, Accessor>(a.data(),
+    a.mapping(), a.accessor().nested_accessor());
+```
+
+```c++
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, Layout, Accessor>
+conjugate_transpose_view(
+  basic_mdspan<EltType, Extents, layout_transpose<Layout>,
+               accessor_conjugate<Accessor, EltType>> a);
+```
+
+* *Effects:* Equivalent to
+
+```c++
+return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
+    a.mapping().nested_mapping(), a.accessor().nested_accessor());
 ```
 
 ## Algorithms
@@ -4437,8 +4477,8 @@ pioneering efforts and history lessons.
   Jun. 2002, pp. 135-151.
 
 * G. Davidson and B. Steagall, "A proposal to add linear algebra
-  support to the C++ standard library," [P1385R1](http://wg21.link/p1385r1),
-  Mar. 2019.
+  support to the C++ standard library,"
+  [P1385R4](http://wg21.link/p1385r4), Nov. 2019.
 
 * B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
   "Direction for ISO C++," [P0939R0](http://wg21.link/p0939r0), Feb. 2018.
