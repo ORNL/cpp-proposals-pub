@@ -1302,7 +1302,7 @@ columns.)  Let `i,j` be the indices given to the packed layout's
   then index pair i,j maps to j + i(i+1)/2 if j >= i,
   else index pair i,j maps to i + j(j+1)/2.
 
-### Scaled view of an object
+### Scaled transformation of an object
 
 Most BLAS functions that take scalar arguments use those arguments as
 a transient scaling of another vector or matrix argument.  For
@@ -1487,7 +1487,7 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 }
 ```
 
-### Conjugated view of an object
+### Conjugated transformation of an object
 
 Some BLAS functions of matrices also take one or more `TRANS*`
 arguments that specifies whether to view the transpose or conjugate
@@ -1572,45 +1572,32 @@ operator value_type() const;
 #### `accessor_conjugate`
 
 The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
-`conjugated_scalar` if the scalar type is `std::complex<T>` for some
-`T`.  Otherwise, it makes `basic_mdspan` access return the original
+`conjugated_scalar` if the scalar type is `complex<T>` for some `T`.
+Otherwise, it makes `basic_mdspan` access return the original
 `basic_mdspan`'s reference type.
 
 ```c++
-template<class Accessor, class T>
+template<class Accessor>
 class accessor_conjugate {
-public:
-  using element_type  = typename Accessor::element_type;
-  using pointer       = typename Accessor::pointer;
-  using reference     = typename Accessor::reference;
-  using offset_policy = typename Accessor::offset_policy;
-
-  accessor_conjugate(Accessor a);
-
-  reference access(pointer p, ptrdiff_t i) const noexcept;
-
-  typename offset_policy::pointer
-  offset(pointer p, ptrdiff_t i) const noexcept;
-
-  element_type* decay(pointer p) const noexcept;
-
-  Accessor nested_accessor() const;
-
 private:
-  Accessor acc; // exposition only
-};
+  // exposition only
+  static constexpr bool is_element_type_complex =
+    is_same_v<typename Accessor::element_type, complex<double>> ||
+    is_same_v<typename Accessor::element_type, complex<float>> ||
+    is_same_v<typename Accessor::element_type, complex<long double>>;
 
-template<class Accessor, class Real>
-class accessor_conjugate<Accessor, std::complex<Real>> {
 public:
   using element_type  = typename Accessor::element_type;
   using pointer       = typename Accessor::pointer;
   using reference     =
-    conjugated_scalar<typename Accessor::reference,
-                      std::complex<Real>>;
+    conditional_t<is_element_type_complex,
+      conjugated_scalar<typename Accessor::reference, element_type>,
+      typename Accessor::reference>;
   using offset_policy =
-    accessor_conjugate<typename Accessor::offset_policy,
-                       std::complex<Real>>;
+    conditional_t<is_element_type_complex,
+      accessor_conjugate<typename Accessor::offset_policy,
+        element_type>,
+      typename Accessor::offset_policy>;
 
   accessor_conjugate(Accessor a);
 
@@ -1635,9 +1622,9 @@ private:
   * `Accessor` shall meet the `basic_mdspan` accessor policy
     requirements (see *[mdspan.accessor.reqs]* in P0009).
 
-  * `T` shall be a complete object type that is neither an abstract
-    class type nor an array type (see *[mdspan.basic.overview]* in
-    P0009).
+  * `ElementType` shall be a complete object type that is neither an
+    abstract class type nor an array type (see
+    *[mdspan.basic.overview]* in P0009).
 
 ```c++
 accessor_conjugate(Accessor a);
@@ -1681,7 +1668,7 @@ template<class ElementType,
          class Layout,
          class Accessor>
 basic_mdspan<ElementType, Extents, Layout,
-             accessor_conjugate<Accessor, ElementType>>
+             accessor_conjugate<Accessor>>
 conjugate_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
@@ -1690,10 +1677,10 @@ conjugate_view(
 
 ```c++
 return basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor, ElementType>>(
+  accessor_conjugate<Accessor>>(
     a.data(),
     a.mapping(),
-    accessor_conjugate<Accessor, ElementType>(a.accessor()));
+    accessor_conjugate<Accessor>(a.accessor()));
 ```
 
 ```c++
@@ -1703,7 +1690,7 @@ template<class ElementType,
          class Accessor>
 basic_mdspan<ElementType, Extents, Layout, Accessor>
 conjugate_view(basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor, ElementType>> a);
+  accessor_conjugate<Accessor>> a);
 ```
 
 * *Effects:* Equivalent to
@@ -2071,7 +2058,7 @@ template<class ElementType,
          class Accessor>
 basic_mdspan<ElementType, Extents,
              layout_transpose<Layout>,
-             accessor_conjugate<Accessor, ElementType>>
+             accessor_conjugate<Accessor>>
 conjugate_transpose_view(
   basic_mdspan<ElementType, Extents,
                Layout,
@@ -2083,7 +2070,7 @@ template<class ElementType,
          class Accessor>
 basic_mdspan<ElementType, Extents,
              Layout,
-             accessor_conjugate<Accessor, ElementType>>
+             accessor_conjugate<Accessor>>
 conjugate_transpose_view(
   basic_mdspan<ElementType, Extents,
                layout_transpose<Layout>,
@@ -2099,7 +2086,7 @@ basic_mdspan<ElementType, Extents,
 conjugate_transpose_view(
   basic_mdspan<ElementType, Extents,
                Layout,
-               accessor_conjugate<Accessor, ElementType>> a);
+               accessor_conjugate<Accessor>> a);
 
 template<class ElementType,
          class Extents,
@@ -2111,7 +2098,7 @@ basic_mdspan<ElementType, Extents,
 conjugate_transpose_view(
   basic_mdspan<ElementType, Extents,
                layout_transpose<Layout>,
-               accessor_conjugate<Accessor, ElementType>> a);
+               accessor_conjugate<Accessor>> a);
 ```
 
 * *Effects:* Equivalent to
