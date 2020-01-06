@@ -1345,6 +1345,16 @@ alpha*x + beta*y`:
 linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
 ```
 
+*[Note:*
+
+An implementation could dispatch to a function in the BLAS library, by
+noticing that the first argument has an `accessor_scaled` `Accessor`
+type.  It could use this information to extract the appropriate
+run-time value(s) of the relevant BLAS function arguments (e.g.,
+`ALPHA` and/or `BETA`).
+
+--*end note]*
+
 #### `scaled_scalar`
 
 `scaled_scalar` expresses a read-only scaled version of an existing
@@ -1734,31 +1744,31 @@ void test_conjugate_view_real(
 }
 ```
 
-### Transpose view of an object
+### Transpose transformation of an object
 
-Many BLAS functions of matrices take an argument that specifies
-whether to view the transpose or conjugate transpose of the matrix.
-The BLAS uses this argument to modify a read-only input transiently.
-This means that users can let the BLAS work with the data in place,
-without needing to compute the transpose or conjugate transpose
-explicitly.  However, it complicates the BLAS interface.
+`layout_transpose` is a `basic_mdspan` layout mapping policy that
+swaps the rightmost two indices, extents, and strides (if applicable)
+of any unique `basic_mdspan` layout mapping policy.
 
-Just as we did above with a "scaled view" of an object, we can
-construct a "transposed view" or "conjugate transpose" view of an
-object.  This lets us simplify the interface.
+The `transpose_view` function takes a rank-2 `basic_mdspan`
+representing a matrix, and returns a new read-only `basic_mdspan`
+representing the transpose of the input matrix.
 
-An implementation could dispatch to the BLAS by noticing that the
-first argument has a `layout_transpose` (see below) `Layout` type
-(in both transposed and conjugate transposed cases), and/or an
-`accessor_conjugate` (see below) `Accessor` type (in the conjugate
-transposed case).  It could use this information to extract the
-appropriate run-time BLAS parameters.
+*[Note:*
+
+An implementation could dispatch to a function in the BLAS library, by
+noticing that the first argument has a `layout_transpose` `Layout`
+type, and/or an `accessor_conjugate` (see below) `Accessor` type.  It
+could use this information to extract the appropriate run-time
+value(s) of the relevant `TRANS*` BLAS function arguments.
+
+--*end note]*
 
 #### `layout_transpose`
 
 `layout_transpose` is a `basic_mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
-of an existing unique layout mapping policy.
+of any unique `basic_mdspan` layout mapping policy.
 
 ```c++
 template<class InputExtents>
@@ -1856,13 +1866,14 @@ public:
 * *Requires:*
 
   * `Layout` shall meet the `basic_mdspan` layout mapping policy
-    requirements (see *[mdspan.layout.reqs]* in P0009).
+    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R9.
+    --*end note]*
 
 * *Constraints:*
 
-  * `Layout::is_always_unique()` is `true`.
-
-  * `Layout::mapping::rank()` is 2.
+  * For all specializations `E` of `extents` with `E::rank()` equal to
+    2, `typename Layout::template mapping<E>::is_always_unique()` is
+    `true`.
 
 ```c++
 mapping(const nested_mapping_type& map);
@@ -1968,8 +1979,15 @@ stride(typename Extents::index_type r) const
 
 #### `transpose_view`
 
-The `transpose_view` function returns a transposed view of a rank-2
-`basic_mdspan`.  The transposed view swaps the indices.
+The `transpose_view` function takes a rank-2 `basic_mdspan`
+representing a matrix, and returns a new read-only `basic_mdspan`
+representing the transpose of the input matrix.  The input matrix's
+data are not modified, and the returned `basic_mdspan` accesses the
+input matrix's data in place.  If the input `basic_mdspan`'s layout is
+already `layout_transpose<L>` for some layout `L`, then the returned
+`basic_mdspan` has layout `L`.  Otherwise, the returned `basic_mdspan`
+has layout `layout_transpose<L>`, where `L` is the input
+`basic_mdspan`'s layout.
 
 ```c++
 template<class ElementType,
@@ -2047,7 +2065,7 @@ void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
 }
 ```
 
-#### Conjugate transpose view
+#### Conjugate transpose transform
 
 The `conjugate_transpose_view` function returns a conjugate transpose
 view of an object.  This combines the effects of `transpose_view` and
