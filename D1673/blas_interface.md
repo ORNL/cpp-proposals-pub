@@ -1038,9 +1038,9 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 
 ### Layouts
 
-Our proposal uses the layout policy of `basic_mdspan` in order to
-represent different matrix and vector data layouts.  Layouts as
-described by P0009R9 have three basic properties:
+Our proposal uses the layout mapping policy of `basic_mdspan` in order
+to represent different matrix and vector data layouts.  Layout mapping
+policies as described by P0009R9 have three basic properties:
 
 * Unique
 * Contiguous
@@ -1187,60 +1187,231 @@ These tag classes specify whether algorithms should apply some
 operator to the left side (`left_side_t`) or right side
 (`right_side_t`) of an object.
 
-#### New "General" layouts
+#### `layout_blas_general`
+
+`layout_blas_general` is a `basic_mdspan` layout mapping policy.  Its
+`StorageOrder` template parameter determines whether the matrix's data
+layout is column major or row major.
+
+`layout_blas_general<column_major_t>` represents a column-major matrix
+layout, where the stride between consecutive rows is always one, and
+the stride between consecutive columns may be greater than or equal to
+the number of rows.  *[Note:* This is a generalization of
+`layout_left`. --*end note]*
+
+`layout_blas_general<row_major_t>` represents a row-major matrix
+layout, where the stride between consecutive rows may be greater than
+or equal to the number of columns, and the stride between consecutive
+columns is always one.  *[Note:* This is a generalization of
+`layout_right`. --*end note]*
+
+*[Note:*
+
+`layout_blas_general` represents exactly the data layout assumed by
+the General (GE) matrix type in the BLAS' C binding.  It has two
+advantages:
+
+  1. Unlike `layout_left` and `layout_right`, any "submatrix" (subspan
+     of consecutive rows and consecutive columns) of a matrix with
+     `layout_blas_general<StorageOrder>` layout also has
+     `layout_blas_general<StorageOrder>` layout.
+
+  2. Unlike `layout_stride`, it always has compile-time unit stride in
+     one of the matrix's two extents.
+
+BLAS functions call the possibly nonunit stride of the matrix the
+"leading dimension" of that matrix.  For example, a BLAS function
+argument corresponding to the leading dimension of the matrix `A` is
+called `LDA`, for "leading dimension of the matrix A."
+
+--*end note]*
 
 ```c++
 template<class StorageOrder>
-class layout_blas_general;
+class layout_blas_general {
+public:
+  template<class Extents>
+  struct mapping {
+  private:
+    Extents extents_; // exposition only
+    const typename Extents::index_type stride_{}; // exposition only
+
+  public:
+    constexpr mapping(const Extents& e,
+      const typename Extents::index_type s);
+
+    typename Extents::index_type
+    operator() (typename Extents::index_type i,
+                typename Extents::index_type j) const;
+
+    constexpr typename Extents::index_type
+    required_span_size() const noexcept;
+
+    typename Extents::index_type
+    stride(typename Extents::index_type r) const noexcept;
+
+    template<class OtherExtents>
+    bool operator==(const mapping<OtherExtents>& m) const noexcept;
+
+    template<class OtherExtents>
+    bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+
+    Extents extents() const noexcept;
+
+    static constexpr bool is_always_unique();
+    static constexpr bool is_always_contiguous();
+    static constexpr bool is_always_strided();
+
+    constexpr bool is_unique() const noexcept;
+    constexpr bool is_contiguous() const noexcept;
+    constexpr bool is_strided() const noexcept;
+  };
+};
 ```
 
-* *Constraints:* `StorageOrder` is either `column_major_t` or
-  `row_major_t`.
+* *Constraints:*
 
-These new layouts represent exactly the layout assumed by the General
-(GE) matrix type in the BLAS' C binding.
+  * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
-* `layout_blas_general<column_major_t>` represents a column-major
-  matrix layout, where the stride between columns (in BLAS terms,
-  "leading dimension of the matrix A" or `LDA`) may be greater than or
-  equal to the number of rows.
+  * `Extents::rank()` equals 2.
 
-* `layout_blas_general<row_major_t>` represents a row-major matrix
-  layout, where the stride (again, `LDA`) between rows may be greater
-  than or equal to the number of columns.
+```c++
+constexpr mapping(const Extents& e,
+  const typename Extents::index_type s);
+```
 
-These layouts are both always unique and always strided.  They are
-contiguous if and only if the "leading dimension" equals the number of
-rows resp. columns.  Both layouts are more general than `layout_left`
-and `layout_right`, because they permit a stride between columns
-resp. rows that is greater than the corresponding extent.  This is why
-BLAS functions take an `LDA` (leading dimension of the matrix A)
-argument separate from the dimensions (extents, in `mdspan` terms) of
-A.  However, these layouts are slightly *less* general than
-`layout_stride`, because they assume contiguous storage of columns
-resp. rows.  See P1674R0 for further discussion.
+* *Requires:*
 
-These new layouts have natural generalizations to ranks higher than 2.
-The definition of each of these layouts would look and work like
-`layout_stride`, except for the following differences:
+  * If `StorageOrder` is `column_major_t`, then `s` is greater than or
+    equal to `e.extent(0)`.  Otherwise, if `StorageOrder` is
+    `row_major_t`, then `s` is greater than or equal to `e.extent(1)`.
 
-* `layout_blas_general::mapping` would be templated on two `extent`
-  types.  The first would express the `mdspan`'s dimensions, just like
-  with `layout_left`, `layout_right`, or `layout_stride`.  The second
-  would express the `mdspan`'s strides.  The second `extent` would
-  have rank `rank()-1`.
+* *Effects:* Initializes `extents_` with `e`, and
+  initializes `stride_` with `s`.
 
-* `layout_blas_general::mapping`'s constructor would take an instance
-  of each of these two `extent` specializations.
+*[Note:*
 
-These new layouts differ intentionally from `layout_stride`, which (as
-of P0009R9) takes strides all as run-time elements in an `array`.  (We
-favor changing this in the next revision of P0009, to make
-`layout_stride` take the strides as a second `extents` object.)  We
-want users to be able to express strides as an arbitrary mix of
-compile-time and run-time values, just as they can express dimensions.
+The BLAS Standard requires that the stride be one if the corresponding
+matrix dimension is zero.  We do not impose this requirement here,
+because it is specific to the BLAS.  if an implementation dispatches
+to a BLAS function, then the implementation must impose the
+requirement at run time.
 
-#### Packed layouts
+--*end note]*
+
+```c++
+typename Extents::index_type
+operator() (typename Extents::index_type i,
+            typename Extents::index_type j) const;
+```
+
+* *Requires:*
+
+  * 0 ≤ `i` < `extent(0)`, and
+
+  * 0 ≤ `j` < `extent(1)`.
+
+* *Returns:*
+
+  * If `StorageOrder` is `column_major_t`, then
+    `i + stride(1)*j`;
+
+  * else, if `StorageOrder` is `row_major_t`, then
+    `stride(0)*i + j`.
+
+```c++
+template<class OtherExtents>
+bool operator==(const mapping<OtherExtents>& m) const;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* `true` if and only if
+  for 0 ≤ `r` < `rank()`,
+  `m.extent(r)` equals `extent(r)` and
+  `m.stride(r)` equals `stride(r)`.
+
+```c++
+template<class OtherExtents>
+bool operator!=(const mapping<OtherExtents>& m) const;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* * *Returns:* `true` if and only if
+   there exists `r` with 0 ≤ `r` < `rank()` such that
+  `m.extent(r)` does not equal `extent(r)` or
+  `m.stride(r)` does not equal `stride(r)`.
+
+```c++
+typename Extents::index_type
+stride(typename Extents::index_type r) const noexcept;
+```
+
+* *Returns:*
+
+  * If `StorageOrder` is `column_major_t`, `stride_` if `r` equals 1,
+    else 1;
+
+  * else, if `StorageOrder` is `row_major_t`, `stride_` if `r` equals
+    0, else 1.
+
+```c++
+constexpr typename Extents::index_type
+required_span_size() const noexcept;
+```
+
+* *Returns:* `stride(0)*stride(1)`.
+
+```c++
+Extents extents() const noexcept;
+```
+
+* *Effects:* Equivalent to `return extents_;`.
+
+```c++
+static constexpr bool is_always_unique();
+```
+
+* *Returns:* `true`.
+
+```c++
+static constexpr bool is_always_contiguous();
+```
+
+* *Returns:* `false`.
+
+```c++
+static constexpr bool is_always_strided();
+```
+
+* *Returns:* `true`.
+
+```c++
+constexpr bool is_unique() const noexcept;
+```
+
+* *Returns:* `true`.
+
+```c++
+constexpr bool is_contiguous() const noexcept;
+```
+
+* *Returns:*
+
+  * If `StorageOrder` is `column_major_t`, then
+    `true` if `stride(1)` equals `extent(0)`, else `false`;
+
+  * else, if `StorageOrder` is `row_major_t`, then
+    `true` if `stride(0)` equals `extent(1)`, else `false`.
+
+```c++
+constexpr bool is_always_strided() const noexcept;
+```
+
+* *Returns:* `true`.
+
+#### `layout_blas_packed`
 
 ```c++
 template<class Triangle,
@@ -1900,12 +2071,16 @@ template<class OtherExtents>
 bool operator==(const mapping<OtherExtents>& m) const;
 ```
 
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
 * *Effects:* Equivalent to `nested_mapping_ == m.nested_mapping_;`.
 
 ```c++
 template<class OtherExtents>
 bool operator!=(const mapping<OtherExtents>& m) const;
 ```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
 
 * *Effects:* Equivalent to `nested_mapping_ != m.nested_mapping_;`.
 
