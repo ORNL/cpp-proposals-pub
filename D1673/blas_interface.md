@@ -1682,15 +1682,18 @@ template<class ElementType,
          class Accessor>
 basic_mdspan<ElementType, Extents, Layout,
              accessor_conjugate<Accessor, ElementType>>
-conjugate_view(basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+conjugate_view(
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
 
 ```c++
 return basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor, ElementType>>(a.data(),
-    a.mapping(), accessor_conjugate<Accessor, ElementType>(a.accessor()));
+  accessor_conjugate<Accessor, ElementType>>(
+    a.data(),
+    a.mapping(),
+    accessor_conjugate<Accessor, ElementType>(a.accessor()));
 ```
 
 ```c++
@@ -1706,8 +1709,10 @@ conjugate_view(basic_mdspan<ElementType, Extents, Layout,
 * *Effects:* Equivalent to
 
 ```c++
-return basic_mdspan<ElementType, Extents, Layout, Accessor>(a.data(),
-    a.mapping(), a.accessor().nested_accessor());
+return basic_mdspan<ElementType, Extents, Layout, Accessor>(
+  a.data(),
+  a.mapping(),
+  a.accessor().nested_accessor());
 ```
 
 *Example:*
@@ -2060,77 +2065,57 @@ view of an object.  This combines the effects of `transpose_view` and
 `conjugate_view`.
 
 ```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-             accessor_conjugate<Accessor, EltType>>
+basic_mdspan<ElementType, Extents,
+             layout_transpose<Layout>,
+             accessor_conjugate<Accessor, ElementType>>
 conjugate_transpose_view(
-  basic_mdspan<EltType, Extents, Layout, Accessor> a);
-```
+  basic_mdspan<ElementType, Extents,
+               Layout,
+               Accessor> a);
 
-* *Effects:* Equivalent to
-
-```c++
-return conjugate_view(transpose_view(a));
-```
-
-```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, Layout,
-             accessor_conjugate<Accessor, EltType>>
+basic_mdspan<ElementType, Extents,
+             Layout,
+             accessor_conjugate<Accessor, ElementType>>
 conjugate_transpose_view(
-  basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor> a);
-```
+  basic_mdspan<ElementType, Extents,
+               layout_transpose<Layout>,
+               Accessor> a);
 
-* *Effects:* Equivalent to
-
-```c++
-return basic_mdspan<EltType, Extents, Layout,
-  accessor_conjugate<Accessor, EltType>>(a.data(),
-    a.mapping().nested_mapping(), a.accessor());
-```
-
-```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
+basic_mdspan<ElementType, Extents,
+             layout_transpose<Layout>,
+             Accessor>
 conjugate_transpose_view(
-  basic_mdspan<EltType, Extents, Layout,
-               accessor_conjugate<Accessor, EltType>> a);
-```
+  basic_mdspan<ElementType, Extents,
+               Layout,
+               accessor_conjugate<Accessor, ElementType>> a);
 
-* *Effects:* Equivalent to
-
-```c++
-return basic_mdspan<EltType, Extents,
-  layout_transpose<Layout>, Accessor>(a.data(),
-    a.mapping(), a.accessor().nested_accessor());
-```
-
-```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, Layout, Accessor>
+basic_mdspan<ElementType, Extents,
+             Layout,
+             Accessor>
 conjugate_transpose_view(
-  basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-               accessor_conjugate<Accessor, EltType>> a);
+  basic_mdspan<ElementType, Extents,
+               layout_transpose<Layout>,
+               accessor_conjugate<Accessor, ElementType>> a);
 ```
 
 * *Effects:* Equivalent to
-
-```c++
-return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
-    a.mapping().nested_mapping(), a.accessor().nested_accessor());
-```
+  `return conjugate_view(transpose_view(a));`.
 
 ## Algorithms
 
