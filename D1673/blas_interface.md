@@ -1306,43 +1306,32 @@ columns.)  Let `i,j` be the indices given to the packed layout's
 
 ### Scaled transformation of an object
 
-Most BLAS functions that take scalar arguments use those arguments as
-a transient scaling of another vector or matrix argument.  For
-example, `xAXPY` computes `y = alpha*x + y`, where `x` and `y` are
-vectors, and `alpha` is a scalar.  Scalar arguments help make the BLAS
-more efficient by combining related operations and avoiding temporary
-vectors or matrices.  In this `xAXPY` example, users would otherwise
-need a temporary vector `z = alpha*x` (`xSCAL`), and would need to
-make two passes over the input vector `x` (once for the scale, and
-another for the vector add).  However, scalar arguments complicate the
-interface.
+The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
+`x`, and returns a new read-only `basic_mdspan` with the same domain
+as `x`, that represents the elementwise product of `alpha` with each
+element of `x`.
 
-We can solve all these issues in C++ by introducing a "scaled view" of
-an existing vector or matrix, via a changed `basic_mdspan` `Accessor`
-(see below).  For example, users could imitate what `xAXPY` does by
-using our `linalg_add` function (see below) as follows:
+*Example:*
 
 ```c++
-mdspan<double, extents<dynamic_extent>> y = ...;
-mdspan<double, extents<dynamic_extent>> x = ...;
-double alpha = ...;
+void z_equals_alpha_times_x_plus_y(
+  mdspan<double, extents<dynamic_extent>> z,
+  const double alpha,
+  mdspan<double, extents<dynamic_extent>> x,
+  mdspan<double, extents<dynamic_extent>> y)
+{
+  linalg_add(scaled_view(alpha, x), y, y);
+}
 
-linalg_add(scaled_view(alpha, x), y, y);
-```
-
-The resulting operation would only need to iterate over the entries of
-the input vector `x` and the input / output vector `y` once.  An
-implementation could dispatch to the BLAS by noticing that the first
-argument has an `accessor_scaled` (see below) `Accessor` type,
-extracting the scalar value `alpha`, and calling the corresponding
-`xAXPY` function (assuming that `alpha` is nonzero; see discussion
-above).
-
-The same `linalg_add` interface would then support the operation `w :=
-alpha*x + beta*y`:
-
-```c++
-linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
+void w_equals_alpha_times_x_plus_beta_times_y(
+  mdspan<double, extents<dynamic_extent>> w,
+  const double alpha,
+  mdspan<double, extents<dynamic_extent>> x,
+  const double beta,
+  mdspan<double, extents<dynamic_extent>> y)
+{
+  linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
+}
 ```
 
 *[Note:*
@@ -1351,7 +1340,7 @@ An implementation could dispatch to a function in the BLAS library, by
 noticing that the first argument has an `accessor_scaled` `Accessor`
 type.  It could use this information to extract the appropriate
 run-time value(s) of the relevant BLAS function arguments (e.g.,
-`ALPHA` and/or `BETA`).
+`ALPHA` and/or `BETA`), by calling `accessor_scaled::scaling_factor`.
 
 --*end note]*
 
@@ -1422,8 +1411,10 @@ public:
 
   element_type* decay(pointer p) const noexcept;
 
+  ScalingFactor scaling_factor() const;
+
 private:
-  ScalingFactor scaling_factor; // exposition only
+  const ScalingFactor scaling_factor_; // exposition only
   Accessor accessor; // exposition only
 };
 ```
@@ -1439,7 +1430,7 @@ private:
 accessor_scaled(const ScalingFactor& s, Accessor a);
 ```
 
-* *Effects:* Initializes `scaling_factor` with `s`, and
+* *Effects:* Initializes `scaling_factor_` with `s`, and
   initializes `accessor` with `a`.
 
 ```c++
@@ -1447,7 +1438,7 @@ reference access(pointer p, ptrdiff_t i) const noexcept;
 ```
 
 * *Effects:* Equivalent to
-  `return reference(scaling_factor, accessor.access(p, i));`.
+  `return reference(scaling_factor_, accessor.access(p, i));`.
 
 ```c++
 offset_policy::pointer
@@ -1462,9 +1453,19 @@ element_type* decay(pointer p) const noexcept;
 
 * *Effects:* Equivalent to `return accessor.decay(p);`.
 
+```c++
+ScalingFactor scaling_factor() const;
+```
+
+* *Effects:* Equivalent to `return scaling_factor_;`.
+
 #### `scaled_view`
 
-Return a scaled view using a new accessor.
+The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
+`x`, and returns a new read-only `basic_mdspan` with the same domain
+as `x`, that represents the elementwise product of `alpha` with each
+element of `x`.
+
 ```c++
 template<class ScalingFactor,
          class ElementType,
