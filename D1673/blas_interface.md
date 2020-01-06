@@ -1762,17 +1762,51 @@ appropriate run-time BLAS parameters.
 
 #### `layout_transpose`
 
-This layout wraps an existing layout, and swaps its rightmost two
-indices.
+`layout_transpose` is a `basic_mdspan` layout mapping policy that
+swaps the rightmost two indices, extents, and strides (if applicable)
+of an existing unique layout mapping policy.
 
 ```c++
 template<class InputExtents>
 using transpose_extents_t = /* see below */; // exposition only
+```
 
+For `InputExtents` a specialization of `extents`,
+`transpose_extents_t<InputExtents>` names the `extents` type
+`OutputExtents` such that
+
+  * `InputExtents::static_extent(InputExtents::rank()-1)` equals
+    `OutputExtents::static_extent(OutputExtents::rank()-2)`,
+
+  * `InputExtents::static_extent(InputExtents::rank()-2)` equals
+    `OutputExtents::static_extent(OutputExtents::rank()-1)`, and
+
+  * `InputExtents::static_extent(r)` equals
+    `OutputExtents::static_extent(r)` for 0 ≤ `r` <
+    `InputExtents::rank()-2`.
+
+* *Requires:* `InputExtents` is a specialization of `extents`.
+
+* *Constraints:* `InputExtents::rank()` is at least 2.
+
+```c++
 template<class InputExtents>
 transpose_extents_t<InputExtents>
-transpose_extents(const InputExtents e); // exposition only
+transpose_extents(const InputExtents in); // exposition only
+```
 
+* *Constraints:* `InputExtents::rank()` is at least 2.
+
+* *Returns:* An `extents` object `out` such that
+
+  * `out.extent(in.rank()-1)` equals `in.extent(in.rank()-2)`,
+
+  * `out.extent(in.rank()-2)` equals `in.extent(in.rank()-1)`, and
+
+  * `out.extent(r)` equals `in.extent(r)`
+    for 0 ≤ `r` < `in.rank()-2`.
+
+```c++
 template<class Layout>
 class layout_transpose {
 public:
@@ -1780,16 +1814,17 @@ public:
   struct mapping {
   private:
     using nested_mapping_type =
-      typename Layout::template mapping<Extents>; // exposition only
+      typename Layout::template mapping<
+        transpose_extents_t<Extents>>; // exposition only
     nested_mapping_type nested_mapping_; // exposition only
 
   public:
-    mapping(nested_mapping_type map);
+    mapping(const nested_mapping_type& map);
 
     ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
       noexcept(noexcept(nested_mapping_(j, i)));
 
-    nested_mapping() const;
+    nested_mapping_type nested_mapping() const;
 
     template<class OtherExtents>
     bool operator==(const mapping<OtherExtents>& m) const;
@@ -1824,17 +1859,6 @@ public:
 };
 ```
 
-*[Note:*
-
-One cannot create a layout_transpose::mapping correctly, simply by
-passing in the original nested mapping.  One must first create a new
-`extents` object which has the rightmost two extents swapped, then
-rebind the nested mapping to use that new `extents` objext.  This is
-because the `basic_mdspan` layout mapping requirements require that
-the return type of `extents()` be `Extents`.
-
---*end note]*
-
 * *Requires:*
 
   * `Layout` shall meet the `basic_mdspan` layout mapping policy
@@ -1847,7 +1871,7 @@ the return type of `extents()` be `Extents`.
   * `Layout::mapping::rank()` is 2.
 
 ```c++
-mapping(nested_mapping_type map);
+mapping(const nested_mapping_type& map);
 ```
 
 * *Effects:* Initializes `nested_mapping_` with `map`.
@@ -1860,7 +1884,7 @@ ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
 * *Effects:* Equivalent to `return nested_mapping_(j, i);`.
 
 ```c++
-nested_mapping() const;
+nested_mapping_type nested_mapping() const;
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_;`.
@@ -1883,7 +1907,8 @@ bool operator!=(const mapping<OtherExtents>& m) const;
 Extents extents() const noexcept;
 ```
 
-* *Effects:* Equivalent to `return nested_mapping_.extents();'.
+* *Effects:* Equivalent to
+  `return transpose_extents(nested_mapping_.extents());`.
 
 ```c++
 typename Extents::index_type
@@ -1942,6 +1967,8 @@ stride(typename Extents::index_type r) const
   noexcept(noexcept(nested_mapping_.stride(r)));
 ```
 
+* *Constraints:* `is_always_strided()` is `true`.
+
 * *Effects:* Equivalent to `return nested_mapping_.stride(s);',
   where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
@@ -1964,9 +1991,14 @@ transpose_view(
 * *Effects:* Equivalent to
 
 ```c++
-return basic_mdspan<ElementType, transpose_extents_t<Extents>,
-                    layout_transpose<Layout>, Accessor>(a.data(),
-  typename layout_transpose<Layout>::template mapping<transpose_extents_t<Extents>>(a.mapping(), transpose_extents(a.mapping().extents())),
+return basic_mdspan<ElementType,
+                    transpose_extents_t<Extents>,
+                    layout_transpose<Layout>,
+                    Accessor>(
+  a.data(),
+  typename layout_transpose<Layout>::
+    template mapping<transpose_extents_t<Extents>>(
+      a.mapping());
   a.accessor());
 ```
 
@@ -1976,7 +2008,8 @@ template<class EltType,
          class Layout,
          class Accessor>
 basic_mdspan<EltType, Extents, Layout, Accessor>
-transpose_view(basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor> a);
+transpose_view(basic_mdspan<EltType, Extents,
+               layout_transpose<Layout>, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
@@ -2040,9 +2073,7 @@ conjugate_transpose_view(
 * *Effects:* Equivalent to
 
 ```c++
-return basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-  accessor_conjugate<Accessor, EltType>>(a.data(),
-    a.mapping(), a.accessor());
+return conjugate_view(transpose_view(a));
 ```
 
 ```c++
