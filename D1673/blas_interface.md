@@ -67,78 +67,12 @@
 
   * Remove `packed_view` function.
 
-### Over- and underflow wording for vector 2-norm
+  * (Re)add `Reference` template parameter to `conjugated_scalar`.
 
-SG6 recommended to us at Belfast 2019 to change the special overflow /
-underflow wording for `vector_norm2` to imitate the BLAS Standard more
-closely.  The BLAS Standard does say something about overflow and
-underflow for vector 2-norms.  We reviewed this wording and conclude
-that it is either a nonbinding quality of implementation (QoI)
-recommendation, or too vaguely stated to translate directly into C++
-Standard wording.  Thus, we removed the special overflow / underflow
-wording entirely.
+  * Make sure that `{conjugate,transpose}_view` applied 2x undoes
+    the original conjugation / transposition.
 
-Previous versions of this paper asked implementations to compute
-vector 2-norms "without undue overflow or underflow at intermediate
-stages of the computation."  "Undue" imitates existing C++ Standard
-wording for `hypot`.  This wording hints at the stricter requirements
-in F.9 (normative, but optional) of the C Standard for math library
-functions like `hypot`, without mandating those requirements.  In
-particular, paragraph 9 of F.9 says:
-
-> Whether or when library functions raise an undeserved "underflow"
-> floating-point exception is unspecified.  Otherwise, as implied by
-> F.7.6, the **<math.h>** functions do not raise spurious
-> floating-point exceptions (detectable by the user) [including the
-> "overflow" exception discussed in paragraph 6], other than the
-> "inexact" floating-point exception.
-
-However, these requirements are for math library functions like
-`hypot`, not for general algorithms that return floating-point values.
-SG6 did not raise a concern that we should treat `vector_norm2` like a
-math library function; their concern was that we imitate the BLAS
-Standard's wording.
-
-The BLAS Standard says of several operations, including vector 2-norm:
-"Here are the exceptional routines where we ask for particularly
-careful implementations to avoid unnecessary over/underflows, that
-could make the output unnecessarily inaccurate or unreliable" (p. 35).
-
-The BLAS Standard does not define phrases like "unnecessary
-over/underflows."  The likely intent is to avoid naïve implementations
-that simply add up the squares of the vector elements.  These would
-overflow even if the norm in exact arithmetic is significantly less
-than the overflow threshold.  The POSIX Standard (IEEE Std
-1003.1-2017) analogously says that `hypot` must "take precautions
-against overflow during intermediate steps of the computation."
-
-The phrase "precautions against overflow" is too vague for us to
-translate into a requirement.  The authors likely meant to exclude
-naïve implementations, but not require implementations to know whether
-a result computed in exact arithmetic would overflow or underflow.
-The latter is a special case of computing floating-point sums exactly,
-which is costly for vectors of arbitrary length.  While it would be a
-useful feature, it is difficult enough that we do not want to require
-it, especially since the BLAS Standard itself does not.
-
-For all of the functions listed on p. 35 of the BLAS Standard as
-needing "particularly careful implementations," *except* vector norm,
-the BLAS Standard has an "Advice to implementors" section with extra
-accuracy requirements.  The BLAS Standard does have an "Advice to
-implementors" section for matrix norms (see Section 2.8.7, p. 69),
-which have similar over- and underflow concerns as vector norms.
-However, the Standard merely states that "[h]igh-quality
-implementations of these routines should be accurate" and should
-document their accuracy, and gives examples of "accurate
-implementations" in LAPACK.
-
-The BLAS Standard never defines what "Advice to implementors" means.
-However, the BLAS Standard shares coauthors and audience with the
-Message Passing Interface (MPI) Standard, which defines "Advice to
-implementors" as "primarily commentary to implementors" and
-permissible to skip (see e.g., MPI 3.0, Section 2.1, p. 9).  We thus
-interpret "Advice to implementors" in the BLAS Standard as a
-nonbinding quality of implementation (QoI) recommendation.
+  * Remove second template parameter `T` from `accessor_conjugate`.
 
 ## Purpose of this paper
 
@@ -913,6 +847,79 @@ for representing what amounts to sparse matrices.  We think that BLAS
 matrix "type" is better represented with a higher-level library that
 builds on our proposal.
 
+### Over- and underflow wording for vector 2-norm
+
+SG6 recommended to us at Belfast 2019 to change the special overflow /
+underflow wording for `vector_norm2` to imitate the BLAS Standard more
+closely.  The BLAS Standard does say something about overflow and
+underflow for vector 2-norms.  We reviewed this wording and conclude
+that it is either a nonbinding quality of implementation (QoI)
+recommendation, or too vaguely stated to translate directly into C++
+Standard wording.  Thus, we removed the special overflow / underflow
+wording entirely.
+
+Previous versions of this paper asked implementations to compute
+vector 2-norms "without undue overflow or underflow at intermediate
+stages of the computation."  "Undue" imitates existing C++ Standard
+wording for `hypot`.  This wording hints at the stricter requirements
+in F.9 (normative, but optional) of the C Standard for math library
+functions like `hypot`, without mandating those requirements.  In
+particular, paragraph 9 of F.9 says:
+
+> Whether or when library functions raise an undeserved "underflow"
+> floating-point exception is unspecified.  Otherwise, as implied by
+> F.7.6, the **<math.h>** functions do not raise spurious
+> floating-point exceptions (detectable by the user) [including the
+> "overflow" exception discussed in paragraph 6], other than the
+> "inexact" floating-point exception.
+
+However, these requirements are for math library functions like
+`hypot`, not for general algorithms that return floating-point values.
+SG6 did not raise a concern that we should treat `vector_norm2` like a
+math library function; their concern was that we imitate the BLAS
+Standard's wording.
+
+The BLAS Standard says of several operations, including vector 2-norm:
+"Here are the exceptional routines where we ask for particularly
+careful implementations to avoid unnecessary over/underflows, that
+could make the output unnecessarily inaccurate or unreliable" (p. 35).
+
+The BLAS Standard does not define phrases like "unnecessary
+over/underflows."  The likely intent is to avoid naïve implementations
+that simply add up the squares of the vector elements.  These would
+overflow even if the norm in exact arithmetic is significantly less
+than the overflow threshold.  The POSIX Standard (IEEE Std
+1003.1-2017) analogously says that `hypot` must "take precautions
+against overflow during intermediate steps of the computation."
+
+The phrase "precautions against overflow" is too vague for us to
+translate into a requirement.  The authors likely meant to exclude
+naïve implementations, but not require implementations to know whether
+a result computed in exact arithmetic would overflow or underflow.
+The latter is a special case of computing floating-point sums exactly,
+which is costly for vectors of arbitrary length.  While it would be a
+useful feature, it is difficult enough that we do not want to require
+it, especially since the BLAS Standard itself does not.
+
+For all of the functions listed on p. 35 of the BLAS Standard as
+needing "particularly careful implementations," *except* vector norm,
+the BLAS Standard has an "Advice to implementors" section with extra
+accuracy requirements.  The BLAS Standard does have an "Advice to
+implementors" section for matrix norms (see Section 2.8.7, p. 69),
+which have similar over- and underflow concerns as vector norms.
+However, the Standard merely states that "[h]igh-quality
+implementations of these routines should be accurate" and should
+document their accuracy, and gives examples of "accurate
+implementations" in LAPACK.
+
+The BLAS Standard never defines what "Advice to implementors" means.
+However, the BLAS Standard shares coauthors and audience with the
+Message Passing Interface (MPI) Standard, which defines "Advice to
+implementors" as "primarily commentary to implementors" and
+permissible to skip (see e.g., MPI 3.0, Section 2.1, p. 9).  We thus
+interpret "Advice to implementors" in the BLAS Standard as a
+nonbinding quality of implementation (QoI) recommendation.
+
 ## Future work
 
 Summary:
@@ -1297,7 +1304,7 @@ columns.)  Let `i,j` be the indices given to the packed layout's
   then index pair i,j maps to j + i(i+1)/2 if j >= i,
   else index pair i,j maps to i + j(j+1)/2.
 
-### Scaled view of an object
+### Scaled transformation of an object
 
 Most BLAS functions that take scalar arguments use those arguments as
 a transient scaling of another vector or matrix argument.  For
@@ -1351,13 +1358,13 @@ class scaled_scalar {
 private:
   const ScalingFactor scaling_factor; // exposition only
   Reference value; // exposition only
-  using result_type = decltype (scaling_factor * value); // exposition only
+  using result_type =
+    decltype (scaling_factor * value); // exposition only
 
 public:
-  scaled_scalar(const ScalingFactor& s, Reference v) :
-    scaling_factor(s), value(v) {}
+  scaled_scalar(const ScalingFactor& s, Reference v);
 
-  operator result_type() const { return scaling_factor * value; }
+  operator result_type() const;
 };
 ```
 
@@ -1368,6 +1375,13 @@ public:
 * *Constraints:*
 
   * The expression `scaling_factor * value` is well formed.
+
+```c++
+scaled_scalar(const ScalingFactor& s, Reference v);
+```
+
+* *Effects:* Initializes `scaling_factor` with `s`, and
+  initializes `value` with `v`.
 
 ```c++
 operator result_type() const;
@@ -1384,29 +1398,59 @@ class accessor_scaled {
 public:
   using element_type  = Accessor::element_type;
   using pointer       = Accessor::pointer;
-  using reference     = scaled_scalar<ScalingFactor, Accessor::reference>;
-  using offset_policy = accessor_scaled<ScalingFactor, Accessor::offset_policy>;
+  using reference     =
+    scaled_scalar<ScalingFactor, Accessor::reference>;
+  using offset_policy =
+    accessor_scaled<ScalingFactor, Accessor::offset_policy>;
 
-  accessor_scaled(const ScalingFactor& s, Accessor a) :
-    scaling_factor(s), accessor(a) {}
+  accessor_scaled(const ScalingFactor& s, Accessor a);
 
-  reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(scaling_factor, accessor.access(p, i));
-  }
+  reference access(pointer p, ptrdiff_t i) const noexcept;
 
-  offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return accessor.offset(p, i);
-  }
+  offset_policy::pointer
+  offset(pointer p, ptrdiff_t i) const noexcept;
 
-  element_type* decay(pointer p) const noexcept {
-    return accessor.decay(p);
-  }
+  element_type* decay(pointer p) const noexcept;
 
 private:
-  ScalingFactor scaling_factor;
-  Accessor accessor;
+  ScalingFactor scaling_factor; // exposition only
+  Accessor accessor; // exposition only
 };
 ```
+
+* *Requires:*
+
+  * `ScalingFactor` and `Accessor` shall be *Cpp17CopyConstructible*.
+
+  * `Accessor` shall meet the `basic_mdspan` accessor policy
+    requirements (see *[mdspan.accessor.reqs]* in P0009).
+
+```c++
+accessor_scaled(const ScalingFactor& s, Accessor a);
+```
+
+* *Effects:* Initializes `scaling_factor` with `s`, and
+  initializes `accessor` with `a`.
+
+```c++
+reference access(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Effects:* Equivalent to
+  `return reference(scaling_factor, accessor.access(p, i));`.
+
+```c++
+offset_policy::pointer
+offset(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Effects:* Equivalent to `return accessor.offset(p, i);`.
+
+```c++
+element_type* decay(pointer p) const noexcept;
+```
+
+* *Effects:* Equivalent to `return accessor.decay(p);`.
 
 #### `scaled_view`
 
@@ -1429,7 +1473,8 @@ scaled_view(
 ```c++
 return basic_mdspan<ElementType, Extents, Layout,
   accessor_scaled<ScalingFactor, Accessor>>(a.data(),
-    a.mapping(), accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
+    a.mapping(),
+    accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
 ```
 
 *Example:*
@@ -1444,30 +1489,23 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 }
 ```
 
-### Conjugated view of an object
+### Conjugated transformation of an object
 
-Some BLAS functions of matrices also take an argument that specifies
-whether to view the transpose or conjugate transpose of the matrix.
-The BLAS uses this argument to modify a read-only input transiently.
-This means that users can let the BLAS work with the data in place,
-without needing to compute the transpose or conjugate transpose
-explicitly.  However, it complicates the BLAS interface.
+Some BLAS functions of matrices also take one or more `TRANS*`
+arguments that specifies whether to view the transpose or conjugate
+transpose of the matrix or matrices.  This means that users can let
+the BLAS work with the data in place, without needing to compute the
+transpose or conjugate transpose explicitly.  However, it complicates
+the BLAS interface.  Just as we did above with "scaled views" of an
+object, we can apply the complex conjugate operation to each element
+of an object using a special accessor.  This lets us get rid of the
+`TRANS*` function arguments.
 
-Just as we did above with "scaled views" of an object, we can apply
-the complex conjugate operation to each element of an object using a
-special accessor.
-
-What does the complex conjugate mean for non-complex numbers?  We use
-the convention that the "complex conjugate" of a non-complex number is
-just the number.  This makes sense mathematically, if we embed a field
-(of real numbers) in the corresponding set of complex numbers over
-that field, as all complex numbers with zero imaginary part.  It's
-also the convention that the
-[Trilinos](https://github.com/trilinos/Trilinos) library (among
-others) uses.  However, as we will show below, this does not work with
-the C++ Standard Library's definition of `conj`.  We deal with this by
-defining `conjugate_view` so that it does not use `conj` for real
-element types.
+For non-complex numbers, we use the convention that the "complex
+conjugate" of a non-complex number is just the number.  However, as we
+will show below, this does not work with the C++ Standard Library's
+definition of `conj`.  We deal with this by defining `conjugate_view`
+so that it does not use `conj` for real element types.
 
 #### `conjugated_scalar`
 
@@ -1511,6 +1549,7 @@ private:
   Reference val; // exposition only
 };
 ```
+
 * *Requires:* `Reference` shall be *Cpp17CopyConstructible*.
 
 * *Constraints:*
@@ -1535,76 +1574,90 @@ operator value_type() const;
 #### `accessor_conjugate`
 
 The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
-`conjugated_scalar` if the scalar type is `std::complex<T>` for some
-`T`.  Otherwise, it makes `basic_mdspan` access return the original
+`conjugated_scalar` if the scalar type is `complex<T>` for some `T`.
+Otherwise, it makes `basic_mdspan` access return the original
 `basic_mdspan`'s reference type.
 
 ```c++
-template<class Accessor, class T>
+template<class Accessor>
 class accessor_conjugate {
-public:
-  using element_type  = typename Accessor::element_type;
-  using pointer       = typename Accessor::pointer;
-  using reference     = typename Accessor::reference;
-  using offset_policy = typename Accessor::offset_policy;
-
-  accessor_conjugate() = default;
-
-  accessor_conjugate(Accessor a) : acc(a) {}
-
-  reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p, i));
-  }
-
-  typename offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return acc.offset(p,i);
-  }
-
-  element_type* decay(pointer p) const noexcept {
-    return acc.decay(p);
-  }
-
-  Accessor nested_accessor() const {
-    return acc;
-  }
 private:
-  Accessor acc;
-};
+  // exposition only
+  static constexpr bool is_element_type_complex =
+    is_same_v<typename Accessor::element_type, complex<double>> ||
+    is_same_v<typename Accessor::element_type, complex<float>> ||
+    is_same_v<typename Accessor::element_type, complex<long double>>;
 
-template<class Accessor, class T>
-class accessor_conjugate<Accessor, std::complex<T>> {
 public:
   using element_type  = typename Accessor::element_type;
   using pointer       = typename Accessor::pointer;
   using reference     =
-    conjugated_scalar<typename Accessor::reference, std::complex<T>>;
+    conditional_t<is_element_type_complex,
+      conjugated_scalar<typename Accessor::reference, element_type>,
+      typename Accessor::reference>;
   using offset_policy =
-    accessor_conjugate<typename Accessor::offset_policy, std::complex<T>>;
+    conditional_t<is_element_type_complex,
+      accessor_conjugate<typename Accessor::offset_policy,
+        element_type>,
+      typename Accessor::offset_policy>;
 
-  accessor_conjugate() = default;
+  accessor_conjugate(Accessor a);
 
-  accessor_conjugate(Accessor a) : acc(a) {}
+  reference access(pointer p, ptrdiff_t i) const noexcept;
 
-  reference access(pointer p, ptrdiff_t i) const noexcept {
-    return reference(acc.access(p, i));
-  }
+  typename offset_policy::pointer
+  offset(pointer p, ptrdiff_t i) const noexcept;
 
-  typename offset_policy::pointer offset(pointer p, ptrdiff_t i) const noexcept {
-    return acc.offset(p, i);
-  }
+  element_type* decay(pointer p) const noexcept;
 
-  element_type* decay(pointer p) const noexcept {
-    return acc.decay(p);
-  }
-
-  Accessor nested_accessor() const {
-    return acc;
-  }
+  Accessor nested_accessor() const;
 
 private:
-  Accessor acc;
+  Accessor acc; // exposition only
 };
 ```
+
+* *Requires:*
+
+  * `Accessor` shall be *Cpp17CopyConstructible*.
+
+  * `Accessor` shall meet the `basic_mdspan` accessor policy
+    requirements (see *[mdspan.accessor.reqs]* in P0009).
+
+  * `ElementType` shall be a complete object type that is neither an
+    abstract class type nor an array type (see
+    *[mdspan.basic.overview]* in P0009).
+
+```c++
+accessor_conjugate(Accessor a);
+```
+
+* *Effects:* Initializes `acc` with `a`.
+
+```c++
+reference access(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Effects:* Equivalent to `return reference(acc.access(p, i));`.
+
+```c++
+typename offset_policy::pointer
+offset(pointer p, ptrdiff_t i) const noexcept;
+```
+
+* *Effects:* Equivalent to `return acc.offset(p,i);`.
+
+```c++
+element_type* decay(pointer p) const noexcept;
+```
+
+* *Effects:* Equivalent to `return acc.decay(p);`.
+
+```c++
+Accessor nested_accessor() const;
+```
+
+* *Effects:* Equivalent to `return acc;`.
 
 #### `conjugate_view`
 
@@ -1617,16 +1670,19 @@ template<class ElementType,
          class Layout,
          class Accessor>
 basic_mdspan<ElementType, Extents, Layout,
-             accessor_conjugate<Accessor, ElementType>>
-conjugate_view(basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+             accessor_conjugate<Accessor>>
+conjugate_view(
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
 
 ```c++
 return basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor, ElementType>>(a.data(),
-    a.mapping(), accessor_conjugate<Accessor, ElementType>(a.accessor()));
+  accessor_conjugate<Accessor>>(
+    a.data(),
+    a.mapping(),
+    accessor_conjugate<Accessor>(a.accessor()));
 ```
 
 ```c++
@@ -1636,24 +1692,44 @@ template<class ElementType,
          class Accessor>
 basic_mdspan<ElementType, Extents, Layout, Accessor>
 conjugate_view(basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor, ElementType>> a);
+  accessor_conjugate<Accessor>> a);
 ```
 
 * *Effects:* Equivalent to
 
 ```c++
-return basic_mdspan<ElementType, Extents, Layout, Accessor>(a.data(),
-    a.mapping(), a.accessor().nested_accessor());
+return basic_mdspan<ElementType, Extents, Layout, Accessor>(
+  a.data(),
+  a.mapping(),
+  a.accessor().nested_accessor());
 ```
 
 *Example:*
 
 ```c++
-void test_conjugate_view(basic_mdspan<complex<double>, extents<10>>)
+void test_conjugate_view_complex(
+  basic_mdspan<complex<double>, extents<10>> a)
 {
   auto a_conj = conjugate_view(a);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj(i) == conj(a(i));
+  }
+  auto a_conj_conj = conjugate_view(a_conj);
+  for(int i = 0; i < a.extent(0); ++i) {
+    assert(a_conj_conj(i) == a(i));
+  }
+}
+
+void test_conjugate_view_real(
+  basic_mdspan<double, extents<10>> a)
+{
+  auto a_conj = conjugate_view(a);
+  for(int i = 0; i < a.extent(0); ++i) {
+    assert(a_conj(i) == a(i));
+  }
+  auto a_conj_conj = conjugate_view(a_conj);
+  for(int i = 0; i < a.extent(0); ++i) {
+    assert(a_conj_conj(i) == a(i));
   }
 }
 ```
@@ -1680,8 +1756,49 @@ appropriate run-time BLAS parameters.
 
 #### `layout_transpose`
 
-This layout wraps an existing layout, and swaps its rightmost two
-indices.
+`layout_transpose` is a `basic_mdspan` layout mapping policy that
+swaps the rightmost two indices, extents, and strides (if applicable)
+of an existing unique layout mapping policy.
+
+```c++
+template<class InputExtents>
+using transpose_extents_t = /* see below */; // exposition only
+```
+
+For `InputExtents` a specialization of `extents`,
+`transpose_extents_t<InputExtents>` names the `extents` type
+`OutputExtents` such that
+
+  * `InputExtents::static_extent(InputExtents::rank()-1)` equals
+    `OutputExtents::static_extent(OutputExtents::rank()-2)`,
+
+  * `InputExtents::static_extent(InputExtents::rank()-2)` equals
+    `OutputExtents::static_extent(OutputExtents::rank()-1)`, and
+
+  * `InputExtents::static_extent(r)` equals
+    `OutputExtents::static_extent(r)` for 0 ≤ `r` <
+    `InputExtents::rank()-2`.
+
+* *Requires:* `InputExtents` is a specialization of `extents`.
+
+* *Constraints:* `InputExtents::rank()` is at least 2.
+
+```c++
+template<class InputExtents>
+transpose_extents_t<InputExtents>
+transpose_extents(const InputExtents in); // exposition only
+```
+
+* *Constraints:* `InputExtents::rank()` is at least 2.
+
+* *Returns:* An `extents` object `out` such that
+
+  * `out.extent(in.rank()-1)` equals `in.extent(in.rank()-2)`,
+
+  * `out.extent(in.rank()-2)` equals `in.extent(in.rank()-1)`, and
+
+  * `out.extent(r)` equals `in.extent(r)`
+    for 0 ≤ `r` < `in.rank()-2`.
 
 ```c++
 template<class Layout>
@@ -1691,62 +1808,191 @@ public:
   struct mapping {
   private:
     using nested_mapping_type =
-      typename Layout::template mapping<Extents>; // exposition only
+      typename Layout::template mapping<
+        transpose_extents_t<Extents>>; // exposition only
     nested_mapping_type nested_mapping_; // exposition only
+
   public:
-    mapping() = default;
+    mapping(const nested_mapping_type& map);
 
-    mapping(nested_mapping_type map) : nested_mapping_(map) {}
+    ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
+      noexcept(noexcept(nested_mapping_(j, i)));
 
-    // ... insert other standard mapping things ...
+    nested_mapping_type nested_mapping() const;
 
-    ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const {
-      return nested_mapping_(j, i);
-    }
+    template<class OtherExtents>
+    bool operator==(const mapping<OtherExtents>& m) const;
 
-    nested_mapping() const { return nested_mapping_; }
+    template<class OtherExtents>
+    bool operator!=(const mapping<OtherExtents>& m) const;
+
+    Extents extents() const noexcept;
+
+    typename Extents::index_type required_span_size() const
+      noexcept(noexcept(nested_mapping_.required_span_size()));
+
+    bool is_unique() const
+      noexcept(noexcept(nested_mapping_.is_unique()));
+
+    bool is_contiguous() const
+      noexcept(noexcept(nested_mapping_.is_contiguous()));
+
+    bool is_strided() const
+      noexcept(noexcept(nested_mapping_.is_strided()));
+
+    static constexpr bool is_always_unique();
+
+    static constexpr bool is_always_contiguous();
+
+    static constexpr bool is_always_strided();
+
+    typename Extents::index_type
+    stride(typename Extents::index_type r) const
+      noexcept(noexcept(nested_mapping_.stride(r)));
   };
 };
 ```
 
+* *Requires:*
+
+  * `Layout` shall meet the `basic_mdspan` layout mapping policy
+    requirements (see *[mdspan.layout.reqs]* in P0009).
+
 * *Constraints:*
 
-  * `Layout` is a unique layout.
+  * `Layout::is_always_unique()` is `true`.
 
   * `Layout::mapping::rank()` is 2.
+
+```c++
+mapping(const nested_mapping_type& map);
+```
+
+* *Effects:* Initializes `nested_mapping_` with `map`.
+
+```c++
+ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
+  noexcept(noexcept(nested_mapping_(j, i)));
+```
+
+* *Effects:* Equivalent to `return nested_mapping_(j, i);`.
+
+```c++
+nested_mapping_type nested_mapping() const;
+```
+
+* *Effects:* Equivalent to `return nested_mapping_;`.
+
+```c++
+template<class OtherExtents>
+bool operator==(const mapping<OtherExtents>& m) const;
+```
+
+* *Effects:* Equivalent to `nested_mapping_ == m.nested_mapping_;`.
+
+```c++
+template<class OtherExtents>
+bool operator!=(const mapping<OtherExtents>& m) const;
+```
+
+* *Effects:* Equivalent to `nested_mapping_ != m.nested_mapping_;`.
+
+```c++
+Extents extents() const noexcept;
+```
+
+* *Effects:* Equivalent to
+  `return transpose_extents(nested_mapping_.extents());`.
+
+```c++
+typename Extents::index_type
+required_span_size() const
+  noexcept(noexcept(nested_mapping_.required_span_size()));
+```
+
+* *Effects:* Equivalent to
+  `return nested_mapping_.required_span_size();'.
+
+```c++
+bool is_unique() const
+  noexcept(noexcept(nested_mapping_.is_unique()));
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_unique();'.
+
+```c++
+bool is_contiguous() const
+  noexcept(noexcept(nested_mapping_.is_contiguous()));
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_contiguous();'.
+
+```c++
+bool is_strided() const
+  noexcept(noexcept(nested_mapping_.is_strided()));
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_strided();'.
+
+```c++
+static constexpr bool is_always_unique();
+```
+
+* *Effects:* Equivalent to
+  `return nested_mapping_type::is_always_unique();'.
+
+```c++
+static constexpr bool is_always_contiguous();
+```
+
+* *Effects:* Equivalent to
+  `return nested_mapping_type::is_always_contiguous();'.
+
+```c++
+static constexpr bool is_always_strided();
+```
+
+* *Effects:* Equivalent to
+  `return nested_mapping_type::is_always_strided();'.
+
+```c++
+typename Extents::index_type
+stride(typename Extents::index_type r) const
+  noexcept(noexcept(nested_mapping_.stride(r)));
+```
+
+* *Constraints:* `is_always_strided()` is `true`.
+
+* *Effects:* Equivalent to `return nested_mapping_.stride(s);',
+  where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
 #### `transpose_view`
 
 The `transpose_view` function returns a transposed view of a rank-2
 `basic_mdspan`.  The transposed view swaps the indices.
 
-*[Note:*
-
-`transpose_view` always returns a `basic_mdspan` with the
-`layout_transpose` argument.  This gives a type-based indication of
-the transpose operation.  However, functions' implementations may
-convert the `layout_transpose` object to an object with a different
-but equivalent layout.  For example, functions can view the transpose
-of a `layout_blas<column_major_t>` matrix as a
-`layout_blas<row_major_t>` matrix.  (This is a classic technique for
-supporting row-major matrices using the Fortran BLAS interface.)
-
---*end note]*
-
 ```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
-transpose_view(basic_mdspan<EltType, Extents, Layout, Accessor> a);
+basic_mdspan<ElementType, transpose_extents_t<Extents>,
+             layout_transpose<Layout>, Accessor>
+transpose_view(
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
 
 ```c++
-return basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>(a.data(),
-  typename layout_transpose<Layout>::template mapping<Extents>(a.mapping()),
+return basic_mdspan<ElementType,
+                    transpose_extents_t<Extents>,
+                    layout_transpose<Layout>,
+                    Accessor>(
+  a.data(),
+  typename layout_transpose<Layout>::
+    template mapping<transpose_extents_t<Extents>>(
+      a.mapping());
   a.accessor());
 ```
 
@@ -1756,7 +2002,8 @@ template<class EltType,
          class Layout,
          class Accessor>
 basic_mdspan<EltType, Extents, Layout, Accessor>
-transpose_view(basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor> a);
+transpose_view(basic_mdspan<EltType, Extents,
+               layout_transpose<Layout>, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
@@ -1766,6 +2013,40 @@ return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
   a.mapping().nested_mapping(), a.accessor());
 ```
 
+*Example:*
+
+```c++
+void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
+{
+  const ptrdiff_t num_rows = a.extent(0);
+  const ptrdiff_t num_cols = a.extent(1);
+
+  auto a_t = transpose_view(a);
+  assert(num_rows == a_t.extent(1));
+  assert(num_cols == a_t.extent(0));
+  assert(a.stride(0) == a_t.stride(1));
+  assert(a.stride(1) == a_t.stride(0));
+
+  for(ptrdiff_t row = 0; row < num_rows; ++row) {
+    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+      assert(a(row, col) == a_t(col, row));
+    }
+  }
+
+  auto a_t_t = transpose_view(a_t);
+  assert(num_rows == a_t_t.extent(0));
+  assert(num_cols == a_t_t.extent(1));
+  assert(a.stride(0) == a_t_t.stride(0));
+  assert(a.stride(1) == a_t_t.stride(1));
+
+  for(ptrdiff_t row = 0; row < num_rows; ++row) {
+    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+      assert(a(row, col) == a_t_t(row, col));
+    }
+  }
+}
+```
+
 #### Conjugate transpose view
 
 The `conjugate_transpose_view` function returns a conjugate transpose
@@ -1773,78 +2054,91 @@ view of an object.  This combines the effects of `transpose_view` and
 `conjugate_view`.
 
 ```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-             accessor_conjugate<Accessor, EltType>>
+basic_mdspan<ElementType, Extents,
+             layout_transpose<Layout>,
+             accessor_conjugate<Accessor>>
 conjugate_transpose_view(
-  basic_mdspan<EltType, Extents, Layout, Accessor> a);
-```
+  basic_mdspan<ElementType, Extents,
+               Layout,
+               Accessor> a);
 
-* *Effects:* Equivalent to
-
-```c++
-return basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-  accessor_conjugate<Accessor, EltType>>(a.data(),
-    a.mapping(), a.accessor());
-```
-
-```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, Layout,
-             accessor_conjugate<Accessor, EltType>>
+basic_mdspan<ElementType, Extents,
+             Layout,
+             accessor_conjugate<Accessor>>
 conjugate_transpose_view(
-  basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor> a);
-```
+  basic_mdspan<ElementType, Extents,
+               layout_transpose<Layout>,
+               Accessor> a);
 
-* *Effects:* Equivalent to
-
-```c++
-return basic_mdspan<EltType, Extents, Layout,
-  accessor_conjugate<Accessor, EltType>>(a.data(),
-    a.mapping().nested_mapping(), a.accessor());
-```
-
-```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, layout_transpose<Layout>, Accessor>
+basic_mdspan<ElementType, Extents,
+             layout_transpose<Layout>,
+             Accessor>
 conjugate_transpose_view(
-  basic_mdspan<EltType, Extents, Layout,
-               accessor_conjugate<Accessor, EltType>> a);
-```
+  basic_mdspan<ElementType, Extents,
+               Layout,
+               accessor_conjugate<Accessor>> a);
 
-* *Effects:* Equivalent to
-
-```c++
-return basic_mdspan<EltType, Extents,
-  layout_transpose<Layout>, Accessor>(a.data(),
-    a.mapping(), a.accessor().nested_accessor());
-```
-
-```c++
-template<class EltType,
+template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<EltType, Extents, Layout, Accessor>
+basic_mdspan<ElementType, Extents,
+             Layout,
+             Accessor>
 conjugate_transpose_view(
-  basic_mdspan<EltType, Extents, layout_transpose<Layout>,
-               accessor_conjugate<Accessor, EltType>> a);
+  basic_mdspan<ElementType, Extents,
+               layout_transpose<Layout>,
+               accessor_conjugate<Accessor>> a);
 ```
 
 * *Effects:* Equivalent to
+  `return conjugate_view(transpose_view(a));`.
+
+*Example:*
 
 ```c++
-return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
-    a.mapping().nested_mapping(), a.accessor().nested_accessor());
+void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
+{
+  const ptrdiff_t num_rows = a.extent(0);
+  const ptrdiff_t num_cols = a.extent(1);
+
+  auto a_ct = conjugate_transpose_view(a);
+  assert(num_rows == a_ct.extent(1));
+  assert(num_cols == a_ct.extent(0));
+  assert(a.stride(0) == a_ct.stride(1));
+  assert(a.stride(1) == a_ct.stride(0));
+
+  for(ptrdiff_t row = 0; row < num_rows; ++row) {
+    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+      assert(a(row, col) == conj(a_ct(col, row)));
+    }
+  }
+
+  auto a_ct_ct = conjugate_transpose_view(a_ct);
+  assert(num_rows == a_ct_ct.extent(0));
+  assert(num_cols == a_ct_ct.extent(1));
+  assert(a.stride(0) == a_ct_ct.stride(0));
+  assert(a.stride(1) == a_ct_ct.stride(1));
+
+  for(ptrdiff_t row = 0; row < num_rows; ++row) {
+    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+      assert(a(row, col) == a_ct_ct(row, col));
+      assert(conj(a_ct(col, row)) == a_ct_ct(row, col));
+    }
+  }
+}
 ```
 
 ## Algorithms
