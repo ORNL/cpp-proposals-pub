@@ -72,6 +72,8 @@
   * Make sure that `{conjugate,transpose}_view` applied 2x undoes
     the original conjugation / transposition.
 
+  * Remove second template parameter `T` from `accessor_conjugate`.
+
 ### Over- and underflow wording for vector 2-norm
 
 SG6 recommended to us at Belfast 2019 to change the special overflow /
