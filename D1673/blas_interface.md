@@ -1807,59 +1807,39 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 
 ### Conjugated transformation of an object
 
-Some BLAS functions of matrices also take one or more `TRANS*`
-arguments that specifies whether to view the transpose or conjugate
-transpose of the matrix or matrices.  This means that users can let
-the BLAS work with the data in place, without needing to compute the
-transpose or conjugate transpose explicitly.  However, it complicates
-the BLAS interface.  Just as we did above with "scaled views" of an
-object, we can apply the complex conjugate operation to each element
-of an object using a special accessor.  This lets us get rid of the
-`TRANS*` function arguments.
+The `conjugate_view` function takes a `basic_mdspan` `x`, and returns
+a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
+elements are the complex conjugates of the corresponding elements of
+`x`.  It does so by using `accessor_scaled` as its `basic_mdspan`
+accessor policy.  If the element type of `x` is not `complex<R>` for
+some `R`, then `y` is a read-only view of the elements of `x`.
 
-For non-complex numbers, we use the convention that the "complex
-conjugate" of a non-complex number is just the number.  However, as we
-will show below, this does not work with the C++ Standard Library's
-definition of `conj`.  We deal with this by defining `conjugate_view`
-so that it does not use `conj` for real element types.
+*[Note:*
+
+An implementation could dispatch to a function in the BLAS library, by
+noticing that the `Accessor` type of a `basic_mdspan` input has type
+`accessor_conjugate`, and that its nested `Accessor` type is
+compatible with the BLAS library.  If so, it could set the
+corresponding `TRANS*` BLAS function argument accordingly and call the
+BLAS function.
+
+--*end note]*
 
 #### `conjugated_scalar`
 
-`conjugated_scalar` expresses a read-only conjugated version of an
-existing scalar.  It is part of the implementation of
-`accessor_conjugate`.  *[Note:* This is read only to avoid likely
-confusion with the definition of "assigning to the conjugate of a
-scalar." --*end note]*
-
-The C++ Standard imposes the following requirements on `complex<T>`
-numbers:
-
-1. `T` may only be `float`, `double`, or `long double`.
-
-2. Overloads of `conj(const T&)` exist for `T=float`, `double`, `long
-   double`, or any built-in integer type, but all these overloads have
-   return type `complex<U>` with `U` either `float`, `double`, or
-   `long double`.  (See **[cmplx.over]**.)
-
-We need the return type of `conjugated_scalar`'s arithmetic operators
-to be the same as the type of the scalar that it wraps.  This means
-that `conjugated_scalar` only works for `complex<T>` scalar types.
-Users cannot define custom types that are complex numbers.  (The
-alternative would be to permit users to specialize
-`conjugated_scalar`, but we didn't want to add a *customization point*
-in the sense of **[namespace.std]**.  Our definition of
-`conjugated_scalar` is compatible with any future expansion of the C++
-Standard to permit `complex<T>` for other `T`.)
+`conjugated_scalar` expresses a read-only conjugated version of the
+value of a reference to an element of a `basic_mdspan`.  It is part of
+the implementation of `accessor_conjugate`.  *[Note:* It is read only
+to avoid likely confusion with the definition of "assigning to the
+conjugate of a scalar." --*end note]*
 
 ```c++
 template<class Reference, class T>
 class conjugated_scalar {
 public:
-  using value_type = T;
-
   conjugated_scalar(Reference v);
 
-  operator value_type() const;
+  operator T() const;
 
 private:
   Reference val; // exposition only
@@ -1870,10 +1850,10 @@ private:
 
 * *Constraints:*
 
-  * `T` is `complex<R>` for some type `R`.
-
   * The expression `conj(val)` is well formed and
     is convertible to `T`.
+    *[Note:* This currently implies that `T` is `complex<R>`.
+    --*end note]*
 
 ```c++
 conjugated_scalar(Reference v);
@@ -1882,7 +1862,7 @@ conjugated_scalar(Reference v);
 * *Effects:* Initializes `val` with `v`.
 
 ```c++
-operator value_type() const;
+operator T() const;
 ```
 
 * *Effects:* Equivalent to `return conj(val);`.
@@ -1898,38 +1878,27 @@ Otherwise, it makes `basic_mdspan` access return the original
 template<class Accessor>
 class accessor_conjugate {
 private:
-  // exposition only
-  static constexpr bool is_element_type_complex =
-    is_same_v<typename Accessor::element_type, complex<double>> ||
-    is_same_v<typename Accessor::element_type, complex<float>> ||
-    is_same_v<typename Accessor::element_type, complex<long double>>;
+  Accessor acc; // exposition only
 
 public:
   using element_type  = typename Accessor::element_type;
   using pointer       = typename Accessor::pointer;
-  using reference     =
-    conditional_t<is_element_type_complex,
-      conjugated_scalar<typename Accessor::reference, element_type>,
-      typename Accessor::reference>;
-  using offset_policy =
-    conditional_t<is_element_type_complex,
-      accessor_conjugate<typename Accessor::offset_policy,
-        element_type>,
-      typename Accessor::offset_policy>;
+  using reference     = /* see below */;
+  using offset_policy = /* see below */;
 
   accessor_conjugate(Accessor a);
 
-  reference access(pointer p, ptrdiff_t i) const noexcept;
+  reference access(pointer p, ptrdiff_t i) const
+    noexcept(noexcept(reference(acc.access(p, i))));
 
   typename offset_policy::pointer
-  offset(pointer p, ptrdiff_t i) const noexcept;
+  offset(pointer p, ptrdiff_t i) const
+    noexcept(noexcept(acc.offset(p, i)));
 
-  element_type* decay(pointer p) const noexcept;
+  element_type* decay(pointer p) const
+    noexcept(noexcept(acc.decay(p)));
 
   Accessor nested_accessor() const;
-
-private:
-  Accessor acc; // exposition only
 };
 ```
 
@@ -1945,26 +1914,45 @@ private:
     *[mdspan.basic.overview]* in P0009).
 
 ```c++
+using reference = /* see below */;
+```
+
+If `element_type` is `complex<R>` for some `R`, then this names
+`conjugated_scalar<typename Accessor::reference, element_type>`.
+Otherwise, it names `typename Accessor::reference`.
+
+```c++
+using offset_policy = /* see below */;
+```
+
+If `element_type` is `complex<R>` for some `R`, then this names
+`accessor_conjugate<typename Accessor::offset_policy, element_type>`.
+Otherwise, it names `typename Accessor::offset_policy>`.
+
+```c++
 accessor_conjugate(Accessor a);
 ```
 
 * *Effects:* Initializes `acc` with `a`.
 
 ```c++
-reference access(pointer p, ptrdiff_t i) const noexcept;
+reference access(pointer p, ptrdiff_t i) const
+  noexcept(noexcept(reference(acc.access(p, i))));
 ```
 
 * *Effects:* Equivalent to `return reference(acc.access(p, i));`.
 
 ```c++
 typename offset_policy::pointer
-offset(pointer p, ptrdiff_t i) const noexcept;
+offset(pointer p, ptrdiff_t i) const
+  noexcept(noexcept(acc.offset(p, i)));
 ```
 
-* *Effects:* Equivalent to `return acc.offset(p,i);`.
+* *Effects:* Equivalent to `return acc.offset(p, i);`.
 
 ```c++
-element_type* decay(pointer p) const noexcept;
+element_type* decay(pointer p) const
+  noexcept(noexcept(acc.decay(p)));
 ```
 
 * *Effects:* Equivalent to `return acc.decay(p);`.
@@ -1976,9 +1964,6 @@ Accessor nested_accessor() const;
 * *Effects:* Equivalent to `return acc;`.
 
 #### `conjugate_view`
-
-The `conjugate_view` function returns a conjugated view using a new
-accessor.
 
 ```c++
 template<class ElementType,
