@@ -1090,11 +1090,265 @@ Some of our functions explicitly require outputs with specific
 nonunique layouts.  This includes low-rank updates to symmetric or
 Hermitian matrices.
 
+## Acknowledgments
+
+Sandia National Laboratories is a multimission laboratory managed and
+operated by National Technology & Engineering Solutions of Sandia,
+LLC, a wholly owned subsidiary of Honeywell International, Inc., for
+the U.S. Department of Energy’s National Nuclear Security
+Administration under contract DE-NA0003525.
+
+Special thanks to Bob Steagall and Guy Davidson for boldly leading the
+charge to add linear algebra to the C++ Standard Library, and for many
+fruitful discussions.  Thanks also to Andrew Lumsdaine for his
+pioneering efforts and history lessons.
+
+## References
+
+### References by coathors
+
+* G. Ballard, E. Carson, J. Demmel, M. Hoemmen, N. Knight, and
+  O. Schwartz, ["Communication lower bounds and optimal algorithms for
+  numerical linear
+  algebra,"](https://doi.org/10.1017/S0962492914000038), *Acta
+  Numerica*, Vol. 23, May 2014, pp. 1-155.
+
+* H. C. Edwards, B. A. Lelbach, D. Sunderland, D. Hollman, C. Trott,
+  M. Bianco, B. Sander, A. Iliopoulos, J. Michopoulos, and M. Hoemmen,
+  "`mdspan`: a Non-Owning Multidimensional Array Reference,"
+  [P0009R0](http://wg21.link/p0009r9), Jan. 2019.
+
+* M. Hoemmen, D. Hollman, and C. Trott, "Evolving a Standard C++
+  Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
+
+* M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
+  J. Michopoulos, "Historical lessons for C++ linear algebra library
+  standardization," [(P1417R0)](http://wg21.link/p1417r0), Jan. 2019.
+
+* D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
+  Owning Multidimensional Array Analog of `mdspan`",
+  [P1684R0](https://isocpp.org/files/papers/P1684R0.pdf), Jun. 2019.
+
+* D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
+  M. Dominiak, "A General Property Customization Mechanism,"
+  [P1393R0](http://wg21.link/p1393r0), Jan. 2019.
+
+### Other references
+
+* [Basic Linear Algebra Subprograms Technical (BLAST) Forum
+  Standard](http://netlib.org/blas/blast-forum/blas-report.pdf),
+  International Journal of High Performance Applications and
+  Supercomputing, Vol. 16. No. 1, Spring 2002.
+
+* L. S. Blackford, J. Demmel, J. Dongarra, I. Duff, S. Hammarling,
+  G. Henry, M. Heroux, L. Kaufman, A. Lumsdaine, A. Petitet, R. Pozo,
+  K. Remington, and R. C. Whaley, ["An updated set of basic linear
+  algebra subprograms (BLAS),"](https://doi.org/10.1145/567806.567807)
+  *ACM Transactions on Mathematical Software* (TOMS), Vol. 28, No. 2,
+  Jun. 2002, pp. 135-151.
+
+* G. Davidson and B. Steagall, "A proposal to add linear algebra
+  support to the C++ standard library,"
+  [P1385R4](http://wg21.link/p1385r4), Nov. 2019.
+
+* B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
+  "Direction for ISO C++," [P0939R0](http://wg21.link/p0939r0), Feb. 2018.
+
+* J. Dongarra, R. Pozo, and D. Walker, "LAPACK++: A Design Overview of
+  Object-Oriented Extensions for High Performance Linear Algebra," in
+  Proceedings of Supercomputing '93, IEEE Computer Society Press,
+  1993, pp. 162-171.
+
+* M. Gates, P. Luszczek, A. Abdelfattah, J. Kurzak, J. Dongarra,
+  K. Arturov, C. Cecka, and C. Freitag, ["C++ API for BLAS and
+  LAPACK,"](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf)
+  SLATE Working Notes, Innovative Computing Laboratory, University of
+  Tennessee Knoxville, Feb. 2018.
+
+* K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
+  multiplication,"](https://doi.org/10.1145/1356052.1356053), *ACM
+  Transactions on Mathematical Software* (TOMS), Vol. 34, No. 3, May
+  2008.
+
+* J. Hoberock, "Integrating Executors with Parallel Algorithms,"
+  [P1019R2](http://wg21.link/p1019r2), Jan. 2019.
+
+* N. A. Josuttis, "The C++ Standard Library: A Tutorial and Reference,"
+  Addison-Wesley, 1999.
+
+* M. Kretz, "Data-Parallel Vector Types & Operations,"
+  [P0214r9](http://wg21.link/p0214r9), Mar. 2018.
+
+* D. Vandevoorde and N. A. Josuttis, "C++ Templates: The Complete
+  Guide," Addison-Wesley Professional, 2003.
+
 ## Wording
 
-### Tag classes
+> Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
+> The � character is used to denote a placeholder section number which the editor shall determine.
+> First, apply all wording from P0009R9 (this proposal is a "rebase" atop the changes proposed by P0009R9).
+> At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
+> At the end of *[numerics]*, add all the material that follows.
 
-#### Storage order tags
+### Header `<linalg>` synopsis [linalg.syn]
+
+```c++
+namespace std {
+// [linalg.tags.order], storage order tags
+struct column_major_t;
+inline constexpr column_major_t column_major;
+struct row_major_t;
+inline constexpr row_major_t row_major;
+
+// [linalg.tags.triangle], triangle tags
+struct upper_triangle_t;
+inline constexpr upper_triangle_t upper_triangle;
+struct lower_triangle_t;
+inline constexpr lower_triangle_t lower_triangle;
+
+// [linalg.tags.diagonal], diagonal tags
+struct implicit_unit_diagonal_t;
+inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal;
+struct explicit_diagonal_t;
+inline constexpr explicit_diagonal_t explicit_diagonal;
+
+// [linalg.tags.side], side tags
+struct left_side_t;
+inline constexpr left_side_t left_side;
+struct right_side_t { };
+inline constexpr right_side_t right_side;
+
+// [linalg.layouts.general], class template layout_blas_general
+template<class StorageOrder>
+class layout_blas_general;
+
+// [linalg.layouts.packed], class template layout_blas_packed
+template<class Triangle,
+         class StorageOrder>
+class layout_blas_packed;
+
+// [linalg.scaled.scaled_scalar], class template scaled_scalar
+template<class ScalingFactor,
+         class Reference>
+class scaled_scalar;
+
+// [linalg.scaled.accessor_scaled], class template accessor_scaled
+template<class ScalingFactor,
+         class Accessor>
+class accessor_scaled;
+
+// [linalg.scaled.scaled_view], scaled in-place transformation
+template<class ScalingFactor,
+         class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout,
+             accessor_scaled<ScalingFactor, Accessor>>
+scaled_view(
+  const ScalingFactor& s,
+  const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
+
+// [linalg.conj.conjugated_scalar], class template conjugated_scalar
+template<class Reference,
+         class T>
+class conjugated_scalar;
+
+// [linalg.conj.accessor_conjugate], class template accessor_conjugate
+template<class Accessor>
+class accessor_conjugate;
+
+// [linalg.conj.conjugate_view], conjugated in-place transformation
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout,
+             accessor_conjugate<Accessor>>
+conjugate_view(
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout, Accessor>
+conjugate_view(basic_mdspan<ElementType, Extents, Layout,
+  accessor_conjugate<Accessor>> a);
+
+// [linalg.transp.layout_transpose], class template layout_transpose
+template<class Layout>
+class layout_transpose;
+
+// [linalg.transp.transpose_view], transposed in-place transformation
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, transpose_extents_t<Extents>,
+             layout_transpose<Layout>, Accessor>
+transpose_view(
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, Layout, Accessor>
+transpose_view(basic_mdspan<EltType, Extents,
+               layout_transpose<Layout>, Accessor> a);
+
+// [linalg.conj_transp], conjugated transposed in-place transformation
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents,
+             layout_transpose<Layout>,
+             accessor_conjugate<Accessor>>
+conjugate_transpose_view(
+  basic_mdspan<ElementType, Extents,
+               Layout,
+               Accessor> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents,
+             Layout,
+             accessor_conjugate<Accessor>>
+conjugate_transpose_view(
+  basic_mdspan<ElementType, Extents,
+               layout_transpose<Layout>,
+               Accessor> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents,
+             layout_transpose<Layout>,
+             Accessor>
+conjugate_transpose_view(
+  basic_mdspan<ElementType, Extents,
+               Layout,
+               accessor_conjugate<Accessor>> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents,
+             Layout,
+             Accessor>
+conjugate_transpose_view(
+  basic_mdspan<ElementType, Extents,
+               layout_transpose<Layout>,
+               accessor_conjugate<Accessor>> a);
+
+// [linalg.algs.blas1], BLAS 1 functions
+}
+```
+
+### Tag classes [linalg.tags]
+
+#### Storage order tags [linalg.tags.order]
 
 ```c++
 struct column_major_t { };
@@ -1109,7 +1363,7 @@ indicates a row-major order.  The interpretation of each depends on
 the specific layout that uses the tag.  See `layout_blas_general` and
 `layout_blas_packed` below.
 
-#### Triangle tags
+#### Triangle tags [linalg.tags.triangle]
 
 Some linear algebra algorithms distinguish between the "upper
 triangle," "lower triangle," and "diagonal" of a matrix.
@@ -1139,12 +1393,12 @@ access the upper triangle (`upper_triangular_t`) or lower triangle
 restrictions of `implicit_unit_diagonal_t` if that tag is also
 applied; see below.
 
-#### Diagonal tags
+#### Diagonal tags [linalg.tags.diagonal]
 
 ```c++
 struct implicit_unit_diagonal_t { };
 inline constexpr implicit_unit_diagonal_t
-implicit_unit_diagonal = { };
+  implicit_unit_diagonal = { };
 
 struct explicit_diagonal_t { };
 inline constexpr explicit_diagonal_t explicit_diagonal = { };
@@ -1165,7 +1419,7 @@ The `implicit_unit_diagonal_t` tag indicates two things:
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
 
-#### Side tags
+#### Side tags [linalg.tags.side]
 
 Some linear algebra algorithms distinguish between applying some
 operator to the left side of an object, or the right side of an
@@ -1174,19 +1428,19 @@ matrix generally do not commute. --*end note]*
 
 ```c++
 struct left_side_t { };
-constexpr left_side_t left_side = { };
+inline constexpr left_side_t left_side = { };
 
 struct right_side_t { };
-constexpr right_side_t right_side = { };
+inline constexpr right_side_t right_side = { };
 ```
 
 These tag classes specify whether algorithms should apply some
 operator to the left side (`left_side_t`) or right side
 (`right_side_t`) of an object.
 
-### Layouts for general and packed matrix types
+### Layouts for general and packed matrix types [linalg.layouts]
 
-#### `layout_blas_general`
+#### `layout_blas_general` [linalg.layouts.general]
 
 `layout_blas_general` is a `basic_mdspan` layout mapping policy.  Its
 `StorageOrder` template parameter determines whether the matrix's data
@@ -1429,7 +1683,7 @@ constexpr bool is_strided() const noexcept;
 
 * *Returns:* `true`.
 
-#### `layout_blas_packed`
+#### `layout_blas_packed` [linalg.layouts.packed]
 
 `layout_blas_packed` is a `basic_mdspan` layout mapping policy that
 represents a square matrix that stores only the entries in one
@@ -1645,7 +1899,7 @@ constexpr bool is_strided() const noexcept;
 
 * *Returns:* `true` if `extent(0)` is less than 2, else `false`.
 
-### Scaled in-place transformation
+### Scaled in-place transformation [linalg.scaled]
 
 The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
 `x`, and returns a new read-only `basic_mdspan` with the same domain
@@ -1685,7 +1939,7 @@ run-time value(s) of the relevant BLAS function arguments (e.g.,
 
 --*end note]*
 
-#### `scaled_scalar`
+#### `scaled_scalar` [linalg.scaled.scaled_scalar]
 
 `scaled_scalar` expresses a read-only scaled version of an existing
 scalar.  It is part of the implementation of `scaled_accessor` (see
@@ -1693,7 +1947,8 @@ below).  *[Note:* It is read only to avoid confusion with the
 definition of "assigning to a scaled scalar." --*end note]*
 
 ```c++
-template<class ScalingFactor, class Reference>
+template<class ScalingFactor,
+         class Reference>
 class scaled_scalar {
 private:
   const ScalingFactor scaling_factor; // exposition only
@@ -1729,11 +1984,15 @@ operator result_type() const;
 
 * *Effects:* Equivalent to `return scaling_factor * value;`.
 
-#### `accessor_scaled`
+#### `accessor_scaled` [linalg.scaled.accessor_scaled]
 
-Accessor to make `basic_mdspan` return a `scaled_scalar`.
+`accessor_scaled` is a `basic_mdspan` accessor policy whose reference
+type represents the product of a scaling factor and its nested
+`basic_mdspan` accessor's reference.
+
 ```c++
-template<class ScalingFactor, class Accessor>
+template<class ScalingFactor,
+         class Accessor>
 class accessor_scaled {
 public:
   using element_type  = Accessor::element_type;
@@ -1800,7 +2059,7 @@ ScalingFactor scaling_factor() const;
 
 * *Effects:* Equivalent to `return scaling_factor_;`.
 
-#### `scaled_view`
+#### `scaled_view` [linalg.scaled.scaled_view]
 
 The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
 `x`, and returns a new read-only `basic_mdspan` with the same domain
@@ -1841,7 +2100,7 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 }
 ```
 
-#### Conjugated in-place transformation
+### Conjugated in-place transformation [linalg.conj]
 
 The `conjugate_view` function takes a `basic_mdspan` `x`, and returns
 a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
@@ -1861,7 +2120,7 @@ BLAS function.
 
 --*end note]*
 
-#### `conjugated_scalar`
+#### `conjugated_scalar` [linalg.conj.conjugated_scalar]
 
 `conjugated_scalar` expresses a read-only conjugated version of the
 value of a reference to an element of a `basic_mdspan`.  It is part of
@@ -1870,7 +2129,8 @@ to avoid likely confusion with the definition of "assigning to the
 conjugate of a scalar." --*end note]*
 
 ```c++
-template<class Reference, class T>
+template<class Reference,
+         class T>
 class conjugated_scalar {
 public:
   conjugated_scalar(Reference v);
@@ -1903,7 +2163,7 @@ operator T() const;
 
 * *Effects:* Equivalent to `return conj(val);`.
 
-#### `accessor_conjugate`
+#### `accessor_conjugate` [linalg.conj.accessor_conjugate]
 
 The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
 `conjugated_scalar` if the scalar type is `complex<T>` for some `T`.
@@ -1999,7 +2259,7 @@ Accessor nested_accessor() const;
 
 * *Effects:* Equivalent to `return acc;`.
 
-#### `conjugate_view`
+#### `conjugate_view` [linalg.conj.conjugate_view]
 
 ```c++
 template<class ElementType,
@@ -2071,7 +2331,7 @@ void test_conjugate_view_real(
 }
 ```
 
-### Transpose in-place transformation
+### Transpose in-place transformation [linalg.transp]
 
 `layout_transpose` is a `basic_mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
@@ -2091,7 +2351,7 @@ value(s) of the relevant `TRANS*` BLAS function arguments.
 
 --*end note]*
 
-#### `layout_transpose`
+#### `layout_transpose` [linalg.transp.layout_transpose]
 
 `layout_transpose` is a `basic_mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
@@ -2308,7 +2568,7 @@ stride(typename Extents::index_type r) const
 * *Effects:* Equivalent to `return nested_mapping_.stride(s);',
   where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
-#### `transpose_view`
+#### `transpose_view` [linalg.transp.transpose_view]
 
 The `transpose_view` function takes a rank-2 `basic_mdspan`
 representing a matrix, and returns a new read-only `basic_mdspan`
@@ -2396,7 +2656,7 @@ void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
 }
 ```
 
-#### Conjugate transpose transform
+### Conjugate transpose transform [linalg.conj_transp]
 
 The `conjugate_transpose_view` function returns a conjugate transpose
 view of an object.  This combines the effects of `transpose_view` and
@@ -2490,9 +2750,9 @@ void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
 }
 ```
 
-### Algorithms
+### Algorithms [linalg.algs]
 
-#### Requirements
+#### Requirements [linalg.algs.reqs]
 
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
@@ -2556,7 +2816,7 @@ or other things as appropriate.
   reference to a `basic_mdspan`, or a (non-`const`) rvalue reference to a
   `basic_mdspan`.
 
-#### BLAS 1 functions
+#### BLAS 1 functions [linalg.algs.blas1]
 
 *[Note:*
 
@@ -5063,95 +5323,3 @@ matrix_vector_product(par, scaled_view(3.0, A), x,
 // y = transpose(A) * x;
 matrix_vector_product(par, transpose_view(A), x, y);
 ```
-
-## Acknowledgments
-
-Sandia National Laboratories is a multimission laboratory managed and
-operated by National Technology & Engineering Solutions of Sandia,
-LLC, a wholly owned subsidiary of Honeywell International, Inc., for
-the U.S. Department of Energy’s National Nuclear Security
-Administration under contract DE-NA0003525.
-
-Special thanks to Bob Steagall and Guy Davidson for boldly leading the
-charge to add linear algebra to the C++ Standard Library, and for many
-fruitful discussions.  Thanks also to Andrew Lumsdaine for his
-pioneering efforts and history lessons.
-
-## References
-
-### References by coathors
-
-* G. Ballard, E. Carson, J. Demmel, M. Hoemmen, N. Knight, and
-  O. Schwartz, ["Communication lower bounds and optimal algorithms for
-  numerical linear
-  algebra,"](https://doi.org/10.1017/S0962492914000038), *Acta
-  Numerica*, Vol. 23, May 2014, pp. 1-155.
-
-* H. C. Edwards, B. A. Lelbach, D. Sunderland, D. Hollman, C. Trott,
-  M. Bianco, B. Sander, A. Iliopoulos, J. Michopoulos, and M. Hoemmen,
-  "`mdspan`: a Non-Owning Multidimensional Array Reference,"
-  [P0009R0](http://wg21.link/p0009r9), Jan. 2019.
-
-* M. Hoemmen, D. Hollman, and C. Trott, "Evolving a Standard C++
-  Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
-
-* M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
-  J. Michopoulos, "Historical lessons for C++ linear algebra library
-  standardization," [(P1417R0)](http://wg21.link/p1417r0), Jan. 2019.
-
-* D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
-  Owning Multidimensional Array Analog of `mdspan`",
-  [P1684R0](https://isocpp.org/files/papers/P1684R0.pdf), Jun. 2019.
-
-* D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
-  M. Dominiak, "A General Property Customization Mechanism,"
-  [P1393R0](http://wg21.link/p1393r0), Jan. 2019.
-
-### Other references
-
-* [Basic Linear Algebra Subprograms Technical (BLAST) Forum
-  Standard](http://netlib.org/blas/blast-forum/blas-report.pdf),
-  International Journal of High Performance Applications and
-  Supercomputing, Vol. 16. No. 1, Spring 2002.
-
-* L. S. Blackford, J. Demmel, J. Dongarra, I. Duff, S. Hammarling,
-  G. Henry, M. Heroux, L. Kaufman, A. Lumsdaine, A. Petitet, R. Pozo,
-  K. Remington, and R. C. Whaley, ["An updated set of basic linear
-  algebra subprograms (BLAS),"](https://doi.org/10.1145/567806.567807)
-  *ACM Transactions on Mathematical Software* (TOMS), Vol. 28, No. 2,
-  Jun. 2002, pp. 135-151.
-
-* G. Davidson and B. Steagall, "A proposal to add linear algebra
-  support to the C++ standard library,"
-  [P1385R4](http://wg21.link/p1385r4), Nov. 2019.
-
-* B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
-  "Direction for ISO C++," [P0939R0](http://wg21.link/p0939r0), Feb. 2018.
-
-* J. Dongarra, R. Pozo, and D. Walker, "LAPACK++: A Design Overview of
-  Object-Oriented Extensions for High Performance Linear Algebra," in
-  Proceedings of Supercomputing '93, IEEE Computer Society Press,
-  1993, pp. 162-171.
-
-* M. Gates, P. Luszczek, A. Abdelfattah, J. Kurzak, J. Dongarra,
-  K. Arturov, C. Cecka, and C. Freitag, ["C++ API for BLAS and
-  LAPACK,"](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf)
-  SLATE Working Notes, Innovative Computing Laboratory, University of
-  Tennessee Knoxville, Feb. 2018.
-
-* K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
-  multiplication,"](https://doi.org/10.1145/1356052.1356053), *ACM
-  Transactions on Mathematical Software* (TOMS), Vol. 34, No. 3, May
-  2008.
-
-* J. Hoberock, "Integrating Executors with Parallel Algorithms,"
-  [P1019R2](http://wg21.link/p1019r2), Jan. 2019.
-
-* N. A. Josuttis, "The C++ Standard Library: A Tutorial and Reference,"
-  Addison-Wesley, 1999.
-
-* M. Kretz, "Data-Parallel Vector Types & Operations,"
-  [P0214r9](http://wg21.link/p0214r9), Mar. 2018.
-
-* D. Vandevoorde and N. A. Josuttis, "C++ Templates: The Complete
-  Guide," Addison-Wesley Professional, 2003.
