@@ -2704,9 +2704,9 @@ The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
 
-*Example:*
-
+[*Example:*
 ```c++
+// z = alpha * x + y
 void z_equals_alpha_times_x_plus_y(
   mdspan<double, extents<dynamic_extent>> z,
   const double alpha,
@@ -2716,6 +2716,7 @@ void z_equals_alpha_times_x_plus_y(
   linalg_add(scaled_view(alpha, x), y, y);
 }
 
+// w = alpha * x + beta * y
 void w_equals_alpha_times_x_plus_beta_times_y(
   mdspan<double, extents<dynamic_extent>> w,
   const double alpha,
@@ -2726,6 +2727,7 @@ void w_equals_alpha_times_x_plus_beta_times_y(
   linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
 }
 ```
+--*end example*]
 
 *[Note:*
 
@@ -2886,8 +2888,7 @@ return basic_mdspan<ElementType, Extents, Layout,
     accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
 ```
 
-*Example:*
-
+[*Example:*
 ```c++
 void test_scaled_view(basic_mdspan<double, extents<10>> a)
 {
@@ -2897,6 +2898,7 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
   }
 }
 ```
+--*end example*]
 
 ### Conjugated in-place transformation [linalg.conj]
 
@@ -3099,8 +3101,7 @@ return basic_mdspan<ElementType, Extents, Layout, Accessor>(
   a.accessor().nested_accessor());
 ```
 
-*Example:*
-
+[*Example:*
 ```c++
 void test_conjugate_view_complex(
   basic_mdspan<complex<double>, extents<10>> a)
@@ -3128,6 +3129,7 @@ void test_conjugate_view_real(
   }
 }
 ```
+--*end example*]
 
 ### Transpose in-place transformation [linalg.transp]
 
@@ -3420,8 +3422,7 @@ return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
   a.mapping().nested_mapping(), a.accessor());
 ```
 
-*Example:*
-
+[*Example:*
 ```c++
 void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
 {
@@ -3453,6 +3454,7 @@ void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
   }
 }
 ```
+--*end example*]
 
 ### Conjugate transpose transform [linalg.conj_transp]
 
@@ -3513,8 +3515,7 @@ conjugate_transpose_view(
 * *Effects:* Equivalent to
   `return conjugate_view(transpose_view(a));`.
 
-*Example:*
-
+[*Example:*
 ```c++
 void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
 {
@@ -3547,6 +3548,7 @@ void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
   }
 }
 ```
+--*end example*]
 
 ### Algorithms [linalg.algs]
 
@@ -4260,6 +4262,38 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
+
+[*Example:*
+```c++
+constexpr ptrdiff_t num_rows = 5;
+constexpr ptrdiff_t num_cols = 6;
+
+// y = 3.0 * A * x
+void scaled_matvec_1(mdspan<double, extents<num_rows, num_cols>> A,
+  mdspan<double, extents<num_cols>> x,
+  mdspan<double, extents<num_rows>> y)
+{
+  matrix_vector_product(scaled_view(3.0, A), x, y);
+}
+
+// y = 3.0 * A * x + 2.0 * y
+void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
+  mdspan<double, extents<num_cols>> x,
+  mdspan<double, extents<num_rows>> y)
+{
+  matrix_vector_product(scaled_view(3.0, A), x,
+                        scaled_view(2.0, y), y);
+}
+
+// z = 7.0 times the transpose of A, times y
+void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
+  mdspan<double, extents<num_rows>> y,
+  mdspan<double, extents<num_cols>> z)
+{
+  matrix_vector_product(scaled_view(7.0, transpose_view(A)), y, z);
+}
+```
+--*end example*]
 
 ###### Updating matrix-vector product
 
@@ -6088,35 +6122,3 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
     of `A` all equal one. *[Note:* This does not imply that the
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
-
-## Examples
-
-```c++
-using vector_t = basic_mdspan<double, extents<dynamic_extent>>;
-using dy_ext2_t = extents<dynamic_extent, dynamic_extent>;
-using matrix_t = basic_mdspan<double, dy_ext2_t>;
-
-// Create vectors
-vector_t x = ...;
-vector_t y = ...;
-vector_t z = ...;
-
-// Create matrices
-matrix_t A = ...;
-matrix_t B = ...;
-matrix_t C = ...;
-
-// z = 2.0 * x + y;
-linalg_add(par, scaled_view(2.0, x), y, z);
-// y = 2.0 * y + z;
-linalg_add(par, z, scaled_view(2.0, y), y);
-
-// y = 3.0 * A * x;
-matrix_vector_product(par, scaled_view(3.0, A), x, y);
-// y = 3.0 * A * x + 2.0 * y;
-matrix_vector_product(par, scaled_view(3.0, A), x,
-                      scaled_view(2.0, y), y);
-
-// y = transpose(A) * x;
-matrix_vector_product(par, transpose_view(A), x, y);
-```
