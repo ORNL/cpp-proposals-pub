@@ -1240,6 +1240,9 @@ public:
     constexpr mapping(const Extents& e,
       const typename Extents::index_type s);
 
+    template<class OtherExtents>
+    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+
     typename Extents::index_type
     operator() (typename Extents::index_type i,
                 typename Extents::index_type j) const;
@@ -1273,6 +1276,8 @@ public:
 
   * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
+  * `Extents` is a specialization of `extents`.
+
   * `Extents::rank()` equals 2.
 
 ```c++
@@ -1298,6 +1303,20 @@ to a BLAS function, then the implementation must impose the
 requirement at run time.
 
 --*end note]*
+
+```c++
+template<class OtherExtents>
+constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+```
+
+* *Constraints:*
+
+  * `OtherExtents` is a specialization of `extents`.
+
+  * `OtherExtents::rank()` equals 2.
+
+* *Effects:* Initializes `extents_` with `m.extents_`, and
+  initializes `stride_` with `m.stride_`.
 
 ```c++
 typename Extents::index_type
@@ -1453,6 +1472,9 @@ public:
     constexpr mapping(const Extents& e,
       const typename Extents::index_type s);
 
+    template<class OtherExtents>
+    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+
     typename Extents::index_type
     operator() (typename Extents::index_type i,
                 typename Extents::index_type j) const;
@@ -1487,6 +1509,8 @@ public:
 
   * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
+  * `Extents` is a specialization of `extents`.
+
   * `Extents::rank()` equals 2.
 
 ```c++
@@ -1494,6 +1518,19 @@ constexpr mapping(const Extents& e);
 ```
 
 * *Requires:* `e.extent(0)` equals `e.extent(1)`.
+
+* *Effects:* Initializes `extents_` with `e`.
+
+```c++
+template<class OtherExtents>
+constexpr mapping(const mapping<OtherExtents>& e);
+```
+
+* *Constraints:*
+
+  * `OtherExtents` is a specialization of `extents`.
+
+  * `OtherExtents::rank()` equals 2.
 
 * *Effects:* Initializes `extents_` with `e`.
 
