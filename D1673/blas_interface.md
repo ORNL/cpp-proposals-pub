@@ -1342,8 +1342,806 @@ conjugate_transpose_view(
                layout_transpose<Layout>,
                accessor_conjugate<Accessor>> a);
 
-// [linalg.algs.blas1], BLAS 1 functions
+// [linalg.algs.blas1.givens.setup], compute Givens rotation
+template<class Real>
+void givens_rotation_setup(const Real a,
+                           const Real b,
+                           Real& c,
+                           Real& s,
+                           Real& r);
+template<class Real>
+void givens_rotation_setup(const complex<Real>& a,
+                           const complex<Real>& a,
+                           Real& c,
+                           complex<Real>& s,
+                           complex<Real>& r);
+
+// [linalg.algs.blas1.givens.apply], apply computed Givens rotation
+template<class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const Real s);
+template<class ExecutionPolicy,
+         class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  ExecutionPolicy&& exec,
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const Real s);
+template<class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const complex<Real> s);
+template<class ExecutionPolicy,
+         class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  ExecutionPolicy&& exec,
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const complex<Real> s);
 }
+
+// [linalg.algs.blas1.swap], swap elements
+template<class inout_object_1_t,
+         class inout_object_2_t>
+void linalg_swap(inout_object_1_t x,
+                 inout_object_2_t y);
+template<class ExecutionPolicy,
+         class inout_object_1_t,
+         class inout_object_2_t>
+void linalg_swap(ExecutionPolicy&& exec,
+                 inout_object_1_t x,
+                 inout_object_2_t y);
+
+// [linalg.algs.blas1.scale], multiply elements by scalar
+template<class Scalar,
+         class inout_object_t>
+void scale(const Scalar alpha,
+           inout_object_t obj);
+template<class ExecutionPolicy,
+         class Scalar,
+         class inout_object_t>
+void scale(ExecutionPolicy&& exec,
+           const Scalar alpha,
+           inout_object_t obj);
+
+// [linalg.algs.blas1.copy], copy elements
+template<class in_object_t,
+         class out_object_t>
+void linalg_copy(in_object_t x,
+                 out_object_t y);
+template<class ExecutionPolicy,
+         class in_object_t,
+         class out_object_t>
+void linalg_copy(ExecutionPolicy&& exec,
+                 in_object_t x,
+                 out_object_t y);
+
+// [linalg.algs.blas1.add], add elementwise
+template<class in_object_1_t,
+         class in_object_2_t,
+         class out_object_t>
+void linalg_add(in_object_1_t x,
+                in_object_2_t y,
+                out_object_t z);
+template<class ExecutionPolicy,
+         class in_object_1_t,
+         class in_object_2_t,
+         class out_object_t>
+void linalg_add(ExecutionPolicy&& exec,
+                in_object_1_t x,
+                in_object_2_t y,
+                out_object_t z);
+
+// [linalg.algs.blas1.dot.nonconj], nonconjugated inner product
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class T>
+T dot(in_vector_1_t v1,
+      in_vector_2_t v2,
+      T init);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class T>
+T dot(ExecutionPolicy&& exec,
+      in_vector_1_t v1,
+      in_vector_2_t v2,
+      T init);
+template<class in_vector_1_t,
+         class in_vector_2_t>
+auto dot(in_vector_1_t v1,
+         in_vector_2_t v2);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t>
+auto dot(ExecutionPolicy&& exec,
+         in_vector_1_t v1,
+         in_vector_2_t v2);
+
+// [linalg.algs.blas1.dot.conj], conjugated inner product
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class T>
+T dotc(in_vector_1_t v1,
+       in_vector_2_t v2,
+       T init);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class T>
+T dotc(ExecutionPolicy&& exec,
+       in_vector_1_t v1,
+       in_vector_2_t v2,
+       T init);
+template<class in_vector_1_t,
+         class in_vector_2_t>
+auto dotc(in_vector_1_t v1,
+          in_vector_2_t v2);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t>
+auto dotc(ExecutionPolicy&& exec,
+          in_vector_1_t v1,
+          in_vector_2_t v2);
+
+// [linalg.algs.blas1.norm2], Euclidean vector norm
+template<class in_vector_t,
+         class T>
+T vector_norm2(in_vector_t v,
+               T init);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class T>
+T vector_norm2(ExecutionPolicy&& exec,
+               in_vector_t v,
+               T init);
+template<class in_vector_t>
+auto vector_norm2(in_vector_t v);
+template<class ExecutionPolicy,
+         class in_vector_t>
+auto vector_norm2(ExecutionPolicy&& exec,
+                  in_vector_t v);
+
+// [linalg.algs.blas1.abs_sum], sum of absolute values
+template<class in_vector_t,
+         class T>
+T vector_abs_sum(in_vector_t v,
+                 T init);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class T>
+T vector_abs_sum(ExecutionPolicy&& exec,
+                 in_vector_t v,
+                 T init);
+template<class in_vector_t>
+auto vector_abs_sum(in_vector_t v);
+template<class ExecutionPolicy,
+         class in_vector_t>
+auto vector_abs_sum(ExecutionPolicy&& exec,
+                    in_vector_t v);
+
+// [linalg.algs.blas1.idx_abs_max],
+// index of maximum absolute value of vector elements
+template<class in_vector_t>
+ptrdiff_t idx_abs_max(in_vector_t v);
+template<class ExecutionPolicy,
+         class in_vector_t>
+ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
+                      in_vector_t v);
+
+// [linalg.algs.blas2.general-matvec],
+// general matrix-vector product
+template<class in_vector_t,
+         class in_matrix_t,
+         class out_vector_t>
+void matrix_vector_product(in_matrix_t A,
+                           in_vector_t x,
+                           out_vector_t y);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class in_matrix_t,
+         class out_vector_t>
+void matrix_vector_product(ExecutionPolicy&& exec,
+                           in_matrix_t A,
+                           in_vector_t x,
+                           out_vector_t y);
+template<class in_vector_1_t,
+         class in_matrix_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void matrix_vector_product(in_matrix_t A,
+                           in_vector_1_t x,
+                           in_vector_2_t y,
+                           out_vector_t z);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_matrix_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void matrix_vector_product(ExecutionPolicy&& exec,
+                           in_matrix_t A,
+                           in_vector_1_t x,
+                           in_vector_2_t y,
+                           out_vector_t z);
+
+// [linalg.algs.blas2.symm-matvec],
+// symmetric matrix-vector product
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void symmetric_matrix_vector_product(in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
+                                     in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void symmetric_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  out_vector_t z);
+
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void symmetric_matrix_vector_product(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  out_vector_t z);
+
+// [linalg.algs.blas2.herm-matvec],
+// Hermitian matrix-vector product
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
+                                     in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_1_t x,
+                                     in_vector_2_t y,
+                                     out_vector_t z);
+
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
+                                     in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_1_t x,
+                                     in_vector_2_t y,
+                                     out_vector_t z);
+
+// [linalg.algs.blas2.tri-matvec],
+// Triangular matrix-vector product
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t x,
+  out_vector_t y);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t x,
+  out_vector_t y);
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(in_matrix_t A,
+                                      Triangle t,
+                                      DiagonalStorage d,
+                                      in_vector_1_t x,
+                                      in_vector_2_t y,
+                                      out_vector_t z);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(ExecutionPolicy&& exec,
+                                      in_matrix_t A,
+                                      Triangle t,
+                                      DiagonalStorage d,
+                                      in_vector_1_t x,
+                                      in_vector_2_t y,
+                                      out_vector_t z);
+
+// [linalg.algs.blas2.tri-solve],
+// Solve a triangular linear system
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x);
+
+// [linalg.algs.blas2.rank1.nonconj], nonconjugated rank-1 matrix update
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t>
+void matrix_rank_1_update(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t>
+void matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
+
+// [linalg.algs.blas2.rank1.conj], conjugated rank-1 matrix update
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t>
+void matrix_rank_1_update_c(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t>
+void matrix_rank_1_update_c(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
+
+// [linalg.algs.blas2.rank1.symm], symmetric rank-1 matrix update
+template<class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+
+// [linalg.algs.blas2.rank1.herm], Hermitian rank-1 matrix update
+template<class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+
+// [linalg.algs.blas2.rank2.symm], symmetric rank-2 matrix update
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_2_update(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_2_update(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+
+// [linalg.algs.blas2.rank2.herm], Hermitian rank-2 matrix update
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_2_update(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_2_update(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+
+// [linalg.algs.blas3.gemm], general matrix-matrix product
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void matrix_product(in_matrix_1_t A,
+                    in_matrix_2_t B,
+                    out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void matrix_product(ExecutionPolicy&& exec,
+                    in_matrix_1_t A,
+                    in_matrix_2_t B,
+                    out_matrix_t C);
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void matrix_product(in_matrix_1_t A,
+                    in_matrix_2_t B,
+                    in_matrix_3_t E,
+                    out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void matrix_product(ExecutionPolicy&& exec,
+                    in_matrix_1_t A,
+                    in_matrix_2_t B,
+                    in_matrix_3_t E,
+                    out_matrix_t C);
+
+// [linalg.algs.blas3.symm], symmetric matrix-matrix product
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.hemm], Hermitian matrix-matrix product
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.trmm], triangular matrix-matrix product
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.alg.blas3.rank2k.symm], rank-2k symmetric matrix update
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_2k_update(
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_2k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+
+// [linalg.alg.blas3.rank2k.herm], rank-2k Hermitian matrix update
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_2k_update(
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_2k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+
+// [linalg.alg.blas3.trsm], solve multiple triangular linear systems
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_matrix_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_object_t B,
+  out_object_t X);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_t B,
+  out_matrix_t X);
 ```
 
 ### Tag classes [linalg.tags]
@@ -2830,9 +3628,9 @@ BLAS 1 operations, even though it only operates on scalars.
 
 --*end note]*
 
-##### Givens rotations
+##### Givens rotations [linalg.algs.blas1.givens]
 
-###### Compute Givens rotations
+###### Compute Givens rotations [linalg.algs.blas1.givens.setup]
 
 ```c++
 template<class Real>
@@ -2888,7 +3686,7 @@ note]*
 
 * *Throws:* Nothing.
 
-###### Apply a computed Givens rotation to vectors
+###### Apply a computed Givens rotation to vectors [linalg.algs.blas1.givens.apply]
 
 ```c++
 template<class inout_vector_1_t,
@@ -2966,7 +3764,7 @@ this.
   2 matrix and the input vectors were successive rows of a matrix with
   two rows.
 
-###### Swap matrix or vector elements
+###### Swap matrix or vector elements [linalg.algs.blas1.swap]
 
 ```c++
 template<class inout_object_1_t,
@@ -3005,7 +3803,7 @@ void linalg_swap(ExecutionPolicy&& exec,
 * *Effects:* Swap all corresponding elements of the objects
   `x` and `y`.
 
-##### Multiply the elements of an object in place by a scalar
+##### Multiply the elements of an object in place by a scalar [linalg.algs.blas1.scale]
 
 ```c++
 template<class Scalar,
@@ -3033,7 +3831,7 @@ void scale(ExecutionPolicy&& exec,
 
 * *Effects*: Multiply each element of `obj` in place by `alpha`.
 
-##### Copy elements of one matrix or vector into another
+##### Copy elements of one matrix or vector into another [linalg.algs.blas1.copy]
 
 ```c++
 template<class in_object_t,
@@ -3072,7 +3870,7 @@ void linalg_copy(ExecutionPolicy&& exec,
 * *Effects:* Overwrite each element of `y` with the corresponding
   element of `x`.
 
-##### Add vectors or matrices elementwise
+##### Add vectors or matrices elementwise [linalg.algs.blas1.add]
 
 ```c++
 template<class in_object_1_t,
@@ -3126,7 +3924,7 @@ void linalg_add(ExecutionPolicy&& exec,
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
-##### Inner (dot) product of two vectors
+##### Inner (dot) product of two vectors [linalg.algs.blas1.dot]
 
 ###### Non-conjugated inner (dot) product
 
@@ -3207,7 +4005,7 @@ auto dot(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dot(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dot(exec, v1, v2, T{});`.
 
-###### Conjugated inner (dot) product
+###### Conjugated inner (dot) product [linalg.algs.blas1.dot.conj]
 
 ```c++
 template<class in_vector_1_t,
@@ -3253,7 +4051,7 @@ auto dotc(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dotc(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dotc(exec, v1, v2, T{});`.
 
-##### Euclidean (2) norm of a vector
+##### Euclidean (2) vector norm [linalg.algs.blas1.norm2]
 
 ```c++
 template<class in_vector_t,
@@ -3313,7 +4111,7 @@ auto vector_norm2(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_norm2(exec, v, T{});`.
 
-##### Sum of absolute values
+##### Sum of absolute values of vector elements [linalg.algs.blas1.abs_sum]
 
 ```c++
 template<class in_vector_t,
@@ -3377,7 +4175,7 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_abs_sum(exec, v, T{});`.
 
-##### Index of maximum absolute value of vector elements
+##### Index of maximum absolute value of vector elements [linalg.algs.blas1.idx_abs_max]
 
 ```c++
 template<class in_vector_t>
@@ -3399,9 +4197,9 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
   the first element of `v` having largest absolute value.  If `v` has
   zero elements, then returns `-1`.
 
-#### BLAS 2 functions
+#### BLAS 2 functions [linalg.algs.blas2]
 
-##### General matrix-vector product
+##### General matrix-vector product [linalg.algs.blas2.general-matvec]
 
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
@@ -3493,7 +4291,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-##### Symmetric matrix-vector product
+##### Symmetric matrix-vector product [linalg.algs.blas2.symm-matvec],
 
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
@@ -3610,7 +4408,7 @@ void symmetric_matrix_vector_product(
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-##### Hermitian matrix-vector product
+##### Hermitian matrix-vector product [linalg.algs.blas2.herm-matvec],
 
 *[Note:* These functions correspond to the BLAS functions `xHEMV` and
 `xHPMV`. --*end note]*
@@ -3728,7 +4526,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-##### Triangular matrix-vector product
+##### Triangular matrix-vector product [linalg.algs.blas2.tri-matvec]
 
 *[Note:* These functions correspond to the BLAS functions `xTRMV` and
 `xTPMV`. --*end note]*
@@ -3861,7 +4659,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-##### Solve a triangular linear system
+##### Solve a triangular linear system [linalg.algs.blas2.tri-solve]
 
 ```c++
 template<class in_matrix_t,
@@ -3954,9 +4752,9 @@ void triangular_matrix_vector_solve(
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-##### Rank-1 (outer product) update of a matrix
+##### Rank-1 (outer product) update of a matrix [linalg.algs.blas2.rank1]
 
-###### Nonsymmetric non-conjugated rank-1 update
+###### Nonsymmetric non-conjugated rank-1 update [linalg.algs.blas2.rank1.nonconj]
 
 ```c++
 template<class in_vector_1_t,
@@ -4012,7 +4810,7 @@ types). --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
 
-###### Nonsymmetric conjugated rank-1 update
+###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.conj]
 
 ```c++
 template<class in_vector_1_t,
@@ -4037,7 +4835,7 @@ void matrix_rank_1_update_c(
 * *Effects:* Equivalent to
   `matrix_rank_1_update(x, conjugate_view(y), A);`.
 
-###### Rank-1 update of a Symmetric matrix
+###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.symm]
 
 ```c++
 template<class in_vector_t,
@@ -4098,7 +4896,7 @@ void symmetric_matrix_rank_1_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-###### Rank-1 update of a Hermitian matrix
+###### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.herm]
 
 ```c++
 template<class in_vector_t,
@@ -4160,7 +4958,7 @@ void hermitian_matrix_rank_1_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-##### Rank-2 update of a symmetric matrix
+##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.symm]
 
 ```c++
 template<class in_vector_1_t,
@@ -4232,7 +5030,7 @@ void symmetric_matrix_rank_2_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Rank-2 update of a Hermitian matrix
+##### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.herm]
 
 ```c++
 template<class in_vector_1_t,
@@ -4306,9 +5104,9 @@ void hermitian_matrix_rank_2_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-#### BLAS 3 functions
+#### BLAS 3 functions [linalg.algs.blas3]
 
-##### General matrix-matrix product
+##### General matrix-matrix product [linalg.algs.blas3.gemm]
 
 *[Note:* These functions correspond to the BLAS function `xGEMM`.
 --*end note]*
@@ -4415,7 +5213,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-##### Symmetric matrix-matrix product
+##### Symmetric matrix-matrix product [linalg.algs.blas3.symm]
 
 *[Note:* These functions correspond to the BLAS function `xSYMM`.
 Unlike the symmetric rank-1 update functions, these functions assume
@@ -4611,7 +5409,7 @@ void symmetric_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-##### Hermitian matrix-matrix product
+##### Hermitian matrix-matrix product [linalg.algs.blas3.hemm]
 
 *[Note:* These functions correspond to the BLAS function `xHEMM`.
 Unlike the Hermitian rank-1 update functions, these functions assume
@@ -4808,7 +5606,7 @@ void hermitian_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-##### Triangular matrix-matrix product
+##### Triangular matrix-matrix product [linalg.algs.blas3.trmm]
 
 *[Note:* These functions correspond to the BLAS function `xTRMM`.
 --*end note]*
@@ -4995,7 +5793,6 @@ void triangular_matrix_product(
   out_matrix_t C);
 ```
 
-
 * *Constraints:*
 
   * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
@@ -5019,13 +5816,13 @@ void triangular_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-##### Rank-2k update of a symmetric or Hermitian matrix
+##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
 BLAS functions, by making `C` a `transpose_view` or
 `conjugate_transpose_view`. --*end note]*
 
-###### Rank-2k update of a symmetric matrix
+###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.symm]
 
 ```c++
 template<class in_matrix_1_t,
@@ -5101,7 +5898,7 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-###### Rank-2k update of a Hermitian matrix
+###### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.herm]
 
 ```c++
 template<class in_matrix_1_t,
@@ -5178,7 +5975,7 @@ void hermitian_matrix_rank_2k_update(
   indices `i,j` outside that triangle, that `C(j,i)` equals
   `conj(C(i,j))`.
 
-##### Solve multiple triangular linear systems with the same matrix
+##### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
 ```c++
 template<class in_matrix_t,
