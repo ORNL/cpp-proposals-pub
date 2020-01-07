@@ -1009,13 +1009,14 @@ input argument for all the output arguments in the batch.
 
 ### `basic_mdspan`
 
-[P0009R9](http://wg21.link/p0009r9) is a proposal for adding
-multidimensional arrays to the C++ Standard Library.  `basic_mdspan`
-is the main class in this proposal.  It is a "view" (in the sense of
-`span`) of a multidimensional array.  The rank (number of dimensions)
-is fixed at compile time.  Users may specify some dimensions at run
-time and others at compile time; the type of the `basic_mdspan`
-expresses this.  `basic_mdspan` also has two customization points:
+This proposal depends on [P0009R9](http://wg21.link/p0009r9), which is
+a proposal for adding multidimensional arrays to the C++ Standard
+Library.  `basic_mdspan` is the main class in P0009.  It is a "view"
+(in the sense of `span`) of a multidimensional array.  The rank
+(number of dimensions) is fixed at compile time.  Users may specify
+some dimensions at run time and others at compile time; the type of
+the `basic_mdspan` expresses this.  `basic_mdspan` also has two
+customization points:
 
   * `Layout` expresses the array's memory layout: e.g., row-major (C++
     style), column-major (Fortran style), or strided.  We use a custom
@@ -1034,9 +1035,7 @@ The `basic_mdspan` class has an alias `mdspan` that uses the default
 `Layout` and `Accessor`.  In this paper, when we refer to `mdspan`
 without other qualifiers, we mean the most general `basic_mdspan`.
 
-## Data structures and utilities
-
-### Layouts
+### New `basic_mdspan` layouts in this proposal
 
 Our proposal uses the layout mapping policy of `basic_mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
@@ -1063,7 +1062,7 @@ These layouts have "tag" template parameters that control their
 properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
-(SY), Hermitian (HE), and Triangular (TR).  P1674R0 explains our
+(SY), Hermitian (HE), and Triangular (TR).  P1674 explains our
 reasoning.  In summary: Their actual layout -- the arrangement of
 matrix elements in memory -- is the same as General.  The only
 differences are constraints on what entries of the matrix algorithms
@@ -1075,15 +1074,15 @@ different function names.
 
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
-we provide `layout_blas_packed`.  Note that these layouts would thus
-be the first additions to the layouts in P0009R9 that are not unique
-and strided.
+we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
+the first addition to the layouts in P0009R9 that is neither always
+unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
 arguments with nonunique layouts.  Nonunique output arguments require
 specialization of the algorithm to the layout, since there's no way to
 know generically at compile time what indices map to the same matrix
-element.  Thus, we impose the following rule: Any `basic_mdspan`
+element.  Thus, we will impose the following rule: Any `basic_mdspan`
 output argument to our functions must always have unique layout
 (`is_always_unique()` is `true`), unless otherwise specified.
 
@@ -1091,14 +1090,11 @@ Some of our functions explicitly require outputs with specific
 nonunique layouts.  This includes low-rank updates to symmetric or
 Hermitian matrices.
 
-#### Tag classes for layouts
+## Wording
 
-We use tag classes to parameterize a small number of layout names.
-Layouts take tag types as template arguments, and function callers use
-the corresponding `constexpr` instances of tag types for compile-time
-control of function behavior.
+### Tag classes
 
-##### Storage order tags
+#### Storage order tags
 
 ```c++
 struct column_major_t { };
@@ -1111,18 +1107,18 @@ inline constexpr row_major_t row_major = { };
 `column_major_t` indicates a column-major order, and `row_major_t`
 indicates a row-major order.  The interpretation of each depends on
 the specific layout that uses the tag.  See `layout_blas_general` and
-`layout_blas_packed`.
+`layout_blas_packed` below.
 
-##### Triangle tags
+#### Triangle tags
 
-Linear algebra algorithms find it convenient to distinguish between
-the "upper triangle," "lower triangle," and "diagonal" of a matrix.
+Some linear algebra algorithms distinguish between the "upper
+triangle," "lower triangle," and "diagonal" of a matrix.
 
 * The *upper triangle* of a matrix `A` is the set of all elements of
-  `A` accessed by `A(i,j)` with `i >= j`.
+  `A` accessed by `A(i,j)` with `i` >= `j`.
 
 * The *lower triangle* of `A` is the set of all elements of `A`
-  accessed by `A(i,j)` with `i <= j`.
+  accessed by `A(i,j)` with `i` <= `j`.
 
 * The *diagonal* is the set of all elements of `A` accessed by
   `A(i,i)`.  It is included in both the upper triangle and the lower
@@ -1143,37 +1139,38 @@ access the upper triangle (`upper_triangular_t`) or lower triangle
 restrictions of `implicit_unit_diagonal_t` if that tag is also
 applied; see below.
 
-##### Diagonal tags
+#### Diagonal tags
 
 ```c++
 struct implicit_unit_diagonal_t { };
-inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal = { };
+inline constexpr implicit_unit_diagonal_t
+implicit_unit_diagonal = { };
 
 struct explicit_diagonal_t { };
 inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
 These tag classes specify what algorithms and other users of a matrix
-(represented as a `basic_mdspan`) should assume
-about the diagonal entries of the matrix, and whether algorithms and
-users of the matrix should access those diagonal entries explicitly.
+should assume about the diagonal entries of the matrix, and whether
+algorithms and users of the matrix should access those diagonal
+entries explicitly.
 
 The `implicit_unit_diagonal_t` tag indicates two things:
 
   * the function will never access the `i,i` element of the matrix,
     and
 
-  * the matrix has a diagonal of ones (a unit diagonal).
+  * the matrix has a diagonal of ones (a "unit diagonal").
 
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
 
-##### Side tags
+#### Side tags
 
-Linear algebra algorithms find it convenient to distinguish between
-applying some operator to the left side of an object, or the right
-side of an object.  *[Note:* Matrix-matrix product and triangular
-solve with a matrix generally do not commute. --*end note]*
+Some linear algebra algorithms distinguish between applying some
+operator to the left side of an object, or the right side of an
+object.  *[Note:* Matrix-matrix product and triangular solve with a
+matrix generally do not commute. --*end note]*
 
 ```c++
 struct left_side_t { };
@@ -1186,6 +1183,8 @@ constexpr right_side_t right_side = { };
 These tag classes specify whether algorithms should apply some
 operator to the left side (`left_side_t`) or right side
 (`right_side_t`) of an object.
+
+### Layouts for general and packed matrix types
 
 #### `layout_blas_general`
 
@@ -1646,7 +1645,7 @@ constexpr bool is_strided() const noexcept;
 
 * *Returns:* `true` if `extent(0)` is less than 2, else `false`.
 
-### Scaled transformation of an object
+### Scaled in-place transformation
 
 The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
 `x`, and returns a new read-only `basic_mdspan` with the same domain
@@ -1842,7 +1841,7 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 }
 ```
 
-### Conjugated transformation of an object
+#### Conjugated in-place transformation
 
 The `conjugate_view` function takes a `basic_mdspan` `x`, and returns
 a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
@@ -2072,7 +2071,7 @@ void test_conjugate_view_real(
 }
 ```
 
-### Transpose transformation of an object
+### Transpose in-place transformation
 
 `layout_transpose` is a `basic_mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
@@ -2491,9 +2490,9 @@ void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
 }
 ```
 
-## Algorithms
+### Algorithms
 
-### Requirements
+#### Requirements
 
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
@@ -2557,7 +2556,7 @@ or other things as appropriate.
   reference to a `basic_mdspan`, or a (non-`const`) rvalue reference to a
   `basic_mdspan`.
 
-### BLAS 1 functions
+#### BLAS 1 functions
 
 *[Note:*
 
@@ -2571,9 +2570,9 @@ BLAS 1 operations, even though it only operates on scalars.
 
 --*end note]*
 
-#### Givens rotations
+##### Givens rotations
 
-##### Compute Givens rotations
+###### Compute Givens rotations
 
 ```c++
 template<class Real>
@@ -2629,7 +2628,7 @@ note]*
 
 * *Throws:* Nothing.
 
-##### Apply a computed Givens rotation to vectors
+###### Apply a computed Givens rotation to vectors
 
 ```c++
 template<class inout_vector_1_t,
@@ -2707,7 +2706,7 @@ this.
   2 matrix and the input vectors were successive rows of a matrix with
   two rows.
 
-##### Swap matrix or vector elements
+###### Swap matrix or vector elements
 
 ```c++
 template<class inout_object_1_t,
@@ -2746,7 +2745,7 @@ void linalg_swap(ExecutionPolicy&& exec,
 * *Effects:* Swap all corresponding elements of the objects
   `x` and `y`.
 
-#### Multiply the elements of an object in place by a scalar
+##### Multiply the elements of an object in place by a scalar
 
 ```c++
 template<class Scalar,
@@ -2774,7 +2773,7 @@ void scale(ExecutionPolicy&& exec,
 
 * *Effects*: Multiply each element of `obj` in place by `alpha`.
 
-#### Copy elements of one matrix or vector into another
+##### Copy elements of one matrix or vector into another
 
 ```c++
 template<class in_object_t,
@@ -2813,7 +2812,7 @@ void linalg_copy(ExecutionPolicy&& exec,
 * *Effects:* Overwrite each element of `y` with the corresponding
   element of `x`.
 
-#### Add vectors or matrices elementwise
+##### Add vectors or matrices elementwise
 
 ```c++
 template<class in_object_1_t,
@@ -2867,9 +2866,9 @@ void linalg_add(ExecutionPolicy&& exec,
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
-#### Inner (dot) product of two vectors
+##### Inner (dot) product of two vectors
 
-##### Non-conjugated inner (dot) product
+###### Non-conjugated inner (dot) product
 
 ```c++
 template<class in_vector_1_t,
@@ -2929,7 +2928,7 @@ for specific `ExecutionPolicy` types. --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
-##### Non-conjugated inner (dot) product with default result type
+###### Non-conjugated inner (dot) product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -2948,7 +2947,7 @@ auto dot(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dot(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dot(exec, v1, v2, T{});`.
 
-##### Conjugated inner (dot) product
+###### Conjugated inner (dot) product
 
 ```c++
 template<class in_vector_1_t,
@@ -2975,7 +2974,7 @@ T dotc(ExecutionPolicy&& exec,
 *[Note:* `dotc` exists to give users reasonable default inner product
 behavior for both real and complex element types. --*end note]*
 
-##### Conjugated inner (dot) product with default result type
+###### Conjugated inner (dot) product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -2994,7 +2993,7 @@ auto dotc(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dotc(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dotc(exec, v1, v2, T{});`.
 
-#### Euclidean (2) norm of a vector
+##### Euclidean (2) norm of a vector
 
 ```c++
 template<class in_vector_t,
@@ -3037,7 +3036,7 @@ T vector_norm2(ExecutionPolicy&& exec,
 regarding overflow and underflow of `vector_norm2` for floating-point
 return types. --*end note]*
 
-#### Euclidean (2) norm of a vector with default result type
+##### Euclidean (2) norm of a vector with default result type
 
 ```c++
 template<class in_vector_t>
@@ -3054,7 +3053,7 @@ auto vector_norm2(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_norm2(exec, v, T{});`.
 
-#### Sum of absolute values
+##### Sum of absolute values
 
 ```c++
 template<class in_vector_t,
@@ -3102,7 +3101,7 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
   implementations will use `T`'s precision or greater for intermediate
   terms in the sum.
 
-#### Sum of absolute values with default result type
+##### Sum of absolute values with default result type
 
 ```c++
 template<class in_vector_t>
@@ -3118,7 +3117,7 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_abs_sum(exec, v, T{});`.
 
-#### Index of maximum absolute value of vector elements
+##### Index of maximum absolute value of vector elements
 
 ```c++
 template<class in_vector_t>
@@ -3140,9 +3139,9 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
   the first element of `v` having largest absolute value.  If `v` has
   zero elements, then returns `-1`.
 
-### BLAS 2 functions
+#### BLAS 2 functions
 
-#### General matrix-vector product
+##### General matrix-vector product
 
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
@@ -3178,7 +3177,7 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `y.static_extent(0)` equals
     `z.static_extent(0)` (if applicable).
 
-##### Overwriting matrix-vector product
+###### Overwriting matrix-vector product
 
 ```c++
 template<class in_vector_t,
@@ -3204,7 +3203,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-##### Updating matrix-vector product
+###### Updating matrix-vector product
 
 ```c++
 template<class in_vector_1_t,
@@ -3234,7 +3233,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-#### Symmetric matrix-vector product
+##### Symmetric matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
@@ -3285,7 +3284,7 @@ The following requirements apply to all functions in this section.
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Overwriting symmetric matrix-vector product
+###### Overwriting symmetric matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3315,7 +3314,7 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-##### Updating symmetric matrix-vector product
+###### Updating symmetric matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3351,7 +3350,7 @@ void symmetric_matrix_vector_product(
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-#### Hermitian matrix-vector product
+##### Hermitian matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xHEMV` and
 `xHPMV`. --*end note]*
@@ -3403,7 +3402,7 @@ The following requirements apply to all functions in this section.
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-##### Overwriting Hermitian matrix-vector product
+###### Overwriting Hermitian matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3434,7 +3433,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-##### Updating Hermitian matrix-vector product
+###### Updating Hermitian matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3469,7 +3468,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-#### Triangular matrix-vector product
+##### Triangular matrix-vector product
 
 *[Note:* These functions correspond to the BLAS functions `xTRMV` and
 `xTPMV`. --*end note]*
@@ -3528,7 +3527,7 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-##### Overwriting triangular matrix-vector product
+###### Overwriting triangular matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3564,7 +3563,7 @@ void triangular_matrix_vector_product(
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-##### Updating triangular matrix-vector product
+###### Updating triangular matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3602,7 +3601,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-#### Solve a triangular linear system
+##### Solve a triangular linear system
 
 ```c++
 template<class in_matrix_t,
@@ -3695,9 +3694,9 @@ void triangular_matrix_vector_solve(
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-#### Rank-1 (outer product) update of a matrix
+##### Rank-1 (outer product) update of a matrix
 
-##### Nonsymmetric non-conjugated rank-1 update
+###### Nonsymmetric non-conjugated rank-1 update
 
 ```c++
 template<class in_vector_1_t,
@@ -3753,7 +3752,7 @@ types). --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
 
-##### Nonsymmetric conjugated rank-1 update
+###### Nonsymmetric conjugated rank-1 update
 
 ```c++
 template<class in_vector_1_t,
@@ -3778,7 +3777,7 @@ void matrix_rank_1_update_c(
 * *Effects:* Equivalent to
   `matrix_rank_1_update(x, conjugate_view(y), A);`.
 
-##### Rank-1 update of a Symmetric matrix
+###### Rank-1 update of a Symmetric matrix
 
 ```c++
 template<class in_vector_t,
@@ -3839,7 +3838,7 @@ void symmetric_matrix_rank_1_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Rank-1 update of a Hermitian matrix
+###### Rank-1 update of a Hermitian matrix
 
 ```c++
 template<class in_vector_t,
@@ -3901,7 +3900,7 @@ void hermitian_matrix_rank_1_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-#### Rank-2 update of a symmetric matrix
+##### Rank-2 update of a symmetric matrix
 
 ```c++
 template<class in_vector_1_t,
@@ -3973,7 +3972,7 @@ void symmetric_matrix_rank_2_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-#### Rank-2 update of a Hermitian matrix
+##### Rank-2 update of a Hermitian matrix
 
 ```c++
 template<class in_vector_1_t,
@@ -4047,9 +4046,9 @@ void hermitian_matrix_rank_2_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-### BLAS 3 functions
+#### BLAS 3 functions
 
-#### General matrix-matrix product
+##### General matrix-matrix product
 
 *[Note:* These functions correspond to the BLAS function `xGEMM`.
 --*end note]*
@@ -4095,7 +4094,7 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `B.static_extent(1)` equals
     `C.static_extent(1)`.
 
-##### Overwriting general matrix-matrix product
+###### Overwriting general matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4122,7 +4121,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of the matrix `C` the product of
   the matrices `A` and `B`.
 
-##### Updating general matrix-matrix product
+###### Updating general matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4156,7 +4155,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-#### Symmetric matrix-matrix product
+##### Symmetric matrix-matrix product
 
 *[Note:* These functions correspond to the BLAS function `xSYMM`.
 Unlike the symmetric rank-1 update functions, these functions assume
@@ -4247,7 +4246,7 @@ The following requirements apply to all functions in this section.
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Overwriting symmetric matrix-matrix product
+###### Overwriting symmetric matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4295,7 +4294,7 @@ void symmetric_matrix_product(
   * If `Side` is `right_side_t`, then assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
-##### Updating symmetric matrix-matrix product
+###### Updating symmetric matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4352,7 +4351,7 @@ void symmetric_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-#### Hermitian matrix-matrix product
+##### Hermitian matrix-matrix product
 
 *[Note:* These functions correspond to the BLAS function `xHEMM`.
 Unlike the Hermitian rank-1 update functions, these functions assume
@@ -4444,7 +4443,7 @@ The following requirements apply to all functions in this section.
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-##### Overwriting Hermitian matrix-matrix product
+###### Overwriting Hermitian matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4492,7 +4491,7 @@ void hermitian_matrix_product(
   * If `Side` is `right_side_t`, then assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
-##### Updating Hermitian matrix-matrix product
+###### Updating Hermitian matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4549,7 +4548,7 @@ void hermitian_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-#### Triangular matrix-matrix product
+##### Triangular matrix-matrix product
 
 *[Note:* These functions correspond to the BLAS function `xTRMM`.
 --*end note]*
@@ -4646,7 +4645,7 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-##### Overwriting triangular matrix-matrix product
+###### Overwriting triangular matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4698,7 +4697,7 @@ void triangular_matrix_product(
   * If `Side` is `right_side_t`, then assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
-##### Updating triangular matrix-matrix product
+###### Updating triangular matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4760,13 +4759,13 @@ void triangular_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-#### Rank-2k update of a symmetric or Hermitian matrix
+##### Rank-2k update of a symmetric or Hermitian matrix
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
 BLAS functions, by making `C` a `transpose_view` or
 `conjugate_transpose_view`. --*end note]*
 
-##### Rank-2k update of a symmetric matrix
+###### Rank-2k update of a symmetric matrix
 
 ```c++
 template<class in_matrix_1_t,
@@ -4842,7 +4841,7 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-##### Rank-2k update of a Hermitian matrix
+###### Rank-2k update of a Hermitian matrix
 
 ```c++
 template<class in_matrix_1_t,
@@ -4919,7 +4918,7 @@ void hermitian_matrix_rank_2k_update(
   indices `i,j` outside that triangle, that `C(j,i)` equals
   `conj(C(i,j))`.
 
-#### Solve multiple triangular linear systems with the same matrix
+##### Solve multiple triangular linear systems with the same matrix
 
 ```c++
 template<class in_matrix_t,
@@ -5078,7 +5077,9 @@ charge to add linear algebra to the C++ Standard Library, and for many
 fruitful discussions.  Thanks also to Andrew Lumsdaine for his
 pioneering efforts and history lessons.
 
-## References by coathors
+## References
+
+### References by coathors
 
 * G. Ballard, E. Carson, J. Demmel, M. Hoemmen, N. Knight, and
   O. Schwartz, ["Communication lower bounds and optimal algorithms for
@@ -5106,7 +5107,7 @@ pioneering efforts and history lessons.
   M. Dominiak, "A General Property Customization Mechanism,"
   [P1393R0](http://wg21.link/p1393r0), Jan. 2019.
 
-## Other references
+### Other references
 
 * [Basic Linear Algebra Subprograms Technical (BLAST) Forum
   Standard](http://netlib.org/blas/blast-forum/blas-report.pdf),
