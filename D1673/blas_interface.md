@@ -1009,13 +1009,14 @@ input argument for all the output arguments in the batch.
 
 ### `basic_mdspan`
 
-[P0009R9](http://wg21.link/p0009r9) is a proposal for adding
-multidimensional arrays to the C++ Standard Library.  `basic_mdspan`
-is the main class in this proposal.  It is a "view" (in the sense of
-`span`) of a multidimensional array.  The rank (number of dimensions)
-is fixed at compile time.  Users may specify some dimensions at run
-time and others at compile time; the type of the `basic_mdspan`
-expresses this.  `basic_mdspan` also has two customization points:
+This proposal depends on [P0009R9](http://wg21.link/p0009r9), which is
+a proposal for adding multidimensional arrays to the C++ Standard
+Library.  `basic_mdspan` is the main class in P0009.  It is a "view"
+(in the sense of `span`) of a multidimensional array.  The rank
+(number of dimensions) is fixed at compile time.  Users may specify
+some dimensions at run time and others at compile time; the type of
+the `basic_mdspan` expresses this.  `basic_mdspan` also has two
+customization points:
 
   * `Layout` expresses the array's memory layout: e.g., row-major (C++
     style), column-major (Fortran style), or strided.  We use a custom
@@ -1034,13 +1035,11 @@ The `basic_mdspan` class has an alias `mdspan` that uses the default
 `Layout` and `Accessor`.  In this paper, when we refer to `mdspan`
 without other qualifiers, we mean the most general `basic_mdspan`.
 
-## Data structures and utilities
+### New `basic_mdspan` layouts in this proposal
 
-### Layouts
-
-Our proposal uses the layout policy of `basic_mdspan` in order to
-represent different matrix and vector data layouts.  Layouts as
-described by P0009R9 have three basic properties:
+Our proposal uses the layout mapping policy of `basic_mdspan` in order
+to represent different matrix and vector data layouts.  Layout mapping
+policies as described by P0009R9 have three basic properties:
 
 * Unique
 * Contiguous
@@ -1063,7 +1062,7 @@ These layouts have "tag" template parameters that control their
 properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
-(SY), Hermitian (HE), and Triangular (TR).  P1674R0 explains our
+(SY), Hermitian (HE), and Triangular (TR).  P1674 explains our
 reasoning.  In summary: Their actual layout -- the arrangement of
 matrix elements in memory -- is the same as General.  The only
 differences are constraints on what entries of the matrix algorithms
@@ -1075,15 +1074,15 @@ different function names.
 
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
-we provide `layout_blas_packed`.  Note that these layouts would thus
-be the first additions to the layouts in P0009R9 that are not unique
-and strided.
+we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
+the first addition to the layouts in P0009R9 that is neither always
+unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
 arguments with nonunique layouts.  Nonunique output arguments require
 specialization of the algorithm to the layout, since there's no way to
 know generically at compile time what indices map to the same matrix
-element.  Thus, we impose the following rule: Any `basic_mdspan`
+element.  Thus, we will impose the following rule: Any `basic_mdspan`
 output argument to our functions must always have unique layout
 (`is_always_unique()` is `true`), unless otherwise specified.
 
@@ -1091,14 +1090,1063 @@ Some of our functions explicitly require outputs with specific
 nonunique layouts.  This includes low-rank updates to symmetric or
 Hermitian matrices.
 
-#### Tag classes for layouts
+## Acknowledgments
 
-We use tag classes to parameterize a small number of layout names.
-Layouts take tag types as template arguments, and function callers use
-the corresponding `constexpr` instances of tag types for compile-time
-control of function behavior.
+Sandia National Laboratories is a multimission laboratory managed and
+operated by National Technology & Engineering Solutions of Sandia,
+LLC, a wholly owned subsidiary of Honeywell International, Inc., for
+the U.S. Department of Energy’s National Nuclear Security
+Administration under contract DE-NA0003525.
 
-##### Storage order tags
+Special thanks to Bob Steagall and Guy Davidson for boldly leading the
+charge to add linear algebra to the C++ Standard Library, and for many
+fruitful discussions.  Thanks also to Andrew Lumsdaine for his
+pioneering efforts and history lessons.
+
+## References
+
+### References by coathors
+
+* G. Ballard, E. Carson, J. Demmel, M. Hoemmen, N. Knight, and
+  O. Schwartz, ["Communication lower bounds and optimal algorithms for
+  numerical linear
+  algebra,"](https://doi.org/10.1017/S0962492914000038), *Acta
+  Numerica*, Vol. 23, May 2014, pp. 1-155.
+
+* H. C. Edwards, B. A. Lelbach, D. Sunderland, D. Hollman, C. Trott,
+  M. Bianco, B. Sander, A. Iliopoulos, J. Michopoulos, and M. Hoemmen,
+  "`mdspan`: a Non-Owning Multidimensional Array Reference,"
+  [P0009R0](http://wg21.link/p0009r9), Jan. 2019.
+
+* M. Hoemmen, D. Hollman, and C. Trott, "Evolving a Standard C++
+  Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
+
+* M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
+  J. Michopoulos, "Historical lessons for C++ linear algebra library
+  standardization," [(P1417R0)](http://wg21.link/p1417r0), Jan. 2019.
+
+* D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
+  Owning Multidimensional Array Analog of `mdspan`",
+  [P1684R0](https://isocpp.org/files/papers/P1684R0.pdf), Jun. 2019.
+
+* D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
+  M. Dominiak, "A General Property Customization Mechanism,"
+  [P1393R0](http://wg21.link/p1393r0), Jan. 2019.
+
+### Other references
+
+* [Basic Linear Algebra Subprograms Technical (BLAST) Forum
+  Standard](http://netlib.org/blas/blast-forum/blas-report.pdf),
+  International Journal of High Performance Applications and
+  Supercomputing, Vol. 16. No. 1, Spring 2002.
+
+* L. S. Blackford, J. Demmel, J. Dongarra, I. Duff, S. Hammarling,
+  G. Henry, M. Heroux, L. Kaufman, A. Lumsdaine, A. Petitet, R. Pozo,
+  K. Remington, and R. C. Whaley, ["An updated set of basic linear
+  algebra subprograms (BLAS),"](https://doi.org/10.1145/567806.567807)
+  *ACM Transactions on Mathematical Software* (TOMS), Vol. 28, No. 2,
+  Jun. 2002, pp. 135-151.
+
+* G. Davidson and B. Steagall, "A proposal to add linear algebra
+  support to the C++ standard library,"
+  [P1385R4](http://wg21.link/p1385r4), Nov. 2019.
+
+* B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
+  "Direction for ISO C++," [P0939R0](http://wg21.link/p0939r0), Feb. 2018.
+
+* J. Dongarra, R. Pozo, and D. Walker, "LAPACK++: A Design Overview of
+  Object-Oriented Extensions for High Performance Linear Algebra," in
+  Proceedings of Supercomputing '93, IEEE Computer Society Press,
+  1993, pp. 162-171.
+
+* M. Gates, P. Luszczek, A. Abdelfattah, J. Kurzak, J. Dongarra,
+  K. Arturov, C. Cecka, and C. Freitag, ["C++ API for BLAS and
+  LAPACK,"](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf)
+  SLATE Working Notes, Innovative Computing Laboratory, University of
+  Tennessee Knoxville, Feb. 2018.
+
+* K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
+  multiplication,"](https://doi.org/10.1145/1356052.1356053), *ACM
+  Transactions on Mathematical Software* (TOMS), Vol. 34, No. 3, May
+  2008.
+
+* J. Hoberock, "Integrating Executors with Parallel Algorithms,"
+  [P1019R2](http://wg21.link/p1019r2), Jan. 2019.
+
+* N. A. Josuttis, "The C++ Standard Library: A Tutorial and Reference,"
+  Addison-Wesley, 1999.
+
+* M. Kretz, "Data-Parallel Vector Types & Operations,"
+  [P0214r9](http://wg21.link/p0214r9), Mar. 2018.
+
+* D. Vandevoorde and N. A. Josuttis, "C++ Templates: The Complete
+  Guide," Addison-Wesley Professional, 2003.
+
+## Wording
+
+> Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
+> The � character is used to denote a placeholder section number which the editor shall determine.
+> First, apply all wording from P0009R9 (this proposal is a "rebase" atop the changes proposed by P0009R9).
+> At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
+> At the end of *[numerics]*, add all the material that follows.
+
+### Header `<linalg>` synopsis [linalg.syn]
+
+```c++
+namespace std {
+// [linalg.tags.order], storage order tags
+struct column_major_t;
+inline constexpr column_major_t column_major;
+struct row_major_t;
+inline constexpr row_major_t row_major;
+
+// [linalg.tags.triangle], triangle tags
+struct upper_triangle_t;
+inline constexpr upper_triangle_t upper_triangle;
+struct lower_triangle_t;
+inline constexpr lower_triangle_t lower_triangle;
+
+// [linalg.tags.diagonal], diagonal tags
+struct implicit_unit_diagonal_t;
+inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal;
+struct explicit_diagonal_t;
+inline constexpr explicit_diagonal_t explicit_diagonal;
+
+// [linalg.tags.side], side tags
+struct left_side_t;
+inline constexpr left_side_t left_side;
+struct right_side_t { };
+inline constexpr right_side_t right_side;
+
+// [linalg.layouts.general], class template layout_blas_general
+template<class StorageOrder>
+class layout_blas_general;
+
+// [linalg.layouts.packed], class template layout_blas_packed
+template<class Triangle,
+         class StorageOrder>
+class layout_blas_packed;
+
+// [linalg.scaled.scaled_scalar], class template scaled_scalar
+template<class ScalingFactor,
+         class Reference>
+class scaled_scalar;
+
+// [linalg.scaled.accessor_scaled], class template accessor_scaled
+template<class ScalingFactor,
+         class Accessor>
+class accessor_scaled;
+
+// [linalg.scaled.scaled_view], scaled in-place transformation
+template<class ScalingFactor,
+         class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout,
+             accessor_scaled<ScalingFactor, Accessor>>
+scaled_view(
+  const ScalingFactor& s,
+  const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
+
+// [linalg.conj.conjugated_scalar], class template conjugated_scalar
+template<class Reference,
+         class T>
+class conjugated_scalar;
+
+// [linalg.conj.accessor_conjugate], class template accessor_conjugate
+template<class Accessor>
+class accessor_conjugate;
+
+// [linalg.conj.conjugate_view], conjugated in-place transformation
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout,
+             accessor_conjugate<Accessor>>
+conjugate_view(
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents, Layout, Accessor>
+conjugate_view(basic_mdspan<ElementType, Extents, Layout,
+  accessor_conjugate<Accessor>> a);
+
+// [linalg.transp.layout_transpose], class template layout_transpose
+template<class Layout>
+class layout_transpose;
+
+// [linalg.transp.transpose_view], transposed in-place transformation
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, transpose_extents_t<Extents>,
+             layout_transpose<Layout>, Accessor>
+transpose_view(
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+template<class EltType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<EltType, Extents, Layout, Accessor>
+transpose_view(basic_mdspan<EltType, Extents,
+               layout_transpose<Layout>, Accessor> a);
+
+// [linalg.conj_transp], conjugated transposed in-place transformation
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents,
+             layout_transpose<Layout>,
+             accessor_conjugate<Accessor>>
+conjugate_transpose_view(
+  basic_mdspan<ElementType, Extents,
+               Layout,
+               Accessor> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents,
+             Layout,
+             accessor_conjugate<Accessor>>
+conjugate_transpose_view(
+  basic_mdspan<ElementType, Extents,
+               layout_transpose<Layout>,
+               Accessor> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents,
+             layout_transpose<Layout>,
+             Accessor>
+conjugate_transpose_view(
+  basic_mdspan<ElementType, Extents,
+               Layout,
+               accessor_conjugate<Accessor>> a);
+template<class ElementType,
+         class Extents,
+         class Layout,
+         class Accessor>
+basic_mdspan<ElementType, Extents,
+             Layout,
+             Accessor>
+conjugate_transpose_view(
+  basic_mdspan<ElementType, Extents,
+               layout_transpose<Layout>,
+               accessor_conjugate<Accessor>> a);
+
+// [linalg.algs.blas1.givens.setup], compute Givens rotation
+template<class Real>
+void givens_rotation_setup(const Real a,
+                           const Real b,
+                           Real& c,
+                           Real& s,
+                           Real& r);
+template<class Real>
+void givens_rotation_setup(const complex<Real>& a,
+                           const complex<Real>& a,
+                           Real& c,
+                           complex<Real>& s,
+                           complex<Real>& r);
+
+// [linalg.algs.blas1.givens.apply], apply computed Givens rotation
+template<class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const Real s);
+template<class ExecutionPolicy,
+         class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  ExecutionPolicy&& exec,
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const Real s);
+template<class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const complex<Real> s);
+template<class ExecutionPolicy,
+         class inout_vector_1_t,
+         class inout_vector_2_t,
+         class Real>
+void givens_rotation_apply(
+  ExecutionPolicy&& exec,
+  inout_vector_1_t x,
+  inout_vector_2_t y,
+  const Real c,
+  const complex<Real> s);
+}
+
+// [linalg.algs.blas1.swap], swap elements
+template<class inout_object_1_t,
+         class inout_object_2_t>
+void linalg_swap(inout_object_1_t x,
+                 inout_object_2_t y);
+template<class ExecutionPolicy,
+         class inout_object_1_t,
+         class inout_object_2_t>
+void linalg_swap(ExecutionPolicy&& exec,
+                 inout_object_1_t x,
+                 inout_object_2_t y);
+
+// [linalg.algs.blas1.scale], multiply elements by scalar
+template<class Scalar,
+         class inout_object_t>
+void scale(const Scalar alpha,
+           inout_object_t obj);
+template<class ExecutionPolicy,
+         class Scalar,
+         class inout_object_t>
+void scale(ExecutionPolicy&& exec,
+           const Scalar alpha,
+           inout_object_t obj);
+
+// [linalg.algs.blas1.copy], copy elements
+template<class in_object_t,
+         class out_object_t>
+void linalg_copy(in_object_t x,
+                 out_object_t y);
+template<class ExecutionPolicy,
+         class in_object_t,
+         class out_object_t>
+void linalg_copy(ExecutionPolicy&& exec,
+                 in_object_t x,
+                 out_object_t y);
+
+// [linalg.algs.blas1.add], add elementwise
+template<class in_object_1_t,
+         class in_object_2_t,
+         class out_object_t>
+void linalg_add(in_object_1_t x,
+                in_object_2_t y,
+                out_object_t z);
+template<class ExecutionPolicy,
+         class in_object_1_t,
+         class in_object_2_t,
+         class out_object_t>
+void linalg_add(ExecutionPolicy&& exec,
+                in_object_1_t x,
+                in_object_2_t y,
+                out_object_t z);
+
+// [linalg.algs.blas1.dot.nonconj], nonconjugated inner product
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class T>
+T dot(in_vector_1_t v1,
+      in_vector_2_t v2,
+      T init);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class T>
+T dot(ExecutionPolicy&& exec,
+      in_vector_1_t v1,
+      in_vector_2_t v2,
+      T init);
+template<class in_vector_1_t,
+         class in_vector_2_t>
+auto dot(in_vector_1_t v1,
+         in_vector_2_t v2);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t>
+auto dot(ExecutionPolicy&& exec,
+         in_vector_1_t v1,
+         in_vector_2_t v2);
+
+// [linalg.algs.blas1.dot.conj], conjugated inner product
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class T>
+T dotc(in_vector_1_t v1,
+       in_vector_2_t v2,
+       T init);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class T>
+T dotc(ExecutionPolicy&& exec,
+       in_vector_1_t v1,
+       in_vector_2_t v2,
+       T init);
+template<class in_vector_1_t,
+         class in_vector_2_t>
+auto dotc(in_vector_1_t v1,
+          in_vector_2_t v2);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t>
+auto dotc(ExecutionPolicy&& exec,
+          in_vector_1_t v1,
+          in_vector_2_t v2);
+
+// [linalg.algs.blas1.norm2], Euclidean vector norm
+template<class in_vector_t,
+         class T>
+T vector_norm2(in_vector_t v,
+               T init);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class T>
+T vector_norm2(ExecutionPolicy&& exec,
+               in_vector_t v,
+               T init);
+template<class in_vector_t>
+auto vector_norm2(in_vector_t v);
+template<class ExecutionPolicy,
+         class in_vector_t>
+auto vector_norm2(ExecutionPolicy&& exec,
+                  in_vector_t v);
+
+// [linalg.algs.blas1.abs_sum], sum of absolute values
+template<class in_vector_t,
+         class T>
+T vector_abs_sum(in_vector_t v,
+                 T init);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class T>
+T vector_abs_sum(ExecutionPolicy&& exec,
+                 in_vector_t v,
+                 T init);
+template<class in_vector_t>
+auto vector_abs_sum(in_vector_t v);
+template<class ExecutionPolicy,
+         class in_vector_t>
+auto vector_abs_sum(ExecutionPolicy&& exec,
+                    in_vector_t v);
+
+// [linalg.algs.blas1.idx_abs_max],
+// index of maximum absolute value of vector elements
+template<class in_vector_t>
+ptrdiff_t idx_abs_max(in_vector_t v);
+template<class ExecutionPolicy,
+         class in_vector_t>
+ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
+                      in_vector_t v);
+
+// [linalg.algs.blas2.general-matvec],
+// general matrix-vector product
+template<class in_vector_t,
+         class in_matrix_t,
+         class out_vector_t>
+void matrix_vector_product(in_matrix_t A,
+                           in_vector_t x,
+                           out_vector_t y);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class in_matrix_t,
+         class out_vector_t>
+void matrix_vector_product(ExecutionPolicy&& exec,
+                           in_matrix_t A,
+                           in_vector_t x,
+                           out_vector_t y);
+template<class in_vector_1_t,
+         class in_matrix_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void matrix_vector_product(in_matrix_t A,
+                           in_vector_1_t x,
+                           in_vector_2_t y,
+                           out_vector_t z);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_matrix_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void matrix_vector_product(ExecutionPolicy&& exec,
+                           in_matrix_t A,
+                           in_vector_1_t x,
+                           in_vector_2_t y,
+                           out_vector_t z);
+
+// [linalg.algs.blas2.symm-matvec],
+// symmetric matrix-vector product
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void symmetric_matrix_vector_product(in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
+                                     in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void symmetric_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  out_vector_t z);
+
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void symmetric_matrix_vector_product(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  out_vector_t z);
+
+// [linalg.algs.blas2.herm-matvec],
+// Hermitian matrix-vector product
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
+                                     in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_t x,
+                                     out_vector_t y);
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_1_t x,
+                                     in_vector_2_t y,
+                                     out_vector_t z);
+
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
+                                     in_matrix_t A,
+                                     Triangle t,
+                                     in_vector_1_t x,
+                                     in_vector_2_t y,
+                                     out_vector_t z);
+
+// [linalg.algs.blas2.tri-matvec],
+// Triangular matrix-vector product
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t x,
+  out_vector_t y);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t x,
+  out_vector_t y);
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(in_matrix_t A,
+                                      Triangle t,
+                                      DiagonalStorage d,
+                                      in_vector_1_t x,
+                                      in_vector_2_t y,
+                                      out_vector_t z);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class out_vector_t>
+void triangular_matrix_vector_product(ExecutionPolicy&& exec,
+                                      in_matrix_t A,
+                                      Triangle t,
+                                      DiagonalStorage d,
+                                      in_vector_1_t x,
+                                      in_vector_2_t y,
+                                      out_vector_t z);
+
+// [linalg.algs.blas2.tri-solve],
+// Solve a triangular linear system
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x);
+
+// [linalg.algs.blas2.rank1.nonconj], nonconjugated rank-1 matrix update
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t>
+void matrix_rank_1_update(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t>
+void matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
+
+// [linalg.algs.blas2.rank1.conj], conjugated rank-1 matrix update
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t>
+void matrix_rank_1_update_c(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t>
+void matrix_rank_1_update_c(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A);
+
+// [linalg.algs.blas2.rank1.symm], symmetric rank-1 matrix update
+template<class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+
+// [linalg.algs.blas2.rank1.herm], Hermitian rank-1 matrix update
+template<class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+
+// [linalg.algs.blas2.rank2.symm], symmetric rank-2 matrix update
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_2_update(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_2_update(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+
+// [linalg.algs.blas2.rank2.herm], Hermitian rank-2 matrix update
+template<class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_2_update(
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_vector_1_t,
+         class in_vector_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_2_update(
+  ExecutionPolicy&& exec,
+  in_vector_1_t x,
+  in_vector_2_t y,
+  inout_matrix_t A,
+  Triangle t);
+
+// [linalg.algs.blas3.gemm], general matrix-matrix product
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void matrix_product(in_matrix_1_t A,
+                    in_matrix_2_t B,
+                    out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void matrix_product(ExecutionPolicy&& exec,
+                    in_matrix_1_t A,
+                    in_matrix_2_t B,
+                    out_matrix_t C);
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void matrix_product(in_matrix_1_t A,
+                    in_matrix_2_t B,
+                    in_matrix_3_t E,
+                    out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void matrix_product(ExecutionPolicy&& exec,
+                    in_matrix_1_t A,
+                    in_matrix_2_t B,
+                    in_matrix_3_t E,
+                    out_matrix_t C);
+
+// [linalg.algs.blas3.symm], symmetric matrix-matrix product
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.hemm], Hermitian matrix-matrix product
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.trmm], triangular matrix-matrix product
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.alg.blas3.rank2k.symm], rank-2k symmetric matrix update
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_2k_update(
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_2k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+
+// [linalg.alg.blas3.rank2k.herm], rank-2k Hermitian matrix update
+template<class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_2k_update(
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class in_matrix_2_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_2k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  in_matrix_2_t B,
+  inout_matrix_t C,
+  Triangle t);
+
+// [linalg.alg.blas3.trsm], solve multiple triangular linear systems
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_matrix_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_object_t B,
+  out_object_t X);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class Side,
+         class in_matrix_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  Side s,
+  in_matrix_t B,
+  out_matrix_t X);
+```
+
+### Tag classes [linalg.tags]
+
+#### Storage order tags [linalg.tags.order]
 
 ```c++
 struct column_major_t { };
@@ -1111,18 +2159,18 @@ inline constexpr row_major_t row_major = { };
 `column_major_t` indicates a column-major order, and `row_major_t`
 indicates a row-major order.  The interpretation of each depends on
 the specific layout that uses the tag.  See `layout_blas_general` and
-`layout_blas_packed`.
+`layout_blas_packed` below.
 
-##### Triangle tags
+#### Triangle tags [linalg.tags.triangle]
 
-Linear algebra algorithms find it convenient to distinguish between
-the "upper triangle," "lower triangle," and "diagonal" of a matrix.
+Some linear algebra algorithms distinguish between the "upper
+triangle," "lower triangle," and "diagonal" of a matrix.
 
 * The *upper triangle* of a matrix `A` is the set of all elements of
-  `A` accessed by `A(i,j)` with `i >= j`.
+  `A` accessed by `A(i,j)` with `i` >= `j`.
 
 * The *lower triangle* of `A` is the set of all elements of `A`
-  accessed by `A(i,j)` with `i <= j`.
+  accessed by `A(i,j)` with `i` <= `j`.
 
 * The *diagonal* is the set of all elements of `A` accessed by
   `A(i,i)`.  It is included in both the upper triangle and the lower
@@ -1143,209 +2191,555 @@ access the upper triangle (`upper_triangular_t`) or lower triangle
 restrictions of `implicit_unit_diagonal_t` if that tag is also
 applied; see below.
 
-##### Diagonal tags
+#### Diagonal tags [linalg.tags.diagonal]
 
 ```c++
 struct implicit_unit_diagonal_t { };
-inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal = { };
+inline constexpr implicit_unit_diagonal_t
+  implicit_unit_diagonal = { };
 
 struct explicit_diagonal_t { };
 inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
 These tag classes specify what algorithms and other users of a matrix
-(represented as a `basic_mdspan`) should assume
-about the diagonal entries of the matrix, and whether algorithms and
-users of the matrix should access those diagonal entries explicitly.
+should assume about the diagonal entries of the matrix, and whether
+algorithms and users of the matrix should access those diagonal
+entries explicitly.
 
 The `implicit_unit_diagonal_t` tag indicates two things:
 
   * the function will never access the `i,i` element of the matrix,
     and
 
-  * the matrix has a diagonal of ones (a unit diagonal).
+  * the matrix has a diagonal of ones (a "unit diagonal").
 
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
 
-##### Side tags
+#### Side tags [linalg.tags.side]
 
-Linear algebra algorithms find it convenient to distinguish between
-applying some operator to the left side of an object, or the right
-side of an object.  *[Note:* Matrix-matrix product and triangular
-solve with a matrix generally do not commute. --*end note]*
+Some linear algebra algorithms distinguish between applying some
+operator to the left side of an object, or the right side of an
+object.  *[Note:* Matrix-matrix product and triangular solve with a
+matrix generally do not commute. --*end note]*
 
 ```c++
 struct left_side_t { };
-constexpr left_side_t left_side = { };
+inline constexpr left_side_t left_side = { };
 
 struct right_side_t { };
-constexpr right_side_t right_side = { };
+inline constexpr right_side_t right_side = { };
 ```
 
 These tag classes specify whether algorithms should apply some
 operator to the left side (`left_side_t`) or right side
 (`right_side_t`) of an object.
 
-#### New "General" layouts
+### Layouts for general and packed matrix types [linalg.layouts]
+
+#### `layout_blas_general` [linalg.layouts.general]
+
+`layout_blas_general` is a `basic_mdspan` layout mapping policy.  Its
+`StorageOrder` template parameter determines whether the matrix's data
+layout is column major or row major.
+
+`layout_blas_general<column_major_t>` represents a column-major matrix
+layout, where the stride between consecutive rows is always one, and
+the stride between consecutive columns may be greater than or equal to
+the number of rows.  *[Note:* This is a generalization of
+`layout_left`. --*end note]*
+
+`layout_blas_general<row_major_t>` represents a row-major matrix
+layout, where the stride between consecutive rows may be greater than
+or equal to the number of columns, and the stride between consecutive
+columns is always one.  *[Note:* This is a generalization of
+`layout_right`. --*end note]*
+
+*[Note:*
+
+`layout_blas_general` represents exactly the data layout assumed by
+the General (GE) matrix type in the BLAS' C binding.  It has two
+advantages:
+
+  1. Unlike `layout_left` and `layout_right`, any "submatrix" (subspan
+     of consecutive rows and consecutive columns) of a matrix with
+     `layout_blas_general<StorageOrder>` layout also has
+     `layout_blas_general<StorageOrder>` layout.
+
+  2. Unlike `layout_stride`, it always has compile-time unit stride in
+     one of the matrix's two extents.
+
+BLAS functions call the possibly nonunit stride of the matrix the
+"leading dimension" of that matrix.  For example, a BLAS function
+argument corresponding to the leading dimension of the matrix `A` is
+called `LDA`, for "leading dimension of the matrix A."
+
+--*end note]*
 
 ```c++
 template<class StorageOrder>
-class layout_blas_general;
+class layout_blas_general {
+public:
+  template<class Extents>
+  struct mapping {
+  private:
+    Extents extents_; // exposition only
+    const typename Extents::index_type stride_{}; // exposition only
+
+  public:
+    constexpr mapping(const Extents& e,
+      const typename Extents::index_type s);
+
+    template<class OtherExtents>
+    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+
+    typename Extents::index_type
+    operator() (typename Extents::index_type i,
+                typename Extents::index_type j) const;
+
+    constexpr typename Extents::index_type
+    required_span_size() const noexcept;
+
+    typename Extents::index_type
+    stride(typename Extents::index_type r) const noexcept;
+
+    template<class OtherExtents>
+    bool operator==(const mapping<OtherExtents>& m) const noexcept;
+
+    template<class OtherExtents>
+    bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+
+    Extents extents() const noexcept;
+
+    static constexpr bool is_always_unique();
+    static constexpr bool is_always_contiguous();
+    static constexpr bool is_always_strided();
+
+    constexpr bool is_unique() const noexcept;
+    constexpr bool is_contiguous() const noexcept;
+    constexpr bool is_strided() const noexcept;
+  };
+};
 ```
 
-* *Constraints:* `StorageOrder` is either `column_major_t` or
-  `row_major_t`.
+* *Constraints:*
 
-These new layouts represent exactly the layout assumed by the General
-(GE) matrix type in the BLAS' C binding.
+  * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
-* `layout_blas_general<column_major_t>` represents a column-major
-  matrix layout, where the stride between columns (in BLAS terms,
-  "leading dimension of the matrix A" or `LDA`) may be greater than or
-  equal to the number of rows.
+  * `Extents` is a specialization of `extents`.
 
-* `layout_blas_general<row_major_t>` represents a row-major matrix
-  layout, where the stride (again, `LDA`) between rows may be greater
-  than or equal to the number of columns.
+  * `Extents::rank()` equals 2.
 
-These layouts are both always unique and always strided.  They are
-contiguous if and only if the "leading dimension" equals the number of
-rows resp. columns.  Both layouts are more general than `layout_left`
-and `layout_right`, because they permit a stride between columns
-resp. rows that is greater than the corresponding extent.  This is why
-BLAS functions take an `LDA` (leading dimension of the matrix A)
-argument separate from the dimensions (extents, in `mdspan` terms) of
-A.  However, these layouts are slightly *less* general than
-`layout_stride`, because they assume contiguous storage of columns
-resp. rows.  See P1674R0 for further discussion.
+```c++
+constexpr mapping(const Extents& e,
+  const typename Extents::index_type s);
+```
 
-These new layouts have natural generalizations to ranks higher than 2.
-The definition of each of these layouts would look and work like
-`layout_stride`, except for the following differences:
+* *Requires:*
 
-* `layout_blas_general::mapping` would be templated on two `extent`
-  types.  The first would express the `mdspan`'s dimensions, just like
-  with `layout_left`, `layout_right`, or `layout_stride`.  The second
-  would express the `mdspan`'s strides.  The second `extent` would
-  have rank `rank()-1`.
+  * If `StorageOrder` is `column_major_t`, then `s` is greater than or
+    equal to `e.extent(0)`.  Otherwise, if `StorageOrder` is
+    `row_major_t`, then `s` is greater than or equal to `e.extent(1)`.
 
-* `layout_blas_general::mapping`'s constructor would take an instance
-  of each of these two `extent` specializations.
+* *Effects:* Initializes `extents_` with `e`, and
+  initializes `stride_` with `s`.
 
-These new layouts differ intentionally from `layout_stride`, which (as
-of P0009R9) takes strides all as run-time elements in an `array`.  (We
-favor changing this in the next revision of P0009, to make
-`layout_stride` take the strides as a second `extents` object.)  We
-want users to be able to express strides as an arbitrary mix of
-compile-time and run-time values, just as they can express dimensions.
+*[Note:*
 
-#### Packed layouts
+The BLAS Standard requires that the stride be one if the corresponding
+matrix dimension is zero.  We do not impose this requirement here,
+because it is specific to the BLAS.  if an implementation dispatches
+to a BLAS function, then the implementation must impose the
+requirement at run time.
+
+--*end note]*
+
+```c++
+template<class OtherExtents>
+constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+```
+
+* *Constraints:*
+
+  * `OtherExtents` is a specialization of `extents`.
+
+  * `OtherExtents::rank()` equals 2.
+
+* *Effects:* Initializes `extents_` with `m.extents_`, and
+  initializes `stride_` with `m.stride_`.
+
+```c++
+typename Extents::index_type
+operator() (typename Extents::index_type i,
+            typename Extents::index_type j) const;
+```
+
+* *Requires:*
+
+  * 0 ≤ `i` < `extent(0)`, and
+
+  * 0 ≤ `j` < `extent(1)`.
+
+* *Returns:*
+
+  * If `StorageOrder` is `column_major_t`, then
+    `i + stride(1)*j`;
+
+  * else, if `StorageOrder` is `row_major_t`, then
+    `stride(0)*i + j`.
+
+```c++
+template<class OtherExtents>
+bool operator==(const mapping<OtherExtents>& m) const;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* `true` if and only if
+  for 0 ≤ `r` < `rank()`,
+  `m.extent(r)` equals `extent(r)` and
+  `m.stride(r)` equals `stride(r)`.
+
+```c++
+template<class OtherExtents>
+bool operator!=(const mapping<OtherExtents>& m) const;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* * *Returns:* `true` if and only if
+   there exists `r` with 0 ≤ `r` < `rank()` such that
+  `m.extent(r)` does not equal `extent(r)` or
+  `m.stride(r)` does not equal `stride(r)`.
+
+```c++
+typename Extents::index_type
+stride(typename Extents::index_type r) const noexcept;
+```
+
+* *Returns:*
+
+  * If `StorageOrder` is `column_major_t`, `stride_` if `r` equals 1,
+    else 1;
+
+  * else, if `StorageOrder` is `row_major_t`, `stride_` if `r` equals
+    0, else 1.
+
+```c++
+constexpr typename Extents::index_type
+required_span_size() const noexcept;
+```
+
+* *Returns:* `stride(0)*stride(1)`.
+
+```c++
+Extents extents() const noexcept;
+```
+
+* *Effects:* Equivalent to `return extents_;`.
+
+```c++
+static constexpr bool is_always_unique();
+```
+
+* *Returns:* `true`.
+
+```c++
+static constexpr bool is_always_contiguous();
+```
+
+* *Returns:* `false`.
+
+```c++
+static constexpr bool is_always_strided();
+```
+
+* *Returns:* `true`.
+
+```c++
+constexpr bool is_unique() const noexcept;
+```
+
+* *Returns:* `true`.
+
+```c++
+constexpr bool is_contiguous() const noexcept;
+```
+
+* *Returns:*
+
+  * If `StorageOrder` is `column_major_t`, then
+    `true` if `stride(1)` equals `extent(0)`, else `false`;
+
+  * else, if `StorageOrder` is `row_major_t`, then
+    `true` if `stride(0)` equals `extent(1)`, else `false`.
+
+```c++
+constexpr bool is_strided() const noexcept;
+```
+
+* *Returns:* `true`.
+
+#### `layout_blas_packed` [linalg.layouts.packed]
+
+`layout_blas_packed` is a `basic_mdspan` layout mapping policy that
+represents a square matrix that stores only the entries in one
+triangle, in a packed contiguous format.  Its `Triangle` template
+parameter determines whether an `basic_mdspan` with this layout stores
+the upper or lower triangle of the matrix.  Its `StorageOrder`
+template parameter determines whether the layout packs the matrix's
+elements in column-major or row-major order.
+
+A `StorageOrder` of `column_major_t` indicates column-major ordering.
+This packs matrix elements starting with the leftmost (least column
+index) column, and proceeding column by column, from the top entry
+(least row index).
+
+A `StorageOrder` of `row_major_t` indicates row-major ordering.  This
+packs matrix elements starting with the topmost (least row index) row,
+and proceeding row by row, from the leftmost (least column index)
+entry.
+
+*[Note:*
+
+`layout_blas_packed` describes the data layout used by the BLAS'
+Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
+(TP) matrix types.
+
+--*end note]*
 
 ```c++
 template<class Triangle,
          class StorageOrder>
-class layout_blas_packed;
+class layout_blas_packed {
+public:
+  template<class Extents>
+  struct mapping {
+  private:
+    Extents extents_; // exposition only
+
+  public:
+    constexpr mapping(const Extents& e,
+      const typename Extents::index_type s);
+
+    template<class OtherExtents>
+    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+
+    typename Extents::index_type
+    operator() (typename Extents::index_type i,
+                typename Extents::index_type j) const;
+
+    template<class OtherExtents>
+    bool operator==(const mapping<OtherExtents>& m) const noexcept;
+
+    template<class OtherExtents>
+    bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+
+    constexpr typename Extents::index_type
+    stride(typename Extents::index_type r) const noexcept;
+
+    constexpr typename Extents::index_type
+    required_span_size() const noexcept;
+
+    constexpr Extents extents() const noexcept;
+
+    static constexpr bool is_always_unique();
+    static constexpr bool is_always_contiguous();
+    static constexpr bool is_always_strided();
+
+    constexpr bool is_unique() const noexcept;
+    constexpr bool is_contiguous() const noexcept;
+    constexpr bool is_strided() const noexcept;
+};
 ```
 
-##### Requirements
-
-Throughout this Clause, where the template parameters are not
-constrained, the names of template parameters are used to express type
-requirements.
+* *Constraints:*
 
   * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
   * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
-##### Packed layout mapping
+  * `Extents` is a specialization of `extents`.
 
-The BLAS' packed matrix "types" all store the represented entries of
-the matrix contiguously.  They start at the top left side of the
-matrix.
-
-A `StorageOrder` of `column_major_t` indicates column-major ordering.
-This packs matrix elements starting with the leftmost (least column
-index) column, and proceeding column by column, from the top entry
-(least row index).  A `StorageOrder` of `row_major_t` indicates
-row-major ordering.  This packs matrix elements starting with the
-topmost (least row index) row, and proceeding row by row, from the
-leftmost (least column index) entry.
-
-Whether the "type" stores the upper or lower triangle of the matrix
-matters for the memory mapping, so the choice of upper or lower
-triangle must be part of the layout.  We will describe the mapping as
-a function of `StorageOrder` and `Triangle` below.
-
-Packed layouts require that the matrix/matrices are square.  That is,
-the two extents are equal.
-
-Let N be `extents(1)`.  (That is, the matrix has N rows and N
-columns.)  Let `i,j` be the indices given to the packed layout's
-`mapping::operator()`.
-
-* If `StorageOrder` is `column_major_t` and
-  `Triangle` is `upper_triangle_t`,
-  then index pair i,j maps to i + j(j+1)/2 if i >= j,
-  else index pair i,j maps to j + i(i+1)/2.
-
-* If `StorageOrder` is `column_major_t` and
-  `Triangle` is `lower_triangle_t`,
-  then index pair i,j maps to i + Nj - j(j+1)/2 if i <= j,
-  else index pair i,j maps to j + Ni - i(i+1)/2.
-
-* If `StorageOrder` is `row_major_t` and
-  `Triangle` is `upper_triangle_t`,
-  then index pair i,j maps to j + Ni - i(i+1)/2 if j <= i,
-  else index pair i,j maps to i + Nj - j(j+1)/2.
-
-* If `StorageOrder` is `row_major_t` and
-  `Triangle` is `lower_triangle_t`,
-  then index pair i,j maps to j + i(i+1)/2 if j >= i,
-  else index pair i,j maps to i + j(j+1)/2.
-
-### Scaled transformation of an object
-
-Most BLAS functions that take scalar arguments use those arguments as
-a transient scaling of another vector or matrix argument.  For
-example, `xAXPY` computes `y = alpha*x + y`, where `x` and `y` are
-vectors, and `alpha` is a scalar.  Scalar arguments help make the BLAS
-more efficient by combining related operations and avoiding temporary
-vectors or matrices.  In this `xAXPY` example, users would otherwise
-need a temporary vector `z = alpha*x` (`xSCAL`), and would need to
-make two passes over the input vector `x` (once for the scale, and
-another for the vector add).  However, scalar arguments complicate the
-interface.
-
-We can solve all these issues in C++ by introducing a "scaled view" of
-an existing vector or matrix, via a changed `basic_mdspan` `Accessor`
-(see below).  For example, users could imitate what `xAXPY` does by
-using our `linalg_add` function (see below) as follows:
+  * `Extents::rank()` equals 2.
 
 ```c++
-mdspan<double, extents<dynamic_extent>> y = ...;
-mdspan<double, extents<dynamic_extent>> x = ...;
-double alpha = ...;
-
-linalg_add(scaled_view(alpha, x), y, y);
+constexpr mapping(const Extents& e);
 ```
 
-The resulting operation would only need to iterate over the entries of
-the input vector `x` and the input / output vector `y` once.  An
-implementation could dispatch to the BLAS by noticing that the first
-argument has an `accessor_scaled` (see below) `Accessor` type,
-extracting the scalar value `alpha`, and calling the corresponding
-`xAXPY` function (assuming that `alpha` is nonzero; see discussion
-above).
+* *Requires:* `e.extent(0)` equals `e.extent(1)`.
 
-The same `linalg_add` interface would then support the operation `w :=
-alpha*x + beta*y`:
+* *Effects:* Initializes `extents_` with `e`.
 
 ```c++
-linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
+template<class OtherExtents>
+constexpr mapping(const mapping<OtherExtents>& e);
 ```
 
-#### `scaled_scalar`
+* *Constraints:*
+
+  * `OtherExtents` is a specialization of `extents`.
+
+  * `OtherExtents::rank()` equals 2.
+
+* *Effects:* Initializes `extents_` with `e`.
+
+```c++
+typename Extents::index_type
+operator() (typename Extents::index_type i,
+            typename Extents::index_type j) const;
+```
+
+* *Requires:*
+
+  * 0 ≤ `i` < `extent(0)`, and
+
+  * 0 ≤ `j` < `extent(1)`.
+
+* *Returns:* Let `N` equal `extent(0)`.  Then:
+
+  * If `StorageOrder` is `column_major_t` and
+
+    * if `Triangle` is `upper_triangle_t`,
+      then `i + j(j+1)/2` if `i` >= `j`,
+      else `j + i(i+1)/2`;
+
+    * else, if `Triangle` is `lower_triangle_t`,
+      then `i + Nj - j(j+1)/2` if `i` <= `j`,
+      else `j + Ni - i(i+1)/2`;
+
+  * else, if `StorageOrder` is `row_major_t` and
+
+    * if `Triangle` is `upper_triangle_t`,
+      then `j + Ni - i(i+1)/2` if `j` <= `i`,
+      else `i + Nj - j(j+1)/2`;
+
+    * else, if `Triangle` is `lower_triangle_t`,
+      then `j + i(i+1)/2` if `j` >= `i`,
+      else `i + j(j+1)/2`.
+
+```c++
+template<class OtherExtents>
+bool operator==(const mapping<OtherExtents>& m) const;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* `true` if and only if
+  for 0 ≤ `r` < `rank()`,
+  `m.extent(r)` equals `extent(r)`.
+
+```c++
+template<class OtherExtents>
+bool operator!=(const mapping<OtherExtents>& m) const;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* `true` if and only if
+   there exists `r` with 0 ≤ `r` < `rank()` such that
+  `m.extent(r)` does not equal `extent(r)`.
+
+```c++
+constexpr typename Extents::index_type
+stride(typename Extents::index_type r) const noexcept;
+```
+
+* *Returns:* 1 if `extent(0)` is less than 2, else 0.
+
+```c++
+constexpr typename Extents::index_type
+required_span_size() const noexcept;
+```
+
+* *Returns:* `extent(0)*(extent(0) - 1)/2`.
+
+```c++
+constexpr Extents extents() const noexcept;
+```
+
+* *Effects:* Equivalent to `return extents_;`.
+
+```c++
+static constexpr bool is_always_unique();
+```
+
+* *Returns:* `false`.
+
+```c++
+static constexpr bool is_always_contiguous();
+```
+
+* *Returns:* `true`.
+
+```c++
+static constexpr bool is_always_strided();
+```
+
+* *Returns:* `false`.
+
+```c++
+constexpr bool is_unique() const noexcept;
+```
+
+* *Returns:* `true` if `extent(0)` is less than 2, else `false`.
+
+```c++
+constexpr bool is_contiguous() const noexcept;
+```
+
+* *Returns:* `true`.
+
+```c++
+constexpr bool is_strided() const noexcept;
+```
+
+* *Returns:* `true` if `extent(0)` is less than 2, else `false`.
+
+### Scaled in-place transformation [linalg.scaled]
+
+The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
+`x`, and returns a new read-only `basic_mdspan` with the same domain
+as `x`, that represents the elementwise product of `alpha` with each
+element of `x`.
+
+[*Example:*
+```c++
+// z = alpha * x + y
+void z_equals_alpha_times_x_plus_y(
+  mdspan<double, extents<dynamic_extent>> z,
+  const double alpha,
+  mdspan<double, extents<dynamic_extent>> x,
+  mdspan<double, extents<dynamic_extent>> y)
+{
+  linalg_add(scaled_view(alpha, x), y, y);
+}
+
+// w = alpha * x + beta * y
+void w_equals_alpha_times_x_plus_beta_times_y(
+  mdspan<double, extents<dynamic_extent>> w,
+  const double alpha,
+  mdspan<double, extents<dynamic_extent>> x,
+  const double beta,
+  mdspan<double, extents<dynamic_extent>> y)
+{
+  linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
+}
+```
+--*end example*]
+
+*[Note:*
+
+An implementation could dispatch to a function in the BLAS library, by
+noticing that the first argument has an `accessor_scaled` `Accessor`
+type.  It could use this information to extract the appropriate
+run-time value(s) of the relevant BLAS function arguments (e.g.,
+`ALPHA` and/or `BETA`), by calling `accessor_scaled::scaling_factor`.
+
+--*end note]*
+
+#### `scaled_scalar` [linalg.scaled.scaled_scalar]
 
 `scaled_scalar` expresses a read-only scaled version of an existing
 scalar.  It is part of the implementation of `scaled_accessor` (see
@@ -1353,7 +2747,8 @@ below).  *[Note:* It is read only to avoid confusion with the
 definition of "assigning to a scaled scalar." --*end note]*
 
 ```c++
-template<class ScalingFactor, class Reference>
+template<class ScalingFactor,
+         class Reference>
 class scaled_scalar {
 private:
   const ScalingFactor scaling_factor; // exposition only
@@ -1389,11 +2784,15 @@ operator result_type() const;
 
 * *Effects:* Equivalent to `return scaling_factor * value;`.
 
-#### `accessor_scaled`
+#### `accessor_scaled` [linalg.scaled.accessor_scaled]
 
-Accessor to make `basic_mdspan` return a `scaled_scalar`.
+`accessor_scaled` is a `basic_mdspan` accessor policy whose reference
+type represents the product of a scaling factor and its nested
+`basic_mdspan` accessor's reference.
+
 ```c++
-template<class ScalingFactor, class Accessor>
+template<class ScalingFactor,
+         class Accessor>
 class accessor_scaled {
 public:
   using element_type  = Accessor::element_type;
@@ -1412,8 +2811,10 @@ public:
 
   element_type* decay(pointer p) const noexcept;
 
+  ScalingFactor scaling_factor() const;
+
 private:
-  ScalingFactor scaling_factor; // exposition only
+  const ScalingFactor scaling_factor_; // exposition only
   Accessor accessor; // exposition only
 };
 ```
@@ -1429,7 +2830,7 @@ private:
 accessor_scaled(const ScalingFactor& s, Accessor a);
 ```
 
-* *Effects:* Initializes `scaling_factor` with `s`, and
+* *Effects:* Initializes `scaling_factor_` with `s`, and
   initializes `accessor` with `a`.
 
 ```c++
@@ -1437,7 +2838,7 @@ reference access(pointer p, ptrdiff_t i) const noexcept;
 ```
 
 * *Effects:* Equivalent to
-  `return reference(scaling_factor, accessor.access(p, i));`.
+  `return reference(scaling_factor_, accessor.access(p, i));`.
 
 ```c++
 offset_policy::pointer
@@ -1452,9 +2853,19 @@ element_type* decay(pointer p) const noexcept;
 
 * *Effects:* Equivalent to `return accessor.decay(p);`.
 
-#### `scaled_view`
+```c++
+ScalingFactor scaling_factor() const;
+```
 
-Return a scaled view using a new accessor.
+* *Effects:* Equivalent to `return scaling_factor_;`.
+
+#### `scaled_view` [linalg.scaled.scaled_view]
+
+The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
+`x`, and returns a new read-only `basic_mdspan` with the same domain
+as `x`, that represents the elementwise product of `alpha` with each
+element of `x`.
+
 ```c++
 template<class ScalingFactor,
          class ElementType,
@@ -1477,8 +2888,7 @@ return basic_mdspan<ElementType, Extents, Layout,
     accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
 ```
 
-*Example:*
-
+[*Example:*
 ```c++
 void test_scaled_view(basic_mdspan<double, extents<10>> a)
 {
@@ -1488,62 +2898,44 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
   }
 }
 ```
+--*end example*]
 
-### Conjugated transformation of an object
+### Conjugated in-place transformation [linalg.conj]
 
-Some BLAS functions of matrices also take one or more `TRANS*`
-arguments that specifies whether to view the transpose or conjugate
-transpose of the matrix or matrices.  This means that users can let
-the BLAS work with the data in place, without needing to compute the
-transpose or conjugate transpose explicitly.  However, it complicates
-the BLAS interface.  Just as we did above with "scaled views" of an
-object, we can apply the complex conjugate operation to each element
-of an object using a special accessor.  This lets us get rid of the
-`TRANS*` function arguments.
+The `conjugate_view` function takes a `basic_mdspan` `x`, and returns
+a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
+elements are the complex conjugates of the corresponding elements of
+`x`.  It does so by using `accessor_scaled` as its `basic_mdspan`
+accessor policy.  If the element type of `x` is not `complex<R>` for
+some `R`, then `y` is a read-only view of the elements of `x`.
 
-For non-complex numbers, we use the convention that the "complex
-conjugate" of a non-complex number is just the number.  However, as we
-will show below, this does not work with the C++ Standard Library's
-definition of `conj`.  We deal with this by defining `conjugate_view`
-so that it does not use `conj` for real element types.
+*[Note:*
 
-#### `conjugated_scalar`
+An implementation could dispatch to a function in the BLAS library, by
+noticing that the `Accessor` type of a `basic_mdspan` input has type
+`accessor_conjugate`, and that its nested `Accessor` type is
+compatible with the BLAS library.  If so, it could set the
+corresponding `TRANS*` BLAS function argument accordingly and call the
+BLAS function.
 
-`conjugated_scalar` expresses a read-only conjugated version of an
-existing scalar.  It is part of the implementation of
-`accessor_conjugate`.  *[Note:* This is read only to avoid likely
-confusion with the definition of "assigning to the conjugate of a
-scalar." --*end note]*
+--*end note]*
 
-The C++ Standard imposes the following requirements on `complex<T>`
-numbers:
+#### `conjugated_scalar` [linalg.conj.conjugated_scalar]
 
-1. `T` may only be `float`, `double`, or `long double`.
-
-2. Overloads of `conj(const T&)` exist for `T=float`, `double`, `long
-   double`, or any built-in integer type, but all these overloads have
-   return type `complex<U>` with `U` either `float`, `double`, or
-   `long double`.  (See **[cmplx.over]**.)
-
-We need the return type of `conjugated_scalar`'s arithmetic operators
-to be the same as the type of the scalar that it wraps.  This means
-that `conjugated_scalar` only works for `complex<T>` scalar types.
-Users cannot define custom types that are complex numbers.  (The
-alternative would be to permit users to specialize
-`conjugated_scalar`, but we didn't want to add a *customization point*
-in the sense of **[namespace.std]**.  Our definition of
-`conjugated_scalar` is compatible with any future expansion of the C++
-Standard to permit `complex<T>` for other `T`.)
+`conjugated_scalar` expresses a read-only conjugated version of the
+value of a reference to an element of a `basic_mdspan`.  It is part of
+the implementation of `accessor_conjugate`.  *[Note:* It is read only
+to avoid likely confusion with the definition of "assigning to the
+conjugate of a scalar." --*end note]*
 
 ```c++
-template<class Reference, class T>
+template<class Reference,
+         class T>
 class conjugated_scalar {
 public:
-  using value_type = T;
-
   conjugated_scalar(Reference v);
 
-  operator value_type() const;
+  operator T() const;
 
 private:
   Reference val; // exposition only
@@ -1554,10 +2946,10 @@ private:
 
 * *Constraints:*
 
-  * `T` is `complex<R>` for some type `R`.
-
   * The expression `conj(val)` is well formed and
     is convertible to `T`.
+    *[Note:* This currently implies that `T` is `complex<R>`.
+    --*end note]*
 
 ```c++
 conjugated_scalar(Reference v);
@@ -1566,12 +2958,12 @@ conjugated_scalar(Reference v);
 * *Effects:* Initializes `val` with `v`.
 
 ```c++
-operator value_type() const;
+operator T() const;
 ```
 
 * *Effects:* Equivalent to `return conj(val);`.
 
-#### `accessor_conjugate`
+#### `accessor_conjugate` [linalg.conj.accessor_conjugate]
 
 The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
 `conjugated_scalar` if the scalar type is `complex<T>` for some `T`.
@@ -1582,38 +2974,27 @@ Otherwise, it makes `basic_mdspan` access return the original
 template<class Accessor>
 class accessor_conjugate {
 private:
-  // exposition only
-  static constexpr bool is_element_type_complex =
-    is_same_v<typename Accessor::element_type, complex<double>> ||
-    is_same_v<typename Accessor::element_type, complex<float>> ||
-    is_same_v<typename Accessor::element_type, complex<long double>>;
+  Accessor acc; // exposition only
 
 public:
   using element_type  = typename Accessor::element_type;
   using pointer       = typename Accessor::pointer;
-  using reference     =
-    conditional_t<is_element_type_complex,
-      conjugated_scalar<typename Accessor::reference, element_type>,
-      typename Accessor::reference>;
-  using offset_policy =
-    conditional_t<is_element_type_complex,
-      accessor_conjugate<typename Accessor::offset_policy,
-        element_type>,
-      typename Accessor::offset_policy>;
+  using reference     = /* see below */;
+  using offset_policy = /* see below */;
 
   accessor_conjugate(Accessor a);
 
-  reference access(pointer p, ptrdiff_t i) const noexcept;
+  reference access(pointer p, ptrdiff_t i) const
+    noexcept(noexcept(reference(acc.access(p, i))));
 
   typename offset_policy::pointer
-  offset(pointer p, ptrdiff_t i) const noexcept;
+  offset(pointer p, ptrdiff_t i) const
+    noexcept(noexcept(acc.offset(p, i)));
 
-  element_type* decay(pointer p) const noexcept;
+  element_type* decay(pointer p) const
+    noexcept(noexcept(acc.decay(p)));
 
   Accessor nested_accessor() const;
-
-private:
-  Accessor acc; // exposition only
 };
 ```
 
@@ -1629,26 +3010,45 @@ private:
     *[mdspan.basic.overview]* in P0009).
 
 ```c++
+using reference = /* see below */;
+```
+
+If `element_type` is `complex<R>` for some `R`, then this names
+`conjugated_scalar<typename Accessor::reference, element_type>`.
+Otherwise, it names `typename Accessor::reference`.
+
+```c++
+using offset_policy = /* see below */;
+```
+
+If `element_type` is `complex<R>` for some `R`, then this names
+`accessor_conjugate<typename Accessor::offset_policy, element_type>`.
+Otherwise, it names `typename Accessor::offset_policy>`.
+
+```c++
 accessor_conjugate(Accessor a);
 ```
 
 * *Effects:* Initializes `acc` with `a`.
 
 ```c++
-reference access(pointer p, ptrdiff_t i) const noexcept;
+reference access(pointer p, ptrdiff_t i) const
+  noexcept(noexcept(reference(acc.access(p, i))));
 ```
 
 * *Effects:* Equivalent to `return reference(acc.access(p, i));`.
 
 ```c++
 typename offset_policy::pointer
-offset(pointer p, ptrdiff_t i) const noexcept;
+offset(pointer p, ptrdiff_t i) const
+  noexcept(noexcept(acc.offset(p, i)));
 ```
 
-* *Effects:* Equivalent to `return acc.offset(p,i);`.
+* *Effects:* Equivalent to `return acc.offset(p, i);`.
 
 ```c++
-element_type* decay(pointer p) const noexcept;
+element_type* decay(pointer p) const
+  noexcept(noexcept(acc.decay(p)));
 ```
 
 * *Effects:* Equivalent to `return acc.decay(p);`.
@@ -1659,10 +3059,7 @@ Accessor nested_accessor() const;
 
 * *Effects:* Equivalent to `return acc;`.
 
-#### `conjugate_view`
-
-The `conjugate_view` function returns a conjugated view using a new
-accessor.
+#### `conjugate_view` [linalg.conj.conjugate_view]
 
 ```c++
 template<class ElementType,
@@ -1704,8 +3101,7 @@ return basic_mdspan<ElementType, Extents, Layout, Accessor>(
   a.accessor().nested_accessor());
 ```
 
-*Example:*
-
+[*Example:*
 ```c++
 void test_conjugate_view_complex(
   basic_mdspan<complex<double>, extents<10>> a)
@@ -1733,32 +3129,33 @@ void test_conjugate_view_real(
   }
 }
 ```
+--*end example*]
 
-### Transpose view of an object
-
-Many BLAS functions of matrices take an argument that specifies
-whether to view the transpose or conjugate transpose of the matrix.
-The BLAS uses this argument to modify a read-only input transiently.
-This means that users can let the BLAS work with the data in place,
-without needing to compute the transpose or conjugate transpose
-explicitly.  However, it complicates the BLAS interface.
-
-Just as we did above with a "scaled view" of an object, we can
-construct a "transposed view" or "conjugate transpose" view of an
-object.  This lets us simplify the interface.
-
-An implementation could dispatch to the BLAS by noticing that the
-first argument has a `layout_transpose` (see below) `Layout` type
-(in both transposed and conjugate transposed cases), and/or an
-`accessor_conjugate` (see below) `Accessor` type (in the conjugate
-transposed case).  It could use this information to extract the
-appropriate run-time BLAS parameters.
-
-#### `layout_transpose`
+### Transpose in-place transformation [linalg.transp]
 
 `layout_transpose` is a `basic_mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
-of an existing unique layout mapping policy.
+of any unique `basic_mdspan` layout mapping policy.
+
+The `transpose_view` function takes a rank-2 `basic_mdspan`
+representing a matrix, and returns a new read-only `basic_mdspan`
+representing the transpose of the input matrix.
+
+*[Note:*
+
+An implementation could dispatch to a function in the BLAS library, by
+noticing that the first argument has a `layout_transpose` `Layout`
+type, and/or an `accessor_conjugate` (see below) `Accessor` type.  It
+could use this information to extract the appropriate run-time
+value(s) of the relevant `TRANS*` BLAS function arguments.
+
+--*end note]*
+
+#### `layout_transpose` [linalg.transp.layout_transpose]
+
+`layout_transpose` is a `basic_mdspan` layout mapping policy that
+swaps the rightmost two indices, extents, and strides (if applicable)
+of any unique `basic_mdspan` layout mapping policy.
 
 ```c++
 template<class InputExtents>
@@ -1856,13 +3253,14 @@ public:
 * *Requires:*
 
   * `Layout` shall meet the `basic_mdspan` layout mapping policy
-    requirements (see *[mdspan.layout.reqs]* in P0009).
+    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R9.
+    --*end note]*
 
 * *Constraints:*
 
-  * `Layout::is_always_unique()` is `true`.
-
-  * `Layout::mapping::rank()` is 2.
+  * For all specializations `E` of `extents` with `E::rank()` equal to
+    2, `typename Layout::template mapping<E>::is_always_unique()` is
+    `true`.
 
 ```c++
 mapping(const nested_mapping_type& map);
@@ -1888,12 +3286,16 @@ template<class OtherExtents>
 bool operator==(const mapping<OtherExtents>& m) const;
 ```
 
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
 * *Effects:* Equivalent to `nested_mapping_ == m.nested_mapping_;`.
 
 ```c++
 template<class OtherExtents>
 bool operator!=(const mapping<OtherExtents>& m) const;
 ```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
 
 * *Effects:* Equivalent to `nested_mapping_ != m.nested_mapping_;`.
 
@@ -1966,10 +3368,17 @@ stride(typename Extents::index_type r) const
 * *Effects:* Equivalent to `return nested_mapping_.stride(s);',
   where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
-#### `transpose_view`
+#### `transpose_view` [linalg.transp.transpose_view]
 
-The `transpose_view` function returns a transposed view of a rank-2
-`basic_mdspan`.  The transposed view swaps the indices.
+The `transpose_view` function takes a rank-2 `basic_mdspan`
+representing a matrix, and returns a new read-only `basic_mdspan`
+representing the transpose of the input matrix.  The input matrix's
+data are not modified, and the returned `basic_mdspan` accesses the
+input matrix's data in place.  If the input `basic_mdspan`'s layout is
+already `layout_transpose<L>` for some layout `L`, then the returned
+`basic_mdspan` has layout `L`.  Otherwise, the returned `basic_mdspan`
+has layout `layout_transpose<L>`, where `L` is the input
+`basic_mdspan`'s layout.
 
 ```c++
 template<class ElementType,
@@ -2013,8 +3422,7 @@ return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
   a.mapping().nested_mapping(), a.accessor());
 ```
 
-*Example:*
-
+[*Example:*
 ```c++
 void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
 {
@@ -2046,8 +3454,9 @@ void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
   }
 }
 ```
+--*end example*]
 
-#### Conjugate transpose view
+### Conjugate transpose transform [linalg.conj_transp]
 
 The `conjugate_transpose_view` function returns a conjugate transpose
 view of an object.  This combines the effects of `transpose_view` and
@@ -2106,8 +3515,7 @@ conjugate_transpose_view(
 * *Effects:* Equivalent to
   `return conjugate_view(transpose_view(a));`.
 
-*Example:*
-
+[*Example:*
 ```c++
 void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
 {
@@ -2140,10 +3548,11 @@ void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
   }
 }
 ```
+--*end example*]
 
-## Algorithms
+### Algorithms [linalg.algs]
 
-### Requirements
+#### Requirements [linalg.algs.reqs]
 
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
@@ -2207,7 +3616,7 @@ or other things as appropriate.
   reference to a `basic_mdspan`, or a (non-`const`) rvalue reference to a
   `basic_mdspan`.
 
-### BLAS 1 functions
+#### BLAS 1 functions [linalg.algs.blas1]
 
 *[Note:*
 
@@ -2221,9 +3630,9 @@ BLAS 1 operations, even though it only operates on scalars.
 
 --*end note]*
 
-#### Givens rotations
+##### Givens rotations [linalg.algs.blas1.givens]
 
-##### Compute Givens rotations
+###### Compute Givens rotations [linalg.algs.blas1.givens.setup]
 
 ```c++
 template<class Real>
@@ -2279,7 +3688,7 @@ note]*
 
 * *Throws:* Nothing.
 
-##### Apply a computed Givens rotation to vectors
+###### Apply a computed Givens rotation to vectors [linalg.algs.blas1.givens.apply]
 
 ```c++
 template<class inout_vector_1_t,
@@ -2357,7 +3766,7 @@ this.
   2 matrix and the input vectors were successive rows of a matrix with
   two rows.
 
-##### Swap matrix or vector elements
+###### Swap matrix or vector elements [linalg.algs.blas1.swap]
 
 ```c++
 template<class inout_object_1_t,
@@ -2396,7 +3805,7 @@ void linalg_swap(ExecutionPolicy&& exec,
 * *Effects:* Swap all corresponding elements of the objects
   `x` and `y`.
 
-#### Multiply the elements of an object in place by a scalar
+##### Multiply the elements of an object in place by a scalar [linalg.algs.blas1.scale]
 
 ```c++
 template<class Scalar,
@@ -2424,7 +3833,7 @@ void scale(ExecutionPolicy&& exec,
 
 * *Effects*: Multiply each element of `obj` in place by `alpha`.
 
-#### Copy elements of one matrix or vector into another
+##### Copy elements of one matrix or vector into another [linalg.algs.blas1.copy]
 
 ```c++
 template<class in_object_t,
@@ -2463,7 +3872,7 @@ void linalg_copy(ExecutionPolicy&& exec,
 * *Effects:* Overwrite each element of `y` with the corresponding
   element of `x`.
 
-#### Add vectors or matrices elementwise
+##### Add vectors or matrices elementwise [linalg.algs.blas1.add]
 
 ```c++
 template<class in_object_1_t,
@@ -2517,9 +3926,9 @@ void linalg_add(ExecutionPolicy&& exec,
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
-#### Inner (dot) product of two vectors
+##### Inner (dot) product of two vectors [linalg.algs.blas1.dot]
 
-##### Non-conjugated inner (dot) product
+###### Non-conjugated inner (dot) product
 
 ```c++
 template<class in_vector_1_t,
@@ -2579,7 +3988,7 @@ for specific `ExecutionPolicy` types. --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
-##### Non-conjugated inner (dot) product with default result type
+###### Non-conjugated inner (dot) product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -2598,7 +4007,7 @@ auto dot(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dot(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dot(exec, v1, v2, T{});`.
 
-##### Conjugated inner (dot) product
+###### Conjugated inner (dot) product [linalg.algs.blas1.dot.conj]
 
 ```c++
 template<class in_vector_1_t,
@@ -2625,7 +4034,7 @@ T dotc(ExecutionPolicy&& exec,
 *[Note:* `dotc` exists to give users reasonable default inner product
 behavior for both real and complex element types. --*end note]*
 
-##### Conjugated inner (dot) product with default result type
+###### Conjugated inner (dot) product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -2644,7 +4053,7 @@ auto dotc(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dotc(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dotc(exec, v1, v2, T{});`.
 
-#### Euclidean (2) norm of a vector
+##### Euclidean (2) vector norm [linalg.algs.blas1.norm2]
 
 ```c++
 template<class in_vector_t,
@@ -2687,7 +4096,7 @@ T vector_norm2(ExecutionPolicy&& exec,
 regarding overflow and underflow of `vector_norm2` for floating-point
 return types. --*end note]*
 
-#### Euclidean (2) norm of a vector with default result type
+##### Euclidean (2) norm of a vector with default result type
 
 ```c++
 template<class in_vector_t>
@@ -2704,7 +4113,7 @@ auto vector_norm2(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_norm2(exec, v, T{});`.
 
-#### Sum of absolute values
+##### Sum of absolute values of vector elements [linalg.algs.blas1.abs_sum]
 
 ```c++
 template<class in_vector_t,
@@ -2752,7 +4161,7 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
   implementations will use `T`'s precision or greater for intermediate
   terms in the sum.
 
-#### Sum of absolute values with default result type
+##### Sum of absolute values with default result type
 
 ```c++
 template<class in_vector_t>
@@ -2768,7 +4177,7 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_abs_sum(exec, v, T{});`.
 
-#### Index of maximum absolute value of vector elements
+##### Index of maximum absolute value of vector elements [linalg.algs.blas1.idx_abs_max]
 
 ```c++
 template<class in_vector_t>
@@ -2790,9 +4199,9 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
   the first element of `v` having largest absolute value.  If `v` has
   zero elements, then returns `-1`.
 
-### BLAS 2 functions
+#### BLAS 2 functions [linalg.algs.blas2]
 
-#### General matrix-vector product
+##### General matrix-vector product [linalg.algs.blas2.general-matvec]
 
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
@@ -2828,7 +4237,7 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `y.static_extent(0)` equals
     `z.static_extent(0)` (if applicable).
 
-##### Overwriting matrix-vector product
+###### Overwriting matrix-vector product
 
 ```c++
 template<class in_vector_t,
@@ -2854,7 +4263,39 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-##### Updating matrix-vector product
+[*Example:*
+```c++
+constexpr ptrdiff_t num_rows = 5;
+constexpr ptrdiff_t num_cols = 6;
+
+// y = 3.0 * A * x
+void scaled_matvec_1(mdspan<double, extents<num_rows, num_cols>> A,
+  mdspan<double, extents<num_cols>> x,
+  mdspan<double, extents<num_rows>> y)
+{
+  matrix_vector_product(scaled_view(3.0, A), x, y);
+}
+
+// y = 3.0 * A * x + 2.0 * y
+void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
+  mdspan<double, extents<num_cols>> x,
+  mdspan<double, extents<num_rows>> y)
+{
+  matrix_vector_product(scaled_view(3.0, A), x,
+                        scaled_view(2.0, y), y);
+}
+
+// z = 7.0 times the transpose of A, times y
+void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
+  mdspan<double, extents<num_rows>> y,
+  mdspan<double, extents<num_cols>> z)
+{
+  matrix_vector_product(scaled_view(7.0, transpose_view(A)), y, z);
+}
+```
+--*end example*]
+
+###### Updating matrix-vector product
 
 ```c++
 template<class in_vector_1_t,
@@ -2884,7 +4325,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-#### Symmetric matrix-vector product
+##### Symmetric matrix-vector product [linalg.algs.blas2.symm-matvec],
 
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
@@ -2935,7 +4376,7 @@ The following requirements apply to all functions in this section.
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Overwriting symmetric matrix-vector product
+###### Overwriting symmetric matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -2965,7 +4406,7 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-##### Updating symmetric matrix-vector product
+###### Updating symmetric matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3001,7 +4442,7 @@ void symmetric_matrix_vector_product(
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-#### Hermitian matrix-vector product
+##### Hermitian matrix-vector product [linalg.algs.blas2.herm-matvec],
 
 *[Note:* These functions correspond to the BLAS functions `xHEMV` and
 `xHPMV`. --*end note]*
@@ -3053,7 +4494,7 @@ The following requirements apply to all functions in this section.
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-##### Overwriting Hermitian matrix-vector product
+###### Overwriting Hermitian matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3084,7 +4525,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-##### Updating Hermitian matrix-vector product
+###### Updating Hermitian matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3119,7 +4560,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-#### Triangular matrix-vector product
+##### Triangular matrix-vector product [linalg.algs.blas2.tri-matvec]
 
 *[Note:* These functions correspond to the BLAS functions `xTRMV` and
 `xTPMV`. --*end note]*
@@ -3178,7 +4619,7 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-##### Overwriting triangular matrix-vector product
+###### Overwriting triangular matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3214,7 +4655,7 @@ void triangular_matrix_vector_product(
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-##### Updating triangular matrix-vector product
+###### Updating triangular matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -3252,7 +4693,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-#### Solve a triangular linear system
+##### Solve a triangular linear system [linalg.algs.blas2.tri-solve]
 
 ```c++
 template<class in_matrix_t,
@@ -3345,9 +4786,9 @@ void triangular_matrix_vector_solve(
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-#### Rank-1 (outer product) update of a matrix
+##### Rank-1 (outer product) update of a matrix [linalg.algs.blas2.rank1]
 
-##### Nonsymmetric non-conjugated rank-1 update
+###### Nonsymmetric non-conjugated rank-1 update [linalg.algs.blas2.rank1.nonconj]
 
 ```c++
 template<class in_vector_1_t,
@@ -3403,7 +4844,7 @@ types). --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
 
-##### Nonsymmetric conjugated rank-1 update
+###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.conj]
 
 ```c++
 template<class in_vector_1_t,
@@ -3428,7 +4869,7 @@ void matrix_rank_1_update_c(
 * *Effects:* Equivalent to
   `matrix_rank_1_update(x, conjugate_view(y), A);`.
 
-##### Rank-1 update of a Symmetric matrix
+###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.symm]
 
 ```c++
 template<class in_vector_t,
@@ -3489,7 +4930,7 @@ void symmetric_matrix_rank_1_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Rank-1 update of a Hermitian matrix
+###### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.herm]
 
 ```c++
 template<class in_vector_t,
@@ -3551,7 +4992,7 @@ void hermitian_matrix_rank_1_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-#### Rank-2 update of a symmetric matrix
+##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.symm]
 
 ```c++
 template<class in_vector_1_t,
@@ -3623,7 +5064,7 @@ void symmetric_matrix_rank_2_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-#### Rank-2 update of a Hermitian matrix
+##### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.herm]
 
 ```c++
 template<class in_vector_1_t,
@@ -3697,9 +5138,9 @@ void hermitian_matrix_rank_2_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-### BLAS 3 functions
+#### BLAS 3 functions [linalg.algs.blas3]
 
-#### General matrix-matrix product
+##### General matrix-matrix product [linalg.algs.blas3.gemm]
 
 *[Note:* These functions correspond to the BLAS function `xGEMM`.
 --*end note]*
@@ -3745,7 +5186,7 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `B.static_extent(1)` equals
     `C.static_extent(1)`.
 
-##### Overwriting general matrix-matrix product
+###### Overwriting general matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3772,7 +5213,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of the matrix `C` the product of
   the matrices `A` and `B`.
 
-##### Updating general matrix-matrix product
+###### Updating general matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3806,7 +5247,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-#### Symmetric matrix-matrix product
+##### Symmetric matrix-matrix product [linalg.algs.blas3.symm]
 
 *[Note:* These functions correspond to the BLAS function `xSYMM`.
 Unlike the symmetric rank-1 update functions, these functions assume
@@ -3897,7 +5338,7 @@ The following requirements apply to all functions in this section.
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Overwriting symmetric matrix-matrix product
+###### Overwriting symmetric matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -3945,7 +5386,7 @@ void symmetric_matrix_product(
   * If `Side` is `right_side_t`, then assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
-##### Updating symmetric matrix-matrix product
+###### Updating symmetric matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4002,7 +5443,7 @@ void symmetric_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-#### Hermitian matrix-matrix product
+##### Hermitian matrix-matrix product [linalg.algs.blas3.hemm]
 
 *[Note:* These functions correspond to the BLAS function `xHEMM`.
 Unlike the Hermitian rank-1 update functions, these functions assume
@@ -4094,7 +5535,7 @@ The following requirements apply to all functions in this section.
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-##### Overwriting Hermitian matrix-matrix product
+###### Overwriting Hermitian matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4142,7 +5583,7 @@ void hermitian_matrix_product(
   * If `Side` is `right_side_t`, then assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
-##### Updating Hermitian matrix-matrix product
+###### Updating Hermitian matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4199,7 +5640,7 @@ void hermitian_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-#### Triangular matrix-matrix product
+##### Triangular matrix-matrix product [linalg.algs.blas3.trmm]
 
 *[Note:* These functions correspond to the BLAS function `xTRMM`.
 --*end note]*
@@ -4296,7 +5737,7 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-##### Overwriting triangular matrix-matrix product
+###### Overwriting triangular matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4348,7 +5789,7 @@ void triangular_matrix_product(
   * If `Side` is `right_side_t`, then assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
-##### Updating triangular matrix-matrix product
+###### Updating triangular matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -4386,7 +5827,6 @@ void triangular_matrix_product(
   out_matrix_t C);
 ```
 
-
 * *Constraints:*
 
   * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
@@ -4410,13 +5850,13 @@ void triangular_matrix_product(
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
 
-#### Rank-2k update of a symmetric or Hermitian matrix
+##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
 BLAS functions, by making `C` a `transpose_view` or
 `conjugate_transpose_view`. --*end note]*
 
-##### Rank-2k update of a symmetric matrix
+###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.symm]
 
 ```c++
 template<class in_matrix_1_t,
@@ -4492,7 +5932,7 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-##### Rank-2k update of a Hermitian matrix
+###### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.herm]
 
 ```c++
 template<class in_matrix_1_t,
@@ -4569,7 +6009,7 @@ void hermitian_matrix_rank_2k_update(
   indices `i,j` outside that triangle, that `C(j,i)` equals
   `conj(C(i,j))`.
 
-#### Solve multiple triangular linear systems with the same matrix
+##### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
 ```c++
 template<class in_matrix_t,
@@ -4682,125 +6122,3 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
     of `A` all equal one. *[Note:* This does not imply that the
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
-
-## Examples
-
-```c++
-using vector_t = basic_mdspan<double, extents<dynamic_extent>>;
-using dy_ext2_t = extents<dynamic_extent, dynamic_extent>;
-using matrix_t = basic_mdspan<double, dy_ext2_t>;
-
-// Create vectors
-vector_t x = ...;
-vector_t y = ...;
-vector_t z = ...;
-
-// Create matrices
-matrix_t A = ...;
-matrix_t B = ...;
-matrix_t C = ...;
-
-// z = 2.0 * x + y;
-linalg_add(par, scaled_view(2.0, x), y, z);
-// y = 2.0 * y + z;
-linalg_add(par, z, scaled_view(2.0, y), y);
-
-// y = 3.0 * A * x;
-matrix_vector_product(par, scaled_view(3.0, A), x, y);
-// y = 3.0 * A * x + 2.0 * y;
-matrix_vector_product(par, scaled_view(3.0, A), x,
-                      scaled_view(2.0, y), y);
-
-// y = transpose(A) * x;
-matrix_vector_product(par, transpose_view(A), x, y);
-```
-
-## Acknowledgments
-
-Sandia National Laboratories is a multimission laboratory managed and
-operated by National Technology & Engineering Solutions of Sandia,
-LLC, a wholly owned subsidiary of Honeywell International, Inc., for
-the U.S. Department of Energy’s National Nuclear Security
-Administration under contract DE-NA0003525.
-
-Special thanks to Bob Steagall and Guy Davidson for boldly leading the
-charge to add linear algebra to the C++ Standard Library, and for many
-fruitful discussions.  Thanks also to Andrew Lumsdaine for his
-pioneering efforts and history lessons.
-
-## References by coathors
-
-* G. Ballard, E. Carson, J. Demmel, M. Hoemmen, N. Knight, and
-  O. Schwartz, ["Communication lower bounds and optimal algorithms for
-  numerical linear
-  algebra,"](https://doi.org/10.1017/S0962492914000038), *Acta
-  Numerica*, Vol. 23, May 2014, pp. 1-155.
-
-* H. C. Edwards, B. A. Lelbach, D. Sunderland, D. Hollman, C. Trott,
-  M. Bianco, B. Sander, A. Iliopoulos, J. Michopoulos, and M. Hoemmen,
-  "`mdspan`: a Non-Owning Multidimensional Array Reference,"
-  [P0009R0](http://wg21.link/p0009r9), Jan. 2019.
-
-* M. Hoemmen, D. Hollman, and C. Trott, "Evolving a Standard C++
-  Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
-
-* M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
-  J. Michopoulos, "Historical lessons for C++ linear algebra library
-  standardization," [(P1417R0)](http://wg21.link/p1417r0), Jan. 2019.
-
-* D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
-  Owning Multidimensional Array Analog of `mdspan`",
-  [P1684R0](https://isocpp.org/files/papers/P1684R0.pdf), Jun. 2019.
-
-* D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
-  M. Dominiak, "A General Property Customization Mechanism,"
-  [P1393R0](http://wg21.link/p1393r0), Jan. 2019.
-
-## Other references
-
-* [Basic Linear Algebra Subprograms Technical (BLAST) Forum
-  Standard](http://netlib.org/blas/blast-forum/blas-report.pdf),
-  International Journal of High Performance Applications and
-  Supercomputing, Vol. 16. No. 1, Spring 2002.
-
-* L. S. Blackford, J. Demmel, J. Dongarra, I. Duff, S. Hammarling,
-  G. Henry, M. Heroux, L. Kaufman, A. Lumsdaine, A. Petitet, R. Pozo,
-  K. Remington, and R. C. Whaley, ["An updated set of basic linear
-  algebra subprograms (BLAS),"](https://doi.org/10.1145/567806.567807)
-  *ACM Transactions on Mathematical Software* (TOMS), Vol. 28, No. 2,
-  Jun. 2002, pp. 135-151.
-
-* G. Davidson and B. Steagall, "A proposal to add linear algebra
-  support to the C++ standard library,"
-  [P1385R4](http://wg21.link/p1385r4), Nov. 2019.
-
-* B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
-  "Direction for ISO C++," [P0939R0](http://wg21.link/p0939r0), Feb. 2018.
-
-* J. Dongarra, R. Pozo, and D. Walker, "LAPACK++: A Design Overview of
-  Object-Oriented Extensions for High Performance Linear Algebra," in
-  Proceedings of Supercomputing '93, IEEE Computer Society Press,
-  1993, pp. 162-171.
-
-* M. Gates, P. Luszczek, A. Abdelfattah, J. Kurzak, J. Dongarra,
-  K. Arturov, C. Cecka, and C. Freitag, ["C++ API for BLAS and
-  LAPACK,"](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf)
-  SLATE Working Notes, Innovative Computing Laboratory, University of
-  Tennessee Knoxville, Feb. 2018.
-
-* K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
-  multiplication,"](https://doi.org/10.1145/1356052.1356053), *ACM
-  Transactions on Mathematical Software* (TOMS), Vol. 34, No. 3, May
-  2008.
-
-* J. Hoberock, "Integrating Executors with Parallel Algorithms,"
-  [P1019R2](http://wg21.link/p1019r2), Jan. 2019.
-
-* N. A. Josuttis, "The C++ Standard Library: A Tutorial and Reference,"
-  Addison-Wesley, 1999.
-
-* M. Kretz, "Data-Parallel Vector Types & Operations,"
-  [P0214r9](http://wg21.link/p0214r9), Mar. 2018.
-
-* D. Vandevoorde and N. A. Josuttis, "C++ Templates: The Complete
-  Guide," Addison-Wesley Professional, 2003.
