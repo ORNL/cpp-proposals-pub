@@ -22,7 +22,7 @@
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
-## Date: 2019-06-17
+## Date: 2020-01-07
 
 ## Revision history
 
