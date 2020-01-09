@@ -22,7 +22,7 @@
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
-## Date: 2019-06-17
+## Date: 2020-01-07
 
 ## Revision history
 
@@ -73,6 +73,8 @@
     the original conjugation / transposition.
 
   * Remove second template parameter `T` from `accessor_conjugate`.
+
+  * Make `scaled_scalar` and `conjugated_scalar` exposition only.
 
 ## Purpose of this paper
 
@@ -1227,11 +1229,6 @@ template<class Triangle,
          class StorageOrder>
 class layout_blas_packed;
 
-// [linalg.scaled.scaled_scalar], class template scaled_scalar
-template<class ScalingFactor,
-         class Reference>
-class scaled_scalar;
-
 // [linalg.scaled.accessor_scaled], class template accessor_scaled
 template<class ScalingFactor,
          class Accessor>
@@ -1248,11 +1245,6 @@ basic_mdspan<ElementType, Extents, Layout,
 scaled_view(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
-
-// [linalg.conj.conjugated_scalar], class template conjugated_scalar
-template<class Reference,
-         class T>
-class conjugated_scalar;
 
 // [linalg.conj.accessor_conjugate], class template accessor_conjugate
 template<class Accessor>
@@ -1296,7 +1288,8 @@ basic_mdspan<EltType, Extents, Layout, Accessor>
 transpose_view(basic_mdspan<EltType, Extents,
                layout_transpose<Layout>, Accessor> a);
 
-// [linalg.conj_transp], conjugated transposed in-place transformation
+// [linalg.conj_transp],
+// conjugated transposed in-place transformation
 template<class ElementType,
          class Extents,
          class Layout,
@@ -1749,7 +1742,8 @@ void triangular_matrix_vector_solve(
   in_vector_t b,
   out_vector_t x);
 
-// [linalg.algs.blas2.rank1.nonconj], nonconjugated rank-1 matrix update
+// [linalg.algs.blas2.rank1.nonconj],
+// nonconjugated rank-1 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t>
@@ -1767,7 +1761,8 @@ void matrix_rank_1_update(
   in_vector_2_t y,
   inout_matrix_t A);
 
-// [linalg.algs.blas2.rank1.conj], conjugated rank-1 matrix update
+// [linalg.algs.blas2.rank1.conj],
+// conjugated rank-1 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t>
@@ -1785,7 +1780,8 @@ void matrix_rank_1_update_c(
   in_vector_2_t y,
   inout_matrix_t A);
 
-// [linalg.algs.blas2.rank1.symm], symmetric rank-1 matrix update
+// [linalg.algs.blas2.rank1.symm],
+// symmetric rank-1 matrix update
 template<class in_vector_t,
          class inout_matrix_t,
          class Triangle>
@@ -1803,7 +1799,8 @@ void symmetric_matrix_rank_1_update(
   inout_matrix_t A,
   Triangle t);
 
-// [linalg.algs.blas2.rank1.herm], Hermitian rank-1 matrix update
+// [linalg.algs.blas2.rank1.herm],
+// Hermitian rank-1 matrix update
 template<class in_vector_t,
          class inout_matrix_t,
          class Triangle>
@@ -1821,7 +1818,8 @@ void hermitian_matrix_rank_1_update(
   inout_matrix_t A,
   Triangle t);
 
-// [linalg.algs.blas2.rank2.symm], symmetric rank-2 matrix update
+// [linalg.algs.blas2.rank2.symm],
+// symmetric rank-2 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t,
@@ -1843,7 +1841,8 @@ void symmetric_matrix_rank_2_update(
   inout_matrix_t A,
   Triangle t);
 
-// [linalg.algs.blas2.rank2.herm], Hermitian rank-2 matrix update
+// [linalg.algs.blas2.rank2.herm],
+// Hermitian rank-2 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
          class inout_matrix_t,
@@ -1865,7 +1864,8 @@ void hermitian_matrix_rank_2_update(
   inout_matrix_t A,
   Triangle t);
 
-// [linalg.algs.blas3.gemm], general matrix-matrix product
+// [linalg.algs.blas3.gemm],
+// general matrix-matrix product
 template<class in_matrix_1_t,
          class in_matrix_2_t,
          class out_matrix_t>
@@ -1899,7 +1899,8 @@ void matrix_product(ExecutionPolicy&& exec,
                     in_matrix_3_t E,
                     out_matrix_t C);
 
-// [linalg.algs.blas3.symm], symmetric matrix-matrix product
+// [linalg.algs.blas3.symm],
+// symmetric matrix-matrix product
 template<class in_matrix_1_t,
          class Triangle,
          class Side,
@@ -1953,7 +1954,8 @@ void symmetric_matrix_product(
   in_matrix_3_t E,
   out_matrix_t C);
 
-// [linalg.algs.blas3.hemm], Hermitian matrix-matrix product
+// [linalg.algs.blas3.hemm],
+// Hermitian matrix-matrix product
 template<class in_matrix_1_t,
          class Triangle,
          class Side,
@@ -2007,7 +2009,8 @@ void hermitian_matrix_product(
   in_matrix_3_t E,
   out_matrix_t C);
 
-// [linalg.algs.blas3.trmm], triangular matrix-matrix product
+// [linalg.algs.blas3.trmm],
+// triangular matrix-matrix product
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
@@ -2069,7 +2072,8 @@ void triangular_matrix_product(
   in_matrix_3_t E,
   out_matrix_t C);
 
-// [linalg.alg.blas3.rank2k.symm], rank-2k symmetric matrix update
+// [linalg.alg.blas3.rank2k.symm],
+// rank-2k symmetric matrix update
 template<class in_matrix_1_t,
          class in_matrix_2_t,
          class inout_matrix_t,
@@ -2091,7 +2095,8 @@ void symmetric_matrix_rank_2k_update(
   inout_matrix_t C,
   Triangle t);
 
-// [linalg.alg.blas3.rank2k.herm], rank-2k Hermitian matrix update
+// [linalg.alg.blas3.rank2k.herm],
+// rank-2k Hermitian matrix update
 template<class in_matrix_1_t,
          class in_matrix_2_t,
          class inout_matrix_t,
@@ -2113,7 +2118,8 @@ void hermitian_matrix_rank_2k_update(
   inout_matrix_t C,
   Triangle t);
 
-// [linalg.alg.blas3.trsm], solve multiple triangular linear systems
+// [linalg.alg.blas3.trsm],
+// solve multiple triangular linear systems
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -2739,22 +2745,29 @@ run-time value(s) of the relevant BLAS function arguments (e.g.,
 
 --*end note]*
 
-#### `scaled_scalar` [linalg.scaled.scaled_scalar]
+#### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
 
-`scaled_scalar` expresses a read-only scaled version of an existing
-scalar.  It is part of the implementation of `scaled_accessor` (see
-below).  *[Note:* It is read only to avoid confusion with the
-definition of "assigning to a scaled scalar." --*end note]*
+The class template `accessor_scaled` is a `basic_mdspan` accessor
+policy whose reference type represents the product of a fixed value
+(the "scaling factor") and its nested `basic_mdspan` accessor's
+reference.  It is part of the implementation of `scaled_view`.
+
+The exposition-only class template `scaled_scalar` represents a
+read-only value, which is the product of a fixed value (the "scaling
+factor") and the value of a reference to an element of a
+`basic_mdspan`.  *[Note:* The value is read only to avoid confusion
+with the definition of "assigning to a scaled scalar."  --*end note]*
+`scaled_scalar` is part of the implementation of `scaled_accessor`.
 
 ```c++
 template<class ScalingFactor,
          class Reference>
-class scaled_scalar {
+class scaled_scalar { // exposition only
 private:
-  const ScalingFactor scaling_factor; // exposition only
-  Reference value; // exposition only
+  const ScalingFactor scaling_factor;
+  Reference value;
   using result_type =
-    decltype (scaling_factor * value); // exposition only
+    decltype (scaling_factor * value);
 
 public:
   scaled_scalar(const ScalingFactor& s, Reference v);
@@ -2784,11 +2797,9 @@ operator result_type() const;
 
 * *Effects:* Equivalent to `return scaling_factor * value;`.
 
-#### `accessor_scaled` [linalg.scaled.accessor_scaled]
-
-`accessor_scaled` is a `basic_mdspan` accessor policy whose reference
-type represents the product of a scaling factor and its nested
-`basic_mdspan` accessor's reference.
+The class template `accessor_scaled` is a `basic_mdspan` accessor
+policy whose reference type represents the product of a scaling factor
+and its nested `basic_mdspan` accessor's reference.
 
 ```c++
 template<class ScalingFactor,
@@ -2920,25 +2931,30 @@ BLAS function.
 
 --*end note]*
 
-#### `conjugated_scalar` [linalg.conj.conjugated_scalar]
+#### Class template `accessor_conjugate` [linalg.conj.accessor_conjugate]
 
-`conjugated_scalar` expresses a read-only conjugated version of the
-value of a reference to an element of a `basic_mdspan`.  It is part of
-the implementation of `accessor_conjugate`.  *[Note:* It is read only
-to avoid likely confusion with the definition of "assigning to the
-conjugate of a scalar." --*end note]*
+The class template `accessor_conjugate` is a `basic_mdspan` accessor
+policy whose reference type represents the complex conjugate of its
+nested `basic_mdspan` accessor's reference.
+
+The exposition-only class template `conjugated_scalar` represents a
+read-only value, which is the complex conjugate of the value of a
+reference to an element of a `basic_mdspan`.  *[Note:* The value is
+read only to avoid confusion with the definition of "assigning to the
+conjugate of a scalar."  --*end note]* `conjugated_scalar` is part of
+the implementation of `accessor_conjugate`.
 
 ```c++
 template<class Reference,
-         class T>
-class conjugated_scalar {
+         class ElementType>
+class conjugated_scalar { // exposition only
 public:
   conjugated_scalar(Reference v);
 
-  operator T() const;
+  operator ElementType() const;
 
 private:
-  Reference val; // exposition only
+  Reference val;
 };
 ```
 
@@ -2946,10 +2962,9 @@ private:
 
 * *Constraints:*
 
-  * The expression `conj(val)` is well formed and
-    is convertible to `T`.
-    *[Note:* This currently implies that `T` is `complex<R>`.
-    --*end note]*
+  * The expression `conj(val)` is well formed and is convertible to
+    `ElementType`.  *[Note:* This implies that `ElementType` is
+    `complex<R>` for some type `R`.  --*end note]*
 
 ```c++
 conjugated_scalar(Reference v);
@@ -2962,13 +2977,6 @@ operator T() const;
 ```
 
 * *Effects:* Equivalent to `return conj(val);`.
-
-#### `accessor_conjugate` [linalg.conj.accessor_conjugate]
-
-The `accessor_conjugate` Accessor makes `basic_mdspan` access return a
-`conjugated_scalar` if the scalar type is `complex<T>` for some `T`.
-Otherwise, it makes `basic_mdspan` access return the original
-`basic_mdspan`'s reference type.
 
 ```c++
 template<class Accessor>
@@ -3004,10 +3012,6 @@ public:
 
   * `Accessor` shall meet the `basic_mdspan` accessor policy
     requirements (see *[mdspan.accessor.reqs]* in P0009).
-
-  * `ElementType` shall be a complete object type that is neither an
-    abstract class type nor an array type (see
-    *[mdspan.basic.overview]* in P0009).
 
 ```c++
 using reference = /* see below */;
