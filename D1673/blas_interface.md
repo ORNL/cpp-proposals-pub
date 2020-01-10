@@ -1249,17 +1249,9 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents, Layout,
-             accessor_conjugate<Accessor>>
+/* see-below */
 conjugate_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents, Layout, Accessor>
-conjugate_view(basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor>> a);
 
 // [linalg.transp.layout_transpose], class template layout_transpose
 template<class Layout>
@@ -3078,9 +3070,8 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 The `conjugate_view` function takes a `basic_mdspan` `x`, and returns
 a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
 elements are the complex conjugates of the corresponding elements of
-`x`.  It does so by using `accessor_scaled` as its `basic_mdspan`
-accessor policy.  If the element type of `x` is not `complex<R>` for
-some `R`, then `y` is a read-only view of the elements of `x`.
+`x`.  If the element type of `x` is not `complex<R>` for some `R`,
+then `y` is a read-only view of the elements of `x`.
 
 *[Note:*
 
@@ -3232,40 +3223,59 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents, Layout,
-             accessor_conjugate<Accessor>>
+/* see-below */
 conjugate_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
-* *Effects:* Equivalent to
+Let `R` name the type
+`basic_mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
+where
 
-```c++
-return basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor>>(
-    a.data(),
-    a.mapping(),
-    accessor_conjugate<Accessor>(a.accessor()));
-```
+  * `ReturnElementType` is either `ElementType` or
+    `const ElementType`; and
 
-```c++
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents, Layout, Accessor>
-conjugate_view(basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor>> a);
-```
+  * `ReturnAccessor` is:
 
-* *Effects:* Equivalent to
+     * if `Accessor` is `accessor_conjugate<NestedAccessor>`
+       for some `NestedAccessor`, then
+       either `NestedAccessor` or `accessor_conjugate<Accessor>`,
 
-```c++
-return basic_mdspan<ElementType, Extents, Layout, Accessor>(
-  a.data(),
-  a.mapping(),
-  a.accessor().nested_accessor());
-```
+     * else `Accessor`.
+
+* *Effects:*
+
+  * If `Accessor` is `accessor_conjugate<NestedAccessor>` and
+    `ReturnAccessor` is `NestedAccessor`, then equivalent to
+    `return R(a.data(), a.mapping(), a.nested_accessor());`;
+
+  * else, if `ReturnAccessor` is `accessor_conjugate<Accessor>`, then
+    equivalent to
+    `return R(a.data(), a.mapping(), accessor_conjugate<Accessor>(a.accessor()));`;
+
+  * else, equivalent to
+    `return R(a.data(), a.mapping(), a.accessor());`.
+
+*[Note:*
+
+The point of `ReturnAccessor` is to give implementations freedom to
+optimize applying `accessor_conjugate` twice in a row.  However,
+implementations are not required to optimize arbitrary combinations of
+nested `accessor_conjugate` interspersed with other nested accessors.
+
+The point of `ReturnElementType` is that, based on P0009R9, it may not
+be possible to deduce the const version of `Accessor` for use in
+`accessor_conjugate`.  In general, it may not be correct or efficient
+to use an `Accessor` meant for a nonconst `ElementType`, with `const
+ElementType`.  This is because `Accessor::reference` may be a type
+other than `ElementType&`.  Thus, we cannot require that the return
+type have `const ElementType` as its element type, since that might
+not be compatible with the given `Accessor`.  However, in some cases,
+like `accessor_basic`, it is possible to deduce the const version of
+`Accessor`.  Regardless, users are not allowed to modify the elements
+of the returned `basic_mdspan`.
+
+--*end note]*
 
 [*Example:*
 ```c++
