@@ -1234,8 +1234,7 @@ template<class ScalingFactor,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents, Layout,
-             accessor_scaled<ScalingFactor, Accessor>>
+/* see-below */
 scaled_view(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
@@ -2992,23 +2991,66 @@ template<class ScalingFactor,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents, Layout,
-             accessor_scaled<ScalingFactor, Accessor>>
+/* see below */
 scaled_view(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
 ```
 
-* *Effects:* Equivalent to
+Let `R` name the type
+`basic_mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
+where
 
-```c++
-return basic_mdspan<ElementType, Extents, Layout,
-  accessor_scaled<ScalingFactor, Accessor>>(a.data(),
-    a.mapping(),
-    accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
-```
+  * `ReturnElementType` is either `ElementType` or
+    `const ElementType`; and
+
+  * `ReturnAccessor` is:
+
+     * if `Accessor` is `accessor_scaled<NestedScalingFactor, NestedAccessor>`
+       for some `NestedScalingFactor` and `NestedAccessor`, then
+       either `accessor_scaled<ProductScalingFactor, NestedAccessor>` or
+       `accessor_scaled<ScalingFactor, Accessor>`,
+       where `ProductScalingFactor` is
+       `decltype(s * a.accessor().scaling_factor())`;
+
+     * else, `accessor_scaled<ScalingFactor, Accessor>`.
+
+* *Effects:*
+
+  * If `Accessor` is
+    `accessor_scaled<NestedScalingFactor, NestedAccessor>` and
+    `ReturnAccessor` is
+    `accessor_scaled<ProductScalingFactor, NestedAccessor>`,
+    then equivalent to
+    `return R(a.data(), a.mapping(),
+       ReturnAccessor(product_s, a.accessor().nested_accessor()));`,
+    where `product_s` equals `s * a.accessor().scaling_factor()`;
+
+  * else, equivalent to
+    `return R(a.data(), a.mapping(), ReturnAccessor(s, a.accessor()));`.
 
 * *Remarks:* The elements of the returned `basic_mdspan` are read only.
+
+*[Note:*
+
+The point of `ReturnAccessor` is to give implementations freedom to
+optimize applying `accessor_scaled` twice in a row.  However,
+implementations are not required to optimize arbitrary combinations of
+nested `accessor_scaled` interspersed with other nested accessors.
+
+The point of `ReturnElementType` is that, based on P0009R9, it may not
+be possible to deduce the const version of `Accessor` for use in
+`accessor_scaled`.  In general, it may not be correct or efficient
+to use an `Accessor` meant for a nonconst `ElementType`, with `const
+ElementType`.  This is because `Accessor::reference` may be a type
+other than `ElementType&`.  Thus, we cannot require that the return
+type have `const ElementType` as its element type, since that might
+not be compatible with the given `Accessor`.  However, in some cases,
+like `accessor_basic`, it is possible to deduce the const version of
+`Accessor`.  Regardless, users are not allowed to modify the elements
+of the returned `basic_mdspan`.
+
+--*end note]*
 
 [*Example:*
 ```c++
@@ -3224,18 +3266,6 @@ The point of `ReturnAccessor` is to give implementations freedom to
 optimize applying `accessor_conjugate` twice in a row.  However,
 implementations are not required to optimize arbitrary combinations of
 nested `accessor_conjugate` interspersed with other nested accessors.
-
-The point of `ReturnElementType` is that, based on P0009R9, it may not
-be possible to deduce the const version of `Accessor` for use in
-`accessor_conjugate`.  In general, it may not be correct or efficient
-to use an `Accessor` meant for a nonconst `ElementType`, with `const
-ElementType`.  This is because `Accessor::reference` may be a type
-other than `ElementType&`.  Thus, we cannot require that the return
-type have `const ElementType` as its element type, since that might
-not be compatible with the given `Accessor`.  However, in some cases,
-like `accessor_basic`, it is possible to deduce the const version of
-`Accessor`.  Regardless, users are not allowed to modify the elements
-of the returned `basic_mdspan`.
 
 --*end note]*
 
@@ -3556,6 +3586,15 @@ where
     `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
 
 * *Remarks:* The elements of the returned `basic_mdspan` are read only.
+
+*[Note:*
+
+The point of `ReturnLayout` is to give implementations freedom to
+optimize applying `layout_transpose` twice in a row.  However,
+implementations are not required to optimize arbitrary combinations of
+nested `layout_transpose` interspersed with other nested layouts.
+
+--*end note]*
 
 [*Example:*
 ```c++
