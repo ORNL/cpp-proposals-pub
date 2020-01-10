@@ -34,8 +34,8 @@ clean:
 	rm -rf $(OUTDIR)/*
 
 #.PHONY: update
-#update:
-#	wget https://wg21.link/index.yaml -O $(DATADIR)/index.yaml
+update:
+	wget https://wg21.link/index.yaml -O $(DATADIR)/index.yaml
 
 #$(DATADIR)/index.yaml:
 #	wget https://wg21.link/index.yaml -O $@
