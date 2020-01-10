@@ -22,7 +22,7 @@
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
-## Date: 2020-01-07
+## Date: 2020-01-09
 
 ## Revision history
 
@@ -1901,110 +1901,190 @@ void matrix_product(ExecutionPolicy&& exec,
 
 // [linalg.algs.blas3.symm],
 // symmetric matrix-matrix product
+
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_right_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
+
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_right_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 
 // [linalg.algs.blas3.hemm],
 // Hermitian matrix-matrix product
+
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_right_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
+
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_right_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -2222,25 +2302,6 @@ The `implicit_unit_diagonal_t` tag indicates two things:
 
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
-
-#### Side tags [linalg.tags.side]
-
-Some linear algebra algorithms distinguish between applying some
-operator to the left side of an object, or the right side of an
-object.  *[Note:* Matrix-matrix product and triangular solve with a
-matrix generally do not commute. --*end note]*
-
-```c++
-struct left_side_t { };
-inline constexpr left_side_t left_side = { };
-
-struct right_side_t { };
-inline constexpr right_side_t right_side = { };
-```
-
-These tag classes specify whether algorithms should apply some
-operator to the left side (`left_side_t`) or right side
-(`right_side_t`) of an object.
 
 ### Layouts for general and packed matrix types [linalg.layouts]
 
@@ -3610,8 +3671,6 @@ or other things as appropriate.
 
 * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
   `explicit_diagonal_t`.
-
-* `Side` is either `left_side_t` or `right_side_t`.
 
 * `in_*_t` template parameters may deduce a `const` lvalue reference
    or a (non-`const`) rvalue reference to a `basic_mdspan`.
@@ -5258,7 +5317,8 @@ Unlike the symmetric rank-1 update functions, these functions assume
 that the input matrix -- not the output matrix -- is symmetric. --*end
 note]*
 
-The following requirements apply to all functions in this section.
+The following requirements apply to all functions in this section,
+unless otherwise specified.
 
 * *Requires:*
 
@@ -5268,7 +5328,7 @@ The following requirements apply to all functions in this section.
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
+  * For `symmetric_matrix_left_product`,
 
      * `A.extent(1)` equals `B.extent(0)`,
 
@@ -5276,7 +5336,7 @@ The following requirements apply to all functions in this section.
 
      * `B.extent(1)` equals `C.extent(1)`.
 
-  * Otherwise, if `Side` is `right_side_t`, then
+  * For `symmetric_matrix_right_product`,
 
      * `B.extent(1)` equals `A.extent(0)`,
 
@@ -5310,7 +5370,7 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
+  * For `symmetric_matrix_left_product`,
 
     * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
       `dynamic_extent`, then `A.static_extent(1)` equals
@@ -5324,7 +5384,7 @@ The following requirements apply to all functions in this section.
       `dynamic_extent`, then `B.static_extent(1)` equals
       `C.static_extent(1)`.
 
-  * Otherwise, if `Side` is `right_side_t`, then
+  * For `symmetric_matrix_right_product`,
 
     * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
       `dynamic_extent`, then `B.static_extent(1)` equals
@@ -5347,62 +5407,91 @@ The following requirements apply to all functions in this section.
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
 
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
 ```
 
 * *Constraints:*
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+  * For `symmetric_matrix_left_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
     expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+  * For `symmetric_matrix_right_product`,
+    for for `i,j` in the domain of `C`,
     `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
     expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
 
 * *Effects:*
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`.
+  * `symmetric_matrix_left_product` assigns to the elements of the
+    matrix `C` the product of the matrices `A` and `B`, where the
+    matrix `A` is assumed to be symmetric.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`.
+  * `symmetric_matrix_right_product` assigns to the elements of the
+    matrix `C` the product of the matrices `B` and `A`, where the
+    matrix `A` is assumed to be symmetric.
 
 ###### Updating symmetric matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -5410,15 +5499,26 @@ void symmetric_matrix_product(
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -5426,23 +5526,27 @@ void symmetric_matrix_product(
 
 * *Constraints:*
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+  * For `symmetric_matrix_left_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
     expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+  * For `symmetric_matrix_right_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
     expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
 
 * *Effects:*
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `A` and `B`.
+  * `symmetric_matrix_left_product` assigns to the elements of the
+    matrix `C` on output, the elementwise sum of `E` and the product
+    of the matrices `A` and `B`, where the matrix `A` is assumed to be
+    symmetric.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `B` and `A`.
+  * `symmetric_matrix_right_product` assigns to the elements of the
+    matrix `C` on output, the elementwise sum of `E` and the product
+    of the matrices `B` and `A`, where the matrix `A` is assumed to be
+    symmetric.
 
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
@@ -5454,7 +5558,8 @@ Unlike the Hermitian rank-1 update functions, these functions assume
 that the input matrix -- not the output matrix -- is Hermitian. --*end
 note]*
 
-The following requirements apply to all functions in this section.
+The following requirements apply to all functions in this section,
+unless otherwise specified.
 
 * *Requires:*
 
@@ -5464,7 +5569,7 @@ The following requirements apply to all functions in this section.
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
+  * For `hermitian_matrix_left_product`,
 
      * `A.extent(1)` equals `B.extent(0)`,
 
@@ -5472,7 +5577,7 @@ The following requirements apply to all functions in this section.
 
      * `B.extent(1)` equals `C.extent(1)`.
 
-  * Otherwise, if `Side` is `right_side_t`, then
+  * For `hermitian_matrix_right_product`,
 
      * `B.extent(1)` equals `A.extent(0)`,
 
@@ -5506,7 +5611,7 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
+  * For `hermitian_matrix_left_product`,
 
     * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
       `dynamic_extent`, then `A.static_extent(1)` equals
@@ -5520,7 +5625,7 @@ The following requirements apply to all functions in this section.
       `dynamic_extent`, then `B.static_extent(1)` equals
       `C.static_extent(1)`.
 
-  * Otherwise, if `Side` is `right_side_t`, then
+  * For `hermitian_matrix_right_product`,
 
     * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
       `dynamic_extent`, then `B.static_extent(1)` equals
@@ -5544,62 +5649,91 @@ The following requirements apply to all functions in this section.
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
 
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
 ```
 
 * *Constraints:*
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+  * For `hermitian_matrix_left_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
     expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+  * For `hermitian_matrix_right_product`,
+    for for `i,j` in the domain of `C`,
     `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
     expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
 
 * *Effects:*
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`.
+  * `hermitian_matrix_left_product` assigns to the elements of the
+    matrix `C` the product of the matrices `A` and `B`, where the
+    matrix `A` is assumed to be Hermitian.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`.
+  * `hermitian_matrix_right_product` assigns to the elements of the
+    matrix `C` the product of the matrices `B` and `A`, where the
+    matrix `A` is assumed to be Hermitian.
 
 ###### Updating Hermitian matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -5607,15 +5741,26 @@ void hermitian_matrix_product(
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -5623,23 +5768,27 @@ void hermitian_matrix_product(
 
 * *Constraints:*
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+  * For `hermitian_matrix_left_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
     expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+  * For `hermitian_matrix_right_product`,
+    for for `i,j` in the domain of `C`,
     `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
     expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
 
 * *Effects:*
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `A` and `B`.
+  * `hermitian_matrix_left_product` assigns to the elements of the
+    matrix `C` on output, the elementwise sum of `E` and the product
+    of the matrices `A` and `B`, where the matrix `A` is assumed to be
+    Hermitian.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `B` and `A`.
+  * `hermitian_matrix_right_product` assigns to the elements of the
+    matrix `C` on output, the elementwise sum of `E` and the product
+    of the matrices `B` and `A`, where the matrix `A` is assumed to be
+    Hermitian.
 
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
