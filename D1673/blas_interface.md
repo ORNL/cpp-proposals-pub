@@ -381,7 +381,7 @@ three categories:
    they have a different base name.
 
 3. The complex-arithmetic versions offer a choice between
-   non-conjugated or conjugated operations.
+   nonconjugated or conjugated operations.
 
 As an example of the second category, the BLAS functions `SASUM` and
 `DASUM` compute the sums of absolute values of a vector's elements.
@@ -393,11 +393,11 @@ but it requires fewer arithmetic operations.
 
 Examples of the third category include the following:
 
-* non-conjugated dot product `xDOTU` and conjugated dot product
+* nonconjugated dot product `xDOTU` and conjugated dot product
   `xDOTC`; and
 * rank-1 symmetric (`xGERU`) vs. Hermitian (`xGERC`) matrix update.
 
-The conjugate transpose and the (non-conjugated) transpose are the
+The conjugate transpose and the (nonconjugated) transpose are the
 same operation in real arithmetic (if one considers real arithmetic
 embedded in complex arithmetic), but differ in complex arithmetic.
 Different applications have different reasons to want either.  The C++
@@ -1329,7 +1329,7 @@ conjugate_transpose_view(
                layout_transpose<Layout>,
                accessor_conjugate<Accessor>> a);
 
-// [linalg.algs.blas1.givens.setup], compute Givens rotation
+// [linalg.algs.blas1.givens.lartg], compute Givens rotation
 template<class Real>
 void givens_rotation_setup(const Real a,
                            const Real b,
@@ -1343,7 +1343,7 @@ void givens_rotation_setup(const complex<Real>& a,
                            complex<Real>& s,
                            complex<Real>& r);
 
-// [linalg.algs.blas1.givens.apply], apply computed Givens rotation
+// [linalg.algs.blas1.givens.rot], apply computed Givens rotation
 template<class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
@@ -1394,7 +1394,7 @@ void linalg_swap(ExecutionPolicy&& exec,
                  inout_object_1_t x,
                  inout_object_2_t y);
 
-// [linalg.algs.blas1.scale], multiply elements by scalar
+// [linalg.algs.blas1.scal], multiply elements by scalar
 template<class Scalar,
          class inout_object_t>
 void scale(const Scalar alpha,
@@ -1434,7 +1434,11 @@ void linalg_add(ExecutionPolicy&& exec,
                 in_object_2_t y,
                 out_object_t z);
 
-// [linalg.algs.blas1.dot.nonconj], nonconjugated inner product
+// [linalg.algs.blas1.dot],
+// dot product of two vectors
+
+// [linalg.algs.blas1.dot.dotu],
+// nonconjugated dot product of two vectors
 template<class in_vector_1_t,
          class in_vector_2_t,
          class T>
@@ -1460,7 +1464,8 @@ auto dot(ExecutionPolicy&& exec,
          in_vector_1_t v1,
          in_vector_2_t v2);
 
-// [linalg.algs.blas1.dot.conj], conjugated inner product
+// [linalg.algs.blas1.dot.dotc],
+// conjugated dot product of two vectors
 template<class in_vector_1_t,
          class in_vector_2_t,
          class T>
@@ -1486,7 +1491,8 @@ auto dotc(ExecutionPolicy&& exec,
           in_vector_1_t v1,
           in_vector_2_t v2);
 
-// [linalg.algs.blas1.norm2], Euclidean vector norm
+// [linalg.algs.blas1.nrm2],
+// Euclidean norm of a vector
 template<class in_vector_t,
          class T>
 T vector_norm2(in_vector_t v,
@@ -1504,7 +1510,8 @@ template<class ExecutionPolicy,
 auto vector_norm2(ExecutionPolicy&& exec,
                   in_vector_t v);
 
-// [linalg.algs.blas1.abs_sum], sum of absolute values
+// [linalg.algs.blas1.asum],
+// sum of absolute values of vector elements
 template<class in_vector_t,
          class T>
 T vector_abs_sum(in_vector_t v,
@@ -1522,7 +1529,7 @@ template<class ExecutionPolicy,
 auto vector_abs_sum(ExecutionPolicy&& exec,
                     in_vector_t v);
 
-// [linalg.algs.blas1.idx_abs_max],
+// [linalg.algs.blas1.iamax],
 // index of maximum absolute value of vector elements
 template<class in_vector_t>
 ptrdiff_t idx_abs_max(in_vector_t v);
@@ -3789,7 +3796,7 @@ BLAS 1 operations, even though it only operates on scalars.
 
 ##### Givens rotations [linalg.algs.blas1.givens]
 
-###### Compute Givens rotations [linalg.algs.blas1.givens.setup]
+###### Compute Givens rotation [linalg.algs.blas1.givens.lartg]
 
 ```c++
 template<class Real>
@@ -3845,7 +3852,7 @@ note]*
 
 * *Throws:* Nothing.
 
-###### Apply a computed Givens rotation to vectors [linalg.algs.blas1.givens.apply]
+###### Apply a computed Givens rotation to vectors [linalg.algs.blas1.givens.rot]
 
 ```c++
 template<class inout_vector_1_t,
@@ -3962,7 +3969,7 @@ void linalg_swap(ExecutionPolicy&& exec,
 * *Effects:* Swap all corresponding elements of the objects
   `x` and `y`.
 
-##### Multiply the elements of an object in place by a scalar [linalg.algs.blas1.scale]
+##### Multiply the elements of an object in place by a scalar [linalg.algs.blas1.scal]
 
 ```c++
 template<class Scalar,
@@ -4083,9 +4090,9 @@ void linalg_add(ExecutionPolicy&& exec,
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
-##### Inner (dot) product of two vectors [linalg.algs.blas1.dot]
+##### Dot product of two vectors [linalg.algs.blas1.dot]
 
-###### Non-conjugated inner (dot) product
+###### Nonconjugated dot product of two vectors [linalg.algs.blas1.dot.dotu]
 
 ```c++
 template<class in_vector_1_t,
@@ -4105,7 +4112,7 @@ T dot(ExecutionPolicy&& exec,
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xDOT` (for
-real element types), `xDOTC`, and `xDOTU` (for complex element types).
+real element types) and `xDOTU` (for complex element types).
 --*end note]*
 
 * *Requires:*
@@ -4145,7 +4152,7 @@ for specific `ExecutionPolicy` types. --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
-###### Non-conjugated inner (dot) product with default result type
+###### Nonconjugated dot product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -4164,7 +4171,7 @@ auto dot(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dot(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dot(exec, v1, v2, T{});`.
 
-###### Conjugated inner (dot) product [linalg.algs.blas1.dot.conj]
+###### Conjugated dot product of two vectors [linalg.algs.blas1.dot.dotc]
 
 ```c++
 template<class in_vector_1_t,
@@ -4183,15 +4190,22 @@ T dotc(ExecutionPolicy&& exec,
        T init);
 ```
 
+*[Note:*
+
+These functions correspond to the BLAS functions `xDOT` (for real
+element types) and `xDOTC` (for complex element types).
+
+`dotc` exists to give users reasonable default inner product behavior
+for both real and complex element types.
+
+--*end note]*
+
 * *Effects:* The three-argument overload is equivalent to
   `dot(v1, conjugate_view(v2), init);`.
   The four-argument overload is equivalent to
   `dot(exec, v1, conjugate_view(v2), init);`.
 
-*[Note:* `dotc` exists to give users reasonable default inner product
-behavior for both real and complex element types. --*end note]*
-
-###### Conjugated inner (dot) product with default result type
+###### Conjugated dot product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -4210,7 +4224,9 @@ auto dotc(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dotc(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dotc(exec, v1, v2, T{});`.
 
-##### Euclidean (2) vector norm [linalg.algs.blas1.norm2]
+##### Euclidean norm of a vector [linalg.algs.blas1.nrm2]
+
+###### Euclidean norm with specified result type
 
 ```c++
 template<class in_vector_t,
@@ -4239,21 +4255,20 @@ T vector_norm2(ExecutionPolicy&& exec,
   recommended implementation for floating-point types.  See *Remarks*
   below. --*end note]*
 
-* *Effects:* Returns the Euclidean (2) norm of the vector `v`.
+* *Effects:* Returns the Euclidean norm (also called 2-norm)
+  of the vector `v`.
 
-* *Remarks:*
-
-  1. If `in_vector_t::element_type` and `T` are both
-     floating-point types or complex versions thereof, and if `T`
-     has higher precision than `in_vector_type::element_type`, then
-     implementations will use `T`'s precision or greater for
-     intermediate terms in the sum.
+* *Remarks:* If `in_vector_t::element_type` and `T` are both
+  floating-point types or complex versions thereof, and if `T` has
+  higher precision than `in_vector_type::element_type`, then
+  implementations will use `T`'s precision or greater for intermediate
+  terms in the sum.
 
 *[Note:* We recommend that implementers document their guarantees
 regarding overflow and underflow of `vector_norm2` for floating-point
 return types. --*end note]*
 
-##### Euclidean (2) norm of a vector with default result type
+###### Euclidean norm with default result type
 
 ```c++
 template<class in_vector_t>
@@ -4270,7 +4285,9 @@ auto vector_norm2(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_norm2(exec, v, T{});`.
 
-##### Sum of absolute values of vector elements [linalg.algs.blas1.abs_sum]
+##### Sum of absolute values of vector elements [linalg.algs.blas1.asum]
+
+###### Sum of absolute values with specified result type
 
 ```c++
 template<class in_vector_t,
@@ -4318,7 +4335,7 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
   implementations will use `T`'s precision or greater for intermediate
   terms in the sum.
 
-##### Sum of absolute values with default result type
+###### Sum of absolute values with default result type
 
 ```c++
 template<class in_vector_t>
@@ -4334,7 +4351,7 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_abs_sum(exec, v, T{});`.
 
-##### Index of maximum absolute value of vector elements [linalg.algs.blas1.idx_abs_max]
+##### Index of maximum absolute value of vector elements [linalg.algs.blas1.iamax]
 
 ```c++
 template<class in_vector_t>
@@ -4945,7 +4962,7 @@ void triangular_matrix_vector_solve(
 
 ##### Rank-1 (outer product) update of a matrix [linalg.algs.blas2.rank1]
 
-###### Nonsymmetric non-conjugated rank-1 update [linalg.algs.blas2.rank1.geru]
+###### Nonsymmetric nonconjugated rank-1 update [linalg.algs.blas2.rank1.geru]
 
 ```c++
 template<class in_vector_1_t,
@@ -6236,9 +6253,9 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
     `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
-  input with (the matrix product of `A` and the non-conjugated
+  input with (the matrix product of `A` and the nonconjugated
   transpose of `B`) and (the matrix product of `B` and the
-  non-conjugated transpose of `A`.)
+  nonconjugated transpose of `A`.)
 
 * *Remarks:* The functions will only access the triangle of `C`
   specified by the `Triangle` argument `t`, and will assume for
