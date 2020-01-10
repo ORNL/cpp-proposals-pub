@@ -5317,8 +5317,7 @@ Unlike the symmetric rank-1 update functions, these functions assume
 that the input matrix -- not the output matrix -- is symmetric. --*end
 note]*
 
-The following requirements apply to all functions in this section,
-unless otherwise specified.
+The following requirements apply to all functions in this section.
 
 * *Requires:*
 
@@ -5327,22 +5326,6 @@ unless otherwise specified.
   * `C.extent(0)` equals `E.extent(0)` (if applicable).
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
-
-  * For `symmetric_matrix_left_product`,
-
-     * `A.extent(1)` equals `B.extent(0)`,
-
-     * `A.extent(0)` equals `C.extent(0)`, and
-
-     * `B.extent(1)` equals `C.extent(1)`.
-
-  * For `symmetric_matrix_right_product`,
-
-     * `B.extent(1)` equals `A.extent(0)`,
-
-     * `B.extent(0)` equals `C.extent(0)`, and
-
-     * `A.extent(1)` equals `C.extent(1)`.
 
 * *Constraints:*
 
@@ -5370,37 +5353,59 @@ unless otherwise specified.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-  * For `symmetric_matrix_left_product`,
-
-    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `B.static_extent(0)`;
-
-    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(0)` equals
-      `C.static_extent(0)`; and
-
-    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `C.static_extent(1)`.
-
-  * For `symmetric_matrix_right_product`,
-
-    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `A.static_extent(0)`;
-
-    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(0)` equals
-      `C.static_extent(0)`; and
-
-    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `C.static_extent(1)`.
-
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+
+The following requirements apply to all overloads of
+`symmetric_matrix_left_product`.
+
+* *Requires:*
+
+   * `A.extent(1)` equals `B.extent(0)`,
+
+   * `A.extent(0)` equals `C.extent(0)`, and
+
+   * `B.extent(1)` equals `C.extent(1)`.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `B.static_extent(0)`;
+
+  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(1)`.
+
+The following requirements apply to all overloads of
+`symmetric_matrix_right_product`.
+
+* *Requires:*
+
+   * `B.extent(1)` equals `A.extent(0)`,
+
+   * `B.extent(0)` equals `C.extent(0)`, and
+
+   * `A.extent(1)` equals `C.extent(1)`.
+
+* *Mandates:*
+
+  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `A.static_extent(0)`;
+
+  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `C.static_extent(1)`.
 
 ###### Overwriting symmetric matrix-matrix product
 
@@ -5463,12 +5468,10 @@ void symmetric_matrix_right_product(
 * *Effects:*
 
   * `symmetric_matrix_left_product` assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`, where the
-    matrix `A` is assumed to be symmetric.
+    matrix `C` the product of the matrices `A` and `B`.
 
   * `symmetric_matrix_right_product` assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`, where the
-    matrix `A` is assumed to be symmetric.
+    matrix `C` the product of the matrices `B` and `A`.
 
 ###### Updating symmetric matrix-matrix product
 
@@ -5540,13 +5543,11 @@ void symmetric_matrix_right_product(
 
   * `symmetric_matrix_left_product` assigns to the elements of the
     matrix `C` on output, the elementwise sum of `E` and the product
-    of the matrices `A` and `B`, where the matrix `A` is assumed to be
-    symmetric.
+    of the matrices `A` and `B`.
 
   * `symmetric_matrix_right_product` assigns to the elements of the
     matrix `C` on output, the elementwise sum of `E` and the product
-    of the matrices `B` and `A`, where the matrix `A` is assumed to be
-    symmetric.
+    of the matrices `B` and `A`.
 
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
@@ -5558,8 +5559,7 @@ Unlike the Hermitian rank-1 update functions, these functions assume
 that the input matrix -- not the output matrix -- is Hermitian. --*end
 note]*
 
-The following requirements apply to all functions in this section,
-unless otherwise specified.
+The following requirements apply to all functions in this section.
 
 * *Requires:*
 
@@ -5568,22 +5568,6 @@ unless otherwise specified.
   * `C.extent(0)` equals `E.extent(0)` (if applicable).
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
-
-  * For `hermitian_matrix_left_product`,
-
-     * `A.extent(1)` equals `B.extent(0)`,
-
-     * `A.extent(0)` equals `C.extent(0)`, and
-
-     * `B.extent(1)` equals `C.extent(1)`.
-
-  * For `hermitian_matrix_right_product`,
-
-     * `B.extent(1)` equals `A.extent(0)`,
-
-     * `B.extent(0)` equals `C.extent(0)`, and
-
-     * `A.extent(1)` equals `C.extent(1)`.
 
 * *Constraints:*
 
@@ -5611,38 +5595,60 @@ unless otherwise specified.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-  * For `hermitian_matrix_left_product`,
-
-    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `B.static_extent(0)`;
-
-    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(0)` equals
-      `C.static_extent(0)`; and
-
-    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `C.static_extent(1)`.
-
-  * For `hermitian_matrix_right_product`,
-
-    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `A.static_extent(0)`;
-
-    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(0)` equals
-      `C.static_extent(0)`; and
-
-    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `C.static_extent(1)`.
-
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
+
+The following requirements apply to all overloads of
+`hermitian_matrix_left_product`.
+
+* *Requires:*
+
+  * `A.extent(1)` equals `B.extent(0)`,
+
+  * `A.extent(0)` equals `C.extent(0)`, and
+
+  * `B.extent(1)` equals `C.extent(1)`.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `B.static_extent(0)`;
+
+  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(1)`.
+
+The following requirements apply to all overloads of
+`hermitian_matrix_right_product`.
+
+* *Requires:*
+
+  * `B.extent(1)` equals `A.extent(0)`,
+
+  * `B.extent(0)` equals `C.extent(0)`, and
+
+  * `A.extent(1)` equals `C.extent(1)`.
+
+* *Mandates:*
+
+  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `A.static_extent(0)`;
+
+  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `C.static_extent(1)`.
 
 ###### Overwriting Hermitian matrix-matrix product
 
@@ -5705,12 +5711,10 @@ void hermitian_matrix_right_product(
 * *Effects:*
 
   * `hermitian_matrix_left_product` assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`, where the
-    matrix `A` is assumed to be Hermitian.
+    matrix `C` the product of the matrices `A` and `B`.
 
   * `hermitian_matrix_right_product` assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`, where the
-    matrix `A` is assumed to be Hermitian.
+    matrix `C` the product of the matrices `B` and `A`.
 
 ###### Updating Hermitian matrix-matrix product
 
@@ -5782,13 +5786,11 @@ void hermitian_matrix_right_product(
 
   * `hermitian_matrix_left_product` assigns to the elements of the
     matrix `C` on output, the elementwise sum of `E` and the product
-    of the matrices `A` and `B`, where the matrix `A` is assumed to be
-    Hermitian.
+    of the matrices `A` and `B`.
 
   * `hermitian_matrix_right_product` assigns to the elements of the
     matrix `C` on output, the elementwise sum of `E` and the product
-    of the matrices `B` and `A`, where the matrix `A` is assumed to be
-    Hermitian.
+    of the matrices `B` and `A`.
 
 * *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
   they must have the same layout.
