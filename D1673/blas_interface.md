@@ -1709,7 +1709,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
                                       in_vector_2_t y,
                                       out_vector_t z);
 
-// [linalg.algs.blas2.tri-solve],
+// [linalg.algs.blas2.trsv],
 // Solve a triangular linear system
 template<class in_matrix_t,
          class Triangle,
@@ -1736,7 +1736,7 @@ void triangular_matrix_vector_solve(
   in_vector_t b,
   out_vector_t x);
 
-// [linalg.algs.blas2.rank1.nonconj],
+// [linalg.algs.blas2.rank1.geru],
 // nonconjugated rank-1 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -1755,7 +1755,7 @@ void matrix_rank_1_update(
   in_vector_2_t y,
   inout_matrix_t A);
 
-// [linalg.algs.blas2.rank1.conj],
+// [linalg.algs.blas2.rank1.gerc],
 // conjugated rank-1 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -1774,7 +1774,7 @@ void matrix_rank_1_update_c(
   in_vector_2_t y,
   inout_matrix_t A);
 
-// [linalg.algs.blas2.rank1.symm],
+// [linalg.algs.blas2.rank1.syr],
 // symmetric rank-1 matrix update
 template<class in_vector_t,
          class inout_matrix_t,
@@ -1793,7 +1793,7 @@ void symmetric_matrix_rank_1_update(
   inout_matrix_t A,
   Triangle t);
 
-// [linalg.algs.blas2.rank1.herm],
+// [linalg.algs.blas2.rank1.her],
 // Hermitian rank-1 matrix update
 template<class in_vector_t,
          class inout_matrix_t,
@@ -1812,7 +1812,7 @@ void hermitian_matrix_rank_1_update(
   inout_matrix_t A,
   Triangle t);
 
-// [linalg.algs.blas2.rank2.symm],
+// [linalg.algs.blas2.rank2.syr2],
 // symmetric rank-2 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -1835,7 +1835,7 @@ void symmetric_matrix_rank_2_update(
   inout_matrix_t A,
   Triangle t);
 
-// [linalg.algs.blas2.rank2.herm],
+// [linalg.algs.blas2.rank2.her2],
 // Hermitian rank-2 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -4850,7 +4850,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-##### Solve a triangular linear system [linalg.algs.blas2.tri-solve]
+##### Solve a triangular linear system [linalg.algs.blas2.trsv]
 
 ```c++
 template<class in_matrix_t,
@@ -4945,7 +4945,7 @@ void triangular_matrix_vector_solve(
 
 ##### Rank-1 (outer product) update of a matrix [linalg.algs.blas2.rank1]
 
-###### Nonsymmetric non-conjugated rank-1 update [linalg.algs.blas2.rank1.nonconj]
+###### Nonsymmetric non-conjugated rank-1 update [linalg.algs.blas2.rank1.geru]
 
 ```c++
 template<class in_vector_1_t,
@@ -4968,8 +4968,8 @@ void matrix_rank_1_update(
 ```
 
 *[Note:* This function corresponds to the BLAS functions `xGER` (for
-real element types), `xGERC`, and `xGERU` (for complex element
-types). --*end note]*
+real element types) and `xGERU` (for complex element types). --*end
+note]*
 
 * *Requires:*
 
@@ -5001,7 +5001,7 @@ types). --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
 
-###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.conj]
+###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.gerc]
 
 ```c++
 template<class in_vector_1_t,
@@ -5023,10 +5023,14 @@ void matrix_rank_1_update_c(
   inout_matrix_t A);
 ```
 
+*[Note:* This function corresponds to the BLAS functions `xGER` (for
+real element types) and `xGERC` (for complex element types). --*end
+note]*
+
 * *Effects:* Equivalent to
   `matrix_rank_1_update(x, conjugate_view(y), A);`.
 
-###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.symm]
+###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.syr]
 
 ```c++
 template<class in_vector_t,
@@ -5087,7 +5091,7 @@ void symmetric_matrix_rank_1_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-###### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.herm]
+###### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.her]
 
 ```c++
 template<class in_vector_t,
@@ -5149,7 +5153,7 @@ void hermitian_matrix_rank_1_update(
   indices `i,j` outside that triangle, that `A(j,i)` equals
   `conj(A(i,j))`.
 
-##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.symm]
+##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
 ```c++
 template<class in_vector_1_t,
@@ -5221,7 +5225,7 @@ void symmetric_matrix_rank_2_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.herm]
+##### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.her2]
 
 ```c++
 template<class in_vector_1_t,
