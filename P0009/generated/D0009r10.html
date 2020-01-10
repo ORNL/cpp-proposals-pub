@@ -1465,42 +1465,45 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <span id="cb5-33"><a href="#cb5-33"></a><span class="op">}</span>;</span>
 <span id="cb5-34"><a href="#cb5-34"></a></span>
 <span id="cb5-35"><a href="#cb5-35"></a><span class="op">}</span></span></code></pre></div>
-<p><b>26.7.�.2 General [mdspan.extents.general]</b></p>
+<p><b>26.7.�.2 Overview [mdspan.extents.overview]</b></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span> The class template <code>extents</code> represents a multidimensional index space of of rank equal to <code>sizeof...(Extents)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>For all <span class="math inline"><em>r</em></span>, let <span class="math inline"><em>E</em><sub><em>r</em></sub></span> be the value of the <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span> parameter in the template parameter pack <code>Extents</code>. Each <span class="math inline"><em>E</em><sub><em>r</em></sub></span> shall either be a non-negative integer or <code>dynamic_extent</code>, otherwise, the program is ill-formed.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span> For all <span class="math inline"><em>r</em></span>, let <span class="math inline"><em>E</em><sub><em>r</em></sub></span> be the value of the <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span> parameter in the template parameter pack <code>Extents</code>. Each <span class="math inline"><em>E</em><sub><em>r</em></sub></span> shall either be a non-negative integer or <code>dynamic_extent</code>, otherwise, the program is ill-formed.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span> If <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is equal to <code>dynamic_extent</code> it is a <em>dynamic extent</em>, otherwise it is a <em>static extent</em>. For each <span class="math inline"><em>E</em><sub><em>r</em></sub></span> equivalent to <code>dynamic_extent</code>,<br />
 the upper bound of the interval is stored in the exposition only array <code>dynamic_extents_</code> at <code>dynamic_extents_[dynamic_index(</code><em>r</em><code>)]</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span> The <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span> interval of the multidimensional index space represented by an <code>extents</code> is <span class="math inline">[0, <em>E</em><sub><em>r</em></sub>)</span> if <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a static extent or <code>[0, dynamic_extents_[dynamic_intex(</code><em>r</em><code>)])</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span> If <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a dynamic extent, let <span class="math inline"><em>D</em><sub><em>r</em></sub></span> be the value of <code>dynamic_extents_[dynamic_index(</code><em>r</em><code>)]</code>. The <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span> interval of an <code>extents</code> is as follows:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> <span class="math inline">[0, <em>E</em><sub><em>r</em></sub>)</span> if <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a static extent,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> otherwise <span class="math inline">[0, <em>D</em><sub><em>r</em></sub>)</span>.</p></li>
+</ul>
 <hr />
 <div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> dynamic_index<span class="op">(</span><span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <ul>
-<li><em>Returns</em>: If <code>i &lt;= sizeof...(Extents)</code> is <code>true</code>, returns the number of arguments before the <code>i</code><em>th</em> template parameter in the template parameter pack <code>Extents</code> equivalent to <code>dynamic_extent</code>. Otherwise, returns <code>rank_dynamic()</code>.</li>
+<li><span class="marginalizedparent"><a class="marginalized">5</a></span> <em>Returns</em>: If <code>i &lt;= sizeof...(Extents)</code> is <code>true</code>, returns the number of arguments before the <code>i</code><em>th</em> template parameter in the template parameter pack <code>Extents</code> equivalent to <code>dynamic_extent</code>. Otherwise, returns <code>rank_dynamic()</code>.</li>
 </ul>
 <p><b>26.7.�.3 Constructors and assignment [mdspan.extents.cons]</b></p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> extents<span class="op">&lt;</span>OtherExtents<span class="op">...&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Constraints:</em>
+<li><p><span class="marginalizedparent"><a class="marginalized">1</a></span> <em>Constraints:</em></p>
 <ul>
-<li><code>sizeof...(Extents)</code> equals <code>sizeof...(OtherExtents)</code>.</li>
-<li>For all <code>r</code> where <code>static_extent(r) != dynamic_extent</code> and <code>other.static_extent(r) != dynamic_extent</code> are both <code>true</code>, then <code>static_extent(r) == other.static_extent(r)</code> is <code>true</code>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span> <code>sizeof...(Extents)</code> equals <code>sizeof...(OtherExtents)</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span> For all <code>r</code> where <code>static_extent(r) != dynamic_extent</code> and <code>other.static_extent(r) != dynamic_extent</code> are both <code>true</code>, then <code>static_extent(r) == other.static_extent(r)</code> is <code>true</code>.</p></li>
 </ul></li>
-<li><em>Expects:</em> For all <code>r</code><br />
-<code>static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)</code> is <code>true</code>.</li>
-<li><em>Effects:</em> For each <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, initializes <code>dynamic_extent[dynamic_index(r)]</code> with <code>other.extent(r)</code>.</li>
-<li><em>Throws:</em> Nothing.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">2</a></span> <em>Expects:</em> For all <code>r</code><br />
+<code>static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)</code> is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">3</a></span> <em>Effects:</em> For each <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, assigns <code>other.extent(r)</code> to <code>dynamic_extent[dynamic_index(r)]</code>.</p></li>
 </ul>
 <p><br /></p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> IndexType<span class="op">&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2"></a><span class="kw">constexpr</span> extents<span class="op">(</span>IndexType<span class="op">...</span> dynamic<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<span id="cb8-2"><a href="#cb8-2"></a>  <span class="kw">constexpr</span> extents<span class="op">(</span>IndexType<span class="op">...</span> dynamic<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Constraints:</em>
+<li><p><span class="marginalizedparent"><a class="marginalized">4</a></span> <em>Constraints:</em></p>
 <ul>
-<li><code>(is_convertible_v&lt;IndexType, index_type&gt; &amp;&amp; ...)</code> is <code>true</code> and</li>
-<li><code>sizeof...(dynamic) == rank_dynamic()</code> is <code>true</code>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> <code>(is_convertible_v&lt;IndexType, index_type&gt; &amp;&amp; ...)</code> is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> <code>sizeof...(IndexType) == rank_dynamic()</code> is <code>true</code>.</p></li>
 </ul></li>
-<li><em>Expects:</em> <code>((dynamic_extents &gt;= 0) &amp;&amp; ...)</code> is <code>true</code>.</li>
-<li><em>Effects:</em> Initializes <code>dynamic_extents_</code> with <code>dynamic...</code>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">5</a></span> <em>Expects:</em> <code>((dynamic &gt;= 0) &amp;&amp; ...)</code> is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">6</a></span> <em>Effects:</em> Initializes <code>dynamic_extents_</code> with <code>dynamic...</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType<span class="op">&gt;</span></span>
 <span id="cb9-2"><a href="#cb9-2"></a><span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> array<span class="op">&lt;</span>IndexType, rank_dynamic<span class="op">()&gt;</span> <span class="op">&amp;</span> dynamic<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
