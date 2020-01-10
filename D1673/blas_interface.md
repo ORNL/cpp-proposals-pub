@@ -3053,6 +3053,8 @@ return basic_mdspan<ElementType, Extents, Layout,
     accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
 ```
 
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+
 [*Example:*
 ```c++
 void test_scaled_view(basic_mdspan<double, extents<10>> a)
@@ -3583,6 +3585,8 @@ return basic_mdspan<ElementType,
   a.accessor());
 ```
 
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+
 ```c++
 template<class EltType,
          class Extents,
@@ -3599,6 +3603,8 @@ transpose_view(basic_mdspan<EltType, Extents,
 return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
   a.mapping().nested_mapping(), a.accessor());
 ```
+
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
 
 [*Example:*
 ```c++
@@ -3692,6 +3698,8 @@ conjugate_transpose_view(
 
 * *Effects:* Equivalent to
   `return conjugate_view(transpose_view(a));`.
+
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
 
 [*Example:*
 ```c++
