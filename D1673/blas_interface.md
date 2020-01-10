@@ -1999,6 +1999,8 @@ void symmetric_matrix_right_product(
 // [linalg.algs.blas3.hemm],
 // Hermitian matrix-matrix product
 
+// [linalg.algs.blas3.hemm.ov.left],
+// overwriting Hermitian matrix-matrix left product
 template<class in_matrix_1_t,
          class Triangle,
          class in_matrix_2_t,
@@ -2008,16 +2010,6 @@ void hermitian_matrix_left_product(
   Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
-template<class in_matrix_1_t,
-         class Triangle,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void hermitian_matrix_right_product(
-  in_matrix_1_t A,
-  Triangle t,
-  in_matrix_2_t B,
-  out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -2029,6 +2021,18 @@ void hermitian_matrix_left_product(
   Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
+
+// [linalg.algs.blas3.hemm.ov.right],
+// overwriting Hermitian matrix-matrix right product
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -2041,6 +2045,8 @@ void hermitian_matrix_right_product(
   in_matrix_2_t B,
   out_matrix_t C);
 
+// [linalg.algs.blas3.hemm.up.left],
+// updating Hermitian matrix-matrix left product
 template<class in_matrix_1_t,
          class Triangle,
          class in_matrix_2_t,
@@ -2052,18 +2058,6 @@ void hermitian_matrix_left_product(
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
-template<class in_matrix_1_t,
-         class Triangle,
-         class in_matrix_2_t,
-         class in_matrix_3_t,
-         class out_matrix_t>
-void hermitian_matrix_right_product(
-  in_matrix_1_t A,
-  Triangle t,
-  in_matrix_2_t B,
-  in_matrix_3_t E,
-  out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -2072,6 +2066,20 @@ template<class ExecutionPolicy,
          class out_matrix_t>
 void hermitian_matrix_left_product(
   ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.hemm.up.right],
+// updating Hermitian matrix-matrix right product
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
   in_matrix_1_t A,
   Triangle t,
   in_matrix_2_t B,
@@ -5630,10 +5638,14 @@ void symmetric_matrix_right_product(
 
 ##### Hermitian matrix-matrix product [linalg.algs.blas3.hemm]
 
-*[Note:* These functions correspond to the BLAS function `xHEMM`.
+*[Note:*
+
+These functions correspond to the BLAS function `xHEMM`.
+
 Unlike the Hermitian rank-1 update functions, these functions assume
-that the input matrix -- not the output matrix -- is Hermitian. --*end
-note]*
+that the input matrix -- not the output matrix -- is Hermitian.
+
+--*end note]*
 
 The following requirements apply to all functions in this section.
 
@@ -5671,10 +5683,14 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals
-  `conj(A(i,j))`.
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`, and will assume for indices `i,j`
+    outside that triangle, that `A(j,i)` equals `conj(A(i,j))`.
+
+  * *Remarks:* `C` and `E` (if applicable) may refer to the same
+    matrix.  If so, then they must have the same layout.
 
 The following requirements apply to all overloads of
 `hermitian_matrix_left_product`.
@@ -5726,7 +5742,7 @@ The following requirements apply to all overloads of
     `dynamic_extent`, then `A.static_extent(1)` equals
     `C.static_extent(1)`.
 
-###### Overwriting Hermitian matrix-matrix product
+###### Overwriting Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.ov.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -5738,16 +5754,6 @@ void hermitian_matrix_left_product(
   Triangle t,
   in_matrix_2_t B,
   out_matrix_t C);
-template<class in_matrix_1_t,
-         class Triangle,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void hermitian_matrix_right_product(
-  in_matrix_1_t A,
-  Triangle t,
-  in_matrix_2_t B,
-  out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -5755,6 +5761,28 @@ template<class ExecutionPolicy,
          class out_matrix_t>
 void hermitian_matrix_left_product(
   ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C` the product of
+  the matrices `A` and `B`.
+
+###### Overwriting Hermitian matrix-matrix right product [linalg.algs.blas3.hemm.ov.right]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
   in_matrix_1_t A,
   Triangle t,
   in_matrix_2_t B,
@@ -5772,27 +5800,15 @@ void hermitian_matrix_right_product(
   out_matrix_t C);
 ```
 
-* *Constraints:*
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
 
-  * For `hermitian_matrix_left_product`,
-    for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+* *Effects:* Assigns to the elements of the matrix `C` the product of
+  the matrices `B` and `A`.
 
-  * For `hermitian_matrix_right_product`,
-    for for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
-
-* *Effects:*
-
-  * `hermitian_matrix_left_product` assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`.
-
-  * `hermitian_matrix_right_product` assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`.
-
-###### Updating Hermitian matrix-matrix product
+###### Updating Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.up.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -5806,18 +5822,6 @@ void hermitian_matrix_left_product(
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
-template<class in_matrix_1_t,
-         class Triangle,
-         class in_matrix_2_t,
-         class in_matrix_3_t,
-         class out_matrix_t>
-void hermitian_matrix_right_product(
-  in_matrix_1_t A,
-  Triangle t,
-  in_matrix_2_t B,
-  in_matrix_3_t E,
-  out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -5826,6 +5830,30 @@ template<class ExecutionPolicy,
          class out_matrix_t>
 void hermitian_matrix_left_product(
   ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `A` and `B`.
+
+###### Updating Hermitian matrix-matrix right product [linalg.algs.blas3.hemm.up.right]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
   in_matrix_1_t A,
   Triangle t,
   in_matrix_2_t B,
@@ -5846,30 +5874,13 @@ void hermitian_matrix_right_product(
   out_matrix_t C);
 ```
 
-* *Constraints:*
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
 
-  * For `hermitian_matrix_left_product`,
-    for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
-
-  * For `hermitian_matrix_right_product`,
-    for for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
-
-* *Effects:*
-
-  * `hermitian_matrix_left_product` assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product
-    of the matrices `A` and `B`.
-
-  * `hermitian_matrix_right_product` assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product
-    of the matrices `B` and `A`.
-
-* *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
-  they must have the same layout.
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `B` and `A`.
 
 ##### Triangular matrix-matrix product [linalg.algs.blas3.trmm]
 
