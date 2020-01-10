@@ -4094,6 +4094,12 @@ void linalg_add(ExecutionPolicy&& exec,
 
 ###### Nonconjugated dot product of two vectors [linalg.algs.blas1.dot.dotu]
 
+*[Note:* The functions in this section correspond to the BLAS
+functions `xDOT` (for real element types) and `xDOTU` (for complex
+element types).  --*end note]*
+
+Nonconjugated dot product with specified result type
+
 ```c++
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -4110,10 +4116,6 @@ T dot(ExecutionPolicy&& exec,
       in_vector_2_t v2,
       T init);
 ```
-
-*[Note:* These functions correspond to the BLAS functions `xDOT` (for
-real element types) and `xDOTU` (for complex element types).
---*end note]*
 
 * *Requires:*
 
@@ -4152,7 +4154,7 @@ for specific `ExecutionPolicy` types. --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
-###### Nonconjugated dot product with default result type
+Nonconjugated dot product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -4173,6 +4175,18 @@ auto dot(ExecutionPolicy&& exec,
 
 ###### Conjugated dot product of two vectors [linalg.algs.blas1.dot.dotc]
 
+*[Note:*
+
+The functions in this section correspond to the BLAS functions `xDOT`
+(for real element types) and `xDOTC` (for complex element types).
+
+`dotc` exists to give users reasonable default inner product behavior
+for both real and complex element types.
+
+--*end note]*
+
+Conjugated dot product with specified result type
+
 ```c++
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -4190,22 +4204,12 @@ T dotc(ExecutionPolicy&& exec,
        T init);
 ```
 
-*[Note:*
-
-These functions correspond to the BLAS functions `xDOT` (for real
-element types) and `xDOTC` (for complex element types).
-
-`dotc` exists to give users reasonable default inner product behavior
-for both real and complex element types.
-
---*end note]*
-
 * *Effects:* The three-argument overload is equivalent to
   `dot(v1, conjugate_view(v2), init);`.
   The four-argument overload is equivalent to
   `dot(exec, v1, conjugate_view(v2), init);`.
 
-###### Conjugated dot product with default result type
+Conjugated dot product with default result type
 
 ```c++
 template<class in_vector_1_t,
