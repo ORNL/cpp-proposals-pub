@@ -1371,7 +1371,7 @@ Y88b  d88P Y88b 888 888  888 Y88..88P 888 d88P      X88 888      X88
 <p><br /> <b>22.7.� Header <code>&lt;mdspan&gt;</code> synopsis [mdspan.syn]</b></p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
 <span id="cb4-2"><a href="#cb4-2"></a>  <span class="co">// [mdspan.extents], class template extents</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> StaticExtents<span class="op">&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> Extents<span class="op">&gt;</span></span>
 <span id="cb4-4"><a href="#cb4-4"></a>    <span class="kw">class</span> extents;</span>
 <span id="cb4-5"><a href="#cb4-5"></a></span>
 <span id="cb4-6"><a href="#cb4-6"></a>  <span class="co">// [mdspan.layout], Layout mapping policies</span></span>
@@ -1454,12 +1454,17 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <span id="cb5-28"><a href="#cb5-28"></a>  <span class="kw">constexpr</span> index_type extent<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
 <span id="cb5-29"><a href="#cb5-29"></a></span>
 <span id="cb5-30"><a href="#cb5-30"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb5-31"><a href="#cb5-31"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> dynamic_rank<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb5-31"><a href="#cb5-31"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> dynamic_rank_index<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb5-32"><a href="#cb5-32"></a>  array<span class="op">&lt;</span>index_type, rank_dynamic<span class="op">()&gt;</span> dynamic_extents_; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb5-33"><a href="#cb5-33"></a><span class="op">}</span>;</span>
 <span id="cb5-34"><a href="#cb5-34"></a></span>
 <span id="cb5-35"><a href="#cb5-35"></a><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> dynamic_rank<span class="op">(</span><span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">noexcept</span>; <em>exposition only</em></span></code></pre></div>
+<p><b>26.7.�.2 General [mdspan.extents.general]</b></p>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span> Each element of the <code>Extents</code> pack equal to <code>dynamic_extent</code> denotes dimension with a <em>dynamic extent</em>. The program is ill-formed if <code>((Extents &gt;= 0) || (Extents == dynamic_extent) &amp;&amp; ...)</code> is <code>false</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> dynamic_rank_index<span class="op">(</span><span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
+<ul>
+<li><em>Returns</em>: If <code>i &lt;= sizeof...(Extents)</code> is <code>true</code>, returns the number of arguments before the <code>i</code><em>th</em> template parameter in the template parameter pack <code>Extents</code> equivalent to <code>dynamic_extent</code>. Otherwise, returns <code>rank_dynamic()</code>.</li>
+</ul>
 <p><strong>TODO</strong> move to layout</p>
 <ol start="4" type="1">
 <li>A <em>multidimensional index</em> is an element of a multidimensional index space. We may identify a pack of integer type <code>i...</code> with a multidimensional index in the multidimensional index space defined by an <code>extents</code> object <code>e</code>, as long as:
@@ -1473,21 +1478,8 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <!-- TODO review addition of compatible extents constructor -->
 <!-- TODO comparison operators -->
 <!-- TODO initializer list constructor? -->
-<ol start="5" type="1">
-<li>If <code>((StaticExtents &gt;= 0) || (StaticExtents == dynamic_extent) &amp;&amp; ...)</code> is <code>false</code>, then the program is ill-formed.</li>
-<li>Each element of the <code>StaticExtents</code> pack equal to <code>dynamic_extent</code> denotes a <em>dynamic extent</em>.</li>
+<ol start="6" type="1">
 <li>The exposition only <code>dynamic_extents_</code> member contains an element for each dynamic extent.</li>
-<li>Let <code>StaticExtent[r]</code> denote the <code>r</code>-th element of the <code>StaticExtents</code> pack. The exposition only <code>dynamic_rank</code> member function is defined as
-<pre highlight="c++">
-  static size_t dynamic_rank(size_t i) // exposition only
-  {
- size_t j = 0;
- for (size_t r = 0; r &lt; i; ++r)
-   if (StaticExtents[r] == dynamic_extent)
-     ++j;
- return j;
-  }
-</pre></li>
 </ol>
 <p><b>26.7.�.2 Constructors and assignment [mdspan.extents.cons]</b></p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">constexpr</span> extents<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
@@ -1505,11 +1497,11 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <ul>
 <li><em>Constraints:</em>
 <ul>
-<li><code>sizeof...(StaticExtents)</code> equals <code>sizeof...(OtherExtents)</code>; and</li>
+<li><code>sizeof...(Extents)</code> equals <code>sizeof...(OtherExtents)</code>; and</li>
 <li>For all <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) != dynamic_extent</code> and <code>other.static_extent(r) != dynamic_extent</code> are both <code>true</code>, <code>static_extent(r) == other.static_extent(r)</code> is <code>true</code>.</li>
 </ul></li>
 <li><em>Expects:</em> For all <code>r</code> in the range <code>[0, rank())</code>, <code>static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)</code> is <code>true</code>.</li>
-<li><em>Effects:</em> For each <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, initializes <code>dynamic_extent[dynamic_rank(r)]</code> with <code>other.extent(r)</code>.</li>
+<li><em>Effects:</em> For each <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, initializes <code>dynamic_extent[dynamic_rank_index(r)]</code> with <code>other.extent(r)</code>.</li>
 <li><em>Throws:</em> Nothing.</li>
 </ul>
 <p><br /></p>
@@ -1536,25 +1528,25 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <ul>
 <li><em>Constraints:</em>
 <ul>
-<li><code>sizeof...(StaticExtents)</code> equals <code>sizeof...(OtherExtents)</code>; and</li>
+<li><code>sizeof...(Extents)</code> equals <code>sizeof...(OtherExtents)</code>; and</li>
 <li>For all <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) != dynamic_extent</code> and <code>other.static_extent(r) != dynamic_extent</code> are both <code>true</code>, <code>static_extent(r) == other.static_extent(r)</code> is <code>true</code>.</li>
 </ul></li>
 <li><em>Expects:</em> For all <code>r</code> in the range <code>[0, rank())</code>, <code>static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)</code> is <code>true</code>.</li>
-<li><em>Effects:</em> For each <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, assigns <code>other.extent(r)</code> to <code>dynamic_extent[dynamic_rank(r)]</code>.</li>
+<li><em>Effects:</em> For each <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, assigns <code>other.extent(r)</code> to <code>dynamic_extent[dynamic_rank_index(r)]</code>.</li>
 </ul>
 <p><br /> <b>26.7.�.3 Observers of the domain multidimensional index space [mdspan.extents.obs]</b></p>
 <p><br /></p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> rank<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Returns:</em> <code>sizeof...(StaticExtents)</code>.</li>
+<li><em>Returns:</em> <code>sizeof...(Extents)</code>.</li>
 </ul>
 <p><br /></p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> rank_dynamic<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em>
 <ul>
-<li>If <code>(sizeof...(StaticExtents) == 0)</code> is <code>true</code>, then zero;</li>
-<li>Otherwise, <code>((StaticExtents == dynamic_extent) + ...)</code>.</li>
+<li>If <code>(sizeof...(Extents) == 0)</code> is <code>true</code>, then zero;</li>
+<li>Otherwise, <code>((Extents == dynamic_extent) + ...)</code>.</li>
 </ul></li>
 </ul>
 <p><br /></p>
@@ -1562,7 +1554,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <ul>
 <li><em>Returns:</em>
 <ul>
-<li>If <code>r</code> is in the range <code>[0, rank())</code>, then the <code>r</code>-th entry in the <code>StaticExtents</code> parameter pack;</li>
+<li>If <code>r</code> is in the range <code>[0, rank())</code>, then the <code>r</code>-th entry in the <code>Extents</code> parameter pack;</li>
 <li>Otherwise, 1.</li>
 </ul></li>
 </ul>
@@ -1571,7 +1563,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <ul>
 <li><em>Returns:</em>
 <ul>
-<li>If <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, then <code>dynamic_extents_[dynamic_rank(r)]</code>;</li>
+<li>If <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, then <code>dynamic_extents_[dynamic_rank_index(r)]</code>;</li>
 <li>Otherwise, <code>static_extent(r)</code>.</li>
 </ul></li>
 </ul>
