@@ -2091,46 +2091,96 @@ void hermitian_matrix_right_product(
 
 // [linalg.algs.blas3.trmm],
 // triangular matrix-matrix product
+
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_right_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_2_t B,
+  out_matrix_t C);
+
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
   out_matrix_t C);
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_right_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -2138,16 +2188,14 @@ template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_right_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -2200,32 +2248,54 @@ void hermitian_matrix_rank_2k_update(
 
 // [linalg.alg.blas3.trsm],
 // solve multiple triangular linear systems
+
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_object_t,
          class out_object_t>
-void triangular_matrix_matrix_solve(
+void triangular_matrix_matrix_left_solve(
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_object_t B,
   out_object_t X);
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_object_t B,
+  out_object_t X);
+
 template<class ExecutionPolicy,
          class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_t,
          class out_matrix_t>
-void triangular_matrix_matrix_solve(
+void triangular_matrix_matrix_left_solve(
   ExecutionPolicy&& exec,
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_matrix_t B,
+  out_matrix_t X);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_t B,
   out_matrix_t X);
 ```
@@ -5810,22 +5880,6 @@ The following requirements apply to all functions in this section.
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
-
-     * `A.extent(1)` equals `B.extent(0)`,
-
-     * `A.extent(0)` equals `C.extent(0)`, and
-
-     * `B.extent(1)` equals `C.extent(1)`.
-
-  * Otherwise, if `Side` is `right_side_t`, then
-
-     * `B.extent(1)` equals `A.extent(0)`,
-
-     * `B.extent(0)` equals `C.extent(0)`, and
-
-     * `A.extent(1)` equals `C.extent(1)`.
-
 * *Constraints:*
 
   * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
@@ -5852,34 +5906,6 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
-
-    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `B.static_extent(0)`;
-
-    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(0)` equals
-      `C.static_extent(0)`; and
-
-    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `C.static_extent(1)`.
-
-  * Otherwise, if `Side` is `right_side_t`, then
-
-    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `A.static_extent(0)`;
-
-    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(0)` equals
-      `C.static_extent(0)`; and
-
-    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `C.static_extent(1)`.
-
 * *Remarks:*
 
   * The functions will only access the triangle of `A` specified by
@@ -5892,20 +5918,79 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
+The following requirements apply to all overloads of
+`triangular_matrix_left_product`.
+
+* *Requires:*
+
+  * `A.extent(1)` equals `B.extent(0)`,
+
+  * `A.extent(0)` equals `C.extent(0)`, and
+
+  * `B.extent(1)` equals `C.extent(1)`.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `B.static_extent(0)`;
+
+  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(1)`.
+
+The following requirements apply to all overloads of
+`triangular_matrix_right_product`.
+
+* *Requires:*
+
+  * `B.extent(1)` equals `A.extent(0)`,
+
+  * `B.extent(0)` equals `C.extent(0)`, and
+
+  * `A.extent(1)` equals `C.extent(1)`.
+
+* *Mandates:*
+
+  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `A.static_extent(0)`;
+
+  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `C.static_extent(1)`.
+
 ###### Overwriting triangular matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
 
@@ -5913,35 +5998,48 @@ template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
 ```
 
 * *Constraints:*
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+  * For `triangular_matrix_left_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
     expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+  * For `triangular_matrix_left_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
     expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
 
 * *Effects:*
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
+  * `triangular_matrix_left_product` assigns to the elements of the
     matrix `C` the product of the matrices `A` and `B`.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
+  * `triangular_matrix_right_product` assigns to the elements of the
     matrix `C` the product of the matrices `B` and `A`.
 
 ###### Updating triangular matrix-matrix product
@@ -5950,15 +6048,26 @@ void triangular_matrix_product(
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -5967,16 +6076,29 @@ template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -5984,21 +6106,23 @@ void triangular_matrix_product(
 
 * *Constraints:*
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
+  * For `triangular_matrix_left_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
     expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
+  * For `triangular_matrix_right_product`,
+    for `i,j` in the domain of `C`,
     `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
     expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
 
 * *Effects:*
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
+  * `triangular_matrix_left_product` assigns to the elements of the
     matrix `C` on output, the elementwise sum of `E` and the product of
     the matrices `A` and `B`.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
+  * `triangular_matrix_right_product` assigns to the elements of the
     matrix `C` on output, the elementwise sum of `E` and the product of
     the matrices `B` and `A`.
 
@@ -6170,14 +6294,23 @@ void hermitian_matrix_rank_2k_update(
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_object_t,
          class out_object_t>
-void triangular_matrix_matrix_solve(
+void triangular_matrix_matrix_left_solve(
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_object_t B,
+  out_object_t X);
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_object_t B,
   out_object_t X);
 
@@ -6185,15 +6318,26 @@ template<class ExecutionPolicy,
          class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_t,
          class out_matrix_t>
-void triangular_matrix_matrix_solve(
+void triangular_matrix_matrix_left_solve(
   ExecutionPolicy&& exec,
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  in_matrix_t B,
+  out_matrix_t X);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_t B,
   out_matrix_t X);
 ```
@@ -6208,10 +6352,10 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
 
   * `A.extent(0)` equals `A.extent(1)`.
 
-  * If `Side` is `left_side_t`, then
+  * For `triangular_matrix_matrix_left_solve`,
     `A.extent(1)` equals `B.extent(0)`.
 
-  * Otherwise, if `Side` is `right_side_t`, then
+  * For `triangular_matrix_matrix_right_solve`,
     `A.extent(1)` equals `B.extent(1)`.
 
 * *Constraints:*
@@ -6226,13 +6370,13 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
   * If `r,j` is in the domain of `X` and `B`, then the expression
     `X(r,j) = B(r,j)` is well formed.
 
-  * If `Side` is `left_side_t`, and if `i,j` and `i,k` are in the
-    domain of `X`, then the expression `X(i,j) -= A(i,k) * X(k,j)` is
-    well formed.
+  * For `triangular_matrix_matrix_left_solve`,
+    if `i,j` and `i,k` are in the domain of `X`, then
+    the expression `X(i,j) -= A(i,k) * X(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, and if `i,j` and `i,k` are in the
-    domain of `X`, then the expression `X(i,j) -= X(i,k) * A(k,j)` is
-    well formed.
+  * For `triangular_matrix_matrix_right_solve`,
+    if `i,j` and `i,k` are in the domain of `X`, then
+    the expression `X(i,j) -= X(i,k) * A(k,j)` is well formed.
 
   * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
     domain of `X`, then the expression `X(i,j) /= A(i,i)` is well
@@ -6249,21 +6393,22 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
     `dynamic_extent`, then `A.static_extent(0)` equals
     `A.static_extent(1)`.
 
-  * If `Side` is `left_side_t`, then if neither `A.static_extent(1)`
-    nor `B.static_extent(0)` equals `dynamic_extent`, then
+  * For `triangular_matrix_matrix_left_solve`,
+    if neither `A.static_extent(1)` nor `B.static_extent(0)`
+    equals `dynamic_extent`, then
     `A.static_extent(1)` equals `B.static_extent(0)`.
 
-  * Otherwise, if `Side` is `right_side_t`, then if neither
-    `A.static_extent(1)` nor `B.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `B.static_extent(1)`.
+  * For `triangular_matrix_matrix_right_solve`,
+    if neither `A.static_extent(1)` nor `B.static_extent(1)`
+    equals `dynamic_extent`, then
+    `A.static_extent(1)` equals `B.static_extent(1)`.
 
 * *Effects:*
 
-  * If `Side` is `left_side_t`, then assigns to the elements of `X`
+  * `triangular_matrix_matrix_left_solve` assigns to the elements of `X`
     the result of solving the triangular linear system(s) AX=B for X.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of `X`
+  * `triangular_matrix_matrix_right_solve` assigns to the elements of `X`
     the result of solving the triangular linear system(s) XA=B for X.
 
 * *Remarks:*
