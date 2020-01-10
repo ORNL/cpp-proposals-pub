@@ -1272,46 +1272,9 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents,
-             layout_transpose<Layout>,
-             accessor_conjugate<Accessor>>
+/* see-below */
 conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               Layout,
-               Accessor> a);
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             Layout,
-             accessor_conjugate<Accessor>>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               layout_transpose<Layout>,
-               Accessor> a);
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             layout_transpose<Layout>,
-             Accessor>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               Layout,
-               accessor_conjugate<Accessor>> a);
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             Layout,
-             Accessor>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               layout_transpose<Layout>,
-               accessor_conjugate<Accessor>> a);
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.algs.blas1.givens.lartg], compute Givens rotation
 template<class Real>
@@ -3639,49 +3602,9 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents,
-             layout_transpose<Layout>,
-             accessor_conjugate<Accessor>>
+/* see-below */
 conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               Layout,
-               Accessor> a);
-
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             Layout,
-             accessor_conjugate<Accessor>>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               layout_transpose<Layout>,
-               Accessor> a);
-
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             layout_transpose<Layout>,
-             Accessor>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               Layout,
-               accessor_conjugate<Accessor>> a);
-
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             Layout,
-             Accessor>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               layout_transpose<Layout>,
-               accessor_conjugate<Accessor>> a);
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
