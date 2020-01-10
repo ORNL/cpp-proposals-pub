@@ -2267,6 +2267,9 @@ void hermitian_matrix_rank_2k_update(
 // [linalg.alg.blas3.trsm],
 // solve multiple triangular linear systems
 
+// [linalg.alg.blas3.trsm.left],
+// solve multiple triangular linear systems
+// with triangular matrix on the left
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -2278,18 +2281,6 @@ void triangular_matrix_matrix_left_solve(
   DiagonalStorage d,
   in_object_t B,
   out_object_t X);
-template<class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_matrix_right_solve(
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_object_t B,
-  out_object_t X);
-
 template<class ExecutionPolicy,
          class in_matrix_t,
          class Triangle,
@@ -2303,6 +2294,21 @@ void triangular_matrix_matrix_left_solve(
   DiagonalStorage d,
   in_matrix_t B,
   out_matrix_t X);
+
+// [linalg.alg.blas3.trsm.right],
+// solve multiple triangular linear systems
+// with triangular matrix on the right
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_object_t B,
+  out_object_t X);
 template<class ExecutionPolicy,
          class in_matrix_t,
          class Triangle,
@@ -6313,60 +6319,10 @@ void hermitian_matrix_rank_2k_update(
 
 ##### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
-```c++
-template<class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_matrix_left_solve(
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_object_t B,
-  out_object_t X);
-template<class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_matrix_right_solve(
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_object_t B,
-  out_object_t X);
-
-template<class ExecutionPolicy,
-         class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_matrix_t,
-         class out_matrix_t>
-void triangular_matrix_matrix_left_solve(
-  ExecutionPolicy&& exec,
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_matrix_t B,
-  out_matrix_t X);
-template<class ExecutionPolicy,
-         class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_matrix_t,
-         class out_matrix_t>
-void triangular_matrix_matrix_right_solve(
-  ExecutionPolicy&& exec,
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_matrix_t B,
-  out_matrix_t X);
-```
-
 *[Note:* These functions correspond to the BLAS function `xTRSM`.  The
 Reference BLAS does not have a `xTPSM` function. --*end note]*
+
+The following requirements apply to all functions in this section.
 
 * *Requires:*
 
@@ -6374,12 +6330,6 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
     `X.extent(r)` equals `B.extent(r)`.
 
   * `A.extent(0)` equals `A.extent(1)`.
-
-  * For `triangular_matrix_matrix_left_solve`,
-    `A.extent(1)` equals `B.extent(0)`.
-
-  * For `triangular_matrix_matrix_right_solve`,
-    `A.extent(1)` equals `B.extent(1)`.
 
 * *Constraints:*
 
@@ -6392,14 +6342,6 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
 
   * If `r,j` is in the domain of `X` and `B`, then the expression
     `X(r,j) = B(r,j)` is well formed.
-
-  * For `triangular_matrix_matrix_left_solve`,
-    if `i,j` and `i,k` are in the domain of `X`, then
-    the expression `X(i,j) -= A(i,k) * X(k,j)` is well formed.
-
-  * For `triangular_matrix_matrix_right_solve`,
-    if `i,j` and `i,k` are in the domain of `X`, then
-    the expression `X(i,j) -= X(i,k) * A(k,j)` is well formed.
 
   * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
     domain of `X`, then the expression `X(i,j) /= A(i,i)` is well
@@ -6416,24 +6358,6 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
     `dynamic_extent`, then `A.static_extent(0)` equals
     `A.static_extent(1)`.
 
-  * For `triangular_matrix_matrix_left_solve`,
-    if neither `A.static_extent(1)` nor `B.static_extent(0)`
-    equals `dynamic_extent`, then
-    `A.static_extent(1)` equals `B.static_extent(0)`.
-
-  * For `triangular_matrix_matrix_right_solve`,
-    if neither `A.static_extent(1)` nor `B.static_extent(1)`
-    equals `dynamic_extent`, then
-    `A.static_extent(1)` equals `B.static_extent(1)`.
-
-* *Effects:*
-
-  * `triangular_matrix_matrix_left_solve` assigns to the elements of `X`
-    the result of solving the triangular linear system(s) AX=B for X.
-
-  * `triangular_matrix_matrix_right_solve` assigns to the elements of `X`
-    the result of solving the triangular linear system(s) XA=B for X.
-
 * *Remarks:*
 
   * The functions will only access the triangle of `A` specified by
@@ -6445,3 +6369,85 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
     of `A` all equal one. *[Note:* This does not imply that the
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
+
+###### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_object_t B,
+  out_object_t X);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_t B,
+  out_matrix_t X);
+```
+
+* *Requires:* `A.extent(1)` equals `B.extent(0)`.
+
+* *Constraints:* If `i,j` and `i,k` are in the domain of `X`, then
+  the expression `X(i,j) -= A(i,k) * X(k,j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(0)`
+  equals `dynamic_extent`, then
+  `A.static_extent(1)` equals `B.static_extent(0)`.
+
+* *Effects:* Assigns to the elements of `X`
+  the result of solving the triangular linear system(s) AX=B for X.
+
+###### Solve multiple triangular linear systems with triangular matrix on the right [linalg.alg.blas3.trsm.right]
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_object_t,
+         class out_object_t>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_object_t B,
+  out_object_t X);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_t B,
+  out_matrix_t X);
+```
+
+* *Requires:* `A.extent(1)` equals `B.extent(1)`.
+
+* *Constraints:* If `i,j` and `i,k` are in the domain of `X`, then
+  the expression `X(i,j) -= X(i,k) * A(k,j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(1)`
+  equals `dynamic_extent`, then
+  `A.static_extent(1)` equals `B.static_extent(1)`.
+
+* *Effects:* Assigns to the elements of `X`
+  the result of solving the triangular linear system(s) XA=B for X.
