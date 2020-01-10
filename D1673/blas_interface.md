@@ -2102,6 +2102,8 @@ void hermitian_matrix_right_product(
 // [linalg.algs.blas3.trmm],
 // triangular matrix-matrix product
 
+// [linalg.algs.blas3.trmm.ov.left],
+// overwriting triangular matrix-matrix left product
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
@@ -2113,18 +2115,6 @@ void triangular_matrix_left_product(
   DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
-template<class in_matrix_1_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void triangular_matrix_right_product(
-  in_matrix_1_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_matrix_2_t B,
-  out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -2138,6 +2128,20 @@ void triangular_matrix_left_product(
   DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
+
+// [linalg.algs.blas3.trmm.ov.right],
+// overwriting triangular matrix-matrix right product
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -2152,6 +2156,8 @@ void triangular_matrix_right_product(
   in_matrix_2_t B,
   out_matrix_t C);
 
+// [linalg.algs.blas3.trmm.up.left],
+// updating triangular matrix-matrix left product
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
@@ -2165,20 +2171,6 @@ void triangular_matrix_left_product(
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
-template<class in_matrix_1_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_matrix_2_t,
-         class in_matrix_3_t,
-         class out_matrix_t>
-void triangular_matrix_right_product(
-  in_matrix_1_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_matrix_2_t B,
-  in_matrix_3_t E,
-  out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -2188,6 +2180,22 @@ template<class ExecutionPolicy,
          class out_matrix_t>
 void triangular_matrix_left_product(
   ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.trmm.up.right],
+// updating triangular matrix-matrix right product
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
@@ -5935,6 +5943,9 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
+  * `C` and `E` (if applicable) may refer to the same matrix.
+    If so, then they must have the same layout.
+
 The following requirements apply to all overloads of
 `triangular_matrix_left_product`.
 
@@ -5985,7 +5996,7 @@ The following requirements apply to all overloads of
     `dynamic_extent`, then `A.static_extent(1)` equals
     `C.static_extent(1)`.
 
-###### Overwriting triangular matrix-matrix product
+###### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -5999,18 +6010,6 @@ void triangular_matrix_left_product(
   DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
-template<class in_matrix_1_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void triangular_matrix_right_product(
-  in_matrix_1_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_matrix_2_t B,
-  out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -6019,6 +6018,30 @@ template<class ExecutionPolicy,
          class out_matrix_t>
 void triangular_matrix_left_product(
   ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C`
+  the product of the matrices `A` and `B`.
+
+###### Overwriting triangular matrix-matrix right product [linalg.algs.blas3.trmm.ov.right]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
@@ -6039,27 +6062,15 @@ void triangular_matrix_right_product(
   out_matrix_t C);
 ```
 
-* *Constraints:*
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
 
-  * For `triangular_matrix_left_product`,
-    for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+* *Effects:* Assigns to the elements of the matrix `C`
+  the product of the matrices `B` and `A`.
 
-  * For `triangular_matrix_left_product`,
-    for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
-
-* *Effects:*
-
-  * `triangular_matrix_left_product` assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`.
-
-  * `triangular_matrix_right_product` assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`.
-
-###### Updating triangular matrix-matrix product
+###### Updating triangular matrix-matrix left product [linalg.algs.blas3.trmm.up.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -6075,20 +6086,6 @@ void triangular_matrix_left_product(
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
-template<class in_matrix_1_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_matrix_2_t,
-         class in_matrix_3_t,
-         class out_matrix_t>
-void triangular_matrix_right_product(
-  in_matrix_1_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_matrix_2_t B,
-  in_matrix_3_t E,
-  out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
@@ -6098,6 +6095,32 @@ template<class ExecutionPolicy,
          class out_matrix_t>
 void triangular_matrix_left_product(
   ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `A` and `B`.
+
+###### Updating triangular matrix-matrix right product [linalg.algs.blas3.trmm.up.right]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
@@ -6121,30 +6144,13 @@ void triangular_matrix_right_product(
   out_matrix_t C);
 ```
 
-* *Constraints:*
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
 
-  * For `triangular_matrix_left_product`,
-    for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
-
-  * For `triangular_matrix_right_product`,
-    for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
-
-* *Effects:*
-
-  * `triangular_matrix_left_product` assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `A` and `B`.
-
-  * `triangular_matrix_right_product` assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `B` and `A`.
-
-* *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
-  they must have the same layout.
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `B` and `A`.
 
 ##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
