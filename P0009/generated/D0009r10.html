@@ -1408,6 +1408,14 @@ Y88b  d88P Y88b 888 888  888 Y88..88P 888 d88P      X88 888      X88
 <span id="cb4-38"><a href="#cb4-38"></a>  <span class="kw">struct</span> all_type <span class="op">{</span> <span class="kw">explicit</span> all_type<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>; <span class="op">}</span>;</span>
 <span id="cb4-39"><a href="#cb4-39"></a>  <span class="kw">inline</span> <span class="kw">constexpr</span> all_type all <span class="op">=</span> all_type<span class="op">{}</span>;</span>
 <span id="cb4-40"><a href="#cb4-40"></a><span class="op">}</span></span></code></pre></div>
+<p><b>22.7.� Overview [mdspan.overview]</b></p>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span> A <em>multidimensional index space</em> is a Cartesian product of integer intervals. Each interval can be represented by a half-open range <span class="math inline">[<em>I</em><sub><em>b</em></sub>, <em>I</em><sub><em>e</em></sub>)</span>, where <span class="math inline"><em>I</em><sub><em>b</em></sub></span> and <span class="math inline"><em>I</em><sub><em>e</em></sub></span> are the lower and upper bounds of the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> dimension. The <em>rank</em> of a multidimensional index space is the number of intervals it represents.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span> A <em>multidimensional index</em> is an element within the a multidimensional index space and can be represented as a pack of integer types <code>idx...</code>. <code>idx...</code> refers to an element within the domain of a multidimensional index space if both the following are true:</p>
+<ul>
+<li><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> <code>sizeof...(idx)</code> is equal to rank, and</li>
+<li><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> For all <span class="math inline"><em>i</em></span> in the range <span class="math inline">0 ≤ <em>i</em> &lt; <em>r</em><em>a</em><em>n</em><em>k</em></span>, the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> value of <code>idx</code> is in the range <span class="math inline">[<em>I</em><sub><em>b</em></sub>, <em>I</em><sub><em>e</em></sub>)</span>.</li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span> For the following subsections, let <span class="math inline"><em>r</em></span> be a value in the range <span class="math inline">[0, <em>r</em><em>a</em><em>n</em><em>k</em>)</span>.</p>
 <!--
                   888                     888
                   888                     888
@@ -1421,8 +1429,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 
 -->
 <p><b>22.7.� Class template <code>extents</code> [mdspan.extents]</b></p>
-<p><b>26.7.�.1 Overview [mdspan.extents.overview]</b></p>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span> The class template <code>extents</code> defines a <em>multidimensional index space</em>, a Cartesian product of integer intervals. Each dimension, or extent, in <code>extents</code> can be represented by a half-open interval <span class="math inline">[0, <em>S</em><sub><em>i</em></sub>)</span>, where <span class="math inline"><em>S</em><sub><em>i</em></sub></span> is the upper bound for the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> dimension. The <em>rank</em> of an <code>extents</code> is the number of intervals it represents.</p>
+<p><b>26.7.�.1 Overview [mdspan.extents.syn]</b></p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a></span>
 <span id="cb5-3"><a href="#cb5-3"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> Extents<span class="op">&gt;</span></span>
@@ -1433,41 +1440,37 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <span id="cb5-8"><a href="#cb5-8"></a>  <span class="co">// [mdspan.extents.cons], Constructors and assignment</span></span>
 <span id="cb5-9"><a href="#cb5-9"></a>  <span class="kw">constexpr</span> extents<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb5-10"><a href="#cb5-10"></a>  <span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> extents<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb5-11"><a href="#cb5-11"></a></span>
-<span id="cb5-12"><a href="#cb5-12"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> IndexType<span class="op">&gt;</span></span>
-<span id="cb5-13"><a href="#cb5-13"></a>    <span class="kw">constexpr</span> extents<span class="op">(</span>IndexType<span class="op">...)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb5-14"><a href="#cb5-14"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType<span class="op">&gt;</span></span>
-<span id="cb5-15"><a href="#cb5-15"></a>    <span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> array<span class="op">&lt;</span>IndexType, rank_dynamic<span class="op">()&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb5-16"><a href="#cb5-16"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb5-17"><a href="#cb5-17"></a>    <span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> extents<span class="op">&lt;</span>OtherExtents<span class="op">...&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb5-18"><a href="#cb5-18"></a></span>
-<span id="cb5-19"><a href="#cb5-19"></a>  <span class="kw">constexpr</span> extents<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> extents<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb5-20"><a href="#cb5-20"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb5-21"><a href="#cb5-21"></a>    <span class="kw">constexpr</span> extents<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> extents<span class="op">&lt;</span>OtherExtents<span class="op">...&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb5-22"><a href="#cb5-22"></a></span>
-<span id="cb5-23"><a href="#cb5-23"></a>  <span class="co">// [mdspan.extents.obs], Observers of the domain multidimensional index space</span></span>
-<span id="cb5-24"><a href="#cb5-24"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> rank<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">sizeof</span><span class="op">...(</span>Extents<span class="op">)</span>; <span class="op">}</span></span>
-<span id="cb5-25"><a href="#cb5-25"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> rank_dynamic<span class="op">()</span> <span class="kw">noexcept</span> </span>
-<span id="cb5-26"><a href="#cb5-26"></a>    <span class="op">{</span> <span class="cf">return</span> <span class="op">(</span><span class="dt">size_t</span><span class="op">(</span>Extents <span class="op">==</span> dynamic_extent<span class="op">)</span> <span class="op">+</span> <span class="op">...)</span>; <span class="op">}</span></span>
-<span id="cb5-27"><a href="#cb5-27"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> index_type static_extent<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">noexcept</span></span>
-<span id="cb5-28"><a href="#cb5-28"></a>    <span class="op">{</span> <span class="cf">return</span> rank<span class="op">()</span> <span class="op">-</span> rank_dynamic<span class="op">()</span>; <span class="op">}</span> </span>
-<span id="cb5-29"><a href="#cb5-29"></a>  <span class="kw">constexpr</span> index_type extent<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb5-30"><a href="#cb5-30"></a></span>
-<span id="cb5-31"><a href="#cb5-31"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb5-32"><a href="#cb5-32"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> dynamic_index<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
-<span id="cb5-33"><a href="#cb5-33"></a>  array<span class="op">&lt;</span>index_type, rank_dynamic<span class="op">()&gt;</span> dynamic_extents_<span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
-<span id="cb5-34"><a href="#cb5-34"></a><span class="op">}</span>;</span>
-<span id="cb5-35"><a href="#cb5-35"></a></span>
-<span id="cb5-36"><a href="#cb5-36"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb5-11"><a href="#cb5-11"></a>  <span class="kw">constexpr</span> extents<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> extents<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb5-12"><a href="#cb5-12"></a></span>
+<span id="cb5-13"><a href="#cb5-13"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> IndexType<span class="op">&gt;</span></span>
+<span id="cb5-14"><a href="#cb5-14"></a>    <span class="kw">constexpr</span> extents<span class="op">(</span>IndexType<span class="op">...)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb5-15"><a href="#cb5-15"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType<span class="op">&gt;</span></span>
+<span id="cb5-16"><a href="#cb5-16"></a>    <span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> array<span class="op">&lt;</span>IndexType, rank_dynamic<span class="op">()&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb5-17"><a href="#cb5-17"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb5-18"><a href="#cb5-18"></a>    <span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> extents<span class="op">&lt;</span>OtherExtents<span class="op">...&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb5-19"><a href="#cb5-19"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb5-20"><a href="#cb5-20"></a>    <span class="kw">constexpr</span> extents<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> extents<span class="op">&lt;</span>OtherExtents<span class="op">...&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb5-21"><a href="#cb5-21"></a></span>
+<span id="cb5-22"><a href="#cb5-22"></a>  <span class="co">// [mdspan.extents.obs], Observers of the domain multidimensional index space</span></span>
+<span id="cb5-23"><a href="#cb5-23"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> rank<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">sizeof</span><span class="op">...(</span>Extents<span class="op">)</span>; <span class="op">}</span></span>
+<span id="cb5-24"><a href="#cb5-24"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> rank_dynamic<span class="op">()</span> <span class="kw">noexcept</span> </span>
+<span id="cb5-25"><a href="#cb5-25"></a>    <span class="op">{</span> <span class="cf">return</span> <span class="op">(</span><span class="dt">size_t</span><span class="op">(</span>Extents <span class="op">==</span> dynamic_extent<span class="op">)</span> <span class="op">+</span> <span class="op">...)</span>; <span class="op">}</span></span>
+<span id="cb5-26"><a href="#cb5-26"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> index_type static_extent<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">noexcept</span></span>
+<span id="cb5-27"><a href="#cb5-27"></a>    <span class="op">{</span> <span class="cf">return</span> rank<span class="op">()</span> <span class="op">-</span> rank_dynamic<span class="op">()</span>; <span class="op">}</span> </span>
+<span id="cb5-28"><a href="#cb5-28"></a>  <span class="kw">constexpr</span> index_type extent<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb5-29"><a href="#cb5-29"></a></span>
+<span id="cb5-30"><a href="#cb5-30"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb5-31"><a href="#cb5-31"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> dynamic_index<span class="op">(</span><span class="dt">size_t</span><span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb5-32"><a href="#cb5-32"></a>  array<span class="op">&lt;</span>index_type, rank_dynamic<span class="op">()&gt;</span> dynamic_extents_<span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb5-33"><a href="#cb5-33"></a><span class="op">}</span>;</span>
+<span id="cb5-34"><a href="#cb5-34"></a></span>
+<span id="cb5-35"><a href="#cb5-35"></a><span class="op">}</span></span></code></pre></div>
 <p><b>26.7.�.2 General [mdspan.extents.general]</b></p>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span> For all <span class="math inline"><em>i</em></span> in the range <span class="math inline">0 ≤ <em>i</em> &lt; <em>r</em><em>a</em><em>n</em><em>k</em></span> let <span class="math inline"><em>E</em><sub><em>i</em></sub></span> be the value of the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> parameter in the template parameter pack <code>Extents</code>. Each <span class="math inline"><em>E</em><sub><em>i</em></sub></span> shall either be a non-negative integer or <code>dynamic_extent</code>, otherwise, the program is ill-formed.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span> If <span class="math inline"><em>E</em><sub><em>i</em></sub></span> is equal to <code>dynamic_extent</code> it is a <em>dynamic extent</em>, otherwise it is a <em>static extent</em>. For each <span class="math inline"><em>E</em><sub><em>i</em></sub></span> equivalent to <code>dynamic_extent</code>,<br />
-the upper bound of the interval is stored in the exposition only arry <code>dynamic_extents_</code> at <code>dynamic_extents_[dynamic_index(@_i_@)]</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span> A <em>multidimensional index</em> is an element within the a multidimensional index space and can be represented as a pack of integer types <code>idx...</code>. The pack <code>idx...</code> refers to an element within the domain of an <code>extents</code> <code>e</code> if both the following are true:</p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> <code>sizeof...(idx)</code> is equal to <code>e.rank()</code>, and</li>
-<li><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> For all <span class="math inline"><em>i</em></span> in the range <span class="math inline">0 ≤ <em>i</em> &lt; <em>r</em><em>a</em><em>n</em><em>k</em></span>, the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> value of <code>idx</code> is greater than or equal to <span class="math inline">0</span> and is less than <code>e.extent(i)</code>.</li>
-</ul>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span> The class template <code>extents</code> represents a multidimensional index space of of rank equal to <code>sizeof...(Extents)</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>For all <span class="math inline"><em>r</em></span>, let <span class="math inline"><em>E</em><sub><em>r</em></sub></span> be the value of the <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span> parameter in the template parameter pack <code>Extents</code>. Each <span class="math inline"><em>E</em><sub><em>r</em></sub></span> shall either be a non-negative integer or <code>dynamic_extent</code>, otherwise, the program is ill-formed.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span> If <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is equal to <code>dynamic_extent</code> it is a <em>dynamic extent</em>, otherwise it is a <em>static extent</em>. For each <span class="math inline"><em>E</em><sub><em>r</em></sub></span> equivalent to <code>dynamic_extent</code>,<br />
+the upper bound of the interval is stored in the exposition only array <code>dynamic_extents_</code> at <code>dynamic_extents_[dynamic_index(</code><em>r</em><code>)]</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span> The <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span> interval of the multidimensional index space represented by an <code>extents</code> is <span class="math inline">[0, <em>E</em><sub><em>r</em></sub>)</span> if <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a static extent or <code>[0, dynamic_extents_[dynamic_intex(</code><em>r</em><code>)])</code>.</p>
 <hr />
 <div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> dynamic_index<span class="op">(</span><span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <ul>
@@ -1479,10 +1482,11 @@ the upper bound of the interval is stored in the exposition only arry <code>dyna
 <ul>
 <li><em>Constraints:</em>
 <ul>
-<li><code>sizeof...(Extents)</code> equals <code>sizeof...(OtherExtents)</code>; and</li>
-<li>For all <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) != dynamic_extent</code> and <code>other.static_extent(r) != dynamic_extent</code> are both <code>true</code>, <code>static_extent(r) == other.static_extent(r)</code> is <code>true</code>.</li>
+<li><code>sizeof...(Extents)</code> equals <code>sizeof...(OtherExtents)</code>.</li>
+<li>For all <code>r</code> where <code>static_extent(r) != dynamic_extent</code> and <code>other.static_extent(r) != dynamic_extent</code> are both <code>true</code>, then <code>static_extent(r) == other.static_extent(r)</code> is <code>true</code>.</li>
 </ul></li>
-<li><em>Expects:</em> For all <code>r</code> in the range <code>[0, rank())</code>, <code>static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)</code> is <code>true</code>.</li>
+<li><em>Expects:</em> For all <code>r</code><br />
+<code>static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)</code> is <code>true</code>.</li>
 <li><em>Effects:</em> For each <code>r</code> in the range <code>[0, rank())</code> where <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, initializes <code>dynamic_extent[dynamic_index(r)]</code> with <code>other.extent(r)</code>.</li>
 <li><em>Throws:</em> Nothing.</li>
 </ul>
