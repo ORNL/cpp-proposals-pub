@@ -1214,12 +1214,6 @@ inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal;
 struct explicit_diagonal_t;
 inline constexpr explicit_diagonal_t explicit_diagonal;
 
-// [linalg.tags.side], side tags
-struct left_side_t;
-inline constexpr left_side_t left_side;
-struct right_side_t { };
-inline constexpr right_side_t right_side;
-
 // [linalg.layouts.general], class template layout_blas_general
 template<class StorageOrder>
 class layout_blas_general;
