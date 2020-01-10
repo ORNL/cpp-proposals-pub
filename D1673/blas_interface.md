@@ -3256,6 +3256,8 @@ where
   * else, equivalent to
     `return R(a.data(), a.mapping(), a.accessor());`.
 
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+
 *[Note:*
 
 The point of `ReturnAccessor` is to give implementations freedom to
