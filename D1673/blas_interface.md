@@ -1262,17 +1262,9 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, transpose_extents_t<Extents>,
-             layout_transpose<Layout>, Accessor>
+/* see-below */
 transpose_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<EltType, Extents, Layout, Accessor>
-transpose_view(basic_mdspan<EltType, Extents,
-               layout_transpose<Layout>, Accessor> a);
 
 // [linalg.conj_transp],
 // conjugated transposed in-place transformation
@@ -3243,7 +3235,10 @@ where
        for some `NestedAccessor`, then
        either `NestedAccessor` or `accessor_conjugate<Accessor>`,
 
-     * else `Accessor`.
+     * else if `ElementType` is `complex<U>` or `const complex<U>` for
+       some `U`, then `accessor_conjugate<Accessor>`,
+
+     * else either `accessor_conjugate<Accessor>` or `Accessor`.
 
 * *Effects:*
 
@@ -3565,44 +3560,37 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, transpose_extents_t<Extents>,
-             layout_transpose<Layout>, Accessor>
+/* see-below */
 transpose_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
-* *Effects:* Equivalent to
+Let `ReturnExtents` name the type `transpose_extents_t<Extents>`.
+Let `R` name the type
+`basic_mdspan<ReturnElementType, ReturnExtents, ReturnLayout, Accessor>`,
+where
 
-```c++
-return basic_mdspan<ElementType,
-                    transpose_extents_t<Extents>,
-                    layout_transpose<Layout>,
-                    Accessor>(
-  a.data(),
-  typename layout_transpose<Layout>::
-    template mapping<transpose_extents_t<Extents>>(
-      a.mapping());
-  a.accessor());
-```
+  * `ReturnElementType` is either `ElementType` or
+    `const ElementType`; and
 
-* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+  * `ReturnLayout` is:
 
-```c++
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<EltType, Extents, Layout, Accessor>
-transpose_view(basic_mdspan<EltType, Extents,
-               layout_transpose<Layout>, Accessor> a);
-```
+     * if `Layout` is `layout_transpose<NestedLayout>`
+       for some `NestedLayout`, then
+       either `NestedLayout` or `layout_transpose<Layout>`,
 
-* *Effects:* Equivalent to
+     * else `layout_transpose<Layout>`.
 
-```c++
-return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
-  a.mapping().nested_mapping(), a.accessor());
-```
+* *Effects:*
+
+  * If `Layout` is `layout_transpose<NestedLayout>` and
+    `ReturnLayout` is `NestedLayout`, then equivalent to
+    `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
+
+  * else, equivalent to
+    `return R(a.data(), ReturnMapping(a.mapping()), a.accessor);`,
+    where `ReturnMapping` names the type
+    `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
 
 * *Remarks:* The elements of the returned `basic_mdspan` are read only.
 
