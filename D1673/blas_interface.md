@@ -1531,7 +1531,7 @@ template<class ExecutionPolicy,
 ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
                       in_vector_t v);
 
-// [linalg.algs.blas2.general-matvec],
+// [linalg.algs.blas2.gemv],
 // general matrix-vector product
 template<class in_vector_t,
          class in_matrix_t,
@@ -1566,7 +1566,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
                            in_vector_2_t y,
                            out_vector_t z);
 
-// [linalg.algs.blas2.symm-matvec],
+// [linalg.algs.blas2.symv],
 // symmetric matrix-vector product
 template<class in_matrix_t,
          class Triangle,
@@ -1612,7 +1612,7 @@ void symmetric_matrix_vector_product(
   in_vector_2_t y,
   out_vector_t z);
 
-// [linalg.algs.blas2.herm-matvec],
+// [linalg.algs.blas2.hemv],
 // Hermitian matrix-vector product
 template<class in_matrix_t,
          class Triangle,
@@ -1656,7 +1656,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
                                      in_vector_2_t y,
                                      out_vector_t z);
 
-// [linalg.algs.blas2.tri-matvec],
+// [linalg.algs.blas2.trmv],
 // Triangular matrix-vector product
 template<class in_matrix_t,
          class Triangle,
@@ -4358,7 +4358,7 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
 
 #### BLAS 2 functions [linalg.algs.blas2]
 
-##### General matrix-vector product [linalg.algs.blas2.general-matvec]
+##### General matrix-vector product [linalg.algs.blas2.gemv]
 
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
@@ -4482,7 +4482,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-##### Symmetric matrix-vector product [linalg.algs.blas2.symm-matvec],
+##### Symmetric matrix-vector product [linalg.algs.blas2.symv]
 
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
@@ -4599,7 +4599,7 @@ void symmetric_matrix_vector_product(
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-##### Hermitian matrix-vector product [linalg.algs.blas2.herm-matvec],
+##### Hermitian matrix-vector product [linalg.algs.blas2.hemv]
 
 *[Note:* These functions correspond to the BLAS functions `xHEMV` and
 `xHPMV`. --*end note]*
@@ -4717,7 +4717,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-##### Triangular matrix-vector product [linalg.algs.blas2.tri-matvec]
+##### Triangular matrix-vector product [linalg.algs.blas2.trmv]
 
 *[Note:* These functions correspond to the BLAS functions `xTRMV` and
 `xTPMV`. --*end note]*
