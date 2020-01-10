@@ -2218,7 +2218,7 @@ void triangular_matrix_right_product(
   in_matrix_3_t E,
   out_matrix_t C);
 
-// [linalg.alg.blas3.rank2k.symm],
+// [linalg.alg.blas3.syr2k],
 // rank-2k symmetric matrix update
 template<class in_matrix_1_t,
          class in_matrix_2_t,
@@ -2241,7 +2241,7 @@ void symmetric_matrix_rank_2k_update(
   inout_matrix_t C,
   Triangle t);
 
-// [linalg.alg.blas3.rank2k.herm],
+// [linalg.alg.blas3.her2k],
 // rank-2k Hermitian matrix update
 template<class in_matrix_1_t,
          class in_matrix_2_t,
@@ -6164,7 +6164,7 @@ void triangular_matrix_right_product(
 BLAS functions, by making `C` a `transpose_view` or
 `conjugate_transpose_view`. --*end note]*
 
-###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.symm]
+###### Rank-2k symmetric matrix update [linalg.alg.blas3.syr2k]
 
 ```c++
 template<class in_matrix_1_t,
@@ -6240,7 +6240,7 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-###### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.herm]
+###### Rank-2k Hermitian matrix update [linalg.alg.blas3.her2k]
 
 ```c++
 template<class in_matrix_1_t,
