@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2020-01-10" />
+  <meta name="dcterms.date" content="2020-01-11" />
   <title>MDSPAN</title>
   <style>
       code{white-space: pre-wrap;}
@@ -423,7 +423,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2020-01-10</td>
+    <td>2020-01-11</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1413,8 +1413,8 @@ Y88b  d88P Y88b 888 888  888 Y88..88P 888 d88P      X88 888      X88
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span> A <em>multidimensional index space</em> is a Cartesian product of integer intervals. Each interval can be represented by a half-open range <span class="math inline">[<em>I</em><sub><em>b</em></sub>, <em>I</em><sub><em>e</em></sub>)</span>, where <span class="math inline"><em>I</em><sub><em>b</em></sub></span> and <span class="math inline"><em>I</em><sub><em>e</em></sub></span> are the lower and upper bounds of the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> dimension. The <em>rank</em> of a multidimensional index space is the number of intervals it represents.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span> A <em>multidimensional index</em> is an element within the a multidimensional index space and can be represented as a pack of integer types <code>idx...</code>. <code>idx...</code> refers to an element within the domain of a multidimensional index space if both the following are true:</p>
 <ul>
-<li><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> <code>sizeof...(idx)</code> is equal to rank, and</li>
-<li><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> For all <span class="math inline"><em>i</em></span> in the range <span class="math inline">0 ≤ <em>i</em> &lt; <em>r</em><em>a</em><em>n</em><em>k</em></span>, the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> value of <code>idx</code> is in the range <span class="math inline">[<em>I</em><sub><em>b</em></sub>, <em>I</em><sub><em>e</em></sub>)</span>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> <code>sizeof...(idx)</code> is equal to rank, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> For all <span class="math inline"><em>i</em></span> in the range <span class="math inline">0 ≤ <em>i</em> &lt; <em>r</em><em>a</em><em>n</em><em>k</em></span>, the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> value of <code>idx</code> is in the range <span class="math inline">[<em>I</em><sub><em>b</em></sub>, <em>I</em><sub><em>e</em></sub>)</span>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span> For the following subsections, let <span class="math inline"><em>r</em></span> be a value in the range <span class="math inline">[0, <em>r</em><em>a</em><em>n</em><em>k</em>)</span>.</p>
 <!--
@@ -1430,7 +1430,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 
 -->
 <p><b>22.7.� Class template <code>extents</code> [mdspan.extents]</b></p>
-<p><b>26.7.�.1 Overview [mdspan.extents.syn]</b></p>
+<p><b>22.7.�.1 Overview [mdspan.extents.syn]</b></p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
 <span id="cb5-2"><a href="#cb5-2"></a></span>
 <span id="cb5-3"><a href="#cb5-3"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> Extents<span class="op">&gt;</span></span>
@@ -1466,7 +1466,7 @@ Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
 <span id="cb5-33"><a href="#cb5-33"></a><span class="op">}</span>;</span>
 <span id="cb5-34"><a href="#cb5-34"></a></span>
 <span id="cb5-35"><a href="#cb5-35"></a><span class="op">}</span></span></code></pre></div>
-<p><b>26.7.�.2 Overview [mdspan.extents.overview]</b></p>
+<p><b>22.7.�.2 Overview [mdspan.extents.overview]</b></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span> The class template <code>extents</code> represents a multidimensional index space of of rank equal to <code>sizeof...(Extents)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span> For all <span class="math inline"><em>r</em></span>, let <span class="math inline"><em>E</em><sub><em>r</em></sub></span> be the value of the <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span> parameter in the template parameter pack <code>Extents</code>. Each <span class="math inline"><em>E</em><sub><em>r</em></sub></span> shall either be a non-negative integer or <code>dynamic_extent</code>, otherwise, the program is ill-formed.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span> If <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is equal to <code>dynamic_extent</code> it is a <em>dynamic extent</em>, otherwise it is a <em>static extent</em>. For each <span class="math inline"><em>E</em><sub><em>r</em></sub></span> equivalent to <code>dynamic_extent</code>,<br />
@@ -1481,7 +1481,7 @@ the upper bound of the interval is stored in the exposition only array <code>dyn
 <ul>
 <li><span class="marginalizedparent"><a class="marginalized">5</a></span> <em>Returns</em>: If <code>i &lt;= sizeof...(Extents)</code> is <code>true</code>, returns the number of arguments before the <code>i</code><em>th</em> template parameter in the template parameter pack <code>Extents</code> equivalent to <code>dynamic_extent</code>. Otherwise, returns <code>rank_dynamic()</code>.</li>
 </ul>
-<p><b>26.7.�.3 Constructors and assignment [mdspan.extents.cons]</b></p>
+<p><b>22.7.�.3 Constructors and assignment [mdspan.extents.cons]</b></p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb7-2"><a href="#cb7-2"></a>  <span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> extents<span class="op">&lt;</span>OtherExtents<span class="op">...&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
@@ -1524,13 +1524,13 @@ the upper bound of the interval is stored in the exposition only array <code>dyn
 <li><p><span class="marginalizedparent"><a class="marginalized">12</a></span> <em>Effects:</em> For each <code>r</code> where <code>static_extent(r) == dynamic_extent</code> is <code>true</code>, assigns <code>other.extent(r)</code> to <code>dynamic_extent[dynamic_index(r)]</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">13</a></span> <em>Returns:</em> <code>*this</code>.</p></li>
 </ul>
-<p><br /> <b>26.7.�.3 Observers of the domain multidimensional index space [mdspan.extents.obs]</b></p>
+<p><br /> <b>22.7.�.3 Observers of the domain multidimensional index space [mdspan.extents.obs]</b></p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">constexpr</span> index_type extent<span class="op">(</span><span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">1</a></span> <em>Expects:</em> <code>i &lt; rank()</code> is <code>true</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">2</a></span> <em>Returns:</em> <code>dynamic_extents_[dynamic_index(i)]</code> if <code>static_extent(i) == dynamic_extent</code> is <code>true</code>, otherwise <code>static_extent(i)</code>.</p></li>
 </ul>
-<p><br /> <b>26.7.�.4 <code>extents</code> comparison operators [mdspan.extents.compare]</b></p>
+<p><br /> <b>22.7.�.4 <code>extents</code> comparison operators [mdspan.extents.compare]</b></p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">ptrdiff_t</span><span class="op">...</span> LHS, <span class="dt">ptrdiff_t</span><span class="op">...</span> RHS<span class="op">&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> extents<span class="op">&lt;</span>LHS<span class="op">...&gt;&amp;</span> lhs, <span class="kw">const</span> extents<span class="op">&lt;</span>RHS<span class="op">...&gt;&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
@@ -1549,8 +1549,8 @@ the upper bound of the interval is stored in the exposition only array <code>dyn
              Y8b d88P                                                      888      888                   Y8b d88P
               "Y88P"                                                       888      888                    "Y88P"
 -->
-<p><br /> <br /> <b>26.7.� Layout mapping policy [mdspan.layout]</b></p>
-<p><b>26.7.�.1 Layout mapping requirements [mdspan.layout.reqs]</b></p>
+<p><br /> <br /> <b>22.7.� Layout mapping policy [mdspan.layout]</b></p>
+<p><b>22.7.�.1 Layout mapping requirements [mdspan.layout.reqs]</b></p>
 <ol type="1">
 <li><p>A <em>layout mapping policy</em> is a class that contains a <em>layout mapping</em>, a nested class template.</p></li>
 <li><p>A layout mapping policy and its layout mapping nested class template meet the requirements in Table �.</p></li>
@@ -1580,7 +1580,7 @@ Return Type
 Returns
 </th>
 <th>
-Requires
+Expects
 </th>
 </tr>
 <tr>
@@ -1616,10 +1616,10 @@ Requires
 <code>E::index_type</code>
 </td>
 <td>
-<em>Returns:</em> Layout mapping of a multidimensional index <code>i...</code>.
+<em>Returns:</em> A value in the range of <span class="math inline">[0,</span> <code>requried_span_size()</code> <span class="math inline">)</span> defined by applying the layout mapping to a multidimensional index <code>i...</code> .
 </td>
 <td>
-<em>Requires:</em> 0 &lt;= <code>m(i...)</code>.
+<em>Expects:</em> 0 &lt;= <code>array{i...}[r]</code> &lt; <code>extents().extent(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.
 </td>
 </tr>
 <tr>
@@ -1724,7 +1724,7 @@ Requires
 <em>Returns:</em> <code>sr</code> as defined in <code>m.is_strided()</code> above.
 </td>
 <td>
-<em>Requires:</em> <code>m.is_strided()</code> is <code>true</code>.
+<em>Expects:</em> <code>m.is_strided()</code> is <code>true</code>.
 </td>
 </tr>
 </table>
@@ -1738,7 +1738,7 @@ Requires
          ###             ###         ##
 
 -->
-<p><br /> <b>26.7.�.2 Class template <code>layout_left</code> [mdspan.layout.left]</b></p>
+<p><br /> <b>22.7.�.2 Class template <code>layout_left</code> [mdspan.layout.left]</b></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span> <code>layout_left</code> meets the requirements of layout mapping policy.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span> <code>layout_left</code> gives a layout mapping where the left-most extent is stride one and strides increase left-to-right as the product of extents.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span> If <code>Extents</code> is not a (possibly cv-qualified) specialization of <code>extents</code>, then the program is ill-formed.</p>
@@ -1749,33 +1749,33 @@ Requires
 <span id="cb13-5"><a href="#cb13-5"></a>  <span class="kw">class</span> mapping <span class="op">{</span></span>
 <span id="cb13-6"><a href="#cb13-6"></a>    <span class="kw">using</span> index_type <span class="op">=</span> <span class="kw">typename</span> Extents<span class="op">::</span>index_type; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb13-7"><a href="#cb13-7"></a>  <span class="kw">public</span><span class="op">:</span></span>
-<span id="cb13-8"><a href="#cb13-8"></a>    <span class="co">// [mdspan.layout.left.cons], layout_left::mapping constructors</span></span>
-<span id="cb13-9"><a href="#cb13-9"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb13-10"><a href="#cb13-10"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb13-11"><a href="#cb13-11"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb13-12"><a href="#cb13-12"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb13-13"><a href="#cb13-13"></a>      <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb13-14"><a href="#cb13-14"></a></span>
-<span id="cb13-15"><a href="#cb13-15"></a>    mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;</span> <span class="op">)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb13-16"><a href="#cb13-16"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb13-17"><a href="#cb13-17"></a>      <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb13-18"><a href="#cb13-18"></a></span>
-<span id="cb13-19"><a href="#cb13-19"></a>    <span class="co">// [mdspan.layout.left.ops], layout_left::mapping operations</span></span>
-<span id="cb13-20"><a href="#cb13-20"></a>    Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> extents_; <span class="op">}</span></span>
+<span id="cb13-8"><a href="#cb13-8"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb13-9"><a href="#cb13-9"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb13-10"><a href="#cb13-10"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-11"><a href="#cb13-11"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb13-12"><a href="#cb13-12"></a>      <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-13"><a href="#cb13-13"></a></span>
+<span id="cb13-14"><a href="#cb13-14"></a>    mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb13-15"><a href="#cb13-15"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb13-16"><a href="#cb13-16"></a>      <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-17"><a href="#cb13-17"></a></span>
+<span id="cb13-18"><a href="#cb13-18"></a>    Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> extents_; <span class="op">}</span></span>
+<span id="cb13-19"><a href="#cb13-19"></a></span>
+<span id="cb13-20"><a href="#cb13-20"></a>    <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
 <span id="cb13-21"><a href="#cb13-21"></a></span>
-<span id="cb13-22"><a href="#cb13-22"></a>    <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb13-23"><a href="#cb13-23"></a></span>
-<span id="cb13-24"><a href="#cb13-24"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
-<span id="cb13-25"><a href="#cb13-25"></a>      index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> is<span class="op">)</span> <span class="kw">const</span></span>
-<span id="cb13-26"><a href="#cb13-26"></a>      <span class="op">{</span> <span class="cf">return</span> offset<span class="op">(</span>is<span class="op">...)</span>; <span class="op">}</span></span>
-<span id="cb13-27"><a href="#cb13-27"></a></span>
-<span id="cb13-28"><a href="#cb13-28"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span>;</span>
-<span id="cb13-29"><a href="#cb13-29"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span>;</span>
-<span id="cb13-30"><a href="#cb13-30"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span>;</span>
-<span id="cb13-31"><a href="#cb13-31"></a></span>
-<span id="cb13-32"><a href="#cb13-32"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span>;</span>
-<span id="cb13-33"><a href="#cb13-33"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span>;</span>
-<span id="cb13-34"><a href="#cb13-34"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span>;</span>
+<span id="cb13-22"><a href="#cb13-22"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
+<span id="cb13-23"><a href="#cb13-23"></a>      index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> is<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span> </span>
+<span id="cb13-24"><a href="#cb13-24"></a>      <span class="op">{</span> <span class="cf">return</span> offset<span class="op">(</span>is<span class="op">...)</span>; <span class="op">}</span></span>
+<span id="cb13-25"><a href="#cb13-25"></a></span>
+<span id="cb13-26"><a href="#cb13-26"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb13-27"><a href="#cb13-27"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb13-28"><a href="#cb13-28"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb13-29"><a href="#cb13-29"></a></span>
+<span id="cb13-30"><a href="#cb13-30"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb13-31"><a href="#cb13-31"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb13-32"><a href="#cb13-32"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb13-33"><a href="#cb13-33"></a></span>
+<span id="cb13-34"><a href="#cb13-34"></a>    index_type stride<span class="op">(</span><span class="dt">size_t</span> rank<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
 <span id="cb13-35"><a href="#cb13-35"></a></span>
 <span id="cb13-36"><a href="#cb13-36"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb13-37"><a href="#cb13-37"></a>      <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
@@ -1783,20 +1783,17 @@ Requires
 <span id="cb13-39"><a href="#cb13-39"></a>      <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">!=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> rhs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
 <span id="cb13-40"><a href="#cb13-40"></a>      <span class="op">{</span> <span class="cf">return</span> <span class="op">!(*</span><span class="kw">this</span> <span class="op">==</span> rhs<span class="op">)</span>; <span class="op">}</span></span>
 <span id="cb13-41"><a href="#cb13-41"></a></span>
-<span id="cb13-42"><a href="#cb13-42"></a>    index_type stride<span class="op">(</span><span class="dt">size_t</span> rank<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb13-43"><a href="#cb13-43"></a></span>
-<span id="cb13-44"><a href="#cb13-44"></a>  <span class="kw">private</span><span class="op">:</span></span>
-<span id="cb13-45"><a href="#cb13-45"></a>    <span class="co">// <em>exposition only</em></span></span>
-<span id="cb13-46"><a href="#cb13-46"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices,</span>
-<span id="cb13-47"><a href="#cb13-47"></a>             <span class="kw">class</span><span class="op">...</span> IdxSeq <span class="op">=</span> make_index_sequence<span class="op">&lt;</span>index_type, <span class="kw">sizeof</span><span class="op">...(</span>Indices<span class="op">)&gt;&gt;</span></span>
-<span id="cb13-48"><a href="#cb13-48"></a>      index_type offset_<span class="op">(</span>Indices<span class="op">...</span> is<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
-<span id="cb13-49"><a href="#cb13-49"></a></span>
-<span id="cb13-50"><a href="#cb13-50"></a>    Extents extents_<span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
-<span id="cb13-51"><a href="#cb13-51"></a>  <span class="op">}</span>;</span>
-<span id="cb13-52"><a href="#cb13-52"></a><span class="op">}</span>;</span>
-<span id="cb13-53"><a href="#cb13-53"></a></span>
-<span id="cb13-54"><a href="#cb13-54"></a><span class="op">}</span></span></code></pre></div>
-<p><b>26.7.�.2.1 <code>layout_left::mapping</code> constructors [mdspan.layout_left]</b></p>
+<span id="cb13-42"><a href="#cb13-42"></a>  <span class="kw">private</span><span class="op">:</span></span>
+<span id="cb13-43"><a href="#cb13-43"></a>    <span class="co">// <em>exposition only</em></span></span>
+<span id="cb13-44"><a href="#cb13-44"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices,</span>
+<span id="cb13-45"><a href="#cb13-45"></a>             <span class="kw">class</span><span class="op">...</span> IdxSeq <span class="op">=</span> make_index_sequence<span class="op">&lt;</span>index_type, <span class="kw">sizeof</span><span class="op">...(</span>Indices<span class="op">)&gt;&gt;</span></span>
+<span id="cb13-46"><a href="#cb13-46"></a>      index_type offset_<span class="op">(</span>Indices<span class="op">...</span> is<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb13-47"><a href="#cb13-47"></a></span>
+<span id="cb13-48"><a href="#cb13-48"></a>    Extents extents_<span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb13-49"><a href="#cb13-49"></a>  <span class="op">}</span>;</span>
+<span id="cb13-50"><a href="#cb13-50"></a><span class="op">}</span>;</span>
+<span id="cb13-51"><a href="#cb13-51"></a><span class="op">}</span></span></code></pre></div>
+<p><b>22.7.�.2.1 <code>layout_left::mapping</code> members [mdspan.layout.layout_left]</b></p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;</span> e<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><span class="marginalizedparent"><a class="marginalized">1</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>e</code>.</li>
@@ -1804,39 +1801,31 @@ Requires
 <div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb15-2"><a href="#cb15-2"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><span class="marginalizedparent"><a class="marginalized">2</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents()</code>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">2</a></span> <em>Constraints:</em> <code>is_convertible_v&lt;OtherExtents,Extents&gt;</code> is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">3</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents()</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1"></a>index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><span class="marginalizedparent"><a class="marginalized">3</a></span> <em>Returns:</em> The product of <code>extents().extent(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>extents().rank()</code> <span class="math inline">)</span>.</li>
+<li><span class="marginalizedparent"><a class="marginalized">4</a></span> <em>Returns:</em> The product of <code>extents().extent(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</li>
 </ul>
 <div class="sourceCode" id="cb17"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb17-1"><a href="#cb17-1"></a>template&lt;class... Indices, </span>
 <span id="cb17-2"><a href="#cb17-2"></a>         class... IdxSeq = make_index_sequence&lt;index_type, sizeof...(Indices)&gt;&gt;</span>
-<span id="cb17-3"><a href="#cb17-3"></a>  index_type offset_()(Indices... i) const;</span></code></pre></div>
+<span id="cb17-3"><a href="#cb17-3"></a>  index_type offset_()(Indices... i) const noexcept;</span></code></pre></div>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">4</a></span> <em>Constraints:</em></p>
+<li><p><span class="marginalizedparent"><a class="marginalized">5</a></span> <em>Constraints:</em></p>
 <ul>
-<li><code>sizeof...(Indices) == extents().rank()</code> is <code>true</code>, and</li>
-<li><code>(is_convertible_v&lt;Indices, index_type&gt; &amp;&amp; ...)</code> is <code>true</code>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> <code>sizeof...(Indices) == Extents::rank()</code> is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> <code>(is_convertible_v&lt;Indices, index_type&gt; &amp;&amp; ...)</code> is <code>true</code>.</p></li>
 </ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">5</a></span> <em>Expects:</em> 0 &lt;= <code>array{i...}[r]</code> &lt; <code>extents().extent(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>extents().rank()</code> <span class="math inline">)</span>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">6</a></span> <em>Effects:</em> Let <code>P...</code> be the parameter pack such that <code>is_same_v&lt;IdxSeq, integer_sequence&lt;index_type, P...&gt;&gt;</code> is <code>true</code>. Equivalent to: <code>return extents().rank() &gt; 0 ? (i*stride(P()) + ...) : 0;</code></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">6</a></span> <em>Expects:</em> 0 &lt;= <code>array{i...}[r]</code> &lt; <code>extents().extent(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">7</a></span> <em>Effects:</em> Let <code>P...</code> be the parameter pack such that <code>is_same_v&lt;IdxSeq, integer_sequence&lt;index_type, P...&gt;&gt;</code> is <code>true</code>. Equivalent to: <code>return Extents::rank() &gt; 0 ? (i*stride(P()) + ...) : 0;</code></p></li>
 </ul>
-<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span>;</span>
-<span id="cb18-2"><a href="#cb18-2"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span>;</span>
-<span id="cb18-3"><a href="#cb18-3"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span>;</span>
-<span id="cb18-4"><a href="#cb18-4"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span>;</span>
-<span id="cb18-5"><a href="#cb18-5"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span>;</span>
-<span id="cb18-6"><a href="#cb18-6"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1"></a>index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
 <ul>
-<li><span class="marginalizedparent"><a class="marginalized">7</a></span> <em>Returns:</em> <code>true</code>.</li>
+<li><span class="marginalizedparent"><a class="marginalized">8</a></span> <em>Returns:</em> <code>1</code> if <code>r</code> equals zero, otherwise, the product of <code>extents().extent(k)</code> for all <code>k</code> in the range <span class="math inline">[0,</span> <code>r</code> <span class="math inline">)</span>.</li>
 </ul>
-<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1"></a>index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">8</a></span> <em>Returns:</em> <code>1</code> if <code>r</code> is zero, otherwise, the product of <code>extents().extent(k)</code> for all <code>k</code> in the range <span class="math inline">[0,</span> <code>r</code> <span class="math inline">)</span>.</li>
-</ul>
-<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb20-2"><a href="#cb20-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><span class="marginalizedparent"><a class="marginalized">9</a></span> <em>Effects:</em> Equivalent to: <code>return extents() == other.extents();</code>.</li>
 </ul>
@@ -1848,165 +1837,96 @@ Requires
  ## ###   # ### ###  ##     #    ##  ## # #  ##
         ###             ###         ###
 -->
-<p><br /> <br /> <b>26.7.�.3 Class template <code>layout_right</code> [mdspan.layout.right]</b></p>
-<ol type="1">
-<li><code>layout_right</code> meets the requirements of layout mapping policy. <!-- *[Note:* Thus, any well-formed specialization of `layout_right::template mapping` meets the requirements of layout mapping. *—end note]* --></li>
-<li>The layout mapping property <code>layout_right</code> gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.</li>
-<li>If <code>Extents</code> is not a (possibly cv-qualified) specialization of <code>extents</code>, then the program is ill-formed.</li>
-</ol>
-<pre highlight="c++">
-namespace std {
-namespace experimental {
-namespace fundamentals_v3 {
-
-struct layout_right {
-  template&lt;class Extents&gt;
-  class mapping {
-  public:
-    // [mdspan.layout.right.cons], layout_left::mapping constructors
-    constexpr mapping() noexcept;
-    constexpr mapping(const mapping&amp; other) noexcept;
-    constexpr mapping(mapping&amp;&amp; other) noexcept;
-    constexpr mapping(const Extents&amp; e) noexcept;
-    template&lt;class OtherExtents&gt;
-      constexpr mapping(const mapping&lt;OtherExtents&gt;&amp; other);
-
-    mapping&amp; operator=() noexcept = default;
-    mapping&amp; operator=(const mapping&amp; other) noexcept = default;
-    template&lt;class OtherExtents&gt;
-      constexpr mapping&amp; operator=(const mapping&lt;OtherExtents&gt;&amp; other);
-
-    // [mdspan.layout.right.ops], layout_right::mapping operations
-    Extents extents() const noexcept;
-
-    constexpr typename Extents::index_type required_span_size() const noexcept;
-
-    template&lt;class... Indices&gt;
-      typename Extents::index_type operator()(Indices... is) const;
-
-    static constexpr bool is_always_unique() noexcept;
-    static constexpr bool is_always_contiguous() noexcept;
-    static constexpr bool is_always_strided() noexcept;
-
-    constexpr bool is_unique() const noexcept;
-    constexpr bool is_contiguous() const noexcept;
-    constexpr bool is_strided() const noexcept;
-
-    typename Extents::index_type stride(size_t rank) const noexcept;
-
-    template&lt;class OtherExtents&gt;
-      constexpr bool operator==(const mapping&lt;OtherExtents&gt;&amp; other) const noexcept;
-    template&lt;class OtherExtents&gt;
-      constexpr bool operator!=(const mapping&lt;OtherExtents&gt;&amp; other) const noexcept;
-
-  private:
-    Extents extents_; // <i>exposition only</i>
-  };
-};
-}
-</pre>
-<p><br /></p>
-<p><b>26.7.�.3.1 <code>layout_right::mapping</code> constructors [mdspan.layout.right.cons]</b></p>
-<!-- --- -->
-<!-- Mimicking exposition-only specification style in [istreambuf.iterator.cons] and using [objects.with.classes]/2 for guidance -->
-<p><br /></p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">constexpr</span> mapping<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><br /> <b>22.7.�.3 Class template <code>layout_right</code> [mdspan.layout.right]</b></p>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span> <code>layout_right</code> meets the requirements of layout mapping policy.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span> The layout mapping property <code>layout_right</code> gives a layout mapping where the right-most extent is stride one and strides increase right-to-left as the product of extents.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span> If <code>Extents</code> is not a (possibly cv-qualified) specialization of <code>extents</code>, then the program is ill-formed.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">struct</span> layout_right <span class="op">{</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a>  <span class="kw">class</span> mapping <span class="op">{</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a>    <span class="kw">using</span> index_type <span class="op">=</span> <span class="kw">typename</span> Extents<span class="op">::</span>index_type; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb20-7"><a href="#cb20-7"></a>  <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb20-9"><a href="#cb20-9"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb20-10"><a href="#cb20-10"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb20-11"><a href="#cb20-11"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb20-12"><a href="#cb20-12"></a>      <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb20-13"><a href="#cb20-13"></a></span>
+<span id="cb20-14"><a href="#cb20-14"></a>    mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb20-15"><a href="#cb20-15"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb20-16"><a href="#cb20-16"></a>      <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb20-17"><a href="#cb20-17"></a></span>
+<span id="cb20-18"><a href="#cb20-18"></a>    Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> extents_; <span class="op">}</span></span>
+<span id="cb20-19"><a href="#cb20-19"></a></span>
+<span id="cb20-20"><a href="#cb20-20"></a>    <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb20-21"><a href="#cb20-21"></a></span>
+<span id="cb20-22"><a href="#cb20-22"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
+<span id="cb20-23"><a href="#cb20-23"></a>      index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> is<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span> </span>
+<span id="cb20-24"><a href="#cb20-24"></a>      <span class="op">{</span> <span class="cf">return</span> offset<span class="op">(</span>is<span class="op">...)</span>; <span class="op">}</span></span>
+<span id="cb20-25"><a href="#cb20-25"></a></span>
+<span id="cb20-26"><a href="#cb20-26"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb20-27"><a href="#cb20-27"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb20-28"><a href="#cb20-28"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb20-29"><a href="#cb20-29"></a></span>
+<span id="cb20-30"><a href="#cb20-30"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb20-31"><a href="#cb20-31"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb20-32"><a href="#cb20-32"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb20-33"><a href="#cb20-33"></a></span>
+<span id="cb20-34"><a href="#cb20-34"></a>    index_type stride<span class="op">(</span><span class="dt">size_t</span> rank<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb20-35"><a href="#cb20-35"></a></span>
+<span id="cb20-36"><a href="#cb20-36"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb20-37"><a href="#cb20-37"></a>      <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb20-38"><a href="#cb20-38"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb20-39"><a href="#cb20-39"></a>      <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">!=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> rhs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb20-40"><a href="#cb20-40"></a>      <span class="op">{</span> <span class="cf">return</span> <span class="op">!(*</span><span class="kw">this</span> <span class="op">==</span> rhs<span class="op">)</span>; <span class="op">}</span></span>
+<span id="cb20-41"><a href="#cb20-41"></a></span>
+<span id="cb20-42"><a href="#cb20-42"></a>  <span class="kw">private</span><span class="op">:</span></span>
+<span id="cb20-43"><a href="#cb20-43"></a>    <span class="co">// <em>exposition only</em></span></span>
+<span id="cb20-44"><a href="#cb20-44"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices,</span>
+<span id="cb20-45"><a href="#cb20-45"></a>             <span class="kw">class</span><span class="op">...</span> IdxSeq <span class="op">=</span> make_index_sequence<span class="op">&lt;</span>index_type, <span class="kw">sizeof</span><span class="op">...(</span>Indices<span class="op">)&gt;&gt;</span></span>
+<span id="cb20-46"><a href="#cb20-46"></a>      index_type offset_<span class="op">(</span>Indices<span class="op">...</span> is<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb20-47"><a href="#cb20-47"></a></span>
+<span id="cb20-48"><a href="#cb20-48"></a>    Extents extents_<span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb20-49"><a href="#cb20-49"></a>  <span class="op">}</span>;</span>
+<span id="cb20-50"><a href="#cb20-50"></a><span class="op">}</span>;</span>
+<span id="cb20-51"><a href="#cb20-51"></a><span class="op">}</span></span></code></pre></div>
+<p><b>22.7.�.3.1 <code>layout_right::mapping</code> members [mdspan.layout.layout_right]</b></p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;</span> e<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Effects:</em> Default-initializes <code>extents_</code>.</li>
-<li><em>Ensures:</em> <code>extents() == Extents()</code> is <code>true</code>.</li>
+<li><span class="marginalizedparent"><a class="marginalized">1</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>e</code>.</li>
 </ul>
-<!-- --- -->
-<p><br /></p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents_</code>.</li>
-<li><em>Ensures:</em> <code>extents() == other.extents()</code> is <code>true</code>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">2</a></span> <em>Constraints:</em> <code>is_convertible_v&lt;OtherExtents,Extents&gt;</code> is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">3</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents()</code>.</p></li>
 </ul>
-<!-- --- -->
-<p><br /></p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span>mapping<span class="op">&amp;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">typename</span> Extents<span class="op">::</span>index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Effects:</em> Initializes <code>extents_</code> with <code>move(other.extents_)</code>.</li>
-<li><em>Ensures:</em> <code>extents()</code> equals the result of <code>other.extents()</code> before the invocation of the move.</li>
+<li><span class="marginalizedparent"><a class="marginalized">4</a></span> <em>Returns:</em> The product of <code>extents().extent(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</li>
 </ul>
-<!-- --- -->
-<p><br /></p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;</span> e<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb24-1"><a href="#cb24-1"></a>template&lt;class... Indices, </span>
+<span id="cb24-2"><a href="#cb24-2"></a>         class... IdxSeq = make_index_sequence&lt;index_type, sizeof...(Indices)&gt;&gt;</span>
+<span id="cb24-3"><a href="#cb24-3"></a>  index_type offset_()(Indices... i) const noexcept;</span></code></pre></div>
 <ul>
-<li><em>Effects:</em> Initializes <code>extents_</code> with <code>e</code>.</li>
-<li><em>Ensures:</em> <code>extents() == e</code> is <code>true</code>.</li>
-</ul>
-<p><br /></p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb25-2"><a href="#cb25-2"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
-<!-- TODO mfh 19 Jan 2019: Constraints? See above TODO. -->
+<li><p><span class="marginalizedparent"><a class="marginalized">5</a></span> <em>Constraints:</em></p>
 <ul>
-<li><em>Requires:</em> <code>other.extents()</code> meets the requirements for use in the initialization of <code>extents_</code>.</li>
-<li><em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents()</code>.</li>
-<li><em>Ensures:</em> <code>extents() == other.extents()</code> is <code>true</code>.</li>
-<li><em>Throws:</em> Nothing. <!-- --- --></li>
-</ul>
-<p><br /></p>
-<p><br /></p>
-<p><b>26.7.�.3.2 <code>layout_right::mapping</code> operations [mdspan.layout.right.ops]</b></p>
-<p><br /></p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1"></a>Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Returns:</em> <code>extents_</code>.</li>
-</ul>
-<!-- --- -->
-<p><br /></p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">typename</span> Extents<span class="op">::</span>index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Returns:</em> The product of <code>extents().extent(r)</code> for all <code>r</code> in the range <code>[0, extents().rank())</code>.</li>
-</ul>
-<!-- --- -->
-<p><br /></p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
-<span id="cb28-2"><a href="#cb28-2"></a>  <span class="kw">typename</span> Extents<span class="op">::</span>index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Constraints:</em>
-<ul>
-<li><code>sizeof...(Indices) == extents().rank()</code> is <code>true</code>, and</li>
-<li><code>(is_convertible_v&lt;Indices, typename Extents::index_type&gt; &amp;&amp; ...)</code> is <code>true</code>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> <code>sizeof...(Indices) == Extents::rank()</code> is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span> <code>(is_convertible_v&lt;Indices, index_type&gt; &amp;&amp; ...)</code> is <code>true</code>.</p></li>
 </ul></li>
-<li><em>Requires:</em> 0 &lt;= <code>array{i...}[r]</code> &lt; <code>extents().extent(r)</code> for all <code>r</code> in the range <code>[0, extents().rank())</code>.</li>
-<li><em>Returns:</em> Let <math>i<sub>k</sub></math> denote the k-th element of <code>i...</code>, and let <math>R</math> equal <code>extents().rank()</code>:
-<ul>
-<li>If <math>R</math> is zero, then zero;</li>
-<li>Otherwise, the sum of <math>i<sub><code>k</code></sub></math> ⨯ <code>stride(k)</code> for all <code>k</code> in the range <code>[0,</code> <math>R</math><code>)</code>.</li>
-</ul></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">6</a></span> <em>Expects:</em> 0 &lt;= <code>array{i...}[r]</code> &lt; <code>extents().extent(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">7</a></span> <em>Effects:</em> Let <code>P...</code> be the parameter pack such that <code>is_same_v&lt;IdxSeq, integer_sequence&lt;index_type, P...&gt;&gt;</code> is <code>true</code>. Equivalent to: <code>return Extents::rank() &gt; 0 ? (i*stride(P()) + ...) : 0;</code></p></li>
 </ul>
-<p><br /></p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span>;</span>
-<span id="cb29-2"><a href="#cb29-2"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="kw">noexcept</span>;</span>
-<span id="cb29-3"><a href="#cb29-3"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span>;</span>
-<span id="cb29-4"><a href="#cb29-4"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb29-5"><a href="#cb29-5"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb29-6"><a href="#cb29-6"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">typename</span> Extents<span class="op">::</span>index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Returns:</em> <code>true</code>.</li>
+<li><span class="marginalizedparent"><a class="marginalized">8</a></span> <em>Returns:</em> <code>1</code> if <code>r</code> equals <code>Extents::rank()-1</code>, otherwise, the product of <code>extents().extent(k)</code> for all <code>k</code> in the range <span class="math inline">[</span> <code>r</code> <span class="math inline">,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</li>
 </ul>
-<p><br /></p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">typename</span> Extents<span class="op">::</span>index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb26-2"><a href="#cb26-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Effects:</em> Equivalent to:</li>
-</ul>
-<div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1"></a>Extents<span class="op">::</span>index_type s <span class="op">=</span> <span class="dv">1</span>;</span>
-<span id="cb31-2"><a href="#cb31-2"></a><span class="cf">for</span><span class="op">(</span><span class="dt">size_t</span> k <span class="op">=</span> r<span class="op">+</span><span class="dv">1</span>; k <span class="op">&lt;</span> extents<span class="op">().</span>rank<span class="op">()</span>; <span class="op">++</span>k<span class="op">)</span></span>
-<span id="cb31-3"><a href="#cb31-3"></a>  s <span class="op">*=</span> extents<span class="op">().</span>extent<span class="op">(</span>r<span class="op">)</span>;</span>
-<span id="cb31-4"><a href="#cb31-4"></a><span class="cf">return</span> s;</span></code></pre></div>
-<p><br /></p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb32-2"><a href="#cb32-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Effects:</em> Equivalent to: <code>return extents() == other.extents();</code>.</li>
-</ul>
-<p><br /></p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb33-2"><a href="#cb33-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">!=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Effects:</em> Equivalent to: <code>return extents() != other.extents();</code>.</li>
+<li><span class="marginalizedparent"><a class="marginalized">9</a></span> <em>Effects:</em> Equivalent to: <code>return extents() == other.extents();</code>.</li>
 </ul>
 <!--
 layout_stride
@@ -2024,197 +1944,108 @@ layout_stride
                \______/
 
 -->
-<p><br /> <br /> <b>26.7.�.4 Class template <code>layout_stride</code> [mdspan.layout.stride]</b></p>
-<ol type="1">
-<li><code>layout_stride</code> meets the requirements of layout mapping policy.</li>
-<li>The layout mapping property <code>layout_stride</code> gives a layout mapping where the strides are user defined.</li>
-<li>If <code>Extents</code> is not a (possibly cv-qualified) specialization of <code>extents</code>, then the program is ill-formed.</li>
-</ol>
-<p><br /></p>
-<pre highlight="c++">
-namespace std {
-namespace experimental {
-namespace fundamentals_v3 {
-
-struct layout_stride {
-  template&lt;class Extents&gt;
-  class mapping {
-  public:
-    // [mdspan.layout.stride.cons], layout_stride::mapping constructors
-    constexpr mapping() noexcept;
-    constexpr mapping(mapping const&amp; other) noexcept;
-    constexpr mapping(mapping&amp;&amp; other) noexcept;
-    constexpr mapping(const Extents&amp; e, const array&lt;typename Extents::index_type, Extents::rank()&gt;&amp; s) noexcept;
-    template&lt;class OtherExtents&gt;
-      constexpr mapping(const mapping&lt;OtherExtents&gt;&amp; other);
-
-    mapping&amp; operator=() noexcept = default;
-    mapping&amp; operator=(const mapping&amp; other) noexcept = default;
-    template&lt;class OtherExtents&gt;
-      constexpr mapping&amp; operator=(const mapping&lt;OtherExtents&gt;&amp; other);
-
-    // [mdspan.layout.stride.ops], layout_stride::mapping operations
-    Extents extents() const noexcept;
-    array&lt;typename Extents::index_type, Extents::rank()&gt; strides() const noexcept;
-
-    constexpr typename Extents::index_type required_span_size() const noexcept;
-
-    template&lt;class... Indices&gt;
-      typename Extents::index_type operator()(Indices... is) const;
-
-    static constexpr bool is_always_unique() noexcept;
-    static constexpr bool is_always_contiguous() noexcept;
-    static constexpr bool is_always_strided() noexcept;
-
-    constexpr bool is_unique() const noexcept;
-    constexpr bool is_contiguous() const noexcept;
-    constexpr bool is_strided() const noexcept;
-
-    typename Extents::index_type stride(size_t rank) const noexcept;
-
-    template&lt;class OtherExtents&gt;
-      constexpr bool operator==(const mapping&lt;OtherExtents&gt;&amp; other) const noexcept;
-    template&lt;class OtherExtents&gt;
-      constexpr bool operator!=(const mapping&lt;OtherExtents&gt;&amp; other) const noexcept;
-
-  private:
-    Extents extents_; // <i>exposition only</i>
-    array&lt;typename Extents::index_type, Extents::rank()&gt; strides_; // <i>exposition only</i>
-  };
-};
-}}}
-</pre>
-<p><br /></p>
-<p><b>26.7.�.4.1 layout_stride::mapping constructors [mdspan.layout.stride.cons]</b></p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1"></a><span class="kw">constexpr</span> mapping<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><br /> <b>22.7.�.4 Class template <code>layout_stride</code> [mdspan.layout.stride]</b></p>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span> <code>layout_stride</code> meets the requirements of layout mapping policy.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span> The layout mapping property <code>layout_stride</code> gives a layout mapping where the strides are user defined.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span> If <code>Extents</code> is not a (possibly cv-qualified) specialization of <code>extents</code>, then the program is ill-formed.</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a></span>
+<span id="cb27-3"><a href="#cb27-3"></a><span class="kw">struct</span> layout_stride <span class="op">{</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
+<span id="cb27-5"><a href="#cb27-5"></a>  <span class="kw">class</span> mapping <span class="op">{</span></span>
+<span id="cb27-6"><a href="#cb27-6"></a>    <span class="kw">using</span> index_type <span class="op">=</span> <span class="kw">typename</span> Extents<span class="op">::</span>index_type; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb27-7"><a href="#cb27-7"></a>  <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb27-8"><a href="#cb27-8"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb27-9"><a href="#cb27-9"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb27-10"><a href="#cb27-10"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;</span>,</span>
+<span id="cb27-11"><a href="#cb27-11"></a>                      <span class="kw">const</span> array<span class="op">&lt;</span>index_type, Extents<span class="op">::</span>rank<span class="op">()&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-12"><a href="#cb27-12"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb27-13"><a href="#cb27-13"></a>      <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-14"><a href="#cb27-14"></a></span>
+<span id="cb27-15"><a href="#cb27-15"></a>    mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb27-16"><a href="#cb27-16"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb27-17"><a href="#cb27-17"></a>      <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-18"><a href="#cb27-18"></a></span>
+<span id="cb27-19"><a href="#cb27-19"></a>    Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> extents_; <span class="op">}</span></span>
+<span id="cb27-20"><a href="#cb27-20"></a>    array<span class="op">&lt;</span><span class="kw">typename</span> index_type, Extents<span class="op">::</span>rank<span class="op">()&gt;</span> strides<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb27-21"><a href="#cb27-21"></a>    <span class="op">{</span> <span class="cf">return</span> strides_; <span class="op">}</span></span>
+<span id="cb27-22"><a href="#cb27-22"></a></span>
+<span id="cb27-23"><a href="#cb27-23"></a>    <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-24"><a href="#cb27-24"></a></span>
+<span id="cb27-25"><a href="#cb27-25"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
+<span id="cb27-26"><a href="#cb27-26"></a>      index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> is<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span> </span>
+<span id="cb27-27"><a href="#cb27-27"></a>      <span class="op">{</span> <span class="cf">return</span> offset<span class="op">(</span>is<span class="op">...)</span>; <span class="op">}</span></span>
+<span id="cb27-28"><a href="#cb27-28"></a></span>
+<span id="cb27-29"><a href="#cb27-29"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb27-30"><a href="#cb27-30"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">false</span>; <span class="op">}</span></span>
+<span id="cb27-31"><a href="#cb27-31"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb27-32"><a href="#cb27-32"></a></span>
+<span id="cb27-33"><a href="#cb27-33"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb27-34"><a href="#cb27-34"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-35"><a href="#cb27-35"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb27-36"><a href="#cb27-36"></a></span>
+<span id="cb27-37"><a href="#cb27-37"></a>    index_type stride<span class="op">(</span><span class="dt">size_t</span> rank<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-38"><a href="#cb27-38"></a></span>
+<span id="cb27-39"><a href="#cb27-39"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb27-40"><a href="#cb27-40"></a>      <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-41"><a href="#cb27-41"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb27-42"><a href="#cb27-42"></a>      <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">!=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> rhs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb27-43"><a href="#cb27-43"></a>      <span class="op">{</span> <span class="cf">return</span> <span class="op">!(*</span><span class="kw">this</span> <span class="op">==</span> rhs<span class="op">)</span>; <span class="op">}</span></span>
+<span id="cb27-44"><a href="#cb27-44"></a></span>
+<span id="cb27-45"><a href="#cb27-45"></a>  <span class="kw">private</span><span class="op">:</span></span>
+<span id="cb27-46"><a href="#cb27-46"></a>    <span class="co">// <em>exposition only</em></span></span>
+<span id="cb27-47"><a href="#cb27-47"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices,</span>
+<span id="cb27-48"><a href="#cb27-48"></a>             <span class="kw">class</span><span class="op">...</span> IdxSeq <span class="op">=</span> make_index_sequence<span class="op">&lt;</span>index_type, <span class="kw">sizeof</span><span class="op">...(</span>Indices<span class="op">)&gt;&gt;</span></span>
+<span id="cb27-49"><a href="#cb27-49"></a>      index_type offset_<span class="op">(</span>Indices<span class="op">...</span> is<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb27-50"><a href="#cb27-50"></a></span>
+<span id="cb27-51"><a href="#cb27-51"></a>    Extents extents_<span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb27-52"><a href="#cb27-52"></a>    array<span class="op">&lt;</span>index_type, Extents<span class="op">::</span>rank<span class="op">()&gt;</span> strides_<span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb27-53"><a href="#cb27-53"></a>  <span class="op">}</span>;</span>
+<span id="cb27-54"><a href="#cb27-54"></a><span class="op">}</span>;</span>
+<span id="cb27-55"><a href="#cb27-55"></a><span class="op">}</span></span></code></pre></div>
+<p><b>22.7.�.4.1 <code>layout_stride::mapping</code> members [mdspan.layout.layout_stride]</b></p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;</span> e, array<span class="op">&lt;</span>index_type, Extents<span class="op">::</span>rank<span class="op">()&gt;</span> s<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span> Let <span class="math inline"><em>P</em></span> be a permutation of the integers <span class="math inline">0, ...,</span> <code>Extents::rank()-1</code> and let <span class="math inline"><em>p</em><sub><em>i</em></sub></span> be the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> element of <span class="math inline"><em>P</em></span>.</p>
 <ul>
-<li><em>Effects:</em> Default-initializes <code>extents_</code>.</li>
-<li><em>Ensures:</em>
+<li><p><span class="marginalizedparent"><a class="marginalized">2</a></span> <em>Expects:</em></p>
 <ul>
-<li><code>extents() == Extents()</code> is <code>true</code>, and</li>
-<li><code>strides() == array&lt;typename Extents::index_type, Extents::rank()&gt;()</code> is <code>true</code>.</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span><code>s[i] &gt; 0</code> is <code>true</code> for all <code>i</code> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> If <code>Extents::rank()</code> is greater than zero, then there exists a permutation <span class="math inline"><em>P</em></span> such that <code>s[</code> <span class="math inline"><em>p</em><sub><em>i</em></sub></span> <code>] &gt;= s(</code> <span class="math inline"><em>p</em><sub><em>i</em> − 1</sub></span> <code>]) * e.extent(</code> <span class="math inline"><em>p</em><sub><em>i</em> − 1</sub></span> <code>)</code> is <code>true</code> for all <span class="math inline"><em>i</em></span> in the range <span class="math inline">[1,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</p></li>
+</ul></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">3</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>e</code>, and initializes <code>strides_</code> with <code>s</code>.</p></li>
+</ul>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb29-2"><a href="#cb29-2"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">4</a></span> <em>Constraints:</em> <code>is_convertible_v&lt;OtherExtents,Extents&gt;</code> is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">5</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents()</code>, and initializes <code>strides_</code> with <code>other.strides()</code>.</p></li>
+</ul>
+<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1"></a><span class="kw">typename</span> Extents<span class="op">::</span>index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<ul>
+<li><span class="marginalizedparent"><a class="marginalized">6</a></span> <em>Returns:</em> The maximum of <code>extents().extent(r) * stride(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</li>
+</ul>
+<div class="sourceCode" id="cb31"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb31-1"><a href="#cb31-1"></a>template&lt;class... Indices, </span>
+<span id="cb31-2"><a href="#cb31-2"></a>         class... IdxSeq = make_index_sequence&lt;index_type, sizeof...(Indices)&gt;&gt;</span>
+<span id="cb31-3"><a href="#cb31-3"></a>  index_type offset_()(Indices... i) const noexcept;</span></code></pre></div>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">7</a></span> <em>Constraints:</em> <code>sizeof...(Indices) == Extents::rank()</code> is <code>true</code>, and <code>(is_convertible_v&lt;Indices, index_type&gt; &amp;&amp; ...)</code> is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">8</a></span> <em>Expects:</em> 0 &lt;= <code>array{i...}[r]</code> &lt; <code>extents().extent(r)</code> for all <code>r</code> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">9</a></span> <em>Effects:</em> Let <code>P...</code> be the parameter pack such that <code>is_same_v&lt;IdxSeq, integer_sequence&lt;index_type, P...&gt;&gt;</code> is <code>true</code>. Equivalent to: <code>return Extents::rank() &gt; 0 ? (i*stride(P()) + ...) : 0;</code></p></li>
+</ul>
+<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span> Let <span class="math inline"><em>P</em></span> be a permutation of the integers <span class="math inline">0, ...,</span> <code>Extents::rank()-1</code> and let <span class="math inline"><em>p</em><sub><em>i</em></sub></span> be the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span> element of <span class="math inline"><em>P</em></span>.</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">11</a></span><em>Returns:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(11.1)</a></span> <code>true</code> if <code>Extents::ranks()</code> is zero.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(11.2)</a></span> Otherwise, <code>true</code> if there is a permutation <span class="math inline"><em>P</em></span> such that <code>min(stride(</code> <span class="math inline"><em>p</em><sub><em>i</em></sub></span> <code>)</code> equals one for <span class="math inline"><em>i</em></span> in the range <span class="math inline">[0,</span> <code>Extents::rank()</code> <span class="math inline">)</span>, and <code>stride(</code> <span class="math inline"><em>p</em><sub><em>i</em></sub></span> <code>)</code> equals <code>stride(</code> <span class="math inline"><em>p</em><sub><em>i</em> − 1</sub></span> <code>) * extents().extent(</code> <span class="math inline"><em>p</em><sub><em>i</em> − 1</sub></span> <code>)</code> for <span class="math inline"><em>i</em></span> in the range <span class="math inline">[1,</span> <code>Extents::rank()$</code>)`.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(11.3)</a></span> Otherwise, <code>false</code>.</p></li>
 </ul></li>
 </ul>
-<div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb33-2"><a href="#cb33-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents_</code>.</li>
-<li><em>Ensures:</em>
-<ul>
-<li><code>extents() == other.extents()</code> is <code>true</code>, and</li>
-<li><code>strides() == other.strides()</code> is <code>true</code>.</li>
-</ul></li>
-</ul>
-<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span>mapping<span class="op">&amp;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Effects:</em> Initializes <code>extents_</code> with <code>move(other.extents_)</code>.</li>
-<li><em>Ensures:</em>
-<ul>
-<li><code>extents()</code> equals the result of <code>other.extents()</code> before the invocation of the move, and</li>
-<li><code>strides()</code> equals the result of <code>other.strides()</code> before the invocation of the move.</li>
-</ul></li>
-</ul>
-<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;</span> e, array<span class="op">&lt;</span><span class="kw">typename</span> Extents<span class="op">::</span>index_type, Extents<span class="op">::</span>rank<span class="op">()&gt;</span> s<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p>Let <math>R</math> equal <code>Extents::rank()</code>. If <math>p</math> is a permutation of the integers 0, …, <math>R-1</math>, then let <code>p</code> be an exposition-only array of <code>size_t</code> of length <math>R</math> such that <code>p[i]</code> equals <math>p<sub><code>i</code></sub></math> for all <code>i</code> in the range <code>[0,</code> <math>R</math><code>)</code>.</p>
-<!-- FIXME (mfh 2x Sep 2018) See GitHub Issue #72 -->
-<ul>
-<li><em>Requires:</em>
-<ul>
-<li><code>s[i] &gt; 0</code> is <code>true</code> for all <code>i</code> in the range <code>[0,</code> <math>R</math><code>)</code>.</li>
-<li>If R is nonzero, then there exists a permutation <math>p</math> of the integers 0, …, <math>R-1</math> such that <code>s(p[i]) &gt;= s(p[i-1]) * e.extent(p[i-1])</code> is <code>true</code> for <code>i</code> in the range <code>[1,</code> <math>R</math><code>)</code>.</li>
-</ul></li>
-<li><em>Effects:</em>
-<ul>
-<li>Initializes <code>extents_</code> with <code>e</code>, and</li>
-<li>initializes <code>strides_</code> with <code>s</code>.</li>
-</ul></li>
-<li><em>Ensures:</em>
-<ul>
-<li><code>extents() == e</code> is <code>true</code>, and</li>
-<li><code>strides() == s</code> is <code>true</code>.</li>
-</ul></li>
-<li><em>Throws:</em> Nothing.</li>
-</ul>
-<div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb38-2"><a href="#cb38-2"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
-<ul>
-<li><em>Requires:</em> <code>other.extents()</code> meets the requirements for use in the initialization of <code>extents_</code>.</li>
-<li><em>Effects:</em>
-<ul>
-<li>Initializes <code>extents_</code> with <code>other.extents()</code>, and</li>
-<li>initializes <code>strides_</code> with <code>other.strides()</code>.</li>
-</ul></li>
-<li><em>Ensures:</em>
-<ul>
-<li><code>extents() == other.extents()</code> is <code>true</code>, and</li>
-<li><code>strides() == other.strides()</code> is <code>true</code>.</li>
-</ul></li>
-<li><em>Throws:</em> Nothing.</li>
-</ul>
-<p><b>26.7.�.4.2 layout_stride::mapping operations [mdspan.layout.stride.ops]</b></p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1"></a>Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Returns:</em> <code>extents_</code>.</li>
-</ul>
-<div class="sourceCode" id="cb40"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb40-1"><a href="#cb40-1"></a>array<span class="op">&lt;</span><span class="kw">typename</span> Extents<span class="op">::</span>index_type, Extents<span class="op">::</span>rank<span class="op">()&gt;</span> strides<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Returns:</em> <code>strides_</code>.</li>
-</ul>
-<div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1"></a><span class="kw">typename</span> Extents<span class="op">::</span>index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Returns:</em> The maximum of <code>extents().extent(r) * stride(r)</code> for all <code>r</code> in the range <code>[0, extents().rank())</code>.</li>
-</ul>
-<div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
-<span id="cb42-2"><a href="#cb42-2"></a>  <span class="kw">typename</span> Extents<span class="op">::</span>index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> i<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
-<ul>
-<li><em>Constraints:</em>
-<ul>
-<li><code>sizeof...(Indices) == Extents::rank()</code> is <code>true</code>, and</li>
-<li><code>(is_convertible_v&lt;Indices, typename Extents::index_type&gt; &amp;&amp; ...)</code> is <code>true</code>.</li>
-</ul></li>
-<li><em>Requires:</em> 0 &lt;= <code>array{i...}[r]</code> &lt; <code>extents().extent(r)</code> for all <code>r</code> in the range <code>[0, extents().rank())</code>.</li>
-<li><em>Returns:</em> Let <math>i<sub>k</sub></math> denote the k-th element of <code>i...</code>, let <math>R</math> equal <code>Extents::rank()</code>, and let <code>s</code> be <code>strides()</code>:
-<ul>
-<li>If <math>R</math> is zero, then zero;</li>
-<li>Otherwise, the sum of <math>i<sub><code>k</code></sub> ⨯ <code>s[k]</code> for all <code>k</code> in the range <code>[0,</code> <math>R</math><code>)</code>.</li>
-</ul></li>
-<li><em>Throws:</em> Nothing.</li>
-</ul>
-<div class="sourceCode" id="cb43"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb43-1"><a href="#cb43-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span>;</span>
-<span id="cb43-2"><a href="#cb43-2"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span>;</span>
-<span id="cb43-3"><a href="#cb43-3"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb43-4"><a href="#cb43-4"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Returns:</em> <code>true</code>.</li>
-</ul>
-<div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Returns:</em> <code>false</code>.</li>
-</ul>
-<div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p>Let R equal <code>Extents::rank()</code>. If <math>p</math> is a permutation of the integers 0, …, <math>R-1</math>, then let <code>p</code> be an exposition-only array of <code>size_t</code> of length <math>R</math> such that <code>p[i]</code> equals <math>p<sub><code>i</code></sub></math> for all <code>i</code> in the range <code>[0,</code> <math>R</math><code>)</code>.</p>
-<ul>
-<li><em>Returns:</em>
-<ul>
-<li>If <math>R</math> is zero, then <code>true</code>;</li>
-<li>Else, if there is a permutation <math>p</math> of the integers 0, …, <math>R-1</math> such that <code>min(stride(p[i])</code> equals 1 for <code>i</code> in the range <code>[0,</code> <math>R</math><code>)</code>, and <code>stride(p[i])</code> equals <code>stride(p[i-1]) * extents().extent(p[i-1])</code> for <code>i</code> in the range <code>[1,</code> <math>R</math><code>)</code>, then <code>true</code>;</li>
-<li>Otherwise, <code>false</code>.</li>
-</ul></li>
-</ul>
-<div class="sourceCode" id="cb46"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb46-1"><a href="#cb46-1"></a><span class="kw">typename</span> Extents<span class="op">::</span>index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Returns:</em> <code>strides_[r]</code>.</li>
-</ul>
-<p><br /></p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb47-2"><a href="#cb47-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Effects:</em> Equivalent to: <code>return extents() == other.extents();</code>.</li>
-</ul>
-<p><br /></p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb48-2"><a href="#cb48-2"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">!=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<ul>
-<li><em>Effects:</em> Equivalent to: <code>return extents() != other.extents();</code>.</li>
+<li><span class="marginalizedparent"><a class="marginalized">12</a></span> <em>Effects:</em> Equivalent to: <code>return extents() == other.extents();</code>.</li>
 </ul>
 <!--
 
@@ -2229,17 +2060,17 @@ struct layout_stride {
 
 -->
 <p><br /> <br /></p>
-<p><b>26.7.� Accessor Policy [mdspan.accessor]</b></p>
+<p><b>22.7.� Accessor Policy [mdspan.accessor]</b></p>
 <p>An <em>accessor policy</em> defines types and operations by which a contiguous set of objects of a particular type are accessed.</p>
-<p><br /> <b>26.7.�.1 Accessor policy requirements [mdspan.accessor.reqs]</b></p>
+<p><br /> <b>22.7.�.1 Accessor policy requirements [mdspan.accessor.reqs]</b></p>
 <p>An accessor policy defines:</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb49-1"><a href="#cb49-1"></a>* a handle to a single element of type `element_type`;</span>
-<span id="cb49-2"><a href="#cb49-2"></a>* a handle to a contiguous set of elements of type `element_type`,</span>
-<span id="cb49-3"><a href="#cb49-3"></a>  accessible through the policy&#39;s `access` function;</span>
-<span id="cb49-4"><a href="#cb49-4"></a>* conversion of a handle to a contiguous set of elements,</span>
-<span id="cb49-5"><a href="#cb49-5"></a>  to a pointer **[conv.array]**; and</span>
-<span id="cb49-6"><a href="#cb49-6"></a>* getting a handle to the contiguous subset of elements</span>
-<span id="cb49-7"><a href="#cb49-7"></a>  beginning at an integer offset value.</span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb34-1"><a href="#cb34-1"></a>* a handle to a single element of type `element_type`;</span>
+<span id="cb34-2"><a href="#cb34-2"></a>* a handle to a contiguous set of elements of type `element_type`,</span>
+<span id="cb34-3"><a href="#cb34-3"></a>  accessible through the policy&#39;s `access` function;</span>
+<span id="cb34-4"><a href="#cb34-4"></a>* conversion of a handle to a contiguous set of elements,</span>
+<span id="cb34-5"><a href="#cb34-5"></a>  to a pointer **[conv.array]**; and</span>
+<span id="cb34-6"><a href="#cb34-6"></a>* getting a handle to the contiguous subset of elements</span>
+<span id="cb34-7"><a href="#cb34-7"></a>  beginning at an integer offset value.</span></code></pre></div>
 <p><em>[Note:* The type of <code>reference</code> need not be <code>element_type&amp;</code>. The type of <code>pointer</code> need not be <code>element_type*</code>. *— end note]</em></p>
 <p><em>[Note:* The constructor of the object representing the contiguous set of objects may impose additional restrictions on the contiguous set of objects, such as restricting <code>element_type</code> to be trivially copyable or requiring a larger alignment than <code>alignment_of_v&lt;element_type&gt;</code>. *— end note]</em></p>
 <p>In Table �: * <code>A</code> denotes an accessor policy. * <code>a</code> denotes an object of type <code>A</code>. * <code>p</code> denotes an object of type <code>A::pointer</code>. * <code>i</code> and <code>j</code> each denote a <code>ptrdiff_t</code> value.</p>
@@ -2327,11 +2158,11 @@ Accessor policy for accessing a pointer returned by <code>a.offset(p,i)</code>. 
 <code>A::offset_policy::pointer</code>
 </td>
 <td>
-<div class="sourceCode" id="cb50"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb50-1"><a href="#cb50-1"></a>  *Returns:* A pointer that references the same location as `a.decay(p)+i`.</span>
-<span id="cb50-2"><a href="#cb50-2"></a></span>
-<span id="cb50-3"><a href="#cb50-3"></a>  *Requires:*</span>
-<span id="cb50-4"><a href="#cb50-4"></a>  + `a.decay(p)+i` equals `A::offset_policy(a).decay(a.offset(p, i))`</span>
-<span id="cb50-5"><a href="#cb50-5"></a>  + `A::offset_policy(a).access(a.offset(p, i), j)` is valid if `a.access(p, i+j)` is valid.</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb35-1"><a href="#cb35-1"></a>  *Returns:* A pointer that references the same location as `a.decay(p)+i`.</span>
+<span id="cb35-2"><a href="#cb35-2"></a></span>
+<span id="cb35-3"><a href="#cb35-3"></a>  *Requires:*</span>
+<span id="cb35-4"><a href="#cb35-4"></a>  + `a.decay(p)+i` equals `A::offset_policy(a).decay(a.offset(p, i))`</span>
+<span id="cb35-5"><a href="#cb35-5"></a>  + `A::offset_policy(a).access(a.offset(p, i), j)` is valid if `a.access(p, i+j)` is valid.</span></code></pre></div>
 </td>
 </tr>
 </table>
@@ -2343,43 +2174,43 @@ Accessor policy for accessing a pointer returned by <code>a.offset(p,i)</code>. 
 ### ### ### ### ##  ##  ### #       ### ### ##   ## ###
                                 ###
 -->
-<p><br /> <b>26.7.�.2 Class template <code>accessor_basic</code> [mdspan.accessor.basic]</b></p>
+<p><br /> <b>22.7.�.2 Class template <code>accessor_basic</code> [mdspan.accessor.basic]</b></p>
 <ol type="1">
 <li><code>accessor_basic</code> meets the requirements of accessor policy.</li>
 <li><code>ElementType</code> is required to be a complete object type that is neither an abstract class type nor an array type. <!-- mfh 20 Jan 2019: This imitates [span.overview] para 4 wording, with an additional restriction --></li>
 </ol>
-<div class="sourceCode" id="cb51"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb51-1"><a href="#cb51-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
-<span id="cb51-2"><a href="#cb51-2"></a><span class="kw">namespace</span> experimental <span class="op">{</span></span>
-<span id="cb51-3"><a href="#cb51-3"></a><span class="kw">namespace</span> fundamentals_v3 <span class="op">{</span></span>
-<span id="cb51-4"><a href="#cb51-4"></a></span>
-<span id="cb51-5"><a href="#cb51-5"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
-<span id="cb51-6"><a href="#cb51-6"></a>  <span class="kw">struct</span> accessor_basic <span class="op">{</span></span>
-<span id="cb51-7"><a href="#cb51-7"></a>    <span class="kw">using</span> offset_policy <span class="op">=</span> accessor_basic;</span>
-<span id="cb51-8"><a href="#cb51-8"></a>    <span class="kw">using</span> element_type <span class="op">=</span> ElementType;</span>
-<span id="cb51-9"><a href="#cb51-9"></a>    <span class="kw">using</span> reference <span class="op">=</span> ElementType<span class="op">&amp;</span>;</span>
-<span id="cb51-10"><a href="#cb51-10"></a>    <span class="kw">using</span> pointer <span class="op">=</span> ElementType<span class="op">*</span>;</span>
-<span id="cb51-11"><a href="#cb51-11"></a></span>
-<span id="cb51-12"><a href="#cb51-12"></a>    <span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>pointer</span>
-<span id="cb51-13"><a href="#cb51-13"></a>      offset<span class="op">(</span>pointer p, <span class="dt">ptrdiff_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb51-14"><a href="#cb51-14"></a></span>
-<span id="cb51-15"><a href="#cb51-15"></a>    <span class="kw">constexpr</span> reference access<span class="op">(</span>pointer p, <span class="dt">ptrdiff_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb51-16"><a href="#cb51-16"></a></span>
-<span id="cb51-17"><a href="#cb51-17"></a>    <span class="kw">constexpr</span> pointer decay<span class="op">(</span>pointer p<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb51-18"><a href="#cb51-18"></a>  <span class="op">}</span>;</span>
-<span id="cb51-19"><a href="#cb51-19"></a></span>
-<span id="cb51-20"><a href="#cb51-20"></a><span class="op">}}}</span></span></code></pre></div>
-<div class="sourceCode" id="cb52"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb52-1"><a href="#cb52-1"></a><span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>pointer</span>
-<span id="cb52-2"><a href="#cb52-2"></a>  offset<span class="op">(</span>pointer p, <span class="dt">ptrdiff_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
+<span id="cb36-2"><a href="#cb36-2"></a><span class="kw">namespace</span> experimental <span class="op">{</span></span>
+<span id="cb36-3"><a href="#cb36-3"></a><span class="kw">namespace</span> fundamentals_v3 <span class="op">{</span></span>
+<span id="cb36-4"><a href="#cb36-4"></a></span>
+<span id="cb36-5"><a href="#cb36-5"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb36-6"><a href="#cb36-6"></a>  <span class="kw">struct</span> accessor_basic <span class="op">{</span></span>
+<span id="cb36-7"><a href="#cb36-7"></a>    <span class="kw">using</span> offset_policy <span class="op">=</span> accessor_basic;</span>
+<span id="cb36-8"><a href="#cb36-8"></a>    <span class="kw">using</span> element_type <span class="op">=</span> ElementType;</span>
+<span id="cb36-9"><a href="#cb36-9"></a>    <span class="kw">using</span> reference <span class="op">=</span> ElementType<span class="op">&amp;</span>;</span>
+<span id="cb36-10"><a href="#cb36-10"></a>    <span class="kw">using</span> pointer <span class="op">=</span> ElementType<span class="op">*</span>;</span>
+<span id="cb36-11"><a href="#cb36-11"></a></span>
+<span id="cb36-12"><a href="#cb36-12"></a>    <span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>pointer</span>
+<span id="cb36-13"><a href="#cb36-13"></a>      offset<span class="op">(</span>pointer p, <span class="dt">ptrdiff_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb36-14"><a href="#cb36-14"></a></span>
+<span id="cb36-15"><a href="#cb36-15"></a>    <span class="kw">constexpr</span> reference access<span class="op">(</span>pointer p, <span class="dt">ptrdiff_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb36-16"><a href="#cb36-16"></a></span>
+<span id="cb36-17"><a href="#cb36-17"></a>    <span class="kw">constexpr</span> pointer decay<span class="op">(</span>pointer p<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb36-18"><a href="#cb36-18"></a>  <span class="op">}</span>;</span>
+<span id="cb36-19"><a href="#cb36-19"></a></span>
+<span id="cb36-20"><a href="#cb36-20"></a><span class="op">}}}</span></span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1"></a><span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>pointer</span>
+<span id="cb37-2"><a href="#cb37-2"></a>  offset<span class="op">(</span>pointer p, <span class="dt">ptrdiff_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Requires:</em> <code>p + i</code> is dereferenceable.</li>
 <li><em>Returns:</em> <code>p + i</code>. <br /></li>
 </ul>
-<div class="sourceCode" id="cb53"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb53-1"><a href="#cb53-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>pointer p, <span class="dt">ptrdiff_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>pointer p, <span class="dt">ptrdiff_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Requires:</em> <code>p + i</code> is dereferenceable.</li>
 <li><em>Returns:</em> <code>p[i]</code>. <br /></li>
 </ul>
-<div class="sourceCode" id="cb54"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb54-1"><a href="#cb54-1"></a><span class="kw">constexpr</span> pointer decay<span class="op">(</span>pointer p<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1"></a><span class="kw">constexpr</span> pointer decay<span class="op">(</span>pointer p<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>p</code>. <br /></li>
 </ul>
@@ -2399,8 +2230,8 @@ Accessor policy for accessing a pointer returned by <code>a.offset(p,i)</code>. 
 <!-- TODO: section references in synopsis -->
 <!-- TODO: Shouldn't we also have converting move constructors? -->
 <!-- TODO: review addition of mapping() and extents() -->
-<p><br /> <br /> <b>26.7.� Class template <code>basic_mdspan</code> [mdspan.basic]</b></p>
-<p><br /> <b>26.7.�.1 <code>basic_mdspan</code> overview [mdspan.basic.overview]</b></p>
+<p><br /> <br /> <b>22.7.� Class template <code>basic_mdspan</code> [mdspan.basic]</b></p>
+<p><br /> <b>22.7.�.1 <code>basic_mdspan</code> overview [mdspan.basic.overview]</b></p>
 <ol type="1">
 <li><code>basic_mdspan</code> maps a multidimensional index in its domain to a reference to an element in its codomain <code>span</code>.</li>
 <li>The <em>domain</em> of a <code>basic_mdspan</code> object is a multidimensional index space, defined by <math>[0, <code>extent(0)</code>) ⨯ [0, <code>extent(1)</code>) ⨯ … ⨯ [0, <code>extent(rank()-1)</code>)</math>. Each extent may be statically or dynamically specified.</li>
@@ -2505,8 +2336,8 @@ private:
  ##
 
 -->
-<p><br /> <b>26.7.�.1 <code>basic_mdspan</code> constructors, assignment, and destructor [mdspan.basic.cons]</b> // Mapping domain multidimensional index to access codomain element</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb55-1"><a href="#cb55-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span></code></pre></div>
+<p><br /> <b>22.7.�.1 <code>basic_mdspan</code> constructors, assignment, and destructor [mdspan.basic.cons]</b> // Mapping domain multidimensional index to access codomain element</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb40-1"><a href="#cb40-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span></code></pre></div>
 <ul>
 <li><em>Effects:</em>
 <ul>
@@ -2522,7 +2353,7 @@ private:
 </ul></li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb56-1"><a href="#cb56-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">(</span><span class="kw">const</span> basic_mdspan<span class="op">&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">(</span><span class="kw">const</span> basic_mdspan<span class="op">&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span></code></pre></div>
 <ul>
 <li><em>Effects:</em>
 <ul>
@@ -2538,7 +2369,7 @@ private:
 </ul></li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb57-1"><a href="#cb57-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>basic_mdspan<span class="op">&amp;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>basic_mdspan<span class="op">&amp;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Effects:</em>
 <ul>
@@ -2548,8 +2379,8 @@ private:
 </ul></li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> IndexType<span class="op">&gt;</span></span>
-<span id="cb58-2"><a href="#cb58-2"></a>  <span class="kw">explicit</span> <span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>pointer ptr, IndexType<span class="op">...</span> dynamic_extents<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb43-1"><a href="#cb43-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> IndexType<span class="op">&gt;</span></span>
+<span id="cb43-2"><a href="#cb43-2"></a>  <span class="kw">explicit</span> <span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>pointer ptr, IndexType<span class="op">...</span> dynamic_extents<span class="op">)</span>;</span></code></pre></div>
 <ul>
 <li><em>Constraints:</em>
 <ul>
@@ -2572,8 +2403,8 @@ private:
 <li><em>Throws:</em> Nothing.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb59-2"><a href="#cb59-2"></a>  <span class="kw">explicit</span> <span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> array<span class="op">&lt;</span>IndexType, N<span class="op">&gt;&amp;</span> dynamic_extents<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb44-2"><a href="#cb44-2"></a>  <span class="kw">explicit</span> <span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> array<span class="op">&lt;</span>IndexType, N<span class="op">&gt;&amp;</span> dynamic_extents<span class="op">)</span>;</span></code></pre></div>
 <ul>
 <li><em>Constraints:</em>
 <ul>
@@ -2586,7 +2417,7 @@ private:
 <li><em>Throws:</em> Nothing.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb60"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb60-1"><a href="#cb60-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m<span class="op">)</span>;</span></code></pre></div>
 <ul>
 <li><em>Constraints:</em> <code>is_default_constructible_v&lt;accessor_type&gt;</code> is <code>true</code>.</li>
 <li><em>Effects:</em>
@@ -2603,7 +2434,7 @@ private:
 <li><em>Throws:</em> Nothing.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb61-1"><a href="#cb61-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> accessor_type<span class="op">&amp;</span> a<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb46-1"><a href="#cb46-1"></a><span class="kw">constexpr</span> basic_mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> accessor_type<span class="op">&amp;</span> a<span class="op">)</span>;</span></code></pre></div>
 <ul>
 <li><em>Effects:</em>
 <ul>
@@ -2619,8 +2450,8 @@ private:
 <li><em>Throws:</em> Nothing.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb62"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb62-1"><a href="#cb62-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents, <span class="kw">class</span> OtherLayoutPolicy, <span class="kw">class</span> OtherAccessor<span class="op">&gt;</span></span>
-<span id="cb62-2"><a href="#cb62-2"></a>  <span class="kw">constexpr</span> basic_mdspan<span class="op">(</span><span class="kw">const</span> basic_mdspan<span class="op">&lt;</span>OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents, <span class="kw">class</span> OtherLayoutPolicy, <span class="kw">class</span> OtherAccessor<span class="op">&gt;</span></span>
+<span id="cb47-2"><a href="#cb47-2"></a>  <span class="kw">constexpr</span> basic_mdspan<span class="op">(</span><span class="kw">const</span> basic_mdspan<span class="op">&lt;</span>OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
 <ul>
 <li><em>Constraints:</em>
 <ul>
@@ -2648,8 +2479,8 @@ private:
 <li><em>Throws:</em> Nothing.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents, <span class="kw">class</span> OtherLayoutPolicy, <span class="kw">class</span> OtherAccessor<span class="op">&gt;</span></span>
-<span id="cb63-2"><a href="#cb63-2"></a>  <span class="kw">constexpr</span> basic_mdspan<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> basic_mdspan<span class="op">&lt;</span>OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents, <span class="kw">class</span> OtherLayoutPolicy, <span class="kw">class</span> OtherAccessor<span class="op">&gt;</span></span>
+<span id="cb48-2"><a href="#cb48-2"></a>  <span class="kw">constexpr</span> basic_mdspan<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> basic_mdspan<span class="op">&lt;</span>OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
 <!-- NOTE is_assignable_v<T, U> means T is assignable from U -->
 <ul>
 <li><em>Constraints:</em>
@@ -2685,16 +2516,16 @@ private:
 ### ### # # ###  ## # #     # # ### ### ###  ## # #  ##
                                     #   #           ###
 -->
-<p><br /> <b>26.7.�.2 <code>basic_mdspan</code> mapping domain multidimensional index to access codomain element [mdspan.basic.mapping]</b></p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb64-1"><a href="#cb64-1"></a><span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span>index_type i<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
+<p><br /> <b>22.7.�.2 <code>basic_mdspan</code> mapping domain multidimensional index to access codomain element [mdspan.basic.mapping]</b></p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb49-1"><a href="#cb49-1"></a><span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span>index_type i<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
 <ul>
 <li><em>Constraints:</em> <code>rank() == 1</code> is <code>true</code>.</li>
 <li><em>Requires:</em> <code>acc_.access(ptr_, map_(i))</code> shall be valid.</li>
 <li><em>Effects:</em> Equivalent to: <code>return (*this)(i);</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb65-1"><a href="#cb65-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> IndexType<span class="op">&gt;</span></span>
-<span id="cb65-2"><a href="#cb65-2"></a>  <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">()(</span>IndexType<span class="op">...</span> indices<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb50-1"><a href="#cb50-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> IndexType<span class="op">&gt;</span></span>
+<span id="cb50-2"><a href="#cb50-2"></a>  <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">()(</span>IndexType<span class="op">...</span> indices<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
 <ul>
 <li><em>Constraints:</em>
 <ul>
@@ -2707,8 +2538,8 @@ private:
 </ul>
 <!-- * Moving this to mapping requirements *Requires:* 0 <= `array<index_type, sizeof...(indices)>{indices...}[r]` < `extent(r)` for all `r` in the range `[0, rank())`. -->
 <p><br /></p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb66-2"><a href="#cb66-2"></a>  <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">()(</span><span class="kw">const</span> array<span class="op">&lt;</span>IndexType, N<span class="op">&gt;&amp;</span> indices<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb51-1"><a href="#cb51-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb51-2"><a href="#cb51-2"></a>  <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">()(</span><span class="kw">const</span> array<span class="op">&lt;</span>IndexType, N<span class="op">&gt;&amp;</span> indices<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
 <!-- TODO: Do I need a requires clause if I already have an equivalent effects clause? -->
 <ul>
 <li><em>Constraints:</em>
@@ -2720,7 +2551,7 @@ private:
 <li><em>Effects:</em> Equivalent to: <code>return std::apply(*this, indices);</code>.</li>
 <li><em>Throws:</em> nothing.</li>
 </ul>
-<div class="sourceCode" id="cb67"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb67-1"><a href="#cb67-1"></a>accessor_type accessor<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb52-1"><a href="#cb52-1"></a>accessor_type accessor<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>acc_</code>.</li>
 </ul>
@@ -2732,37 +2563,37 @@ private:
 ### ### # # ###  ## # #     ### ### ##  ### #    #  ### #   ##
 
 -->
-<p><br /> <b>26.7.�.3 <code>basic_mdspan</code> observers of the domain multidimensional index space [mdspan.basic.domobs]</b></p>
-<div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">int</span> rank<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><br /> <b>22.7.�.3 <code>basic_mdspan</code> observers of the domain multidimensional index space [mdspan.basic.domobs]</b></p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb53-1"><a href="#cb53-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">int</span> rank<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>Extents::rank()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb69-1"><a href="#cb69-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">int</span> rank_dynamic<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb54-1"><a href="#cb54-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">int</span> rank_dynamic<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>Extents::rank_dynamic()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb70"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb70-1"><a href="#cb70-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> index_type static_extent<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb55-1"><a href="#cb55-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> index_type static_extent<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>Extents::static_extent(r)</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb71-1"><a href="#cb71-1"></a><span class="kw">constexpr</span> Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb56-1"><a href="#cb56-1"></a><span class="kw">constexpr</span> Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>mapping().extents()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb72"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb72-1"><a href="#cb72-1"></a><span class="kw">constexpr</span> index_type extent<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb57-1"><a href="#cb57-1"></a><span class="kw">constexpr</span> index_type extent<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>extents().extent(r)</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb73"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb73-1"><a href="#cb73-1"></a><span class="kw">constexpr</span> index_type size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1"></a><span class="kw">constexpr</span> index_type size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
-<li><em>Returns:</em> Product of <code>extent(r)</code> for all <code>r</code> in the range <code>[0, extents().rank())</code>.</li>
+<li><em>Returns:</em> Product of <code>extent(r)</code> for all <code>r</code> in the range <code>[0, Extents::rank())</code>.</li>
 </ul>
-<div class="sourceCode" id="cb74"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb74-1"><a href="#cb74-1"></a><span class="kw">constexpr</span> index_type unique_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1"></a><span class="kw">constexpr</span> index_type unique_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> The number of unique elements in the codomain. <em>[Note:* If <code>mapping().is_unique()</code> is <code>true</code>, this is identical to <code>size()</code>. *—end note]</em></li>
 </ul>
@@ -2774,12 +2605,12 @@ private:
 ### ### ### ### # # ###  ## # #     ### ### ##  ### #    #  ### #   ##
 
 -->
-<p><br /> <b>26.7.�.3 <code>basic_mdspan</code> observers of the codomain [mdspan.basic.codomain]</b></p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb75-1"><a href="#cb75-1"></a><span class="kw">constexpr</span> span<span class="op">&lt;</span>element_type<span class="op">&gt;</span> span<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><br /> <b>22.7.�.3 <code>basic_mdspan</code> observers of the codomain [mdspan.basic.codomain]</b></p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb60-1"><a href="#cb60-1"></a><span class="kw">constexpr</span> span<span class="op">&lt;</span>element_type<span class="op">&gt;</span> span<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Effects:</em> Equivalent to: <code>return span&lt;element_type&gt;(acc_.decay(ptr_), required_span_size());</code>.</li>
 </ul>
-<div class="sourceCode" id="cb76"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb76-1"><a href="#cb76-1"></a><span class="kw">constexpr</span> pointer data<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb61"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb61-1"><a href="#cb61-1"></a><span class="kw">constexpr</span> pointer data<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>ptr_</code>.</li>
 </ul>
@@ -2791,44 +2622,44 @@ private:
 # # ### ### ###  ## # #  ##     ### ### ##  ### #    #  ### #   ##
 # #     #   #           ###
 -->
-<p><br /> <b>26.7.�.4 <code>basic_mdspan</code> observers of the mapping [mdspan.basic.obs]</b></p>
+<p><br /> <b>22.7.�.4 <code>basic_mdspan</code> observers of the mapping [mdspan.basic.obs]</b></p>
 <p><br /></p>
-<div class="sourceCode" id="cb77"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb77-1"><a href="#cb77-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb62"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb62-1"><a href="#cb62-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>mapping_type::is_always_unique()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb78"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb78-1"><a href="#cb78-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>mapping_type::is_always_contiguous()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb79"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb79-1"><a href="#cb79-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb64-1"><a href="#cb64-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>mapping_type::is_always_strided()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb80"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb80-1"><a href="#cb80-1"></a><span class="kw">constexpr</span> mapping_type mapping<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb65-1"><a href="#cb65-1"></a><span class="kw">constexpr</span> mapping_type mapping<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>map_</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb81"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb81-1"><a href="#cb81-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>mapping().is_unique()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb82"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb82-1"><a href="#cb82-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb67-1"><a href="#cb67-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>mapping().is_contiguous()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb83"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb83-1"><a href="#cb83-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>mapping().is_strided()</code>.</li>
 </ul>
 <p><br /></p>
-<div class="sourceCode" id="cb84"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb84-1"><a href="#cb84-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb69-1"><a href="#cb69-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
 <ul>
 <li><em>Returns:</em> <code>mapping().stride(r)</code>.</li>
 </ul>
@@ -2847,7 +2678,7 @@ subspan
                                         | $$
                                         |__/
 -->
-<p><br /> <br /> <b>26.7.� subspan [mdspan.subspan]</b></p>
+<p><br /> <br /> <b>22.7.� subspan [mdspan.subspan]</b></p>
 <ol type="1">
 <li>The <code>subspan</code> function creates a <code>basic_mdspan</code> with a domain that is a subset of the input <code>basic_mdspan</code>’s domain, and a codomain that is a subset of the input <code>basic_mdspan</code>’s codomain.</li>
 <li>The <code>SliceSpecifier</code> template argument(s) and the corresponding value(s) of the arguments of <code>subspan</code> after <code>src</code> determine the subset of <code>src</code> that the return value views.</li>
@@ -2927,35 +2758,35 @@ namespace fundamentals_v3 {
 </ul>
 <p><br /></p>
 <p><em>[Note:</em> Example of <code>subspan</code> use:</p>
-<div class="sourceCode" id="cb85"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb85-1"><a href="#cb85-1"></a><span class="co">// Create a mapping</span></span>
-<span id="cb85-2"><a href="#cb85-2"></a><span class="kw">typedef</span> extents<span class="op">&lt;</span><span class="dv">3</span>,dynamic_extent,<span class="dv">7</span><span class="op">&gt;</span> Extents3D;</span>
-<span id="cb85-3"><a href="#cb85-3"></a>layout_right<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span>Extents3D<span class="op">&gt;</span> map_right<span class="op">(</span><span class="dv">10</span><span class="op">)</span>;</span>
-<span id="cb85-4"><a href="#cb85-4"></a></span>
-<span id="cb85-5"><a href="#cb85-5"></a><span class="co">// Allocate a basic_mdspan</span></span>
-<span id="cb85-6"><a href="#cb85-6"></a><span class="dt">int</span><span class="op">*</span> ptr <span class="op">=</span> <span class="kw">new</span> <span class="dt">int</span><span class="op">[</span><span class="dv">3</span><span class="op">*</span><span class="dv">8</span><span class="op">*</span><span class="dv">10</span><span class="op">]</span>;</span>
-<span id="cb85-7"><a href="#cb85-7"></a>basic_mdspan<span class="op">&lt;</span><span class="dt">int</span>,Extents3D,layout_right<span class="op">&gt;</span> a<span class="op">(</span>ptr,map_right<span class="op">)</span>;</span>
-<span id="cb85-8"><a href="#cb85-8"></a></span>
-<span id="cb85-9"><a href="#cb85-9"></a><span class="co">// Initialize the span</span></span>
-<span id="cb85-10"><a href="#cb85-10"></a><span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i0<span class="op">=</span><span class="dv">0</span>; i0<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; i0<span class="op">++)</span></span>
-<span id="cb85-11"><a href="#cb85-11"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i1<span class="op">=</span><span class="dv">0</span>; i1<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)</span>; i1<span class="op">++)</span></span>
-<span id="cb85-12"><a href="#cb85-12"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i2<span class="op">=</span><span class="dv">0</span>; i2<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">2</span><span class="op">)</span>; i2<span class="op">++)</span></span>
-<span id="cb85-13"><a href="#cb85-13"></a>      a<span class="op">(</span>i0,i1,i2<span class="op">)</span> <span class="op">=</span> <span class="dv">10000</span><span class="op">*</span>i0<span class="op">+</span><span class="dv">100</span><span class="op">*</span>i1<span class="op">+</span>i2;</span>
-<span id="cb85-14"><a href="#cb85-14"></a></span>
-<span id="cb85-15"><a href="#cb85-15"></a><span class="co">// Create Subspan</span></span>
-<span id="cb85-16"><a href="#cb85-16"></a><span class="kw">auto</span> a_sub <span class="op">=</span> subspan<span class="op">(</span>a,<span class="dv">1</span>,std<span class="op">::</span>pair<span class="op">&lt;</span><span class="dt">int</span>,<span class="dt">int</span><span class="op">&gt;(</span><span class="dv">4</span>,<span class="dv">6</span><span class="op">)</span>,std<span class="op">::</span>pair<span class="op">&lt;</span><span class="dt">int</span>,<span class="dt">int</span><span class="op">&gt;(</span><span class="dv">1</span>,<span class="dv">6</span><span class="op">))</span>;</span>
-<span id="cb85-17"><a href="#cb85-17"></a></span>
-<span id="cb85-18"><a href="#cb85-18"></a><span class="co">// Print values of subspan</span></span>
-<span id="cb85-19"><a href="#cb85-19"></a><span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i0<span class="op">=</span><span class="dv">0</span>; i0<span class="op">&lt;</span>a_sub<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; i0<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb85-20"><a href="#cb85-20"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i1<span class="op">=</span><span class="dv">0</span>; i1<span class="op">&lt;</span>a_sub<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)</span>; i1<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb85-21"><a href="#cb85-21"></a>    std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> a_sub<span class="op">(</span>i0,i1<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; &quot;</span>;</span>
-<span id="cb85-22"><a href="#cb85-22"></a>  <span class="op">}</span></span>
-<span id="cb85-23"><a href="#cb85-23"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> std<span class="op">::</span>endl;</span>
-<span id="cb85-24"><a href="#cb85-24"></a><span class="op">}</span></span>
-<span id="cb85-25"><a href="#cb85-25"></a></span>
-<span id="cb85-26"><a href="#cb85-26"></a><span class="co">/* Output</span></span>
-<span id="cb85-27"><a href="#cb85-27"></a><span class="co">10401 10402 10403 10404 10405</span></span>
-<span id="cb85-28"><a href="#cb85-28"></a><span class="co">10501 10502 10503 10504 10505</span></span>
-<span id="cb85-29"><a href="#cb85-29"></a><span class="co">*/</span></span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb70-1"><a href="#cb70-1"></a><span class="co">// Create a mapping</span></span>
+<span id="cb70-2"><a href="#cb70-2"></a><span class="kw">typedef</span> extents<span class="op">&lt;</span><span class="dv">3</span>,dynamic_extent,<span class="dv">7</span><span class="op">&gt;</span> Extents3D;</span>
+<span id="cb70-3"><a href="#cb70-3"></a>layout_right<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span>Extents3D<span class="op">&gt;</span> map_right<span class="op">(</span><span class="dv">10</span><span class="op">)</span>;</span>
+<span id="cb70-4"><a href="#cb70-4"></a></span>
+<span id="cb70-5"><a href="#cb70-5"></a><span class="co">// Allocate a basic_mdspan</span></span>
+<span id="cb70-6"><a href="#cb70-6"></a><span class="dt">int</span><span class="op">*</span> ptr <span class="op">=</span> <span class="kw">new</span> <span class="dt">int</span><span class="op">[</span><span class="dv">3</span><span class="op">*</span><span class="dv">8</span><span class="op">*</span><span class="dv">10</span><span class="op">]</span>;</span>
+<span id="cb70-7"><a href="#cb70-7"></a>basic_mdspan<span class="op">&lt;</span><span class="dt">int</span>,Extents3D,layout_right<span class="op">&gt;</span> a<span class="op">(</span>ptr,map_right<span class="op">)</span>;</span>
+<span id="cb70-8"><a href="#cb70-8"></a></span>
+<span id="cb70-9"><a href="#cb70-9"></a><span class="co">// Initialize the span</span></span>
+<span id="cb70-10"><a href="#cb70-10"></a><span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i0<span class="op">=</span><span class="dv">0</span>; i0<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; i0<span class="op">++)</span></span>
+<span id="cb70-11"><a href="#cb70-11"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i1<span class="op">=</span><span class="dv">0</span>; i1<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)</span>; i1<span class="op">++)</span></span>
+<span id="cb70-12"><a href="#cb70-12"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i2<span class="op">=</span><span class="dv">0</span>; i2<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">2</span><span class="op">)</span>; i2<span class="op">++)</span></span>
+<span id="cb70-13"><a href="#cb70-13"></a>      a<span class="op">(</span>i0,i1,i2<span class="op">)</span> <span class="op">=</span> <span class="dv">10000</span><span class="op">*</span>i0<span class="op">+</span><span class="dv">100</span><span class="op">*</span>i1<span class="op">+</span>i2;</span>
+<span id="cb70-14"><a href="#cb70-14"></a></span>
+<span id="cb70-15"><a href="#cb70-15"></a><span class="co">// Create Subspan</span></span>
+<span id="cb70-16"><a href="#cb70-16"></a><span class="kw">auto</span> a_sub <span class="op">=</span> subspan<span class="op">(</span>a,<span class="dv">1</span>,std<span class="op">::</span>pair<span class="op">&lt;</span><span class="dt">int</span>,<span class="dt">int</span><span class="op">&gt;(</span><span class="dv">4</span>,<span class="dv">6</span><span class="op">)</span>,std<span class="op">::</span>pair<span class="op">&lt;</span><span class="dt">int</span>,<span class="dt">int</span><span class="op">&gt;(</span><span class="dv">1</span>,<span class="dv">6</span><span class="op">))</span>;</span>
+<span id="cb70-17"><a href="#cb70-17"></a></span>
+<span id="cb70-18"><a href="#cb70-18"></a><span class="co">// Print values of subspan</span></span>
+<span id="cb70-19"><a href="#cb70-19"></a><span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i0<span class="op">=</span><span class="dv">0</span>; i0<span class="op">&lt;</span>a_sub<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; i0<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb70-20"><a href="#cb70-20"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i1<span class="op">=</span><span class="dv">0</span>; i1<span class="op">&lt;</span>a_sub<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)</span>; i1<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb70-21"><a href="#cb70-21"></a>    std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> a_sub<span class="op">(</span>i0,i1<span class="op">)</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; &quot;</span>;</span>
+<span id="cb70-22"><a href="#cb70-22"></a>  <span class="op">}</span></span>
+<span id="cb70-23"><a href="#cb70-23"></a>  std<span class="op">::</span>cout <span class="op">&lt;&lt;</span> std<span class="op">::</span>endl;</span>
+<span id="cb70-24"><a href="#cb70-24"></a><span class="op">}</span></span>
+<span id="cb70-25"><a href="#cb70-25"></a></span>
+<span id="cb70-26"><a href="#cb70-26"></a><span class="co">/* Output</span></span>
+<span id="cb70-27"><a href="#cb70-27"></a><span class="co">10401 10402 10403 10404 10405</span></span>
+<span id="cb70-28"><a href="#cb70-28"></a><span class="co">10501 10502 10503 10504 10505</span></span>
+<span id="cb70-29"><a href="#cb70-29"></a><span class="co">*/</span></span></code></pre></div>
 <p><em>- end note]</em></p>
 <h1 data-number="5" id="next-steps" data-number="5"><span class="header-section-number">5</span> Next Steps<a href="#next-steps" class="self-link"></a></h1>
 <ul>
