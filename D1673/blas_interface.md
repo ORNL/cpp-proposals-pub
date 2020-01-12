@@ -6858,3 +6858,81 @@ Cholesky and LU in place.
 
 * *Effects:* Overwrites `B` with the result of solving the triangular
    linear system(s) XA=B for X.
+
+## Examples
+
+### Cholesky factorization
+
+This example shows how to compute the Cholesky factorization of a real
+square matrix in a unique non-packed layout.  The algorithm imitates
+`DPOTRF2` in LAPACK 3.9.0.  If `Triangle` is `upper_triangle_t`, then
+it computes the Cholesky factorization A = U^T U.  Otherwise, it
+computes the Cholesky factorization A = L L^T.  The function returns 0
+if success, else k+1 if row/column k has a zero or NaN (not a number)
+diagonal entry.
+
+```c++
+#include <linalg>
+#include <cmath>
+
+template<class inout_matrix_t,
+         class Triangle>
+int cholesky_factor(inout_matrix_t A, Triangle t)
+{
+  using element_type = typename inout_matrix_t::element_type;
+  constexpr element_type ZERO {};
+  constexpr element_type ONE (1.0);
+  const ptrdiff_t n = A.extent(0);
+
+  if (n == 0) {
+    return 0;
+  }
+  else if (n == 1) {
+    if (A(0,0) <= ZERO || isnan(A(0,0))) {
+      return 1;
+    }
+    A(0,0) = sqrt(A(0,0));
+  }
+  else {
+    // Partition A into [A11, A12,
+    //                   A21, A22],
+    // where A21 is the transpose of A12.
+    const ptrdiff_t n1 = n / 2;
+    const ptrdiff_t n2 = n - n1;
+    auto A11 = subspan(A, pair{0, n1}, pair{0, n1});
+    auto A22 = subspan(A, pair{n1, n}, pair{n1, n});
+
+    // Factor A11
+    const int info1 = cholesky_factor(A11, t);
+    if (info1 != 0) {
+      return info1;
+    }
+
+    if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
+      // Update and scale A12
+      auto A12 = subspan(A, pair{0, n1}, pair{n1, n});
+      triangular_matrix_matrix_left_solve(transpose_view(A11),
+        upper_triangle, explicit_diagonal, A12);
+      // A22 = A22 - A12^T * A12
+      symmetric_matrix_rank_k_update(-ONE, transpose_view(A12), A22, t);
+    }
+    else {
+      //
+      // Compute the Cholesky factorization A = L * L^T
+      //
+      // Update and scale A21
+      auto A21 = subspan(A, pair{n1, n}, pair{0, n1});
+      triangular_matrix_matrix_right_solve(transpose_view(A11),
+        lower_triangle, explicit_diagonal, A21);
+      // A22 = A22 - A21 * A21^T
+      symmetric_matrix_rank_k_update(-ONE, A21, A22, t);
+    }
+
+    // Factor A22
+    const int info2 = cholesky_factor(A22, t);
+    if (info2 != 0) {
+      return info2 + n1;
+    }
+  }
+}
+```
