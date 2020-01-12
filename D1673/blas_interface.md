@@ -2171,6 +2171,45 @@ void triangular_matrix_right_product(
   in_matrix_3_t E,
   out_matrix_t C);
 
+// [linalg.alg.blas3.rank-k.syrk],
+// rank-k symmetric matrix update
+template<class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+
 // [linalg.alg.blas3.rank2k.syr2k],
 // rank-2k symmetric matrix update
 template<class in_matrix_1_t,
@@ -6171,11 +6210,114 @@ void triangular_matrix_right_product(
 * *Effects:* Assigns to the elements of the matrix `C` on output, the
   elementwise sum of `E` and the product of the matrices `B` and `A`.
 
+##### Rank-k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank-k]
+
+*[Note:* Users can achieve the effect of the `TRANS` argument of these
+BLAS functions, by applying `transpose_view` or
+`conjugate_transpose_view` to the input matrix. --*end note]*
+
+###### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.syrk]
+
+```c++
+template<class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+```
+
+*[Note:*
+
+These functions correspond to the BLAS function `xSYRK`.
+
+They take an optional scaling factor `alpha`, because it would be
+impossible to express the update C = C - A * A^T otherwise.
+
+--*end note]*
+
+* *Requires:*
+
+  * `A.extent(0)` equals `C.extent(0)`.
+
+  * `C.extent(0)` equals `C.extent(1)`.
+
+* *Constraints:*
+
+  * `A.rank()` equals 2 and `C.rank()` equals 2.
+
+  * `C` either has unique layout, or `layout_blas_packed` layout.
+
+  * If `C` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
+
+  * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
+    of `A`, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
+
+  * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
+    of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
+    formed (if applicable).
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`.
+
+  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `C.static_extent(1)`.
+
+* *Effects:*
+
+  * Overloads without `alpha` assign to `C` on output, the elementwise
+    sum of `C` on input with (the matrix product of `A` and the
+    nonconjugated transpose of `A`).
+
+  * Overloads with `alpha` assign to `C` on output, the elementwise
+    sum of `C` on input with alpha times (the matrix product of `A`
+    and the nonconjugated transpose of `A`).
+
+* *Remarks:* The functions will only access the triangle of `C`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
+
 ##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
-BLAS functions, by making `C` a `transpose_view` or
-`conjugate_transpose_view`. --*end note]*
+BLAS functions, by applying `transpose_view` or
+`conjugate_transpose_view` to the input matrices. --*end note]*
 
 ###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.syr2k]
 
