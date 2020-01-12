@@ -2210,6 +2210,45 @@ void symmetric_matrix_rank_k_update(
   inout_matrix_t C,
   Triangle t);
 
+// [linalg.alg.blas3.rank-k.herk],
+// rank-k Hermitian matrix update
+template<class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+
 // [linalg.alg.blas3.rank2k.syr2k],
 // rank-2k symmetric matrix update
 template<class in_matrix_1_t,
@@ -6244,8 +6283,8 @@ void symmetric_matrix_rank_k_update(
   in_matrix_1_t A,
   inout_matrix_t C,
   Triangle t);
-template<class T,
-         class ExecutionPolicy,
+template<class ExecutionPolicy,
+         class T,
          class in_matrix_1_t,
          class inout_matrix_t,
          class Triangle>
@@ -6313,6 +6352,116 @@ impossible to express the update C = C - A * A^T otherwise.
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
+###### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.herk]
+
+```c++
+template<class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+```
+
+*[Note:*
+
+These functions correspond to the BLAS function `xHERK`.
+
+They take an optional scaling factor `alpha`, because it would be
+impossible to express the updates C = C - A A^T or C = C - A A^H
+otherwise.
+
+--*end note]*
+
+* *Requires:*
+
+  * `A.extent(0)` equals `C.extent(0)`.
+
+  * `C.extent(0)` equals `C.extent(1)`.
+
+* *Constraints:*
+
+  * `A.rank()` equals 2 and `C.rank()` equals 2.
+
+  * `C` either has unique layout, or `layout_blas_packed` layout.
+
+  * If `C` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
+
+  * For overloads without `alpha`: For `i,j` in the domain of `C`, and
+    `i,k` and `k,i` in the domain of `A`,
+
+    * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
+      then the expression `C(i,j) += A(i,k)*conj(A(j,k))` is well
+      formed;
+
+    * else, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
+
+  * For overloads with `alpha`: For `i,j` in the domain of `C`, and
+    `i,k` and `k,i` in the domain of `A`,
+
+    * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
+      then the expression `C(i,j) += alpha*A(i,k)*conj(A(j,k))` is well
+      formed;
+
+    * else, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
+      formed.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`.
+
+  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `C.static_extent(1)`.
+
+* *Effects:*
+
+  * Overloads without `alpha` assign to `C` on output, the elementwise
+    sum of `C` on input with (the matrix product of `A` and the
+    conjugated transpose of `A`).
+
+  * Overloads with `alpha` assign to `C` on output, the elementwise
+    sum of `C` on input with alpha times (the matrix product of `A`
+    and the conjugated transpose of `A`).
+
+* *Remarks:* The functions will only access the triangle of `C`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
+
 ##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
@@ -6331,7 +6480,6 @@ void symmetric_matrix_rank_2k_update(
   in_matrix_2_t B,
   inout_matrix_t C,
   Triangle t);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class in_matrix_2_t,
@@ -6444,9 +6592,25 @@ void hermitian_matrix_rank_2k_update(
     `Triangle` template argument.
 
   * For `i,j` in the domain of `C`, `i,k` and `k,i` in the domain of
-    `A`, and `j,k` and `k,j` in the domain of `B`, the expression
-    `C(i,j) += A(i,k)*conj(B(j,k)) + B(i,k)*conj(A(j,k))` is well
-    formed.
+    `A`, and `j,k` and `k,j` in the domain of `B`,
+
+    * if `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`, then
+
+      * if `in_matrix_2_t::element_type` is `complex<RB>` for some
+        `RB`, then the expression `C(i,j) += A(i,k)*conj(B(j,k)) +
+        B(i,k)*conj(A(j,k))` is well formed;
+
+      * else, the expression `C(i,j) += A(i,k)*B(j,k) +
+        B(i,k)*conj(A(j,k))` is well formed;
+
+    * else,
+
+      * if `in_matrix_2_t::element_type` is `complex<RB>` for some
+        `RB`, then the expression `C(i,j) += A(i,k)*conj(B(j,k)) +
+        B(i,k)*A(j,k)` is well formed;
+
+      * else, the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)`
+        is well formed.
 
 * *Mandates:*
 
