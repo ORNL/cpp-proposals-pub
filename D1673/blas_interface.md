@@ -23,7 +23,7 @@
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
-## Date: 2020-01-09
+## Date: 2020-01-12
 
 ## Revision history
 
@@ -82,7 +82,7 @@
   * Add in-place overloads of
     `triangular_matrix_matrix_{left,right}_solve`,
     `triangular_matrix_{left,right}_product`, and
-    `triangular_matrix_vector_solve`.
+    `triangular_matrix_vector_{product,solve}`.
 
   * Add `alpha` overloads to
     `{symmetric,hermitian}_matrix_rank_{1,k}_update`.
@@ -4331,7 +4331,7 @@ T dot(ExecutionPolicy&& exec,
   `v1.static_extent(0)` equals `v2.static_extent(0)`.
 
 * *Effects:* Let `N` be `v1.extent(0)`.  If `N` is zero, returns
-  `init`, else returns /GENERALIZED_SUM/(`plus<>()`, `init`,
+  `init`, else returns *GENERALIZED_SUM*(`plus<>()`, `init`,
   `v1(0)*v2(0)`, ..., `v1(N-1)*v2(N-1)`).
 
 * *Remarks:* If `in_vector_t::element_type` and `T` are both
@@ -4525,11 +4525,11 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
   * If `N` is zero, returns `init`.
 
   * Else, if `in_vector_t::element_type` is `complex<R>` for some `R`,
-    then returns /GENERALIZED_SUM/(`plus<>()`, `init`,
+    then returns *GENERALIZED_SUM*(`plus<>()`, `init`,
     `abs(real(v(0))) + abs(imag(v(0)))`, ...,
     `abs(real(v(N-1))) + abs(imag(v(N-1)))`).
 
-  * Else, returns /GENERALIZED_SUM/(`plus<>()`, `init`,
+  * Else, returns *GENERALIZED_SUM*(`plus<>()`, `init`,
     `abs(v(0))`, ..., `abs(v(N-1))`).
 
 * *Remarks:* If `in_vector_t::element_type` and `T` are both
