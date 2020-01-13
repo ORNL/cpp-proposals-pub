@@ -1794,6 +1794,26 @@ void hermitian_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
+template<class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 
 // [linalg.algs.blas2.rank2.syr2],
 // symmetric rank-2 matrix update
@@ -5188,8 +5208,9 @@ void symmetric_matrix_rank_1_update(
   Triangle t);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xSYR` and
-`xSPR`.
+*[Note:*
+
+These functions correspond to the BLAS functions `xSYR` and `xSPR`.
 
 They take an optional scaling factor `alpha`, because it would be
 impossible to express the update C = C - x x^T otherwise.
@@ -5212,12 +5233,16 @@ impossible to express the update C = C - x x^T otherwise.
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
 
-  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
-    x(i)*x(j)` is well formed.
+  * For overloads without `alpha`:
 
-  * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
-    of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
-    formed (if applicable).
+    * For `i,j` in the domain of `A`, the expression `A(i,j) +=
+      x(i)*x(j)` is well formed.
+
+  * For overloads with `alpha`:
+
+    * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the
+      domain of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is
+      well formed.
 
 * *Mandates:*
 
@@ -5252,7 +5277,6 @@ void hermitian_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
-
 template<class ExecutionPolicy,
          class in_vector_t,
          class inout_matrix_t,
@@ -5262,10 +5286,36 @@ void hermitian_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
+template<class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xHER` and
-`xHPR`. --*end note]*
+*[Note:*
+
+These functions correspond to the BLAS functions `xHER` and `xHPR`.
+
+They take an optional scaling factor `alpha`, because it would be
+impossible to express the update A = A - x x^H otherwise.
+
+--*end note]*
 
 * *Requires:*
 
@@ -5283,8 +5333,25 @@ void hermitian_matrix_rank_1_update(
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
 
-  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
-    x(i)*conj(x(j))` is well formed.
+  * For overloads without `alpha`:
+
+    * For `i,j` in the domain of `A`:
+
+      * if `in_vector_t::element_type` is `complex<RX> for some `RX`,
+        then the expression `A(i,j) += x(i)*conj(x(j))` is well formed;
+
+      * else, the expression `A(i,j) += x(i)*x(j)` is well formed.
+
+  * For overloads with `alpha`:
+
+    * For `i,j` in the domain of `A`:
+
+      * if `in_vector_t::element_type` is `complex<RX> for some `RX`,
+        then the expression `A(i,j) += alpha*x(i)*conj(x(j))` is well
+        formed;
+
+      * else, the expression `A(i,j) += alpha*x(i)*x(j)` is well
+        formed.
 
 * *Mandates:*
 
@@ -5296,13 +5363,25 @@ void hermitian_matrix_rank_1_update(
     `dynamic_extent`, then `A.static_extent(0)` equals
     `x.static_extent(0)`.
 
-* *Effects:* Assigns to `A` on output the sum of `A` on input, and the
-  outer product of `x` and the conjugate of `x`.
+* *Effects:*
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals
-  `conj(A(i,j))`.
+  * Overloads without `alpha` assign to `A` on output, the elementwise
+    sum of `A` on input, with (the outer product of `x` and the
+    conjugate of `x`).
+
+  * Overloads with `alpha` assign to `A` on output, the elementwise
+    sum of `A` on input, with alpha times (the outer product of `x`
+    and the conjugate of `x`).
+
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
+
+  * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
+    the functions will assume for indices `i,j` outside that triangle,
+    that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the functions
+    will assume that `A(j,k)` equals `A(i,j)`.
 
 ##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
