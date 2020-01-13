@@ -69,8 +69,8 @@
 
   * (Re)add `Reference` template parameter to `conjugated_scalar`.
 
-  * Make sure that `{conjugate,transpose}_view` applied 2x undoes
-    the original conjugation / transposition.
+  * Fix wording for `{conjugate,transpose,conjugate_transpose}_view`,
+    so that implementations may optimize the return type.
 
   * Remove second template parameter `T` from `accessor_conjugate`.
 
@@ -78,8 +78,9 @@
 
   * Add in-place overloads of `triangular_matrix_matrix_solve`.
 
-  * Add missing `symmetric_matrix_rank_k_update` and
-    `hermitian_matrix_rank_k_update` functions.
+  * Add missing `{symmetric,hermitian}_matrix_rank_k_update`
+    functions.  Add overloads that take `alpha` to
+    `{symmetric,hermitian}_matrix_rank_1_update`.
 
 ## Purpose of this paper
 
@@ -595,17 +596,18 @@ loses precision.  Some users may want `complex<double>`; others may
 want `complex<long double>` or something else, and others may want to
 choose different types in the same program.
 
-[P1385](http://wg21.link/p1385) lets users customize the return type of
-such arithmetic expressions.  However, different algorithms may call
-for the same expression with the same inputs to have different output
-types.  For example, iterative refinement of linear systems `Ax=b` can
-work either with an extended-precision intermediate residual vector `r
-= b - A*x`, or with a residual vector that has the same precision as
-the input linear system.  Each choice produces a different algorithm
-with different convergence characteristics.  Thus, our library lets
-users specify the result element type of linear algebra operations
-explicitly, by calling a named function that takes an output argument
-explicitly, rather than an arithmetic operator.
+[P1385](http://wg21.link/p1385) lets users customize the return type
+of such arithmetic expressions.  However, different algorithms may
+call for the same expression with the same inputs to have different
+output types.  For example, iterative refinement of linear systems
+`Ax=b` can work either with an extended-precision intermediate
+residual vector `r = b - A*x`, or with a residual vector that has the
+same precision as the input linear system.  Each choice produces a
+different algorithm with different convergence characteristics,
+per-iteration run time, and memory requirements.  Thus, our library
+lets users specify the result element type of linear algebra
+operations explicitly, by calling a named function that takes an
+output argument explicitly, rather than an arithmetic operator.
 
 Arithmetic operators on matrices or vectors may also need to allocate
 temporary storage.  Users may not want that.  When LAPACK's developers
@@ -647,13 +649,14 @@ describes this common problem.
 
 Our `scaled_view`, `conjugate_view`, and `transpose_view` functions
 make use of one aspect of expression templates, namely modifying the
-array access operator.  However, we intend these functions for use
-only as in-place modifications of arguments of a function call.  Also,
-when modifying `basic_mdspan`, these functions merely view the same
-data that their input `basic_mdspan` views.  They introduce no more
-potential for dangling references than `basic_mdspan` itself.  The use
-of views like `basic_mdspan` is self-documenting; it tells users that
-they need to take responsibility for scope of the viewed data.
+`basic_mdspan` array access operator.  However, we intend these
+functions for use only as in-place modifications of arguments of a
+function call.  Also, when modifying `basic_mdspan`, these functions
+merely view the same data that their input `basic_mdspan` views.  They
+introduce no more potential for dangling references than
+`basic_mdspan` itself.  The use of views like `basic_mdspan` is
+self-documenting; it tells users that they need to take responsibility
+for scope of the viewed data.
 
 ### Banded matrix layouts
 
@@ -1749,6 +1752,26 @@ template<class ExecutionPolicy,
          class Triangle>
 void symmetric_matrix_rank_1_update(
   ExecutionPolicy&& exec,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  T alpha,
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
@@ -5134,7 +5157,6 @@ void symmetric_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
-
 template<class ExecutionPolicy,
          class in_vector_t,
          class inout_matrix_t,
@@ -5144,10 +5166,35 @@ void symmetric_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
+template<class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 ```
 
 *[Note:* These functions correspond to the BLAS functions `xSYR` and
-`xSPR`. --*end note]*
+`xSPR`.
+
+They take an optional scaling factor `alpha`, because it would be
+impossible to express the update C = C - x x^T otherwise.
+
+ --*end note]*
 
 * *Requires:*
 
@@ -5168,6 +5215,10 @@ void symmetric_matrix_rank_1_update(
   * For `i,j` in the domain of `A`, the expression `A(i,j) +=
     x(i)*x(j)` is well formed.
 
+  * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
+    of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
+    formed (if applicable).
+
 * *Mandates:*
 
   * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
@@ -5178,8 +5229,14 @@ void symmetric_matrix_rank_1_update(
     `dynamic_extent`, then `A.static_extent(0)` equals
     `x.static_extent(0)`.
 
-* *Effects:* Assigns to `A` on output the sum of `A` on input, and the
-  outer product of `x` and `x`.
+* *Effects:*
+
+  * Overloads without `alpha` assign to `A` on output, the elementwise
+    sum of `A` on input, with (the outer product of `x` and `x`).
+
+  * Overloads with `alpha` assign to `A` on output, the elementwise
+    sum of `A` on input, with alpha times (the outer product of `x`
+    and `x`).
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
@@ -6308,7 +6365,7 @@ void symmetric_matrix_rank_k_update(
 These functions correspond to the BLAS function `xSYRK`.
 
 They take an optional scaling factor `alpha`, because it would be
-impossible to express the update C = C - A * A^T otherwise.
+impossible to express the update C = C - A A^T otherwise.
 
 --*end note]*
 
