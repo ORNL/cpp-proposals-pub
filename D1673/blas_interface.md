@@ -64,7 +64,7 @@
     compile time.
 
   * Add missing functions `{symmetric,hermitian}_matrix_rank_k_update`
-    and `triangular_matrix_product`.
+    and `triangular_matrix_{left,right}_product`.
 
   * Remove `packed_view` function.
 
@@ -795,11 +795,13 @@ Summary:
 4. We decide separately, based on the category of BLAS function, how
    to translate `INTENT(INOUT)` arguments into a C++ idiom:
 
-   a. For triangular solve or triangular multiply, we add overloads
-      that take non-aliasing input and output arguments.  Overloads of
-      these functions that retain "in-place" behavior do not take
-      `ExecutionPolicy&&`, since they cannot be parallelized for
-      arbitrary execution policies.
+   a. For triangular solve and triangular multiply, in-place behavior
+      is essential for computing matrix factorizations in place,
+      without requiring extra storage proportional to the input
+      matrix's dimensions.  However, in-place functions cannot be
+      parallelized for arbitrary execution policies.  Thus, we have
+      both not-in-place and in-place overloads, and only the
+      not-in-place overloads take an optional `ExecutionPolicy&&`.
 
    b. Else, if the BLAS function unconditionally updates (like
       `xGER`), we retain read-and-write behavior for that argument.
@@ -2144,6 +2146,15 @@ void triangular_matrix_left_product(
   DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
 
 // [linalg.algs.blas3.trmm.ov.right],
 // overwriting triangular matrix-matrix right product
@@ -2171,6 +2182,15 @@ void triangular_matrix_right_product(
   DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
 
 // [linalg.algs.blas3.trmm.up.left],
 // updating triangular matrix-matrix left product
@@ -6280,10 +6300,10 @@ The following requirements apply to all functions in this section.
   * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
     layout.
 
-  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
-    `out_matrix_t` have unique layout.
+  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), `out_matrix_t`,
+    and `inout_matrix_t` (if applicable) have unique layout.
 
-  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+  * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
 
@@ -6321,17 +6341,17 @@ The following requirements apply to all overloads of
 
 * *Requires:*
 
-  * `A.extent(1)` equals `B.extent(0)`,
+  * `A.extent(1)` equals `B.extent(0)` (if applicable),
 
   * `A.extent(0)` equals `C.extent(0)`, and
 
-  * `B.extent(1)` equals `C.extent(1)`.
+  * `B.extent(1)` equals `C.extent(1)` (if applicable).
 
 * *Mandates:*
 
   * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
-    `B.static_extent(0)`;
+    `B.static_extent(0)` (if applicable);
 
   * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
@@ -6339,7 +6359,7 @@ The following requirements apply to all overloads of
 
   * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
     `dynamic_extent`, then `B.static_extent(1)` equals
-    `C.static_extent(1)`.
+    `C.static_extent(1)` (if applicable).
 
 The following requirements apply to all overloads of
 `triangular_matrix_right_product`.
@@ -6368,6 +6388,7 @@ The following requirements apply to all overloads of
 
 ###### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
 
+Not-in-place overwriting triangular matrix-matrix left product
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -6402,6 +6423,34 @@ void triangular_matrix_left_product(
 
 * *Effects:* Assigns to the elements of the matrix `C`
   the product of the matrices `A` and `B`.
+
+In-place overwriting triangular matrix-matrix left product
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+```
+
+* *Requires:* `A.extent(1)` equals `C.extent(0)`.
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += A(i,k)*C(k,j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `C.static_extent(0)`
+  equals `dynamic_extent`, then `A.static_extent(1)` equals
+  `C.static_extent(0)`;
+
+* *Effects:* Overwrites `C` on output with the product of the matrices
+  `A` and `C` on input.
 
 ###### Overwriting triangular matrix-matrix right product [linalg.algs.blas3.trmm.ov.right]
 
