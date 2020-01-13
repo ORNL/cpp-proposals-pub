@@ -9,6 +9,7 @@
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
+* Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratories)
 * Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
 * Peter Caday (peter.caday@intel.com) (Intel)
 * Sarah Knepper (sarah.knepper@intel.com) (Intel)
@@ -22,7 +23,7 @@
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
-## Date: 2020-01-07
+## Date: 2020-01-09
 
 ## Revision history
 
@@ -49,32 +50,44 @@
 
 * Revision 2 (pre-Cologne) to be submitted 2020-01-13
 
-  * Added "Future work" section.
+  * Add "Future work" section.
 
-  * Removed "Options and votes" section (which were addressed in SG6,
+  * Remove "Options and votes" section (which were addressed in SG6,
     SG14, and LEWGI).
 
-  * Removed `basic_mdarray` overloads.
+  * Remove `basic_mdarray` overloads.
 
-  * Removed batched linear algebra operations.
+  * Remove batched linear algebra operations.
 
-  * Removed over- and underflow requirement for `vector_norm2`.
+  * Remove over- and underflow requirement for `vector_norm2`.
 
   * *Mandate* any extent compatibility checks that can be done at
     compile time.
 
-  * Add missing `triangular_matrix_product` function.
+  * Add missing functions `{symmetric,hermitian}_matrix_rank_k_update`
+    and `triangular_matrix_{left,right}_product`.
 
   * Remove `packed_view` function.
 
-  * (Re)add `Reference` template parameter to `conjugated_scalar`.
-
-  * Make sure that `{conjugate,transpose}_view` applied 2x undoes
-    the original conjugation / transposition.
+  * Fix wording for `{conjugate,transpose,conjugate_transpose}_view`,
+    so that implementations may optimize the return type.  Make sure
+    that `transpose_view` of a `layout_blas_packed` matrix returns a
+    `layout_blas_packed` matrix with opposite `Triangle` and
+    `StorageOrder`.
 
   * Remove second template parameter `T` from `accessor_conjugate`.
 
   * Make `scaled_scalar` and `conjugated_scalar` exposition only.
+
+  * Add in-place overloads of
+    `triangular_matrix_matrix_{left,right}_solve`,
+    `triangular_matrix_{left,right}_product`, and
+    `triangular_matrix_vector_solve`.
+
+  * Add `alpha` overloads to
+    `{symmetric,hermitian}_matrix_rank_{1,k}_update`.
+
+  * Add Cholesky factorization and solve examples.
 
 ## Purpose of this paper
 
@@ -381,7 +394,7 @@ three categories:
    they have a different base name.
 
 3. The complex-arithmetic versions offer a choice between
-   non-conjugated or conjugated operations.
+   nonconjugated or conjugated operations.
 
 As an example of the second category, the BLAS functions `SASUM` and
 `DASUM` compute the sums of absolute values of a vector's elements.
@@ -393,11 +406,11 @@ but it requires fewer arithmetic operations.
 
 Examples of the third category include the following:
 
-* non-conjugated dot product `xDOTU` and conjugated dot product
+* nonconjugated dot product `xDOTU` and conjugated dot product
   `xDOTC`; and
 * rank-1 symmetric (`xGERU`) vs. Hermitian (`xGERC`) matrix update.
 
-The conjugate transpose and the (non-conjugated) transpose are the
+The conjugate transpose and the (nonconjugated) transpose are the
 same operation in real arithmetic (if one considers real arithmetic
 embedded in complex arithmetic), but differ in complex arithmetic.
 Different applications have different reasons to want either.  The C++
@@ -590,17 +603,18 @@ loses precision.  Some users may want `complex<double>`; others may
 want `complex<long double>` or something else, and others may want to
 choose different types in the same program.
 
-[P1385](http://wg21.link/p1385) lets users customize the return type of
-such arithmetic expressions.  However, different algorithms may call
-for the same expression with the same inputs to have different output
-types.  For example, iterative refinement of linear systems `Ax=b` can
-work either with an extended-precision intermediate residual vector `r
-= b - A*x`, or with a residual vector that has the same precision as
-the input linear system.  Each choice produces a different algorithm
-with different convergence characteristics.  Thus, our library lets
-users specify the result element type of linear algebra operations
-explicitly, by calling a named function that takes an output argument
-explicitly, rather than an arithmetic operator.
+[P1385](http://wg21.link/p1385) lets users customize the return type
+of such arithmetic expressions.  However, different algorithms may
+call for the same expression with the same inputs to have different
+output types.  For example, iterative refinement of linear systems
+`Ax=b` can work either with an extended-precision intermediate
+residual vector `r = b - A*x`, or with a residual vector that has the
+same precision as the input linear system.  Each choice produces a
+different algorithm with different convergence characteristics,
+per-iteration run time, and memory requirements.  Thus, our library
+lets users specify the result element type of linear algebra
+operations explicitly, by calling a named function that takes an
+output argument explicitly, rather than an arithmetic operator.
 
 Arithmetic operators on matrices or vectors may also need to allocate
 temporary storage.  Users may not want that.  When LAPACK's developers
@@ -642,13 +656,14 @@ describes this common problem.
 
 Our `scaled_view`, `conjugate_view`, and `transpose_view` functions
 make use of one aspect of expression templates, namely modifying the
-array access operator.  However, we intend these functions for use
-only as in-place modifications of arguments of a function call.  Also,
-when modifying `basic_mdspan`, these functions merely view the same
-data that their input `basic_mdspan` views.  They introduce no more
-potential for dangling references than `basic_mdspan` itself.  The use
-of views like `basic_mdspan` is self-documenting; it tells users that
-they need to take responsibility for scope of the viewed data.
+`basic_mdspan` array access operator.  However, we intend these
+functions for use only as in-place modifications of arguments of a
+function call.  Also, when modifying `basic_mdspan`, these functions
+merely view the same data that their input `basic_mdspan` views.  They
+introduce no more potential for dangling references than
+`basic_mdspan` itself.  The use of views like `basic_mdspan` is
+self-documenting; it tells users that they need to take responsibility
+for scope of the viewed data.
 
 ### Banded matrix layouts
 
@@ -783,9 +798,13 @@ Summary:
 4. We decide separately, based on the category of BLAS function, how
    to translate `INTENT(INOUT)` arguments into a C++ idiom:
 
-   a. For in-place triangular solve or triangular multiply, we
-      translate the function to take separate input and output
-      arguments that shall not alias each other.
+   a. For triangular solve and triangular multiply, in-place behavior
+      is essential for computing matrix factorizations in place,
+      without requiring extra storage proportional to the input
+      matrix's dimensions.  However, in-place functions cannot be
+      parallelized for arbitrary execution policies.  Thus, we have
+      both not-in-place and in-place overloads, and only the
+      not-in-place overloads take an optional `ExecutionPolicy&&`.
 
    b. Else, if the BLAS function unconditionally updates (like
       `xGER`), we retain read-and-write behavior for that argument.
@@ -1214,12 +1233,6 @@ inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal;
 struct explicit_diagonal_t;
 inline constexpr explicit_diagonal_t explicit_diagonal;
 
-// [linalg.tags.side], side tags
-struct left_side_t;
-inline constexpr left_side_t left_side;
-struct right_side_t { };
-inline constexpr right_side_t right_side;
-
 // [linalg.layouts.general], class template layout_blas_general
 template<class StorageOrder>
 class layout_blas_general;
@@ -1240,8 +1253,7 @@ template<class ScalingFactor,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents, Layout,
-             accessor_scaled<ScalingFactor, Accessor>>
+/* see-below */
 scaled_view(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
@@ -1255,17 +1267,9 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents, Layout,
-             accessor_conjugate<Accessor>>
+/* see-below */
 conjugate_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents, Layout, Accessor>
-conjugate_view(basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor>> a);
 
 // [linalg.transp.layout_transpose], class template layout_transpose
 template<class Layout>
@@ -1276,17 +1280,9 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, transpose_extents_t<Extents>,
-             layout_transpose<Layout>, Accessor>
+/* see-below */
 transpose_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<EltType, Extents, Layout, Accessor>
-transpose_view(basic_mdspan<EltType, Extents,
-               layout_transpose<Layout>, Accessor> a);
 
 // [linalg.conj_transp],
 // conjugated transposed in-place transformation
@@ -1294,48 +1290,11 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents,
-             layout_transpose<Layout>,
-             accessor_conjugate<Accessor>>
+/* see-below */
 conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               Layout,
-               Accessor> a);
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             Layout,
-             accessor_conjugate<Accessor>>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               layout_transpose<Layout>,
-               Accessor> a);
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             layout_transpose<Layout>,
-             Accessor>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               Layout,
-               accessor_conjugate<Accessor>> a);
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             Layout,
-             Accessor>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               layout_transpose<Layout>,
-               accessor_conjugate<Accessor>> a);
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 
-// [linalg.algs.blas1.givens.setup], compute Givens rotation
+// [linalg.algs.blas1.givens.lartg], compute Givens rotation
 template<class Real>
 void givens_rotation_setup(const Real a,
                            const Real b,
@@ -1349,7 +1308,7 @@ void givens_rotation_setup(const complex<Real>& a,
                            complex<Real>& s,
                            complex<Real>& r);
 
-// [linalg.algs.blas1.givens.apply], apply computed Givens rotation
+// [linalg.algs.blas1.givens.rot], apply computed Givens rotation
 template<class inout_vector_1_t,
          class inout_vector_2_t,
          class Real>
@@ -1400,7 +1359,7 @@ void linalg_swap(ExecutionPolicy&& exec,
                  inout_object_1_t x,
                  inout_object_2_t y);
 
-// [linalg.algs.blas1.scale], multiply elements by scalar
+// [linalg.algs.blas1.scal], multiply elements by scalar
 template<class Scalar,
          class inout_object_t>
 void scale(const Scalar alpha,
@@ -1440,7 +1399,11 @@ void linalg_add(ExecutionPolicy&& exec,
                 in_object_2_t y,
                 out_object_t z);
 
-// [linalg.algs.blas1.dot.nonconj], nonconjugated inner product
+// [linalg.algs.blas1.dot],
+// dot product of two vectors
+
+// [linalg.algs.blas1.dot.dotu],
+// nonconjugated dot product of two vectors
 template<class in_vector_1_t,
          class in_vector_2_t,
          class T>
@@ -1466,7 +1429,8 @@ auto dot(ExecutionPolicy&& exec,
          in_vector_1_t v1,
          in_vector_2_t v2);
 
-// [linalg.algs.blas1.dot.conj], conjugated inner product
+// [linalg.algs.blas1.dot.dotc],
+// conjugated dot product of two vectors
 template<class in_vector_1_t,
          class in_vector_2_t,
          class T>
@@ -1492,7 +1456,8 @@ auto dotc(ExecutionPolicy&& exec,
           in_vector_1_t v1,
           in_vector_2_t v2);
 
-// [linalg.algs.blas1.norm2], Euclidean vector norm
+// [linalg.algs.blas1.nrm2],
+// Euclidean norm of a vector
 template<class in_vector_t,
          class T>
 T vector_norm2(in_vector_t v,
@@ -1510,7 +1475,8 @@ template<class ExecutionPolicy,
 auto vector_norm2(ExecutionPolicy&& exec,
                   in_vector_t v);
 
-// [linalg.algs.blas1.abs_sum], sum of absolute values
+// [linalg.algs.blas1.asum],
+// sum of absolute values of vector elements
 template<class in_vector_t,
          class T>
 T vector_abs_sum(in_vector_t v,
@@ -1528,7 +1494,7 @@ template<class ExecutionPolicy,
 auto vector_abs_sum(ExecutionPolicy&& exec,
                     in_vector_t v);
 
-// [linalg.algs.blas1.idx_abs_max],
+// [linalg.algs.blas1.iamax],
 // index of maximum absolute value of vector elements
 template<class in_vector_t>
 ptrdiff_t idx_abs_max(in_vector_t v);
@@ -1537,7 +1503,7 @@ template<class ExecutionPolicy,
 ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
                       in_vector_t v);
 
-// [linalg.algs.blas2.general-matvec],
+// [linalg.algs.blas2.gemv],
 // general matrix-vector product
 template<class in_vector_t,
          class in_matrix_t,
@@ -1572,7 +1538,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
                            in_vector_2_t y,
                            out_vector_t z);
 
-// [linalg.algs.blas2.symm-matvec],
+// [linalg.algs.blas2.symv],
 // symmetric matrix-vector product
 template<class in_matrix_t,
          class Triangle,
@@ -1618,7 +1584,7 @@ void symmetric_matrix_vector_product(
   in_vector_2_t y,
   out_vector_t z);
 
-// [linalg.algs.blas2.herm-matvec],
+// [linalg.algs.blas2.hemv],
 // Hermitian matrix-vector product
 template<class in_matrix_t,
          class Triangle,
@@ -1662,8 +1628,11 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
                                      in_vector_2_t y,
                                      out_vector_t z);
 
-// [linalg.algs.blas2.tri-matvec],
+// [linalg.algs.blas2.trmv],
 // Triangular matrix-vector product
+
+// [linalg.algs.blas2.trmv.ov],
+// Overwriting triangular matrix-vector product
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -1688,6 +1657,21 @@ void triangular_matrix_vector_product(
   DiagonalStorage d,
   in_vector_t x,
   out_vector_t y);
+
+// [linalg.algs.blas2.trmv.in-place],
+// In-place triangular matrix-vector product
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t y);
+
+// [linalg.algs.blas2.trmv.up],
+// Updating triangular matrix-vector product
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -1715,13 +1699,16 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
                                       in_vector_2_t y,
                                       out_vector_t z);
 
-// [linalg.algs.blas2.tri-solve],
+// [linalg.algs.blas2.trsv],
 // Solve a triangular linear system
+
+// [linalg.algs.blas2.trsv.not-in-place],
+// Solve a triangular linear system, not in place
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
+         class in_vector_t,
+         class out_vector_t>
 void triangular_matrix_vector_solve(
   in_matrix_t A,
   Triangle t,
@@ -1732,8 +1719,8 @@ template<class ExecutionPolicy,
          class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
+         class in_vector_t,
+         class out_vector_t>
 void triangular_matrix_vector_solve(
   ExecutionPolicy&& exec,
   in_matrix_t A,
@@ -1742,7 +1729,19 @@ void triangular_matrix_vector_solve(
   in_vector_t b,
   out_vector_t x);
 
-// [linalg.algs.blas2.rank1.nonconj],
+// [linalg.algs.blas2.trsv.in-place],
+// Solve a triangular linear system, in place
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b);
+
+// [linalg.algs.blas2.rank1.geru],
 // nonconjugated rank-1 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -1761,7 +1760,7 @@ void matrix_rank_1_update(
   in_vector_2_t y,
   inout_matrix_t A);
 
-// [linalg.algs.blas2.rank1.conj],
+// [linalg.algs.blas2.rank1.gerc],
 // conjugated rank-1 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -1780,7 +1779,7 @@ void matrix_rank_1_update_c(
   in_vector_2_t y,
   inout_matrix_t A);
 
-// [linalg.algs.blas2.rank1.symm],
+// [linalg.algs.blas2.rank1.syr],
 // symmetric rank-1 matrix update
 template<class in_vector_t,
          class inout_matrix_t,
@@ -1798,8 +1797,28 @@ void symmetric_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
+template<class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 
-// [linalg.algs.blas2.rank1.herm],
+// [linalg.algs.blas2.rank1.her],
 // Hermitian rank-1 matrix update
 template<class in_vector_t,
          class inout_matrix_t,
@@ -1817,8 +1836,28 @@ void hermitian_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
+template<class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 
-// [linalg.algs.blas2.rank2.symm],
+// [linalg.algs.blas2.rank2.syr2],
 // symmetric rank-2 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -1841,7 +1880,7 @@ void symmetric_matrix_rank_2_update(
   inout_matrix_t A,
   Triangle t);
 
-// [linalg.algs.blas2.rank2.herm],
+// [linalg.algs.blas2.rank2.her2],
 // Hermitian rank-2 matrix update
 template<class in_vector_1_t,
          class in_vector_2_t,
@@ -1901,156 +1940,297 @@ void matrix_product(ExecutionPolicy&& exec,
 
 // [linalg.algs.blas3.symm],
 // symmetric matrix-matrix product
+
+// [linalg.algs.blas3.symm.ov.left],
+// overwriting symmetric matrix-matrix left product
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
+
+// [linalg.algs.blas3.symm.ov.right],
+// overwriting symmetric matrix-matrix right product
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.symm.up.left],
+// updating symmetric matrix-matrix left product
+template<class in_matrix_1_t,
+         class Triangle,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.symm.up.right],
+// updating symmetric matrix-matrix right product
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 
 // [linalg.algs.blas3.hemm],
 // Hermitian matrix-matrix product
+
+// [linalg.algs.blas3.hemm.ov.left],
+// overwriting Hermitian matrix-matrix left product
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
+
+// [linalg.algs.blas3.hemm.ov.right],
+// overwriting Hermitian matrix-matrix right product
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.hemm.up.left],
+// updating Hermitian matrix-matrix left product
+template<class in_matrix_1_t,
+         class Triangle,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.algs.blas3.hemm.up.right],
+// updating Hermitian matrix-matrix right product
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 
 // [linalg.algs.blas3.trmm],
 // triangular matrix-matrix product
+
+// [linalg.algs.blas3.trmm.ov.left],
+// overwriting triangular matrix-matrix left product
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
-         class in_matrix_2_t,
-         class in_matrix_3_t,
-         class out_matrix_t>
-void triangular_matrix_product(
+         class inout_matrix_t>
+void triangular_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  inout_matrix_t C);
+
+// [linalg.algs.blas3.trmm.ov.right],
+// overwriting triangular matrix-matrix right product
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+
+// [linalg.algs.blas3.trmm.up.left],
+// updating triangular matrix-matrix left product
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
@@ -2058,21 +2238,128 @@ template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 
-// [linalg.alg.blas3.rank2k.symm],
+// [linalg.algs.blas3.trmm.up.right],
+// updating triangular matrix-matrix right product
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+
+// [linalg.alg.blas3.rank-k.syrk],
+// rank-k symmetric matrix update
+template<class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+
+// [linalg.alg.blas3.rank-k.herk],
+// rank-k Hermitian matrix update
+template<class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+
+// [linalg.alg.blas3.rank2k.syr2k],
 // rank-2k symmetric matrix update
 template<class in_matrix_1_t,
          class in_matrix_2_t,
@@ -2095,7 +2382,7 @@ void symmetric_matrix_rank_2k_update(
   inout_matrix_t C,
   Triangle t);
 
-// [linalg.alg.blas3.rank2k.herm],
+// [linalg.alg.blas3.rank2k.her2k],
 // rank-2k Hermitian matrix update
 template<class in_matrix_1_t,
          class in_matrix_2_t,
@@ -2120,34 +2407,80 @@ void hermitian_matrix_rank_2k_update(
 
 // [linalg.alg.blas3.trsm],
 // solve multiple triangular linear systems
-template<class in_matrix_t,
+
+// [linalg.alg.blas3.trsm.left],
+// solve multiple triangular linear systems
+// with triangular matrix on the left
+template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_matrix_solve(
-  in_matrix_t A,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
-  in_object_t B,
-  out_object_t X);
+  in_matrix_2_t B,
+  out_matrix_t X);
 template<class ExecutionPolicy,
-         class in_matrix_t,
+         class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
-         class in_matrix_t,
+         class in_matrix_2_t,
          class out_matrix_t>
-void triangular_matrix_matrix_solve(
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
+
+// [linalg.alg.blas3.trsm.right],
+// solve multiple triangular linear systems
+// with triangular matrix on the right
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_right_solve(
   ExecutionPolicy&& exec,
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_t B,
   out_matrix_t X);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
 ```
 
 ### Tag classes [linalg.tags]
@@ -2222,25 +2555,6 @@ The `implicit_unit_diagonal_t` tag indicates two things:
 
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
-
-#### Side tags [linalg.tags.side]
-
-Some linear algebra algorithms distinguish between applying some
-operator to the left side of an object, or the right side of an
-object.  *[Note:* Matrix-matrix product and triangular solve with a
-matrix generally do not commute. --*end note]*
-
-```c++
-struct left_side_t { };
-inline constexpr left_side_t left_side = { };
-
-struct right_side_t { };
-inline constexpr right_side_t right_side = { };
-```
-
-These tag classes specify whether algorithms should apply some
-operator to the left side (`left_side_t`) or right side
-(`right_side_t`) of an object.
 
 ### Layouts for general and packed matrix types [linalg.layouts]
 
@@ -2513,6 +2827,11 @@ entry.
 Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
 (TP) matrix types.
 
+If `transpose_view`'s input has layout `layout_blas_packed`, the
+return type also has layout `layout_blas_packed`, but with opposite
+`Triangle` and `StorageOrder`.  For example, the transpose of a packed
+column-major upper triangle, is a packed row-major lower triangle.
+
 --*end note]*
 
 ```c++
@@ -2526,8 +2845,7 @@ public:
     Extents extents_; // exposition only
 
   public:
-    constexpr mapping(const Extents& e,
-      const typename Extents::index_type s);
+    constexpr mapping(const Extents& e);
 
     template<class OtherExtents>
     constexpr mapping(const mapping<OtherExtents>& e) noexcept;
@@ -2883,21 +3201,66 @@ template<class ScalingFactor,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents, Layout,
-             accessor_scaled<ScalingFactor, Accessor>>
+/* see below */
 scaled_view(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
 ```
 
-* *Effects:* Equivalent to
+Let `R` name the type
+`basic_mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
+where
 
-```c++
-return basic_mdspan<ElementType, Extents, Layout,
-  accessor_scaled<ScalingFactor, Accessor>>(a.data(),
-    a.mapping(),
-    accessor_scaled<ScalingFactor, Accessor>(s, a.accessor()));
-```
+  * `ReturnElementType` is either `ElementType` or
+    `const ElementType`; and
+
+  * `ReturnAccessor` is:
+
+     * if `Accessor` is `accessor_scaled<NestedScalingFactor, NestedAccessor>`
+       for some `NestedScalingFactor` and `NestedAccessor`, then
+       either `accessor_scaled<ProductScalingFactor, NestedAccessor>` or
+       `accessor_scaled<ScalingFactor, Accessor>`,
+       where `ProductScalingFactor` is
+       `decltype(s * a.accessor().scaling_factor())`;
+
+     * else, `accessor_scaled<ScalingFactor, Accessor>`.
+
+* *Effects:*
+
+  * If `Accessor` is
+    `accessor_scaled<NestedScalingFactor, NestedAccessor>` and
+    `ReturnAccessor` is
+    `accessor_scaled<ProductScalingFactor, NestedAccessor>`,
+    then equivalent to
+    `return R(a.data(), a.mapping(),
+       ReturnAccessor(product_s, a.accessor().nested_accessor()));`,
+    where `product_s` equals `s * a.accessor().scaling_factor()`;
+
+  * else, equivalent to
+    `return R(a.data(), a.mapping(), ReturnAccessor(s, a.accessor()));`.
+
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+
+*[Note:*
+
+The point of `ReturnAccessor` is to give implementations freedom to
+optimize applying `accessor_scaled` twice in a row.  However,
+implementations are not required to optimize arbitrary combinations of
+nested `accessor_scaled` interspersed with other nested accessors.
+
+The point of `ReturnElementType` is that, based on P0009R9, it may not
+be possible to deduce the const version of `Accessor` for use in
+`accessor_scaled`.  In general, it may not be correct or efficient
+to use an `Accessor` meant for a nonconst `ElementType`, with `const
+ElementType`.  This is because `Accessor::reference` may be a type
+other than `ElementType&`.  Thus, we cannot require that the return
+type have `const ElementType` as its element type, since that might
+not be compatible with the given `Accessor`.  However, in some cases,
+like `accessor_basic`, it is possible to deduce the const version of
+`Accessor`.  Regardless, users are not allowed to modify the elements
+of the returned `basic_mdspan`.
+
+--*end note]*
 
 [*Example:*
 ```c++
@@ -2916,9 +3279,8 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 The `conjugate_view` function takes a `basic_mdspan` `x`, and returns
 a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
 elements are the complex conjugates of the corresponding elements of
-`x`.  It does so by using `accessor_scaled` as its `basic_mdspan`
-accessor policy.  If the element type of `x` is not `complex<R>` for
-some `R`, then `y` is a read-only view of the elements of `x`.
+`x`.  If the element type of `x` is not `complex<R>` for some `R`,
+then `y` is a read-only view of the elements of `x`.
 
 *[Note:*
 
@@ -3070,40 +3432,52 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents, Layout,
-             accessor_conjugate<Accessor>>
+/* see-below */
 conjugate_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
-* *Effects:* Equivalent to
+Let `R` name the type
+`basic_mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
+where
 
-```c++
-return basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor>>(
-    a.data(),
-    a.mapping(),
-    accessor_conjugate<Accessor>(a.accessor()));
-```
+  * `ReturnElementType` is either `ElementType` or
+    `const ElementType`; and
 
-```c++
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents, Layout, Accessor>
-conjugate_view(basic_mdspan<ElementType, Extents, Layout,
-  accessor_conjugate<Accessor>> a);
-```
+  * `ReturnAccessor` is:
 
-* *Effects:* Equivalent to
+     * if `Accessor` is `accessor_conjugate<NestedAccessor>`
+       for some `NestedAccessor`, then
+       either `NestedAccessor` or `accessor_conjugate<Accessor>`,
 
-```c++
-return basic_mdspan<ElementType, Extents, Layout, Accessor>(
-  a.data(),
-  a.mapping(),
-  a.accessor().nested_accessor());
-```
+     * else if `ElementType` is `complex<U>` or `const complex<U>` for
+       some `U`, then `accessor_conjugate<Accessor>`,
+
+     * else either `accessor_conjugate<Accessor>` or `Accessor`.
+
+* *Effects:*
+
+  * If `Accessor` is `accessor_conjugate<NestedAccessor>` and
+    `ReturnAccessor` is `NestedAccessor`, then equivalent to
+    `return R(a.data(), a.mapping(), a.nested_accessor());`;
+
+  * else, if `ReturnAccessor` is `accessor_conjugate<Accessor>`, then
+    equivalent to
+    `return R(a.data(), a.mapping(), accessor_conjugate<Accessor>(a.accessor()));`;
+
+  * else, equivalent to
+    `return R(a.data(), a.mapping(), a.accessor());`.
+
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+
+*[Note:*
+
+The point of `ReturnAccessor` is to give implementations freedom to
+optimize applying `accessor_conjugate` twice in a row.  However,
+implementations are not required to optimize arbitrary combinations of
+nested `accessor_conjugate` interspersed with other nested accessors.
+
+--*end note]*
 
 [*Example:*
 ```c++
@@ -3389,42 +3763,65 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, transpose_extents_t<Extents>,
-             layout_transpose<Layout>, Accessor>
+/* see-below */
 transpose_view(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
-* *Effects:* Equivalent to
+Let `ReturnExtents` name the type `transpose_extents_t<Extents>`.
+Let `R` name the type
+`basic_mdspan<ReturnElementType, ReturnExtents, ReturnLayout, Accessor>`,
+where
 
-```c++
-return basic_mdspan<ElementType,
-                    transpose_extents_t<Extents>,
-                    layout_transpose<Layout>,
-                    Accessor>(
-  a.data(),
-  typename layout_transpose<Layout>::
-    template mapping<transpose_extents_t<Extents>>(
-      a.mapping());
-  a.accessor());
-```
+  * `ReturnElementType` is either `ElementType` or
+    `const ElementType`; and
 
-```c++
-template<class EltType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<EltType, Extents, Layout, Accessor>
-transpose_view(basic_mdspan<EltType, Extents,
-               layout_transpose<Layout>, Accessor> a);
-```
+  * `ReturnLayout` is:
 
-* *Effects:* Equivalent to
+     * if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+       then `layout_blas_packed<OppositeTriangle, OppositeStorageOrder>`,
+       where
 
-```c++
-return basic_mdspan<EltType, Extents, Layout, Accessor>(a.data(),
-  a.mapping().nested_mapping(), a.accessor());
-```
+       * `OppositeTriangle` names the type
+         `conditional_t<is_same_v<Triangle, upper_triangle_t>,
+                        lower_triangle_t, upper_triangle_t>`, and
+
+       * `OppositeStorageOrder` names the type
+         `conditional_t<is_same_v<StorageOrder, column_major_t>,
+                        row_major_t, column_major_t>`;
+
+     * else, if `Layout` is `layout_transpose<NestedLayout>`
+       for some `NestedLayout`, then
+       either `NestedLayout` or `layout_transpose<Layout>`,
+
+     * else `layout_transpose<Layout>`.
+
+* *Effects:*
+
+  * If `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+    then equivalent to
+    `return R(a.data(), ReturnMapping(a.mapping().extents()),
+              a.accessor());`;
+
+  * else, if `Layout` is `layout_transpose<NestedLayout>` and
+    `ReturnLayout` is `NestedLayout`, then equivalent to
+    `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
+
+  * else, equivalent to
+    `return R(a.data(), ReturnMapping(a.mapping()), a.accessor);`,
+    where `ReturnMapping` names the type
+    `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
+
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+
+*[Note:*
+
+Implementations may optimize applying `layout_transpose` twice in a
+row.  However, implementations need not optimize arbitrary
+combinations of nested `layout_transpose` interspersed with other
+nested layouts.
+
+--*end note]*
 
 [*Example:*
 ```c++
@@ -3471,53 +3868,15 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-basic_mdspan<ElementType, Extents,
-             layout_transpose<Layout>,
-             accessor_conjugate<Accessor>>
+/* see-below */
 conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               Layout,
-               Accessor> a);
-
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             Layout,
-             accessor_conjugate<Accessor>>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               layout_transpose<Layout>,
-               Accessor> a);
-
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             layout_transpose<Layout>,
-             Accessor>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               Layout,
-               accessor_conjugate<Accessor>> a);
-
-template<class ElementType,
-         class Extents,
-         class Layout,
-         class Accessor>
-basic_mdspan<ElementType, Extents,
-             Layout,
-             Accessor>
-conjugate_transpose_view(
-  basic_mdspan<ElementType, Extents,
-               layout_transpose<Layout>,
-               accessor_conjugate<Accessor>> a);
+  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
   `return conjugate_view(transpose_view(a));`.
+
+* *Remarks:* The elements of the returned `basic_mdspan` are read only.
 
 [*Example:*
 ```c++
@@ -3611,8 +3970,6 @@ or other things as appropriate.
 * `DiagonalStorage` is either `implicit_unit_diagonal_t` or
   `explicit_diagonal_t`.
 
-* `Side` is either `left_side_t` or `right_side_t`.
-
 * `in_*_t` template parameters may deduce a `const` lvalue reference
    or a (non-`const`) rvalue reference to a `basic_mdspan`.
 
@@ -3636,7 +3993,7 @@ BLAS 1 operations, even though it only operates on scalars.
 
 ##### Givens rotations [linalg.algs.blas1.givens]
 
-###### Compute Givens rotations [linalg.algs.blas1.givens.setup]
+###### Compute Givens rotation [linalg.algs.blas1.givens.lartg]
 
 ```c++
 template<class Real>
@@ -3692,7 +4049,7 @@ note]*
 
 * *Throws:* Nothing.
 
-###### Apply a computed Givens rotation to vectors [linalg.algs.blas1.givens.apply]
+###### Apply a computed Givens rotation to vectors [linalg.algs.blas1.givens.rot]
 
 ```c++
 template<class inout_vector_1_t,
@@ -3809,7 +4166,7 @@ void linalg_swap(ExecutionPolicy&& exec,
 * *Effects:* Swap all corresponding elements of the objects
   `x` and `y`.
 
-##### Multiply the elements of an object in place by a scalar [linalg.algs.blas1.scale]
+##### Multiply the elements of an object in place by a scalar [linalg.algs.blas1.scal]
 
 ```c++
 template<class Scalar,
@@ -3930,9 +4287,15 @@ void linalg_add(ExecutionPolicy&& exec,
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
-##### Inner (dot) product of two vectors [linalg.algs.blas1.dot]
+##### Dot product of two vectors [linalg.algs.blas1.dot]
 
-###### Non-conjugated inner (dot) product
+###### Nonconjugated dot product of two vectors [linalg.algs.blas1.dot.dotu]
+
+*[Note:* The functions in this section correspond to the BLAS
+functions `xDOT` (for real element types) and `xDOTU` (for complex
+element types).  --*end note]*
+
+Nonconjugated dot product with specified result type
 
 ```c++
 template<class in_vector_1_t,
@@ -3950,10 +4313,6 @@ T dot(ExecutionPolicy&& exec,
       in_vector_2_t v2,
       T init);
 ```
-
-*[Note:* These functions correspond to the BLAS functions `xDOT` (for
-real element types), `xDOTC`, and `xDOTU` (for complex element types).
---*end note]*
 
 * *Requires:*
 
@@ -3992,7 +4351,7 @@ for specific `ExecutionPolicy` types. --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
-###### Non-conjugated inner (dot) product with default result type
+Nonconjugated dot product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -4011,7 +4370,19 @@ auto dot(ExecutionPolicy&& exec,
   two-parameter overload is equivalent to `dot(v1, v2, T{});`, and the
   three-parameter overload is equivalent to `dot(exec, v1, v2, T{});`.
 
-###### Conjugated inner (dot) product [linalg.algs.blas1.dot.conj]
+###### Conjugated dot product of two vectors [linalg.algs.blas1.dot.dotc]
+
+*[Note:*
+
+The functions in this section correspond to the BLAS functions `xDOT`
+(for real element types) and `xDOTC` (for complex element types).
+
+`dotc` exists to give users reasonable default inner product behavior
+for both real and complex element types.
+
+--*end note]*
+
+Conjugated dot product with specified result type
 
 ```c++
 template<class in_vector_1_t,
@@ -4035,10 +4406,7 @@ T dotc(ExecutionPolicy&& exec,
   The four-argument overload is equivalent to
   `dot(exec, v1, conjugate_view(v2), init);`.
 
-*[Note:* `dotc` exists to give users reasonable default inner product
-behavior for both real and complex element types. --*end note]*
-
-###### Conjugated inner (dot) product with default result type
+Conjugated dot product with default result type
 
 ```c++
 template<class in_vector_1_t,
@@ -4053,11 +4421,15 @@ auto dotc(ExecutionPolicy&& exec,
           in_vector_2_t v2);
 ```
 
-* *Effects:* Let `T` be `decltype(v1(0)*conj(v2(0)))`.  Then, the
-  two-parameter overload is equivalent to `dotc(v1, v2, T{});`, and the
-  three-parameter overload is equivalent to `dotc(exec, v1, v2, T{});`.
+* *Effects:* If `in_vector_2_t::element_type` is `complex<R>` for some
+  `R`, let `T` be `decltype(v1(0)*conj(v2(0)))`; else, let `T` be
+  `decltype(v1(0)*v2(0))`.  Then, the two-parameter overload is
+  equivalent to `dotc(v1, v2, T{});`, and the three-parameter overload
+  is equivalent to `dotc(exec, v1, v2, T{});`.
 
-##### Euclidean (2) vector norm [linalg.algs.blas1.norm2]
+##### Euclidean norm of a vector [linalg.algs.blas1.nrm2]
+
+###### Euclidean norm with specified result type
 
 ```c++
 template<class in_vector_t,
@@ -4086,21 +4458,20 @@ T vector_norm2(ExecutionPolicy&& exec,
   recommended implementation for floating-point types.  See *Remarks*
   below. --*end note]*
 
-* *Effects:* Returns the Euclidean (2) norm of the vector `v`.
+* *Effects:* Returns the Euclidean norm (also called 2-norm)
+  of the vector `v`.
 
-* *Remarks:*
-
-  1. If `in_vector_t::element_type` and `T` are both
-     floating-point types or complex versions thereof, and if `T`
-     has higher precision than `in_vector_type::element_type`, then
-     implementations will use `T`'s precision or greater for
-     intermediate terms in the sum.
+* *Remarks:* If `in_vector_t::element_type` and `T` are both
+  floating-point types or complex versions thereof, and if `T` has
+  higher precision than `in_vector_type::element_type`, then
+  implementations will use `T`'s precision or greater for intermediate
+  terms in the sum.
 
 *[Note:* We recommend that implementers document their guarantees
 regarding overflow and underflow of `vector_norm2` for floating-point
 return types. --*end note]*
 
-##### Euclidean (2) norm of a vector with default result type
+###### Euclidean norm with default result type
 
 ```c++
 template<class in_vector_t>
@@ -4117,7 +4488,9 @@ auto vector_norm2(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_norm2(exec, v, T{});`.
 
-##### Sum of absolute values of vector elements [linalg.algs.blas1.abs_sum]
+##### Sum of absolute values of vector elements [linalg.algs.blas1.asum]
+
+###### Sum of absolute values with specified result type
 
 ```c++
 template<class in_vector_t,
@@ -4165,7 +4538,7 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
   implementations will use `T`'s precision or greater for intermediate
   terms in the sum.
 
-##### Sum of absolute values with default result type
+###### Sum of absolute values with default result type
 
 ```c++
 template<class in_vector_t>
@@ -4181,7 +4554,7 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
   and the two-parameter overload is equivalent to
   `vector_abs_sum(exec, v, T{});`.
 
-##### Index of maximum absolute value of vector elements [linalg.algs.blas1.idx_abs_max]
+##### Index of maximum absolute value of vector elements [linalg.algs.blas1.iamax]
 
 ```c++
 template<class in_vector_t>
@@ -4205,7 +4578,7 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
 
 #### BLAS 2 functions [linalg.algs.blas2]
 
-##### General matrix-vector product [linalg.algs.blas2.general-matvec]
+##### General matrix-vector product [linalg.algs.blas2.gemv]
 
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
@@ -4329,7 +4702,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-##### Symmetric matrix-vector product [linalg.algs.blas2.symm-matvec],
+##### Symmetric matrix-vector product [linalg.algs.blas2.symv]
 
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
@@ -4446,7 +4819,7 @@ void symmetric_matrix_vector_product(
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-##### Hermitian matrix-vector product [linalg.algs.blas2.herm-matvec],
+##### Hermitian matrix-vector product [linalg.algs.blas2.hemv]
 
 *[Note:* These functions correspond to the BLAS functions `xHEMV` and
 `xHPMV`. --*end note]*
@@ -4493,10 +4866,15 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `y.static_extent(0)` equals
     `z.static_extent(0)` (if applicable).
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals
-  `conj(A(i,j))`.
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
+
+  * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+    functions will assume that `A(j,i)` equals `A(i,j)`.
 
 ###### Overwriting Hermitian matrix-vector product
 
@@ -4522,9 +4900,12 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
                                      out_vector_t y);
 ```
 
-* *Constraints:* For `i,j` in the domain of `A`, the expressions
-  `y(i) += A(i,j)*x(j)` and `y(i) += conj(A(i,j))*x(j)` are well
-  formed.
+* *Constraints:* For `i,j` in the domain of `A`:
+
+  * the expression `y(i) += A(i,j)*x(j)` is well formed; and
+
+  * if `in_matrix_type::element_type` is `complex<RA>` for some `RA`,
+    then the expression `y(i) += conj(A(i,j))*x(j)` is well formed.
 
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
@@ -4557,14 +4938,18 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
                                      out_vector_t z);
 ```
 
-* *Constraints:* For `i,j` in the domain of `A`, the expressions
-  `z(i) = y(i) + A(i,j)*x(j)` and `z(i) = y(i) + conj(A(i,j))*x(j)`
-  are well formed.
+* *Constraints:* For `i,j` in the domain of `A`:
+
+  * the expression `z(i) = y(i) + A(i,j)*x(j)` is well formed; and
+
+  * if `in_matrix_t::element_type` is `complex<RA>` for some `RA`,
+    then the expression `z(i) = y(i) + conj(A(i,j))*x(j)` is well
+    formed.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
 
-##### Triangular matrix-vector product [linalg.algs.blas2.tri-matvec]
+##### Triangular matrix-vector product [linalg.algs.blas2.trmv]
 
 *[Note:* These functions correspond to the BLAS functions `xTRMV` and
 `xTPMV`. --*end note]*
@@ -4575,9 +4960,9 @@ The following requirements apply to all functions in this section.
 
   * `A.extent(0)` equals `A.extent(1)`.
 
-  * `A.extent(1)` equals `x.extent(0)`.
-
   * `A.extent(0)` equals `y.extent(0)`.
+
+  * `A.extent(1)` equals `x.extent(0)` (if applicable).
 
   * `y.extent(0)` equals `z.extent(0)` (if applicable).
 
@@ -4590,8 +4975,13 @@ The following requirements apply to all functions in this section.
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
-    `z.rank()` equals 1.
+  * `A.rank()` equals 2.
+
+  * `y.rank()` equals 1.
+
+  * `x.rank()` equals 1 (if applicable).
+
+  * `z.rank()` equals 1 (if applicable).
 
 * *Mandates:*
 
@@ -4599,13 +4989,13 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `A.static_extent(0)` equals
     `A.static_extent(1)`.
 
-  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `x.static_extent(0)`.
-
   * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
     `y.static_extent(0)`.
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)` (if applicable).
 
   * If neither `y.static_extent(0)` nor `z.static_extent(0)` equals
     `dynamic_extent`, then `y.static_extent(0)` equals
@@ -4621,9 +5011,9 @@ The following requirements apply to all functions in this section.
     diagonal of `A`, and will assume that that the diagonal elements
     of `A` all equal one. *[Note:* This does not imply that the
     function needs to be able to form an `element_type` value equal to
-    one. --*end note]
+    one. --*end note]*
 
-###### Overwriting triangular matrix-vector product
+###### Overwriting triangular matrix-vector product [linalg.algs.blas2.trmv]
 
 ```c++
 template<class in_matrix_t,
@@ -4637,7 +5027,6 @@ void triangular_matrix_vector_product(
   DiagonalStorage d,
   in_vector_t x,
   out_vector_t y);
-
 template<class ExecutionPolicy,
          class in_matrix_t,
          class Triangle,
@@ -4659,7 +5048,33 @@ void triangular_matrix_vector_product(
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-###### Updating triangular matrix-vector product
+###### In-place triangular matrix-vector product [linalg.algs.blas2.trmv.in-place]
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t y);
+```
+
+* *Requires:* `A.extent(1)` equals `y.extent(0)`.
+
+* *Constraints:* For `i,j` in the domain of `A`, the expression
+  `y(i) += A(i,j)*y(j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `y.static_extent(0)`
+  equals `dynamic_extent`, then `A.static_extent(1)` equals
+  `y.static_extent(0)`.
+
+* *Effects:* Overwrites `y` (on output) with the product of the matrix
+  `A` with the vector `y` (on input).
+
+###### Updating triangular matrix-vector product [linalg.algs.blas2.trmv.up]
 
 ```c++
 template<class in_matrix_t,
@@ -4697,38 +5112,12 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, with the product of the matrix `A` with the vector `x`.
 
-##### Solve a triangular linear system [linalg.algs.blas2.tri-solve]
-
-```c++
-template<class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_vector_solve(
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_vector_t b,
-  out_vector_t x);
-
-template<class ExecutionPolicy,
-         class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_vector_solve(
-  ExecutionPolicy&& exec,
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_vector_t b,
-  out_vector_t x);
-```
+##### Solve a triangular linear system [linalg.algs.blas2.trsv]
 
 *[Note:* These functions correspond to the BLAS functions `xTRSV` and
 `xTPSV`. --*end note]*
+
+The following requirements apply to all functions in this section.
 
 * *Requires:*
 
@@ -4736,13 +5125,11 @@ void triangular_matrix_vector_solve(
 
   * `A.extent(1)` equals `b.extent(0)`.
 
-  * `A.extent(0)` equals `x.extent(0)`.
-
 * *Constraints:*
 
   * `A.rank()` equals 2.
 
-  * `b.rank()` equals 1 and `x.rank()` equals 1.
+  * `b.rank()` equals 1.
 
   * `in_matrix_t` either has unique layout, or `layout_blas_packed`
     layout.
@@ -4750,16 +5137,6 @@ void triangular_matrix_vector_solve(
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
-
-  * If `r` is in the domain of `x` and `b`, then the expression
-    `x(r) = y(r)` is well formed.
-
-  * If `r` is in the domain of `x`, then the expression `x(r) -=
-    A(r,c)*x(c)` is well formed.
-
-  * If `r` is in the domain of `x` and `DiagonalStorage` is
-    `explicit_diagonal_t`, then the expression `x(r) /= A(r,r)` is
-    well formed.
 
 * *Mandates:*
 
@@ -4770,13 +5147,6 @@ void triangular_matrix_vector_solve(
   * If neither `A.static_extent(1)` nor `b.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
     `b.static_extent(0)`.
-
-  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `x.static_extent(0)`.
-
-* *Effects:* Assigns to the elements of `x` the result of solving the
-  triangular linear system(s) Ax=b.
 
 * *Remarks:*
 
@@ -4790,9 +5160,110 @@ void triangular_matrix_vector_solve(
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
+###### Not-in-place triangular solve [linalg.algs.blas2.trsv.not-in-place]
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x);
+```
+
+* *Requires:*
+
+  * `A.extent(0)` equals `x.extent(0)`.
+
+* *Constraints:*
+
+  * `x.rank()` equals 1.
+
+  * If `r` is in the domain of `x` and `b`, then the expression
+    `x(r) = b(r)` is well formed.
+
+  * If `r` is in the domain of `x` and `c` is in the domain of `x`,
+    then the expression `x(r) -= A(r,c)*x(c)` is well formed.
+
+  * If `r` is in the domain of `x` and `DiagonalStorage` is
+    `explicit_diagonal_t`, then the expression `x(r) /= A(r,r)` is
+    well formed.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `x.static_extent(0)`.
+
+* *Effects:* Assigns to the elements of `x` the result of solving the
+  triangular linear system Ax=b.
+
+###### In-place triangular solve [linalg.algs.blas2.trsv.in-place]
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b);
+```
+
+*[Note:*
+
+This in-place version of the function intentionally lacks an overload
+taking an `ExecutionPolicy&&`, because it is not possible to
+parallelize in-place triangular solve for an arbitrary
+`ExecutionPolicy`.
+
+--*end note]*
+
+* *Requires:*
+
+  * `A.extent(0)` equals `b.extent(0)`.
+
+* *Constraints:*
+
+  * If `r` and `c` are in the domain of `b`, then the expression
+    `b(r) -= A(r,c)*b(c)` is well formed.
+
+  * If `r` is in the domain of `b` and `DiagonalStorage` is
+    `explicit_diagonal_t`, then the expression `b(r) /= A(r,r)` is
+    well formed.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `b.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `b.static_extent(0)`.
+
+* *Effects:* Overwrites `b` with the result of solving the triangular
+  linear system Ax=b for x.
+
 ##### Rank-1 (outer product) update of a matrix [linalg.algs.blas2.rank1]
 
-###### Nonsymmetric non-conjugated rank-1 update [linalg.algs.blas2.rank1.nonconj]
+###### Nonsymmetric nonconjugated rank-1 update [linalg.algs.blas2.rank1.geru]
 
 ```c++
 template<class in_vector_1_t,
@@ -4815,8 +5286,8 @@ void matrix_rank_1_update(
 ```
 
 *[Note:* This function corresponds to the BLAS functions `xGER` (for
-real element types), `xGERC`, and `xGERU` (for complex element
-types). --*end note]*
+real element types) and `xGERU` (for complex element types). --*end
+note]*
 
 * *Requires:*
 
@@ -4848,7 +5319,7 @@ types). --*end note]*
 as a `conjugate_view`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
 
-###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.conj]
+###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.gerc]
 
 ```c++
 template<class in_vector_1_t,
@@ -4870,10 +5341,14 @@ void matrix_rank_1_update_c(
   inout_matrix_t A);
 ```
 
+*[Note:* This function corresponds to the BLAS functions `xGER` (for
+real element types) and `xGERC` (for complex element types). --*end
+note]*
+
 * *Effects:* Equivalent to
   `matrix_rank_1_update(x, conjugate_view(y), A);`.
 
-###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.symm]
+###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.syr]
 
 ```c++
 template<class in_vector_t,
@@ -4883,7 +5358,6 @@ void symmetric_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
-
 template<class ExecutionPolicy,
          class in_vector_t,
          class inout_matrix_t,
@@ -4893,10 +5367,36 @@ void symmetric_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
+template<class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xSYR` and
-`xSPR`. --*end note]*
+*[Note:*
+
+These functions correspond to the BLAS functions `xSYR` and `xSPR`.
+
+They take an optional scaling factor `alpha`, because it would be
+impossible to express the update C = C - x x^T otherwise.
+
+ --*end note]*
 
 * *Requires:*
 
@@ -4914,8 +5414,16 @@ void symmetric_matrix_rank_1_update(
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
 
-  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
-    x(i)*x(j)` is well formed.
+  * For overloads without `alpha`:
+
+    * For `i,j` in the domain of `A`, the expression `A(i,j) +=
+      x(i)*x(j)` is well formed.
+
+  * For overloads with `alpha`:
+
+    * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the
+      domain of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is
+      well formed.
 
 * *Mandates:*
 
@@ -4927,14 +5435,20 @@ void symmetric_matrix_rank_1_update(
     `dynamic_extent`, then `A.static_extent(0)` equals
     `x.static_extent(0)`.
 
-* *Effects:* Assigns to `A` on output the sum of `A` on input, and the
-  outer product of `x` and `x`.
+* *Effects:*
+
+  * Overloads without `alpha` assign to `A` on output, the elementwise
+    sum of `A` on input, with (the outer product of `x` and `x`).
+
+  * Overloads with `alpha` assign to `A` on output, the elementwise
+    sum of `A` on input, with alpha times (the outer product of `x`
+    and `x`).
 
 * *Remarks:* The functions will only access the triangle of `A`
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-###### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.herm]
+###### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.her]
 
 ```c++
 template<class in_vector_t,
@@ -4944,7 +5458,6 @@ void hermitian_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
-
 template<class ExecutionPolicy,
          class in_vector_t,
          class inout_matrix_t,
@@ -4954,10 +5467,36 @@ void hermitian_matrix_rank_1_update(
   in_vector_t x,
   inout_matrix_t A,
   Triangle t);
+template<class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_vector_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_1_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_vector_t x,
+  inout_matrix_t A,
+  Triangle t);
 ```
 
-*[Note:* These functions correspond to the BLAS functions `xHER` and
-`xHPR`. --*end note]*
+*[Note:*
+
+These functions correspond to the BLAS functions `xHER` and `xHPR`.
+
+They take an optional scaling factor `alpha`, because it would be
+impossible to express the update A = A - x x^H otherwise.
+
+--*end note]*
 
 * *Requires:*
 
@@ -4975,8 +5514,25 @@ void hermitian_matrix_rank_1_update(
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
 
-  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
-    x(i)*conj(x(j))` is well formed.
+  * For overloads without `alpha`:
+
+    * For `i,j` in the domain of `A`:
+
+      * if `in_vector_t::element_type` is `complex<RX> for some `RX`,
+        then the expression `A(i,j) += x(i)*conj(x(j))` is well formed;
+
+      * else, the expression `A(i,j) += x(i)*x(j)` is well formed.
+
+  * For overloads with `alpha`:
+
+    * For `i,j` in the domain of `A`:
+
+      * if `in_vector_t::element_type` is `complex<RX> for some `RX`,
+        then the expression `A(i,j) += alpha*x(i)*conj(x(j))` is well
+        formed;
+
+      * else, the expression `A(i,j) += alpha*x(i)*x(j)` is well
+        formed.
 
 * *Mandates:*
 
@@ -4988,15 +5544,27 @@ void hermitian_matrix_rank_1_update(
     `dynamic_extent`, then `A.static_extent(0)` equals
     `x.static_extent(0)`.
 
-* *Effects:* Assigns to `A` on output the sum of `A` on input, and the
-  outer product of `x` and the conjugate of `x`.
+* *Effects:*
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals
-  `conj(A(i,j))`.
+  * Overloads without `alpha` assign to `A` on output, the elementwise
+    sum of `A` on input, with (the outer product of `x` and the
+    conjugate of `x`).
 
-##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.symm]
+  * Overloads with `alpha` assign to `A` on output, the elementwise
+    sum of `A` on input, with alpha times (the outer product of `x`
+    and the conjugate of `x`).
+
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
+
+  * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+    functions will assume that `A(j,k)` equals `A(i,j)`.
+
+##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
 ```c++
 template<class in_vector_1_t,
@@ -5068,7 +5636,7 @@ void symmetric_matrix_rank_2_update(
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.herm]
+##### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.her2]
 
 ```c++
 template<class in_vector_1_t,
@@ -5116,8 +5684,25 @@ void hermitian_matrix_rank_2_update(
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
 
-  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
-    x(i)*conj(y(j)) + y(i)*conj(x(j))` is well formed.
+  * For `i,j` in the domain of `A`:
+
+    * If `in_vector_2_t::element_type` is `complex<RY>` for some `RY`,
+
+      * if `in_vector_1_t::element_type` is `complex<RX>` for some
+        `RX`, then the expression `A(i,j) += x(i)*conj(y(j)) +
+        y(i)*conj(x(j))` is well formed;
+
+      * else, the expression `A(i,j) += x(i)*conj(y(j)) + y(i)*x(j)`
+        is well formed;
+
+    * else,
+
+      * if `in_vector_1_t::element_type` is `complex<RX>` for some
+        `RX`, then the expression `A(i,j) += x(i)*y(j) +
+        y(i)*conj(x(j))` is well formed;
+
+      * else, the expression `A(i,j) += x(i)*y(j)) + y(i)*x(j)`
+        is well formed.
 
 * *Mandates:*
 
@@ -5137,10 +5722,15 @@ void hermitian_matrix_rank_2_update(
   outer product of `x` and the conjugate of `y`, and the outer product
   of `y` and the conjugate of `x`.
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals
-  `conj(A(i,j))`.
+* *Remarks:*
+
+  * The functions will only access the triangle of `A`
+    specified by the `Triangle` argument `t`.
+
+  * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+    functions will assume that `A(j,i)` equals `A(i,j)`.
 
 #### BLAS 3 functions [linalg.algs.blas3]
 
@@ -5253,10 +5843,14 @@ void matrix_product(ExecutionPolicy&& exec,
 
 ##### Symmetric matrix-matrix product [linalg.algs.blas3.symm]
 
-*[Note:* These functions correspond to the BLAS function `xSYMM`.
+*[Note:*
+
+These functions correspond to the BLAS function `xSYMM`.
+
 Unlike the symmetric rank-1 update functions, these functions assume
-that the input matrix -- not the output matrix -- is symmetric. --*end
-note]*
+that the input matrix -- not the output matrix -- is symmetric.
+
+--*end note]*
 
 The following requirements apply to all functions in this section.
 
@@ -5267,22 +5861,6 @@ The following requirements apply to all functions in this section.
   * `C.extent(0)` equals `E.extent(0)` (if applicable).
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
-
-  * If `Side` is `left_side_t`, then
-
-     * `A.extent(1)` equals `B.extent(0)`,
-
-     * `A.extent(0)` equals `C.extent(0)`, and
-
-     * `B.extent(1)` equals `C.extent(1)`.
-
-  * Otherwise, if `Side` is `right_side_t`, then
-
-     * `B.extent(1)` equals `A.extent(0)`,
-
-     * `B.extent(0)` equals `C.extent(0)`, and
-
-     * `A.extent(1)` equals `C.extent(1)`.
 
 * *Constraints:*
 
@@ -5310,149 +5888,215 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
+* *Remarks:*
 
-    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `B.static_extent(0)`;
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`, and will assume for indices `i,j`
+    outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(0)` equals
-      `C.static_extent(0)`; and
+  * *Remarks:* `C` and `E` (if applicable) may refer to the same
+    matrix.  If so, then they must have the same layout.
 
-    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `C.static_extent(1)`.
+The following requirements apply to all overloads of
+`symmetric_matrix_left_product`.
 
-  * Otherwise, if `Side` is `right_side_t`, then
+* *Requires:*
 
-    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `A.static_extent(0)`;
+   * `A.extent(1)` equals `B.extent(0)`,
 
-    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(0)` equals
-      `C.static_extent(0)`; and
+   * `A.extent(0)` equals `C.extent(0)`, and
 
-    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `C.static_extent(1)`.
+   * `B.extent(1)` equals `C.extent(1)`.
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+* *Mandates:*
 
-###### Overwriting symmetric matrix-matrix product
+  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `B.static_extent(0)`;
 
-```c++
-template<class in_matrix_1_t,
-         class Triangle,
-         class Side,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void symmetric_matrix_product(
-  in_matrix_1_t A,
-  Triangle t,
-  Side s,
-  in_matrix_2_t B,
-  out_matrix_t C);
+  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`; and
 
-template<class ExecutionPolicy,
-         class in_matrix_1_t,
-         class Triangle,
-         class Side,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void symmetric_matrix_product(
-  ExecutionPolicy&& exec,
-  in_matrix_1_t A,
-  Triangle t,
-  Side s,
-  in_matrix_2_t B,
-  out_matrix_t C);
-```
+  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(1)`.
 
-* *Constraints:*
+The following requirements apply to all overloads of
+`symmetric_matrix_right_product`.
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+* *Requires:*
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
+   * `B.extent(1)` equals `A.extent(0)`,
 
-* *Effects:*
+   * `B.extent(0)` equals `C.extent(0)`, and
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`.
+   * `A.extent(1)` equals `C.extent(1)`.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`.
+* *Mandates:*
 
-###### Updating symmetric matrix-matrix product
+  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `A.static_extent(0)`;
+
+  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `C.static_extent(1)`.
+
+###### Overwriting symmetric matrix-matrix left product [linalg.algs.blas3.symm.ov.left]
 
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
-         class in_matrix_3_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
-  in_matrix_3_t E,
   out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
-         class in_matrix_3_t,
          class out_matrix_t>
-void symmetric_matrix_product(
+void symmetric_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C`
+  the product of the matrices `A` and `B`.
+
+###### Overwriting symmetric matrix-matrix right product [linalg.algs.blas3.symm.ov.right]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C`
+  the product of the matrices `B` and `A`.
+
+###### Updating symmetric matrix-matrix left product [linalg.algs.blas3.symm.up.left]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 ```
 
-* *Constraints:*
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
+* *Effects:* assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `A` and `B`.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
+###### Updating symmetric matrix-matrix right product [linalg.algs.blas3.symm.up.right]
 
-* *Effects:*
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void symmetric_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+```
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `A` and `B`.
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `B` and `A`.
-
-* *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
-  they must have the same layout.
+* *Effects:* assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `B` and `A`.
 
 ##### Hermitian matrix-matrix product [linalg.algs.blas3.hemm]
 
-*[Note:* These functions correspond to the BLAS function `xHEMM`.
+*[Note:*
+
+These functions correspond to the BLAS function `xHEMM`.
+
 Unlike the Hermitian rank-1 update functions, these functions assume
-that the input matrix -- not the output matrix -- is Hermitian. --*end
-note]*
+that the input matrix -- not the output matrix -- is Hermitian.
+
+--*end note]*
 
 The following requirements apply to all functions in this section.
 
@@ -5463,22 +6107,6 @@ The following requirements apply to all functions in this section.
   * `C.extent(0)` equals `E.extent(0)` (if applicable).
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
-
-  * If `Side` is `left_side_t`, then
-
-     * `A.extent(1)` equals `B.extent(0)`,
-
-     * `A.extent(0)` equals `C.extent(0)`, and
-
-     * `B.extent(1)` equals `C.extent(1)`.
-
-  * Otherwise, if `Side` is `right_side_t`, then
-
-     * `B.extent(1)` equals `A.extent(0)`,
-
-     * `B.extent(0)` equals `C.extent(0)`, and
-
-     * `A.extent(1)` equals `C.extent(1)`.
 
 * *Constraints:*
 
@@ -5506,143 +6134,208 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
+* *Remarks:*
 
-    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `B.static_extent(0)`;
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
 
-    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(0)` equals
-      `C.static_extent(0)`; and
+  * If `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+    functions will assume that `A(j,i)` equals `A(i,j)`.
 
-    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `C.static_extent(1)`.
+  * `C` and `E` (if applicable) may refer to the same matrix.
+    If so, then they must have the same layout.
 
-  * Otherwise, if `Side` is `right_side_t`, then
+The following requirements apply to all overloads of
+`hermitian_matrix_left_product`.
 
-    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `A.static_extent(0)`;
+* *Requires:*
 
-    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(0)` equals
-      `C.static_extent(0)`; and
+  * `A.extent(1)` equals `B.extent(0)`,
 
-    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `C.static_extent(1)`.
+  * `A.extent(0)` equals `C.extent(0)`, and
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals
-  `conj(A(i,j))`.
+  * `B.extent(1)` equals `C.extent(1)`.
 
-###### Overwriting Hermitian matrix-matrix product
+* *Mandates:*
 
-```c++
-template<class in_matrix_1_t,
-         class Triangle,
-         class Side,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void hermitian_matrix_product(
-  in_matrix_1_t A,
-  Triangle t,
-  Side s,
-  in_matrix_2_t B,
-  out_matrix_t C);
+  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `B.static_extent(0)`;
 
-template<class ExecutionPolicy,
-         class in_matrix_1_t,
-         class Triangle,
-         class Side,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void hermitian_matrix_product(
-  ExecutionPolicy&& exec,
-  in_matrix_1_t A,
-  Triangle t,
-  Side s,
-  in_matrix_2_t B,
-  out_matrix_t C);
-```
+  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`; and
 
-* *Constraints:*
+  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(1)`.
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+The following requirements apply to all overloads of
+`hermitian_matrix_right_product`.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
+* *Requires:*
 
-* *Effects:*
+  * `B.extent(1)` equals `A.extent(0)`,
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`.
+  * `B.extent(0)` equals `C.extent(0)`, and
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`.
+  * `A.extent(1)` equals `C.extent(1)`.
 
-###### Updating Hermitian matrix-matrix product
+* *Mandates:*
+
+  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `A.static_extent(0)`;
+
+  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `C.static_extent(1)`.
+
+###### Overwriting Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.ov.left]
 
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
-         class in_matrix_3_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
-  Side s,
   in_matrix_2_t B,
-  in_matrix_3_t E,
   out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
-         class Side,
          class in_matrix_2_t,
-         class in_matrix_3_t,
          class out_matrix_t>
-void hermitian_matrix_product(
+void hermitian_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
-  Side s,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C` the product of
+  the matrices `A` and `B`.
+
+###### Overwriting Hermitian matrix-matrix right product [linalg.algs.blas3.hemm.ov.right]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C` the product of
+  the matrices `B` and `A`.
+
+###### Updating Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.up.left]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 ```
 
-* *Constraints:*
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `A` and `B`.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
+###### Updating Hermitian matrix-matrix right product [linalg.algs.blas3.hemm.up.right]
 
-* *Effects:*
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void hermitian_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+```
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `A` and `B`.
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `B` and `A`.
-
-* *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
-  they must have the same layout.
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `B` and `A`.
 
 ##### Triangular matrix-matrix product [linalg.algs.blas3.trmm]
 
@@ -5659,31 +6352,15 @@ The following requirements apply to all functions in this section.
 
   * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
-
-     * `A.extent(1)` equals `B.extent(0)`,
-
-     * `A.extent(0)` equals `C.extent(0)`, and
-
-     * `B.extent(1)` equals `C.extent(1)`.
-
-  * Otherwise, if `Side` is `right_side_t`, then
-
-     * `B.extent(1)` equals `A.extent(0)`,
-
-     * `B.extent(0)` equals `C.extent(0)`, and
-
-     * `A.extent(1)` equals `C.extent(1)`.
-
 * *Constraints:*
 
   * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
     layout.
 
-  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
-    `out_matrix_t` have unique layout.
+  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), `out_matrix_t`,
+    and `inout_matrix_t` (if applicable) have unique layout.
 
-  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+  * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
 
@@ -5701,34 +6378,6 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `C.static_extent(r)` equals
     `E.static_extent(r)` (if applicable).
 
-  * If `Side` is `left_side_t`, then
-
-    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `B.static_extent(0)`;
-
-    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `A.static_extent(0)` equals
-      `C.static_extent(0)`; and
-
-    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `C.static_extent(1)`.
-
-  * Otherwise, if `Side` is `right_side_t`, then
-
-    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(1)` equals
-      `A.static_extent(0)`;
-
-    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-      `dynamic_extent`, then `B.static_extent(0)` equals
-      `C.static_extent(0)`; and
-
-    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-      `dynamic_extent`, then `A.static_extent(1)` equals
-      `C.static_extent(1)`.
-
 * *Remarks:*
 
   * The functions will only access the triangle of `A` specified by
@@ -5741,126 +6390,490 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-###### Overwriting triangular matrix-matrix product
+  * `C` and `E` (if applicable) may refer to the same matrix.
+    If so, then they must have the same layout.
+
+The following requirements apply to all overloads of
+`triangular_matrix_left_product`.
+
+* *Requires:*
+
+  * `A.extent(1)` equals `B.extent(0)` (if applicable),
+
+  * `A.extent(0)` equals `C.extent(0)`, and
+
+  * `B.extent(1)` equals `C.extent(1)` (if applicable).
+
+* *Mandates:*
+
+  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `B.static_extent(0)` (if applicable);
+
+  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`; and
+
+  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `C.static_extent(1)` (if applicable).
+
+The following requirements apply to all overloads of
+`triangular_matrix_right_product`.
+
+* *Requires:*
+
+  * `B.extent(1)` equals `A.extent(0)` (if applicable),
+
+  * `B.extent(0)` equals `C.extent(0)` (if applicable), and
+
+  * `A.extent(1)` equals `C.extent(1)`.
+
+* *Mandates:*
+
+  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(1)` equals
+    `A.static_extent(0)` (if applicable);
+
+  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `B.static_extent(0)` equals
+    `C.static_extent(0)` (if applicable); and
+
+  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `C.static_extent(1)`.
+
+###### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
+
+Not-in-place overwriting triangular matrix-matrix left product
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C`
+  the product of the matrices `A` and `B`.
+
+In-place overwriting triangular matrix-matrix left product
 
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
-         class in_matrix_2_t,
-         class out_matrix_t>
-void triangular_matrix_product(
+         class inout_matrix_t>
+void triangular_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
+  inout_matrix_t C);
+```
+
+* *Requires:* `A.extent(1)` equals `C.extent(0)`.
+
+* *Constraints:* For `i,j` and `k,j` in the domain of `C`, and
+  `i,k` in the domain of `A`,
+  the expression `C(i,j) += A(i,k)*C(k,j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `C.static_extent(0)`
+  equals `dynamic_extent`, then `A.static_extent(1)` equals
+  `C.static_extent(0)`.
+
+* *Effects:* Overwrites `C` on output with the product of the matrices
+  `A` and `C` (on input).
+
+###### Overwriting triangular matrix-matrix right product [linalg.algs.blas3.trmm.ov.right]
+
+Not-in-place overwriting triangular matrix-matrix right product
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
   in_matrix_2_t B,
   out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_right_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_2_t B,
   out_matrix_t C);
 ```
 
-* *Constraints:*
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
+* *Effects:* Assigns to the elements of the matrix `C`
+  the product of the matrices `B` and `A`.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += B(i,k)*A(k,j)` is well formed.
+In-place overwriting triangular matrix-matrix right product
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+```
 
-* *Effects:*
+* *Requires:* `C.extent(1)` equals `A.extent(0)`.
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `A` and `B`.
+* *Constraints:* For `i,j` and `i,k` in the domain of `C`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += C(i,k)*A(k,j)` is well formed.
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` the product of the matrices `B` and `A`.
+* *Mandates:* If neither `C.static_extent(1)` nor `A.static_extent(0)`
+  equals `dynamic_extent`, then `C.static_extent(1)` equals
+  `A.static_extent(0).
 
-###### Updating triangular matrix-matrix product
+* *Effects:* Overwrites `C` on output with the product of the matrices
+  `C` (on input) and `A`.
+
+###### Updating triangular matrix-matrix left product [linalg.algs.blas3.trmm.up.left]
 
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
-         class Side,
          class in_matrix_2_t,
          class in_matrix_3_t,
          class out_matrix_t>
-void triangular_matrix_product(
+void triangular_matrix_left_product(
   ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
-  Side s,
   in_matrix_2_t B,
   in_matrix_3_t E,
   out_matrix_t C);
 ```
 
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `A`, and
+  `k,j` in the domain of `B`,
+  the expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `A` and `B`.
+
+###### Updating triangular matrix-matrix right product [linalg.algs.blas3.trmm.up.right]
+
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class in_matrix_3_t,
+         class out_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  in_matrix_3_t E,
+  out_matrix_t C);
+```
+
+* *Constraints:* For `i,j` in the domain of `C`,
+  `i,k` in the domain of `B`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
+
+* *Effects:* Assigns to the elements of the matrix `C` on output, the
+  elementwise sum of `E` and the product of the matrices `B` and `A`.
+
+##### Rank-k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank-k]
+
+*[Note:* Users can achieve the effect of the `TRANS` argument of these
+BLAS functions, by applying `transpose_view` or
+`conjugate_transpose_view` to the input matrix. --*end note]*
+
+###### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.syrk]
+
+```c++
+template<class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void symmetric_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+```
+
+*[Note:*
+
+These functions correspond to the BLAS function `xSYRK`.
+
+They take an optional scaling factor `alpha`, because it would be
+impossible to express the update C = C - A A^T otherwise.
+
+--*end note]*
+
+* *Requires:*
+
+  * `A.extent(0)` equals `C.extent(0)`.
+
+  * `C.extent(0)` equals `C.extent(1)`.
+
 * *Constraints:*
 
-  * If `Side` is `left_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `A`, and `k,j` in the domain of `B`, the
-    expression `C(i,j) += E(i,j) + A(i,k)*B(k,j)` is well formed.
+  * `A.rank()` equals 2 and `C.rank()` equals 2.
 
-  * If `Side` is `right_side_t`, then for `i,j` in the domain of `C`,
-    `i,k` in the domain of `B`, and `k,j` in the domain of `A`, the
-    expression `C(i,j) += E(i,j) + B(i,k)*A(k,j)` is well formed.
+  * `C` either has unique layout, or `layout_blas_packed` layout.
+
+  * If `C` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
+
+  * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
+    of `A`, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
+
+  * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
+    of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
+    formed (if applicable).
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`.
+
+  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `C.static_extent(1)`.
 
 * *Effects:*
 
-  * If `Side` is `left_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `A` and `B`.
+  * Overloads without `alpha` assign to `C` on output, the elementwise
+    sum of `C` on input with (the matrix product of `A` and the
+    nonconjugated transpose of `A`).
 
-  * If `Side` is `right_side_t`, then assigns to the elements of the
-    matrix `C` on output, the elementwise sum of `E` and the product of
-    the matrices `B` and `A`.
+  * Overloads with `alpha` assign to `C` on output, the elementwise
+    sum of `C` on input with alpha times (the matrix product of `A`
+    and the nonconjugated transpose of `A`).
 
-* *Remarks:* `C` and `E` may refer to the same matrix.  If so, then
-  they must have the same layout.
+* *Remarks:* The functions will only access the triangle of `C`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
+
+###### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.herk]
+
+```c++
+template<class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+template<class ExecutionPolicy,
+         class T,
+         class in_matrix_1_t,
+         class inout_matrix_t,
+         class Triangle>
+void hermitian_matrix_rank_k_update(
+  ExecutionPolicy&& exec,
+  T alpha,
+  in_matrix_1_t A,
+  inout_matrix_t C,
+  Triangle t);
+```
+
+*[Note:*
+
+These functions correspond to the BLAS function `xHERK`.
+
+They take an optional scaling factor `alpha`, because it would be
+impossible to express the updates C = C - A A^T or C = C - A A^H
+otherwise.
+
+--*end note]*
+
+* *Requires:*
+
+  * `A.extent(0)` equals `C.extent(0)`.
+
+  * `C.extent(0)` equals `C.extent(1)`.
+
+* *Constraints:*
+
+  * `A.rank()` equals 2 and `C.rank()` equals 2.
+
+  * `C` either has unique layout, or `layout_blas_packed` layout.
+
+  * If `C` has `layout_blas_packed` layout, then the layout's
+    `Triangle` template argument has the same type as the function's
+    `Triangle` template argument.
+
+  * For overloads without `alpha`: For `i,j` in the domain of `C`, and
+    `i,k` and `k,i` in the domain of `A`,
+
+    * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
+      then the expression `C(i,j) += A(i,k)*conj(A(j,k))` is well
+      formed;
+
+    * else, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
+
+  * For overloads with `alpha`: For `i,j` in the domain of `C`, and
+    `i,k` and `k,i` in the domain of `A`,
+
+    * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
+      then the expression `C(i,j) += alpha*A(i,k)*conj(A(j,k))` is well
+      formed;
+
+    * else, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
+      formed.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `C.static_extent(0)`.
+
+  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+    `dynamic_extent`, then `C.static_extent(0)` equals
+    `C.static_extent(1)`.
+
+* *Effects:*
+
+  * Overloads without `alpha` assign to `C` on output, the elementwise
+    sum of `C` on input with (the matrix product of `A` and the
+    conjugated transpose of `A`).
+
+  * Overloads with `alpha` assign to `C` on output, the elementwise
+    sum of `C` on input with alpha times (the matrix product of `A`
+    and the conjugated transpose of `A`).
+
+* *Remarks:* The functions will only access the triangle of `C`
+  specified by the `Triangle` argument `t`, and will assume for
+  indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
 ##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
-BLAS functions, by making `C` a `transpose_view` or
-`conjugate_transpose_view`. --*end note]*
+BLAS functions, by applying `transpose_view` or
+`conjugate_transpose_view` to the input matrices. --*end note]*
 
-###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.symm]
+###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.syr2k]
 
 ```c++
 template<class in_matrix_1_t,
@@ -5872,7 +6885,6 @@ void symmetric_matrix_rank_2k_update(
   in_matrix_2_t B,
   inout_matrix_t C,
   Triangle t);
-
 template<class ExecutionPolicy,
          class in_matrix_1_t,
          class in_matrix_2_t,
@@ -5928,15 +6940,15 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
     `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
-  input with (the matrix product of `A` and the non-conjugated
+  input with (the matrix product of `A` and the nonconjugated
   transpose of `B`) and (the matrix product of `B` and the
-  non-conjugated transpose of `A`.)
+  nonconjugated transpose of `A`.)
 
 * *Remarks:* The functions will only access the triangle of `C`
   specified by the `Triangle` argument `t`, and will assume for
   indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-###### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.herm]
+###### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.her2k]
 
 ```c++
 template<class in_matrix_1_t,
@@ -5985,9 +6997,25 @@ void hermitian_matrix_rank_2k_update(
     `Triangle` template argument.
 
   * For `i,j` in the domain of `C`, `i,k` and `k,i` in the domain of
-    `A`, and `j,k` and `k,j` in the domain of `B`, the expression
-    `C(i,j) += A(i,k)*conj(B(j,k)) + B(i,k)*conj(A(j,k))` is well
-    formed.
+    `A`, and `j,k` and `k,j` in the domain of `B`,
+
+    * if `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`, then
+
+      * if `in_matrix_2_t::element_type` is `complex<RB>` for some
+        `RB`, then the expression `C(i,j) += A(i,k)*conj(B(j,k)) +
+        B(i,k)*conj(A(j,k))` is well formed;
+
+      * else, the expression `C(i,j) += A(i,k)*B(j,k) +
+        B(i,k)*conj(A(j,k))` is well formed;
+
+    * else,
+
+      * if `in_matrix_2_t::element_type` is `complex<RB>` for some
+        `RB`, then the expression `C(i,j) += A(i,k)*conj(B(j,k)) +
+        B(i,k)*A(j,k)` is well formed;
+
+      * else, the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)`
+        is well formed.
 
 * *Mandates:*
 
@@ -6008,112 +7036,62 @@ void hermitian_matrix_rank_2k_update(
   `B`) and (the matrix product of `B` and the conjugate transpose of
   `A`.)
 
-* *Remarks:* The functions will only access the triangle of `C`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `C(j,i)` equals
-  `conj(C(i,j))`.
+* *Remarks:*
+
+  * The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`.
+
+  * If `inout_matrix_t::element_type` is `complex<RC>` for some `RC`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `C(j,i)` equals `conj(C(i,j))`.  Otherwise, the
+    functions will assume that `C(j,i)` equals `C(i,j)`.
 
 ##### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
-
-```c++
-template<class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class Side,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_matrix_solve(
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  Side s,
-  in_object_t B,
-  out_object_t X);
-
-template<class ExecutionPolicy,
-         class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class Side,
-         class in_matrix_t,
-         class out_matrix_t>
-void triangular_matrix_matrix_solve(
-  ExecutionPolicy&& exec,
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  Side s,
-  in_matrix_t B,
-  out_matrix_t X);
-```
 
 *[Note:* These functions correspond to the BLAS function `xTRSM`.  The
 Reference BLAS does not have a `xTPSM` function. --*end note]*
 
+The following requirements apply to all functions in this section.
+
 * *Requires:*
 
-  * For all `r` in 0, 1, ..., `X.rank()` - 1,
-    `X.extent(r)` equals `B.extent(r)`.
+  * For all `r` in 0, 1, ..., `B.rank()` - 1,
+    `X.extent(r)` equals `B.extent(r)` (if applicable).
 
   * `A.extent(0)` equals `A.extent(1)`.
 
-  * If `Side` is `left_side_t`, then
-    `A.extent(1)` equals `B.extent(0)`.
-
-  * Otherwise, if `Side` is `right_side_t`, then
-    `A.extent(1)` equals `B.extent(1)`.
-
 * *Constraints:*
 
-  * `A.rank()` equals 2, `B.rank()` equals 2, and `X.rank()` equals 2.
+  * `A.rank()` equals 2 and `B.rank()` equals 2.
+
+  * `X.rank()` equals 2 (if applicable).
 
   * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
     layout.
 
-  * `in_matrix_2_t` and `out_matrix_t` have unique layout.
+  * `in_matrix_2_t` has unique layout (if applicable).
+
+  * `out_matrix_t` has unique layout.
+
+  * `inout_matrix_t` has unique layout (if applicable).
 
   * If `r,j` is in the domain of `X` and `B`, then the expression
-    `X(r,j) = B(r,j)` is well formed.
-
-  * If `Side` is `left_side_t`, and if `i,j` and `i,k` are in the
-    domain of `X`, then the expression `X(i,j) -= A(i,k) * X(k,j)` is
-    well formed.
-
-  * If `Side` is `right_side_t`, and if `i,j` and `i,k` are in the
-    domain of `X`, then the expression `X(i,j) -= X(i,k) * A(k,j)` is
-    well formed.
+    `X(r,j) = B(r,j)` is well formed (if applicable).
 
   * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
     domain of `X`, then the expression `X(i,j) /= A(i,i)` is well
-    formed.
+    formed (if applicable).
 
 * *Mandates:*
 
   * For all `r` in 0, 1, ..., `X.rank()` - 1, if neither
     `X.static_extent(r)` nor `B.static_extent(r)` equals
     `dynamic_extent`, then `X.static_extent(r)` equals
-    `B.static_extent(r)`.
+    `B.static_extent(r)` (if applicable).
 
   * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
     `A.static_extent(1)`.
-
-  * If `Side` is `left_side_t`, then if neither `A.static_extent(1)`
-    nor `B.static_extent(0)` equals `dynamic_extent`, then
-    `A.static_extent(1)` equals `B.static_extent(0)`.
-
-  * Otherwise, if `Side` is `right_side_t`, then if neither
-    `A.static_extent(1)` nor `B.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `B.static_extent(1)`.
-
-* *Effects:*
-
-  * If `Side` is `left_side_t`, then assigns to the elements of `X`
-    the result of solving the triangular linear system(s) AX=B for X.
-
-  * If `Side` is `right_side_t`, then assigns to the elements of `X`
-    the result of solving the triangular linear system(s) XA=B for X.
 
 * *Remarks:*
 
@@ -6126,3 +7104,376 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
     of `A` all equal one. *[Note:* This does not imply that the
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
+
+###### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
+
+Not-in-place multiple triangular systems left solve
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X);
+```
+
+* *Requires:* `A.extent(1)` equals `B.extent(0)`.
+
+* *Constraints:* If `i,j` and `i,k` are in the domain of `X`, then
+  the expression `X(i,j) -= A(i,k) * X(k,j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(0)`
+  equals `dynamic_extent`, then
+  `A.static_extent(1)` equals `B.static_extent(0)`.
+
+* *Effects:* Assigns to the elements of `X`
+  the result of solving the triangular linear system(s) AX=B for X.
+
+In-place multiple triangular systems left solve
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
+```
+
+*[Note:*
+
+This in-place version of the function intentionally lacks an overload
+taking an `ExecutionPolicy&&`, because it is not possible to
+parallelize in-place triangular solve for an arbitrary
+`ExecutionPolicy`.
+
+This algorithm makes it possible to compute factorizations like
+Cholesky and LU in place.
+
+--*end note]*
+
+* *Requires:* `A.extent(1)` equals `B.extent(0)`.
+
+* *Constraints:*
+
+  * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
+    domain of `B`, then the expression `B(i,j) /= A(i,i)` is well
+    formed (if applicable).
+
+  * If `i,j` and `i,k` are in the domain of `X`, then the expression
+    `B(i,j) -= A(i,k) * B(k,j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(0)`
+  equals `dynamic_extent`, then
+  `A.static_extent(1)` equals `B.static_extent(0)`.
+
+* *Effects:* Overwrites `B` with the result of solving the triangular
+   linear system(s) AX=B for X.
+
+###### Solve multiple triangular linear systems with triangular matrix on the right [linalg.alg.blas3.trsm.right]
+
+Not-in-place multiple triangular systems right solve
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X);
+```
+
+* *Requires:* `A.extent(1)` equals `B.extent(1)`.
+
+* *Constraints:* If `i,j` and `i,k` are in the domain of `X`, then
+  the expression `X(i,j) -= X(i,k) * A(k,j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(1)`
+  equals `dynamic_extent`, then
+  `A.static_extent(1)` equals `B.static_extent(1)`.
+
+* *Effects:* Assigns to the elements of `X`
+  the result of solving the triangular linear system(s) XA=B for X.
+
+In-place multiple triangular systems right solve
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
+```
+
+*[Note:*
+
+This in-place version of the function intentionally lacks an overload
+taking an `ExecutionPolicy&&`, because it is not possible to
+parallelize in-place triangular solve for any `ExecutionPolicy`.
+
+This algorithm makes it possible to compute factorizations like
+Cholesky and LU in place.
+
+--*end note]*
+
+* *Requires:* `A.extent(1)` equals `B.extent(1)`.
+
+* *Constraints:*
+
+  * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
+    domain of `B`, then the expression `B(i,j) /= A(i,i)` is well
+    formed (if applicable).
+
+  * If `i,j` and `i,k` are in the domain of `X`, then the expression
+    `B(i,j) -= B(i,k) * A(k,j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(1)`
+  equals `dynamic_extent`, then
+  `A.static_extent(1)` equals `B.static_extent(1)`.
+
+* *Effects:* Overwrites `B` with the result of solving the triangular
+   linear system(s) XA=B for X.
+
+## Examples
+
+### Cholesky factorization
+
+This example shows how to compute the Cholesky factorization of a real
+symmetric positive definite matrix A stored as a `basic_mdspan` with a
+unique non-packed layout.  The algorithm imitates `DPOTRF2` in LAPACK
+3.9.0.  If `Triangle` is `upper_triangle_t`, then it computes the
+Cholesky factorization A = U^T U.  Otherwise, it computes the Cholesky
+factorization A = L L^T.  The function returns 0 if success, else k+1
+if row/column k has a zero or NaN (not a number) diagonal entry.
+
+```c++
+#include <linalg>
+#include <cmath>
+
+template<class inout_matrix_t,
+         class Triangle>
+int cholesky_factor(inout_matrix_t A, Triangle t)
+{
+  using element_type = typename inout_matrix_t::element_type;
+  constexpr element_type ZERO {};
+  constexpr element_type ONE (1.0);
+  const ptrdiff_t n = A.extent(0);
+
+  if (n == 0) {
+    return 0;
+  }
+  else if (n == 1) {
+    if (A(0,0) <= ZERO || isnan(A(0,0))) {
+      return 1;
+    }
+    A(0,0) = sqrt(A(0,0));
+  }
+  else {
+    // Partition A into [A11, A12,
+    //                   A21, A22],
+    // where A21 is the transpose of A12.
+    const ptrdiff_t n1 = n / 2;
+    const ptrdiff_t n2 = n - n1;
+    auto A11 = subspan(A, pair{0, n1}, pair{0, n1});
+    auto A22 = subspan(A, pair{n1, n}, pair{n1, n});
+
+    // Factor A11
+    const int info1 = cholesky_factor(A11, t);
+    if (info1 != 0) {
+      return info1;
+    }
+
+    if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
+      // Update and scale A12
+      auto A12 = subspan(A, pair{0, n1}, pair{n1, n});
+      triangular_matrix_matrix_left_solve(transpose_view(A11),
+        upper_triangle, explicit_diagonal, A12);
+      // A22 = A22 - A12^T * A12
+      symmetric_matrix_rank_k_update(-ONE, transpose_view(A12),
+                                      A22, t);
+    }
+    else {
+      //
+      // Compute the Cholesky factorization A = L * L^T
+      //
+      // Update and scale A21
+      auto A21 = subspan(A, pair{n1, n}, pair{0, n1});
+      triangular_matrix_matrix_right_solve(transpose_view(A11),
+        lower_triangle, explicit_diagonal, A21);
+      // A22 = A22 - A21 * A21^T
+      symmetric_matrix_rank_k_update(-ONE, A21, A22, t);
+    }
+
+    // Factor A22
+    const int info2 = cholesky_factor(A22, t);
+    if (info2 != 0) {
+      return info2 + n1;
+    }
+  }
+}
+```
+
+### Solve linear system using Cholesky factorization
+
+This example shows how to solve a symmetric positive definite linear
+system Ax=b, using the Cholesky factorization computed in the previous
+example in-place in the matrix `A`.  The example assumes that
+`cholesky_factor(A, t)` returned 0, indicating no zero or NaN pivots.
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void cholesky_solve(
+  in_matrix_t A,
+  Triangle t,
+  in_vector_t b,
+  out_vector_t x)
+{
+  if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
+    // Solve Ax=b where A = U^T U
+    //
+    // Solve U^T c = b, using x to store c.
+    triangular_matrix_vector_solve(transpose_view(A), t,
+                                   explicit_diagonal, b, x);
+    // Solve U x = c, overwriting x with result.
+    triangular_matrix_vector_solve(A, t, explicit_diagonal, x);
+  }
+  else {
+    // Solve Ax=b where A = L L^T
+    //
+    // Solve L c = b, using x to store c.
+    triangular_matrix_vector_solve(A, t, explicit_diagonal, b, x);
+    // Solve L^T x = c, overwriting x with result.
+    triangular_matrix_vector_solve(transpose_view(A), t,
+                                   explicit_diagonal, x);
+  }
+}
+```
+
+### Compute QR factorization of a tall skinny matrix
+
+This example shows how to compute the QR factorization of a "tall and
+skinny" matrix `V`, using a cache-blocked algorithm based on rank-k
+symmetric matrix update and Cholesky factorization.  "Tall and skinny"
+means that the matrix has many more rows than columns.
+
+```c++
+// Compute QR factorization A = Q R, with A storing Q.
+template<class inout_matrix_t,
+         class out_matrix_t>
+int cholesky_tsqr_one_step(
+  inout_matrix_t A, // A on input, Q on output
+  out_matrix_t R)
+{
+  // One might use cache size, sizeof(element_type), and A.extent(1)
+  // to pick the number of rows per block.  For now, we just pick
+  // some constant.
+  constexpr ptrdiff_t max_num_rows_per_block = 500;
+
+  using R_element_type = typename out_matrix_t::element_type;
+  constexpr R_element_type ZERO {};
+  for(ptrdiff_t i = 0; i < R.extent(0); ++i) {
+    for(ptrdiff_t j = 0; j < R.extent(1); ++j) {
+      R(0,0) = ZERO;
+    }
+  }
+
+  // Cache-blocked version of R = R + A^T * A.
+  const ptrdiff_t num_rows = A.extent(0);
+  ptrdiff_t rest_num_rows = num_rows;
+  auto A_rest = A;
+  while(A_rest.extent(0) > 0) {
+    const ptrdiff num_rows_per_block =
+      min(A.extent(0), max_num_rows_per_block);
+    auto A_cur = subspan(A_rest, pair{0, num_rows_per_block}, all);
+    A_rest = subspan(A_rest,
+      pair{num_rows_per_block, A_rest.extent(0)}, all);
+    // R = R + A_cur^T * A_cur
+    symmetric_matrix_rank_k_update(transpose_view(A_cur),
+                                   R, upper_triangle);
+  }
+
+  const int info = cholesky_factor(R, upper_triangle);
+  if(info != 0) {
+    return info;
+  }
+  triangular_matrix_matrix_left_solve(R, upper_triangle, A);
+  return info;
+}
+
+// Compute QR factorization A = Q R.  Use R_tmp as temporary R factor
+// storage for iterative refinement.
+template<class in_matrix_t,
+         class out_matrix_1_t,
+         class out_matrix_2_t,
+         class out_matrix_3_t>
+int cholesky_tsqr(
+  in_matrix_t A,
+  out_matrix_1_t Q,
+  out_matrix_2_t R_tmp,
+  out_matrix_3_t R)
+{
+  assert(R.extent(0) == R.extent(1));
+  assert(A.extent(1) == R.extent(0));
+  assert(R_tmp.extent(0) == R_tmp.extent(1));
+  assert(A.extent(0) == Q.extent(0));
+  assert(A.extent(1) == Q.extent(1));
+
+  linalg_copy(A, Q);
+  const int info1 = cholesky_tsqr_one_step(Q, R);
+  if(info1 != 0) {
+    return info1;
+  }
+  // Use one step of iterative refinement to improve accuracy.
+  const int info2 = cholesky_tsqr_one_step(Q, R_tmp);
+  if(info2 != 0) {
+    return info2;
+  }
+  // R = R_tmp * R
+  triangular_matrix_left_product(R_tmp, upper_triangle,
+                                 explicit_diagonal, R);
+  return 0;
+}
+```
