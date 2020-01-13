@@ -7121,12 +7121,12 @@ Cholesky and LU in place.
 ### Cholesky factorization
 
 This example shows how to compute the Cholesky factorization of a real
-square matrix in a unique non-packed layout.  The algorithm imitates
-`DPOTRF2` in LAPACK 3.9.0.  If `Triangle` is `upper_triangle_t`, then
-it computes the Cholesky factorization A = U^T U.  Otherwise, it
-computes the Cholesky factorization A = L L^T.  The function returns 0
-if success, else k+1 if row/column k has a zero or NaN (not a number)
-diagonal entry.
+symmetric positive definite matrix A stored as a `basic_mdspan` with a
+unique non-packed layout.  The algorithm imitates `DPOTRF2` in LAPACK
+3.9.0.  If `Triangle` is `upper_triangle_t`, then it computes the
+Cholesky factorization A = U^T U.  Otherwise, it computes the Cholesky
+factorization A = L L^T.  The function returns 0 if success, else k+1
+if row/column k has a zero or NaN (not a number) diagonal entry.
 
 ```c++
 #include <linalg>
@@ -7190,6 +7190,45 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     if (info2 != 0) {
       return info2 + n1;
     }
+  }
+}
+```
+
+### Solve linear system using Cholesky factorization
+
+This example shows how to solve a symmetric positive definite linear
+system Ax=b, using the Cholesky factorization computed in the previous
+example in-place in the matrix `A`.  The example assumes that
+`cholesky_factor(A, t)` returned 0, indicating no zero or NaN pivots.
+
+```c++
+template<class inout_matrix_t,
+         class Triangle,
+         class in_vector_t,
+         class out_vector_t>
+void cholesky_solve(
+  in_matrix_t A,
+  Triangle t,
+  in_vector_t b,
+  out_vector_t x)
+{
+  if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
+    // Solve Ax=b where A = U^T U
+    //
+    // Solve U^T c = b, using x to store c.
+    triangular_matrix_vector_solve(transpose_view(A), t,
+                                   explicit_diagonal, b, x);
+    // Solve U x = c, overwriting x with result.
+    triangular_matrix_vector_solve(A, t, explicit_diagonal, x);
+  }
+  else {
+    // Solve Ax=b where A = L L^T
+    //
+    // Solve L c = b, using x to store c.
+    triangular_matrix_vector_solve(A, t, explicit_diagonal, b, x);
+    // Solve L^T x = c, overwriting x with result.
+    triangular_matrix_vector_solve(transpose_view(A), t,
+                                   explicit_diagonal, x);
   }
 }
 ```
