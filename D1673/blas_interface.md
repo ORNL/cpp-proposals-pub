@@ -4340,9 +4340,11 @@ auto dotc(ExecutionPolicy&& exec,
           in_vector_2_t v2);
 ```
 
-* *Effects:* Let `T` be `decltype(v1(0)*conj(v2(0)))`.  Then, the
-  two-parameter overload is equivalent to `dotc(v1, v2, T{});`, and the
-  three-parameter overload is equivalent to `dotc(exec, v1, v2, T{});`.
+* *Effects:* If `in_vector_2_t::element_type` is `complex<R>` for some
+  `R`, let `T` be `decltype(v1(0)*conj(v2(0)))`; else, let `T` be
+  `decltype(v1(0)*v2(0))`.  Then, the two-parameter overload is
+  equivalent to `dotc(v1, v2, T{});`, and the three-parameter overload
+  is equivalent to `dotc(exec, v1, v2, T{});`.
 
 ##### Euclidean norm of a vector [linalg.algs.blas1.nrm2]
 
@@ -4783,10 +4785,15 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `y.static_extent(0)` equals
     `z.static_extent(0)` (if applicable).
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals
-  `conj(A(i,j))`.
+* *Remarks:*
+
+  * The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`.
+
+  * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+    functions will assume that `A(j,i)` equals `A(i,j)`.
 
 ###### Overwriting Hermitian matrix-vector product
 
@@ -4812,9 +4819,12 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
                                      out_vector_t y);
 ```
 
-* *Constraints:* For `i,j` in the domain of `A`, the expressions
-  `y(i) += A(i,j)*x(j)` and `y(i) += conj(A(i,j))*x(j)` are well
-  formed.
+* *Constraints:* For `i,j` in the domain of `A`:
+
+  * the expression `y(i) += A(i,j)*x(j)` is well formed; and
+
+  * if `in_matrix_type::element_type` is `complex<RA>` for some `RA`,
+    then the expression `y(i) += conj(A(i,j))*x(j)` is well formed.
 
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
@@ -4847,9 +4857,13 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
                                      out_vector_t z);
 ```
 
-* *Constraints:* For `i,j` in the domain of `A`, the expressions
-  `z(i) = y(i) + A(i,j)*x(j)` and `z(i) = y(i) + conj(A(i,j))*x(j)`
-  are well formed.
+* *Constraints:* For `i,j` in the domain of `A`:
+
+  * the expression `z(i) = y(i) + A(i,j)*x(j)` is well formed; and
+
+  * if `in_matrix_t::element_type` is `complex<RA>` for some `RA`,
+    then the expression `z(i) = y(i) + conj(A(i,j))*x(j)` is well
+    formed.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
   `y`, and the product of the matrix `A` with the vector `x`.
@@ -5379,9 +5393,9 @@ impossible to express the update A = A - x x^H otherwise.
     the `Triangle` argument `t`.
 
   * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
-    the functions will assume for indices `i,j` outside that triangle,
-    that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the functions
-    will assume that `A(j,k)` equals `A(i,j)`.
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+    functions will assume that `A(j,k)` equals `A(i,j)`.
 
 ##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
@@ -5503,8 +5517,25 @@ void hermitian_matrix_rank_2_update(
     `Triangle` template argument has the same type as the function's
     `Triangle` template argument.
 
-  * For `i,j` in the domain of `A`, the expression `A(i,j) +=
-    x(i)*conj(y(j)) + y(i)*conj(x(j))` is well formed.
+  * For `i,j` in the domain of `A`:
+
+    * If `in_vector_2_t::element_type` is `complex<RY>` for some `RY`,
+
+      * if `in_vector_1_t::element_type` is `complex<RX>` for some
+        `RX`, then the expression `A(i,j) += x(i)*conj(y(j)) +
+        y(i)*conj(x(j))` is well formed;
+
+      * else, the expression `A(i,j) += x(i)*conj(y(j)) + y(i)*x(j)`
+        is well formed;
+
+    * else,
+
+      * if `in_vector_1_t::element_type` is `complex<RX>` for some
+        `RX`, then the expression `A(i,j) += x(i)*y(j) +
+        y(i)*conj(x(j))` is well formed;
+
+      * else, the expression `A(i,j) += x(i)*y(j)) + y(i)*x(j)`
+        is well formed.
 
 * *Mandates:*
 
@@ -5524,10 +5555,15 @@ void hermitian_matrix_rank_2_update(
   outer product of `x` and the conjugate of `y`, and the outer product
   of `y` and the conjugate of `x`.
 
-* *Remarks:* The functions will only access the triangle of `A`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `A(j,i)` equals
-  `conj(A(i,j))`.
+* *Remarks:*
+
+  * The functions will only access the triangle of `A`
+    specified by the `Triangle` argument `t`.
+
+  * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+    functions will assume that `A(j,i)` equals `A(i,j)`.
 
 #### BLAS 3 functions [linalg.algs.blas3]
 
@@ -5934,11 +5970,15 @@ The following requirements apply to all functions in this section.
 * *Remarks:*
 
   * The functions will only access the triangle of `A` specified by
-    the `Triangle` argument `t`, and will assume for indices `i,j`
-    outside that triangle, that `A(j,i)` equals `conj(A(i,j))`.
+    the `Triangle` argument `t`.
 
-  * *Remarks:* `C` and `E` (if applicable) may refer to the same
-    matrix.  If so, then they must have the same layout.
+  * If `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+    functions will assume that `A(j,i)` equals `A(i,j)`.
+
+  * `C` and `E` (if applicable) may refer to the same matrix.
+    If so, then they must have the same layout.
 
 The following requirements apply to all overloads of
 `hermitian_matrix_left_product`.
@@ -6774,10 +6814,15 @@ void hermitian_matrix_rank_2k_update(
   `B`) and (the matrix product of `B` and the conjugate transpose of
   `A`.)
 
-* *Remarks:* The functions will only access the triangle of `C`
-  specified by the `Triangle` argument `t`, and will assume for
-  indices `i,j` outside that triangle, that `C(j,i)` equals
-  `conj(C(i,j))`.
+* *Remarks:*
+
+  * The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`.
+
+  * If `inout_matrix_t::element_type` is `complex<RC>` for some `RC`,
+    then the functions will assume for indices `i,j` outside that
+    triangle, that `C(j,i)` equals `conj(C(i,j))`.  Otherwise, the
+    functions will assume that `C(j,i)` equals `C(i,j)`.
 
 ##### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
