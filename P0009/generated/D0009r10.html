@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2020-01-11" />
+  <meta name="dcterms.date" content="2020-01-12" />
   <title>MDSPAN</title>
   <style>
       code{white-space: pre-wrap;}
@@ -419,11 +419,11 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>d0009r10</td>
+    <td>p0009r10</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2020-01-11</td>
+    <td>2020-01-12</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -435,7 +435,8 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
     <td style="vertical-align:top">Reply-to: </td>
     <td>
       Christian Trott<br>&lt;<a href="mailto:crtrott@sandia.gov" class="email">crtrott@sandia.gov</a>&gt;<br>
-      David Hollman<br>&lt;<a href="mailto:dshollm@sandia.gov" class="email">dshollm@sandia.gov</a>&gt;<br>
+      D.S. Hollman<br>&lt;<a href="mailto:dshollm@sandia.gov" class="email">dshollm@sandia.gov</a>&gt;<br>
+      Damien Lebrun-Grandie<br>&lt;<a href="mailto:lebrungrandt@ornl.gov" class="email">lebrungrandt@ornl.gov</a>&gt;<br>
       Mark Hoemmen<br>&lt;<a href="mailto:mhoemme@sandia.gov" class="email">mhoemme@sandia.gov</a>&gt;<br>
       Daniel Sunderland<br>&lt;<a href="mailto:dsunder@sandia.gov" class="email">dsunder@sandia.gov</a>&gt;<br>
       H. Carter Edwards<br>&lt;<a href="mailto:hedwards@nvidia.com" class="email">hedwards@nvidia.com</a>&gt;<br>
@@ -479,6 +480,11 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <h2 data-number="1.1" id="p0009r10-pre-2020-02-prague-mailing" data-number="1.1"><span class="header-section-number">1.1</span> P0009r10: Pre 2020-02-Prague Mailing<a href="#p0009r10-pre-2020-02-prague-mailing" class="self-link"></a></h2>
 <ul>
 <li>Switched to mpark/wg21 pandoc format</li>
+<li>Add general description of span and mdspan</li>
+<li>Removed <code>mdspan_subspan</code> expo only type; use <code>basic_mdspan&lt;</code><em>see below</em><code>&gt;</code> instead</li>
+<li>Fixed typos in accessor table</li>
+<li>Made editorial changes to wording based on San Diego feedback</li>
+<li>Updated operational semantics subsection heading based on new style guidelines</li>
 </ul>
 <h2 data-number="1.2" id="p0009r9-pre-2019-02-kona-mailing" data-number="1.2"><span class="header-section-number">1.2</span> P0009r9: Pre 2019-02-Kona Mailing<a href="#p0009r9-pre-2019-02-kona-mailing" class="self-link"></a></h2>
 <ul>
@@ -1755,9 +1761,9 @@ Expects
 <span id="cb13-11"><a href="#cb13-11"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb13-12"><a href="#cb13-12"></a>      <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb13-13"><a href="#cb13-13"></a></span>
-<span id="cb13-14"><a href="#cb13-14"></a>    mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb13-14"><a href="#cb13-14"></a>    <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb13-15"><a href="#cb13-15"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb13-16"><a href="#cb13-16"></a>      mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-16"><a href="#cb13-16"></a>      <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb13-17"><a href="#cb13-17"></a></span>
 <span id="cb13-18"><a href="#cb13-18"></a>    <span class="kw">constexpr</span> Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> extents_; <span class="op">}</span></span>
 <span id="cb13-19"><a href="#cb13-19"></a></span>
@@ -1799,7 +1805,7 @@ Expects
 <li><p><span class="marginalizedparent"><a class="marginalized">3</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents()</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2"></a>  mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">4</a></span> <em>Effects:</em> Equivalent to:</p>
 <div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1"></a>extents_ <span class="op">=</span> other<span class="op">.</span>extents<span class="op">()</span>;</span>
@@ -1854,9 +1860,9 @@ Expects
 <span id="cb22-11"><a href="#cb22-11"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb22-12"><a href="#cb22-12"></a>      <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb22-13"><a href="#cb22-13"></a></span>
-<span id="cb22-14"><a href="#cb22-14"></a>    mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb22-14"><a href="#cb22-14"></a>    <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb22-15"><a href="#cb22-15"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb22-16"><a href="#cb22-16"></a>      mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb22-16"><a href="#cb22-16"></a>      <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb22-17"><a href="#cb22-17"></a></span>
 <span id="cb22-18"><a href="#cb22-18"></a>    <span class="kw">constexpr</span> Extents extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> extents_; <span class="op">}</span></span>
 <span id="cb22-19"><a href="#cb22-19"></a></span>
@@ -1898,7 +1904,7 @@ Expects
 <li><p><span class="marginalizedparent"><a class="marginalized">3</a></span> <em>Effects:</em> Initializes <code>extents_</code> with <code>other.extents()</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb25-2"><a href="#cb25-2"></a>  mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<span id="cb25-2"><a href="#cb25-2"></a>  <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">4</a></span> <em>Effects:</em> Equivalent to:</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1"></a>extents_ <span class="op">=</span> other<span class="op">.</span>extents<span class="op">()</span>;</span>
@@ -2074,7 +2080,7 @@ layout_stride
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span> getting a handle to the contiguous subset of elements beginning at an integer offset value.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span> <i>[Note:</i> The type of <code>reference</code> need not be <code>element_type&amp;</code>. The type of <code>pointer</code> need not be <code>element_type*</code>. <i>— end note]</i></p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span> <i>[Note:</i> The constructor of the object representing the contiguous set of objects may impose additional restrictions on the contiguous set of objects, such as restricting <code>element_type</code> to be trivially copyable or requiring a larger alignment than <code>alignment_of_v&lt;element_type&gt;</code>. <i>— end note]</i></p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span> An accessor policy meets the requirements of <em>Cpp17DefaultConstructible</em>, <em>Cpp17CopyAssignable</em>, and <em>Cpp17EqualityComparable</em>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span> In Table �:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> <code>A</code> denotes an accessor policy.</p></li>
@@ -2112,7 +2118,7 @@ Requirements
 <td>
 </td>
 <td>
-Type of each element in the contiguous set of elements.
+<code>A::element_type</code> is required to be a complete object type that is not an abstract class type.
 </td>
 </tr>
 <tr>
@@ -2122,7 +2128,7 @@ Type of each element in the contiguous set of elements.
 <td>
 </td>
 <td>
-Type through which the range of elements are accessed. <br /> <code>A::pointer</code> meets the requirements of <em>Cpp17DefaultConstructible</em>, <em>Cpp17CopyConstructible</em>, and <em>Cpp17CopyAssignable</em>.
+<code>A::pointer</code> meets the requirements of <em>Cpp17DefaultConstructible</em>, <em>Cpp17CopyConstructible</em>, and <em>Cpp17CopyAssignable</em>.
 </td>
 </tr>
 <tr>
@@ -2132,7 +2138,7 @@ Type through which the range of elements are accessed. <br /> <code>A::pointer</
 <td>
 </td>
 <td>
-Type through which an element is accessed.
+<em>Constraints:</em> <code>is_convertible_v&lt;A::reference,A::element_type&gt;</code> is <code>true</code>, and if <code>is_const_v&lt;A::element_type&gt;</code> is <code>false</code> then <code>is_assignable_v&lt;A::element_type,A::reference&gt;</code> is <code>true</code>.
 </td>
 </tr>
 <tr>
@@ -2498,60 +2504,36 @@ subspan
 <span id="cb57-3"><a href="#cb57-3"></a>  <span class="co">// [mdspan.subspan], subspan creation</span></span>
 <span id="cb57-4"><a href="#cb57-4"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy,</span>
 <span id="cb57-5"><a href="#cb57-5"></a>           <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb57-6"><a href="#cb57-6"></a>  <span class="kw">struct</span> mdspan_subspan <span class="op">{</span> <span class="co">// &lt;i&gt;exposition only&lt;/i&gt;</span></span>
-<span id="cb57-7"><a href="#cb57-7"></a>    <span class="kw">using</span> extents_t <span class="op">=</span> <em>see below</em>;</span>
-<span id="cb57-8"><a href="#cb57-8"></a>    <span class="kw">using</span> layout_t <span class="op">=</span> <em>see below</em>;</span>
-<span id="cb57-9"><a href="#cb57-9"></a>    <span class="kw">using</span> type <span class="op">=</span> basic_mdspan<span class="op">&lt;</span>ElementType, extents_t, layout_t,</span>
-<span id="cb57-10"><a href="#cb57-10"></a>                              <span class="kw">typename</span> AccessorPolicy<span class="op">::</span>offset_policy<span class="op">&gt;</span>;</span>
-<span id="cb57-11"><a href="#cb57-11"></a>  <span class="op">}</span>;</span>
-<span id="cb57-12"><a href="#cb57-12"></a></span>
-<span id="cb57-13"><a href="#cb57-13"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy,</span>
-<span id="cb57-14"><a href="#cb57-14"></a>           <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb57-15"><a href="#cb57-15"></a>      basic_mdspan<span class="op">&lt;</span><em>see below</em><span class="op">&gt;</span></span>
-<span id="cb57-16"><a href="#cb57-16"></a>      subspan<span class="op">(</span><span class="kw">const</span> basic_mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy,</span>
-<span id="cb57-17"><a href="#cb57-17"></a>                                 AccessorPolicy<span class="op">&gt;&amp;</span>, SliceSpecifiers <span class="op">...)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb57-18"><a href="#cb57-18"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb57-6"><a href="#cb57-6"></a>      basic_mdspan<span class="op">&lt;</span><em>see below</em><span class="op">&gt;</span></span>
+<span id="cb57-7"><a href="#cb57-7"></a>      subspan<span class="op">(</span><span class="kw">const</span> basic_mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy,</span>
+<span id="cb57-8"><a href="#cb57-8"></a>                                 AccessorPolicy<span class="op">&gt;&amp;</span> src, SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb57-9"><a href="#cb57-9"></a><span class="op">}</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span> Let <code>sub</code> be the return value of <code>subspan(src, slices...)</code>. Denote the value of the <span class="math inline"><em>k</em></span>-th element of <code>slices...</code> by <span class="math inline"><em>s</em><sub><em>k</em></sub></span>. Denote the type of the <span class="math inline"><em>k</em></span>-th element of <code>slices...</code> by <span class="math inline"><em>S</em><sub><em>k</em></sub></span>.</p>
-<ol start="4" type="1">
-<li><p>Let ρ be <code>sub.rank()</code>. ρ equals the number of <code>k</code> such that <code>is_convertible_v&lt;</code><math>S<sub>k</sub></math><code>, pair&lt;ptrdiff_t, ptrdiff_t&gt;&gt; || is_convertible_v&lt;</code><math>S<sub>k</sub></math><code>, all_type&gt;</code> is <code>true</code>.</p></li>
-<li><p>Define <code>rank_map</code> as the length ρ <code>std::integer_sequence</code> of <code>ptrdiff_t</code> consisting of the unique values of <code>k</code>, in increasing order, such that <code>is_convertible_v&lt;</code><math>S<sub>k</sub></math><code>, pair&lt;ptrdiff_t, ptrdiff_t&gt;&gt; || is_convertible_v&lt;</code><math>S<sub>k</sub></math><code>, all_type&gt;</code> is <code>true</code>.</p></li>
-<li><p>Define the exposition-only <code>constexpr</code> function <code>get_seq&lt;k&gt;(seq)</code>, where <code>k</code> is an integer, as the function returning the <code>k</code>-th entry of the <code>std::integer_sequence</code> <code>seq</code>. We say that the integer r “is not in <code>rank_map</code>” when, for all <code>k</code> in the range <code>[0,</code> &amp;rho<code>)</code>;, r does not equal <code>get_seq&lt;k&gt;(rank_map)</code>.</p></li>
-<li><p>In the exposition-only <code>struct mdspan_subspan</code>,</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span> Let <span class="math inline"><em>r</em><em>s</em></span> be <code>sub.rank()</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span> Define <code>map_rank</code> as an <code>array&lt;ptrdiff_t,src.rank()&gt;</code> such that <code>map_rank[j]</code> equals <code>-1</code> if <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>j</em></sub></span><code>,ptrdiff_t&gt;</code> is <code>true</code>, or else <code>map_rank[j]</code> equals the number of <span class="math inline"><em>S</em><sub><em>k</em></sub></span> with <span class="math inline"><em>k</em> &lt; <em>j</em></span> such that <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>,pair&lt;ptrdiff_t,ptrdiff_t&gt;&gt; || is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>,all_type&gt;</code> is <code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span> Let <code>first</code> and <code>last</code> be exposition-only <code>array&lt;ptrdiff_t,src.rank()&gt;</code>. For <span class="math inline"><em>r</em></span> in the range <span class="math inline">[0,</span> <code>src.rank()</code><span class="math inline">)</span>, define the values of <code>first[r]</code> and <code>last[r]</code> as follows:</p>
 <ul>
-<li>The <code>extents_t</code> type alias is a specialization of <code>extents</code> <b>[mdspan.extents]</b>, and is determined by the description of the semantics of <code>subspan</code> given below;</li>
-<li>The <code>layout_t</code> type alias meets the requirements of a layout mapping policy <b>[mdspan.layout.reqs]</b> and is implementation defined; and</li>
-<li>The <code>type</code> type alias specifies the type returned by <code>subspan</code>.</li>
-</ul></li>
-</ol>
-<p><em>[Note:* High-quality implementations will avoid <code>layout_stride</code> whenever possible, if the input layout is <code>layout_left</code> or <code>layout_right</code>. *— end note]</em></p>
-<ol start="8" type="1">
-<li><p>Let <code>first</code> and <code>last</code> be exposition-only <code>array&lt;ptrdiff_t, sizeof...(SliceSpecifier)&gt;</code>, where <code>SliceSpecifier...</code> is the same parameter pack as <code>subspan</code>’s. For <code>r</code> in the range <code>[0, sizeof...(SliceSpecifier))</code>, define the values of <code>first[r]</code> and <code>last[r]</code> as follows, where <code>src</code> and <code>slices...</code> are the arguments of <code>subspan</code>:</p>
+<li>If <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>r</em></sub></span><code>,ptrdiff_t&gt;</code>, then <code>first[r]</code> equals <span class="math inline"><em>s</em><sub><em>r</em></sub></span>, and <code>last[r]</code> equals <code>first[r]</code> + 1;</li>
+<li>Else, if <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>r</em></sub></span><code>,pair&lt;ptrdiff_t,ptrdiff_t&gt;&gt;</code>, then <code>first[r]</code> equals <code>p.first</code>, and <code>last[r]</code> equals <code>p.second</code>, where <code>p</code> is the result of converting <span class="math inline"><em>s</em><sub><em>r</em></sub></span> to <code>pair&lt;ptrdiff_t,ptrdiff_t&gt;</code>;</li>
+<li>Else, if <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>r</em></sub></span><code>,all_type&gt;</code>, then <code>first[r] = 0</code>, and <code>last[r]</code> equals <code>src.extent(r)</code>.</li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span> <em>Constraints:</em></p>
 <ul>
-<li>If <code>is_convertible_v&lt;</code><math>S<sub><code>r</code></sub></math><code>, ptrdiff_t&gt;</code>, then <code>first[r]</code> equals <math>s<sub><code>r</code></sub></math>, and <code>last[r]</code> equals <code>first[r]</code> + 1;</li>
-<li>Else, if <code>is_convertible_v&lt;</code><math>S<sub><code>r</code></sub></math><code>, pair&lt;ptrdiff_t, ptrdiff_t&gt;&gt;</code>, then <code>first[r]</code> equals <code>p.first</code>, and <code>last[r]</code> equals <code>p.second</code>, where <code>p</code> is the result of converting <math>s<sub><code>r</code></sub></math> to <code>pair&lt;ptrdiff_t, ptrdiff_t&gt;</code>;</li>
-<li>Else, if <code>is_convertible_v&lt;</code><math>S<sub><code>r</code></sub></math><code>, all_type&gt;</code>, then <code>first[r] = 0</code>, and <code>last[r]</code> equals <code>src.extent(r)</code>.</li>
-</ul></li>
-</ol>
-<ul>
-<li><em>Requires:</em>
-<ul>
-<li><code>sizeof(slices...)</code> equals <code>src.rank()</code>; and</li>
-<li>For 0 &lt;= <code>r</code> &lt; <code>sizeof...(slices)</code>, <code>0 &lt;= first[r] &amp;&amp; first[r] &lt; last[r] &amp;&amp; last[r] &lt;= src.extent(r)</code> is <code>true</code>.</li>
-</ul></li>
-<li><em>Constraints:</em>
-<ul>
+<li><code>sizeof(slices...)</code> equals <code>src.rank()</code>,</li>
 <li><code>LayoutPolicy</code> is <code>layout_left</code>, <code>layout_right</code>, <code>layout_stride</code>, or any type in a possibly empty set of implementation-defined types, each of which meets the requirements of a layout mapping policy <b>[mdspan.layout.reqs]</b> <em>[Note:* Valid and useful layout mapping policies exist, for which taking an arbitrary <code>subspan</code> does not make sense. *— end note]</em>; and</li>
-<li>For all <code>k</code> in the range <code>[0, sizeof...(slices))</code>, <code>is_convertible_v&lt;</code><math>S<sub>k</sub></math><code>, ptrdiff_t&gt; || is_convertible_v&lt;</code><math>S<sub>k</sub></math><code>, pair&lt;ptrdiff_t, ptrdiff_t&gt;&gt; || is_convertible_v&lt;</code><math>S<sub>k</sub></math><code>, all_type&gt;</code> is <code>true</code>.</li>
-</ul></li>
-<li><em>Ensures:</em> All of the following:
+<li>For all <code>k</code> in the range <code>[0, sizeof...(slices))</code>, <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>,ptrdiff_t&gt; || is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>,pair&lt;ptrdiff_t,ptrdiff_t&gt;&gt; || is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>,all_type&gt;</code> is <code>true</code>.</li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span> <em>Expects:</em></p>
 <ul>
-<li><code>sub.rank()</code> equals ρ.</li>
-<li><code>mdspan_subspan&lt;ElementType, Extents, LayoutPolicy, AccessorPolicy, SliceSpecifiers...&gt;::extents_t::rank()</code> equals ρ.</li>
-<li>Let the pack <code>i...</code> denote a multidimensional index in the domain of <code>sub</code> such that <math>i<sub><code>k</code></sub></math> &lt; <code>sub.extents(k)</code> for all <code>k</code> in the range <code>[0,</code> ρ<code>)</code>, where <math>i<sub><code>k</code></sub></math> denotes the <code>k</code>-th element of <code>i...</code>. Let the pack <code>j...</code> denote a multidimensional index in the domain of <code>src</code> where the <code>get_seq&lt;k&gt;(rank_map)</code>-th element of <code>j...</code> equals <code>first[get_seq&lt;k&gt;(rank_map)]</code> + <math>i<sub><code>k</code></sub></math> for all <code>k</code> in the range <code>[0,</code> ρ<code>)</code>, and the <code>r</code>-th element of <code>j...</code> equals <code>first[r]</code> for all <code>r</code> in the range <code>[0, src.rank())</code> such that <code>r</code> is not in <code>rank_map</code>. Then, <code>sub(i...)</code> and <code>src(j...)</code> refer to the same element.</li>
-<li>For 0 &lt;= <code>k</code> &lt; ρ, <code>sub.extent(k)</code> equals <code>last[get_seq&lt;k&gt;(rank_map)] - first[get_seq&lt;k&gt;(rank_map)]</code>.</li>
-<li>If <code>src.is_strided()</code>, then <code>sub.is_strided()</code> is <code>true</code>, and for all <code>k</code> in the range <code>[0,</code> ρ<code>)</code>, <code>sub.stride(k)</code> equals <code>src.stride(get_seq&lt;k&gt;(rank_map))</code>.</li>
-<li>For all <code>k</code> in the range <code>[0,</code> ρ<code>)</code>, let <code>rmk</code> equal <code>get_seq&lt;k&gt;(rank_map)</code>. If <code>src.static_extent(rmk)</code> does not equal <code>dynamic_extent</code> and <code>is_convertible_v&lt;</code><math>S<sub><code>rmk</code></sub></math><code>, all_type&gt;</code> is <code>true</code>, then <code>sub.static_extent(k)</code> equals <code>src.static_extent(rmk)</code>.</li>
-</ul></li>
+<li>For 0 &lt;= <code>r</code> &lt; <code>sizeof...(slices)</code>, <code>0 &lt;= first[r] &amp;&amp; first[r] &lt;= last[r] &amp;&amp; last[r] &lt;= src.extent(r)</code> is <code>true</code>.</li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span> <em>Ensures:</em> All of the following:</p>
+<ul>
+<li><code>sub.rank()</code> equals the number of <span class="math inline"><em>k</em></span> such that <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>,pair&lt;ptrdiff_t,ptrdiff_t&gt;&gt; || is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>,all_type&gt;</code> is <code>true</code>.</li>
+<li>Let the pack <code>i...</code> denote a multidimensional index in the domain of <code>sub</code> such that <span class="math inline"><em>i</em><sub><em>k</em></sub></span> &lt; <code>sub.extents(k)</code> for all <code>k</code> in the range <code>[0, rs)</code>, where <span class="math inline"><em>i</em><sub><em>k</em></sub></span> denotes the <code>k</code>-th element of <code>i...</code>. Let the pack <code>j...</code> denote a multidimensional index in the domain of <code>src</code> where the <code>map_rank[k]</code>-th element of <code>j...</code> equals <code>first[map_rank[k]]</code> + <span class="math inline"><em>i</em><sub><em>k</em></sub></span> for all <code>k</code> in the range <code>[0, rs)</code>, and the <code>r</code>-th element of <code>j...</code> equals <code>first[r]</code> for all <code>r</code> in the range <code>[0, src.rank())</code> such that <code>map_rank[r]</code> equals <code>-1</code>. Then, <code>sub(i...)</code> and <code>src(j...)</code> refer to the same element.</li>
+<li>For 0 &lt;= <code>k</code> &lt; <code>src.rank()</code>, if <code>map_rank[k] != -1</code> is <code>true</code>, then <code>sub.extent(map_rank[k])</code> equals <code>last[k] - first[k]</code>.</li>
+<li>If <code>src.is_strided()</code> is <code>true</code>, then <code>sub.is_strided()</code> is <code>true</code>, and for all <code>k</code> in the range <code>[0, src.rank())</code>, if <code>map_rank[k] != -1</code> is <code>true</code>, then <code>sub.stride(map_rank[k])</code> equals <code>src.stride(k)</code>.</li>
+<li>For all <code>k</code> in the range <code>[0, src.rank())</code>, if <code>map_rank[k] != -1</code> is <code>true</code>, then If <code>src.static_extent(k)</code> does not equal <code>dynamic_extent</code> and <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>,all_type&gt;</code> is <code>true</code>, then <code>sub.static_extent(map_rank[k])</code> equals <code>src.static_extent(k)</code>.</li>
 </ul>
 <p><br /></p>
 <p><em>[Note:</em> Example of <code>subspan</code> use:</p>
