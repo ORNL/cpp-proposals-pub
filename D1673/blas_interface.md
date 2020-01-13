@@ -1700,6 +1700,9 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 
 // [linalg.algs.blas2.trsv],
 // Solve a triangular linear system
+
+// [linalg.algs.blas2.trsv.not-in-place],
+// Solve a triangular linear system, not in place
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -1724,6 +1727,9 @@ void triangular_matrix_vector_solve(
   DiagonalStorage d,
   in_vector_t b,
   out_vector_t x);
+
+// [linalg.algs.blas2.trsv.in-place],
+// Solve a triangular linear system, in place
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -5153,7 +5159,7 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-###### Not-in-place triangular solve
+###### Not-in-place triangular solve [linalg.algs.blas2.trsv.not-in-place]
 
 ```c++
 template<class in_matrix_t,
@@ -5209,7 +5215,7 @@ void triangular_matrix_vector_solve(
 * *Effects:* Assigns to the elements of `x` the result of solving the
   triangular linear system Ax=b.
 
-###### In-place triangular solve
+###### In-place triangular solve [linalg.algs.blas2.trsv.in-place]
 
 ```c++
 template<class in_matrix_t,
