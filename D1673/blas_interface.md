@@ -78,8 +78,10 @@
 
   * Make `scaled_scalar` and `conjugated_scalar` exposition only.
 
-  * Add in-place overloads of `triangular_matrix_matrix_*_solve`
-    and `triangular_matrix_vector_solve`.
+  * Add in-place overloads of
+    `triangular_matrix_matrix_{left,right}_solve`,
+    `triangular_matrix_{left,right}_product`, and
+    `triangular_matrix_vector_solve`.
 
   * Add `alpha` overloads to
     `{symmetric,hermitian}_matrix_rank_{1,k}_update`.
@@ -1627,6 +1629,9 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 
 // [linalg.algs.blas2.trmv],
 // Triangular matrix-vector product
+
+// [linalg.algs.blas2.trmv.ov],
+// Overwriting triangular matrix-vector product
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -1651,6 +1656,21 @@ void triangular_matrix_vector_product(
   DiagonalStorage d,
   in_vector_t x,
   out_vector_t y);
+
+// [linalg.algs.blas2.trmv.in-place],
+// In-place triangular matrix-vector product
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t y);
+
+// [linalg.algs.blas2.trmv.up],
+// Updating triangular matrix-vector product
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -4933,9 +4953,9 @@ The following requirements apply to all functions in this section.
 
   * `A.extent(0)` equals `A.extent(1)`.
 
-  * `A.extent(1)` equals `x.extent(0)`.
-
   * `A.extent(0)` equals `y.extent(0)`.
+
+  * `A.extent(1)` equals `x.extent(0)` (if applicable).
 
   * `y.extent(0)` equals `z.extent(0)` (if applicable).
 
@@ -4948,8 +4968,13 @@ The following requirements apply to all functions in this section.
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, `y.rank()` equals 1, and
-    `z.rank()` equals 1.
+  * `A.rank()` equals 2.
+
+  * `y.rank()` equals 1.
+
+  * `x.rank()` equals 1 (if applicable).
+
+  * `z.rank()` equals 1 (if applicable).
 
 * *Mandates:*
 
@@ -4957,13 +4982,13 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `A.static_extent(0)` equals
     `A.static_extent(1)`.
 
-  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `x.static_extent(0)`.
-
   * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(0)` equals
     `y.static_extent(0)`.
+
+  * If neither `A.static_extent(1)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(1)` equals
+    `x.static_extent(0)` (if applicable).
 
   * If neither `y.static_extent(0)` nor `z.static_extent(0)` equals
     `dynamic_extent`, then `y.static_extent(0)` equals
@@ -4981,7 +5006,7 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-###### Overwriting triangular matrix-vector product
+###### Overwriting triangular matrix-vector product [linalg.algs.blas2.trmv]
 
 ```c++
 template<class in_matrix_t,
@@ -4995,7 +5020,6 @@ void triangular_matrix_vector_product(
   DiagonalStorage d,
   in_vector_t x,
   out_vector_t y);
-
 template<class ExecutionPolicy,
          class in_matrix_t,
          class Triangle,
@@ -5017,7 +5041,33 @@ void triangular_matrix_vector_product(
 * *Effects:* Assigns to the elements of `y` the product of the matrix
   `A` with the vector `x`.
 
-###### Updating triangular matrix-vector product
+###### In-place triangular matrix-vector product [linalg.algs.blas2.trmv.in-place]
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t y);
+```
+
+* *Requires:* `A.extent(1)` equals `y.extent(0)`.
+
+* *Constraints:* For `i,j` in the domain of `A`, the expression
+  `y(i) += A(i,j)*y(j)` is well formed.
+
+* *Mandates:* If neither `A.static_extent(1)` nor `y.static_extent(0)`
+  equals `dynamic_extent`, then `A.static_extent(1)` equals
+  `y.static_extent(0)`.
+
+* *Effects:* Overwrites `y` (on output) with the product of the matrix
+  `A` with the vector `y` (on input).
+
+###### Updating triangular matrix-vector product [linalg.algs.blas2.trmv.up]
 
 ```c++
 template<class in_matrix_t,
