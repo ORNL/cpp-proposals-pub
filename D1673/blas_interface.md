@@ -63,11 +63,10 @@
   * *Mandate* any extent compatibility checks that can be done at
     compile time.
 
-  * Add missing `triangular_matrix_product` function.
+  * Add missing functions `{symmetric,hermitian}_matrix_rank_k_update`
+    and `triangular_matrix_product`.
 
   * Remove `packed_view` function.
-
-  * (Re)add `Reference` template parameter to `conjugated_scalar`.
 
   * Fix wording for `{conjugate,transpose,conjugate_transpose}_view`,
     so that implementations may optimize the return type.
@@ -76,11 +75,11 @@
 
   * Make `scaled_scalar` and `conjugated_scalar` exposition only.
 
-  * Add in-place overloads of `triangular_matrix_matrix_solve`.
+  * Add in-place overloads of `triangular_matrix_matrix_*_solve`
+    and `triangular_matrix_vector_solve`.
 
-  * Add missing `{symmetric,hermitian}_matrix_rank_k_update`
-    functions.  Add overloads that take `alpha` to
-    `{symmetric,hermitian}_matrix_rank_1_update`.
+  * Add `alpha` overloads to
+    `{symmetric,hermitian}_matrix_rank_{1,k}_update`.
 
 ## Purpose of this paper
 
@@ -1677,8 +1676,8 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
+         class in_vector_t,
+         class out_vector_t>
 void triangular_matrix_vector_solve(
   in_matrix_t A,
   Triangle t,
@@ -1689,8 +1688,8 @@ template<class ExecutionPolicy,
          class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
+         class in_vector_t,
+         class out_vector_t>
 void triangular_matrix_vector_solve(
   ExecutionPolicy&& exec,
   in_matrix_t A,
@@ -1698,6 +1697,15 @@ void triangular_matrix_vector_solve(
   DiagonalStorage d,
   in_vector_t b,
   out_vector_t x);
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b);
 
 // [linalg.algs.blas2.rank1.geru],
 // nonconjugated rank-1 matrix update
@@ -5003,36 +5011,10 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 
 ##### Solve a triangular linear system [linalg.algs.blas2.trsv]
 
-```c++
-template<class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_vector_solve(
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_vector_t b,
-  out_vector_t x);
-
-template<class ExecutionPolicy,
-         class in_matrix_t,
-         class Triangle,
-         class DiagonalStorage,
-         class in_object_t,
-         class out_object_t>
-void triangular_matrix_vector_solve(
-  ExecutionPolicy&& exec,
-  in_matrix_t A,
-  Triangle t,
-  DiagonalStorage d,
-  in_vector_t b,
-  out_vector_t x);
-```
-
 *[Note:* These functions correspond to the BLAS functions `xTRSV` and
 `xTPSV`. --*end note]*
+
+The following requirements apply to all functions in this section.
 
 * *Requires:*
 
@@ -5040,13 +5022,11 @@ void triangular_matrix_vector_solve(
 
   * `A.extent(1)` equals `b.extent(0)`.
 
-  * `A.extent(0)` equals `x.extent(0)`.
-
 * *Constraints:*
 
   * `A.rank()` equals 2.
 
-  * `b.rank()` equals 1 and `x.rank()` equals 1.
+  * `b.rank()` equals 1.
 
   * `in_matrix_t` either has unique layout, or `layout_blas_packed`
     layout.
@@ -5054,16 +5034,6 @@ void triangular_matrix_vector_solve(
   * If `in_matrix_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
-
-  * If `r` is in the domain of `x` and `b`, then the expression
-    `x(r) = y(r)` is well formed.
-
-  * If `r` is in the domain of `x`, then the expression `x(r) -=
-    A(r,c)*x(c)` is well formed.
-
-  * If `r` is in the domain of `x` and `DiagonalStorage` is
-    `explicit_diagonal_t`, then the expression `x(r) /= A(r,r)` is
-    well formed.
 
 * *Mandates:*
 
@@ -5074,13 +5044,6 @@ void triangular_matrix_vector_solve(
   * If neither `A.static_extent(1)` nor `b.static_extent(0)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
     `b.static_extent(0)`.
-
-  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `x.static_extent(0)`.
-
-* *Effects:* Assigns to the elements of `x` the result of solving the
-  triangular linear system(s) Ax=b.
 
 * *Remarks:*
 
@@ -5093,6 +5056,107 @@ void triangular_matrix_vector_solve(
     of `A` all equal one. *[Note:* This does not imply that the
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
+
+###### Not-in-place triangular solve
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x);
+```
+
+* *Requires:*
+
+  * `A.extent(0)` equals `x.extent(0)`.
+
+* *Constraints:*
+
+  * `x.rank()` equals 1.
+
+  * If `r` is in the domain of `x` and `b`, then the expression
+    `x(r) = b(r)` is well formed.
+
+  * If `r` is in the domain of `x` and `c` is in the domain of `x`,
+    then the expression `x(r) -= A(r,c)*x(c)` is well formed.
+
+  * If `r` is in the domain of `x` and `DiagonalStorage` is
+    `explicit_diagonal_t`, then the expression `x(r) /= A(r,r)` is
+    well formed.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `x.static_extent(0)`.
+
+* *Effects:* Assigns to the elements of `x` the result of solving the
+  triangular linear system Ax=b.
+
+###### In-place triangular solve
+
+```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b);
+```
+
+*[Note:*
+
+This in-place version of the function intentionally lacks an overload
+taking an `ExecutionPolicy&&`, because it is not possible to
+parallelize in-place triangular solve for an arbitrary
+`ExecutionPolicy`.
+
+--*end note]*
+
+* *Requires:*
+
+  * `A.extent(0)` equals `b.extent(0)`.
+
+* *Constraints:*
+
+  * If `r` and `c` are in the domain of `b`, then the expression
+    `b(r) -= A(r,c)*b(c)` is well formed.
+
+  * If `r` is in the domain of `b` and `DiagonalStorage` is
+    `explicit_diagonal_t`, then the expression `b(r) /= A(r,r)` is
+    well formed.
+
+* *Mandates:*
+
+  * If neither `A.static_extent(0)` nor `b.static_extent(0)` equals
+    `dynamic_extent`, then `A.static_extent(0)` equals
+    `b.static_extent(0)`.
+
+* *Effects:* Overwrites `b` with the result of solving the triangular
+  linear system Ax=b for x.
 
 ##### Rank-1 (outer product) update of a matrix [linalg.algs.blas2.rank1]
 
@@ -6885,6 +6949,7 @@ The following requirements apply to all functions in this section.
 
 ###### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
+Not-in-place multiple triangular systems left solve
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -6924,6 +6989,7 @@ void triangular_matrix_matrix_left_solve(
 * *Effects:* Assigns to the elements of `X`
   the result of solving the triangular linear system(s) AX=B for X.
 
+In-place multiple triangular systems left solve
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -6940,7 +7006,8 @@ void triangular_matrix_matrix_left_solve(
 
 This in-place version of the function intentionally lacks an overload
 taking an `ExecutionPolicy&&`, because it is not possible to
-parallelize in-place triangular solve for any `ExecutionPolicy`.
+parallelize in-place triangular solve for an arbitrary
+`ExecutionPolicy`.
 
 This algorithm makes it possible to compute factorizations like
 Cholesky and LU in place.
@@ -6967,6 +7034,7 @@ Cholesky and LU in place.
 
 ###### Solve multiple triangular linear systems with triangular matrix on the right [linalg.alg.blas3.trsm.right]
 
+Not-in-place multiple triangular systems right solve
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7006,6 +7074,7 @@ void triangular_matrix_matrix_right_solve(
 * *Effects:* Assigns to the elements of `X`
   the result of solving the triangular linear system(s) XA=B for X.
 
+In-place multiple triangular systems right solve
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
