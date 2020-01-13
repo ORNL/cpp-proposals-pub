@@ -7398,18 +7398,25 @@ symmetric matrix update and Cholesky factorization.  "Tall and skinny"
 means that the matrix has many more rows than columns.
 
 ```c++
-template<class in_matrix_t,
-         class out_matrix_1_t,
-         class out_matrix_2_t>
-int cholesky_tsqr(
-  in_matrix_t A,
-  out_matrix_1_t Q,
-  out_matrix_2_t R)
+// Compute QR factorization A = Q R, with A storing Q.
+template<class inout_matrix_t,
+         class out_matrix_t>
+int cholesky_tsqr_one_step(
+  inout_matrix_t A, // A on input, Q on output
+  out_matrix_t R)
 {
   // One might use cache size, sizeof(element_type), and A.extent(1)
   // to pick the number of rows per block.  For now, we just pick some
   // constant.
   constexpr ptrdiff_t max_num_rows_per_block = 500;
+
+  using R_element_type = typename out_matrix_t::element_type;
+  constexpr R_element_type ZERO {};
+  for(ptrdiff_t i = 0; i < R.extent(0); ++i) {
+    for(ptrdiff_t j = 0; j < R.extent(1); ++j) {
+      R(0,0) = ZERO;
+    }
+  }
 
   // Cache-blocked version of R = R + A^T * A.
   const ptrdiff_t num_rows = A.extent(0);
@@ -7430,7 +7437,41 @@ int cholesky_tsqr(
   if(info != 0) {
     return info;
   }
-  triangular_matrix_matrix_left_solve(R, upper_triangle, A, Q);
+  triangular_matrix_matrix_left_solve(R, upper_triangle, A);
   return info;
+}
+
+// Compute QR factorization A = Q R.  Use R_tmp as temporary R factor
+// storage for iterative refinement.
+template<class in_matrix_t,
+         class out_matrix_1_t,
+         class out_matrix_2_t,
+         class out_matrix_3_t>
+int cholesky_tsqr(
+  in_matrix_t A,
+  out_matrix_1_t Q,
+  out_matrix_2_t R_tmp,
+  out_matrix_3_t R)
+{
+  assert(R.extent(0) == R.extent(1));
+  assert(A.extent(1) == R.extent(0));
+  assert(R_tmp.extent(0) == R_tmp.extent(1));
+  assert(A.extent(0) == Q.extent(0));
+  assert(A.extent(1) == Q.extent(1));
+
+  linalg_copy(A, Q);
+  const int info1 = cholesky_tsqr_one_step(Q, R);
+  if(info1 != 0) {
+    return info1;
+  }
+  // Use one step of iterative refinement to improve accuracy.
+  const int info2 = cholesky_tsqr_one_step(Q, R_tmp);
+  if(info2 != 0) {
+    return info2;
+  }
+  // R = R_tmp * R
+  triangular_matrix_left_product(R_tmp, upper_triangle,
+                                 explicit_diagonal, R);
+  return 0;
 }
 ```
