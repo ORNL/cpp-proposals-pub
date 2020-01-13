@@ -76,6 +76,11 @@
 
   * Make `scaled_scalar` and `conjugated_scalar` exposition only.
 
+  * Add in-place overloads of `triangular_matrix_matrix_solve`.
+
+  * Add missing `symmetric_matrix_rank_k_update` and
+    `hermitian_matrix_rank_k_update` functions.
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -783,9 +788,11 @@ Summary:
 4. We decide separately, based on the category of BLAS function, how
    to translate `INTENT(INOUT)` arguments into a C++ idiom:
 
-   a. For in-place triangular solve or triangular multiply, we
-      translate the function to take separate input and output
-      arguments that shall not alias each other.
+   a. For triangular solve or triangular multiply, we add overloads
+      that take non-aliasing input and output arguments.  Overloads of
+      these functions that retain "in-place" behavior do not take
+      `ExecutionPolicy&&`, since they cannot be parallelized for
+      arbitrary execution policies.
 
    b. Else, if the BLAS function unconditionally updates (like
       `xGER`), we retain read-and-write behavior for that argument.
