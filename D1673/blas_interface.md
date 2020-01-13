@@ -7359,7 +7359,7 @@ example in-place in the matrix `A`.  The example assumes that
 `cholesky_factor(A, t)` returned 0, indicating no zero or NaN pivots.
 
 ```c++
-template<class inout_matrix_t,
+template<class in_matrix_t,
          class Triangle,
          class in_vector_t,
          class out_vector_t>
@@ -7387,5 +7387,50 @@ void cholesky_solve(
     triangular_matrix_vector_solve(transpose_view(A), t,
                                    explicit_diagonal, x);
   }
+}
+```
+
+### Compute QR factorization of a tall skinny matrix
+
+This example shows how to compute the QR factorization of a "tall and
+skinny" matrix `V`, using a cache-blocked algorithm based on rank-k
+symmetric matrix update and Cholesky factorization.  "Tall and skinny"
+means that the matrix has many more rows than columns.
+
+```c++
+template<class in_matrix_t,
+         class out_matrix_1_t,
+         class out_matrix_2_t>
+int cholesky_tsqr(
+  in_matrix_t A,
+  out_matrix_1_t Q,
+  out_matrix_2_t R)
+{
+  // One might use cache size, sizeof(element_type), and A.extent(1)
+  // to pick the number of rows per block.  For now, we just pick some
+  // constant.
+  constexpr ptrdiff_t max_num_rows_per_block = 500;
+
+  // Cache-blocked version of R = R + A^T * A.
+  const ptrdiff_t num_rows = A.extent(0);
+  ptrdiff_t rest_num_rows = num_rows;
+  auto A_rest = A;
+  while(A_rest.extent(0) > 0) {
+    const ptrdiff num_rows_per_block =
+      min(A.extent(0), max_num_rows_per_block);
+    auto A_cur = subspan(A_rest, pair{0, num_rows_per_block}, all);
+    A_rest = subspan(A_rest,
+      pair{num_rows_per_block, A_rest.extent(0)}, all);
+    // R = R + A_cur^T * A_cur
+    symmetric_matrix_rank_k_update(transpose_view(A_cur),
+                                   R, upper_triangle);
+  }
+
+  const int info = cholesky_factor(R, upper_triangle);
+  if(info != 0) {
+    return info;
+  }
+  triangular_matrix_matrix_left_solve(R, upper_triangle, A, Q);
+  return info;
 }
 ```
