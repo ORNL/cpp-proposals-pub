@@ -9,6 +9,7 @@
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
+* Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratories)
 * Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
 * Peter Caday (peter.caday@intel.com) (Intel)
 * Sarah Knepper (sarah.knepper@intel.com) (Intel)
@@ -5010,7 +5011,7 @@ The following requirements apply to all functions in this section.
     diagonal of `A`, and will assume that that the diagonal elements
     of `A` all equal one. *[Note:* This does not imply that the
     function needs to be able to form an `element_type` value equal to
-    one. --*end note]
+    one. --*end note]*
 
 ###### Overwriting triangular matrix-vector product [linalg.algs.blas2.trmv]
 
@@ -7328,7 +7329,8 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       triangular_matrix_matrix_left_solve(transpose_view(A11),
         upper_triangle, explicit_diagonal, A12);
       // A22 = A22 - A12^T * A12
-      symmetric_matrix_rank_k_update(-ONE, transpose_view(A12), A22, t);
+      symmetric_matrix_rank_k_update(-ONE, transpose_view(A12),
+                                      A22, t);
     }
     else {
       //
@@ -7406,8 +7408,8 @@ int cholesky_tsqr_one_step(
   out_matrix_t R)
 {
   // One might use cache size, sizeof(element_type), and A.extent(1)
-  // to pick the number of rows per block.  For now, we just pick some
-  // constant.
+  // to pick the number of rows per block.  For now, we just pick
+  // some constant.
   constexpr ptrdiff_t max_num_rows_per_block = 500;
 
   using R_element_type = typename out_matrix_t::element_type;
