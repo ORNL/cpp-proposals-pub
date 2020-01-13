@@ -49,16 +49,16 @@
 
 * Revision 2 (pre-Cologne) to be submitted 2020-01-13
 
-  * Added "Future work" section.
+  * Add "Future work" section.
 
-  * Removed "Options and votes" section (which were addressed in SG6,
+  * Remove "Options and votes" section (which were addressed in SG6,
     SG14, and LEWGI).
 
-  * Removed `basic_mdarray` overloads.
+  * Remove `basic_mdarray` overloads.
 
-  * Removed batched linear algebra operations.
+  * Remove batched linear algebra operations.
 
-  * Removed over- and underflow requirement for `vector_norm2`.
+  * Remove over- and underflow requirement for `vector_norm2`.
 
   * *Mandate* any extent compatibility checks that can be done at
     compile time.
@@ -69,7 +69,10 @@
   * Remove `packed_view` function.
 
   * Fix wording for `{conjugate,transpose,conjugate_transpose}_view`,
-    so that implementations may optimize the return type.
+    so that implementations may optimize the return type.  Make sure
+    that `transpose_view` of a `layout_blas_packed` matrix returns a
+    `layout_blas_packed` matrix with opposite `Triangle` and
+    `StorageOrder`.
 
   * Remove second template parameter `T` from `accessor_conjugate`.
 
@@ -80,6 +83,8 @@
 
   * Add `alpha` overloads to
     `{symmetric,hermitian}_matrix_rank_{1,k}_update`.
+
+  * Add Cholesky factorization and solve examples.
 
 ## Purpose of this paper
 
@@ -2775,6 +2780,11 @@ entry.
 Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
 (TP) matrix types.
 
+If `transpose_view`'s input has layout `layout_blas_packed`, the
+return type also has layout `layout_blas_packed`, but with opposite
+`Triangle` and `StorageOrder`.  For example, the transpose of a packed
+column-major upper triangle, is a packed row-major lower triangle.
+
 --*end note]*
 
 ```c++
@@ -2788,8 +2798,7 @@ public:
     Extents extents_; // exposition only
 
   public:
-    constexpr mapping(const Extents& e,
-      const typename Extents::index_type s);
+    constexpr mapping(const Extents& e);
 
     template<class OtherExtents>
     constexpr mapping(const mapping<OtherExtents>& e) noexcept;
@@ -3722,7 +3731,19 @@ where
 
   * `ReturnLayout` is:
 
-     * if `Layout` is `layout_transpose<NestedLayout>`
+     * if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+       then `layout_blas_packed<OppositeTriangle, OppositeStorageOrder>`,
+       where
+
+       * `OppositeTriangle` names the type
+         `conditional_t<is_same_v<Triangle, upper_triangle_t>,
+                        lower_triangle_t, upper_triangle_t>`, and
+
+       * `OppositeStorageOrder` names the type
+         `conditional_t<is_same_v<StorageOrder, column_major_t>,
+                        row_major_t, column_major_t>`;
+
+     * else, if `Layout` is `layout_transpose<NestedLayout>`
        for some `NestedLayout`, then
        either `NestedLayout` or `layout_transpose<Layout>`,
 
@@ -3730,7 +3751,12 @@ where
 
 * *Effects:*
 
-  * If `Layout` is `layout_transpose<NestedLayout>` and
+  * If `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+    then equivalent to
+    `return R(a.data(), ReturnMapping(a.mapping().extents()),
+              a.accessor());`;
+
+  * else, if `Layout` is `layout_transpose<NestedLayout>` and
     `ReturnLayout` is `NestedLayout`, then equivalent to
     `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
 
@@ -3743,10 +3769,10 @@ where
 
 *[Note:*
 
-The point of `ReturnLayout` is to give implementations freedom to
-optimize applying `layout_transpose` twice in a row.  However,
-implementations are not required to optimize arbitrary combinations of
-nested `layout_transpose` interspersed with other nested layouts.
+Implementations may optimize applying `layout_transpose` twice in a
+row.  However, implementations need not optimize arbitrary
+combinations of nested `layout_transpose` interspersed with other
+nested layouts.
 
 --*end note]*
 
