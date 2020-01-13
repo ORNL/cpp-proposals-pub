@@ -6366,9 +6366,9 @@ The following requirements apply to all overloads of
 
 * *Requires:*
 
-  * `B.extent(1)` equals `A.extent(0)`,
+  * `B.extent(1)` equals `A.extent(0)` (if applicable),
 
-  * `B.extent(0)` equals `C.extent(0)`, and
+  * `B.extent(0)` equals `C.extent(0)` (if applicable), and
 
   * `A.extent(1)` equals `C.extent(1)`.
 
@@ -6376,11 +6376,11 @@ The following requirements apply to all overloads of
 
   * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
     `dynamic_extent`, then `B.static_extent(1)` equals
-    `A.static_extent(0)`;
+    `A.static_extent(0)` (if applicable);
 
   * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
     `dynamic_extent`, then `B.static_extent(0)` equals
-    `C.static_extent(0)`; and
+    `C.static_extent(0)` (if applicable); and
 
   * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
     `dynamic_extent`, then `A.static_extent(1)` equals
@@ -6440,20 +6440,20 @@ void triangular_matrix_left_product(
 
 * *Requires:* `A.extent(1)` equals `C.extent(0)`.
 
-* *Constraints:* For `i,j` in the domain of `C`,
-  `i,k` in the domain of `A`, and
-  `k,j` in the domain of `B`,
+* *Constraints:* For `i,j` and `k,j` in the domain of `C`, and
+  `i,k` in the domain of `A`,
   the expression `C(i,j) += A(i,k)*C(k,j)` is well formed.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `C.static_extent(0)`
   equals `dynamic_extent`, then `A.static_extent(1)` equals
-  `C.static_extent(0)`;
+  `C.static_extent(0)`.
 
 * *Effects:* Overwrites `C` on output with the product of the matrices
-  `A` and `C` on input.
+  `A` and `C` (on input).
 
 ###### Overwriting triangular matrix-matrix right product [linalg.algs.blas3.trmm.ov.right]
 
+Not-in-place overwriting triangular matrix-matrix right product
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -6488,6 +6488,32 @@ void triangular_matrix_right_product(
 
 * *Effects:* Assigns to the elements of the matrix `C`
   the product of the matrices `B` and `A`.
+
+In-place overwriting triangular matrix-matrix right product
+```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+```
+
+* *Requires:* `C.extent(1)` equals `A.extent(0)`.
+
+* *Constraints:* For `i,j` and `i,k` in the domain of `C`, and
+  `k,j` in the domain of `A`,
+  the expression `C(i,j) += C(i,k)*A(k,j)` is well formed.
+
+* *Mandates:* If neither `C.static_extent(1)` nor `A.static_extent(0)`
+  equals `dynamic_extent`, then `C.static_extent(1)` equals
+  `A.static_extent(0).
+
+* *Effects:* Overwrites `C` on output with the product of the matrices
+  `C` (on input) and `A`.
 
 ###### Updating triangular matrix-matrix left product [linalg.algs.blas3.trmm.up.left]
 
