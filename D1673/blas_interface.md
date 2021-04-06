@@ -1,13 +1,12 @@
-# P1673R2: A free function linear algebra interface based on the BLAS
+# D1673R3: A free function linear algebra interface based on the BLAS
 
 ## Authors
 
-* Mark Hoemmen (mhoemme@sandia.gov) (Sandia National Laboratories)
+* Mark Hoemmen (mhoemmen@stellarscience.com) (Sandia National Laboratories)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
-* Siva Rajamanickam (srajama@sandia.gov) (Sandia National Laboratories)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratories)
 * Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
@@ -23,7 +22,7 @@
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
-## Date: 2020-01-09
+## Date: 2021-04-15
 
 ## Revision history
 
@@ -89,6 +88,16 @@
 
   * Add Cholesky factorization and solve examples.
 
+* Revision 3 (electronic) to be submitted 2021-04-15
+
+  * Add section on results of investigating constraining template parameters with concepts,
+    in the manner of P1813R0 with the numeric algorithms.
+    We concluded that we disagree with the approach of P1813R0,
+    and that the Standard's current **GENERALIZED_SUM** approach
+    better expresses numeric algorithms' behavior.
+
+  * Update references to the current revision of P0009 (`mdspan`).
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -124,7 +133,7 @@ Our proposal also has the following distinctive characteristics:
   algorithms.
 
 * It uses the multidimensional array data structures [`basic_mdspan`
-  (P0009R9)](http://wg21.link/p0009) to represent
+  (P0009R10)](http://wg21.link/p0009r10) to represent
   matrices and vectors.  In the future, it could support other
   proposals' matrix and vector data structures.
 
@@ -704,8 +713,8 @@ implementing a `get_mdspan` customization point.
 We explain the value of these choices below.
 
 Please refer to our papers "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" (P1674R0) and "Historical lessons for C++
-linear algebra library standardization"
+Library from the BLAS" [(P1674R0)](http://wg21.link/p1674r0)
+and "Historical lessons for C++ linear algebra library standardization"
 [(P1417R0)](http://wg21.link/p1417r0).  They will give details and references
 for many of the points that we summarize here.
 
@@ -713,9 +722,10 @@ for many of the points that we summarize here.
 
 Our proposal is based on the BLAS interface, and it would be natural
 for implementers to use an existing C or Fortran BLAS library.
-However, we do not require an underlying BLAS C interface.  Vendors
-should have the freedom to decide whether they want to rely on an
-existing BLAS library.  They may also want to write a "pure" C++
+However, we do not require an underlying BLAS C interface.
+Vendors should have the freedom to decide whether they want to rely on an
+existing BLAS library.  
+They may also want to write a "pure" C++
 implementation that does not depend on an external library.  They
 will, in any case, need a "generic" C++ implementation for matrix and
 vector element types other than the four that the BLAS supports.
@@ -731,16 +741,17 @@ vector element types other than the four that the BLAS supports.
   the number of arguments and avoids common errors.
 
 * `basic_mdspan` supports row-major, column-major,
-  and strided layouts out of the box, and have `Layout` as an
+  and strided layouts out of the box, and it has `Layout` as an
   extension point.  This lets our interface support layouts beyond
   what the BLAS Standard permits.
 
-* They can exploit any dimensions or strides known at compile time.
+* Using `basic_mdspan` lets our algorithms exploit
+  any dimensions or strides known at compile time.
 
-* They have built-in "slicing" capabilities via `subspan`.
+* `basic_mdspan` has built-in "slicing" capabilities via `subspan`.
 
-* Their layout and accessor policies will let us simplify our
-  interfaces even further, by encapsulating transpose, conjugate, and
+* `basic_mdspan`'s layout and accessor policies let us simplify our
+  interfaces, by encapsulating transpose, conjugate, and
   scalar arguments.  See below for details.
 
 * `basic_mdspan` is low level; it imposes no
@@ -748,33 +759,67 @@ vector element types other than the four that the BLAS supports.
   the freedom to develop mathematical libraries with the semantics
   they want.  (Some users object to calling something a "matrix" or
   "tensor" if it doesn't have the right mathematical properties.  The
-  Standard has already taken the word `vector`.)
+  C++ Standard has already taken the word `vector`.)
 
-* They offer a hook for future expansion to support heterogenous
-  memory spaces.  (This is a key feature of `Kokkos::View`, the data
-  structure that inspired `basic_mdspan`.)
+* Using `basic_mdspan` offers us a hook for future expansion
+  to support heterogeneous memory spaces.
+  (This is a key feature of `Kokkos::View`,
+  the data structure that inspired `basic_mdspan`.)
 
-* Their encapsulation of matrix indexing makes C++ implementations of
-  BLAS-like operations much less error prone and easier to read.
+* `basic_mdspan`'s encapsulation of matrix indexing
+  makes C++ implementations of BLAS-like operations
+  much less error prone and easier to read.
 
-* They make it easier to support an efficient "batched" interface.
+* Using `basic_mdspan` will make it easier for us to add
+  an efficient "batched" interface in future proposals.
 
-#### Defining a `concept` for the data structures instead
+#### Defining a concept for the data structures instead
 
 LEWGI requested in the 2019 Cologne meeting that we explore using a
 concept instead of `basic_mdspan` to define the arguments for the
-linear algebra functions.  Our investigation of this option leads us
-to believe that such a concept would largely replicate the definition
-of `basic_mdspan`.  This proposal refers to almost all of its
-features, including `extents`, `layout`, and `accessor_policy`.  We
-expect implementations to use all of them for optimizations, for
-example to extract the scaling factor from a `scaled_view` result in
-order to call an optimized BLAS library directly.  At this point it is
-not clear to us that there would be significant benefits to defining
-linear algebra functions in terms of such a concept, instead of
-defining a general customization point `get_mdspan`, allowing
-acceptance of any object type, which provides it.  After further
-discussion at the 2019 Belfast meeting, LEWGI accepted our position.
+linear algebra functions.
+We investigated this option, and rejected it, for the following reasons.
+
+1. Our proposal uses enough features of `basic_mdspan`
+   that any concept generally applicable to all functions we propose
+   would largely replicate the definition of `basic_mdspan`.
+
+2. This proposal could support most multidimensional array types,
+   if the array types just made themselves convertible to `basic_mdspan`.
+
+3. We could always generalize our algorithms later.
+
+4. Any multidimensional array concept would need revision
+   in the light of [P2128R3](http://wg21.link/p2128).
+
+This proposal refers to almost all of `basic_mdspan`'s features,
+including `extents`, `layout`, and `accessor_policy`.
+We expect implementations to use all of them for optimizations,
+for example to extract the scaling factor from a `scaled_view` result
+in order to call an optimized BLAS library directly.
+
+Suppose that a general customization point `get_mdspan` existed,
+that takes a reference to a multidimensional array type
+and returns a `basic_mdspan` that views the array.
+Then, our proposal could support most multidimensional array types.
+"Most" includes all such types that refer to a subset of a contiguous span of memory.
+
+Requiring that a multidimensional array refer to a subset of a contiguous span of memory
+would exclude multidimensional array types that have a noncontiguous backing store,
+such as a `map`.
+If we later wanted to support such types,
+we could always generalize our algorithms later.
+
+Finally, any multidimensional array concept would need revision
+in the light of [P2128R3](http://wg21.link/p2128),
+which finished LEWG review in March 2021.
+P2128 proposes letting `operator[]` take multiple parameters.
+Its authors intend to let `basic_mdspan` use `operator[]` instead of `operator()`.
+
+After further discussion at the 2019 Belfast meeting,
+LEWGI accepted our position that having our algorithms take `basic_mdspan`
+instead of template parameters constrained by a multidimensional array concept
+would be fine for now.
 
 ### Function argument aliasing and zero scalar multipliers
 
@@ -941,6 +986,156 @@ permissible to skip (see e.g., MPI 3.0, Section 2.1, p. 9).  We thus
 interpret "Advice to implementors" in the BLAS Standard as a
 nonbinding quality of implementation (QoI) recommendation.
 
+### Why no concepts for template parameters?
+
+#### We need adverbs, not adjectives
+
+LEWG's 2020 review of P1673R2 asked us to investigate conceptification of its algorithms.
+"Conceptification" here refers to an effort like that of P1813R0
+("A Concept Design for the Numeric Algorithms"),
+to come up with concepts that could be used to constrain the template parameters
+of numeric algorithms like `reduce` or `transform`.
+(We are not referring to LEWGI's request for us to consider
+generalizing our algorithm's parameters from `basic_mdspan`
+to a hypothetical multidimensional array concept.
+We discuss that above; see "Defining a concept for the data structures instead.")
+The numeric algorithms are relevant to P1673 because many of the algorithms proposed in P1673
+look like generalizations of `reduce` or `transform`.
+We intend for our algorithms to be generic on their matrix and vector element types,
+so these questions matter a lot to us.
+
+We agree that it is useful to set constraints
+that make it possible to reason about correctness of algorithms.
+However, our concern is that P1813R0 imposes requirements
+that are too strict to be useful for practical types, like associativity.
+Concepts give us _adjectives_, that describe the element types of input and output arrays.
+What we actually want are _adverbs_,
+that describe the algorithms we apply to those arrays.
+The Standard already has machinery like **GENERALIZED_SUM**
+that we can (and do) use to describe our algorithms in an adverbial way.
+
+#### Associativity is too strict
+
+P1813R0 requires associative addition for many algorithms, such as `reduce`.
+However, many practical arithmetic systems that users might like to use
+with algorithms like `reduce` have non-associative addition.  These include
+
+* systems with rounding;
+* systems with an "infinity": e.g., if 10 is Inf, 3 + 8 - 7 could be either Inf or 4; and
+* saturating arithmetic: e.g., if 10 saturates, 3 + 8 - 7 could be either 3 or 4.
+
+Note that the latter two arithmetic systems have nothing to do with rounding error.
+With saturating integer arithmetic, parenthesizing a sum in different ways might give results
+that differ by as much as the saturation threshold.
+It's true that many non-associative arithmetic systems behave
+"associatively enough" that users don't fear parallelizing sums.
+However, a concept with an exact property (like "commutative semigroup")
+isn't the right match for "close enough,"
+just like `operator==` isn't the right match for describing "nearly the same."
+For some number systems, a rounding error bound might be more appropriate,
+or guarantees on when underflow or overflow may occur (as in POSIX's `hypot`).
+
+The problem is a mismatch between the constraint we want to express --
+that "the algorithm may reparenthesize addition" --
+and the constraint that "addition is associative."
+The former is an adverb, describing what the algorithm (a verb) does.
+The latter is an adjective, describing the type (a noun) used with an algorithm.
+Given the huge variety of possible arithmetic systems,
+an approach like the Standard's use of **GENERALIZED_SUM** to describe `reduce` and its kin seems more helpful.
+If the Standard describes an algorithm in terms of **GENERALIZED_SUM**,
+then that tells the caller what the algorithm might do.
+The caller then takes responsibility for interpreting the algorithm's results.
+
+We think this is important both for adding new algorithms (like those in this proposal)
+and for defining behavior of an algorithm with respect to different `ExecutionPolicy` arguments.
+(For instance, `par_unseq` could imply that the algorithm might change the order of terms in a sum,
+while `par` need not.
+Compare to `MPI_Op_create`'s `commute` parameter,
+that affects the behavior of algorithms like `MPI_Reduce`
+when used with the resulting user-defined reduction operator.)
+
+#### Generalizing associativity does not help
+
+Suppose we accept that associativity and related properties are not useful
+for describing our proposed algorithms.
+Could there be a generalization of associativity that _would_ be useful?
+P1813R0's most general concept is a `magma`.
+Mathematically, a _magma_ is a set M with a binary operation ×,
+such that if a and b are in M, then a × b is in M.
+The operation need not be associative or commutative.
+While this seems almost too general to be useful,
+there are two reasons why even a magma is too specific for our proposal.
+
+* It only assumes one set, that is, one type.
+  This does not accurately describe what the algorithms do,
+  and it excludes useful features like mixed precision and types that use expression templates.
+* Magma is too specific, because algorithms are useful even if the binary operation is not closed.
+
+First, even for simple linear algebra operations that "only" use plus and times,
+there is no one "set $M$" over which plus and times operate.
+There are actually three operations: plus, times, and assignment.
+Each operation may have completely heterogeneous input(s) and output.
+The sets (types) that may occur vary from algorithm to algorithm,
+depending on the input type(s),
+and the algebraic expression(s) that the algorithm is allowed to use.
+We might need several different concepts to cover all the expressions that algorithms use,
+and the concepts would end up being less useful to users than the expressions themselves.
+
+For instance, consider the Level 1 BLAS "AXPY" function.
+This computes `y(i) = alpha * x(i) + y(i)` elementwise.
+What type does the expression `alpha * x(i) + y(i)` have?
+It doesn't need to have the same type as `y(i)`;
+it just needs to be assignable to `y(i)`.
+The types of `alpha`, `x(i)`, and `y(i)` could all differ.
+As a simple example, `alpha` might be `int`,
+`x(i)` might be `float`, and `y(i)` might be `double`.
+The types of `x(i)` and `y(i)` might be more complicated;
+e.g., `x(i)` might be a polynomial with `double` coefficients,
+and `y(i)` a polynomial with `float` coefficients.
+If those polynomials use expression templates,
+then the expression `x(i) + x(i)` might have a completely different type
+than `decltype(x(i))` (possibly with references removed),
+and might also have a completely different type than `alpha * x(i) + y(i)`.
+
+We could try to describe this with a concept that expresses a sum type.
+The sum type would include all the types that might show up in the expression.
+However, we do not think this would improve clarity over just the expression.
+Furthermore, different algorithms may need different expressions,
+so we would need multiple concepts, one for each expression.
+Why not just use the expressions to describe what the algorithms can do?
+
+Second, the magma concept is not helpful even if we only had one set M,
+because our algorithms would still be useful even if binary operations were not closed over that set.
+For example, consider a hypothetical user-defined rational number type,
+where plus and times throw if representing the result of the operation
+would take more than a given fixed amount of memory.
+Programmers might handle this exception by falling back to different algorithms.
+Neither plus or times on this type would satisfy the magma requirement,
+but the algorithms would still be useful for such a type.
+One could consider the magma requirement satisfied in a purely syntactic sense,
+because of the return type of plus and times.
+However, saying that would not accurately express the type's behavior.
+
+This point returns us to the concerns we expressed earlier about assuming associativity.
+"Approximately associative" or "usually associative" are not useful concepts without further refinement.
+The way to refine these concepts usefully is to describe the behavior of a type fully,
+e.g., the way that IEEE 754 describes the behavior of floating-point numbers. 
+However, algorithms rarely depend on all the properties in a specification like IEEE 754.
+The problem, again, is that we need adverbs, not adjectives.
+We want to describe what the algorithms do -- e.g., that they can rearrange terms in a sum --
+not how the types that go into the algorithms behave.
+
+#### Summary
+
+* Many useful types have nonassociative or even non-closed arithmetic.
+* Lack of (e.g.,) associativity is not just a rounding error issue.
+* It can be useful to let algorithms do things like reparenthesize sums or products,
+  even for types that are not associative.
+* Permission for an algorithm to reparenthesize sums
+  is not the same as a concept constraining the terms in the sum.
+* We can and do use existing Standard language, like **GENERALIZED_SUM**,
+  for expressing permissions that algorithms have.
+
 ## Future work
 
 Summary:
@@ -957,8 +1152,8 @@ take a concrete type `basic_mdspan` with template parameters, rather
 than any type that satisfies a concept.  We think that the template
 parameters of `basic_mdspan` fully describe the multidimensional
 equivalent of a multipass iterator, and that "conceptification" of
-multidimensional arrays would unnecessarily delay both this proposal
-and [P0009](http://wg21.link/p0009) (the `basic_mdspan` proposal).
+multidimensional arrays would unnecessarily delay both this proposal.
+and [P0009](http://wg21.link/p0009r10) (the `basic_mdspan` proposal).
 
 In a future proposal, we plan to generalize our function's template
 parameters, to permit any type besides `basic_mdspan` that implements
@@ -975,7 +1170,7 @@ for storage.  Contiguity matters because `basic_mdspan` views a subset
 of a contiguous pointer range, and we want to be able to get a
 `basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
 come with support for two different underlying containers: `array` and
-`vector`.  A `subspan` (see [P0009](http://wg21.link/p0009)) of a
+`vector`.  A `subspan` (see [P0009](http://wg21.link/p0009r10)) of a
 `basic_mdarray` will return a `basic_mdspan` with the appropriate
 layout and corresponding accessor.  Users must guard against dangling
 pointers, just as they currently must do when using `span` to view a
@@ -1030,7 +1225,7 @@ input argument for all the output arguments in the batch.
 
 ### `basic_mdspan`
 
-This proposal depends on [P0009R9](http://wg21.link/p0009r9), which is
+This proposal depends on [P0009R10](http://wg21.link/p0009r10), which is
 a proposal for adding multidimensional arrays to the C++ Standard
 Library.  `basic_mdspan` is the main class in P0009.  It is a "view"
 (in the sense of `span`) of a multidimensional array.  The rank
@@ -1060,13 +1255,13 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 
 Our proposal uses the layout mapping policy of `basic_mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009R9 have three basic properties:
+policies as described by P0009R10 have three basic properties:
 
 * Unique
 * Contiguous
 * Strided
 
-P0009R9 includes three different layouts -- `layout_left`,
+P0009R10 includes three different layouts -- `layout_left`,
 `layout_right`, and `layout_stride` -- all of which are unique and
 strided.  Only `layout_left` and `layout_right` are contiguous.
 
@@ -1096,7 +1291,7 @@ different function names.
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
-the first addition to the layouts in P0009R9 that is neither always
+the first addition to the layouts in P0009R10 that is neither always
 unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
@@ -1134,23 +1329,28 @@ pioneering efforts and history lessons.
   algebra,"](https://doi.org/10.1017/S0962492914000038), *Acta
   Numerica*, Vol. 23, May 2014, pp. 1-155.
 
-* H. C. Edwards, B. A. Lelbach, D. Sunderland, D. Hollman, C. Trott,
-  M. Bianco, B. Sander, A. Iliopoulos, J. Michopoulos, and M. Hoemmen,
+* C. Trott, D. S. Hollman, D. Lebrun-Grande, M. Hoemmen, D. Sunderland,
+  H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
+  and J. Michopoulos,
   "`mdspan`: a Non-Owning Multidimensional Array Reference,"
-  [P0009R0](http://wg21.link/p0009r9), Jan. 2019.
+  [P0009R10](http://wg21.link/p0009r10), Feb. 2020.
 
-* M. Hoemmen, D. Hollman, and C. Trott, "Evolving a Standard C++
+* M. Hoemmen, D. S. Hollman, and C. Trott, "Evolving a Standard C++
   Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
 
 * M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
   J. Michopoulos, "Historical lessons for C++ linear algebra library
   standardization," [(P1417R0)](http://wg21.link/p1417r0), Jan. 2019.
 
-* D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
+* M. Hoemmen, D. S. Hollman, C. Jabot, I. Muerte, and C. Trott,
+  "Multidimensional subscript operator,"
+  [P2128R3](http://wg21.link/p2128r3), Feb. 2021.
+
+* D. S. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
   Owning Multidimensional Array Analog of `mdspan`",
   [P1684R0](https://isocpp.org/files/papers/P1684R0.pdf), Jun. 2019.
 
-* D. Hollman, C. Kohlhoff, B. Lelbach, J. Hoberock, G. Brown, and
+* D. S. Hollman, C. Kohlhoff, B. A. Lelbach, J. Hoberock, G. Brown, and
   M. Dominiak, "A General Property Customization Mechanism,"
   [P1393R0](http://wg21.link/p1393r0), Jan. 2019.
 
@@ -1207,7 +1407,7 @@ pioneering efforts and history lessons.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R9 (this proposal is a "rebase" atop the changes proposed by P0009R9).
+> First, apply all wording from P0009R10 (this proposal is a "rebase" atop the changes proposed by P0009R10).
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -3248,7 +3448,7 @@ optimize applying `accessor_scaled` twice in a row.  However,
 implementations are not required to optimize arbitrary combinations of
 nested `accessor_scaled` interspersed with other nested accessors.
 
-The point of `ReturnElementType` is that, based on P0009R9, it may not
+The point of `ReturnElementType` is that, based on P0009R10, it may not
 be possible to deduce the const version of `Accessor` for use in
 `accessor_scaled`.  In general, it may not be correct or efficient
 to use an `Accessor` meant for a nonconst `ElementType`, with `const
@@ -3373,7 +3573,7 @@ public:
   * `Accessor` shall be *Cpp17CopyConstructible*.
 
   * `Accessor` shall meet the `basic_mdspan` accessor policy
-    requirements (see *[mdspan.accessor.reqs]* in P0009).
+    requirements (see *[mdspan.accessor.reqs]* in P0009R10).
 
 ```c++
 using reference = /* see below */;
@@ -3631,7 +3831,7 @@ public:
 * *Requires:*
 
   * `Layout` shall meet the `basic_mdspan` layout mapping policy
-    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R9.
+    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R10.
     --*end note]*
 
 * *Constraints:*
