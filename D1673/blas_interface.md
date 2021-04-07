@@ -5,6 +5,7 @@
 * Mark Hoemmen (mhoemmen@stellarscience.com) (Sandia National Laboratories)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
+* Alicia Klinvex (alicia.klinvex@unnpp.gov) (Naval Nuclear Laboratory)
 * Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
@@ -104,7 +105,7 @@ This paper proposes a C++ Standard Library dense linear algebra
 interface based on the dense Basic Linear Algebra Subroutines (BLAS).
 This corresponds to a subset of the [BLAS
 Standard](http://www.netlib.org/blas/blast-forum/blas-report.pdf).
-Our proposal implements the following classes of algorithms on
+Our proposal implements the following classes of algorithms on arrays that represent
 matrices and vectors:
 
 * Elementwise vector sums
