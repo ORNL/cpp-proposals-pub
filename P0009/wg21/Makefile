@@ -11,7 +11,7 @@ $(OUTDIR)/%.html $(OUTDIR)/%.latex $(OUTDIR)/%.pdf: %.md
        --bibliography $(DATADIR)/index.yaml \
        --csl $(DATADIR)/cpp.csl \
        --css $(DATADIR)/template/14882.css \
-       --filter pandoc-citeproc \
+       --citeproc \
        --filter $(DATADIR)/filter/wg21.py \
        --highlight-style $(DATADIR)/syntax/wg21.theme \
        --metadata datadir:$(DATADIR) \
