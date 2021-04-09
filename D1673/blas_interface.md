@@ -101,7 +101,11 @@
 
   * Introduce `std::linalg` namespace and put everything in there.
 
+  * Rename `linalg_add` to `add`.
+
   * Rename `linalg_copy` to `copy`.
+
+  * Rename `linalg_swap` to `swap_elements`.
 
 ## Purpose of this paper
 
@@ -1616,14 +1620,14 @@ void givens_rotation_apply(
 // [linalg.algs.blas1.swap], swap elements
 template<class inout_object_1_t,
          class inout_object_2_t>
-void linalg_swap(inout_object_1_t x,
-                 inout_object_2_t y);
+void swap_elements(inout_object_1_t x,
+                   inout_object_2_t y);
 template<class ExecutionPolicy,
          class inout_object_1_t,
          class inout_object_2_t>
-void linalg_swap(ExecutionPolicy&& exec,
-                 inout_object_1_t x,
-                 inout_object_2_t y);
+void swap_elements(ExecutionPolicy&& exec,
+                   inout_object_1_t x,
+                   inout_object_2_t y);
 
 // [linalg.algs.blas1.scal], multiply elements by scalar
 template<class Scalar,
@@ -1653,17 +1657,17 @@ void copy(ExecutionPolicy&& exec,
 template<class in_object_1_t,
          class in_object_2_t,
          class out_object_t>
-void linalg_add(in_object_1_t x,
-                in_object_2_t y,
-                out_object_t z);
+void add(in_object_1_t x,
+         in_object_2_t y,
+         out_object_t z);
 template<class ExecutionPolicy,
          class in_object_1_t,
          class in_object_2_t,
          class out_object_t>
-void linalg_add(ExecutionPolicy&& exec,
-                in_object_1_t x,
-                in_object_2_t y,
-                out_object_t z);
+void add(ExecutionPolicy&& exec,
+         in_object_1_t x,
+         in_object_2_t y,
+         out_object_t z);
 
 // [linalg.algs.blas1.dot],
 // dot product of two vectors
@@ -3305,7 +3309,7 @@ void z_equals_alpha_times_x_plus_y(
   mdspan<double, extents<dynamic_extent>> x,
   mdspan<double, extents<dynamic_extent>> y)
 {
-  linalg_add(scaled_view(alpha, x), y, y);
+  add(scaled_view(alpha, x), y, y);
 }
 
 // w = alpha * x + beta * y
@@ -3316,7 +3320,7 @@ void w_equals_alpha_times_x_plus_beta_times_y(
   const double beta,
   mdspan<double, extents<dynamic_extent>> y)
 {
-  linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
+  add(scaled_view(alpha, x), scaled_view(beta, y), w);
 }
 ```
 --*end example*]
@@ -4400,15 +4404,15 @@ this.
 ```c++
 template<class inout_object_1_t,
          class inout_object_2_t>
-void linalg_swap(inout_object_1_t x,
-                 inout_object_2_t y);
+void swap_elements(inout_object_1_t x,
+                   inout_object_2_t y);
 
 template<class ExecutionPolicy,
          class inout_object_1_t,
          class inout_object_2_t>
-void linalg_swap(ExecutionPolicy&& exec,
-                 inout_object_1_t x,
-                 inout_object_2_t y);
+void swap_elements(ExecutionPolicy&& exec,
+                   inout_object_1_t x,
+                   inout_object_2_t y);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xSWAP`.
@@ -4507,18 +4511,18 @@ void copy(ExecutionPolicy&& exec,
 template<class in_object_1_t,
          class in_object_2_t,
          class out_object_t>
-void linalg_add(in_object_1_t x,
-                in_object_2_t y,
-                out_object_t z);
+void add(in_object_1_t x,
+         in_object_2_t y,
+         out_object_t z);
 
 template<class ExecutionPolicy,
          class in_object_1_t,
          class in_object_2_t,
          class out_object_t>
-void linalg_add(ExecutionPolicy&& exec,
-                in_object_1_t x,
-                in_object_2_t y,
-                out_object_t z);
+void add(ExecutionPolicy&& exec,
+         in_object_1_t x,
+         in_object_2_t y,
+         out_object_t z);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xAXPY`.
