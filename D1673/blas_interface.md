@@ -133,10 +133,10 @@ Our proposal also has the following distinctive characteristics:
 * The interface is designed in the spirit of the C++ Standard Library's
   algorithms.
 
-* It uses the multidimensional array data structures [`basic_mdspan`
-  (P0009R10)](http://wg21.link/p0009r10) to represent
-  matrices and vectors.  In the future, it could support other
-  proposals' matrix and vector data structures.
+* It uses `basic_mdspan` [(P0009R10)](http://wg21.link/p0009r10),
+  a multidimensional array view, to represent matrices and vectors.
+  In the future,
+  it could support other proposals' matrix and vector data structures.
 
 * The interface permits optimizations for matrices and vectors with
   small compile-time dimensions; the standard BLAS interface does not.
@@ -1476,7 +1476,7 @@ pioneering efforts and history lessons.
 ### Header `<linalg>` synopsis [linalg.syn]
 
 ```c++
-namespace std {
+namespace std::linalg {
 // [linalg.tags.order], storage order tags
 struct column_major_t;
 inline constexpr column_major_t column_major;
@@ -2743,6 +2743,8 @@ void triangular_matrix_matrix_right_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+
+}
 ```
 
 ### Tag classes [linalg.tags]
