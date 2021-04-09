@@ -91,7 +91,8 @@
 
 * Revision 3 (electronic) to be submitted 2021-04-15
 
-  * Add section on results of investigating constraining template parameters with concepts,
+  * Per LEWG request, add a section on our investigation
+    of constraining template parameters with concepts,
     in the manner of P1813R0 with the numeric algorithms.
     We concluded that we disagree with the approach of P1813R0,
     and that the Standard's current **GENERALIZED_SUM** approach
@@ -99,13 +100,19 @@
 
   * Update references to the current revision of P0009 (`mdspan`).
 
-  * Introduce `std::linalg` namespace and put everything in there.
+  * Per LEWG request, introduce `std::linalg` namespace and put everything in there.
 
-  * Rename `linalg_add` to `add`.
+  * Per LEWG request, replace the `linalg_` prefix with the aforementioned namespace.
+    We renamed `linalg_add` to `add`,
+    `linalg_copy` to `copy`, and
+    `linalg_swap` to `swap_elements`.
 
-  * Rename `linalg_copy` to `copy`.
-
-  * Rename `linalg_swap` to `swap_elements`.
+  * Per LEWG request, do not use `_view` as a suffix,
+    to avoid confusion with "views" in the sense of Ranges.
+    We renamed `conjugate_view` to `conjugated`,
+    `conjugate_transpose_view` to `conjugate_transposed`,
+    `scaled_view` to `scaled`, and
+    `transpose_view` to `transposed`.
 
 ## Purpose of this paper
 
@@ -733,7 +740,7 @@ types before actual work and storage happen.  [Eigen's
 documentation](https://eigen.tuxfamily.org/dox/TopicPitfalls.html)
 describes this common problem.
 
-Our `scaled_view`, `conjugate_view`, and `transpose_view` functions
+Our `scaled`, `conjugated`, `transposed`, and `conjugate_transposed` functions
 make use of one aspect of expression templates, namely modifying the
 `basic_mdspan` array access operator.  However, we intend these
 functions for use only as in-place modifications of arguments of a
@@ -865,7 +872,7 @@ We investigated this option, and rejected it, for the following reasons.
 This proposal refers to almost all of `basic_mdspan`'s features,
 including `extents`, `layout`, and `accessor_policy`.
 We expect implementations to use all of them for optimizations,
-for example to extract the scaling factor from a `scaled_view` result
+for example to extract the scaling factor from the return value of `scaled`
 in order to call an optimized BLAS library directly.
 
 Suppose that a general customization point `get_mdspan` existed,
@@ -1517,14 +1524,14 @@ template<class ScalingFactor,
          class Accessor>
 class accessor_scaled;
 
-// [linalg.scaled.scaled_view], scaled in-place transformation
+// [linalg.scaled.scaled], scaled in-place transformation
 template<class ScalingFactor,
          class ElementType,
          class Extents,
          class Layout,
          class Accessor>
 /* see-below */
-scaled_view(
+scaled(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
 
@@ -1532,26 +1539,26 @@ scaled_view(
 template<class Accessor>
 class accessor_conjugate;
 
-// [linalg.conj.conjugate_view], conjugated in-place transformation
+// [linalg.conj.conjugated], conjugated in-place transformation
 template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
 /* see-below */
-conjugate_view(
+conjugated(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.transp.layout_transpose], class template layout_transpose
 template<class Layout>
 class layout_transpose;
 
-// [linalg.transp.transpose_view], transposed in-place transformation
+// [linalg.transp.transposed], transposed in-place transformation
 template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
 /* see-below */
-transpose_view(
+transposed(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.conj_transp],
@@ -1561,7 +1568,7 @@ template<class ElementType,
          class Layout,
          class Accessor>
 /* see-below */
-conjugate_transpose_view(
+conjugate_transposed(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.algs.blas1.givens.lartg], compute Givens rotation
@@ -3099,7 +3106,7 @@ entry.
 Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
 (TP) matrix types.
 
-If `transpose_view`'s input has layout `layout_blas_packed`, the
+If `transposed`'s input has layout `layout_blas_packed`, the
 return type also has layout `layout_blas_packed`, but with opposite
 `Triangle` and `StorageOrder`.  For example, the transpose of a packed
 column-major upper triangle, is a packed row-major lower triangle.
@@ -3295,7 +3302,7 @@ constexpr bool is_strided() const noexcept;
 
 ### Scaled in-place transformation [linalg.scaled]
 
-The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
+The `scaled` function takes a value `alpha` and a `basic_mdspan`
 `x`, and returns a new read-only `basic_mdspan` with the same domain
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
@@ -3309,7 +3316,7 @@ void z_equals_alpha_times_x_plus_y(
   mdspan<double, extents<dynamic_extent>> x,
   mdspan<double, extents<dynamic_extent>> y)
 {
-  add(scaled_view(alpha, x), y, y);
+  add(scaled(alpha, x), y, y);
 }
 
 // w = alpha * x + beta * y
@@ -3320,7 +3327,7 @@ void w_equals_alpha_times_x_plus_beta_times_y(
   const double beta,
   mdspan<double, extents<dynamic_extent>> y)
 {
-  add(scaled_view(alpha, x), scaled_view(beta, y), w);
+  add(scaled(alpha, x), scaled(beta, y), w);
 }
 ```
 --*end example*]
@@ -3340,7 +3347,7 @@ run-time value(s) of the relevant BLAS function arguments (e.g.,
 The class template `accessor_scaled` is a `basic_mdspan` accessor
 policy whose reference type represents the product of a fixed value
 (the "scaling factor") and its nested `basic_mdspan` accessor's
-reference.  It is part of the implementation of `scaled_view`.
+reference.  It is part of the implementation of `scaled`.
 
 The exposition-only class template `scaled_scalar` represents a
 read-only value, which is the product of a fixed value (the "scaling
@@ -3460,9 +3467,9 @@ ScalingFactor scaling_factor() const;
 
 * *Effects:* Equivalent to `return scaling_factor_;`.
 
-#### `scaled_view` [linalg.scaled.scaled_view]
+#### `scaled` [linalg.scaled.scaled]
 
-The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
+The `scaled` function takes a value `alpha` and a `basic_mdspan`
 `x`, and returns a new read-only `basic_mdspan` with the same domain
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
@@ -3474,7 +3481,7 @@ template<class ScalingFactor,
          class Layout,
          class Accessor>
 /* see below */
-scaled_view(
+scaled(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
 ```
@@ -3504,8 +3511,7 @@ where
     `ReturnAccessor` is
     `accessor_scaled<ProductScalingFactor, NestedAccessor>`,
     then equivalent to
-    `return R(a.data(), a.mapping(),
-       ReturnAccessor(product_s, a.accessor().nested_accessor()));`,
+    `return R(a.data(), a.mapping(), ReturnAccessor(product_s, a.accessor().nested_accessor()));`,
     where `product_s` equals `s * a.accessor().scaling_factor()`;
 
   * else, equivalent to
@@ -3515,30 +3521,30 @@ where
 
 *[Note:*
 
-The point of `ReturnAccessor` is to give implementations freedom to
-optimize applying `accessor_scaled` twice in a row.  However,
-implementations are not required to optimize arbitrary combinations of
-nested `accessor_scaled` interspersed with other nested accessors.
+The point of `ReturnAccessor` is to give implementations freedom
+to optimize applying `accessor_scaled` twice in a row.
+However, implementations are not required to optimize arbitrary combinations
+of nested `accessor_scaled` interspersed with other nested accessors.
 
-The point of `ReturnElementType` is that, based on P0009R10, it may not
-be possible to deduce the const version of `Accessor` for use in
-`accessor_scaled`.  In general, it may not be correct or efficient
-to use an `Accessor` meant for a nonconst `ElementType`, with `const
-ElementType`.  This is because `Accessor::reference` may be a type
-other than `ElementType&`.  Thus, we cannot require that the return
-type have `const ElementType` as its element type, since that might
-not be compatible with the given `Accessor`.  However, in some cases,
-like `accessor_basic`, it is possible to deduce the const version of
-`Accessor`.  Regardless, users are not allowed to modify the elements
-of the returned `basic_mdspan`.
+The point of `ReturnElementType` is that, based on P0009R10,
+it may not be possible to deduce the const version of `Accessor`
+for use in `accessor_scaled`.
+In general, it may not be correct or efficient to use an `Accessor`
+meant for a nonconst `ElementType`, with `const ElementType`.
+This is because `Accessor::reference` may be a type other than `ElementType&`.
+Thus, we cannot require that the return type have `const ElementType` as its element type,
+since that might not be compatible with the given `Accessor`.
+However, in some cases, like `accessor_basic`,
+it is possible to deduce the const version of `Accessor`.
+Regardless, users are not allowed to modify the elements of the returned `basic_mdspan`.
 
 --*end note]*
 
 [*Example:*
 ```c++
-void test_scaled_view(basic_mdspan<double, extents<10>> a)
+void test_scaled(basic_mdspan<double, extents<10>> a)
 {
-  auto a_scaled = scaled_view(5.0, a);
+  auto a_scaled = scaled(5.0, a);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_scaled(i) == 5.0 * a(i));
   }
@@ -3548,7 +3554,7 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 
 ### Conjugated in-place transformation [linalg.conj]
 
-The `conjugate_view` function takes a `basic_mdspan` `x`, and returns
+The `conjugated` function takes a `basic_mdspan` `x`, and returns
 a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
 elements are the complex conjugates of the corresponding elements of
 `x`.  If the element type of `x` is not `complex<R>` for some `R`,
@@ -3697,7 +3703,7 @@ Accessor nested_accessor() const;
 
 * *Effects:* Equivalent to `return acc;`.
 
-#### `conjugate_view` [linalg.conj.conjugate_view]
+#### `conjugated` [linalg.conj.conjugated]
 
 ```c++
 template<class ElementType,
@@ -3705,7 +3711,7 @@ template<class ElementType,
          class Layout,
          class Accessor>
 /* see-below */
-conjugate_view(
+conjugated(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
@@ -3753,27 +3759,27 @@ nested `accessor_conjugate` interspersed with other nested accessors.
 
 [*Example:*
 ```c++
-void test_conjugate_view_complex(
+void test_conjugated_complex(
   basic_mdspan<complex<double>, extents<10>> a)
 {
-  auto a_conj = conjugate_view(a);
+  auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj(i) == conj(a(i));
   }
-  auto a_conj_conj = conjugate_view(a_conj);
+  auto a_conj_conj = conjugated(a_conj);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj_conj(i) == a(i));
   }
 }
 
-void test_conjugate_view_real(
+void test_conjugated_real(
   basic_mdspan<double, extents<10>> a)
 {
-  auto a_conj = conjugate_view(a);
+  auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj(i) == a(i));
   }
-  auto a_conj_conj = conjugate_view(a_conj);
+  auto a_conj_conj = conjugated(a_conj);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj_conj(i) == a(i));
   }
@@ -3787,7 +3793,7 @@ void test_conjugate_view_real(
 swaps the rightmost two indices, extents, and strides (if applicable)
 of any unique `basic_mdspan` layout mapping policy.
 
-The `transpose_view` function takes a rank-2 `basic_mdspan`
+The `transposed` function takes a rank-2 `basic_mdspan`
 representing a matrix, and returns a new read-only `basic_mdspan`
 representing the transpose of the input matrix.
 
@@ -4018,9 +4024,9 @@ stride(typename Extents::index_type r) const
 * *Effects:* Equivalent to `return nested_mapping_.stride(s);',
   where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
-#### `transpose_view` [linalg.transp.transpose_view]
+#### `transposed` [linalg.transp.transposed]
 
-The `transpose_view` function takes a rank-2 `basic_mdspan`
+The `transposed` function takes a rank-2 `basic_mdspan`
 representing a matrix, and returns a new read-only `basic_mdspan`
 representing the transpose of the input matrix.  The input matrix's
 data are not modified, and the returned `basic_mdspan` accesses the
@@ -4036,7 +4042,7 @@ template<class ElementType,
          class Layout,
          class Accessor>
 /* see-below */
-transpose_view(
+transposed(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
@@ -4097,12 +4103,12 @@ nested layouts.
 
 [*Example:*
 ```c++
-void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
+void test_transposed(basic_mdspan<double, extents<3, 4>> a)
 {
   const ptrdiff_t num_rows = a.extent(0);
   const ptrdiff_t num_cols = a.extent(1);
 
-  auto a_t = transpose_view(a);
+  auto a_t = transposed(a);
   assert(num_rows == a_t.extent(1));
   assert(num_cols == a_t.extent(0));
   assert(a.stride(0) == a_t.stride(1));
@@ -4114,7 +4120,7 @@ void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
     }
   }
 
-  auto a_t_t = transpose_view(a_t);
+  auto a_t_t = transposed(a_t);
   assert(num_rows == a_t_t.extent(0));
   assert(num_cols == a_t_t.extent(1));
   assert(a.stride(0) == a_t_t.stride(0));
@@ -4131,9 +4137,9 @@ void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
 
 ### Conjugate transpose transform [linalg.conj_transp]
 
-The `conjugate_transpose_view` function returns a conjugate transpose
-view of an object.  This combines the effects of `transpose_view` and
-`conjugate_view`.
+The `conjugate_transposed` function returns a conjugate transpose
+view of an object.  This combines the effects of `transposed` and
+`conjugated`.
 
 ```c++
 template<class ElementType,
@@ -4141,23 +4147,24 @@ template<class ElementType,
          class Layout,
          class Accessor>
 /* see-below */
-conjugate_transpose_view(
+conjugate_transposed(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
-  `return conjugate_view(transpose_view(a));`.
+  `return conjugated(transposed(a));`.
 
 * *Remarks:* The elements of the returned `basic_mdspan` are read only.
 
 [*Example:*
 ```c++
-void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
+void test_conjugate_transposed(
+  basic_mdspan<complex<double>, extents<3, 4>> a)
 {
   const ptrdiff_t num_rows = a.extent(0);
   const ptrdiff_t num_cols = a.extent(1);
 
-  auto a_ct = conjugate_transpose_view(a);
+  auto a_ct = conjugate_transposed(a);
   assert(num_rows == a_ct.extent(1));
   assert(num_cols == a_ct.extent(0));
   assert(a.stride(0) == a_ct.stride(1));
@@ -4169,7 +4176,7 @@ void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
     }
   }
 
-  auto a_ct_ct = conjugate_transpose_view(a_ct);
+  auto a_ct_ct = conjugate_transposed(a_ct);
   assert(num_rows == a_ct_ct.extent(0));
   assert(num_cols == a_ct_ct.extent(1));
   assert(a.stride(0) == a_ct_ct.stride(0));
@@ -4620,7 +4627,7 @@ result deterministic.  They may do so for all `dot` overloads, or just
 for specific `ExecutionPolicy` types. --*end note]*
 
 *[Note:* Users can get `xDOTC` behavior by giving the second argument
-as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
+as the result of `conjugated`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
 Nonconjugated dot product with default result type
@@ -4674,9 +4681,9 @@ T dotc(ExecutionPolicy&& exec,
 ```
 
 * *Effects:* The three-argument overload is equivalent to
-  `dot(v1, conjugate_view(v2), init);`.
+  `dot(v1, conjugated(v2), init);`.
   The four-argument overload is equivalent to
-  `dot(exec, v1, conjugate_view(v2), init);`.
+  `dot(exec, v1, conjugated(v2), init);`.
 
 Conjugated dot product with default result type
 
@@ -4918,20 +4925,22 @@ constexpr ptrdiff_t num_rows = 5;
 constexpr ptrdiff_t num_cols = 6;
 
 // y = 3.0 * A * x
-void scaled_matvec_1(mdspan<double, extents<num_rows, num_cols>> A,
+void scaled_matvec_1(
+  mdspan<double, extents<num_rows, num_cols>> A,
   mdspan<double, extents<num_cols>> x,
   mdspan<double, extents<num_rows>> y)
 {
-  matrix_vector_product(scaled_view(3.0, A), x, y);
+  matrix_vector_product(scaled(3.0, A), x, y);
 }
 
 // y = 3.0 * A * x + 2.0 * y
-void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
+void scaled_matvec_2(
+  mdspan<double, extents<num_rows, num_cols>> A,
   mdspan<double, extents<num_cols>> x,
   mdspan<double, extents<num_rows>> y)
 {
-  matrix_vector_product(scaled_view(3.0, A), x,
-                        scaled_view(2.0, y), y);
+  matrix_vector_product(scaled(3.0, A), x,
+                        scaled(2.0, y), y);
 }
 
 // z = 7.0 times the transpose of A, times y
@@ -4939,7 +4948,7 @@ void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
   mdspan<double, extents<num_rows>> y,
   mdspan<double, extents<num_cols>> z)
 {
-  matrix_vector_product(scaled_view(7.0, transpose_view(A)), y, z);
+  matrix_vector_product(scaled(7.0, transposed(A)), y, z);
 }
 ```
 --*end example*]
@@ -5588,7 +5597,7 @@ note]*
   outer product of `x` and `y`.
 
 *[Note:* Users can get `xGERC` behavior by giving the second argument
-as a `conjugate_view`.  Alternately, they can use the shortcut
+as the result of `conjugated`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
 
 ###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.gerc]
@@ -5618,7 +5627,7 @@ real element types) and `xGERC` (for complex element types). --*end
 note]*
 
 * *Effects:* Equivalent to
-  `matrix_rank_1_update(x, conjugate_view(y), A);`.
+  `matrix_rank_1_update(x, conjugated(y), A);`.
 
 ###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.syr]
 
@@ -6929,8 +6938,8 @@ void triangular_matrix_right_product(
 ##### Rank-k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank-k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
-BLAS functions, by applying `transpose_view` or
-`conjugate_transpose_view` to the input matrix. --*end note]*
+BLAS functions, by applying `transposed` or `conjugate_transposed`
+to the input matrix. --*end note]*
 
 ###### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.syrk]
 
@@ -7142,8 +7151,8 @@ otherwise.
 ##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
-BLAS functions, by applying `transpose_view` or
-`conjugate_transpose_view` to the input matrices. --*end note]*
+BLAS functions, by applying `transposed` or `conjugate_transposed`
+to the input matrices. --*end note]*
 
 ###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.syr2k]
 
@@ -7596,15 +7605,15 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     }
 
     using std::linalg::symmetric_matrix_rank_k_update;
-    using std::linalg::transpose_view;
+    using std::linalg::transposed;
     if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
       // Update and scale A12
       auto A12 = subspan(A, pair{0, n1}, pair{n1, n});
       using std::linalg::triangular_matrix_matrix_left_solve;
-      triangular_matrix_matrix_left_solve(transpose_view(A11),
+      triangular_matrix_matrix_left_solve(transposed(A11),
         upper_triangle, explicit_diagonal, A12);
       // A22 = A22 - A12^T * A12
-      symmetric_matrix_rank_k_update(-ONE, transpose_view(A12),
+      symmetric_matrix_rank_k_update(-ONE, transposed(A12),
                                       A22, t);
     }
     else {
@@ -7614,7 +7623,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       // Update and scale A21
       auto A21 = subspan(A, pair{n1, n}, pair{0, n1});
       using std::linalg::triangular_matrix_matrix_right_solve;
-      triangular_matrix_matrix_right_solve(transpose_view(A11),
+      triangular_matrix_matrix_right_solve(transposed(A11),
         lower_triangle, explicit_diagonal, A21);
       // A22 = A22 - A21 * A21^T
       symmetric_matrix_rank_k_update(-ONE, A21, A22, t);
@@ -7647,14 +7656,14 @@ void cholesky_solve(
   in_vector_t b,
   out_vector_t x)
 {
-  using std::linalg::transpose_view;
+  using std::linalg::transposed;
   using std::linalg::triangular_matrix_vector_solve;
 
   if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
     // Solve Ax=b where A = U^T U
     //
     // Solve U^T c = b, using x to store c.
-    triangular_matrix_vector_solve(transpose_view(A), t,
+    triangular_matrix_vector_solve(transposed(A), t,
                                    explicit_diagonal, b, x);
     // Solve U x = c, overwriting x with result.
     triangular_matrix_vector_solve(A, t, explicit_diagonal, x);
@@ -7665,7 +7674,7 @@ void cholesky_solve(
     // Solve L c = b, using x to store c.
     triangular_matrix_vector_solve(A, t, explicit_diagonal, b, x);
     // Solve L^T x = c, overwriting x with result.
-    triangular_matrix_vector_solve(transpose_view(A), t,
+    triangular_matrix_vector_solve(transposed(A), t,
                                    explicit_diagonal, x);
   }
 }
@@ -7711,7 +7720,7 @@ int cholesky_tsqr_one_step(
       pair{num_rows_per_block, A_rest.extent(0)}, all);
     // R = R + A_cur^T * A_cur
     using std::linalg::symmetric_matrix_rank_k_update;
-    symmetric_matrix_rank_k_update(transpose_view(A_cur),
+    symmetric_matrix_rank_k_update(transposed(A_cur),
                                    R, upper_triangle);
   }
 
