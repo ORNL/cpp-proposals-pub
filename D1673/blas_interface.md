@@ -2,7 +2,7 @@
 
 ## Authors
 
-* Mark Hoemmen (mhoemmen@stellarscience.com) (Sandia National Laboratories)
+* Mark Hoemmen (mhoemmen@stellarscience.com) (Stellar Science)
 * David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Alicia Klinvex (alicia.klinvex@unnpp.gov) (Naval Nuclear Laboratory)
@@ -175,6 +175,8 @@ separates algorithms from data structures -- more naturally allows for
 a richer set of operations such as what the BLAS provides.  A natural
 extension of the present proposal would include accepting P1385's
 matrix and vector objects as input for the algorithms proposed here.
+A straightforward way to do that would be for P1385's matrix and vector objects
+to make views of their data available as `basic_mdspan`.
 
 ## Why include dense linear algebra in the C++ Standard Library?
 
@@ -343,6 +345,65 @@ results, not just crashing).  Historical examples of vendors' C BLAS
 implementations have also had ABI issues that required work-arounds.
 This dependence on ABI details makes availability in a standard C++
 library valuable.
+
+## Criteria for including algorithms
+
+We include algorithms in our proposal based on the following criteria,
+ordered by decreasing importance.
+Many of our algorithms satisfy multiple criteria.
+
+1. Getting the desired asymptotic run time is nontrivial
+
+2. Opportunity for vendors to provide hardware-specific optimizations
+
+3. Opportunity for vendors to provide quality-of-implementation improvements,
+   especially relating to accuracy or reproducibility
+   with respect to floating-point rounding error
+
+4. User convenience (familiar name, or tedious to implement)
+
+Regarding (1), "nontrivial" means "at least for novices to the field."
+Dense matrix-matrix multiply is a good example.
+Getting close to the asymptotic lower bound on the number of memory reads and writes
+matters a lot for performance, and calls for a nonintuitive loop reordering.
+An analogy to the current C++ Standard Library is `sort`,
+where intuitive algorithms that many humans use are not asymptotically optimal.
+
+Regarding (2), a good example is copying multidimensional arrays.
+The [Kokkos library](github.com/kokkos/kokkos)
+spends about 2500 lines of code on multidimensional array copy,
+yet still relies on system libraries for low-level optimizations.
+An analogy to the current C++ Standard Library is `copy` or even `memcpy`.
+
+Regarding (3), accurate floating-point summation is nontrivial.
+Well-meaning compiler optimizations might defeat even simple technqiues,
+like compensated summation.
+The most obvious way to compute a vector's Euclidean norm
+(square root of sum of squares) can cause overflow or underflow,
+even when the exact answer is much smaller than the overflow threshold,
+or larger than the underflow threshold.
+Some users care deeply about sums, even parallel sums,
+that always get the same answer, despite rounding error.
+This can help debugging, for example.
+It is possible to make floating-point sums completely independent
+of parallel evaluation order.
+See e.g., the [ReproBLAS](https://bebop.cs.berkeley.edu/reproblas/) effort.
+Naming these algorithms and providing `ExecutionPolicy` customization hooks
+gives vendors a chance to provide these improvements.
+An analogy to the current C++ Standard Library is `hypot`,
+whose language in the C++ Standard alludes to the tighter POSIX requirements.
+
+Regarding (4), the C++ Standard Library is not entirely minimalist.
+One example is `std::string::contains`.
+Existing Standard Library algorithms already offered this functionality,
+but a member `contains` function is easy for novices to find and use,
+and avoids the tedium of comparing the result of `find` to `npos`.
+
+The BLAS exists mainly for the first two reasons.
+It includes functions that were nontrivial for compilers to optimize in its time,
+like scaled elementwise vector sums,
+as well as functions that generally require human effort to optimize,
+like matrix-matrix multiply.
 
 ## Notation and conventions
 
