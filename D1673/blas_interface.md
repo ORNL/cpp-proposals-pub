@@ -1636,14 +1636,14 @@ void scale(ExecutionPolicy&& exec,
 // [linalg.algs.blas1.copy], copy elements
 template<class in_object_t,
          class out_object_t>
-void linalg_copy(in_object_t x,
-                 out_object_t y);
+void copy(in_object_t x,
+          out_object_t y);
 template<class ExecutionPolicy,
          class in_object_t,
          class out_object_t>
-void linalg_copy(ExecutionPolicy&& exec,
-                 in_object_t x,
-                 out_object_t y);
+void copy(ExecutionPolicy&& exec,
+          in_object_t x,
+          out_object_t y);
 
 // [linalg.algs.blas1.add], add elementwise
 template<class in_object_1_t,
@@ -4463,15 +4463,15 @@ void scale(ExecutionPolicy&& exec,
 ```c++
 template<class in_object_t,
          class out_object_t>
-void linalg_copy(in_object_t x,
-                 out_object_t y);
+void copy(in_object_t x,
+          out_object_t y);
 
 template<class ExecutionPolicy,
          class in_object_t,
          class out_object_t>
-void linalg_copy(ExecutionPolicy&& exec,
-                 in_object_t x,
-                 out_object_t y);
+void copy(ExecutionPolicy&& exec,
+          in_object_t x,
+          out_object_t y);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xCOPY`.
@@ -7587,9 +7587,12 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       return info1;
     }
 
+    using std::linalg::symmetric_matrix_rank_k_update;
+    using std::linalg::transpose_view;
     if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
       // Update and scale A12
       auto A12 = subspan(A, pair{0, n1}, pair{n1, n});
+      using std::linalg::triangular_matrix_matrix_left_solve;
       triangular_matrix_matrix_left_solve(transpose_view(A11),
         upper_triangle, explicit_diagonal, A12);
       // A22 = A22 - A12^T * A12
@@ -7602,6 +7605,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       //
       // Update and scale A21
       auto A21 = subspan(A, pair{n1, n}, pair{0, n1});
+      using std::linalg::triangular_matrix_matrix_right_solve;
       triangular_matrix_matrix_right_solve(transpose_view(A11),
         lower_triangle, explicit_diagonal, A21);
       // A22 = A22 - A21 * A21^T
@@ -7635,6 +7639,9 @@ void cholesky_solve(
   in_vector_t b,
   out_vector_t x)
 {
+  using std::linalg::transpose_view;
+  using std::linalg::triangular_matrix_vector_solve;
+
   if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
     // Solve Ax=b where A = U^T U
     //
@@ -7695,6 +7702,7 @@ int cholesky_tsqr_one_step(
     A_rest = subspan(A_rest,
       pair{num_rows_per_block, A_rest.extent(0)}, all);
     // R = R + A_cur^T * A_cur
+    using std::linalg::symmetric_matrix_rank_k_update;
     symmetric_matrix_rank_k_update(transpose_view(A_cur),
                                    R, upper_triangle);
   }
@@ -7703,6 +7711,7 @@ int cholesky_tsqr_one_step(
   if(info != 0) {
     return info;
   }
+  using std::linalg::triangular_matrix_matrix_left_solve;
   triangular_matrix_matrix_left_solve(R, upper_triangle, A);
   return info;
 }
@@ -7725,7 +7734,7 @@ int cholesky_tsqr(
   assert(A.extent(0) == Q.extent(0));
   assert(A.extent(1) == Q.extent(1));
 
-  linalg_copy(A, Q);
+  copy(A, Q);
   const int info1 = cholesky_tsqr_one_step(Q, R);
   if(info1 != 0) {
     return info1;
@@ -7736,6 +7745,7 @@ int cholesky_tsqr(
     return info2;
   }
   // R = R_tmp * R
+  using std::linalg::triangular_matrix_left_product;
   triangular_matrix_left_product(R_tmp, upper_triangle,
                                  explicit_diagonal, R);
   return 0;
