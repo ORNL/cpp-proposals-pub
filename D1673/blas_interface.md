@@ -99,6 +99,10 @@
 
   * Update references to the current revision of P0009 (`mdspan`).
 
+  * Introduce `std::linalg` namespace and put everything in there.
+
+  * Rename `linalg_copy` to `copy`.
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
