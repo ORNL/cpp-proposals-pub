@@ -114,6 +114,22 @@
     `scaled_view` to `scaled`, and
     `transpose_view` to `transposed`.
 
+  * Change wording from "then implementations will use `T`'s precision or greater
+    for intermediate terms in the sum,"
+    to "then intermediate terms in the sum use `T`'s precision or greater."
+    Thanks to Jens Maurer for this suggestion (and many others!).
+
+  * Before, a Note on `vector_norm2` said,
+    "We recommend that implementers document their guarantees regarding overflow and underflow
+    of `vector_norm2` for floating-point return types."
+    Implementations always document "implementation-defined behavior" per **[defs.impl.defined]**.
+    (Thanks to Jens Maurer for pointing out that "We recommend..." does not belong in the Standard.)
+    Thus, we changed this from a Note to normative wording in Remarks:
+    "If either `in_vector_t::element_type` or `T` are
+    floating-point types or complex versions thereof,
+    then any guarantees regarding overflow and underflow of `vector_norm2`
+    are implementation-defined."
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -4616,8 +4632,7 @@ T dot(ExecutionPolicy&& exec,
 * *Remarks:* If `in_vector_t::element_type` and `T` are both
   floating-point types or complex versions thereof, and if `T` has
   higher precision than `in_vector_type::element_type`, then
-  implementations will use `T`'s precision or greater for intermediate
-  terms in the sum.
+  intermediate terms in the sum use `T`'s precision or greater.
 
 *[Note:* Like `reduce`, `dot` applies binary `operator+` in an
 unspecified order.  This may yield a nondeterministic result for
@@ -4740,15 +4755,16 @@ T vector_norm2(ExecutionPolicy&& exec,
 * *Effects:* Returns the Euclidean norm (also called 2-norm)
   of the vector `v`.
 
-* *Remarks:* If `in_vector_t::element_type` and `T` are both
-  floating-point types or complex versions thereof, and if `T` has
-  higher precision than `in_vector_type::element_type`, then
-  implementations will use `T`'s precision or greater for intermediate
-  terms in the sum.
+* *Remarks:*
 
-*[Note:* We recommend that implementers document their guarantees
-regarding overflow and underflow of `vector_norm2` for floating-point
-return types. --*end note]*
+  * If `in_vector_t::element_type` and `T` are both
+    floating-point types or complex versions thereof, and if `T` has
+    higher precision than `in_vector_type::element_type`, then
+    intermediate terms in the sum use `T`'s precision or greater.
+  * If either `in_vector_t::element_type` or `T` are
+    floating-point types or complex versions thereof,
+    then any guarantees regarding overflow and underflow of `vector_norm2`
+    are implementation-defined.
 
 ###### Euclidean norm with default result type
 
@@ -4814,8 +4830,7 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
 * *Remarks:* If `in_vector_t::element_type` and `T` are both
   floating-point types or complex versions thereof, and if `T` has
   higher precision than `in_vector_type::element_type`, then
-  implementations will use `T`'s precision or greater for intermediate
-  terms in the sum.
+  intermediate terms in the sum use `T`'s precision or greater.
 
 ###### Sum of absolute values with default result type
 
