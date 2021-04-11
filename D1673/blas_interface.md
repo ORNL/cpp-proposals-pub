@@ -1756,13 +1756,13 @@ T dotc(ExecutionPolicy&& exec,
 template<class in_vector_1_t,
          class in_vector_2_t>
 auto dotc(in_vector_1_t v1,
-          in_vector_2_t v2);
+          in_vector_2_t v2) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t>
 auto dotc(ExecutionPolicy&& exec,
           in_vector_1_t v1,
-          in_vector_2_t v2);
+          in_vector_2_t v2) -> /* see-below */;
 
 // [linalg.algs.blas1.nrm2],
 // Euclidean norm of a vector
@@ -4721,13 +4721,13 @@ Conjugated dot product with default result type
 template<class in_vector_1_t,
          class in_vector_2_t>
 auto dotc(in_vector_1_t v1,
-          in_vector_2_t v2);
+          in_vector_2_t v2) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t>
 auto dotc(ExecutionPolicy&& exec,
           in_vector_1_t v1,
-          in_vector_2_t v2);
+          in_vector_2_t v2) -> /* see-below */;
 ```
 
 * *Effects:* If `in_vector_2_t::element_type` is `complex<R>` for some
