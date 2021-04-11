@@ -1777,11 +1777,11 @@ T vector_norm2(ExecutionPolicy&& exec,
                in_vector_t v,
                T init);
 template<class in_vector_t>
-auto vector_norm2(in_vector_t v);
+auto vector_norm2(in_vector_t v) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_norm2(ExecutionPolicy&& exec,
-                  in_vector_t v);
+                  in_vector_t v) -> /* see-below */;
 
 // [linalg.algs.blas1.asum],
 // sum of absolute values of vector elements
@@ -1796,11 +1796,11 @@ T vector_abs_sum(ExecutionPolicy&& exec,
                  in_vector_t v,
                  T init);
 template<class in_vector_t>
-auto vector_abs_sum(in_vector_t v);
+auto vector_abs_sum(in_vector_t v) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_abs_sum(ExecutionPolicy&& exec,
-                    in_vector_t v);
+                    in_vector_t v) -> /* see-below */;
 
 // [linalg.algs.blas1.iamax],
 // index of maximum absolute value of vector elements
@@ -4785,11 +4785,11 @@ T vector_norm2(ExecutionPolicy&& exec,
 
 ```c++
 template<class in_vector_t>
-auto vector_norm2(in_vector_t v);
+auto vector_norm2(in_vector_t v) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_norm2(ExecutionPolicy&& exec,
-                  in_vector_t v);
+                  in_vector_t v) -> /* see-below */;
 ```
 
 * *Effects:* Let `T` be `decltype(abs(v(0)) * abs(v(0)))`.
@@ -4851,11 +4851,11 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
 
 ```c++
 template<class in_vector_t>
-auto vector_abs_sum(in_vector_t v);
+auto vector_abs_sum(in_vector_t v) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_abs_sum(ExecutionPolicy&& exec,
-                    in_vector_t v);
+                    in_vector_t v) -> /* see-below */;
 ```
 
 * *Effects:* Let `T` be `decltype(abs(v(0)))`.  Then, the
