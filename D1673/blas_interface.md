@@ -1729,13 +1729,13 @@ T dot(ExecutionPolicy&& exec,
 template<class in_vector_1_t,
          class in_vector_2_t>
 auto dot(in_vector_1_t v1,
-         in_vector_2_t v2);
+         in_vector_2_t v2) -> decltype(v1(0) * v2(0));
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t>
 auto dot(ExecutionPolicy&& exec,
          in_vector_1_t v1,
-         in_vector_2_t v2);
+         in_vector_2_t v2) -> decltype(v1(0) * v2(0));
 
 // [linalg.algs.blas1.dot.dotc],
 // conjugated dot product of two vectors
@@ -4666,13 +4666,13 @@ Nonconjugated dot product with default result type
 template<class in_vector_1_t,
          class in_vector_2_t>
 auto dot(in_vector_1_t v1,
-         in_vector_2_t v2);
+         in_vector_2_t v2) -> decltype(v1(0) * v2(0));
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t>
 auto dot(ExecutionPolicy&& exec,
          in_vector_1_t v1,
-         in_vector_2_t v2);
+         in_vector_2_t v2) -> decltype(v1(0) * v2(0));
 ```
 
 * *Effects:* Let `T` be `decltype(v1(0)*v2(0))`.  Then, the
