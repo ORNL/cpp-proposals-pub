@@ -1014,8 +1014,15 @@ closely.  The BLAS Standard does say something about overflow and
 underflow for vector 2-norms.  We reviewed this wording and conclude
 that it is either a nonbinding quality of implementation (QoI)
 recommendation, or too vaguely stated to translate directly into C++
-Standard wording.  Thus, we removed the special overflow / underflow
-wording entirely.
+Standard wording.
+Thus, we removed our special overflow / underflow wording.
+However, the BLAS Standard clearly expresses the intent
+that implementations document their underflow and overflow guarantees
+for certain functions, like vector 2-norms.
+The C++ Standard requires documentation of "implementation-defined behavior."
+Therefore, we added language to our proposal that makes
+"any guarantees regarding overflow and underflow" of those certain functions
+"implementation-defined."
 
 Previous versions of this paper asked implementations to compute
 vector 2-norms "without undue overflow or underflow at intermediate
@@ -1059,6 +1066,14 @@ The latter is a special case of computing floating-point sums exactly,
 which is costly for vectors of arbitrary length.  While it would be a
 useful feature, it is difficult enough that we do not want to require
 it, especially since the BLAS Standard itself does not.
+The Reference BLAS implementation of vector 2-norms
+[`DNRM2`](https://www.netlib.org/lapack/explore-html/da/d7f/dnrm2_8f_source.html)
+maintains the current maximum absolute value of all the vector entries seen thus far,
+and scales each vector entry by that maximum,
+in the same way as the LAPACK routine `DLASSQ`.
+Implementations could also first compute the sum of squares in a straightforward loop.
+They could then recompute if needed,
+for example by testing if the result is `Inf` or `NaN`.
 
 For all of the functions listed on p. 35 of the BLAS Standard as
 needing "particularly careful implementations," *except* vector norm,
