@@ -130,8 +130,17 @@
     then any guarantees regarding overflow and underflow of `vector_norm2`
     are implementation-defined."
 
-  * Define return types of the `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` overloads
+  * Define return types of the
+    `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` overloads
     with `auto` return type.
+
+  * Remove the explicitly stated constraint on `add` and `copy`
+    that the rank of the array arguments be no more than 2.
+    This is redundant, because we already impose this
+    via the existing constraints on template parameters named
+    `in_object*_t`, `inout_object*_t`, or `out_object*_t`.
+    If we later wish to relax this restriction,
+    then we only have to do so in one place.
 
 ## Purpose of this paper
 
@@ -4533,8 +4542,6 @@ void copy(ExecutionPolicy&& exec,
 
   * `x.rank()` equals `y.rank()`.
 
-  * `x.rank()` is no more than 2.
-
   * For all `i...` in the domain of `x` and `y`, the expression
     `y(i...) = x(i...)` is well formed.
 
@@ -4578,8 +4585,6 @@ void add(ExecutionPolicy&& exec,
 * *Constraints:*
 
   * `x.rank()`, `y.rank()`, and `z.rank()` are all equal.
-
-  * `x.rank()` is no more than 2.
 
   * For `i...` in the domain of `x`, `y`, and `z`, the expression
     `z(i...) = x(i...) + y(i...)` is well formed.
