@@ -130,6 +130,9 @@
     then any guarantees regarding overflow and underflow of `vector_norm2`
     are implementation-defined."
 
+  * Define return types of the `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` overloads
+    with `auto` return type.
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
