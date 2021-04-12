@@ -142,6 +142,13 @@
     If we later wish to relax this restriction,
     then we only have to do so in one place.
 
+  * Add `vector_sum_of_squares`.
+    First, this gives implementers a path to implementing `vector_norm2`
+    in a way that achieves the over/underflow guarantees
+    intended by the BLAS Standard.
+    Second, this is a useful algorithm in itself
+    for parallelizing vector 2-norm computation.
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -1775,6 +1782,23 @@ template<class ExecutionPolicy,
 auto dotc(ExecutionPolicy&& exec,
           in_vector_1_t v1,
           in_vector_2_t v2) -> /* see-below */;
+
+// [linalg.algs.blas1.ssq],
+// Scaled sum of squares of a vector's elements
+template<class T>
+struct sum_of_squares_result {
+  T scaling_factor;
+  T scaled_sum_of_squares;
+};
+template<class in_vector_t,
+         class T>
+sum_of_squares_result<T> vector_sum_of_squares(
+  in_vector_t v,
+  sum_of_squares_result init);
+sum_of_squares_result<T> vector_sum_of_squares(
+  ExecutionPolicy&& exec,
+  in_vector_t v,
+  sum_of_squares_result init);
 
 // [linalg.algs.blas1.nrm2],
 // Euclidean norm of a vector
@@ -4744,6 +4768,58 @@ auto dotc(ExecutionPolicy&& exec,
   equivalent to `dotc(v1, v2, T{});`, and the three-parameter overload
   is equivalent to `dotc(exec, v1, v2, T{});`.
 
+##### Scaled sum of squares of a vector's elements [linalg.algs.blas1.ssq]
+
+```c++
+template<class T>
+struct sum_of_squares_result {
+  T scaling_factor;
+  T scaled_sum_of_squares;
+};
+template<class in_vector_t,
+         class T>
+sum_of_squares_result<T> vector_sum_of_squares(
+  in_vector_t v,
+  sum_of_squares_result init);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class T>
+sum_of_squares_result<T> vector_sum_of_squares(
+  ExecutionPolicy&& exec,
+  in_vector_t v,
+  sum_of_squares_result init);
+```
+
+*[Note:* These functions correspond to the LAPACK function `xLASSQ`.
+--*end note]*
+
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
+  * `abs(x(0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i` in the domain of `v`,
+  and for `absxi`, `f`, and `ssq` of type `T`,
+  the expression `ssq = ssq + (absxi / f)*(absxi / f)` is well formed.
+
+* *Effects:* Returns two values:
+
+  * `scaling_factor`: the maximum of `init.scaling_factor`
+    and `abs(x(i))` for all `i` in the domain of `v`; and
+
+  * `scaled_sum_of_squares`: a value such that
+    `scaling_factor * scaling_factor * scaled_sum_of_squares`
+    equals the sum of squares of `abs(x(i))` plus
+    `init.scaling_factor * init.scaling_factor * init.scaled_sum_of_squares`.
+
+* *Remarks:* If `in_vector_t::element_type` is a floating-point type
+  or a complex version thereof, and if `T` is a floating-point type, then
+
+  * if `T` has higher precision than `in_vector_type::element_type`, then
+    intermediate terms in the sum use `T`'s precision or greater; and
+  * any guarantees regarding overflow and underflow of `vector_sum_of_squares`
+    are implementation-defined.
+
 ##### Euclidean norm of a vector [linalg.algs.blas1.nrm2]
 
 ###### Euclidean norm with specified result type
@@ -4788,6 +4864,10 @@ T vector_norm2(ExecutionPolicy&& exec,
     floating-point types or complex versions thereof,
     then any guarantees regarding overflow and underflow of `vector_norm2`
     are implementation-defined.
+
+*[Note:* A suggested implementation of this function
+for floating-point types `T`, is to return the `scaled_sum_of_squares` result
+from `vector_sum_of_squares(x, {0.0, 1.0})`. --*end note]*
 
 ###### Euclidean norm with default result type
 
