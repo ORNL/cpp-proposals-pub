@@ -149,7 +149,8 @@
     Second, this is a useful algorithm in itself
     for parallelizing vector 2-norm computation.
 
-  * Add `matrix_frobenius_norm` and `matrix_one_norm` (thanks to coauthor Piotr Luszczek).
+  * Add `matrix_frob_norm`, `matrix_one_norm`, and `matrix_inf_norm`
+    (thanks to coauthor Piotr Luszczek).
 
 ## Purpose of this paper
 
@@ -1849,30 +1850,30 @@ template<class ExecutionPolicy,
 ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
                       in_vector_t v);
 
-// [linalg.algs.blas1.matfnorm],
+// [linalg.algs.blas1.matfrobnorm],
 // Frobenius norm of a matrix
 template<class in_matrix_t,
          class T>
-T matrix_frobenius_norm(
+T matrix_frob_norm(
   in_matrix_t A,
   T init);
 template<class ExecutionPolicy,
          class in_matrix_t,
          class T>
-T matrix_frobenius_norm(
+T matrix_frob_norm(
   ExecutionPolicy&& exec,
   in_matrix_t A,
   T init);
 template<class in_matrix_t>
-auto matrix_frobenius_norm(
+auto matrix_frob_norm(
   in_matrix_t A) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_matrix_t>
-auto matrix_frobenius_norm(
+auto matrix_frob_norm(
   ExecutionPolicy&& exec,
   in_matrix_t A) -> /* see-below */;
 
-// [linalg.algs.blas1.mat1norm],
+// [linalg.algs.blas1.matonenorm],
 // One norm of a matrix
 template<class in_matrix_t,
          class T>
@@ -1892,6 +1893,29 @@ auto matrix_one_norm(
 template<class ExecutionPolicy,
          class in_matrix_t>
 auto matrix_one_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+
+// [linalg.algs.blas1.matinfnorm],
+// Infinity norm of a matrix
+template<class in_matrix_t,
+         class T>
+T matrix_inf_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_inf_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+template<class in_matrix_t>
+auto matrix_inf_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_inf_norm(
   ExecutionPolicy&& exec,
   in_matrix_t A) -> /* see-below */;
 
@@ -5018,20 +5042,20 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
   the first element of `v` having largest absolute value.  If `v` has
   zero elements, then returns `-1`.
 
-##### Frobenius norm of a matrix [linalg.algs.blas1.matfnorm]
+##### Frobenius norm of a matrix [linalg.algs.blas1.matfrobnorm]
 
 ###### Frobenius norm with specified result type
 
 ```c++
 template<class in_matrix_t,
          class T>
-T matrix_frobenius_norm(
+T matrix_frob_norm(
   in_matrix_t A,
   T init);
 template<class ExecutionPolicy,
          class in_matrix_t,
          class T>
-T matrix_frobenius_norm(
+T matrix_frob_norm(
   ExecutionPolicy&& exec,
   in_matrix_t A,
   T init);
@@ -5057,29 +5081,29 @@ T matrix_frobenius_norm(
 
   * if `T` has higher precision than `in_matrix_type::element_type`, then
     intermediate terms in the sum use `T`'s precision or greater; and
-  * any guarantees regarding overflow and underflow of `matrix_frobenius_norm`
+  * any guarantees regarding overflow and underflow of `matrix_frob_norm`
     are implementation-defined.
 
 ###### Frobenius norm with default result type
 
 ```c++
 template<class in_matrix_t>
-auto matrix_frobenius_norm(
+auto matrix_frob_norm(
   in_matrix_t A) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_matrix_t>
-auto matrix_frobenius_norm(
+auto matrix_frob_norm(
   ExecutionPolicy&& exec,
   in_matrix_t A) -> /* see-below */;
 ```
 
 * *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
   Then, the one-parameter overload is equivalent to
-  `matrix_frobenius_norm(A, T{});`,
+  `matrix_frob_norm(A, T{});`,
   and the two-parameter overload is equivalent to
-  `matrix_frobenius_norm(exec, A, T{});`.
+  `matrix_frob_norm(exec, A, T{});`.
 
-##### One norm of a matrix [linalg.algs.blas1.mat1norm]
+##### One norm of a matrix [linalg.algs.blas1.matonenorm]
 
 ###### One norm with specified result type
 
@@ -5101,7 +5125,7 @@ T matrix_one_norm(
 * *Requires:*
 
   * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
-  * `init + abs(A(0,0))` shall be convertible to `T`.
+  * `abs(A(0,0))` shall be convertible to `T`.
 
 * *Constraints:* For all `i,j` in the domain of `A`
   and for `val` of type `T&`,
@@ -5110,14 +5134,14 @@ T matrix_one_norm(
 * *Effects:*
 
   * If `A.extent(1)` is zero, returns `init`;
-  * Else, returns the one-norm of the matrix `A`, that is,
+  * Else, returns the one norm of the matrix `A`, that is,
     the maximum over all columns of `A`,
     of the sum of the absolute values of the elements of the column.
 
 * *Remarks:* If `in_matrix_t::element_type` is a floating-point type
   or a complex version thereof, if `T` is a floating-point type,
   and if `T` has higher precision than `in_matrix_type::element_type`,
-  then intermediate terms in the sum use `T`'s precision or greater.
+  then intermediate terms in each sum use `T`'s precision or greater.
 
 ###### One norm with default result type
 
@@ -5137,6 +5161,65 @@ auto matrix_one_norm(
   `matrix_one_norm(A, T{});`,
   and the two-parameter overload is equivalent to
   `matrix_one_norm(exec, A, T{});`.
+
+##### Infinity norm of a matrix [linalg.algs.blas1.matinfnorm]
+
+###### Infinity norm with specified result type
+
+```c++
+template<class in_matrix_t,
+         class T>
+T matrix_inf_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_inf_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+```
+
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
+  * `abs(A(0,0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i,j` in the domain of `A`
+  and for `val` of type `T&`,
+  the expression `val += abs(A(i,j))` is well formed.
+
+* *Effects:*
+
+  * If `A.extent(0)` is zero, returns `init`;
+  * Else, returns the infinity norm of the matrix `A`, that is,
+    the maximum over all rows of `A`,
+    of the sum of the absolute values of the elements of the row.
+
+* *Remarks:* If `in_matrix_t::element_type` is a floating-point type
+  or a complex version thereof, if `T` is a floating-point type,
+  and if `T` has higher precision than `in_matrix_type::element_type`,
+  then intermediate terms in each sum use `T`'s precision or greater.
+
+###### Infinity norm with default result type
+
+```c++
+template<class in_matrix_t>
+auto matrix_inf_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_inf_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+```
+
+* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+  Then, the one-parameter overload is equivalent to
+  `matrix_inf_norm(A, T{});`,
+  and the two-parameter overload is equivalent to
+  `matrix_inf_norm(exec, A, T{});`.
 
 #### BLAS 2 functions [linalg.algs.blas2]
 
