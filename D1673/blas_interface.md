@@ -149,7 +149,7 @@
     Second, this is a useful algorithm in itself
     for parallelizing vector 2-norm computation.
 
-  * Add `matrix_frobenius_norm` (thanks to coauthor Piotr Luszczek).
+  * Add `matrix_frobenius_norm` and `matrix_one_norm` (thanks to coauthor Piotr Luszczek).
 
 ## Purpose of this paper
 
@@ -1869,6 +1869,29 @@ auto matrix_frobenius_norm(
 template<class ExecutionPolicy,
          class in_matrix_t>
 auto matrix_frobenius_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+
+// [linalg.algs.blas1.mat1norm],
+// One norm of a matrix
+template<class in_matrix_t,
+         class T>
+T matrix_one_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_one_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+template<class in_matrix_t>
+auto matrix_one_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_one_norm(
   ExecutionPolicy&& exec,
   in_matrix_t A) -> /* see-below */;
 
@@ -4997,6 +5020,8 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
 
 ##### Frobenius norm of a matrix [linalg.algs.blas1.matfnorm]
 
+###### Frobenius norm with specified result type
+
 ```c++
 template<class in_matrix_t,
          class T>
@@ -5053,6 +5078,65 @@ auto matrix_frobenius_norm(
   `matrix_frobenius_norm(A, T{});`,
   and the two-parameter overload is equivalent to
   `matrix_frobenius_norm(exec, A, T{});`.
+
+##### One norm of a matrix [linalg.algs.blas1.mat1norm]
+
+###### One norm with specified result type
+
+```c++
+template<class in_matrix_t,
+         class T>
+T matrix_one_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_one_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+```
+
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
+  * `init + abs(A(0,0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i,j` in the domain of `A`
+  and for `val` of type `T&`,
+  the expression `val += abs(A(i,j))` is well formed.
+
+* *Effects:*
+
+  * If `A.extent(1)` is zero, returns `init`;
+  * Else, returns the one-norm of the matrix `A`, that is,
+    the maximum over all columns of `A`,
+    of the sum of the absolute values of the elements of the column.
+
+* *Remarks:* If `in_matrix_t::element_type` is a floating-point type
+  or a complex version thereof, if `T` is a floating-point type,
+  and if `T` has higher precision than `in_matrix_type::element_type`,
+  then intermediate terms in the sum use `T`'s precision or greater.
+
+###### One norm with default result type
+
+```c++
+template<class in_matrix_t>
+auto matrix_one_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_one_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+```
+
+* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+  Then, the one-parameter overload is equivalent to
+  `matrix_one_norm(A, T{});`,
+  and the two-parameter overload is equivalent to
+  `matrix_one_norm(exec, A, T{});`.
 
 #### BLAS 2 functions [linalg.algs.blas2]
 
