@@ -4975,10 +4975,10 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
   * Else, returns /GENERALIZED_SUM/(`plus<>()`, `init`,
     `abs(v(0))`, ..., `abs(v(N-1))`).
 
-* *Remarks:* If `in_vector_t::element_type` and `T` are both
-  floating-point types or complex versions thereof, and if `T` has
-  higher precision than `in_vector_type::element_type`, then
-  intermediate terms in the sum use `T`'s precision or greater.
+* *Remarks:* If `in_vector_t::element_type` is a floating-point type
+  or a complex version thereof, if `T` is a floating-point type,
+  and if `T` has higher precision than `in_vector_type::element_type`,
+  then intermediate terms in the sum use `T`'s precision or greater.
 
 ###### Sum of absolute values with default result type
 
