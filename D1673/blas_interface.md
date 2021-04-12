@@ -1,9 +1,9 @@
-# D1673R3: A free function linear algebra interface based on the BLAS
+# P1673R3: A free function linear algebra interface based on the BLAS
 
 ## Authors
 
 * Mark Hoemmen (mhoemmen@stellarscience.com) (Stellar Science)
-* David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
+* Daisy Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Alicia Klinvex (alicia.klinvex@unnpp.gov) (Naval Nuclear Laboratory)
 * Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
