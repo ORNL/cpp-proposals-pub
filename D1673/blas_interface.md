@@ -149,6 +149,8 @@
     Second, this is a useful algorithm in itself
     for parallelizing vector 2-norm computation.
 
+  * Add `matrix_frobenius_norm` (thanks to coauthor Piotr Luszczek).
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -1846,6 +1848,29 @@ template<class ExecutionPolicy,
          class in_vector_t>
 ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
                       in_vector_t v);
+
+// [linalg.algs.blas1.matfnorm],
+// Frobenius norm of a matrix
+template<class in_matrix_t,
+         class T>
+T matrix_frobenius_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_frobenius_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+template<class in_matrix_t>
+auto matrix_frobenius_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_frobenius_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
 
 // [linalg.algs.blas2.gemv],
 // general matrix-vector product
@@ -4969,6 +4994,65 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
 * *Effects:* Returns the index (in the domain of `v`) of
   the first element of `v` having largest absolute value.  If `v` has
   zero elements, then returns `-1`.
+
+##### Frobenius norm of a matrix [linalg.algs.blas1.matfnorm]
+
+```c++
+template<class in_matrix_t,
+         class T>
+T matrix_frobenius_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_frobenius_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+```
+
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible*.
+  * `init + abs(A(0,0))*abs(A(0,0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i,j` in the domain of `A` and for `val`
+  of type `T&`, the expressions `val += abs(A(i,j))*abs(A(i,j))` and
+  `sqrt(val)` are well formed.  *[Note:* This does not imply a
+  recommended implementation for floating-point types.  See *Remarks*
+  below. --*end note]*
+
+* *Effects:* Returns the Frobenius norm of the matrix `A`, that is,
+  the square root of the sum of squares
+  of the absolute values of the elements of `A`.
+
+* *Remarks:* If `in_matrix_t::element_type` is a floating-point type
+  or a complex version thereof, and if `T` is a floating-point type, then
+
+  * if `T` has higher precision than `in_matrix_type::element_type`, then
+    intermediate terms in the sum use `T`'s precision or greater; and
+  * any guarantees regarding overflow and underflow of `matrix_frobenius_norm`
+    are implementation-defined.
+
+###### Frobenius norm with default result type
+
+```c++
+template<class in_matrix_t>
+auto matrix_frobenius_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_frobenius_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+```
+
+* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+  Then, the one-parameter overload is equivalent to
+  `matrix_frobenius_norm(A, T{});`,
+  and the two-parameter overload is equivalent to
+  `matrix_frobenius_norm(exec, A, T{});`.
 
 #### BLAS 2 functions [linalg.algs.blas2]
 
