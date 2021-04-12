@@ -4854,15 +4854,12 @@ T vector_norm2(ExecutionPolicy&& exec,
 * *Effects:* Returns the Euclidean norm (also called 2-norm)
   of the vector `v`.
 
-* *Remarks:*
+* *Remarks:* If `in_vector_t::element_type` is a floating-point type
+  or a complex version thereof, and if `T` is a floating-point type, then
 
-  * If `in_vector_t::element_type` and `T` are both
-    floating-point types or complex versions thereof, and if `T` has
-    higher precision than `in_vector_type::element_type`, then
-    intermediate terms in the sum use `T`'s precision or greater.
-  * If either `in_vector_t::element_type` or `T` are
-    floating-point types or complex versions thereof,
-    then any guarantees regarding overflow and underflow of `vector_norm2`
+  * if `T` has higher precision than `in_vector_type::element_type`, then
+    intermediate terms in the sum use `T`'s precision or greater; and
+  * any guarantees regarding overflow and underflow of `vector_norm2`
     are implementation-defined.
 
 *[Note:* A suggested implementation of this function
