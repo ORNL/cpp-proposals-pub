@@ -152,6 +152,9 @@
   * Add `matrix_frob_norm`, `matrix_one_norm`, and `matrix_inf_norm`
     (thanks to coauthor Piotr Luszczek).
 
+  * Address LEWG request for us to investigate support for GPU memory.
+    See section "Explicit support for asynchronous return of scalar values."
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -811,6 +814,49 @@ clear to us which to optimize.  Fourth, even though linear algebra is
 a special case of tensor algebra, users of linear algebra have
 different interface expectations than users of tensor algebra.  Thus,
 it makes sense to have two separate interfaces.
+
+### Explicit support for asynchronous return of scalar values
+
+After we presented revision 2 of this paper,
+LEWG asked us to consider support for discrete graphics processing units (GPUs).
+GPUs have two features of interest here.
+First, they might have memory that is not accessible from ordinary C++ code,
+but could be accessed in a standard algorithm
+(or one of our proposed algorithms)
+with the right implementation-specific `ExecutionPolicy`.
+(For instance, a policy could say "run this algorithm on the GPU.")
+Second, they might execute those algorithms asynchronously.
+That is, they might write to output arguments at some later time
+after the algorithm invocation returns.
+This would imply different interfaces in some cases.
+For instance, a hypothetical asynchronous vector 2-norm
+might write its scalar result via a pointer to GPU memory,
+instead of returning the result "on the CPU."
+
+Nothing in principle prevents `basic_mdspan` from viewing memory
+that is inaccessible from ordinary C++ code.
+This is a major feature of the `Kokkos::View` class
+from the [Kokkos library](github.com/kokkos/kokkos),
+and `Kokkos::View` directly inspired `basic_mdspan`.
+The C++ Standard does not currently define how such memory behaves,
+but implementations could define its behavior and make it work with `basic_mdspan`.
+This would, in turn, let implementations define our algorithms
+to operate on such memory efficiently,
+if given the right implementation-specific `ExecutionPolicy`.
+
+Our proposal excludes algorithms that might write to their output arguments
+at some time after after the algorithm returns.
+First, LEWG insisted that our proposed algorithms that compute a scalar result,
+like `vector_norm2`,
+return that result in the manner of `reduce`,
+rather than writing the result to an output reference or pointer.
+(Previous revisions of our proposal used the latter interface pattern.)
+Second, it's not clear whether writing a scalar result to a pointer
+is the right interface for asynchronous algorithms.
+Follow-on proposals to [Executors (P0443R14)](wg21.link/p0443R14) include asynchronous algorithms,
+but none of these suggest returning results asynchronously by pointer.
+Our proposal deliberately imitates the existing standard algorithms.
+Right now, we have no standard asynchronous algorithms to imitate.
 
 ## Design justification
 
