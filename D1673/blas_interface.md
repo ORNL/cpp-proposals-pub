@@ -836,7 +836,7 @@ instead of returning the result "on the CPU."
 Nothing in principle prevents `basic_mdspan` from viewing memory
 that is inaccessible from ordinary C++ code.
 This is a major feature of the `Kokkos::View` class
-from the [Kokkos library](github.com/kokkos/kokkos),
+from the [Kokkos library](https://github.com/kokkos/kokkos),
 and `Kokkos::View` directly inspired `basic_mdspan`.
 The C++ Standard does not currently define how such memory behaves,
 but implementations could define its behavior and make it work with `basic_mdspan`.
@@ -853,7 +853,8 @@ rather than writing the result to an output reference or pointer.
 (Previous revisions of our proposal used the latter interface pattern.)
 Second, it's not clear whether writing a scalar result to a pointer
 is the right interface for asynchronous algorithms.
-Follow-on proposals to [Executors (P0443R14)](wg21.link/p0443R14) include asynchronous algorithms,
+Follow-on proposals to [Executors (P0443R14)](http://wg21.link/p0443R14)
+include asynchronous algorithms,
 but none of these suggest returning results asynchronously by pointer.
 Our proposal deliberately imitates the existing standard algorithms.
 Right now, we have no standard asynchronous algorithms to imitate.
