@@ -9,7 +9,7 @@
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratories)
-* Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
+* Graham Lopez (glopez@nvidia.com) (NVIDIA)
 * Peter Caday (peter.caday@intel.com) (Intel)
 * Sarah Knepper (sarah.knepper@intel.com) (Intel)
 * Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
