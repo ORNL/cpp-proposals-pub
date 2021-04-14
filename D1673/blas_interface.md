@@ -154,8 +154,10 @@
   * Address LEWG request for us to investigate support for GPU memory.
     See section "Explicit support for asynchronous return of scalar values."
 
-  * Add overloads of `triangular_matrix_vector_solve` and
-    `triangular_matrix_left_product` taking `ExecutionPolicy`.
+  * Add `ExecutionPolicy` overloads of the in-place versions of
+    `triangular_matrix_vector_solve`,
+    `triangular_matrix_left_product`, and
+    `triangular_matrix_right_product`.
 
 ## Purpose of this paper
 
@@ -2701,6 +2703,17 @@ template<class in_matrix_1_t,
          class DiagonalStorage,
          class inout_matrix_t>
 void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
@@ -7175,6 +7188,7 @@ The following requirements apply to all overloads of
 ###### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
 
 Not-in-place overwriting triangular matrix-matrix left product
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7293,6 +7307,17 @@ template<class in_matrix_1_t,
          class DiagonalStorage,
          class inout_matrix_t>
 void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
