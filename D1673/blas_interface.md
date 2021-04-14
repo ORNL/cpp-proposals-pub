@@ -156,8 +156,10 @@
 
   * Add `ExecutionPolicy` overloads of the in-place versions of
     `triangular_matrix_vector_solve`,
-    `triangular_matrix_left_product`, and
-    `triangular_matrix_right_product`.
+    `triangular_matrix_left_product`,
+    `triangular_matrix_right_product`,
+    `triangular_matrix_matrix_left_solve`, and
+    `triangular_matrix_matrix_right_solve`.
 
 ## Purpose of this paper
 
@@ -2944,6 +2946,17 @@ void triangular_matrix_matrix_left_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
 
 // [linalg.alg.blas3.trsm.right],
 // solve multiple triangular linear systems
@@ -2981,7 +2994,17 @@ void triangular_matrix_matrix_right_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
-
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
 }
 ```
 
@@ -7872,7 +7895,8 @@ The following requirements apply to all functions in this section.
 
 ###### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
-Not-in-place multiple triangular systems left solve
+Not-in-place left solve of multiple triangular systems
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7912,7 +7936,8 @@ void triangular_matrix_matrix_left_solve(
 * *Effects:* Assigns to the elements of `X`
   the result of solving the triangular linear system(s) AX=B for X.
 
-In-place multiple triangular systems left solve
+In-place left solve of multiple triangular systems
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7923,17 +7948,28 @@ void triangular_matrix_matrix_left_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
 ```
 
 *[Note:*
 
-This in-place version of the function intentionally lacks an overload
-taking an `ExecutionPolicy&&`, because it is not possible to
-parallelize in-place triangular solve for an arbitrary
-`ExecutionPolicy`.
-
 This algorithm makes it possible to compute factorizations like
 Cholesky and LU in place.
+
+Performing triangular solve in place hinders parallelization.
+However, other `ExecutionPolicy`-specific optimizations,
+such as vectorization, are still possible.
+This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
 
@@ -7957,7 +7993,8 @@ Cholesky and LU in place.
 
 ###### Solve multiple triangular linear systems with triangular matrix on the right [linalg.alg.blas3.trsm.right]
 
-Not-in-place multiple triangular systems right solve
+Not-in-place right solve of multiple triangular systems
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7997,7 +8034,8 @@ void triangular_matrix_matrix_right_solve(
 * *Effects:* Assigns to the elements of `X`
   the result of solving the triangular linear system(s) XA=B for X.
 
-In-place multiple triangular systems right solve
+In-place right solve of multiple triangular systems
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -8008,16 +8046,28 @@ void triangular_matrix_matrix_right_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
 ```
 
 *[Note:*
 
-This in-place version of the function intentionally lacks an overload
-taking an `ExecutionPolicy&&`, because it is not possible to
-parallelize in-place triangular solve for any `ExecutionPolicy`.
-
 This algorithm makes it possible to compute factorizations like
 Cholesky and LU in place.
+
+Performing triangular solve in place hinders parallelization.
+However, other `ExecutionPolicy`-specific optimizations,
+such as vectorization, are still possible.
+This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
 
