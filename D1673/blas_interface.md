@@ -154,6 +154,8 @@
   * Address LEWG request for us to investigate support for GPU memory.
     See section "Explicit support for asynchronous return of scalar values."
 
+  * Add overload of `triangular_matrix_vector_solve` taking `ExecutionPolicy`.
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -2198,6 +2200,17 @@ template<class in_matrix_t,
          class DiagonalStorage,
          class inout_vector_t>
 void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
@@ -5921,14 +5934,25 @@ void triangular_matrix_vector_solve(
   Triangle t,
   DiagonalStorage d,
   inout_vector_t b);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b);
 ```
 
 *[Note:*
 
-This in-place version of the function intentionally lacks an overload
-taking an `ExecutionPolicy&&`, because it is not possible to
-parallelize in-place triangular solve for an arbitrary
-`ExecutionPolicy`.
+Performing triangular solve in place hinders parallelization.
+However, other `ExecutionPolicy`-specific optimizations,
+such as vectorization, are still possible.
+This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
 
