@@ -154,7 +154,8 @@
   * Address LEWG request for us to investigate support for GPU memory.
     See section "Explicit support for asynchronous return of scalar values."
 
-  * Add overload of `triangular_matrix_vector_solve` taking `ExecutionPolicy`.
+  * Add overloads of `triangular_matrix_vector_solve` and
+    `triangular_matrix_left_product` taking `ExecutionPolicy`.
 
 ## Purpose of this paper
 
@@ -2653,6 +2654,17 @@ template<class in_matrix_1_t,
          class DiagonalStorage,
          class inout_matrix_t>
 void triangular_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_left_product(
+  ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
@@ -7206,6 +7218,17 @@ template<class in_matrix_1_t,
          class DiagonalStorage,
          class inout_matrix_t>
 void triangular_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_left_product(
+  ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
