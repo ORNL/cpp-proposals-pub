@@ -5,7 +5,6 @@
 * Mark Hoemmen (mhoemmen@stellarscience.com) (Stellar Science)
 * Daisy Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
-* Alicia Klinvex (alicia.klinvex@unnpp.gov) (Naval Nuclear Laboratory)
 * Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
