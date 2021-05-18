@@ -1,16 +1,15 @@
-# D1673R3: A free function linear algebra interface based on the BLAS
+# P1673R3: A free function linear algebra interface based on the BLAS
 
 ## Authors
 
-* Mark Hoemmen (mhoemmen@stellarscience.com) (Sandia National Laboratories)
-* David Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
+* Mark Hoemmen (mhoemmen@stellarscience.com) (Stellar Science)
+* Daisy Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
-* Alicia Klinvex (alicia.klinvex@unnpp.gov) (Naval Nuclear Laboratory)
 * Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratories)
-* Graham Lopez (lopezmg@ornl.gov) (Oak Ridge National Laboratories)
+* Graham Lopez (glopez@nvidia.com) (NVIDIA)
 * Peter Caday (peter.caday@intel.com) (Intel)
 * Sarah Knepper (sarah.knepper@intel.com) (Intel)
 * Piotr Luszczek (luszczek@icl.utk.edu) (University of Tennessee)
@@ -91,13 +90,76 @@
 
 * Revision 3 (electronic) to be submitted 2021-04-15
 
-  * Add section on results of investigating constraining template parameters with concepts,
+  * Per LEWG request, add a section on our investigation
+    of constraining template parameters with concepts,
     in the manner of P1813R0 with the numeric algorithms.
     We concluded that we disagree with the approach of P1813R0,
     and that the Standard's current **GENERALIZED_SUM** approach
     better expresses numeric algorithms' behavior.
 
   * Update references to the current revision of P0009 (`mdspan`).
+
+  * Per LEWG request, introduce `std::linalg` namespace and put everything in there.
+
+  * Per LEWG request, replace the `linalg_` prefix with the aforementioned namespace.
+    We renamed `linalg_add` to `add`,
+    `linalg_copy` to `copy`, and
+    `linalg_swap` to `swap_elements`.
+
+  * Per LEWG request, do not use `_view` as a suffix,
+    to avoid confusion with "views" in the sense of Ranges.
+    We renamed `conjugate_view` to `conjugated`,
+    `conjugate_transpose_view` to `conjugate_transposed`,
+    `scaled_view` to `scaled`, and
+    `transpose_view` to `transposed`.
+
+  * Change wording from "then implementations will use `T`'s precision or greater
+    for intermediate terms in the sum,"
+    to "then intermediate terms in the sum use `T`'s precision or greater."
+    Thanks to Jens Maurer for this suggestion (and many others!).
+
+  * Before, a Note on `vector_norm2` said,
+    "We recommend that implementers document their guarantees regarding overflow and underflow
+    of `vector_norm2` for floating-point return types."
+    Implementations always document "implementation-defined behavior" per **[defs.impl.defined]**.
+    (Thanks to Jens Maurer for pointing out that "We recommend..." does not belong in the Standard.)
+    Thus, we changed this from a Note to normative wording in Remarks:
+    "If either `in_vector_t::element_type` or `T` are
+    floating-point types or complex versions thereof,
+    then any guarantees regarding overflow and underflow of `vector_norm2`
+    are implementation-defined."
+
+  * Define return types of the
+    `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` overloads
+    with `auto` return type.
+
+  * Remove the explicitly stated constraint on `add` and `copy`
+    that the rank of the array arguments be no more than 2.
+    This is redundant, because we already impose this
+    via the existing constraints on template parameters named
+    `in_object*_t`, `inout_object*_t`, or `out_object*_t`.
+    If we later wish to relax this restriction,
+    then we only have to do so in one place.
+
+  * Add `vector_sum_of_squares`.
+    First, this gives implementers a path to implementing `vector_norm2`
+    in a way that achieves the over/underflow guarantees
+    intended by the BLAS Standard.
+    Second, this is a useful algorithm in itself
+    for parallelizing vector 2-norm computation.
+
+  * Add `matrix_frob_norm`, `matrix_one_norm`, and `matrix_inf_norm`
+    (thanks to coauthor Piotr Luszczek).
+
+  * Address LEWG request for us to investigate support for GPU memory.
+    See section "Explicit support for asynchronous return of scalar values."
+
+  * Add `ExecutionPolicy` overloads of the in-place versions of
+    `triangular_matrix_vector_solve`,
+    `triangular_matrix_left_product`,
+    `triangular_matrix_right_product`,
+    `triangular_matrix_matrix_left_solve`, and
+    `triangular_matrix_matrix_right_solve`.
 
 ## Purpose of this paper
 
@@ -133,10 +195,10 @@ Our proposal also has the following distinctive characteristics:
 * The interface is designed in the spirit of the C++ Standard Library's
   algorithms.
 
-* It uses the multidimensional array data structures [`basic_mdspan`
-  (P0009R10)](http://wg21.link/p0009r10) to represent
-  matrices and vectors.  In the future, it could support other
-  proposals' matrix and vector data structures.
+* It uses `basic_mdspan` [(P0009R10)](http://wg21.link/p0009r10),
+  a multidimensional array view, to represent matrices and vectors.
+  In the future,
+  it could support other proposals' matrix and vector data structures.
 
 * The interface permits optimizations for matrices and vectors with
   small compile-time dimensions; the standard BLAS interface does not.
@@ -175,6 +237,8 @@ separates algorithms from data structures -- more naturally allows for
 a richer set of operations such as what the BLAS provides.  A natural
 extension of the present proposal would include accepting P1385's
 matrix and vector objects as input for the algorithms proposed here.
+A straightforward way to do that would be for P1385's matrix and vector objects
+to make views of their data available as `basic_mdspan`.
 
 ## Why include dense linear algebra in the C++ Standard Library?
 
@@ -343,6 +407,65 @@ results, not just crashing).  Historical examples of vendors' C BLAS
 implementations have also had ABI issues that required work-arounds.
 This dependence on ABI details makes availability in a standard C++
 library valuable.
+
+## Criteria for including algorithms
+
+We include algorithms in our proposal based on the following criteria,
+ordered by decreasing importance.
+Many of our algorithms satisfy multiple criteria.
+
+1. Getting the desired asymptotic run time is nontrivial
+
+2. Opportunity for vendors to provide hardware-specific optimizations
+
+3. Opportunity for vendors to provide quality-of-implementation improvements,
+   especially relating to accuracy or reproducibility
+   with respect to floating-point rounding error
+
+4. User convenience (familiar name, or tedious to implement)
+
+Regarding (1), "nontrivial" means "at least for novices to the field."
+Dense matrix-matrix multiply is a good example.
+Getting close to the asymptotic lower bound on the number of memory reads and writes
+matters a lot for performance, and calls for a nonintuitive loop reordering.
+An analogy to the current C++ Standard Library is `sort`,
+where intuitive algorithms that many humans use are not asymptotically optimal.
+
+Regarding (2), a good example is copying multidimensional arrays.
+The [Kokkos library](github.com/kokkos/kokkos)
+spends about 2500 lines of code on multidimensional array copy,
+yet still relies on system libraries for low-level optimizations.
+An analogy to the current C++ Standard Library is `copy` or even `memcpy`.
+
+Regarding (3), accurate floating-point summation is nontrivial.
+Well-meaning compiler optimizations might defeat even simple technqiues,
+like compensated summation.
+The most obvious way to compute a vector's Euclidean norm
+(square root of sum of squares) can cause overflow or underflow,
+even when the exact answer is much smaller than the overflow threshold,
+or larger than the underflow threshold.
+Some users care deeply about sums, even parallel sums,
+that always get the same answer, despite rounding error.
+This can help debugging, for example.
+It is possible to make floating-point sums completely independent
+of parallel evaluation order.
+See e.g., the [ReproBLAS](https://bebop.cs.berkeley.edu/reproblas/) effort.
+Naming these algorithms and providing `ExecutionPolicy` customization hooks
+gives vendors a chance to provide these improvements.
+An analogy to the current C++ Standard Library is `hypot`,
+whose language in the C++ Standard alludes to the tighter POSIX requirements.
+
+Regarding (4), the C++ Standard Library is not entirely minimalist.
+One example is `std::string::contains`.
+Existing Standard Library algorithms already offered this functionality,
+but a member `contains` function is easy for novices to find and use,
+and avoids the tedium of comparing the result of `find` to `npos`.
+
+The BLAS exists mainly for the first two reasons.
+It includes functions that were nontrivial for compilers to optimize in its time,
+like scaled elementwise vector sums,
+as well as functions that generally require human effort to optimize,
+like matrix-matrix multiply.
 
 ## Notation and conventions
 
@@ -664,7 +787,7 @@ types before actual work and storage happen.  [Eigen's
 documentation](https://eigen.tuxfamily.org/dox/TopicPitfalls.html)
 describes this common problem.
 
-Our `scaled_view`, `conjugate_view`, and `transpose_view` functions
+Our `scaled`, `conjugated`, `transposed`, and `conjugate_transposed` functions
 make use of one aspect of expression templates, namely modifying the
 `basic_mdspan` array access operator.  However, we intend these
 functions for use only as in-place modifications of arguments of a
@@ -697,6 +820,50 @@ clear to us which to optimize.  Fourth, even though linear algebra is
 a special case of tensor algebra, users of linear algebra have
 different interface expectations than users of tensor algebra.  Thus,
 it makes sense to have two separate interfaces.
+
+### Explicit support for asynchronous return of scalar values
+
+After we presented revision 2 of this paper,
+LEWG asked us to consider support for discrete graphics processing units (GPUs).
+GPUs have two features of interest here.
+First, they might have memory that is not accessible from ordinary C++ code,
+but could be accessed in a standard algorithm
+(or one of our proposed algorithms)
+with the right implementation-specific `ExecutionPolicy`.
+(For instance, a policy could say "run this algorithm on the GPU.")
+Second, they might execute those algorithms asynchronously.
+That is, they might write to output arguments at some later time
+after the algorithm invocation returns.
+This would imply different interfaces in some cases.
+For instance, a hypothetical asynchronous vector 2-norm
+might write its scalar result via a pointer to GPU memory,
+instead of returning the result "on the CPU."
+
+Nothing in principle prevents `basic_mdspan` from viewing memory
+that is inaccessible from ordinary C++ code.
+This is a major feature of the `Kokkos::View` class
+from the [Kokkos library](https://github.com/kokkos/kokkos),
+and `Kokkos::View` directly inspired `basic_mdspan`.
+The C++ Standard does not currently define how such memory behaves,
+but implementations could define its behavior and make it work with `basic_mdspan`.
+This would, in turn, let implementations define our algorithms
+to operate on such memory efficiently,
+if given the right implementation-specific `ExecutionPolicy`.
+
+Our proposal excludes algorithms that might write to their output arguments
+at some time after after the algorithm returns.
+First, LEWG insisted that our proposed algorithms that compute a scalar result,
+like `vector_norm2`,
+return that result in the manner of `reduce`,
+rather than writing the result to an output reference or pointer.
+(Previous revisions of our proposal used the latter interface pattern.)
+Second, it's not clear whether writing a scalar result to a pointer
+is the right interface for asynchronous algorithms.
+Follow-on proposals to [Executors (P0443R14)](http://wg21.link/p0443R14)
+include asynchronous algorithms,
+but none of these suggest returning results asynchronously by pointer.
+Our proposal deliberately imitates the existing standard algorithms.
+Right now, we have no standard asynchronous algorithms to imitate.
 
 ## Design justification
 
@@ -796,7 +963,7 @@ We investigated this option, and rejected it, for the following reasons.
 This proposal refers to almost all of `basic_mdspan`'s features,
 including `extents`, `layout`, and `accessor_policy`.
 We expect implementations to use all of them for optimizations,
-for example to extract the scaling factor from a `scaled_view` result
+for example to extract the scaling factor from the return value of `scaled`
 in order to call an optimized BLAS library directly.
 
 Suppose that a general customization point `get_mdspan` existed,
@@ -922,8 +1089,15 @@ closely.  The BLAS Standard does say something about overflow and
 underflow for vector 2-norms.  We reviewed this wording and conclude
 that it is either a nonbinding quality of implementation (QoI)
 recommendation, or too vaguely stated to translate directly into C++
-Standard wording.  Thus, we removed the special overflow / underflow
-wording entirely.
+Standard wording.
+Thus, we removed our special overflow / underflow wording.
+However, the BLAS Standard clearly expresses the intent
+that implementations document their underflow and overflow guarantees
+for certain functions, like vector 2-norms.
+The C++ Standard requires documentation of "implementation-defined behavior."
+Therefore, we added language to our proposal that makes
+"any guarantees regarding overflow and underflow" of those certain functions
+"implementation-defined."
 
 Previous versions of this paper asked implementations to compute
 vector 2-norms "without undue overflow or underflow at intermediate
@@ -967,6 +1141,14 @@ The latter is a special case of computing floating-point sums exactly,
 which is costly for vectors of arbitrary length.  While it would be a
 useful feature, it is difficult enough that we do not want to require
 it, especially since the BLAS Standard itself does not.
+The Reference BLAS implementation of vector 2-norms
+[`DNRM2`](https://www.netlib.org/lapack/explore-html/da/d7f/dnrm2_8f_source.html)
+maintains the current maximum absolute value of all the vector entries seen thus far,
+and scales each vector entry by that maximum,
+in the same way as the LAPACK routine `DLASSQ`.
+Implementations could also first compute the sum of squares in a straightforward loop.
+They could then recompute if needed,
+for example by testing if the result is `Inf` or `NaN`.
 
 For all of the functions listed on p. 35 of the BLAS Standard as
 needing "particularly careful implementations," *except* vector norm,
@@ -1415,7 +1597,7 @@ pioneering efforts and history lessons.
 ### Header `<linalg>` synopsis [linalg.syn]
 
 ```c++
-namespace std {
+namespace std::linalg {
 // [linalg.tags.order], storage order tags
 struct column_major_t;
 inline constexpr column_major_t column_major;
@@ -1448,14 +1630,14 @@ template<class ScalingFactor,
          class Accessor>
 class accessor_scaled;
 
-// [linalg.scaled.scaled_view], scaled in-place transformation
+// [linalg.scaled.scaled], scaled in-place transformation
 template<class ScalingFactor,
          class ElementType,
          class Extents,
          class Layout,
          class Accessor>
 /* see-below */
-scaled_view(
+scaled(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
 
@@ -1463,26 +1645,26 @@ scaled_view(
 template<class Accessor>
 class accessor_conjugate;
 
-// [linalg.conj.conjugate_view], conjugated in-place transformation
+// [linalg.conj.conjugated], conjugated in-place transformation
 template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
 /* see-below */
-conjugate_view(
+conjugated(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.transp.layout_transpose], class template layout_transpose
 template<class Layout>
 class layout_transpose;
 
-// [linalg.transp.transpose_view], transposed in-place transformation
+// [linalg.transp.transposed], transposed in-place transformation
 template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
 /* see-below */
-transpose_view(
+transposed(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.conj_transp],
@@ -1492,7 +1674,7 @@ template<class ElementType,
          class Layout,
          class Accessor>
 /* see-below */
-conjugate_transpose_view(
+conjugate_transposed(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.algs.blas1.givens.lartg], compute Givens rotation
@@ -1551,14 +1733,14 @@ void givens_rotation_apply(
 // [linalg.algs.blas1.swap], swap elements
 template<class inout_object_1_t,
          class inout_object_2_t>
-void linalg_swap(inout_object_1_t x,
-                 inout_object_2_t y);
+void swap_elements(inout_object_1_t x,
+                   inout_object_2_t y);
 template<class ExecutionPolicy,
          class inout_object_1_t,
          class inout_object_2_t>
-void linalg_swap(ExecutionPolicy&& exec,
-                 inout_object_1_t x,
-                 inout_object_2_t y);
+void swap_elements(ExecutionPolicy&& exec,
+                   inout_object_1_t x,
+                   inout_object_2_t y);
 
 // [linalg.algs.blas1.scal], multiply elements by scalar
 template<class Scalar,
@@ -1575,30 +1757,30 @@ void scale(ExecutionPolicy&& exec,
 // [linalg.algs.blas1.copy], copy elements
 template<class in_object_t,
          class out_object_t>
-void linalg_copy(in_object_t x,
-                 out_object_t y);
+void copy(in_object_t x,
+          out_object_t y);
 template<class ExecutionPolicy,
          class in_object_t,
          class out_object_t>
-void linalg_copy(ExecutionPolicy&& exec,
-                 in_object_t x,
-                 out_object_t y);
+void copy(ExecutionPolicy&& exec,
+          in_object_t x,
+          out_object_t y);
 
 // [linalg.algs.blas1.add], add elementwise
 template<class in_object_1_t,
          class in_object_2_t,
          class out_object_t>
-void linalg_add(in_object_1_t x,
-                in_object_2_t y,
-                out_object_t z);
+void add(in_object_1_t x,
+         in_object_2_t y,
+         out_object_t z);
 template<class ExecutionPolicy,
          class in_object_1_t,
          class in_object_2_t,
          class out_object_t>
-void linalg_add(ExecutionPolicy&& exec,
-                in_object_1_t x,
-                in_object_2_t y,
-                out_object_t z);
+void add(ExecutionPolicy&& exec,
+         in_object_1_t x,
+         in_object_2_t y,
+         out_object_t z);
 
 // [linalg.algs.blas1.dot],
 // dot product of two vectors
@@ -1622,13 +1804,13 @@ T dot(ExecutionPolicy&& exec,
 template<class in_vector_1_t,
          class in_vector_2_t>
 auto dot(in_vector_1_t v1,
-         in_vector_2_t v2);
+         in_vector_2_t v2) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t>
 auto dot(ExecutionPolicy&& exec,
          in_vector_1_t v1,
-         in_vector_2_t v2);
+         in_vector_2_t v2) -> /* see-below */;
 
 // [linalg.algs.blas1.dot.dotc],
 // conjugated dot product of two vectors
@@ -1649,13 +1831,30 @@ T dotc(ExecutionPolicy&& exec,
 template<class in_vector_1_t,
          class in_vector_2_t>
 auto dotc(in_vector_1_t v1,
-          in_vector_2_t v2);
+          in_vector_2_t v2) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t>
 auto dotc(ExecutionPolicy&& exec,
           in_vector_1_t v1,
-          in_vector_2_t v2);
+          in_vector_2_t v2) -> /* see-below */;
+
+// [linalg.algs.blas1.ssq],
+// Scaled sum of squares of a vector's elements
+template<class T>
+struct sum_of_squares_result {
+  T scaling_factor;
+  T scaled_sum_of_squares;
+};
+template<class in_vector_t,
+         class T>
+sum_of_squares_result<T> vector_sum_of_squares(
+  in_vector_t v,
+  sum_of_squares_result init);
+sum_of_squares_result<T> vector_sum_of_squares(
+  ExecutionPolicy&& exec,
+  in_vector_t v,
+  sum_of_squares_result init);
 
 // [linalg.algs.blas1.nrm2],
 // Euclidean norm of a vector
@@ -1670,11 +1869,11 @@ T vector_norm2(ExecutionPolicy&& exec,
                in_vector_t v,
                T init);
 template<class in_vector_t>
-auto vector_norm2(in_vector_t v);
+auto vector_norm2(in_vector_t v) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_norm2(ExecutionPolicy&& exec,
-                  in_vector_t v);
+                  in_vector_t v) -> /* see-below */;
 
 // [linalg.algs.blas1.asum],
 // sum of absolute values of vector elements
@@ -1689,11 +1888,11 @@ T vector_abs_sum(ExecutionPolicy&& exec,
                  in_vector_t v,
                  T init);
 template<class in_vector_t>
-auto vector_abs_sum(in_vector_t v);
+auto vector_abs_sum(in_vector_t v) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_abs_sum(ExecutionPolicy&& exec,
-                    in_vector_t v);
+                    in_vector_t v) -> /* see-below */;
 
 // [linalg.algs.blas1.iamax],
 // index of maximum absolute value of vector elements
@@ -1703,6 +1902,75 @@ template<class ExecutionPolicy,
          class in_vector_t>
 ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
                       in_vector_t v);
+
+// [linalg.algs.blas1.matfrobnorm],
+// Frobenius norm of a matrix
+template<class in_matrix_t,
+         class T>
+T matrix_frob_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_frob_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+template<class in_matrix_t>
+auto matrix_frob_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_frob_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+
+// [linalg.algs.blas1.matonenorm],
+// One norm of a matrix
+template<class in_matrix_t,
+         class T>
+T matrix_one_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_one_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+template<class in_matrix_t>
+auto matrix_one_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_one_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+
+// [linalg.algs.blas1.matinfnorm],
+// Infinity norm of a matrix
+template<class in_matrix_t,
+         class T>
+T matrix_inf_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_inf_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+template<class in_matrix_t>
+auto matrix_inf_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_inf_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
 
 // [linalg.algs.blas2.gemv],
 // general matrix-vector product
@@ -1937,6 +2205,17 @@ template<class in_matrix_t,
          class DiagonalStorage,
          class inout_vector_t>
 void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
@@ -2383,6 +2662,17 @@ void triangular_matrix_left_product(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_left_product(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
 
 // [linalg.algs.blas3.trmm.ov.right],
 // overwriting triangular matrix-matrix right product
@@ -2415,6 +2705,17 @@ template<class in_matrix_1_t,
          class DiagonalStorage,
          class inout_matrix_t>
 void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
@@ -2645,6 +2946,17 @@ void triangular_matrix_matrix_left_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
 
 // [linalg.alg.blas3.trsm.right],
 // solve multiple triangular linear systems
@@ -2682,6 +2994,18 @@ void triangular_matrix_matrix_right_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
+}
 ```
 
 ### Tag classes [linalg.tags]
@@ -3028,7 +3352,7 @@ entry.
 Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
 (TP) matrix types.
 
-If `transpose_view`'s input has layout `layout_blas_packed`, the
+If `transposed`'s input has layout `layout_blas_packed`, the
 return type also has layout `layout_blas_packed`, but with opposite
 `Triangle` and `StorageOrder`.  For example, the transpose of a packed
 column-major upper triangle, is a packed row-major lower triangle.
@@ -3224,7 +3548,7 @@ constexpr bool is_strided() const noexcept;
 
 ### Scaled in-place transformation [linalg.scaled]
 
-The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
+The `scaled` function takes a value `alpha` and a `basic_mdspan`
 `x`, and returns a new read-only `basic_mdspan` with the same domain
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
@@ -3238,7 +3562,7 @@ void z_equals_alpha_times_x_plus_y(
   mdspan<double, extents<dynamic_extent>> x,
   mdspan<double, extents<dynamic_extent>> y)
 {
-  linalg_add(scaled_view(alpha, x), y, y);
+  add(scaled(alpha, x), y, y);
 }
 
 // w = alpha * x + beta * y
@@ -3249,7 +3573,7 @@ void w_equals_alpha_times_x_plus_beta_times_y(
   const double beta,
   mdspan<double, extents<dynamic_extent>> y)
 {
-  linalg_add(scaled_view(alpha, x), scaled_view(beta, y), w);
+  add(scaled(alpha, x), scaled(beta, y), w);
 }
 ```
 --*end example*]
@@ -3269,7 +3593,7 @@ run-time value(s) of the relevant BLAS function arguments (e.g.,
 The class template `accessor_scaled` is a `basic_mdspan` accessor
 policy whose reference type represents the product of a fixed value
 (the "scaling factor") and its nested `basic_mdspan` accessor's
-reference.  It is part of the implementation of `scaled_view`.
+reference.  It is part of the implementation of `scaled`.
 
 The exposition-only class template `scaled_scalar` represents a
 read-only value, which is the product of a fixed value (the "scaling
@@ -3389,9 +3713,9 @@ ScalingFactor scaling_factor() const;
 
 * *Effects:* Equivalent to `return scaling_factor_;`.
 
-#### `scaled_view` [linalg.scaled.scaled_view]
+#### `scaled` [linalg.scaled.scaled]
 
-The `scaled_view` function takes a value `alpha` and a `basic_mdspan`
+The `scaled` function takes a value `alpha` and a `basic_mdspan`
 `x`, and returns a new read-only `basic_mdspan` with the same domain
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
@@ -3403,7 +3727,7 @@ template<class ScalingFactor,
          class Layout,
          class Accessor>
 /* see below */
-scaled_view(
+scaled(
   const ScalingFactor& s,
   const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
 ```
@@ -3433,8 +3757,7 @@ where
     `ReturnAccessor` is
     `accessor_scaled<ProductScalingFactor, NestedAccessor>`,
     then equivalent to
-    `return R(a.data(), a.mapping(),
-       ReturnAccessor(product_s, a.accessor().nested_accessor()));`,
+    `return R(a.data(), a.mapping(), ReturnAccessor(product_s, a.accessor().nested_accessor()));`,
     where `product_s` equals `s * a.accessor().scaling_factor()`;
 
   * else, equivalent to
@@ -3444,30 +3767,30 @@ where
 
 *[Note:*
 
-The point of `ReturnAccessor` is to give implementations freedom to
-optimize applying `accessor_scaled` twice in a row.  However,
-implementations are not required to optimize arbitrary combinations of
-nested `accessor_scaled` interspersed with other nested accessors.
+The point of `ReturnAccessor` is to give implementations freedom
+to optimize applying `accessor_scaled` twice in a row.
+However, implementations are not required to optimize arbitrary combinations
+of nested `accessor_scaled` interspersed with other nested accessors.
 
-The point of `ReturnElementType` is that, based on P0009R10, it may not
-be possible to deduce the const version of `Accessor` for use in
-`accessor_scaled`.  In general, it may not be correct or efficient
-to use an `Accessor` meant for a nonconst `ElementType`, with `const
-ElementType`.  This is because `Accessor::reference` may be a type
-other than `ElementType&`.  Thus, we cannot require that the return
-type have `const ElementType` as its element type, since that might
-not be compatible with the given `Accessor`.  However, in some cases,
-like `accessor_basic`, it is possible to deduce the const version of
-`Accessor`.  Regardless, users are not allowed to modify the elements
-of the returned `basic_mdspan`.
+The point of `ReturnElementType` is that, based on P0009R10,
+it may not be possible to deduce the const version of `Accessor`
+for use in `accessor_scaled`.
+In general, it may not be correct or efficient to use an `Accessor`
+meant for a nonconst `ElementType`, with `const ElementType`.
+This is because `Accessor::reference` may be a type other than `ElementType&`.
+Thus, we cannot require that the return type have `const ElementType` as its element type,
+since that might not be compatible with the given `Accessor`.
+However, in some cases, like `accessor_basic`,
+it is possible to deduce the const version of `Accessor`.
+Regardless, users are not allowed to modify the elements of the returned `basic_mdspan`.
 
 --*end note]*
 
 [*Example:*
 ```c++
-void test_scaled_view(basic_mdspan<double, extents<10>> a)
+void test_scaled(basic_mdspan<double, extents<10>> a)
 {
-  auto a_scaled = scaled_view(5.0, a);
+  auto a_scaled = scaled(5.0, a);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_scaled(i) == 5.0 * a(i));
   }
@@ -3477,7 +3800,7 @@ void test_scaled_view(basic_mdspan<double, extents<10>> a)
 
 ### Conjugated in-place transformation [linalg.conj]
 
-The `conjugate_view` function takes a `basic_mdspan` `x`, and returns
+The `conjugated` function takes a `basic_mdspan` `x`, and returns
 a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
 elements are the complex conjugates of the corresponding elements of
 `x`.  If the element type of `x` is not `complex<R>` for some `R`,
@@ -3626,7 +3949,7 @@ Accessor nested_accessor() const;
 
 * *Effects:* Equivalent to `return acc;`.
 
-#### `conjugate_view` [linalg.conj.conjugate_view]
+#### `conjugated` [linalg.conj.conjugated]
 
 ```c++
 template<class ElementType,
@@ -3634,7 +3957,7 @@ template<class ElementType,
          class Layout,
          class Accessor>
 /* see-below */
-conjugate_view(
+conjugated(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
@@ -3682,27 +4005,27 @@ nested `accessor_conjugate` interspersed with other nested accessors.
 
 [*Example:*
 ```c++
-void test_conjugate_view_complex(
+void test_conjugated_complex(
   basic_mdspan<complex<double>, extents<10>> a)
 {
-  auto a_conj = conjugate_view(a);
+  auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj(i) == conj(a(i));
   }
-  auto a_conj_conj = conjugate_view(a_conj);
+  auto a_conj_conj = conjugated(a_conj);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj_conj(i) == a(i));
   }
 }
 
-void test_conjugate_view_real(
+void test_conjugated_real(
   basic_mdspan<double, extents<10>> a)
 {
-  auto a_conj = conjugate_view(a);
+  auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj(i) == a(i));
   }
-  auto a_conj_conj = conjugate_view(a_conj);
+  auto a_conj_conj = conjugated(a_conj);
   for(int i = 0; i < a.extent(0); ++i) {
     assert(a_conj_conj(i) == a(i));
   }
@@ -3716,7 +4039,7 @@ void test_conjugate_view_real(
 swaps the rightmost two indices, extents, and strides (if applicable)
 of any unique `basic_mdspan` layout mapping policy.
 
-The `transpose_view` function takes a rank-2 `basic_mdspan`
+The `transposed` function takes a rank-2 `basic_mdspan`
 representing a matrix, and returns a new read-only `basic_mdspan`
 representing the transpose of the input matrix.
 
@@ -3947,9 +4270,9 @@ stride(typename Extents::index_type r) const
 * *Effects:* Equivalent to `return nested_mapping_.stride(s);',
   where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
-#### `transpose_view` [linalg.transp.transpose_view]
+#### `transposed` [linalg.transp.transposed]
 
-The `transpose_view` function takes a rank-2 `basic_mdspan`
+The `transposed` function takes a rank-2 `basic_mdspan`
 representing a matrix, and returns a new read-only `basic_mdspan`
 representing the transpose of the input matrix.  The input matrix's
 data are not modified, and the returned `basic_mdspan` accesses the
@@ -3965,7 +4288,7 @@ template<class ElementType,
          class Layout,
          class Accessor>
 /* see-below */
-transpose_view(
+transposed(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
@@ -4026,12 +4349,12 @@ nested layouts.
 
 [*Example:*
 ```c++
-void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
+void test_transposed(basic_mdspan<double, extents<3, 4>> a)
 {
   const ptrdiff_t num_rows = a.extent(0);
   const ptrdiff_t num_cols = a.extent(1);
 
-  auto a_t = transpose_view(a);
+  auto a_t = transposed(a);
   assert(num_rows == a_t.extent(1));
   assert(num_cols == a_t.extent(0));
   assert(a.stride(0) == a_t.stride(1));
@@ -4043,7 +4366,7 @@ void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
     }
   }
 
-  auto a_t_t = transpose_view(a_t);
+  auto a_t_t = transposed(a_t);
   assert(num_rows == a_t_t.extent(0));
   assert(num_cols == a_t_t.extent(1));
   assert(a.stride(0) == a_t_t.stride(0));
@@ -4060,9 +4383,9 @@ void test_transpose_view(basic_mdspan<double, extents<3, 4>> a)
 
 ### Conjugate transpose transform [linalg.conj_transp]
 
-The `conjugate_transpose_view` function returns a conjugate transpose
-view of an object.  This combines the effects of `transpose_view` and
-`conjugate_view`.
+The `conjugate_transposed` function returns a conjugate transpose
+view of an object.  This combines the effects of `transposed` and
+`conjugated`.
 
 ```c++
 template<class ElementType,
@@ -4070,23 +4393,24 @@ template<class ElementType,
          class Layout,
          class Accessor>
 /* see-below */
-conjugate_transpose_view(
+conjugate_transposed(
   basic_mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
-  `return conjugate_view(transpose_view(a));`.
+  `return conjugated(transposed(a));`.
 
 * *Remarks:* The elements of the returned `basic_mdspan` are read only.
 
 [*Example:*
 ```c++
-void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
+void test_conjugate_transposed(
+  basic_mdspan<complex<double>, extents<3, 4>> a)
 {
   const ptrdiff_t num_rows = a.extent(0);
   const ptrdiff_t num_cols = a.extent(1);
 
-  auto a_ct = conjugate_transpose_view(a);
+  auto a_ct = conjugate_transposed(a);
   assert(num_rows == a_ct.extent(1));
   assert(num_cols == a_ct.extent(0));
   assert(a.stride(0) == a_ct.stride(1));
@@ -4098,7 +4422,7 @@ void test_ct_view(basic_mdspan<complex<double>, extents<3, 4>> a)
     }
   }
 
-  auto a_ct_ct = conjugate_transpose_view(a_ct);
+  auto a_ct_ct = conjugate_transposed(a_ct);
   assert(num_rows == a_ct_ct.extent(0));
   assert(num_cols == a_ct_ct.extent(1));
   assert(a.stride(0) == a_ct_ct.stride(0));
@@ -4333,15 +4657,15 @@ this.
 ```c++
 template<class inout_object_1_t,
          class inout_object_2_t>
-void linalg_swap(inout_object_1_t x,
-                 inout_object_2_t y);
+void swap_elements(inout_object_1_t x,
+                   inout_object_2_t y);
 
 template<class ExecutionPolicy,
          class inout_object_1_t,
          class inout_object_2_t>
-void linalg_swap(ExecutionPolicy&& exec,
-                 inout_object_1_t x,
-                 inout_object_2_t y);
+void swap_elements(ExecutionPolicy&& exec,
+                   inout_object_1_t x,
+                   inout_object_2_t y);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xSWAP`.
@@ -4400,15 +4724,15 @@ void scale(ExecutionPolicy&& exec,
 ```c++
 template<class in_object_t,
          class out_object_t>
-void linalg_copy(in_object_t x,
-                 out_object_t y);
+void copy(in_object_t x,
+          out_object_t y);
 
 template<class ExecutionPolicy,
          class in_object_t,
          class out_object_t>
-void linalg_copy(ExecutionPolicy&& exec,
-                 in_object_t x,
-                 out_object_t y);
+void copy(ExecutionPolicy&& exec,
+          in_object_t x,
+          out_object_t y);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xCOPY`.
@@ -4420,8 +4744,6 @@ void linalg_copy(ExecutionPolicy&& exec,
 * *Constraints:*
 
   * `x.rank()` equals `y.rank()`.
-
-  * `x.rank()` is no more than 2.
 
   * For all `i...` in the domain of `x` and `y`, the expression
     `y(i...) = x(i...)` is well formed.
@@ -4440,18 +4762,18 @@ void linalg_copy(ExecutionPolicy&& exec,
 template<class in_object_1_t,
          class in_object_2_t,
          class out_object_t>
-void linalg_add(in_object_1_t x,
-                in_object_2_t y,
-                out_object_t z);
+void add(in_object_1_t x,
+         in_object_2_t y,
+         out_object_t z);
 
 template<class ExecutionPolicy,
          class in_object_1_t,
          class in_object_2_t,
          class out_object_t>
-void linalg_add(ExecutionPolicy&& exec,
-                in_object_1_t x,
-                in_object_2_t y,
-                out_object_t z);
+void add(ExecutionPolicy&& exec,
+         in_object_1_t x,
+         in_object_2_t y,
+         out_object_t z);
 ```
 
 *[Note:* These functions correspond to the BLAS function `xAXPY`.
@@ -4466,8 +4788,6 @@ void linalg_add(ExecutionPolicy&& exec,
 * *Constraints:*
 
   * `x.rank()`, `y.rank()`, and `z.rank()` are all equal.
-
-  * `x.rank()` is no more than 2.
 
   * For `i...` in the domain of `x`, `y`, and `z`, the expression
     `z(i...) = x(i...) + y(i...)` is well formed.
@@ -4538,8 +4858,7 @@ T dot(ExecutionPolicy&& exec,
 * *Remarks:* If `in_vector_t::element_type` and `T` are both
   floating-point types or complex versions thereof, and if `T` has
   higher precision than `in_vector_type::element_type`, then
-  implementations will use `T`'s precision or greater for intermediate
-  terms in the sum.
+  intermediate terms in the sum use `T`'s precision or greater.
 
 *[Note:* Like `reduce`, `dot` applies binary `operator+` in an
 unspecified order.  This may yield a nondeterministic result for
@@ -4549,7 +4868,7 @@ result deterministic.  They may do so for all `dot` overloads, or just
 for specific `ExecutionPolicy` types. --*end note]*
 
 *[Note:* Users can get `xDOTC` behavior by giving the second argument
-as a `conjugate_view`.  Alternately, they can use the shortcut `dotc`
+as the result of `conjugated`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
 Nonconjugated dot product with default result type
@@ -4558,13 +4877,13 @@ Nonconjugated dot product with default result type
 template<class in_vector_1_t,
          class in_vector_2_t>
 auto dot(in_vector_1_t v1,
-         in_vector_2_t v2);
+         in_vector_2_t v2) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t>
 auto dot(ExecutionPolicy&& exec,
          in_vector_1_t v1,
-         in_vector_2_t v2);
+         in_vector_2_t v2) -> /* see-below */;
 ```
 
 * *Effects:* Let `T` be `decltype(v1(0)*v2(0))`.  Then, the
@@ -4603,9 +4922,9 @@ T dotc(ExecutionPolicy&& exec,
 ```
 
 * *Effects:* The three-argument overload is equivalent to
-  `dot(v1, conjugate_view(v2), init);`.
+  `dot(v1, conjugated(v2), init);`.
   The four-argument overload is equivalent to
-  `dot(exec, v1, conjugate_view(v2), init);`.
+  `dot(exec, v1, conjugated(v2), init);`.
 
 Conjugated dot product with default result type
 
@@ -4613,13 +4932,13 @@ Conjugated dot product with default result type
 template<class in_vector_1_t,
          class in_vector_2_t>
 auto dotc(in_vector_1_t v1,
-          in_vector_2_t v2);
+          in_vector_2_t v2) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_1_t,
          class in_vector_2_t>
 auto dotc(ExecutionPolicy&& exec,
           in_vector_1_t v1,
-          in_vector_2_t v2);
+          in_vector_2_t v2) -> /* see-below */;
 ```
 
 * *Effects:* If `in_vector_2_t::element_type` is `complex<R>` for some
@@ -4627,6 +4946,58 @@ auto dotc(ExecutionPolicy&& exec,
   `decltype(v1(0)*v2(0))`.  Then, the two-parameter overload is
   equivalent to `dotc(v1, v2, T{});`, and the three-parameter overload
   is equivalent to `dotc(exec, v1, v2, T{});`.
+
+##### Scaled sum of squares of a vector's elements [linalg.algs.blas1.ssq]
+
+```c++
+template<class T>
+struct sum_of_squares_result {
+  T scaling_factor;
+  T scaled_sum_of_squares;
+};
+template<class in_vector_t,
+         class T>
+sum_of_squares_result<T> vector_sum_of_squares(
+  in_vector_t v,
+  sum_of_squares_result init);
+template<class ExecutionPolicy,
+         class in_vector_t,
+         class T>
+sum_of_squares_result<T> vector_sum_of_squares(
+  ExecutionPolicy&& exec,
+  in_vector_t v,
+  sum_of_squares_result init);
+```
+
+*[Note:* These functions correspond to the LAPACK function `xLASSQ`.
+--*end note]*
+
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
+  * `abs(x(0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i` in the domain of `v`,
+  and for `absxi`, `f`, and `ssq` of type `T`,
+  the expression `ssq = ssq + (absxi / f)*(absxi / f)` is well formed.
+
+* *Effects:* Returns two values:
+
+  * `scaling_factor`: the maximum of `init.scaling_factor`
+    and `abs(x(i))` for all `i` in the domain of `v`; and
+
+  * `scaled_sum_of_squares`: a value such that
+    `scaling_factor * scaling_factor * scaled_sum_of_squares`
+    equals the sum of squares of `abs(x(i))` plus
+    `init.scaling_factor * init.scaling_factor * init.scaled_sum_of_squares`.
+
+* *Remarks:* If `in_vector_t::element_type` is a floating-point type
+  or a complex version thereof, and if `T` is a floating-point type, then
+
+  * if `T` has higher precision than `in_vector_type::element_type`, then
+    intermediate terms in the sum use `T`'s precision or greater; and
+  * any guarantees regarding overflow and underflow of `vector_sum_of_squares`
+    are implementation-defined.
 
 ##### Euclidean norm of a vector [linalg.algs.blas1.nrm2]
 
@@ -4662,25 +5033,27 @@ T vector_norm2(ExecutionPolicy&& exec,
 * *Effects:* Returns the Euclidean norm (also called 2-norm)
   of the vector `v`.
 
-* *Remarks:* If `in_vector_t::element_type` and `T` are both
-  floating-point types or complex versions thereof, and if `T` has
-  higher precision than `in_vector_type::element_type`, then
-  implementations will use `T`'s precision or greater for intermediate
-  terms in the sum.
+* *Remarks:* If `in_vector_t::element_type` is a floating-point type
+  or a complex version thereof, and if `T` is a floating-point type, then
 
-*[Note:* We recommend that implementers document their guarantees
-regarding overflow and underflow of `vector_norm2` for floating-point
-return types. --*end note]*
+  * if `T` has higher precision than `in_vector_type::element_type`, then
+    intermediate terms in the sum use `T`'s precision or greater; and
+  * any guarantees regarding overflow and underflow of `vector_norm2`
+    are implementation-defined.
+
+*[Note:* A suggested implementation of this function
+for floating-point types `T`, is to return the `scaled_sum_of_squares` result
+from `vector_sum_of_squares(x, {0.0, 1.0})`. --*end note]*
 
 ###### Euclidean norm with default result type
 
 ```c++
 template<class in_vector_t>
-auto vector_norm2(in_vector_t v);
+auto vector_norm2(in_vector_t v) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_norm2(ExecutionPolicy&& exec,
-                  in_vector_t v);
+                  in_vector_t v) -> /* see-below */;
 ```
 
 * *Effects:* Let `T` be `decltype(abs(v(0)) * abs(v(0)))`.
@@ -4733,21 +5106,20 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
   * Else, returns /GENERALIZED_SUM/(`plus<>()`, `init`,
     `abs(v(0))`, ..., `abs(v(N-1))`).
 
-* *Remarks:* If `in_vector_t::element_type` and `T` are both
-  floating-point types or complex versions thereof, and if `T` has
-  higher precision than `in_vector_type::element_type`, then
-  implementations will use `T`'s precision or greater for intermediate
-  terms in the sum.
+* *Remarks:* If `in_vector_t::element_type` is a floating-point type
+  or a complex version thereof, if `T` is a floating-point type,
+  and if `T` has higher precision than `in_vector_type::element_type`,
+  then intermediate terms in the sum use `T`'s precision or greater.
 
 ###### Sum of absolute values with default result type
 
 ```c++
 template<class in_vector_t>
-auto vector_abs_sum(in_vector_t v);
+auto vector_abs_sum(in_vector_t v) -> /* see-below */;
 template<class ExecutionPolicy,
          class in_vector_t>
 auto vector_abs_sum(ExecutionPolicy&& exec,
-                    in_vector_t v);
+                    in_vector_t v) -> /* see-below */;
 ```
 
 * *Effects:* Let `T` be `decltype(abs(v(0)))`.  Then, the
@@ -4776,6 +5148,185 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
 * *Effects:* Returns the index (in the domain of `v`) of
   the first element of `v` having largest absolute value.  If `v` has
   zero elements, then returns `-1`.
+
+##### Frobenius norm of a matrix [linalg.algs.blas1.matfrobnorm]
+
+###### Frobenius norm with specified result type
+
+```c++
+template<class in_matrix_t,
+         class T>
+T matrix_frob_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_frob_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+```
+
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible*.
+  * `init + abs(A(0,0))*abs(A(0,0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i,j` in the domain of `A` and for `val`
+  of type `T&`, the expressions `val += abs(A(i,j))*abs(A(i,j))` and
+  `sqrt(val)` are well formed.  *[Note:* This does not imply a
+  recommended implementation for floating-point types.  See *Remarks*
+  below. --*end note]*
+
+* *Effects:* Returns the Frobenius norm of the matrix `A`, that is,
+  the square root of the sum of squares
+  of the absolute values of the elements of `A`.
+
+* *Remarks:* If `in_matrix_t::element_type` is a floating-point type
+  or a complex version thereof, and if `T` is a floating-point type, then
+
+  * if `T` has higher precision than `in_matrix_type::element_type`, then
+    intermediate terms in the sum use `T`'s precision or greater; and
+  * any guarantees regarding overflow and underflow of `matrix_frob_norm`
+    are implementation-defined.
+
+###### Frobenius norm with default result type
+
+```c++
+template<class in_matrix_t>
+auto matrix_frob_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_frob_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+```
+
+* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+  Then, the one-parameter overload is equivalent to
+  `matrix_frob_norm(A, T{});`,
+  and the two-parameter overload is equivalent to
+  `matrix_frob_norm(exec, A, T{});`.
+
+##### One norm of a matrix [linalg.algs.blas1.matonenorm]
+
+###### One norm with specified result type
+
+```c++
+template<class in_matrix_t,
+         class T>
+T matrix_one_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_one_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+```
+
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
+  * `abs(A(0,0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i,j` in the domain of `A`
+  and for `val` of type `T&`,
+  the expression `val += abs(A(i,j))` is well formed.
+
+* *Effects:*
+
+  * If `A.extent(1)` is zero, returns `init`;
+  * Else, returns the one norm of the matrix `A`, that is,
+    the maximum over all columns of `A`,
+    of the sum of the absolute values of the elements of the column.
+
+* *Remarks:* If `in_matrix_t::element_type` is a floating-point type
+  or a complex version thereof, if `T` is a floating-point type,
+  and if `T` has higher precision than `in_matrix_type::element_type`,
+  then intermediate terms in each sum use `T`'s precision or greater.
+
+###### One norm with default result type
+
+```c++
+template<class in_matrix_t>
+auto matrix_one_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_one_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+```
+
+* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+  Then, the one-parameter overload is equivalent to
+  `matrix_one_norm(A, T{});`,
+  and the two-parameter overload is equivalent to
+  `matrix_one_norm(exec, A, T{});`.
+
+##### Infinity norm of a matrix [linalg.algs.blas1.matinfnorm]
+
+###### Infinity norm with specified result type
+
+```c++
+template<class in_matrix_t,
+         class T>
+T matrix_inf_norm(
+  in_matrix_t A,
+  T init);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class T>
+T matrix_inf_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  T init);
+```
+
+* *Requires:*
+
+  * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
+  * `abs(A(0,0))` shall be convertible to `T`.
+
+* *Constraints:* For all `i,j` in the domain of `A`
+  and for `val` of type `T&`,
+  the expression `val += abs(A(i,j))` is well formed.
+
+* *Effects:*
+
+  * If `A.extent(0)` is zero, returns `init`;
+  * Else, returns the infinity norm of the matrix `A`, that is,
+    the maximum over all rows of `A`,
+    of the sum of the absolute values of the elements of the row.
+
+* *Remarks:* If `in_matrix_t::element_type` is a floating-point type
+  or a complex version thereof, if `T` is a floating-point type,
+  and if `T` has higher precision than `in_matrix_type::element_type`,
+  then intermediate terms in each sum use `T`'s precision or greater.
+
+###### Infinity norm with default result type
+
+```c++
+template<class in_matrix_t>
+auto matrix_inf_norm(
+  in_matrix_t A) -> /* see-below */;
+template<class ExecutionPolicy,
+         class in_matrix_t>
+auto matrix_inf_norm(
+  ExecutionPolicy&& exec,
+  in_matrix_t A) -> /* see-below */;
+```
+
+* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+  Then, the one-parameter overload is equivalent to
+  `matrix_inf_norm(A, T{});`,
+  and the two-parameter overload is equivalent to
+  `matrix_inf_norm(exec, A, T{});`.
 
 #### BLAS 2 functions [linalg.algs.blas2]
 
@@ -4847,20 +5398,22 @@ constexpr ptrdiff_t num_rows = 5;
 constexpr ptrdiff_t num_cols = 6;
 
 // y = 3.0 * A * x
-void scaled_matvec_1(mdspan<double, extents<num_rows, num_cols>> A,
+void scaled_matvec_1(
+  mdspan<double, extents<num_rows, num_cols>> A,
   mdspan<double, extents<num_cols>> x,
   mdspan<double, extents<num_rows>> y)
 {
-  matrix_vector_product(scaled_view(3.0, A), x, y);
+  matrix_vector_product(scaled(3.0, A), x, y);
 }
 
 // y = 3.0 * A * x + 2.0 * y
-void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
+void scaled_matvec_2(
+  mdspan<double, extents<num_rows, num_cols>> A,
   mdspan<double, extents<num_cols>> x,
   mdspan<double, extents<num_rows>> y)
 {
-  matrix_vector_product(scaled_view(3.0, A), x,
-                        scaled_view(2.0, y), y);
+  matrix_vector_product(scaled(3.0, A), x,
+                        scaled(2.0, y), y);
 }
 
 // z = 7.0 times the transpose of A, times y
@@ -4868,7 +5421,7 @@ void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
   mdspan<double, extents<num_rows>> y,
   mdspan<double, extents<num_cols>> z)
 {
-  matrix_vector_product(scaled_view(7.0, transpose_view(A)), y, z);
+  matrix_vector_product(scaled(7.0, transposed(A)), y, z);
 }
 ```
 --*end example*]
@@ -5429,14 +5982,25 @@ void triangular_matrix_vector_solve(
   Triangle t,
   DiagonalStorage d,
   inout_vector_t b);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b);
 ```
 
 *[Note:*
 
-This in-place version of the function intentionally lacks an overload
-taking an `ExecutionPolicy&&`, because it is not possible to
-parallelize in-place triangular solve for an arbitrary
-`ExecutionPolicy`.
+Performing triangular solve in place hinders parallelization.
+However, other `ExecutionPolicy`-specific optimizations,
+such as vectorization, are still possible.
+This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
 
@@ -5517,7 +6081,7 @@ note]*
   outer product of `x` and `y`.
 
 *[Note:* Users can get `xGERC` behavior by giving the second argument
-as a `conjugate_view`.  Alternately, they can use the shortcut
+as the result of `conjugated`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
 
 ###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.gerc]
@@ -5547,7 +6111,7 @@ real element types) and `xGERC` (for complex element types). --*end
 note]*
 
 * *Effects:* Equivalent to
-  `matrix_rank_1_update(x, conjugate_view(y), A);`.
+  `matrix_rank_1_update(x, conjugated(y), A);`.
 
 ###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.syr]
 
@@ -6647,6 +7211,7 @@ The following requirements apply to all overloads of
 ###### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
 
 Not-in-place overwriting triangular matrix-matrix left product
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -6690,6 +7255,17 @@ template<class in_matrix_1_t,
          class DiagonalStorage,
          class inout_matrix_t>
 void triangular_matrix_left_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_left_product(
+  ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
@@ -6754,6 +7330,17 @@ template<class in_matrix_1_t,
          class DiagonalStorage,
          class inout_matrix_t>
 void triangular_matrix_right_product(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t C);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_right_product(
+  ExecutionPolicy&& exec,
   in_matrix_1_t A,
   Triangle t,
   DiagonalStorage d,
@@ -6858,8 +7445,8 @@ void triangular_matrix_right_product(
 ##### Rank-k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank-k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
-BLAS functions, by applying `transpose_view` or
-`conjugate_transpose_view` to the input matrix. --*end note]*
+BLAS functions, by applying `transposed` or `conjugate_transposed`
+to the input matrix. --*end note]*
 
 ###### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.syrk]
 
@@ -7071,8 +7658,8 @@ otherwise.
 ##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
-BLAS functions, by applying `transpose_view` or
-`conjugate_transpose_view` to the input matrices. --*end note]*
+BLAS functions, by applying `transposed` or `conjugate_transposed`
+to the input matrices. --*end note]*
 
 ###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.syr2k]
 
@@ -7308,7 +7895,8 @@ The following requirements apply to all functions in this section.
 
 ###### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
-Not-in-place multiple triangular systems left solve
+Not-in-place left solve of multiple triangular systems
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7348,7 +7936,8 @@ void triangular_matrix_matrix_left_solve(
 * *Effects:* Assigns to the elements of `X`
   the result of solving the triangular linear system(s) AX=B for X.
 
-In-place multiple triangular systems left solve
+In-place left solve of multiple triangular systems
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7359,17 +7948,28 @@ void triangular_matrix_matrix_left_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
 ```
 
 *[Note:*
 
-This in-place version of the function intentionally lacks an overload
-taking an `ExecutionPolicy&&`, because it is not possible to
-parallelize in-place triangular solve for an arbitrary
-`ExecutionPolicy`.
-
 This algorithm makes it possible to compute factorizations like
 Cholesky and LU in place.
+
+Performing triangular solve in place hinders parallelization.
+However, other `ExecutionPolicy`-specific optimizations,
+such as vectorization, are still possible.
+This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
 
@@ -7393,7 +7993,8 @@ Cholesky and LU in place.
 
 ###### Solve multiple triangular linear systems with triangular matrix on the right [linalg.alg.blas3.trsm.right]
 
-Not-in-place multiple triangular systems right solve
+Not-in-place right solve of multiple triangular systems
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7433,7 +8034,8 @@ void triangular_matrix_matrix_right_solve(
 * *Effects:* Assigns to the elements of `X`
   the result of solving the triangular linear system(s) XA=B for X.
 
-In-place multiple triangular systems right solve
+In-place right solve of multiple triangular systems
+
 ```c++
 template<class in_matrix_1_t,
          class Triangle,
@@ -7444,16 +8046,28 @@ void triangular_matrix_matrix_right_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B);
 ```
 
 *[Note:*
 
-This in-place version of the function intentionally lacks an overload
-taking an `ExecutionPolicy&&`, because it is not possible to
-parallelize in-place triangular solve for any `ExecutionPolicy`.
-
 This algorithm makes it possible to compute factorizations like
 Cholesky and LU in place.
+
+Performing triangular solve in place hinders parallelization.
+However, other `ExecutionPolicy`-specific optimizations,
+such as vectorization, are still possible.
+This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
 
@@ -7524,13 +8138,16 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       return info1;
     }
 
+    using std::linalg::symmetric_matrix_rank_k_update;
+    using std::linalg::transposed;
     if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
       // Update and scale A12
       auto A12 = subspan(A, pair{0, n1}, pair{n1, n});
-      triangular_matrix_matrix_left_solve(transpose_view(A11),
+      using std::linalg::triangular_matrix_matrix_left_solve;
+      triangular_matrix_matrix_left_solve(transposed(A11),
         upper_triangle, explicit_diagonal, A12);
       // A22 = A22 - A12^T * A12
-      symmetric_matrix_rank_k_update(-ONE, transpose_view(A12),
+      symmetric_matrix_rank_k_update(-ONE, transposed(A12),
                                       A22, t);
     }
     else {
@@ -7539,7 +8156,8 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       //
       // Update and scale A21
       auto A21 = subspan(A, pair{n1, n}, pair{0, n1});
-      triangular_matrix_matrix_right_solve(transpose_view(A11),
+      using std::linalg::triangular_matrix_matrix_right_solve;
+      triangular_matrix_matrix_right_solve(transposed(A11),
         lower_triangle, explicit_diagonal, A21);
       // A22 = A22 - A21 * A21^T
       symmetric_matrix_rank_k_update(-ONE, A21, A22, t);
@@ -7572,11 +8190,14 @@ void cholesky_solve(
   in_vector_t b,
   out_vector_t x)
 {
+  using std::linalg::transposed;
+  using std::linalg::triangular_matrix_vector_solve;
+
   if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
     // Solve Ax=b where A = U^T U
     //
     // Solve U^T c = b, using x to store c.
-    triangular_matrix_vector_solve(transpose_view(A), t,
+    triangular_matrix_vector_solve(transposed(A), t,
                                    explicit_diagonal, b, x);
     // Solve U x = c, overwriting x with result.
     triangular_matrix_vector_solve(A, t, explicit_diagonal, x);
@@ -7587,7 +8208,7 @@ void cholesky_solve(
     // Solve L c = b, using x to store c.
     triangular_matrix_vector_solve(A, t, explicit_diagonal, b, x);
     // Solve L^T x = c, overwriting x with result.
-    triangular_matrix_vector_solve(transpose_view(A), t,
+    triangular_matrix_vector_solve(transposed(A), t,
                                    explicit_diagonal, x);
   }
 }
@@ -7632,7 +8253,8 @@ int cholesky_tsqr_one_step(
     A_rest = subspan(A_rest,
       pair{num_rows_per_block, A_rest.extent(0)}, all);
     // R = R + A_cur^T * A_cur
-    symmetric_matrix_rank_k_update(transpose_view(A_cur),
+    using std::linalg::symmetric_matrix_rank_k_update;
+    symmetric_matrix_rank_k_update(transposed(A_cur),
                                    R, upper_triangle);
   }
 
@@ -7640,6 +8262,7 @@ int cholesky_tsqr_one_step(
   if(info != 0) {
     return info;
   }
+  using std::linalg::triangular_matrix_matrix_left_solve;
   triangular_matrix_matrix_left_solve(R, upper_triangle, A);
   return info;
 }
@@ -7662,7 +8285,7 @@ int cholesky_tsqr(
   assert(A.extent(0) == Q.extent(0));
   assert(A.extent(1) == Q.extent(1));
 
-  linalg_copy(A, Q);
+  copy(A, Q);
   const int info1 = cholesky_tsqr_one_step(Q, R);
   if(info1 != 0) {
     return info1;
@@ -7673,6 +8296,7 @@ int cholesky_tsqr(
     return info2;
   }
   // R = R_tmp * R
+  using std::linalg::triangular_matrix_left_product;
   triangular_matrix_left_product(R_tmp, upper_triangle,
                                  explicit_diagonal, R);
   return 0;
