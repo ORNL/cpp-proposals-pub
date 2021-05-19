@@ -1,0 +1,264 @@
+#+TITLE: P1370R0: Generic numerical algorithm development with(out) ~numeric_limits~
+#+AUTHOR: Mark Hoemmen (mhoemme@sandia.gov) and Damien Lebrun-Grandie (qdi@ornl.gov)
+#+DATE: 21 Nov 2018
+
+* Proposal
+
+[[wg21.link/P0437R1][P0437R1]] proposes to "[b]reak the monolithic ~numeric_limits~ class
+template apart into a lot of individual trait templates, so that new
+traits can be added easily."  We find this uncontroversial, and agree
+that use of a trait should require (in the SFINAE sense) that the
+trait makes sense for the template argument.  For example, the
+"maximum finite value" of an implementation-specific
+arbitrary-precision floating-point type could be unbounded per
+instance of the type, as in MPFR[fn:1], or it could depend on a
+run-time option, as in ARPREC.[fn:2]
+
+Creating new traits also gives us the opportunity to fix the
+inconsistent definition of ~numeric_limits<T>::min~ for integer
+vs. floating-point types ~T~.  For integer types, this function
+returns the minimum value, which for signed types is the negative
+value of largest magnitude.  However, for floating-point types, it
+returns the smallest positive (!) value.  This is surprising, and can
+lead to errors when writing algorithms meant for either integers or
+floating-point values.  Nevertheless, the actual value is useful in
+practice for writing generic numerical algorithms.
+
+We propose the following:
+
+  1. Whatever trait replaces ~numeric_limits<T>::min~, should always
+     give the minimum finite value of ~T~.  For floating-point types,
+     it should give the same value as ~numeric_limits<T>::lowest()~
+     does now.
+     
+  2. The actual current value of ~numeric_limits<T>::min()~ for
+     floating-point types ~T~ is useful for writing generic numerical
+     algorithms, but the name "min" is confusing.  We propose
+     bikeshedding a different name, and suggest ~safe_minimum_v<T>~,
+     based on the equivalent value in the LAPACK linear algebra
+     library.
+
+* Terms
+
+/Numerical algorithms/ use floating-point numbers as approximations to
+real numbers, to do the kinds of computations that scientists,
+engineers, and statisticians often find useful.  /Generic numerical
+algorithms/ are written to work for different kinds of floating-point
+number types.
+
+/IEEE 754/ is the Institute of Electrical and Electronics Engineers'
+standard for binary floating-point computation.  The standard first
+came out in 1985, and the latest revision was released in 2008.  (The
+IEEE 754 Floating Point Standards Committee approved a new draft on 20
+July 2018, as reported by Committee member James Demmel over e-mail.)
+
+* LAPACK's numeric "traits" and safe minimum
+
+In this section, we will show that while ~numeric_limits<T>::min~ is
+not informatively named for floating-point types, it is still a useful
+constant for writing generic numerical algorithms.  In fact, the
+LAPACK[fn:3] linear algebra library uses this value.
+
+** LAPACK is a library of generic numerical algorithms
+
+LAPACK is a Fortran library, but it takes a "generic" approach to
+algorithms for different data types.  LAPACK implements algorithms for
+four different data types:
+
+  - Single-precision real (S)
+  - Double-precision real (D)
+  - Single-precision complex (C)
+  - Double-precision complex (Z)
+
+LAPACK does not rely on Fortran generic procedures or parameterized
+derived types, the closest analogs in Fortran to C++ templates.
+However, most of LAPACK's routines are implemented in such a way that
+one could generate all four versions automatically from a single
+"template."[fn:4]  As a result, we find LAPACK a useful analog to a C++
+library of generic numerical algorithms, written using templates and
+traits classes.  Numerical algorithm developers who are not C++
+programmers have plenty of experience writing generic numerical
+algorithms.  See, for example, "Templates for the Solution of Linear
+Systems,"[fn:5] where "templates" means "recipes," not C++ templates.
+Thus, it should not be surprising to find design patterns in common
+between generic numerical algorithms not specifically using C++, and
+generic C++ libraries.  In fact, our motivating example for keeping
+but renaming ~numeric_limits<T>::min~ for floating-point types ~T~,
+will come from LAPACK's "floating-point traits" routine ~_LAMCH~.
+
+LAPACK's "generic" approach means that algorithm developers need a way
+to access floating-point arithmetic properties as a function of data
+type, just as if a C++ developer were writing an algorithm templated
+on a floating-point type.  Many linear algebra algorithms depend on
+those properties to avoid unwarranted overflow or underflow, and to
+get accurate results.  As a result, LAPACK provides the ~SLAMCH~ and
+~DLAMCH~ routines, that return machine parameters for the given real
+floating-point type (single-precision real resp. double-precision
+real).  (One can derive from these the properties for corresponding
+complex numbers.)
+
+LAPACK routines have a uniform naming convention, where the first
+letter indicates the data type.  LAPACK developers refer to the
+"generic" algorithm by omitting the first letter.  For example,
+~_GEQRF~ represents the same QR factorization for all data types for
+which it is implemented, in this case, ~SGEQRF~, ~DGEQRF~, ~CGEQRF~,
+and ~ZGEQRF~.  Hence, we refer to the "floating-point traits" routines
+~SLAMCH~ and ~DLAMCH~ generically as ~_LAMCH~.
+
+~_LAMCH~ was designed to work on computers that may have non-IEEE-754
+floating-point arithmetic.  Older versions of the routine would
+actually compute the machine parameters.  This is what LAPACK 3.1.1
+does.[fn:6] More recent versions of LAPACK, including the most recent
+version, 3.8.0, rely on Fortran 90 intrinsics to get the values of
+most of the machine parameters.[fn:7]
+
+~_LAMCH~ thus offers functionality analogous to ~numeric_traits~, for
+different real floating-point types.  LAPACK's authors chose this
+functionality specifically for the needs of linear algebra algorithm
+development.  ~_LAMCH~ gives developers several constants.  The one
+most corresponding to the value of ~numeric_traits<T>::min()~ is the
+"safe minimum" ~sfmin~, which is the smallest (or nearly the smallest)
+value ~sfmin~ such that ~T (1.0) / sfmin~ does not overflow.  This is
+useful for algorithms (e.g., equilibration and balancing) that scale
+the rows and/or columns of a matrix to improve accuracy of a
+subsequent factorization.  In the process of improving accuracy, one
+would not want to divide by too small of a number, and thus cause
+unwarranted underflow.
+
+In the most recent version of LAPACK, 3.8.0, LAPACK uses Fortran 90
+intrinsic functions to compute ~sfmin~ as follows:
+#+BEGIN_SRC Fortran
+          sfmin = tiny(zero)
+          small = one / huge(zero)
+          IF( small.GE.sfmin ) THEN
+ *
+ *           Use SMALL plus a bit, to avoid the possibility of rounding
+ *           causing overflow when computing  1/sfmin.
+ *
+             sfmin = small*( one+eps )
+          END IF
+          rmach = sfmin
+#+END_SRC
+
+Here is the C++ equivalent:
+#+BEGIN_SRC C++
+template<class T>
+T safe_minimum (const T& /* ignored */) {
+  constexpr T one (1.0);
+  constexpr T eps = std::numeric_limits<T>::epsilon();
+  constexpr T tiny = std::numeric_limits<T>::min();
+  constexpr T huge = std::numeric_limits<T>::max();
+  constexpr T small = one / huge;
+  T sfmin = tiny;
+  if(small >= tiny) {
+    sfmin = small * (one + eps);
+  }
+  return sfmin;
+}
+#+END_SRC
+
+For IEEE 754 ~float~ and ~double~, the ~IF~ branch never gets taken.
+(LAPACK was originally written to work on computers that did not
+implement IEEE 754 arithmetic, so the extra branches may have made
+sense for earlier computer architectures.  They are also useful as a
+conservative check of floating-point properties.)  Thus, for ~T=float~
+and ~T=double~, ~sfmin~ always equals ~numeric_limits<T>::min()~.
+
+This example shows that algorithm developers do actually want the
+value returned by ~numeric_limits<T>::min()~ for real floating-point
+types ~T~.  However, we would prefer to give it a name that reflects
+its actual use, namely as a lower bound on the absolute value of a
+scaling factor.  We suggest ~safe_minimum_v<T>~ as the new name of
+this trait.  We would accept other names, like ~tiny_v<T>~ (from the
+Fortran intrinsic ~TINY~).
+
+* Conclusion
+
+We (the authors) have experience as developers and users of a C++
+library of generic numerical algorithms, namely Trilinos.[fn:8]  Many
+other such libraries exist, including Eigen[fn:9].  We also use the
+LAPACK library extensively, and have some experience modifying LAPACK
+algorithms.[fn:10]  We use and write traits classes that sometimes
+make use of ~numeric_limits~.  While we have found ~numeric_limits~
+useful, we think it could benefit from the following changes:
+
+  1. Split out different traits into separate traits classes.
+  2. Don't let those classes compile for types for which they do not
+     make sense.
+  3. For floating-point types ~T~, rename the equivalent of
+     ~numeric_limits<T>::min~ to something more indicative of its
+     purpose in generic algorithms, e.g., ~safe_minimum_v<T>~ or
+     ~tiny_v<T>~.
+
+Our thanks to Walter Brown for P0437R1, and for helpful discussion and
+advice.
+
+* Funding and disclaimer
+
+Sandia National Laboratories is a multi-mission laboratory managed and
+operated by National Technology and Engineering Solutions of Sandia,
+LLC., a wholly owned subsidiary of Honeywell International, Inc., for
+the U.S. Department of Energy's National Nuclear Security
+Administration under contract DE-NA0003525.  This paper describes
+objective technical results and analysis.  Any subjective views or
+opinions that might be expressed in the paper do not necessarily
+represent the views of the U.S. Department of Energy or the United
+States Government.
+
+* Footnotes
+
+[fn:1] L. Fousse, G. Hanrot, V. Lefèvre, P. Pélissier, and
+P. Zimmermann, "MPFR: A multiple-precision binary floating-point
+library with correct rounding," ACM Transactions on Mathematical
+Software, Vol. 33, No. 2, June 2007.
+
+[fn:2] D. H. Bailey, Y. Hida, X. S. Li, and B. Thompson, "ARPREC: An
+Arbitrary Precision Computation Package," Lawrence Berkeley National
+Laboratory Technical Report LBNL-53651, 2002.
+
+[fn:3] E. Anderson, Z. Bai, C. Bischof, S. Blackford, J. Demmel,
+J. Dongarra, J. Du Croz, A. Greenbaum, S. Hammarling, A. McKenney, and
+D. Sorensen, "LAPACK Users' Guide," 3rd ed., Society for Industrial
+and Applied Mathematics, Philadelphia, PA, USA, 1999.
+
+[fn:4] J.J. Dongarra, oral history interview by T. Haigh, 26
+Apr. 2004, Society for Industrial and Applied Mathematics,
+Philadelphia, PA, USA; available from
+http://history.siam.org/oralhistories/dongarra.htm.
+
+[fn:5] See, for example, R. Barrett, M. Berry, T. F. Chan, J. Demmel,
+J. Donato, J. Dongarra, V. Eijkhout, R. Pozo, C. Romine, and H. Van
+der Vorst, "Templates for the Solution of Linear Systems: Building
+Blocks for Iterative Methods," 2nd Edition, Society for Industrial and
+Applied Mathematics, Philadelphia, PA, USA, 1994.  "Templates" in the
+title does not mean C++ templates; it means something more like
+"design patterns."
+
+[fn:6] For example, here is the implementation of ~DLAMCH~ in LAPACK
+3.1.1: http://www.netlib.org/lapack/explore-3.1.1-html/dlamch.f.html
+
+[fn:7] See, for example, the much shorter implementation of ~DLAMCH~
+in LAPACK 3.8.0:
+http://www.netlib.org/lapack/explore-html/d5/dd4/dlamch_8f_a06d6aa332f6f66e062e9b96a41f40800.html#a06d6aa332f6f66e062e9b96a41f40800
+
+[fn:8] M. A. Heroux et al., "An overview of the Trilinos project,"
+ACM Transactions on Mathematical Software, Vol. 31, No. 3, Sep. 2005,
+pp. 397-423; M. A. Heroux and J. M. Willenbring, "A New Overview of
+The Trilinos Project," Scientific Programming, Vol 20, No. 2, 2012,
+pp. 83-88.  See also: [[https://github.com/trilinos/Trilinos][Trilinos' GitHub site]], and E. Bavier,
+M. Hoemmen, S. Rajamanickam, and Heidi Thornquist, "Amesos2 and Belos:
+Direct and Iterative Solvers for Large Sparse Linear Systems,"
+Scientific Programming, Vol. 20, No. 3, 2012, pp. 241-255.
+
+[fn:9] Gaël Guennebaud, Benoît Jacob, et al., "Eigen v3,"
+http://eigen.tuxfamily.org, 2010 [last accessed Nov. 2018].  See also
+Eigen's documentation for "Using custom scalar types":
+http://eigen.tuxfamily.org/dox/TopicCustomizing_CustomScalar.html.
+
+[fn:10] See e.g., J. W. Demmel, M. Hoemmen, Y. Hida, and E. J. Riedy,
+"Nonnegative Diagonals and High Performance on Low-Profile Matrices
+from Householder QR," SIAM J. Sci. Comput., Vol. 31, No. 4, 2009,
+pp. 2832-2841.  The authors later found out via a Matlab bug report
+that these changes to LAPACK's Householder reflector computation had
+subtle rounding error issues that broke one of LAPACK's dense
+eigensolver routines, so we ended up backing them out.
