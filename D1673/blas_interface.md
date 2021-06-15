@@ -1897,10 +1897,10 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
 // [linalg.algs.blas1.iamax],
 // index of maximum absolute value of vector elements
 template<class in_vector_t>
-ptrdiff_t idx_abs_max(in_vector_t v);
+extents<>::size_type idx_abs_max(in_vector_t v);
 template<class ExecutionPolicy,
          class in_vector_t>
-ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
+extents<>::size_type idx_abs_max(ExecutionPolicy&& exec,
                       in_vector_t v);
 
 // [linalg.algs.blas1.matfrobnorm],
@@ -3658,10 +3658,10 @@ public:
 
   accessor_scaled(const ScalingFactor& s, Accessor a);
 
-  reference access(pointer p, ptrdiff_t i) const noexcept;
+  reference access(pointer p, extents<>::size_type i) const noexcept;
 
   offset_policy::pointer
-  offset(pointer p, ptrdiff_t i) const noexcept;
+  offset(pointer p, extents<>::size_type i) const noexcept;
 
   element_type* decay(pointer p) const noexcept;
 
@@ -3688,7 +3688,7 @@ accessor_scaled(const ScalingFactor& s, Accessor a);
   initializes `accessor` with `a`.
 
 ```c++
-reference access(pointer p, ptrdiff_t i) const noexcept;
+reference access(pointer p, extents<>::size_type i) const noexcept;
 ```
 
 * *Effects:* Equivalent to
@@ -3696,7 +3696,7 @@ reference access(pointer p, ptrdiff_t i) const noexcept;
 
 ```c++
 offset_policy::pointer
-offset(pointer p, ptrdiff_t i) const noexcept;
+offset(pointer p, extents<>::size_type i) const noexcept;
 ```
 
 * *Effects:* Equivalent to `return accessor.offset(p, i);`.
@@ -3878,11 +3878,11 @@ public:
 
   accessor_conjugate(Accessor a);
 
-  reference access(pointer p, ptrdiff_t i) const
+  reference access(pointer p, extents<>::size_type i) const
     noexcept(noexcept(reference(acc.access(p, i))));
 
   typename offset_policy::pointer
-  offset(pointer p, ptrdiff_t i) const
+  offset(pointer p, extents<>::size_type i) const
     noexcept(noexcept(acc.offset(p, i)));
 
   element_type* decay(pointer p) const
@@ -3922,7 +3922,7 @@ accessor_conjugate(Accessor a);
 * *Effects:* Initializes `acc` with `a`.
 
 ```c++
-reference access(pointer p, ptrdiff_t i) const
+reference access(pointer p, extents<>::size_type i) const
   noexcept(noexcept(reference(acc.access(p, i))));
 ```
 
@@ -3930,7 +3930,7 @@ reference access(pointer p, ptrdiff_t i) const
 
 ```c++
 typename offset_policy::pointer
-offset(pointer p, ptrdiff_t i) const
+offset(pointer p, extents<>::size_type i) const
   noexcept(noexcept(acc.offset(p, i)));
 ```
 
@@ -4114,7 +4114,7 @@ public:
   public:
     mapping(const nested_mapping_type& map);
 
-    ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
+    extents<>::size_type operator() (extents<>::size_type i, extents<>::size_type j) const
       noexcept(noexcept(nested_mapping_(j, i)));
 
     nested_mapping_type nested_mapping() const;
@@ -4171,7 +4171,7 @@ mapping(const nested_mapping_type& map);
 * *Effects:* Initializes `nested_mapping_` with `map`.
 
 ```c++
-ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
+extents<>::size_type operator() (extents<>::size_type i, extents<>::size_type j) const
   noexcept(noexcept(nested_mapping_(j, i)));
 ```
 
@@ -4351,8 +4351,9 @@ nested layouts.
 ```c++
 void test_transposed(basic_mdspan<double, extents<3, 4>> a)
 {
-  const ptrdiff_t num_rows = a.extent(0);
-  const ptrdiff_t num_cols = a.extent(1);
+  using size_type = typename extents<>::size_type; 
+  const size_type num_rows = a.extent(0);
+  const size_type num_cols = a.extent(1);
 
   auto a_t = transposed(a);
   assert(num_rows == a_t.extent(1));
@@ -4360,8 +4361,8 @@ void test_transposed(basic_mdspan<double, extents<3, 4>> a)
   assert(a.stride(0) == a_t.stride(1));
   assert(a.stride(1) == a_t.stride(0));
 
-  for(ptrdiff_t row = 0; row < num_rows; ++row) {
-    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+  for(size_type row = 0; row < num_rows; ++row) {
+    for(size_type col = 0; col < num_rows; ++col) {
       assert(a(row, col) == a_t(col, row));
     }
   }
@@ -4372,8 +4373,8 @@ void test_transposed(basic_mdspan<double, extents<3, 4>> a)
   assert(a.stride(0) == a_t_t.stride(0));
   assert(a.stride(1) == a_t_t.stride(1));
 
-  for(ptrdiff_t row = 0; row < num_rows; ++row) {
-    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+  for(size_type row = 0; row < num_rows; ++row) {
+    for(size_type col = 0; col < num_rows; ++col) {
       assert(a(row, col) == a_t_t(row, col));
     }
   }
@@ -4407,8 +4408,9 @@ conjugate_transposed(
 void test_conjugate_transposed(
   basic_mdspan<complex<double>, extents<3, 4>> a)
 {
-  const ptrdiff_t num_rows = a.extent(0);
-  const ptrdiff_t num_cols = a.extent(1);
+  using size_type = typename extents<>::size_type;
+  const size_type num_rows = a.extent(0);
+  const size_type num_cols = a.extent(1);
 
   auto a_ct = conjugate_transposed(a);
   assert(num_rows == a_ct.extent(1));
@@ -4416,8 +4418,8 @@ void test_conjugate_transposed(
   assert(a.stride(0) == a_ct.stride(1));
   assert(a.stride(1) == a_ct.stride(0));
 
-  for(ptrdiff_t row = 0; row < num_rows; ++row) {
-    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+  for(size_type row = 0; row < num_rows; ++row) {
+    for(size_type col = 0; col < num_rows; ++col) {
       assert(a(row, col) == conj(a_ct(col, row)));
     }
   }
@@ -4428,8 +4430,8 @@ void test_conjugate_transposed(
   assert(a.stride(0) == a_ct_ct.stride(0));
   assert(a.stride(1) == a_ct_ct.stride(1));
 
-  for(ptrdiff_t row = 0; row < num_rows; ++row) {
-    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+  for(size_type row = 0; row < num_rows; ++row) {
+    for(size_type col = 0; col < num_rows; ++col) {
       assert(a(row, col) == a_ct_ct(row, col));
       assert(conj(a_ct(col, row)) == a_ct_ct(row, col));
     }
@@ -5131,11 +5133,11 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
 
 ```c++
 template<class in_vector_t>
-ptrdiff_t idx_abs_max(in_vector_t v);
+extents<>::size_type idx_abs_max(in_vector_t v);
 
 template<class ExecutionPolicy,
          class in_vector_t>
-ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
+extents<>::size_type idx_abs_max(ExecutionPolicy&& exec,
                       in_vector_t v);
 ```
 
@@ -5146,8 +5148,7 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
   `abs(v(i)) < abs(v(j))` is well formed.
 
 * *Effects:* Returns the index (in the domain of `v`) of
-  the first element of `v` having largest absolute value.  If `v` has
-  zero elements, then returns `-1`.
+  the first element of `v` having largest absolute value.
 
 ##### Frobenius norm of a matrix [linalg.algs.blas1.matfrobnorm]
 
@@ -5394,8 +5395,8 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 [*Example:*
 ```c++
-constexpr ptrdiff_t num_rows = 5;
-constexpr ptrdiff_t num_cols = 6;
+constexpr extents<>::size_type num_rows = 5;
+constexpr extents<>::size_type num_cols = 6;
 
 // y = 3.0 * A * x
 void scaled_matvec_1(
@@ -8110,9 +8111,10 @@ template<class inout_matrix_t,
 int cholesky_factor(inout_matrix_t A, Triangle t)
 {
   using element_type = typename inout_matrix_t::element_type;
+  using size_type    = typename extents<>::size_type;
   constexpr element_type ZERO {};
   constexpr element_type ONE (1.0);
-  const ptrdiff_t n = A.extent(0);
+  const size_type n = A.extent(0);
 
   if (n == 0) {
     return 0;
@@ -8127,8 +8129,8 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     // Partition A into [A11, A12,
     //                   A21, A22],
     // where A21 is the transpose of A12.
-    const ptrdiff_t n1 = n / 2;
-    const ptrdiff_t n2 = n - n1;
+    const size_type n1 = n / 2;
+    const size_type n2 = n - n1;
     auto A11 = subspan(A, pair{0, n1}, pair{0, n1});
     auto A22 = subspan(A, pair{n1, n}, pair{n1, n});
 
@@ -8232,19 +8234,20 @@ int cholesky_tsqr_one_step(
   // One might use cache size, sizeof(element_type), and A.extent(1)
   // to pick the number of rows per block.  For now, we just pick
   // some constant.
-  constexpr ptrdiff_t max_num_rows_per_block = 500;
+  using size_type = typename extents<>::size_type;
+  constexpr size_type max_num_rows_per_block = 500;
 
   using R_element_type = typename out_matrix_t::element_type;
   constexpr R_element_type ZERO {};
-  for(ptrdiff_t i = 0; i < R.extent(0); ++i) {
-    for(ptrdiff_t j = 0; j < R.extent(1); ++j) {
+  for(size_type i = 0; i < R.extent(0); ++i) {
+    for(size_type j = 0; j < R.extent(1); ++j) {
       R(0,0) = ZERO;
     }
   }
 
   // Cache-blocked version of R = R + A^T * A.
-  const ptrdiff_t num_rows = A.extent(0);
-  ptrdiff_t rest_num_rows = num_rows;
+  const size_type num_rows = A.extent(0);
+  size_type rest_num_rows = num_rows;
   auto A_rest = A;
   while(A_rest.extent(0) > 0) {
     const ptrdiff num_rows_per_block =
