@@ -1850,11 +1850,11 @@ template<class in_vector_t,
          class T>
 sum_of_squares_result<T> vector_sum_of_squares(
   in_vector_t v,
-  sum_of_squares_result init);
+  sum_of_squares_result<T> init);
 sum_of_squares_result<T> vector_sum_of_squares(
   ExecutionPolicy&& exec,
   in_vector_t v,
-  sum_of_squares_result init);
+  sum_of_squares_result<T> init);
 
 // [linalg.algs.blas1.nrm2],
 // Euclidean norm of a vector
