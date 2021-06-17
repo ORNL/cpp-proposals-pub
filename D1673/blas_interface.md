@@ -3138,24 +3138,24 @@ public:
   struct mapping {
   private:
     Extents extents_; // exposition only
-    const typename Extents::index_type stride_{}; // exposition only
+    const typename Extents::size_type stride_{}; // exposition only
 
   public:
     constexpr mapping(const Extents& e,
-      const typename Extents::index_type s);
+      const typename Extents::size_type s);
 
     template<class OtherExtents>
     constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 
-    typename Extents::index_type
-    operator() (typename Extents::index_type i,
-                typename Extents::index_type j) const;
+    typename Extents::size_type
+    operator() (typename Extents::size_type i,
+                typename Extents::size_type j) const;
 
-    constexpr typename Extents::index_type
+    constexpr typename Extents::size_type
     required_span_size() const noexcept;
 
-    typename Extents::index_type
-    stride(typename Extents::index_type r) const noexcept;
+    typename Extents::size_type
+    stride(typename Extents::size_type r) const noexcept;
 
     template<class OtherExtents>
     bool operator==(const mapping<OtherExtents>& m) const noexcept;
@@ -3186,7 +3186,7 @@ public:
 
 ```c++
 constexpr mapping(const Extents& e,
-  const typename Extents::index_type s);
+  const typename Extents::size_type s);
 ```
 
 * *Requires:*
@@ -3223,9 +3223,9 @@ constexpr mapping(const mapping<OtherExtents>& e) noexcept;
   initializes `stride_` with `m.stride_`.
 
 ```c++
-typename Extents::index_type
-operator() (typename Extents::index_type i,
-            typename Extents::index_type j) const;
+typename Extents::size_type
+operator() (typename Extents::size_type i,
+            typename Extents::size_type j) const;
 ```
 
 * *Requires:*
@@ -3267,8 +3267,8 @@ bool operator!=(const mapping<OtherExtents>& m) const;
   `m.stride(r)` does not equal `stride(r)`.
 
 ```c++
-typename Extents::index_type
-stride(typename Extents::index_type r) const noexcept;
+typename Extents::size_type
+stride(typename Extents::size_type r) const noexcept;
 ```
 
 * *Returns:*
@@ -3280,7 +3280,7 @@ stride(typename Extents::index_type r) const noexcept;
     0, else 1.
 
 ```c++
-constexpr typename Extents::index_type
+constexpr typename Extents::size_type
 required_span_size() const noexcept;
 ```
 
@@ -3383,9 +3383,9 @@ public:
     template<class OtherExtents>
     constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 
-    typename Extents::index_type
-    operator() (typename Extents::index_type i,
-                typename Extents::index_type j) const;
+    typename Extents::size_type
+    operator() (typename Extents::size_type i,
+                typename Extents::size_type j) const;
 
     template<class OtherExtents>
     bool operator==(const mapping<OtherExtents>& m) const noexcept;
@@ -3393,10 +3393,10 @@ public:
     template<class OtherExtents>
     bool operator!=(const mapping<OtherExtents>& m) const noexcept;
 
-    constexpr typename Extents::index_type
-    stride(typename Extents::index_type r) const noexcept;
+    constexpr typename Extents::size_type
+    stride(typename Extents::size_type r) const noexcept;
 
-    constexpr typename Extents::index_type
+    constexpr typename Extents::size_type
     required_span_size() const noexcept;
 
     constexpr Extents extents() const noexcept;
@@ -3443,9 +3443,9 @@ constexpr mapping(const mapping<OtherExtents>& e);
 * *Effects:* Initializes `extents_` with `e`.
 
 ```c++
-typename Extents::index_type
-operator() (typename Extents::index_type i,
-            typename Extents::index_type j) const;
+typename Extents::size_type
+operator() (typename Extents::size_type i,
+            typename Extents::size_type j) const;
 ```
 
 * *Requires:*
@@ -3499,14 +3499,14 @@ bool operator!=(const mapping<OtherExtents>& m) const;
   `m.extent(r)` does not equal `extent(r)`.
 
 ```c++
-constexpr typename Extents::index_type
-stride(typename Extents::index_type r) const noexcept;
+constexpr typename Extents::size_type
+stride(typename Extents::size_type r) const noexcept;
 ```
 
 * *Returns:* 1 if `extent(0)` is less than 2, else 0.
 
 ```c++
-constexpr typename Extents::index_type
+constexpr typename Extents::size_type
 required_span_size() const noexcept;
 ```
 
@@ -4136,7 +4136,7 @@ public:
 
     Extents extents() const noexcept;
 
-    typename Extents::index_type required_span_size() const
+    typename Extents::size_type required_span_size() const
       noexcept(noexcept(nested_mapping_.required_span_size()));
 
     bool is_unique() const
@@ -4154,8 +4154,8 @@ public:
 
     static constexpr bool is_always_strided();
 
-    typename Extents::index_type
-    stride(typename Extents::index_type r) const
+    typename Extents::size_type
+    stride(typename Extents::size_type r) const
       noexcept(noexcept(nested_mapping_.stride(r)));
   };
 };
@@ -4219,7 +4219,7 @@ Extents extents() const noexcept;
   `return transpose_extents(nested_mapping_.extents());`.
 
 ```c++
-typename Extents::index_type
+typename Extents::size_type
 required_span_size() const
   noexcept(noexcept(nested_mapping_.required_span_size()));
 ```
@@ -4270,8 +4270,8 @@ static constexpr bool is_always_strided();
   `return nested_mapping_type::is_always_strided();'.
 
 ```c++
-typename Extents::index_type
-stride(typename Extents::index_type r) const
+typename Extents::size_type
+stride(typename Extents::size_type r) const
   noexcept(noexcept(nested_mapping_.stride(r)));
 ```
 
