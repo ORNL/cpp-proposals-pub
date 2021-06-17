@@ -165,7 +165,7 @@
 
   * Update authors' contact info
 
-  * Replace `ptrdiff_t` with `extents<>::size_type`, due to P0009R11 changes
+  * Fixes due to P0009R11 changes
 
   * Update references to the current revision of P0009 (`mdspan`).
 
@@ -3788,7 +3788,7 @@ meant for a nonconst `ElementType`, with `const ElementType`.
 This is because `Accessor::reference` may be a type other than `ElementType&`.
 Thus, we cannot require that the return type have `const ElementType` as its element type,
 since that might not be compatible with the given `Accessor`.
-However, in some cases, like `accessor_basic`,
+However, in some cases, like `default_accessor`,
 it is possible to deduce the const version of `Accessor`.
 Regardless, users are not allowed to modify the elements of the returned `basic_mdspan`.
 
