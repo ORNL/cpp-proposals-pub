@@ -18,7 +18,7 @@
 ## Contributors
 
 * Chip Freitag (chip.freitag@amd.com) (AMD)
-* Bryce Lelbach (blelbach@nvidia.com) (NVIDIA)
+* Bryce Adelstein Lelbach (brycelelbach@gmail.com) (NVIDIA)
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
