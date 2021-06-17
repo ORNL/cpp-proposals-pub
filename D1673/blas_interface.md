@@ -18,7 +18,7 @@
 ## Contributors
 
 * Chip Freitag (chip.freitag@amd.com) (AMD)
-* Bryce Lelbach (blelbach@nvidia.com) (NVIDIA)
+* Bryce Adelstein Lelbach (brycelelbach@gmail.com) (NVIDIA)
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
@@ -161,6 +161,14 @@
     `triangular_matrix_matrix_left_solve`, and
     `triangular_matrix_matrix_right_solve`.
 
+* Revision 4 (electronic), not yet submitted
+
+  * Update authors' contact info
+
+  * Fixes due to P0009R11 changes
+
+  * Update references to the current revision of P0009 (`mdspan`).
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -195,7 +203,7 @@ Our proposal also has the following distinctive characteristics:
 * The interface is designed in the spirit of the C++ Standard Library's
   algorithms.
 
-* It uses `basic_mdspan` [(P0009R10)](http://wg21.link/p0009r10),
+* It uses `basic_mdspan` [(P0009R11)](http://wg21.link/p0009r11),
   a multidimensional array view, to represent matrices and vectors.
   In the future,
   it could support other proposals' matrix and vector data structures.
@@ -916,7 +924,7 @@ vector element types other than the four that the BLAS supports.
 * Using `basic_mdspan` lets our algorithms exploit
   any dimensions or strides known at compile time.
 
-* `basic_mdspan` has built-in "slicing" capabilities via `subspan`.
+* `basic_mdspan` has built-in "slicing" capabilities via `submdspan`.
 
 * `basic_mdspan`'s layout and accessor policies let us simplify our
   interfaces, by encapsulating transpose, conjugate, and
@@ -1336,7 +1344,7 @@ than any type that satisfies a concept.  We think that the template
 parameters of `basic_mdspan` fully describe the multidimensional
 equivalent of a multipass iterator, and that "conceptification" of
 multidimensional arrays would unnecessarily delay both this proposal.
-and [P0009](http://wg21.link/p0009r10) (the `basic_mdspan` proposal).
+and [P0009](http://wg21.link/p0009r11) (the `basic_mdspan` proposal).
 
 In a future proposal, we plan to generalize our function's template
 parameters, to permit any type besides `basic_mdspan` that implements
@@ -1353,7 +1361,7 @@ for storage.  Contiguity matters because `basic_mdspan` views a subset
 of a contiguous pointer range, and we want to be able to get a
 `basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
 come with support for two different underlying containers: `array` and
-`vector`.  A `subspan` (see [P0009](http://wg21.link/p0009r10)) of a
+`vector`.  Calling `submdspan` (see [P0009](http://wg21.link/p0009r11)) on a
 `basic_mdarray` will return a `basic_mdspan` with the appropriate
 layout and corresponding accessor.  Users must guard against dangling
 pointers, just as they currently must do when using `span` to view a
@@ -1408,7 +1416,7 @@ input argument for all the output arguments in the batch.
 
 ### `basic_mdspan`
 
-This proposal depends on [P0009R10](http://wg21.link/p0009r10), which is
+This proposal depends on [P0009R11](http://wg21.link/p0009r11), which is
 a proposal for adding multidimensional arrays to the C++ Standard
 Library.  `basic_mdspan` is the main class in P0009.  It is a "view"
 (in the sense of `span`) of a multidimensional array.  The rank
@@ -1438,13 +1446,13 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 
 Our proposal uses the layout mapping policy of `basic_mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009R10 have three basic properties:
+policies as described by P0009R11 have three basic properties:
 
 * Unique
 * Contiguous
 * Strided
 
-P0009R10 includes three different layouts -- `layout_left`,
+P0009R11 includes three different layouts -- `layout_left`,
 `layout_right`, and `layout_stride` -- all of which are unique and
 strided.  Only `layout_left` and `layout_right` are contiguous.
 
@@ -1474,7 +1482,7 @@ different function names.
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
-the first addition to the layouts in P0009R10 that is neither always
+the first addition to the layouts in P0009R11 that is neither always
 unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
@@ -1515,8 +1523,7 @@ pioneering efforts and history lessons.
 * C. Trott, D. S. Hollman, D. Lebrun-Grande, M. Hoemmen, D. Sunderland,
   H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
   and J. Michopoulos,
-  "`mdspan`: a Non-Owning Multidimensional Array Reference,"
-  [P0009R10](http://wg21.link/p0009r10), Feb. 2020.
+  "`mdspan`," [P0009R11](http://wg21.link/p0009r11), May 2021.
 
 * M. Hoemmen, D. S. Hollman, and C. Trott, "Evolving a Standard C++
   Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
@@ -1590,7 +1597,7 @@ pioneering efforts and history lessons.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R10 (this proposal is a "rebase" atop the changes proposed by P0009R10).
+> First, apply all wording from P0009R11 (this proposal is a "rebase" atop the changes proposed by P0009R11).
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -1897,11 +1904,12 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
 // [linalg.algs.blas1.iamax],
 // index of maximum absolute value of vector elements
 template<class in_vector_t>
-ptrdiff_t idx_abs_max(in_vector_t v);
+extents<>::size_type idx_abs_max(in_vector_t v);
 template<class ExecutionPolicy,
          class in_vector_t>
-ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
-                      in_vector_t v);
+extents<>::size_type idx_abs_max(
+  ExecutionPolicy&& exec,
+  in_vector_t v);
 
 // [linalg.algs.blas1.matfrobnorm],
 // Frobenius norm of a matrix
@@ -3130,24 +3138,24 @@ public:
   struct mapping {
   private:
     Extents extents_; // exposition only
-    const typename Extents::index_type stride_{}; // exposition only
+    const typename Extents::size_type stride_{}; // exposition only
 
   public:
     constexpr mapping(const Extents& e,
-      const typename Extents::index_type s);
+      const typename Extents::size_type s);
 
     template<class OtherExtents>
     constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 
-    typename Extents::index_type
-    operator() (typename Extents::index_type i,
-                typename Extents::index_type j) const;
+    typename Extents::size_type
+    operator() (typename Extents::size_type i,
+                typename Extents::size_type j) const;
 
-    constexpr typename Extents::index_type
+    constexpr typename Extents::size_type
     required_span_size() const noexcept;
 
-    typename Extents::index_type
-    stride(typename Extents::index_type r) const noexcept;
+    typename Extents::size_type
+    stride(typename Extents::size_type r) const noexcept;
 
     template<class OtherExtents>
     bool operator==(const mapping<OtherExtents>& m) const noexcept;
@@ -3178,7 +3186,7 @@ public:
 
 ```c++
 constexpr mapping(const Extents& e,
-  const typename Extents::index_type s);
+  const typename Extents::size_type s);
 ```
 
 * *Requires:*
@@ -3215,9 +3223,9 @@ constexpr mapping(const mapping<OtherExtents>& e) noexcept;
   initializes `stride_` with `m.stride_`.
 
 ```c++
-typename Extents::index_type
-operator() (typename Extents::index_type i,
-            typename Extents::index_type j) const;
+typename Extents::size_type
+operator() (typename Extents::size_type i,
+            typename Extents::size_type j) const;
 ```
 
 * *Requires:*
@@ -3259,8 +3267,8 @@ bool operator!=(const mapping<OtherExtents>& m) const;
   `m.stride(r)` does not equal `stride(r)`.
 
 ```c++
-typename Extents::index_type
-stride(typename Extents::index_type r) const noexcept;
+typename Extents::size_type
+stride(typename Extents::size_type r) const noexcept;
 ```
 
 * *Returns:*
@@ -3272,7 +3280,7 @@ stride(typename Extents::index_type r) const noexcept;
     0, else 1.
 
 ```c++
-constexpr typename Extents::index_type
+constexpr typename Extents::size_type
 required_span_size() const noexcept;
 ```
 
@@ -3375,9 +3383,9 @@ public:
     template<class OtherExtents>
     constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 
-    typename Extents::index_type
-    operator() (typename Extents::index_type i,
-                typename Extents::index_type j) const;
+    typename Extents::size_type
+    operator() (typename Extents::size_type i,
+                typename Extents::size_type j) const;
 
     template<class OtherExtents>
     bool operator==(const mapping<OtherExtents>& m) const noexcept;
@@ -3385,10 +3393,10 @@ public:
     template<class OtherExtents>
     bool operator!=(const mapping<OtherExtents>& m) const noexcept;
 
-    constexpr typename Extents::index_type
-    stride(typename Extents::index_type r) const noexcept;
+    constexpr typename Extents::size_type
+    stride(typename Extents::size_type r) const noexcept;
 
-    constexpr typename Extents::index_type
+    constexpr typename Extents::size_type
     required_span_size() const noexcept;
 
     constexpr Extents extents() const noexcept;
@@ -3435,9 +3443,9 @@ constexpr mapping(const mapping<OtherExtents>& e);
 * *Effects:* Initializes `extents_` with `e`.
 
 ```c++
-typename Extents::index_type
-operator() (typename Extents::index_type i,
-            typename Extents::index_type j) const;
+typename Extents::size_type
+operator() (typename Extents::size_type i,
+            typename Extents::size_type j) const;
 ```
 
 * *Requires:*
@@ -3491,14 +3499,14 @@ bool operator!=(const mapping<OtherExtents>& m) const;
   `m.extent(r)` does not equal `extent(r)`.
 
 ```c++
-constexpr typename Extents::index_type
-stride(typename Extents::index_type r) const noexcept;
+constexpr typename Extents::size_type
+stride(typename Extents::size_type r) const noexcept;
 ```
 
 * *Returns:* 1 if `extent(0)` is less than 2, else 0.
 
 ```c++
-constexpr typename Extents::index_type
+constexpr typename Extents::size_type
 required_span_size() const noexcept;
 ```
 
@@ -3658,10 +3666,10 @@ public:
 
   accessor_scaled(const ScalingFactor& s, Accessor a);
 
-  reference access(pointer p, ptrdiff_t i) const noexcept;
+  reference access(pointer p, extents<>::size_type i) const noexcept;
 
   offset_policy::pointer
-  offset(pointer p, ptrdiff_t i) const noexcept;
+  offset(pointer p, extents<>::size_type i) const noexcept;
 
   element_type* decay(pointer p) const noexcept;
 
@@ -3688,7 +3696,7 @@ accessor_scaled(const ScalingFactor& s, Accessor a);
   initializes `accessor` with `a`.
 
 ```c++
-reference access(pointer p, ptrdiff_t i) const noexcept;
+reference access(pointer p, extents<>::size_type i) const noexcept;
 ```
 
 * *Effects:* Equivalent to
@@ -3696,7 +3704,7 @@ reference access(pointer p, ptrdiff_t i) const noexcept;
 
 ```c++
 offset_policy::pointer
-offset(pointer p, ptrdiff_t i) const noexcept;
+offset(pointer p, extents<>::size_type i) const noexcept;
 ```
 
 * *Effects:* Equivalent to `return accessor.offset(p, i);`.
@@ -3772,7 +3780,7 @@ to optimize applying `accessor_scaled` twice in a row.
 However, implementations are not required to optimize arbitrary combinations
 of nested `accessor_scaled` interspersed with other nested accessors.
 
-The point of `ReturnElementType` is that, based on P0009R10,
+The point of `ReturnElementType` is that, based on P0009R11,
 it may not be possible to deduce the const version of `Accessor`
 for use in `accessor_scaled`.
 In general, it may not be correct or efficient to use an `Accessor`
@@ -3780,7 +3788,7 @@ meant for a nonconst `ElementType`, with `const ElementType`.
 This is because `Accessor::reference` may be a type other than `ElementType&`.
 Thus, we cannot require that the return type have `const ElementType` as its element type,
 since that might not be compatible with the given `Accessor`.
-However, in some cases, like `accessor_basic`,
+However, in some cases, like `default_accessor`,
 it is possible to deduce the const version of `Accessor`.
 Regardless, users are not allowed to modify the elements of the returned `basic_mdspan`.
 
@@ -3878,11 +3886,11 @@ public:
 
   accessor_conjugate(Accessor a);
 
-  reference access(pointer p, ptrdiff_t i) const
+  reference access(pointer p, extents<>::size_type i) const
     noexcept(noexcept(reference(acc.access(p, i))));
 
   typename offset_policy::pointer
-  offset(pointer p, ptrdiff_t i) const
+  offset(pointer p, extents<>::size_type i) const
     noexcept(noexcept(acc.offset(p, i)));
 
   element_type* decay(pointer p) const
@@ -3897,7 +3905,7 @@ public:
   * `Accessor` shall be *Cpp17CopyConstructible*.
 
   * `Accessor` shall meet the `basic_mdspan` accessor policy
-    requirements (see *[mdspan.accessor.reqs]* in P0009R10).
+    requirements (see *[mdspan.accessor.reqs]* in P0009R11).
 
 ```c++
 using reference = /* see below */;
@@ -3922,7 +3930,7 @@ accessor_conjugate(Accessor a);
 * *Effects:* Initializes `acc` with `a`.
 
 ```c++
-reference access(pointer p, ptrdiff_t i) const
+reference access(pointer p, extents<>::size_type i) const
   noexcept(noexcept(reference(acc.access(p, i))));
 ```
 
@@ -3930,7 +3938,7 @@ reference access(pointer p, ptrdiff_t i) const
 
 ```c++
 typename offset_policy::pointer
-offset(pointer p, ptrdiff_t i) const
+offset(pointer p, extents<>::size_type i) const
   noexcept(noexcept(acc.offset(p, i)));
 ```
 
@@ -4114,8 +4122,9 @@ public:
   public:
     mapping(const nested_mapping_type& map);
 
-    ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
-      noexcept(noexcept(nested_mapping_(j, i)));
+    extents<>::size_type operator() (
+      extents<>::size_type i, extents<>::size_type j) const
+        noexcept(noexcept(nested_mapping_(j, i)));
 
     nested_mapping_type nested_mapping() const;
 
@@ -4127,7 +4136,7 @@ public:
 
     Extents extents() const noexcept;
 
-    typename Extents::index_type required_span_size() const
+    typename Extents::size_type required_span_size() const
       noexcept(noexcept(nested_mapping_.required_span_size()));
 
     bool is_unique() const
@@ -4145,8 +4154,8 @@ public:
 
     static constexpr bool is_always_strided();
 
-    typename Extents::index_type
-    stride(typename Extents::index_type r) const
+    typename Extents::size_type
+    stride(typename Extents::size_type r) const
       noexcept(noexcept(nested_mapping_.stride(r)));
   };
 };
@@ -4155,7 +4164,7 @@ public:
 * *Requires:*
 
   * `Layout` shall meet the `basic_mdspan` layout mapping policy
-    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R10.
+    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R11.
     --*end note]*
 
 * *Constraints:*
@@ -4171,8 +4180,9 @@ mapping(const nested_mapping_type& map);
 * *Effects:* Initializes `nested_mapping_` with `map`.
 
 ```c++
-ptrdiff_t operator() (ptrdiff_t i, ptrdiff_t j) const
-  noexcept(noexcept(nested_mapping_(j, i)));
+extents<>::size_type operator() (
+  extents<>::size_type i, extents<>::size_type j) const
+    noexcept(noexcept(nested_mapping_(j, i)));
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_(j, i);`.
@@ -4209,7 +4219,7 @@ Extents extents() const noexcept;
   `return transpose_extents(nested_mapping_.extents());`.
 
 ```c++
-typename Extents::index_type
+typename Extents::size_type
 required_span_size() const
   noexcept(noexcept(nested_mapping_.required_span_size()));
 ```
@@ -4260,8 +4270,8 @@ static constexpr bool is_always_strided();
   `return nested_mapping_type::is_always_strided();'.
 
 ```c++
-typename Extents::index_type
-stride(typename Extents::index_type r) const
+typename Extents::size_type
+stride(typename Extents::size_type r) const
   noexcept(noexcept(nested_mapping_.stride(r)));
 ```
 
@@ -4351,8 +4361,8 @@ nested layouts.
 ```c++
 void test_transposed(basic_mdspan<double, extents<3, 4>> a)
 {
-  const ptrdiff_t num_rows = a.extent(0);
-  const ptrdiff_t num_cols = a.extent(1);
+  const auto num_rows = a.extent(0);
+  const auto num_cols = a.extent(1);
 
   auto a_t = transposed(a);
   assert(num_rows == a_t.extent(1));
@@ -4360,8 +4370,8 @@ void test_transposed(basic_mdspan<double, extents<3, 4>> a)
   assert(a.stride(0) == a_t.stride(1));
   assert(a.stride(1) == a_t.stride(0));
 
-  for(ptrdiff_t row = 0; row < num_rows; ++row) {
-    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+  for(extents<>::size_type row = 0; row < num_rows; ++row) {
+    for(extents<>::size_type col = 0; col < num_rows; ++col) {
       assert(a(row, col) == a_t(col, row));
     }
   }
@@ -4372,8 +4382,8 @@ void test_transposed(basic_mdspan<double, extents<3, 4>> a)
   assert(a.stride(0) == a_t_t.stride(0));
   assert(a.stride(1) == a_t_t.stride(1));
 
-  for(ptrdiff_t row = 0; row < num_rows; ++row) {
-    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+  for(extents<>::size_type row = 0; row < num_rows; ++row) {
+    for(extents<>::size_type col = 0; col < num_rows; ++col) {
       assert(a(row, col) == a_t_t(row, col));
     }
   }
@@ -4407,8 +4417,8 @@ conjugate_transposed(
 void test_conjugate_transposed(
   basic_mdspan<complex<double>, extents<3, 4>> a)
 {
-  const ptrdiff_t num_rows = a.extent(0);
-  const ptrdiff_t num_cols = a.extent(1);
+  const auto num_rows = a.extent(0);
+  const auto num_cols = a.extent(1);
 
   auto a_ct = conjugate_transposed(a);
   assert(num_rows == a_ct.extent(1));
@@ -4416,8 +4426,8 @@ void test_conjugate_transposed(
   assert(a.stride(0) == a_ct.stride(1));
   assert(a.stride(1) == a_ct.stride(0));
 
-  for(ptrdiff_t row = 0; row < num_rows; ++row) {
-    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+  for(extents<>::size_type row = 0; row < num_rows; ++row) {
+    for(extents<>::size_type col = 0; col < num_rows; ++col) {
       assert(a(row, col) == conj(a_ct(col, row)));
     }
   }
@@ -4428,8 +4438,8 @@ void test_conjugate_transposed(
   assert(a.stride(0) == a_ct_ct.stride(0));
   assert(a.stride(1) == a_ct_ct.stride(1));
 
-  for(ptrdiff_t row = 0; row < num_rows; ++row) {
-    for(ptrdiff_t col = 0; col < num_rows; ++col) {
+  for(extents<>::size_type row = 0; row < num_rows; ++row) {
+    for(extents<>::size_type col = 0; col < num_rows; ++col) {
       assert(a(row, col) == a_ct_ct(row, col));
       assert(conj(a_ct(col, row)) == a_ct_ct(row, col));
     }
@@ -5131,12 +5141,13 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
 
 ```c++
 template<class in_vector_t>
-ptrdiff_t idx_abs_max(in_vector_t v);
+extents<>::size_type idx_abs_max(in_vector_t v);
 
 template<class ExecutionPolicy,
          class in_vector_t>
-ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
-                      in_vector_t v);
+extents<>::size_type idx_abs_max(
+  ExecutionPolicy&& exec,
+  in_vector_t v);
 ```
 
 *[Note:* These functions correspond to the BLAS function `IxAMAX`.
@@ -5147,7 +5158,7 @@ ptrdiff_t idx_abs_max(ExecutionPolicy&& exec,
 
 * *Effects:* Returns the index (in the domain of `v`) of
   the first element of `v` having largest absolute value.  If `v` has
-  zero elements, then returns `-1`.
+  zero elements, then returns `numeric_limits<extents<>::size_type>::max()`.
 
 ##### Frobenius norm of a matrix [linalg.algs.blas1.matfrobnorm]
 
@@ -5394,8 +5405,8 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 [*Example:*
 ```c++
-constexpr ptrdiff_t num_rows = 5;
-constexpr ptrdiff_t num_cols = 6;
+constexpr extents<>::size_type num_rows = 5;
+constexpr extents<>::size_type num_cols = 6;
 
 // y = 3.0 * A * x
 void scaled_matvec_1(
@@ -8112,7 +8123,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
   using element_type = typename inout_matrix_t::element_type;
   constexpr element_type ZERO {};
   constexpr element_type ONE (1.0);
-  const ptrdiff_t n = A.extent(0);
+  const auto n = A.extent(0);
 
   if (n == 0) {
     return 0;
@@ -8127,10 +8138,10 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     // Partition A into [A11, A12,
     //                   A21, A22],
     // where A21 is the transpose of A12.
-    const ptrdiff_t n1 = n / 2;
-    const ptrdiff_t n2 = n - n1;
-    auto A11 = subspan(A, pair{0, n1}, pair{0, n1});
-    auto A22 = subspan(A, pair{n1, n}, pair{n1, n});
+    const extents<>::size_type n1 = n / 2;
+    const extents<>::size_type n2 = n - n1;
+    auto A11 = submdspan(A, pair{0, n1}, pair{0, n1});
+    auto A22 = submdspan(A, pair{n1, n}, pair{n1, n});
 
     // Factor A11
     const int info1 = cholesky_factor(A11, t);
@@ -8142,7 +8153,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     using std::linalg::transposed;
     if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
       // Update and scale A12
-      auto A12 = subspan(A, pair{0, n1}, pair{n1, n});
+      auto A12 = submdspan(A, pair{0, n1}, pair{n1, n});
       using std::linalg::triangular_matrix_matrix_left_solve;
       triangular_matrix_matrix_left_solve(transposed(A11),
         upper_triangle, explicit_diagonal, A12);
@@ -8155,7 +8166,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       // Compute the Cholesky factorization A = L * L^T
       //
       // Update and scale A21
-      auto A21 = subspan(A, pair{n1, n}, pair{0, n1});
+      auto A21 = submdspan(A, pair{n1, n}, pair{0, n1});
       using std::linalg::triangular_matrix_matrix_right_solve;
       triangular_matrix_matrix_right_solve(transposed(A11),
         lower_triangle, explicit_diagonal, A21);
@@ -8232,26 +8243,26 @@ int cholesky_tsqr_one_step(
   // One might use cache size, sizeof(element_type), and A.extent(1)
   // to pick the number of rows per block.  For now, we just pick
   // some constant.
-  constexpr ptrdiff_t max_num_rows_per_block = 500;
+  constexpr extents<>::size_type max_num_rows_per_block = 500;
 
   using R_element_type = typename out_matrix_t::element_type;
   constexpr R_element_type ZERO {};
-  for(ptrdiff_t i = 0; i < R.extent(0); ++i) {
-    for(ptrdiff_t j = 0; j < R.extent(1); ++j) {
+  for(extents<>::size_type i = 0; i < R.extent(0); ++i) {
+    for(extents<>::size_type j = 0; j < R.extent(1); ++j) {
       R(0,0) = ZERO;
     }
   }
 
   // Cache-blocked version of R = R + A^T * A.
-  const ptrdiff_t num_rows = A.extent(0);
-  ptrdiff_t rest_num_rows = num_rows;
+  const auto num_rows = A.extent(0);
+  auto rest_num_rows = num_rows;
   auto A_rest = A;
   while(A_rest.extent(0) > 0) {
     const ptrdiff num_rows_per_block =
       min(A.extent(0), max_num_rows_per_block);
-    auto A_cur = subspan(A_rest, pair{0, num_rows_per_block}, all);
-    A_rest = subspan(A_rest,
-      pair{num_rows_per_block, A_rest.extent(0)}, all);
+    auto A_cur = submdspan(A_rest, pair{0, num_rows_per_block}, full_extent);
+    A_rest = submdspan(A_rest,
+      pair{num_rows_per_block, A_rest.extent(0)}, full_extent);
     // R = R + A_cur^T * A_cur
     using std::linalg::symmetric_matrix_rank_k_update;
     symmetric_matrix_rank_k_update(transposed(A_cur),
