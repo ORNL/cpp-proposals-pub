@@ -5,7 +5,7 @@
 * Mark Hoemmen (mhoemmen@stellarscience.com) (Stellar Science)
 * Daisy Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
-* Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
+* Daniel Sunderland (dansunderland@gmail.com)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratories)
