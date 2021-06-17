@@ -8260,9 +8260,9 @@ int cholesky_tsqr_one_step(
   while(A_rest.extent(0) > 0) {
     const ptrdiff num_rows_per_block =
       min(A.extent(0), max_num_rows_per_block);
-    auto A_cur = submdspan(A_rest, pair{0, num_rows_per_block}, all);
+    auto A_cur = submdspan(A_rest, pair{0, num_rows_per_block}, full_extent);
     A_rest = submdspan(A_rest,
-      pair{num_rows_per_block, A_rest.extent(0)}, all);
+      pair{num_rows_per_block, A_rest.extent(0)}, full_extent);
     // R = R + A_cur^T * A_cur
     using std::linalg::symmetric_matrix_rank_k_update;
     symmetric_matrix_rank_k_update(transposed(A_cur),
