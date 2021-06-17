@@ -161,6 +161,14 @@
     `triangular_matrix_matrix_left_solve`, and
     `triangular_matrix_matrix_right_solve`.
 
+* Revision 4 (electronic), not yet submitted
+
+  * Update authors' contact info
+
+  * Replace `ptrdiff_t` with `extents<>::size_type`, due to P0009R11 changes
+
+  * Update references to the current revision of P0009 (`mdspan`).
+
 ## Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -195,7 +203,7 @@ Our proposal also has the following distinctive characteristics:
 * The interface is designed in the spirit of the C++ Standard Library's
   algorithms.
 
-* It uses `basic_mdspan` [(P0009R10)](http://wg21.link/p0009r10),
+* It uses `basic_mdspan` [(P0009R11)](http://wg21.link/p0009r11),
   a multidimensional array view, to represent matrices and vectors.
   In the future,
   it could support other proposals' matrix and vector data structures.
@@ -1336,7 +1344,7 @@ than any type that satisfies a concept.  We think that the template
 parameters of `basic_mdspan` fully describe the multidimensional
 equivalent of a multipass iterator, and that "conceptification" of
 multidimensional arrays would unnecessarily delay both this proposal.
-and [P0009](http://wg21.link/p0009r10) (the `basic_mdspan` proposal).
+and [P0009](http://wg21.link/p0009r11) (the `basic_mdspan` proposal).
 
 In a future proposal, we plan to generalize our function's template
 parameters, to permit any type besides `basic_mdspan` that implements
@@ -1353,7 +1361,7 @@ for storage.  Contiguity matters because `basic_mdspan` views a subset
 of a contiguous pointer range, and we want to be able to get a
 `basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
 come with support for two different underlying containers: `array` and
-`vector`.  A `subspan` (see [P0009](http://wg21.link/p0009r10)) of a
+`vector`.  A `subspan` (see [P0009](http://wg21.link/p0009r11)) of a
 `basic_mdarray` will return a `basic_mdspan` with the appropriate
 layout and corresponding accessor.  Users must guard against dangling
 pointers, just as they currently must do when using `span` to view a
@@ -1408,7 +1416,7 @@ input argument for all the output arguments in the batch.
 
 ### `basic_mdspan`
 
-This proposal depends on [P0009R10](http://wg21.link/p0009r10), which is
+This proposal depends on [P0009R11](http://wg21.link/p0009r11), which is
 a proposal for adding multidimensional arrays to the C++ Standard
 Library.  `basic_mdspan` is the main class in P0009.  It is a "view"
 (in the sense of `span`) of a multidimensional array.  The rank
@@ -1438,13 +1446,13 @@ without other qualifiers, we mean the most general `basic_mdspan`.
 
 Our proposal uses the layout mapping policy of `basic_mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009R10 have three basic properties:
+policies as described by P0009R11 have three basic properties:
 
 * Unique
 * Contiguous
 * Strided
 
-P0009R10 includes three different layouts -- `layout_left`,
+P0009R11 includes three different layouts -- `layout_left`,
 `layout_right`, and `layout_stride` -- all of which are unique and
 strided.  Only `layout_left` and `layout_right` are contiguous.
 
@@ -1474,7 +1482,7 @@ different function names.
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
-the first addition to the layouts in P0009R10 that is neither always
+the first addition to the layouts in P0009R11 that is neither always
 unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
@@ -1515,8 +1523,7 @@ pioneering efforts and history lessons.
 * C. Trott, D. S. Hollman, D. Lebrun-Grande, M. Hoemmen, D. Sunderland,
   H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
   and J. Michopoulos,
-  "`mdspan`: a Non-Owning Multidimensional Array Reference,"
-  [P0009R10](http://wg21.link/p0009r10), Feb. 2020.
+  "`mdspan`," [P0009R11](http://wg21.link/p0009r11), May 2021.
 
 * M. Hoemmen, D. S. Hollman, and C. Trott, "Evolving a Standard C++
   Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
@@ -1590,7 +1597,7 @@ pioneering efforts and history lessons.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R10 (this proposal is a "rebase" atop the changes proposed by P0009R10).
+> First, apply all wording from P0009R11 (this proposal is a "rebase" atop the changes proposed by P0009R11).
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -3773,7 +3780,7 @@ to optimize applying `accessor_scaled` twice in a row.
 However, implementations are not required to optimize arbitrary combinations
 of nested `accessor_scaled` interspersed with other nested accessors.
 
-The point of `ReturnElementType` is that, based on P0009R10,
+The point of `ReturnElementType` is that, based on P0009R11,
 it may not be possible to deduce the const version of `Accessor`
 for use in `accessor_scaled`.
 In general, it may not be correct or efficient to use an `Accessor`
@@ -3898,7 +3905,7 @@ public:
   * `Accessor` shall be *Cpp17CopyConstructible*.
 
   * `Accessor` shall meet the `basic_mdspan` accessor policy
-    requirements (see *[mdspan.accessor.reqs]* in P0009R10).
+    requirements (see *[mdspan.accessor.reqs]* in P0009R11).
 
 ```c++
 using reference = /* see below */;
@@ -4157,7 +4164,7 @@ public:
 * *Requires:*
 
   * `Layout` shall meet the `basic_mdspan` layout mapping policy
-    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R10.
+    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R11.
     --*end note]*
 
 * *Constraints:*
