@@ -5285,7 +5285,7 @@ auto matrix_one_norm(
   in_matrix_t A) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+* *Effects:* Let `T` be `decltype(abs(A(0,0))`.
   Then, the one-parameter overload is equivalent to
   `matrix_one_norm(A, T{});`,
   and the two-parameter overload is equivalent to
@@ -5344,7 +5344,7 @@ auto matrix_inf_norm(
   in_matrix_t A) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+* *Effects:* Let `T` be `decltype(abs(A(0,0))`.
   Then, the one-parameter overload is equivalent to
   `matrix_inf_norm(A, T{});`,
   and the two-parameter overload is equivalent to
