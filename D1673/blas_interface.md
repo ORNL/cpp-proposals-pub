@@ -924,7 +924,7 @@ vector element types other than the four that the BLAS supports.
 * Using `basic_mdspan` lets our algorithms exploit
   any dimensions or strides known at compile time.
 
-* `basic_mdspan` has built-in "slicing" capabilities via `subspan`.
+* `basic_mdspan` has built-in "slicing" capabilities via `submdspan`.
 
 * `basic_mdspan`'s layout and accessor policies let us simplify our
   interfaces, by encapsulating transpose, conjugate, and
@@ -1361,7 +1361,7 @@ for storage.  Contiguity matters because `basic_mdspan` views a subset
 of a contiguous pointer range, and we want to be able to get a
 `basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
 come with support for two different underlying containers: `array` and
-`vector`.  A `subspan` (see [P0009](http://wg21.link/p0009r11)) of a
+`vector`.  Calling `submdspan` (see [P0009](http://wg21.link/p0009r11)) on a
 `basic_mdarray` will return a `basic_mdspan` with the appropriate
 layout and corresponding accessor.  Users must guard against dangling
 pointers, just as they currently must do when using `span` to view a
@@ -8140,8 +8140,8 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     // where A21 is the transpose of A12.
     const extents<>::size_type n1 = n / 2;
     const extents<>::size_type n2 = n - n1;
-    auto A11 = subspan(A, pair{0, n1}, pair{0, n1});
-    auto A22 = subspan(A, pair{n1, n}, pair{n1, n});
+    auto A11 = submdspan(A, pair{0, n1}, pair{0, n1});
+    auto A22 = submdspan(A, pair{n1, n}, pair{n1, n});
 
     // Factor A11
     const int info1 = cholesky_factor(A11, t);
@@ -8153,7 +8153,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     using std::linalg::transposed;
     if constexpr (std::is_same_v<Triangle, upper_triangle_t>) {
       // Update and scale A12
-      auto A12 = subspan(A, pair{0, n1}, pair{n1, n});
+      auto A12 = submdspan(A, pair{0, n1}, pair{n1, n});
       using std::linalg::triangular_matrix_matrix_left_solve;
       triangular_matrix_matrix_left_solve(transposed(A11),
         upper_triangle, explicit_diagonal, A12);
@@ -8166,7 +8166,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       // Compute the Cholesky factorization A = L * L^T
       //
       // Update and scale A21
-      auto A21 = subspan(A, pair{n1, n}, pair{0, n1});
+      auto A21 = submdspan(A, pair{n1, n}, pair{0, n1});
       using std::linalg::triangular_matrix_matrix_right_solve;
       triangular_matrix_matrix_right_solve(transposed(A11),
         lower_triangle, explicit_diagonal, A21);
@@ -8260,8 +8260,8 @@ int cholesky_tsqr_one_step(
   while(A_rest.extent(0) > 0) {
     const ptrdiff num_rows_per_block =
       min(A.extent(0), max_num_rows_per_block);
-    auto A_cur = subspan(A_rest, pair{0, num_rows_per_block}, all);
-    A_rest = subspan(A_rest,
+    auto A_cur = submdspan(A_rest, pair{0, num_rows_per_block}, all);
+    A_rest = submdspan(A_rest,
       pair{num_rows_per_block, A_rest.extent(0)}, all);
     // R = R + A_cur^T * A_cur
     using std::linalg::symmetric_matrix_rank_k_update;
