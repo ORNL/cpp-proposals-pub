@@ -1,11 +1,11 @@
-# P1673R3: A free function linear algebra interface based on the BLAS
+# D1673R4: A free function linear algebra interface based on the BLAS
 
 ## Authors
 
 * Mark Hoemmen (mhoemmen@stellarscience.com) (Stellar Science)
 * Daisy Hollman (dshollm@sandia.gov) (Sandia National Laboratories)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
-* Daniel Sunderland (dsunder@sandia.gov) (Sandia National Laboratories)
+* Daniel Sunderland (dansunderland@gmail.com)
 * Nevin Liber (nliber@anl.gov) (Argonne National Laboratory)
 * Li-Ta Lo (ollie@lanl.gov) (Los Alamos National Laboratory)
 * Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratories)
@@ -163,11 +163,12 @@
 
 * Revision 4 (electronic), not yet submitted
 
-  * Update authors' contact info
+  * Update authors' contact info.
 
-  * Fixes due to P0009R11 changes
-
-  * Update references to the current revision of P0009 (`mdspan`).
+  * Rebase atop P2299R3, which in turn sits atop P0009R12.
+    Make any needed fixes due to these changes.
+    (P1673R3 was based on P0009R10, without P2299.)
+    Update P0009 references to point to the latest version.
 
 ## Purpose of this paper
 
@@ -203,7 +204,8 @@ Our proposal also has the following distinctive characteristics:
 * The interface is designed in the spirit of the C++ Standard Library's
   algorithms.
 
-* It uses `basic_mdspan` [(P0009R11)](http://wg21.link/p0009r11),
+* It uses `mdspan` ([P0009R12](https://wg21.link/p0009r12) and
+  [P2299R3](https://wg21.link/p2299r3)),
   a multidimensional array view, to represent matrices and vectors.
   In the future,
   it could support other proposals' matrix and vector data structures.
@@ -225,10 +227,10 @@ Our proposal also has the following distinctive characteristics:
   optional execution policy argument.  This is a hook to support
   parallel execution and hierarchical parallelism (through the
   proposed executor extensions to execution policies, see
-  [P1019R2](http://wg21.link/p1019r2)).
+  [P1019R2](https://wg21.link/p1019r2)).
 
 * Unlike the BLAS, our proposal can be expanded to support "batched"
-  operations (see [P1417R0](http://wg21.link/p1417r0)) with almost no
+  operations (see [P1417R0](https://wg21.link/p1417r0)) with almost no
   interface differences.  This will support machine learning and other
   applications that need to do many small matrix or vector operations
   at once.
@@ -236,8 +238,8 @@ Our proposal also has the following distinctive characteristics:
 ## Interoperable with other linear algebra proposals
 
 We believe this proposal is complementary to
-[P1385](http://wg21.link/p1385), a proposal for a C++ Standard linear
-algebra library that introduces matrix and vector classes and
+[P1385R6](https://wg21.link/p1385r6), a proposal for a C++ Standard linear
+algebra library that introduces matrix and vector classes with
 overloaded arithmetic operators.  In fact, we think that our proposal
 would make a natural foundation for a library like what P1385
 proposes.  However, a free function interface -- which clearly
@@ -246,32 +248,35 @@ a richer set of operations such as what the BLAS provides.  A natural
 extension of the present proposal would include accepting P1385's
 matrix and vector objects as input for the algorithms proposed here.
 A straightforward way to do that would be for P1385's matrix and vector objects
-to make views of their data available as `basic_mdspan`.
+to make views of their data available as `mdspan`.
 
 ## Why include dense linear algebra in the C++ Standard Library?
 
-1. C++ applications in "important application areas" (see
-   [P0939R0](http://wg21.link/p0939r0)) have depended on linear algebra for a
+1. "Direction for ISO C++" [(P0939R4)](https://wg21.link/p0939r4)
+   explicitly calls out "Linear Algebra" as a potential priority for C++23.
+
+2. C++ applications in "important application areas" (see
+   [P0939R4](https://wg21.link/p0939r4)) have depended on linear algebra for a
    long time.
 
-2. Linear algebra is like `sort`: obvious algorithms are slow, and the
+3. Linear algebra is like `sort`: obvious algorithms are slow, and the
    fastest implementations call for hardware-specific tuning.
 
-3. Dense linear algebra is core functionality for most of linear
+4. Dense linear algebra is core functionality for most of linear
    algebra, and can also serve as a building block for tensor
    operations.
 
-4. The C++ Standard Library includes plenty of "mathematical
+5. The C++ Standard Library includes plenty of "mathematical
    functions."  Linear algebra operations like matrix-matrix multiply
    are at least as broadly useful.
 
-5. The set of linear algebra operations in this proposal are derived
+6. The set of linear algebra operations in this proposal are derived
    from a well-established, standard set of algorithms that has
    changed very little in decades.  It is one of the strongest
    possible examples of standardizing existing practice that anyone
    could bring to C++.
 
-6. This proposal follows in the footsteps of many recent successful
+7. This proposal follows in the footsteps of many recent successful
    incorporations of existing standards into C++, including the UTC
    and TAI standard definitions from the International
    Telecommunications Union, the time zone database standard from the
@@ -279,20 +284,22 @@ to make views of their data available as `basic_mdspan`.
    integrate the ISO unicode standard.
 
 Linear algebra has had wide use in C++ applications for nearly three
-decades (see [P1417R0](http://wg21.link/p1417r0) for a historical survey).
+decades (see [P1417R0](https://wg21.link/p1417r0) for a historical survey).
 For much of that time, many third-party C++ libraries for linear
 algebra have been available.  Many different subject areas depend on
 linear algebra, including machine learning, data mining, web search,
 statistics, computer graphics, medical imaging, geolocation and
 mapping, engineering, and physics-based simulations.
 
-["Directions for ISO C++" (P0939R0)](http://wg21.link/p0939r0) offers the
-following in support of adding linear algebra to the C++ Standard
-Library:
+"Directions for ISO C++" [(P0939R4)](https://wg21.link/p0939r4)
+not only lists "Linear Algebra" explicitly as a potential C++23 priority,
+it also offers the following
+in support of adding linear algebra to the C++ Standard Library.
 
-* P0939R0 calls out "Support for demanding applications in important
-  application areas, such as medical, finance, automotive, and games
-  (e.g., key libraries...)" as an area of general concern that "we
+* P0939R4 calls out "Support for demanding applications"
+  in "important application areas,
+  such as medical, finance, automotive, and games
+  (e.g., key libraries...)" as an "area of general concern" that "we
   should not ignore."  All of these areas depend on linear algebra.
 
 * "Is my proposal essential for some important application domain?"
@@ -331,9 +338,8 @@ libraries (see below).  In this respect, linear algebra is also
 analogous to standard library features like `random_device`: often
 implemented directly in assembly or even with special hardware, and
 thus an essential component of allowing no room for another language
-"below" C++ (see notes on this philosophy in
-[P0939R0](http://wg21.link/p0939r0) and Stroustrup's seminal work "The Design
-and Evolution of C++").
+"below" C++ (see [P0939R4](https://wg21.link/p0939r4)
+and Stroustrup's "The Design and Evolution of C++").
 
 Dense linear algebra is the core component of most algorithms and
 applications that use linear algebra, and the component that is most
@@ -378,7 +384,7 @@ that started in 1995 and held meetings three times a year until 1999.
 Participants in the process came from industry, academia, and
 government research laboratories.  The dense linear algebra subset of
 the BLAS codifies forty years of evolving practice, and has existed in
-recognizable form since 1990 (see [P1417R0](http://wg21.link/p1417r0)).
+recognizable form since 1990 (see [P1417R0](https://wg21.link/p1417r0)).
 
 The BLAS interface was specifically designed as the distillation of
 the "computer science" / performance-oriented parts of linear algebra
@@ -407,7 +413,7 @@ exists and it has a liberal software license for easy reuse.
 We have experience in the exercise of wrapping a C or Fortran BLAS
 implementation for use in portable C++ libraries.  We describe this
 exercise in detail in our paper ["Evolving a Standard C++ Linear
-Algebra Library from the BLAS" (P1674)](http://wg21.link/p1674).  It
+Algebra Library from the BLAS" (P1674)](https://wg21.link/p1674).  It
 is straightforward for vendors, but has pitfalls for developers.  For
 example, Fortran's application binary interface (ABI) differs across
 platforms in ways that can cause run-time errors (even incorrect
@@ -568,7 +574,7 @@ The BLAS Standard includes functionality that appears neither in the
 BLAS](http://www.netlib.org/lapack/explore-html/d1/df9/group__blas.html)
 library, nor in the classic BLAS "level" 1, 2, and 3 papers.  (For
 history of the BLAS "levels" and a bibliography, see
-[P1417R0](http://wg21.link/p1417r0).  For a paper describing functions not in
+[P1417R0](https://wg21.link/p1417r0).  For a paper describing functions not in
 the Reference BLAS, see "An updated set of basic linear algebra
 subprograms (BLAS)," listed in "Other references" below.)  For
 example, the BLAS Standard has
@@ -593,7 +599,7 @@ following reasons:
 3. The Sparse BLAS interface is a stateful interface that is not
    consistent with the dense BLAS, and would need more extensive
    redesign to translate into a modern C++ idiom.  See discussion in
-   [P1417R0](http://wg21.link/p1417r0).
+   [P1417R0](https://wg21.link/p1417r0).
 
 4. Our proposal subsumes some dense mixed-precision functionality (see
    below).
@@ -610,7 +616,7 @@ solvers for the following classes of mathematical problems:
 It also provides matrix factorizations and related linear algebra
 operations.  LAPACK deliberately relies on the BLAS for good
 performance; in fact, LAPACK and the BLAS were designed together.  See
-history presented in [P1417R0](http://wg21.link/p1417r0).
+history presented in [P1417R0](https://wg21.link/p1417r0).
 
 Several C++ libraries provide slices of LAPACK functionality.  Here is
 a brief, noninclusive list, in alphabetical order, of some libraries
@@ -622,7 +628,7 @@ actively being maintained:
 * [Matrix Template Library](http://www.simunova.com/de/mtl4/), and
 * [Trilinos](https://github.com/trilinos/Trilinos/).
 
-[P1417R0](http://wg21.link/p1417r0) gives some history of C++ linear
+[P1417R0](https://wg21.link/p1417r0) gives some history of C++ linear
 algebra libraries.  The authors of this proposal have
 [designed](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf),
 [written](https://github.com/kokkos/kokkos-kernels), and
@@ -664,7 +670,7 @@ includes "short" floating-point types, fixed-point types, integers,
 and user-defined arithmetic types.  Doing this is easier for BLAS-like
 operations than for the much more complicated numerical algorithms in
 LAPACK.  LAPACK strives for a "generic" design (see Jack Dongarra
-interview summary in [P1417R0](http://wg21.link/p1417r0)), but only supports
+interview summary in [P1417R0](https://wg21.link/p1417r0)), but only supports
 two real floating-point types and two complex floating-point types.
 Directly translating LAPACK source code into a "generic" version could
 lead to pitfalls.  Many LAPACK algorithms only make sense for number
@@ -726,11 +732,9 @@ We do so for the following reasons:
    introduce problems such as dangling references and aliasing.
 
 Our goal is to propose a low-level interface.  Other libraries, such
-as that proposed by [P1385](http://wg21.link/p1385), could use our
+as that proposed by [P1385R6](https://wg21.link/p1385r6), could use our
 interface to implement overloaded arithmetic for matrices and vectors.
-[P0939R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0939r0.pdf)
-advocates using "an incremental approach to design to benefit from
-actual experience."  A constrained, function-based, BLAS-like
+A constrained, function-based, BLAS-like
 interface builds incrementally on the many years of BLAS experience.
 
 Arithmetic operators on matrices and vectors would require the
@@ -744,7 +748,7 @@ loses precision.  Some users may want `complex<double>`; others may
 want `complex<long double>` or something else, and others may want to
 choose different types in the same program.
 
-[P1385](http://wg21.link/p1385) lets users customize the return type
+[P1385R6](https://wg21.link/p1385r6) lets users customize the return type
 of such arithmetic expressions.  However, different algorithms may
 call for the same expression with the same inputs to have different
 output types.  For example, iterative refinement of linear systems
@@ -763,7 +767,7 @@ switched from Fortran 77 to a subset of Fortran 90, their users
 rejected the option of letting LAPACK functions allocate temporary
 storage on their own.  Users wanted to control memory allocation.
 Also, allocating storage precludes use of nonowning input data
-structures like `basic_mdspan`, that do not know how to allocate.
+structures like `mdspan`, that do not know how to allocate.
 
 Arithmetic expressions on matrices or vectors strongly suggest
 expression templates, as a way to avoid allocation of temporaries and
@@ -784,7 +788,7 @@ the run-time environment needs to copy noncontiguous slices of an
 array into contiguous temporary storage.)
 
 Expression templates work well, but have issues.  Our papers
-[P1417R0](http://wg21.link/p1417r0) and "Evolving a Standard C++ Linear
+[P1417R0](https://wg21.link/p1417r0) and "Evolving a Standard C++ Linear
 Algebra Library from the BLAS" (P1674R0) give more detail on these
 issues.  A particularly troublesome one is that modern C++ `auto`
 makes it easy for users to capture expressions before their evaluation
@@ -797,12 +801,12 @@ describes this common problem.
 
 Our `scaled`, `conjugated`, `transposed`, and `conjugate_transposed` functions
 make use of one aspect of expression templates, namely modifying the
-`basic_mdspan` array access operator.  However, we intend these
+`mdspan` array access operator.  However, we intend these
 functions for use only as in-place modifications of arguments of a
-function call.  Also, when modifying `basic_mdspan`, these functions
-merely view the same data that their input `basic_mdspan` views.  They
+function call.  Also, when modifying `mdspan`, these functions
+merely view the same data that their input `mdspan` views.  They
 introduce no more potential for dangling references than
-`basic_mdspan` itself.  The use of views like `basic_mdspan` is
+`mdspan` itself.  The use of views like `mdspan` is
 self-documenting; it tells users that they need to take responsibility
 for scope of the viewed data.
 
@@ -847,13 +851,13 @@ For instance, a hypothetical asynchronous vector 2-norm
 might write its scalar result via a pointer to GPU memory,
 instead of returning the result "on the CPU."
 
-Nothing in principle prevents `basic_mdspan` from viewing memory
+Nothing in principle prevents `mdspan` from viewing memory
 that is inaccessible from ordinary C++ code.
 This is a major feature of the `Kokkos::View` class
 from the [Kokkos library](https://github.com/kokkos/kokkos),
-and `Kokkos::View` directly inspired `basic_mdspan`.
+and `Kokkos::View` directly inspired `mdspan`.
 The C++ Standard does not currently define how such memory behaves,
-but implementations could define its behavior and make it work with `basic_mdspan`.
+but implementations could define its behavior and make it work with `mdspan`.
 This would, in turn, let implementations define our algorithms
 to operate on such memory efficiently,
 if given the right implementation-specific `ExecutionPolicy`.
@@ -867,7 +871,7 @@ rather than writing the result to an output reference or pointer.
 (Previous revisions of our proposal used the latter interface pattern.)
 Second, it's not clear whether writing a scalar result to a pointer
 is the right interface for asynchronous algorithms.
-Follow-on proposals to [Executors (P0443R14)](http://wg21.link/p0443R14)
+Follow-on proposals to [Executors (P0443R14)](https://wg21.link/p0443R14)
 include asynchronous algorithms,
 but none of these suggest returning results asynchronously by pointer.
 Our proposal deliberately imitates the existing standard algorithms.
@@ -882,16 +886,16 @@ existing C++ Standard Library algorithms.  Future work or
 collaboration with other proposals could implement a higher-level
 interface.
 
-We propose to build the initial interface on top of `basic_mdspan`,
-and plan to extend that later with overloads for a new `basic_mdarray`
-variant of `basic_mdspan` with container semantics as well as any type
+We propose to build the initial interface on top of `mdspan`,
+and plan to extend that later with overloads for a new `mdarray`
+variant of `mdspan` with container semantics as well as any type
 implementing a `get_mdspan` customization point.
 We explain the value of these choices below.
 
 Please refer to our papers "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" [(P1674R0)](http://wg21.link/p1674r0)
+Library from the BLAS" [(P1674R0)](https://wg21.link/p1674r0)
 and "Historical lessons for C++ linear algebra library standardization"
-[(P1417R0)](http://wg21.link/p1417r0).  They will give details and references
+[(P1417R0)](https://wg21.link/p1417r0).  They will give details and references
 for many of the points that we summarize here.
 
 ### We do not require using the BLAS library
@@ -906,7 +910,7 @@ implementation that does not depend on an external library.  They
 will, in any case, need a "generic" C++ implementation for matrix and
 vector element types other than the four that the BLAS supports.
 
-### Why use `basic_mdspan`?
+### Why use `mdspan`?
 
 * C++ does not currently have a data structure for representing
   multidimensional arrays.
@@ -916,59 +920,59 @@ vector element types other than the four that the BLAS supports.
   multidimensional array data structures in the C++ interface reduces
   the number of arguments and avoids common errors.
 
-* `basic_mdspan` supports row-major, column-major,
+* `mdspan` supports row-major, column-major,
   and strided layouts out of the box, and it has `Layout` as an
   extension point.  This lets our interface support layouts beyond
   what the BLAS Standard permits.
 
-* Using `basic_mdspan` lets our algorithms exploit
+* Using `mdspan` lets our algorithms exploit
   any dimensions or strides known at compile time.
 
-* `basic_mdspan` has built-in "slicing" capabilities via `submdspan`.
+* `mdspan` has built-in "slicing" capabilities via `submdspan`.
 
-* `basic_mdspan`'s layout and accessor policies let us simplify our
+* `mdspan`'s layout and accessor policies let us simplify our
   interfaces, by encapsulating transpose, conjugate, and
   scalar arguments.  See below for details.
 
-* `basic_mdspan` is low level; it imposes no
+* `mdspan` is low level; it imposes no
   mathematical meaning on multidimensional arrays.  This gives users
   the freedom to develop mathematical libraries with the semantics
   they want.  (Some users object to calling something a "matrix" or
   "tensor" if it doesn't have the right mathematical properties.  The
   C++ Standard has already taken the word `vector`.)
 
-* Using `basic_mdspan` offers us a hook for future expansion
+* Using `mdspan` offers us a hook for future expansion
   to support heterogeneous memory spaces.
   (This is a key feature of `Kokkos::View`,
-  the data structure that inspired `basic_mdspan`.)
+  the data structure that inspired `mdspan`.)
 
-* `basic_mdspan`'s encapsulation of matrix indexing
+* `mdspan`'s encapsulation of matrix indexing
   makes C++ implementations of BLAS-like operations
   much less error prone and easier to read.
 
-* Using `basic_mdspan` will make it easier for us to add
+* Using `mdspan` will make it easier for us to add
   an efficient "batched" interface in future proposals.
 
 #### Defining a concept for the data structures instead
 
 LEWGI requested in the 2019 Cologne meeting that we explore using a
-concept instead of `basic_mdspan` to define the arguments for the
+concept instead of `mdspan` to define the arguments for the
 linear algebra functions.
 We investigated this option, and rejected it, for the following reasons.
 
-1. Our proposal uses enough features of `basic_mdspan`
+1. Our proposal uses enough features of `mdspan`
    that any concept generally applicable to all functions we propose
-   would largely replicate the definition of `basic_mdspan`.
+   would largely replicate the definition of `mdspan`.
 
 2. This proposal could support most multidimensional array types,
-   if the array types just made themselves convertible to `basic_mdspan`.
+   if the array types just made themselves convertible to `mdspan`.
 
 3. We could always generalize our algorithms later.
 
 4. Any multidimensional array concept would need revision
-   in the light of [P2128R3](http://wg21.link/p2128).
+   in the light of [P2128R5](https://wg21.link/p2128r5).
 
-This proposal refers to almost all of `basic_mdspan`'s features,
+This proposal refers to almost all of `mdspan`'s features,
 including `extents`, `layout`, and `accessor_policy`.
 We expect implementations to use all of them for optimizations,
 for example to extract the scaling factor from the return value of `scaled`
@@ -976,7 +980,7 @@ in order to call an optimized BLAS library directly.
 
 Suppose that a general customization point `get_mdspan` existed,
 that takes a reference to a multidimensional array type
-and returns a `basic_mdspan` that views the array.
+and returns an `mdspan` that views the array.
 Then, our proposal could support most multidimensional array types.
 "Most" includes all such types that refer to a subset of a contiguous span of memory.
 
@@ -987,13 +991,13 @@ If we later wanted to support such types,
 we could always generalize our algorithms later.
 
 Finally, any multidimensional array concept would need revision
-in the light of [P2128R3](http://wg21.link/p2128),
-which finished LEWG review in March 2021.
+in the light of [P2128R5](https://wg21.link/p2128r5),
+which has been sent by EWG to electronic polling, targeting CWG.
 P2128 proposes letting `operator[]` take multiple parameters.
-Its authors intend to let `basic_mdspan` use `operator[]` instead of `operator()`.
+Its authors intend to let `mdspan` use `operator[]` instead of `operator()`.
 
 After further discussion at the 2019 Belfast meeting,
-LEWGI accepted our position that having our algorithms take `basic_mdspan`
+LEWGI accepted our position that having our algorithms take `mdspan`
 instead of template parameters constrained by a multidimensional array concept
 would be fine for now.
 
@@ -1047,13 +1051,13 @@ Summary:
    Type is a mixture of "storage format" (e.g., packed, banded) and
    "mathematical property" (e.g., symmetric, Hermitian, triangular).
 
-2. Some "types" can be expressed as custom `basic_mdspan` layouts.
+2. Some "types" can be expressed as custom `mdspan` layouts.
    Other types actually represent algorithmic constraints: for
    instance, what entries of the matrix the algorithm is allowed to
    access.
 
 3. Thus, a C++ BLAS wrapper cannot overload on matrix "type" simply by
-   overloading on `basic_mdspan` specialization.  The wrapper must use
+   overloading on `mdspan` specialization.  The wrapper must use
    different function names, tags, or some other way to decide what
    the matrix type is.
 
@@ -1070,11 +1074,11 @@ distinguishing the matrix "type":
    arguments.
 
 2. It could introduce a hierarchy of higher-level classes for
-   representing linear algebra objects, use `basic_mdspan` (or
+   representing linear algebra objects, use `mdspan` (or
    something like it) underneath, and write algorithms to those
    higher-level classes.
 
-3. It could use the layout and accessor types in `basic_mdspan` simply
+3. It could use the layout and accessor types in `mdspan` simply
    as tags to indicate the matrix "type."  Algorithms could specialize
    on those tags.
 
@@ -1083,7 +1087,7 @@ should be as low-level as possible.  Approach 2 is more like a "Matlab
 in C++"; a library that implements this could build on our proposal's
 lower-level library.  Approach 3 _sounds_ attractive.  However, most
 BLAS matrix "types" do not have a natural representation as layouts.
-Trying to hack them in would pollute `basic_mdspan` -- a simple class
+Trying to hack them in would pollute `mdspan` -- a simple class
 meant to be easy for the compiler to optimize -- with extra baggage
 for representing what amounts to sparse matrices.  We think that BLAS
 matrix "type" is better represented with a higher-level library that
@@ -1187,7 +1191,7 @@ LEWG's 2020 review of P1673R2 asked us to investigate conceptification of its al
 to come up with concepts that could be used to constrain the template parameters
 of numeric algorithms like `reduce` or `transform`.
 (We are not referring to LEWGI's request for us to consider
-generalizing our algorithm's parameters from `basic_mdspan`
+generalizing our algorithm's parameters from `mdspan`
 to a hypothetical multidimensional array concept.
 We discuss that above; see "Defining a concept for the data structures instead.")
 The numeric algorithms are relevant to P1673 because many of the algorithms proposed in P1673
@@ -1331,54 +1335,54 @@ not how the types that go into the algorithms behave.
 
 Summary:
 
-1. Generalize function parameters to take any type that implements the
-   `get_mdspan` customization point, including `basic_mdarray`.
+1. Consider generalizing function parameters to take any type that implements the
+   `get_mdspan` customization point, including `mdarray`.
 
 2. Add batched linear algebra overloads.
 
 ### Generalize function parameters
 
 Our functions differ from the C++ Standard algorithms, in that they
-take a concrete type `basic_mdspan` with template parameters, rather
+take a concrete type `mdspan` with template parameters, rather
 than any type that satisfies a concept.  We think that the template
-parameters of `basic_mdspan` fully describe the multidimensional
+parameters of `mdspan` fully describe the multidimensional
 equivalent of a multipass iterator, and that "conceptification" of
-multidimensional arrays would unnecessarily delay both this proposal.
-and [P0009](http://wg21.link/p0009r11) (the `basic_mdspan` proposal).
+multidimensional arrays would unnecessarily delay both this proposal
+and [P0009](https://wg21.link/p0009r12).
 
-In a future proposal, we plan to generalize our function's template
-parameters, to permit any type besides `basic_mdspan` that implements
+In a future proposal, we may consider generalizing our function's template
+parameters, to permit any type besides `mdspan` that implements
 the `get_mdspan` customization point, as long as the return value of
-`get_mdspan` satisfies the current requirements.  `get_mdspan` will
-return a `basic_mdspan` that views its argument's data.
+`get_mdspan` satisfies the current requirements.  `get_mdspan` would
+return an `mdspan` that views its argument's data.
 
-`basic_mdarray`, proposed in [P1684](http://wg21.link/p1684), is the
-container analog of `basic_mdspan`.  It is a new kind of container,
+The `mdarray` class, proposed in [P1684R0](https://wg21.link/p1684r0), is the
+container analog of `mdspan`.  It is a new kind of container,
 with the same copy behavior as containers like `vector`.  It has the same
-extension points as `basic_mdspan`, and also has the ability to use
+extension points as `mdspan`, and also has the ability to use
 any *contiguous container* (see **[container.requirements.general]**)
-for storage.  Contiguity matters because `basic_mdspan` views a subset
+for storage.  Contiguity matters because `mdspan` views a subset
 of a contiguous pointer range, and we want to be able to get a
-`basic_mdspan` that views the `basic_mdarray`.  `basic_mdarray` will
+`mdspan` that views the `mdarray`.  The `mdarray` class will
 come with support for two different underlying containers: `array` and
-`vector`.  Calling `submdspan` (see [P0009](http://wg21.link/p0009r11)) on a
-`basic_mdarray` will return a `basic_mdspan` with the appropriate
+`vector`.  Calling `submdspan` (see [P0009R12](https://wg21.link/p0009r12)) on a
+`mdarray` will return an `mdspan` with the appropriate
 layout and corresponding accessor.  Users must guard against dangling
 pointers, just as they currently must do when using `span` to view a
 subset of a `vector`.
 
 Previous versions of this proposal included function overloads that
-took `basic_mdarray` directly.  The goals were user convenience, and
-to avoid any potential overhead of conversion to `basic_mdspan`,
+took `mdarray` directly.  The goals were user convenience, and
+to avoid any potential overhead of conversion to `mdspan`,
 especially for very small matrices and vectors.  In a future revision
-of P1684, `basic_mdarray` will implement `get_mdspan`.  This will let
-users use `basic_mdarray` directly in our functions.  This
+of P1684, `mdarray` may implement `get_mdspan`.  This would let
+users use `mdarray` directly in our functions.  This
 customization point approach would also simplify using our functions
 with other matrix and vector types, such as those proposed by
-[P1385](http://wg21.link/p1385).  Implementations may optionally add
-direct overloads of our functions for `basic_mdarray` or other types.
+[P1385R6](https://wg21.link/p1385r6).  Implementations may optionally add
+direct overloads of our functions for `mdarray` or other types.
 This would address any concerns about overhead of converting from
-`basic_mdarray` to `basic_mdspan`.
+`mdarray` to `mdspan`.
 
 ### Batched linear algebra
 
@@ -1386,7 +1390,7 @@ We plan to write a separate proposal that will add "batched" versions
 of linear algebra functions to this proposal.  "Batched" linear
 algebra functions solve many independent problems all at once, in a
 single function call.  For discussion, see Section 6.2 of our
-background paper [P1417R0](http://wg21.link/p1417r0).  Batched
+background paper [P1417R0](https://wg21.link/p1417r0).  Batched
 interfaces have the following advantages:
 
 * They expose more parallelism and vectorization opportunities for
@@ -1401,7 +1405,7 @@ interfaces have the following advantages:
 * There is an ongoing [interface standardization
   effort](http://icl.utk.edu/bblas/), in which we participate.
 
-The `basic_mdspan` data structure makes it easy to represent a batch
+The `mdspan` data structure makes it easy to represent a batch
 of linear algebra objects, and to optimize their data layout.
 
 With few exceptions, the extension of this proposal to support batched
@@ -1414,37 +1418,38 @@ input argument for all the output arguments in the batch.
 
 ## Data structures and utilities borrowed from other proposals
 
-### `basic_mdspan`
+### `mdspan`
 
-This proposal depends on [P0009R11](http://wg21.link/p0009r11), which is
-a proposal for adding multidimensional arrays to the C++ Standard
-Library.  `basic_mdspan` is the main class in P0009.  It is a "view"
+This proposal depends on [P0009R12](https://wg21.link/p0009r12)
+and its follow-on paper [P2299R3](https://wg21.link/p2299r3),
+which together propose adding multidimensional arrays to the C++ Standard
+Library.  P0009's main class is `mdspan`, which is a "view"
 (in the sense of `span`) of a multidimensional array.  The rank
 (number of dimensions) is fixed at compile time.  Users may specify
 some dimensions at run time and others at compile time; the type of
-the `basic_mdspan` expresses this.  `basic_mdspan` also has two
+the `mdspan` expresses this.  `mdspan` also has two
 customization points:
 
-  * `Layout` expresses the array's memory layout: e.g., row-major (C++
-    style), column-major (Fortran style), or strided.  We use a custom
-    `Layout` later in this paper to implement a "transpose view" of an
-    existing `basic_mdspan`.
+* `Layout` expresses the array's memory layout: e.g., row-major (C++
+  style), column-major (Fortran style), or strided.  We use a custom
+  `Layout` later in this paper to implement a "transpose view" of an
+  existing `mdspan`.
 
-  * `Accessor` defines the storage handle (i.e., `pointer`) stored in
-    the `mdspan`, as well as the reference type returned by its access
-    operator.  This is an extension point for modifying how access
-    happens, for example by using `atomic_ref` to get atomic access to
-    every element.  We use custom `Accessor`s later in this paper to
-    implement "scaled views" and "conjugated views" of an existing
-    `basic_mdspan`.
+* `Accessor` defines the storage handle (i.e., `pointer`) stored in
+  the `mdspan`, as well as the reference type returned by its access
+  operator.  This is an extension point for modifying how access
+  happens, for example by using `atomic_ref` to get atomic access to
+  every element.  We use custom `Accessor`s later in this paper to
+  implement "scaled views" and "conjugated views" of an existing
+  `mdspan`.
 
-The `basic_mdspan` class has an alias `mdspan` that uses the default
+The `mdspan` class has an alias `mdspan` that uses the default
 `Layout` and `Accessor`.  In this paper, when we refer to `mdspan`
-without other qualifiers, we mean the most general `basic_mdspan`.
+without other qualifiers, we mean the most general `mdspan`.
 
-### New `basic_mdspan` layouts in this proposal
+### New `mdspan` layouts in this proposal
 
-Our proposal uses the layout mapping policy of `basic_mdspan` in order
+Our proposal uses the layout mapping policy of `mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
 policies as described by P0009R11 have three basic properties:
 
@@ -1476,7 +1481,7 @@ differences are constraints on what entries of the matrix algorithms
 may access, and assumptions about the matrix's mathematical
 properties.  Trying to express those constraints or assumptions as
 "layouts" or "accessors" violates the spirit (and sometimes the law)
-of `basic_mdspan`.  We address these different matrix types with
+of `mdspan`.  We address these different matrix types with
 different function names.
 
 The packed matrix "types" do describe actual arrangements of matrix
@@ -1489,7 +1494,7 @@ Algorithms cannot be written generically if they permit output
 arguments with nonunique layouts.  Nonunique output arguments require
 specialization of the algorithm to the layout, since there's no way to
 know generically at compile time what indices map to the same matrix
-element.  Thus, we will impose the following rule: Any `basic_mdspan`
+element.  Thus, we will impose the following rule: Any `mdspan`
 output argument to our functions must always have unique layout
 (`is_always_unique()` is `true`), unless otherwise specified.
 
@@ -1522,19 +1527,23 @@ pioneering efforts and history lessons.
 
 * C. Trott, D. S. Hollman, D. Lebrun-Grande, M. Hoemmen, D. Sunderland,
   H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
-  and J. Michopoulos,
-  "`mdspan`," [P0009R11](http://wg21.link/p0009r11), May 2021.
+  J. Michopoulos, and N. Liber,
+  "`mdspan`," [P0009R12](https://wg21.link/p0009r12), May 2021.
+
+* B. A. Lelbach, "`mdspan` of All Dynamic Extents,"
+  [P2299R3](https://wg21.link/p2299r3), Jun. 2021.
 
 * M. Hoemmen, D. S. Hollman, and C. Trott, "Evolving a Standard C++
-  Linear Algebra Library from the BLAS," P1674R0, Jun. 2019.
+  Linear Algebra Library from the BLAS,"
+  [P1674R0](https://wg21.link/p1674), Jun. 2019.
 
 * M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
   J. Michopoulos, "Historical lessons for C++ linear algebra library
-  standardization," [(P1417R0)](http://wg21.link/p1417r0), Jan. 2019.
+  standardization," [P1417R0](https://wg21.link/p1417r0), Jan. 2019.
 
 * M. Hoemmen, D. S. Hollman, C. Jabot, I. Muerte, and C. Trott,
   "Multidimensional subscript operator,"
-  [P2128R3](http://wg21.link/p2128r3), Feb. 2021.
+  [P2128R5](https://wg21.link/p2128r5), Apr. 2021.
 
 * D. S. Hollman, C. Trott, M. Hoemmen, and D. Sunderland, "`mdarray`: An
   Owning Multidimensional Array Analog of `mdspan`",
@@ -1542,7 +1551,7 @@ pioneering efforts and history lessons.
 
 * D. S. Hollman, C. Kohlhoff, B. A. Lelbach, J. Hoberock, G. Brown, and
   M. Dominiak, "A General Property Customization Mechanism,"
-  [P1393R0](http://wg21.link/p1393r0), Jan. 2019.
+  [P1393R0](https://wg21.link/p1393r0), Jan. 2019.
 
 ### Other references
 
@@ -1560,10 +1569,10 @@ pioneering efforts and history lessons.
 
 * G. Davidson and B. Steagall, "A proposal to add linear algebra
   support to the C++ standard library,"
-  [P1385R4](http://wg21.link/p1385r4), Nov. 2019.
+  [P1385R6](https://wg21.link/p1385r6), Mar. 2020.
 
 * B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
-  "Direction for ISO C++," [P0939R0](http://wg21.link/p0939r0), Feb. 2018.
+  "Direction for ISO C++," [P0939R4](https://wg21.link/p0939r4), Oct. 2019.
 
 * J. Dongarra, R. Pozo, and D. Walker, "LAPACK++: A Design Overview of
   Object-Oriented Extensions for High Performance Linear Algebra," in
@@ -1582,13 +1591,13 @@ pioneering efforts and history lessons.
   2008.
 
 * J. Hoberock, "Integrating Executors with Parallel Algorithms,"
-  [P1019R2](http://wg21.link/p1019r2), Jan. 2019.
+  [P1019R2](https://wg21.link/p1019r2), Jan. 2019.
 
 * N. A. Josuttis, "The C++ Standard Library: A Tutorial and Reference,"
   Addison-Wesley, 1999.
 
 * M. Kretz, "Data-Parallel Vector Types & Operations,"
-  [P0214r9](http://wg21.link/p0214r9), Mar. 2018.
+  [P0214r9](https://wg21.link/p0214r9), Mar. 2018.
 
 * D. Vandevoorde and N. A. Josuttis, "C++ Templates: The Complete
   Guide," Addison-Wesley Professional, 2003.
@@ -1597,7 +1606,9 @@ pioneering efforts and history lessons.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R11 (this proposal is a "rebase" atop the changes proposed by P0009R11).
+> First, apply all wording first from P0009R12, and then from P2299R3.
+> (This proposal is a "rebase" atop the changes proposed by P0009R12 and P2299R3.
+> P2299R3's changes are relative to those proposed by P0009R12.)
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -1646,7 +1657,7 @@ template<class ScalingFactor,
 /* see-below */
 scaled(
   const ScalingFactor& s,
-  const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
+  const mdspan<ElementType, Extents, Layout, Accessor>& a);
 
 // [linalg.conj.accessor_conjugate], class template accessor_conjugate
 template<class Accessor>
@@ -1659,7 +1670,7 @@ template<class ElementType,
          class Accessor>
 /* see-below */
 conjugated(
-  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+  mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.transp.layout_transpose], class template layout_transpose
 template<class Layout>
@@ -1672,7 +1683,7 @@ template<class ElementType,
          class Accessor>
 /* see-below */
 transposed(
-  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+  mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.conj_transp],
 // conjugated transposed in-place transformation
@@ -1682,7 +1693,7 @@ template<class ElementType,
          class Accessor>
 /* see-below */
 conjugate_transposed(
-  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+  mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.algs.blas1.givens.lartg], compute Givens rotation
 template<class Real>
@@ -3057,7 +3068,7 @@ inline constexpr lower_triangle_t lower_triangle = { };
 ```
 
 These tag classes specify whether algorithms and other users of a
-matrix (represented as a `basic_mdspan`) should
+matrix (represented as an `mdspan`) should
 access the upper triangle (`upper_triangular_t`) or lower triangle
 (`lower_triangular_t`) of the matrix.  This is also subject to the
 restrictions of `implicit_unit_diagonal_t` if that tag is also
@@ -3093,7 +3104,7 @@ users of the viewer may access the matrix's diagonal entries directly.
 
 #### `layout_blas_general` [linalg.layouts.general]
 
-`layout_blas_general` is a `basic_mdspan` layout mapping policy.  Its
+`layout_blas_general` is an `mdspan` layout mapping policy.  Its
 `StorageOrder` template parameter determines whether the matrix's data
 layout is column major or row major.
 
@@ -3336,10 +3347,10 @@ constexpr bool is_strided() const noexcept;
 
 #### `layout_blas_packed` [linalg.layouts.packed]
 
-`layout_blas_packed` is a `basic_mdspan` layout mapping policy that
+`layout_blas_packed` is an `mdspan` layout mapping policy that
 represents a square matrix that stores only the entries in one
 triangle, in a packed contiguous format.  Its `Triangle` template
-parameter determines whether an `basic_mdspan` with this layout stores
+parameter determines whether an `mdspan` with this layout stores
 the upper or lower triangle of the matrix.  Its `StorageOrder`
 template parameter determines whether the layout packs the matrix's
 elements in column-major or row-major order.
@@ -3556,8 +3567,8 @@ constexpr bool is_strided() const noexcept;
 
 ### Scaled in-place transformation [linalg.scaled]
 
-The `scaled` function takes a value `alpha` and a `basic_mdspan`
-`x`, and returns a new read-only `basic_mdspan` with the same domain
+The `scaled` function takes a value `alpha` and an `mdspan`
+`x`, and returns a new read-only `mdspan` with the same domain
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
 
@@ -3598,15 +3609,15 @@ run-time value(s) of the relevant BLAS function arguments (e.g.,
 
 #### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
 
-The class template `accessor_scaled` is a `basic_mdspan` accessor
+The class template `accessor_scaled` is an `mdspan` accessor
 policy whose reference type represents the product of a fixed value
-(the "scaling factor") and its nested `basic_mdspan` accessor's
+(the "scaling factor") and its nested `mdspan` accessor's
 reference.  It is part of the implementation of `scaled`.
 
 The exposition-only class template `scaled_scalar` represents a
 read-only value, which is the product of a fixed value (the "scaling
 factor") and the value of a reference to an element of a
-`basic_mdspan`.  *[Note:* The value is read only to avoid confusion
+`mdspan`.  *[Note:* The value is read only to avoid confusion
 with the definition of "assigning to a scaled scalar."  --*end note]*
 `scaled_scalar` is part of the implementation of `scaled_accessor`.
 
@@ -3648,9 +3659,9 @@ operator result_type() const;
 
 * *Effects:* Equivalent to `return scaling_factor * value;`.
 
-The class template `accessor_scaled` is a `basic_mdspan` accessor
+The class template `accessor_scaled` is an `mdspan` accessor
 policy whose reference type represents the product of a scaling factor
-and its nested `basic_mdspan` accessor's reference.
+and its nested `mdspan` accessor's reference.
 
 ```c++
 template<class ScalingFactor,
@@ -3685,7 +3696,7 @@ private:
 
   * `ScalingFactor` and `Accessor` shall be *Cpp17CopyConstructible*.
 
-  * `Accessor` shall meet the `basic_mdspan` accessor policy
+  * `Accessor` shall meet the `mdspan` accessor policy
     requirements (see *[mdspan.accessor.reqs]* in P0009).
 
 ```c++
@@ -3723,8 +3734,8 @@ ScalingFactor scaling_factor() const;
 
 #### `scaled` [linalg.scaled.scaled]
 
-The `scaled` function takes a value `alpha` and a `basic_mdspan`
-`x`, and returns a new read-only `basic_mdspan` with the same domain
+The `scaled` function takes a value `alpha` and an `mdspan`
+`x`, and returns a new read-only `mdspan` with the same domain
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
 
@@ -3737,11 +3748,11 @@ template<class ScalingFactor,
 /* see below */
 scaled(
   const ScalingFactor& s,
-  const basic_mdspan<ElementType, Extents, Layout, Accessor>& a);
+  const mdspan<ElementType, Extents, Layout, Accessor>& a);
 ```
 
 Let `R` name the type
-`basic_mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
+`mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
   * `ReturnElementType` is either `ElementType` or
@@ -3771,7 +3782,7 @@ where
   * else, equivalent to
     `return R(a.data(), a.mapping(), ReturnAccessor(s, a.accessor()));`.
 
-* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+* *Remarks:* The elements of the returned `mdspan` are read only.
 
 *[Note:*
 
@@ -3790,13 +3801,13 @@ Thus, we cannot require that the return type have `const ElementType` as its ele
 since that might not be compatible with the given `Accessor`.
 However, in some cases, like `default_accessor`,
 it is possible to deduce the const version of `Accessor`.
-Regardless, users are not allowed to modify the elements of the returned `basic_mdspan`.
+Regardless, users are not allowed to modify the elements of the returned `mdspan`.
 
 --*end note]*
 
 [*Example:*
 ```c++
-void test_scaled(basic_mdspan<double, extents<10>> a)
+void test_scaled(mdspan<double, extents<10>> a)
 {
   auto a_scaled = scaled(5.0, a);
   for(int i = 0; i < a.extent(0); ++i) {
@@ -3808,8 +3819,8 @@ void test_scaled(basic_mdspan<double, extents<10>> a)
 
 ### Conjugated in-place transformation [linalg.conj]
 
-The `conjugated` function takes a `basic_mdspan` `x`, and returns
-a new read-only `basic_mdspan` `y` with the same domain as `x`, whose
+The `conjugated` function takes an `mdspan` `x`, and returns
+a new read-only `mdspan` `y` with the same domain as `x`, whose
 elements are the complex conjugates of the corresponding elements of
 `x`.  If the element type of `x` is not `complex<R>` for some `R`,
 then `y` is a read-only view of the elements of `x`.
@@ -3817,7 +3828,7 @@ then `y` is a read-only view of the elements of `x`.
 *[Note:*
 
 An implementation could dispatch to a function in the BLAS library, by
-noticing that the `Accessor` type of a `basic_mdspan` input has type
+noticing that the `Accessor` type of an `mdspan` input has type
 `accessor_conjugate`, and that its nested `Accessor` type is
 compatible with the BLAS library.  If so, it could set the
 corresponding `TRANS*` BLAS function argument accordingly and call the
@@ -3827,13 +3838,13 @@ BLAS function.
 
 #### Class template `accessor_conjugate` [linalg.conj.accessor_conjugate]
 
-The class template `accessor_conjugate` is a `basic_mdspan` accessor
+The class template `accessor_conjugate` is an `mdspan` accessor
 policy whose reference type represents the complex conjugate of its
-nested `basic_mdspan` accessor's reference.
+nested `mdspan` accessor's reference.
 
 The exposition-only class template `conjugated_scalar` represents a
 read-only value, which is the complex conjugate of the value of a
-reference to an element of a `basic_mdspan`.  *[Note:* The value is
+reference to an element of an `mdspan`.  *[Note:* The value is
 read only to avoid confusion with the definition of "assigning to the
 conjugate of a scalar."  --*end note]* `conjugated_scalar` is part of
 the implementation of `accessor_conjugate`.
@@ -3904,7 +3915,7 @@ public:
 
   * `Accessor` shall be *Cpp17CopyConstructible*.
 
-  * `Accessor` shall meet the `basic_mdspan` accessor policy
+  * `Accessor` shall meet the `mdspan` accessor policy
     requirements (see *[mdspan.accessor.reqs]* in P0009R11).
 
 ```c++
@@ -3966,11 +3977,11 @@ template<class ElementType,
          class Accessor>
 /* see-below */
 conjugated(
-  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+  mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 Let `R` name the type
-`basic_mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
+`mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
   * `ReturnElementType` is either `ElementType` or
@@ -4000,7 +4011,7 @@ where
   * else, equivalent to
     `return R(a.data(), a.mapping(), a.accessor());`.
 
-* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+* *Remarks:* The elements of the returned `mdspan` are read only.
 
 *[Note:*
 
@@ -4014,7 +4025,7 @@ nested `accessor_conjugate` interspersed with other nested accessors.
 [*Example:*
 ```c++
 void test_conjugated_complex(
-  basic_mdspan<complex<double>, extents<10>> a)
+  mdspan<complex<double>, extents<10>> a)
 {
   auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
@@ -4027,7 +4038,7 @@ void test_conjugated_complex(
 }
 
 void test_conjugated_real(
-  basic_mdspan<double, extents<10>> a)
+  mdspan<double, extents<10>> a)
 {
   auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
@@ -4043,12 +4054,12 @@ void test_conjugated_real(
 
 ### Transpose in-place transformation [linalg.transp]
 
-`layout_transpose` is a `basic_mdspan` layout mapping policy that
+`layout_transpose` is an `mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
-of any unique `basic_mdspan` layout mapping policy.
+of any unique `mdspan` layout mapping policy.
 
-The `transposed` function takes a rank-2 `basic_mdspan`
-representing a matrix, and returns a new read-only `basic_mdspan`
+The `transposed` function takes a rank-2 `mdspan`
+representing a matrix, and returns a new read-only `mdspan`
 representing the transpose of the input matrix.
 
 *[Note:*
@@ -4063,9 +4074,9 @@ value(s) of the relevant `TRANS*` BLAS function arguments.
 
 #### `layout_transpose` [linalg.transp.layout_transpose]
 
-`layout_transpose` is a `basic_mdspan` layout mapping policy that
+`layout_transpose` is an `mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
-of any unique `basic_mdspan` layout mapping policy.
+of any unique `mdspan` layout mapping policy.
 
 ```c++
 template<class InputExtents>
@@ -4163,7 +4174,7 @@ public:
 
 * *Requires:*
 
-  * `Layout` shall meet the `basic_mdspan` layout mapping policy
+  * `Layout` shall meet the `mdspan` layout mapping policy
     requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R11.
     --*end note]*
 
@@ -4282,15 +4293,15 @@ stride(typename Extents::size_type r) const
 
 #### `transposed` [linalg.transp.transposed]
 
-The `transposed` function takes a rank-2 `basic_mdspan`
-representing a matrix, and returns a new read-only `basic_mdspan`
+The `transposed` function takes a rank-2 `mdspan`
+representing a matrix, and returns a new read-only `mdspan`
 representing the transpose of the input matrix.  The input matrix's
-data are not modified, and the returned `basic_mdspan` accesses the
-input matrix's data in place.  If the input `basic_mdspan`'s layout is
+data are not modified, and the returned `mdspan` accesses the
+input matrix's data in place.  If the input `mdspan`'s layout is
 already `layout_transpose<L>` for some layout `L`, then the returned
-`basic_mdspan` has layout `L`.  Otherwise, the returned `basic_mdspan`
+`mdspan` has layout `L`.  Otherwise, the returned `mdspan`
 has layout `layout_transpose<L>`, where `L` is the input
-`basic_mdspan`'s layout.
+`mdspan`'s layout.
 
 ```c++
 template<class ElementType,
@@ -4299,12 +4310,12 @@ template<class ElementType,
          class Accessor>
 /* see-below */
 transposed(
-  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+  mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 Let `ReturnExtents` name the type `transpose_extents_t<Extents>`.
 Let `R` name the type
-`basic_mdspan<ReturnElementType, ReturnExtents, ReturnLayout, Accessor>`,
+`mdspan<ReturnElementType, ReturnExtents, ReturnLayout, Accessor>`,
 where
 
   * `ReturnElementType` is either `ElementType` or
@@ -4346,7 +4357,7 @@ where
     where `ReturnMapping` names the type
     `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
 
-* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+* *Remarks:* The elements of the returned `mdspan` are read only.
 
 *[Note:*
 
@@ -4359,7 +4370,7 @@ nested layouts.
 
 [*Example:*
 ```c++
-void test_transposed(basic_mdspan<double, extents<3, 4>> a)
+void test_transposed(mdspan<double, extents<3, 4>> a)
 {
   const auto num_rows = a.extent(0);
   const auto num_cols = a.extent(1);
@@ -4404,18 +4415,18 @@ template<class ElementType,
          class Accessor>
 /* see-below */
 conjugate_transposed(
-  basic_mdspan<ElementType, Extents, Layout, Accessor> a);
+  mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
 * *Effects:* Equivalent to
   `return conjugated(transposed(a));`.
 
-* *Remarks:* The elements of the returned `basic_mdspan` are read only.
+* *Remarks:* The elements of the returned `mdspan` are read only.
 
 [*Example:*
 ```c++
 void test_conjugate_transposed(
-  basic_mdspan<complex<double>, extents<3, 4>> a)
+  mdspan<complex<double>, extents<3, 4>> a)
 {
   const auto num_rows = a.extent(0);
   const auto num_cols = a.extent(1);
@@ -4467,38 +4478,38 @@ or other things as appropriate.
 * `Real` is any of the following types: `float`, `double`, or `long
   double`.
 
-* `in_vector*_t` is a rank-1 `basic_mdspan` with a
+* `in_vector*_t` is a rank-1 `mdspan` with a
   potentially `const` element type and a unique layout.  If the algorithm
   accesses the object, it will do so in read-only fashion.
 
-* `inout_vector*_t` is a rank-1 `basic_mdspan`
+* `inout_vector*_t` is a rank-1 `mdspan`
   with a non-`const` element type and a unique layout.
 
-* `out_vector*_t` is a rank-1 `basic_mdspan` with
+* `out_vector*_t` is a rank-1 `mdspan` with
   a non-`const` element type and a unique layout.  If the algorithm
   accesses the object, it will do so in write-only fashion.
 
-* `in_matrix*_t` is a rank-2 `basic_mdspan` with a
+* `in_matrix*_t` is a rank-2 `mdspan` with a
   `const` element type.  If the algorithm accesses the object, it will
   do so in read-only fashion.
 
-* `inout_matrix*_t` is a rank-2 `basic_mdspan`
+* `inout_matrix*_t` is a rank-2 `mdspan`
   with a non-`const` element type.
 
-* `out_matrix*_t` is a rank-2 `basic_mdspan` with
+* `out_matrix*_t` is a rank-2 `mdspan` with
   a non-`const` element type.  If the algorithm accesses the object,
   it will do so in write-only fashion.
 
 * `in_object*_t` is a rank-1 or rank-2
-  `basic_mdspan` with a potentially `const` element type and a unique
+  `mdspan` with a potentially `const` element type and a unique
   layout.  If the algorithm accesses the object, it will do so in read-only
   fashion.
 
 * `inout_object*_t` is a rank-1 or rank-2
-  `basic_mdspan` with a non-`const` element type and a unique layout.
+  `mdspan` with a non-`const` element type and a unique layout.
 
 * `out_object*_t` is a rank-1 or rank-2
-  `basic_mdspan` with a non-`const` element type and a unique layout.
+  `mdspan` with a non-`const` element type and a unique layout.
 
 * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
@@ -4506,11 +4517,11 @@ or other things as appropriate.
   `explicit_diagonal_t`.
 
 * `in_*_t` template parameters may deduce a `const` lvalue reference
-   or a (non-`const`) rvalue reference to a `basic_mdspan`.
+   or a (non-`const`) rvalue reference to an `mdspan`.
 
 * `inout_*_t` and `out_*_t` template parameters may deduce a `const` lvalue
-  reference to a `basic_mdspan`, or a (non-`const`) rvalue reference to a
-  `basic_mdspan`.
+  reference to an `mdspan`, or a (non-`const`) rvalue reference to an
+  `mdspan`.
 
 #### BLAS 1 functions [linalg.algs.blas1]
 
@@ -5274,7 +5285,7 @@ auto matrix_one_norm(
   in_matrix_t A) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+* *Effects:* Let `T` be `decltype(abs(A(0,0))`.
   Then, the one-parameter overload is equivalent to
   `matrix_one_norm(A, T{});`,
   and the two-parameter overload is equivalent to
@@ -5333,7 +5344,7 @@ auto matrix_inf_norm(
   in_matrix_t A) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+* *Effects:* Let `T` be `decltype(abs(A(0,0))`.
   Then, the one-parameter overload is equivalent to
   `matrix_inf_norm(A, T{});`,
   and the two-parameter overload is equivalent to
@@ -8105,7 +8116,7 @@ This is why the `ExecutionPolicy` overload exists.
 ### Cholesky factorization
 
 This example shows how to compute the Cholesky factorization of a real
-symmetric positive definite matrix A stored as a `basic_mdspan` with a
+symmetric positive definite matrix A stored as an `mdspan` with a
 unique non-packed layout.  The algorithm imitates `DPOTRF2` in LAPACK
 3.9.0.  If `Triangle` is `upper_triangle_t`, then it computes the
 Cholesky factorization A = U^T U.  Otherwise, it computes the Cholesky
