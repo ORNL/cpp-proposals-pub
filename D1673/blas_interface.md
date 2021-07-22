@@ -6634,8 +6634,8 @@ void matrix_product(ExecutionPolicy&& exec,
 
 These functions correspond to the BLAS function `xSYMM`.
 
-Unlike the symmetric rank-1 update functions, these functions assume
-that the input matrix -- not the output matrix -- is symmetric.
+Unlike the symmetric rank-1 or rank-k update functions, these functions assume
+that the input matrix `A` -- not the output matrix -- is symmetric.
 
 --*end note]*
 
@@ -6657,7 +6657,7 @@ The following requirements apply to all functions in this section.
   * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
     `out_matrix_t` have unique layout.
 
-  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+  * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
 
@@ -6880,7 +6880,7 @@ void symmetric_matrix_right_product(
 
 These functions correspond to the BLAS function `xHEMM`.
 
-Unlike the Hermitian rank-1 update functions, these functions assume
+Unlike the Hermitian rank-1 or rank-k update functions, these functions assume
 that the input matrix -- not the output matrix -- is Hermitian.
 
 --*end note]*
@@ -6903,7 +6903,7 @@ The following requirements apply to all functions in this section.
   * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
     `out_matrix_t` have unique layout.
 
-  * If `in_matrix_t` has `layout_blas_packed` layout, then the
+  * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
 
