@@ -168,7 +168,19 @@
   * Rebase atop P2299R3, which in turn sits atop P0009R12.
     Make any needed fixes due to these changes.
     (P1673R3 was based on P0009R10, without P2299.)
-    Update P0009 references to point to the latest version.
+    Update P0009 references to point to the latest version (R12).
+
+  * Fix requirements for `{symmetric,hermitian}_matrix_{left,right}_product`.
+
+  * Change `SemiRegular<Scalar>` to `semiregular<Scalar>`.
+
+  * Make `Real` requirements refer to **[complex.numbers.general]**,
+    rather than explicitly listing allowed types.
+    Remove redundant constraints on `Real`.
+
+  * In **[linalg.algs.reqs]**, clarify that "unique layout"
+    for output matrix, vector, or object types
+    means `is_always_unique()` equals `true`.
 
 ## Purpose of this paper
 
@@ -1451,13 +1463,13 @@ without other qualifiers, we mean the most general `mdspan`.
 
 Our proposal uses the layout mapping policy of `mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009R11 have three basic properties:
+policies as described by P0009R12 have three basic properties:
 
 * Unique
 * Contiguous
 * Strided
 
-P0009R11 includes three different layouts -- `layout_left`,
+P0009R12 includes three different layouts -- `layout_left`,
 `layout_right`, and `layout_stride` -- all of which are unique and
 strided.  Only `layout_left` and `layout_right` are contiguous.
 
@@ -1487,7 +1499,7 @@ different function names.
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
-the first addition to the layouts in P0009R11 that is neither always
+the first addition to the layouts in P0009R12 that is neither always
 unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
@@ -3791,7 +3803,7 @@ to optimize applying `accessor_scaled` twice in a row.
 However, implementations are not required to optimize arbitrary combinations
 of nested `accessor_scaled` interspersed with other nested accessors.
 
-The point of `ReturnElementType` is that, based on P0009R11,
+The point of `ReturnElementType` is that, based on P0009R12,
 it may not be possible to deduce the const version of `Accessor`
 for use in `accessor_scaled`.
 In general, it may not be correct or efficient to use an `Accessor`
@@ -3916,7 +3928,7 @@ public:
   * `Accessor` shall be *Cpp17CopyConstructible*.
 
   * `Accessor` shall meet the `mdspan` accessor policy
-    requirements (see *[mdspan.accessor.reqs]* in P0009R11).
+    requirements (see *[mdspan.accessor.reqs]* in P0009R12).
 
 ```c++
 using reference = /* see below */;
@@ -4175,7 +4187,7 @@ public:
 * *Requires:*
 
   * `Layout` shall meet the `mdspan` layout mapping policy
-    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R11.
+    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R12.
     --*end note]*
 
 * *Constraints:*
@@ -4472,22 +4484,26 @@ or other things as appropriate.
 * Algorithms that have a template parameter named `ExecutionPolicy`
   are parallel algorithms **[algorithms.parallel.defns]**.
 
-* `Scalar` meets the requirements of `SemiRegular<Scalar>`.  (Some
-  algorithms below impose further requirements.)
+* `Scalar` meets the requirements of `semiregular<Scalar>`.
+  (Some algorithms below impose further requirements.)
 
-* `Real` is any of the following types: `float`, `double`, or `long
-  double`.
+* `Real` is any type such that `complex<Real>` is specified.
+  *[Note:* See **[complex.numbers.general]**. --*end note]*
 
 * `in_vector*_t` is a rank-1 `mdspan` with a
   potentially `const` element type and a unique layout.  If the algorithm
   accesses the object, it will do so in read-only fashion.
 
 * `inout_vector*_t` is a rank-1 `mdspan`
-  with a non-`const` element type and a unique layout.
+  with a non-`const` element type,
+  and whose layout is always unique
+  (`layout_type::is_always_unique()` equals `true`).
 
-* `out_vector*_t` is a rank-1 `mdspan` with
-  a non-`const` element type and a unique layout.  If the algorithm
-  accesses the object, it will do so in write-only fashion.
+* `out_vector*_t` is a rank-1 `mdspan`
+  with a non-`const` element type,
+  and whose layout is always unique
+  (`layout_type::is_always_unique()` equals `true`).
+  If the algorithm accesses the object, it will do so in write-only fashion.
 
 * `in_matrix*_t` is a rank-2 `mdspan` with a
   `const` element type.  If the algorithm accesses the object, it will
@@ -4501,15 +4517,21 @@ or other things as appropriate.
   it will do so in write-only fashion.
 
 * `in_object*_t` is a rank-1 or rank-2
-  `mdspan` with a potentially `const` element type and a unique
-  layout.  If the algorithm accesses the object, it will do so in read-only
-  fashion.
+  `mdspan` with a potentially `const` element type,
+  and whose layout is always unique
+  (`layout_type::is_always_unique()` equals `true`).
+  If the algorithm accesses the object,
+  it will do so in read-only fashion.
 
 * `inout_object*_t` is a rank-1 or rank-2
-  `mdspan` with a non-`const` element type and a unique layout.
+  `mdspan` with a non-`const` element type,
+  and whose layout is always unique
+  (`layout_type::is_always_unique()` equals `true`).
 
 * `out_object*_t` is a rank-1 or rank-2
-  `mdspan` with a non-`const` element type and a unique layout.
+  `mdspan` with a non-`const` element type,
+  and whose layout is always unique
+  (`layout_type::is_always_unique()` equals `true`).
 
 * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
@@ -4587,8 +4609,6 @@ encourage following `xLARTG`'s more careful implementation.  --*end note]*
 because the output argument `c` (cosine) is a signed magnitude. --*end
 note]*
 
-* *Constraints:* `Real` is `float`, `double`, or `long double`.
-
 * *Effects:* Assigns to `c` and `s` the plane (Givens) rotation
   corresponding to the input `a` and `b`.  Assigns to `r` the
   Euclidean norm of the two-component vector formed by `a` and `b`.
@@ -4652,16 +4672,15 @@ this.
 
 * *Constraints:*
 
-  * `Real` is `float`, `double`, or `long double`.
-
   * For the overloads that take the last argument `s` as `Real`, for
     `i` in the domain of `x` and `j` in the domain of `y`, the
     expressions `x(i) = c*x(i) + s*y(j)` and `y(j) = c*y(j) - s*x(i)`
     are well formed.
 
-  * For the overloads that take the last argument `s` as `const
-    complex<Real>`, for `i` in the domain of `x` and `j` in the
-    domain of `y`, the expressions `x(i) = c*x(i) + s*y(j)` and
+  * For the overloads that take the last argument `s` as
+    `const complex<Real>`,
+    for `i` in the domain of `x` and `j` in the domain of `y`,
+    the expressions `x(i) = c*x(i) + s*y(j)` and
     `y(j) = c*y(j) - conj(s)*x(i)` are well formed.
 
 * *Mandates:* If neither `x.static_extent(0)` nor `y.static_extent(0)`
