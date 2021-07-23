@@ -3877,9 +3877,7 @@ private:
 
 * *Requires:* `Reference` shall be *Cpp17CopyConstructible*.
 
-* *Constraints:*
-
-  * The expression `conj(val)` is well formed and is convertible to
+* *Constraints:* The expression `conj(val)` is well formed and is convertible to
     `ElementType`.  *[Note:* This implies that `ElementType` is
     `complex<R>` for some type `R`.  --*end note]*
 
@@ -3925,10 +3923,9 @@ public:
 
 * *Requires:*
 
-  * `Accessor` shall be *Cpp17CopyConstructible*.
+    * `Accessor` shall be *Cpp17CopyConstructible*.
 
-  * `Accessor` shall meet the `mdspan` accessor policy
-    requirements (see *[mdspan.accessor.reqs]* in P0009R12).
+    * `Accessor` shall meet the `mdspan` accessor policy requirements.
 
 ```c++
 using reference = /* see below */;
@@ -3996,32 +3993,31 @@ Let `R` name the type
 `mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
-  * `ReturnElementType` is either `ElementType` or
-    `const ElementType`; and
+* `ReturnElementType` is either `ElementType` or `const ElementType`; and
 
-  * `ReturnAccessor` is:
+* `ReturnAccessor` is:
 
-     * if `Accessor` is `accessor_conjugate<NestedAccessor>`
-         for some `NestedAccessor`, then
-         either `NestedAccessor` or `accessor_conjugate<Accessor>`,
+    * if `Accessor` is `accessor_conjugate<NestedAccessor>`
+        for some `NestedAccessor`, then
+        either `NestedAccessor` or `accessor_conjugate<Accessor>`,
 
-     * else if `ElementType` is `complex<U>` or `const complex<U>` for
-         some `U`, then `accessor_conjugate<Accessor>`,
+    * else if `ElementType` is `complex<U>` or `const complex<U>` for
+        some `U`, then `accessor_conjugate<Accessor>`,
 
-     * else either `accessor_conjugate<Accessor>` or `Accessor`.
+    * else either `accessor_conjugate<Accessor>` or `Accessor`.
 
 * *Effects:*
 
-  * If `Accessor` is `accessor_conjugate<NestedAccessor>` and
-    `ReturnAccessor` is `NestedAccessor`, then equivalent to
-    `return R(a.data(), a.mapping(), a.nested_accessor());`;
+    * If `Accessor` is `accessor_conjugate<NestedAccessor>` and
+        `ReturnAccessor` is `NestedAccessor`, then equivalent to
+        `return R(a.data(), a.mapping(), a.nested_accessor());`;
 
-  * else, if `ReturnAccessor` is `accessor_conjugate<Accessor>`, then
-    equivalent to
-    `return R(a.data(), a.mapping(), accessor_conjugate<Accessor>(a.accessor()));`;
+    * else, if `ReturnAccessor` is `accessor_conjugate<Accessor>`, then
+        equivalent to
+        `return R(a.data(), a.mapping(), accessor_conjugate<Accessor>(a.accessor()));`;
 
-  * else, equivalent to
-    `return R(a.data(), a.mapping(), a.accessor());`.
+    * else, equivalent to
+        `return R(a.data(), a.mapping(), a.accessor());`.
 
 * *Remarks:* The elements of the returned `mdspan` are read only.
 
