@@ -6086,26 +6086,27 @@ note]*
 
 * *Requires:*
 
-  * `A.extent(0)` equals `x.extent(0)`.
+    * `A.extent(0)` equals `x.extent(0)`, and
 
-  * `A.extent(1)` equals `y.extent(0)`.
+    * `A.extent(1)` equals `y.extent(0)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, and `y.rank()` equals 1.
+    * `A.rank()` equals 2, `x.rank()` equals 1,
+        and `y.rank()` equals 1; and
 
-  * For `i,j` in the domain of `A`, the expression
-    `A(i,j) += x(i)*y(j)` is well formed.
+    * for `i,j` in the domain of `A`,
+        the expression `A(i,j) += x(i)*y(j)` is well formed.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `x.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `x.static_extent(0)`.
 
-  * If neither `A.static_extent(1)` nor `y.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `y.static_extent(0)`.
+    * If neither `A.static_extent(1)` nor `y.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `y.static_extent(0)`.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
     outer product of `x` and `y`.
@@ -6187,55 +6188,55 @@ void symmetric_matrix_rank_1_update(
 
 These functions correspond to the BLAS functions `xSYR` and `xSPR`.
 
-They take an optional scaling factor `alpha`, because it would be
-impossible to express the update C = C - x x^T otherwise.
+They have overloads taking a scaling factor `alpha`, because it would be
+impossible to express updates like C = C - x x^T otherwise.
 
  --*end note]*
 
 * *Requires:*
 
-  * `A.extent(0)` equals `A.extent(1)`.
+    * `A.extent(0)` equals `A.extent(1)`, and
 
-  * `A.extent(0)` equals `x.extent(0)`.
+    * `A.extent(0)` equals `x.extent(0)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2 and `x.rank()` equals 1.
+    * `A.rank()` equals 2 and `x.rank()` equals 1.
 
-  * `A` either has unique layout, or `layout_blas_packed` layout.
+    * `A` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `A` has `layout_blas_packed` layout, then the layout's
-    `Triangle` template argument has the same type as the function's
-    `Triangle` template argument.
+    * if `A` has `layout_blas_packed` layout, then the layout's
+        `Triangle` template argument has the same type as the function's
+        `Triangle` template argument.
 
-  * For overloads without `alpha`:
+    * For overloads without `alpha`:
 
-    * For `i,j` in the domain of `A`, the expression `A(i,j) += x(i)*x(j)` is well formed.
+        * For `i,j` in the domain of `A`, the expression `A(i,j) += x(i)*x(j)` is well formed.
 
-  * For overloads with `alpha`:
+    * For overloads with `alpha`:
 
-    * For `i,j` in the domain of `C`,
-        and `i,k` and `k,i` in the domain of `A`,
-        the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well formed.
+        * For `i,j` in the domain of `C`,
+            and `i,k` and `k,i` in the domain of `A`,
+            the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well formed.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `A.static_extent(1)`.
+    * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `A.static_extent(1)`.
 
-  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `x.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `x.static_extent(0)`.
 
 * *Effects:*
 
-  * Overloads without `alpha` assign to `A` on output, the elementwise
-    sum of `A` on input, with (the outer product of `x` and `x`).
+    * Overloads without `alpha` assign to `A` on output, the elementwise
+        sum of `A` on input, with (the outer product of `x` and `x`).
 
-  * Overloads with `alpha` assign to `A` on output, the elementwise
-    sum of `A` on input, with alpha times (the outer product of `x`
-    and `x`).
+    * Overloads with `alpha` assign to `A` on output, the elementwise
+        sum of `A` on input, with alpha times (the outer product of `x`
+        and `x`).
 
 * *Remarks:* The functions will only access the triangle of `A`
     specified by the `Triangle` argument `t`, and will assume for
@@ -6286,76 +6287,75 @@ void hermitian_matrix_rank_1_update(
 
 These functions correspond to the BLAS functions `xHER` and `xHPR`.
 
-They take an optional scaling factor `alpha`, because it would be
+They have overloads taking a scaling factor `alpha`, because it would be
 impossible to express the update A = A - x x^H otherwise.
 
 --*end note]*
 
 * *Requires:*
 
-  * `A.extent(0)` equals `A.extent(1)`.
+    * `A.extent(0)` equals `A.extent(1)`; and
 
-  * `A.extent(0)` equals `x.extent(0)`.
+    * `A.extent(0)` equals `x.extent(0)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2 and `x.rank()` equals 1.
+    * `A.rank()` equals 2 and `x.rank()` equals 1.
 
-  * `A` either has unique layout, or `layout_blas_packed` layout.
+    * `A` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `A` has `layout_blas_packed` layout, then the layout's
-    `Triangle` template argument has the same type as the function's
-    `Triangle` template argument.
+    * If `A` has `layout_blas_packed` layout, then the layout's
+        `Triangle` template argument has the same type as the function's
+        `Triangle` template argument.
 
-  * For overloads without `alpha`:
+    * For overloads without `alpha`:
 
-    * For `i,j` in the domain of `A`:
+        * For `i,j` in the domain of `A`:
 
-      * if `in_vector_t::element_type` is `complex<RX>` for some `RX`,
-        then the expression `A(i,j) += x(i)*conj(x(j))` is well formed;
+            * if `in_vector_t::element_type` is `complex<RX>` for some `RX`,
+                then the expression `A(i,j) += x(i)*conj(x(j))` is well formed;
 
-      * else, the expression `A(i,j) += x(i)*x(j)` is well formed.
+            * else, the expression `A(i,j) += x(i)*x(j)` is well formed.
 
-  * For overloads with `alpha`:
+    * For overloads with `alpha`:
 
-    * For `i,j` in the domain of `A`:
+        * For `i,j` in the domain of `A`:
 
-      * if `in_vector_t::element_type` is `complex<RX>` for some `RX`,
-        then the expression `A(i,j) += alpha*x(i)*conj(x(j))` is well
-        formed;
+            * if `in_vector_t::element_type` is `complex<RX>` for some `RX`,
+                then the expression `A(i,j) += alpha*x(i)*conj(x(j))` is well
+                formed;
 
-      * else, the expression `A(i,j) += alpha*x(i)*x(j)` is well
-        formed.
+            * else, the expression `A(i,j) += alpha*x(i)*x(j)` is well formed.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `A.static_extent(1)`.
+    * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `A.static_extent(1)`.
 
-  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `x.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `x.static_extent(0)`.
 
 * *Effects:*
 
-  * Overloads without `alpha` assign to `A` on output, the elementwise
-    sum of `A` on input, with (the outer product of `x` and the
-    conjugate of `x`).
+    * Overloads without `alpha` assign to `A` on output, the elementwise
+        sum of `A` on input, with (the outer product of `x` and the
+        conjugate of `x`).
 
-  * Overloads with `alpha` assign to `A` on output, the elementwise
-    sum of `A` on input, with alpha times (the outer product of `x`
-    and the conjugate of `x`).
+    * Overloads with `alpha` assign to `A` on output, the elementwise
+        sum of `A` on input, with alpha times (the outer product of `x`
+        and the conjugate of `x`).
 
 * *Remarks:*
 
-  * The functions will only access the triangle of `A` specified by
-    the `Triangle` argument `t`.
+    * The functions will only access the triangle of `A` specified by
+        the `Triangle` argument `t`.
 
-  * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
-    then the functions will assume for indices `i,j` outside that
-    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
-    functions will assume that `A(j,k)` equals `A(i,j)`.
+    * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
+        then the functions will assume for indices `i,j` outside that
+        triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+        functions will assume that `A(j,k)` equals `A(i,j)`.
 
 ##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
