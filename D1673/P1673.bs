@@ -5217,10 +5217,12 @@ T matrix_frob_norm(
     of the absolute values of the elements of `A`.
 
 * *Remarks:* If `in_matrix_t::element_type` is a floating-point type
-    or a complex version thereof, and if `T` is a floating-point type, then
+    or `complex<R>` for some floating-point type `R`,
+    and if `T` is a floating-point type, then
 
     * if `T` has higher precision than `in_matrix_type::element_type`, then
         intermediate terms in the sum use `T`'s precision or greater; and
+
     * any guarantees regarding overflow and underflow of `matrix_frob_norm`
         are implementation-defined.
 
@@ -5326,8 +5328,9 @@ T matrix_inf_norm(
 
 * *Requires:*
 
-  * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
-  * `abs(A(0,0))` shall be convertible to `T`.
+    * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*, and
+
+    * `abs(A(0,0))` shall be convertible to `T`.
 
 * *Constraints:* For all `i,j` in the domain of `A`
     and for `val` of type `T&`,
@@ -5335,13 +5338,15 @@ T matrix_inf_norm(
 
 * *Effects:*
 
-  * If `A.extent(0)` is zero, returns `init`;
-  * Else, returns the infinity norm of the matrix `A`, that is,
-    the maximum over all rows of `A`,
-    of the sum of the absolute values of the elements of the row.
+    * If `A.extent(0)` is zero, returns `init`;
+
+    * else, returns the infinity norm of the matrix `A`, that is,
+        the maximum over all rows of `A`,
+        of the sum of the absolute values of the elements of the row.
 
 * *Remarks:* If `in_matrix_t::element_type` is a floating-point type
-    or a complex version thereof, if `T` is a floating-point type,
+    or `complex<R>` for some floating-point type `R`,
+    if `T` is a floating-point type,
     and if `T` has higher precision than `in_matrix_type::element_type`,
     then intermediate terms in each sum use `T`'s precision or greater.
 
