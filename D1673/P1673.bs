@@ -5117,24 +5117,25 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
 
 * *Requires:*
 
-  * `T` shall be *Cpp17MoveConstructible*.
-  * `init + v1(0)*v2(0)` shall be convertible to `T`.
+    * `T` shall be *Cpp17MoveConstructible*, and
+
+    * `init + v1(0)*v2(0)` shall be convertible to `T`.
 
 * *Constraints:* For all `i` in the domain of `v` and for
     `val` of type `T&`, the expression `val += abs(v(i))` is well
     formed.
 
-* *Effects:* Let `N` be `v.extent(0)`.
+* *Effects:* Let `N` be `v.extent(0)`:
 
-  * If `N` is zero, returns `init`.
+    * If `N` is zero, returns `init`;
 
-  * Else, if `in_vector_t::element_type` is `complex<R>` for some `R`,
-    then returns /GENERALIZED_SUM/(`plus<>()`, `init`,
-    `abs(real(v(0))) + abs(imag(v(0)))`, ...,
-    `abs(real(v(N-1))) + abs(imag(v(N-1)))`).
+    * else, if `in_vector_t::element_type` is `complex<R>` for some `R`,
+        then returns *GENERALIZED_SUM*(`plus<>()`, `init`,
+        `abs(real(v(0))) + abs(imag(v(0)))`, ...,
+        `abs(real(v(N-1))) + abs(imag(v(N-1)))`).
 
-  * Else, returns /GENERALIZED_SUM/(`plus<>()`, `init`,
-    `abs(v(0))`, ..., `abs(v(N-1))`).
+    * else, returns *GENERALIZED_SUM*(`plus<>()`, `init`,
+        `abs(v(0))`, ..., `abs(v(N-1))`).
 
 * *Remarks:* If `in_vector_t::element_type` is a floating-point type
     or a complex version thereof, if `T` is a floating-point type,
