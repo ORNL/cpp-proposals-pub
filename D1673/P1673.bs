@@ -8,9 +8,10 @@ URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs
 Editor: Mark Hoemmen, Stellar Science https://www.stellarscience.com, mhoemmen@stellarscience.com
 Abstract: We propose a C++ Standard Library dense linear algebra interface based on the dense Basic Linear Algebra Subroutines (BLAS).  This corresponds to a subset of the BLAS Standard.
 Markup Shorthands: markdown yes
+Date: 2021-07-23
 </pre>
 
-# D1673R4: A free function linear algebra interface based on the BLAS
+# Authors and contributors
 
 ## Authors
 
@@ -34,167 +35,168 @@ Markup Shorthands: markdown yes
 * Srinath Vadlamani (Srinath.Vadlamani@arm.com) (ARM)
 * Rene Vanoostrum (Rene.Vanoostrum@amd.com) (AMD)
 
-## Date: 2021-04-15
-
-## Revision history
+# Revision history
 
 * Revision 0 (pre-Cologne) submitted 2019-06-17
 
-  * Received feedback in Cologne from SG6, LEWGI, and (???).
+    * Received feedback in Cologne from SG6, LEWGI, and (???).
 
 * Revision 1 (pre-Belfast) to be submitted 2019-10-07
-  * Account for Cologne 2019 feedback
 
-    * Make interface more consistent with existing Standard algorithms
+    * Account for Cologne 2019 feedback
 
-      * Change `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` to
-        imitate `reduce`, so that they return their result, instead of
-        taking an output parameter.  Users may set the result type via
-        optional `init` parameter.
+        * Make interface more consistent with existing Standard algorithms
 
-  * Minor changes to "expression template" classes, based on
-    implementation experience
+        * Change `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` to
+            imitate `reduce`, so that they return their result, instead of
+            taking an output parameter.  Users may set the result type via
+            optional `init` parameter.
 
-  * Briefly address LEWGI request of exploring concepts for input arguments.
+    * Minor changes to "expression template" classes, based on
+        implementation experience
 
-  * Lazy ranges style API was NOT explored.
+    * Briefly address LEWGI request of exploring concepts for input arguments.
+
+    * Lazy ranges style API was NOT explored.
 
 * Revision 2 (pre-Cologne) to be submitted 2020-01-13
 
-  * Add "Future work" section.
+    * Add "Future work" section.
 
-  * Remove "Options and votes" section (which were addressed in SG6,
-    SG14, and LEWGI).
+    * Remove "Options and votes" section (which were addressed in SG6,
+        SG14, and LEWGI).
 
-  * Remove `basic_mdarray` overloads.
+    * Remove `basic_mdarray` overloads.
 
-  * Remove batched linear algebra operations.
+    * Remove batched linear algebra operations.
 
-  * Remove over- and underflow requirement for `vector_norm2`.
+    * Remove over- and underflow requirement for `vector_norm2`.
 
-  * *Mandate* any extent compatibility checks that can be done at
-    compile time.
+    * *Mandate* any extent compatibility checks that can be done at
+        compile time.
 
-  * Add missing functions `{symmetric,hermitian}_matrix_rank_k_update`
-    and `triangular_matrix_{left,right}_product`.
+    * Add missing functions `{symmetric,hermitian}_matrix_rank_k_update`
+        and `triangular_matrix_{left,right}_product`.
 
-  * Remove `packed_view` function.
+    * Remove `packed_view` function.
 
-  * Fix wording for `{conjugate,transpose,conjugate_transpose}_view`,
-    so that implementations may optimize the return type.  Make sure
-    that `transpose_view` of a `layout_blas_packed` matrix returns a
-    `layout_blas_packed` matrix with opposite `Triangle` and
-    `StorageOrder`.
+    * Fix wording for `{conjugate,transpose,conjugate_transpose}_view`,
+        so that implementations may optimize the return type.  Make sure
+        that `transpose_view` of a `layout_blas_packed` matrix returns a
+        `layout_blas_packed` matrix with opposite `Triangle` and
+        `StorageOrder`.
 
-  * Remove second template parameter `T` from `accessor_conjugate`.
+    * Remove second template parameter `T` from `accessor_conjugate`.
 
-  * Make `scaled_scalar` and `conjugated_scalar` exposition only.
+    * Make `scaled_scalar` and `conjugated_scalar` exposition only.
 
-  * Add in-place overloads of
-    `triangular_matrix_matrix_{left,right}_solve`,
-    `triangular_matrix_{left,right}_product`, and
-    `triangular_matrix_vector_solve`.
+    * Add in-place overloads of
+        `triangular_matrix_matrix_{left,right}_solve`,
+        `triangular_matrix_{left,right}_product`, and
+        `triangular_matrix_vector_solve`.
 
-  * Add `alpha` overloads to
-    `{symmetric,hermitian}_matrix_rank_{1,k}_update`.
+    * Add `alpha` overloads to
+        `{symmetric,hermitian}_matrix_rank_{1,k}_update`.
 
-  * Add Cholesky factorization and solve examples.
+    * Add Cholesky factorization and solve examples.
 
 * Revision 3 (electronic) to be submitted 2021-04-15
 
-  * Per LEWG request, add a section on our investigation
-    of constraining template parameters with concepts,
-    in the manner of P1813R0 with the numeric algorithms.
-    We concluded that we disagree with the approach of P1813R0,
-    and that the Standard's current *GENERALIZED_SUM* approach
-    better expresses numeric algorithms' behavior.
+    * Per LEWG request, add a section on our investigation
+        of constraining template parameters with concepts,
+        in the manner of P1813R0 with the numeric algorithms.
+        We concluded that we disagree with the approach of P1813R0,
+        and that the Standard's current *GENERALIZED_SUM* approach
+        better expresses numeric algorithms' behavior.
 
-  * Update references to the current revision of P0009 (`mdspan`).
+    * Update references to the current revision of P0009 (`mdspan`).
 
-  * Per LEWG request, introduce `std::linalg` namespace and put everything in there.
+    * Per LEWG request, introduce `std::linalg` namespace and put everything in there.
 
-  * Per LEWG request, replace the `linalg_` prefix with the aforementioned namespace.
-    We renamed `linalg_add` to `add`,
-    `linalg_copy` to `copy`, and
-    `linalg_swap` to `swap_elements`.
+    * Per LEWG request, replace the `linalg_` prefix with the aforementioned namespace.
+        We renamed `linalg_add` to `add`,
+        `linalg_copy` to `copy`, and
+        `linalg_swap` to `swap_elements`.
 
-  * Per LEWG request, do not use `_view` as a suffix,
-    to avoid confusion with "views" in the sense of Ranges.
-    We renamed `conjugate_view` to `conjugated`,
-    `conjugate_transpose_view` to `conjugate_transposed`,
-    `scaled_view` to `scaled`, and
-    `transpose_view` to `transposed`.
+    * Per LEWG request, do not use `_view` as a suffix,
+        to avoid confusion with "views" in the sense of Ranges.
+        We renamed `conjugate_view` to `conjugated`,
+        `conjugate_transpose_view` to `conjugate_transposed`,
+        `scaled_view` to `scaled`, and
+        `transpose_view` to `transposed`.
 
-  * Change wording from "then implementations will use `T`'s precision or greater
-    for intermediate terms in the sum,"
-    to "then intermediate terms in the sum use `T`'s precision or greater."
-    Thanks to Jens Maurer for this suggestion (and many others!).
+    * Change wording from "then implementations will use `T`'s precision or greater
+        for intermediate terms in the sum,"
+        to "then intermediate terms in the sum use `T`'s precision or greater."
+        Thanks to Jens Maurer for this suggestion (and many others!).
 
-  * Before, a Note on `vector_norm2` said,
-    "We recommend that implementers document their guarantees regarding overflow and underflow
-    of `vector_norm2` for floating-point return types."
-    Implementations always document "implementation-defined behavior" per **[defs.impl.defined]**.
-    (Thanks to Jens Maurer for pointing out that "We recommend..." does not belong in the Standard.)
-    Thus, we changed this from a Note to normative wording in Remarks:
-    "If either `in_vector_t::element_type` or `T` are
-    floating-point types or complex versions thereof,
-    then any guarantees regarding overflow and underflow of `vector_norm2`
-    are implementation-defined."
+    * Before, a Note on `vector_norm2` said,
+        "We recommend that implementers document their guarantees regarding overflow and underflow
+        of `vector_norm2` for floating-point return types."
+        Implementations always document "implementation-defined behavior" per **[defs.impl.defined]**.
+        (Thanks to Jens Maurer for pointing out that "We recommend..." does not belong in the Standard.)
+        Thus, we changed this from a Note to normative wording in Remarks:
+        "If either `in_vector_t::element_type` or `T` are
+        floating-point types or complex versions thereof,
+        then any guarantees regarding overflow and underflow of `vector_norm2`
+        are implementation-defined."
 
-  * Define return types of the
-    `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` overloads
-    with `auto` return type.
+    * Define return types of the
+        `dot`, `dotc`, `vector_norm2`, and `vector_abs_sum` overloads
+        with `auto` return type.
 
-  * Remove the explicitly stated constraint on `add` and `copy`
-    that the rank of the array arguments be no more than 2.
-    This is redundant, because we already impose this
-    via the existing constraints on template parameters named
-    `in_object*_t`, `inout_object*_t`, or `out_object*_t`.
-    If we later wish to relax this restriction,
-    then we only have to do so in one place.
+    * Remove the explicitly stated constraint on `add` and `copy`
+        that the rank of the array arguments be no more than 2.
+        This is redundant, because we already impose this
+        via the existing constraints on template parameters named
+        `in_object*_t`, `inout_object*_t`, or `out_object*_t`.
+        If we later wish to relax this restriction,
+        then we only have to do so in one place.
 
-  * Add `vector_sum_of_squares`.
-    First, this gives implementers a path to implementing `vector_norm2`
-    in a way that achieves the over/underflow guarantees
-    intended by the BLAS Standard.
-    Second, this is a useful algorithm in itself
-    for parallelizing vector 2-norm computation.
+    * Add `vector_sum_of_squares`.
+        First, this gives implementers a path to implementing `vector_norm2`
+        in a way that achieves the over/underflow guarantees
+        intended by the BLAS Standard.
+        Second, this is a useful algorithm in itself
+        for parallelizing vector 2-norm computation.
 
-  * Add `matrix_frob_norm`, `matrix_one_norm`, and `matrix_inf_norm`
-    (thanks to coauthor Piotr Luszczek).
+    * Add `matrix_frob_norm`, `matrix_one_norm`, and `matrix_inf_norm`
+        (thanks to coauthor Piotr Luszczek).
 
-  * Address LEWG request for us to investigate support for GPU memory.
-    See section "Explicit support for asynchronous return of scalar values."
+    * Address LEWG request for us to investigate support for GPU memory.
+        See section "Explicit support for asynchronous return of scalar values."
 
-  * Add `ExecutionPolicy` overloads of the in-place versions of
-    `triangular_matrix_vector_solve`,
-    `triangular_matrix_left_product`,
-    `triangular_matrix_right_product`,
-    `triangular_matrix_matrix_left_solve`, and
-    `triangular_matrix_matrix_right_solve`.
+    * Add `ExecutionPolicy` overloads of the in-place versions of
+        `triangular_matrix_vector_solve`,
+        `triangular_matrix_left_product`,
+        `triangular_matrix_right_product`,
+        `triangular_matrix_matrix_left_solve`, and
+        `triangular_matrix_matrix_right_solve`.
 
 * Revision 4 (electronic), not yet submitted
 
-  * Update authors' contact info.
+    * Update authors' contact info.
 
-  * Rebase atop P2299R3, which in turn sits atop P0009R12.
-    Make any needed fixes due to these changes.
-    (P1673R3 was based on P0009R10, without P2299.)
-    Update P0009 references to point to the latest version (R12).
+    * Rebase atop P2299R3, which in turn sits atop P0009R12.
+        Make any needed fixes due to these changes.
+        (P1673R3 was based on P0009R10, without P2299.)
+        Update P0009 references to point to the latest version (R12).
 
-  * Fix requirements for `{symmetric,hermitian}_matrix_{left,right}_product`.
+    * Fix requirements for `{symmetric,hermitian}_matrix_{left,right}_product`.
 
-  * Change `SemiRegular<Scalar>` to `semiregular<Scalar>`.
+    * Change `SemiRegular<Scalar>` to `semiregular<Scalar>`.
 
-  * Make `Real` requirements refer to **[complex.numbers.general]**,
-    rather than explicitly listing allowed types.
-    Remove redundant constraints on `Real`.
+    * Make `Real` requirements refer to **[complex.numbers.general]**,
+        rather than explicitly listing allowed types.
+        Remove redundant constraints on `Real`.
 
-  * In **[linalg.algs.reqs]**, clarify that "unique layout"
-    for output matrix, vector, or object types
-    means `is_always_unique()` equals `true`.
+    * In **[linalg.algs.reqs]**, clarify that "unique layout"
+        for output matrix, vector, or object types
+        means `is_always_unique()` equals `true`.
 
-## Purpose of this paper
+    * Change file format from Markdown to Bikeshed.
+
+# Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
 interface based on the dense Basic Linear Algebra Subroutines (BLAS).
@@ -257,7 +259,7 @@ Our proposal also has the following distinctive characteristics:
     applications that need to do many small matrix or vector operations
     at once.
 
-## Interoperable with other linear algebra proposals
+# Interoperable with other linear algebra proposals
 
 We believe this proposal is complementary to
 P1385R6, a proposal for a C++ Standard linear
@@ -272,7 +274,7 @@ matrix and vector objects as input for the algorithms proposed here.
 A straightforward way to do that would be for P1385's matrix and vector objects
 to make views of their data available as `mdspan`.
 
-## Why include dense linear algebra in the C++ Standard Library?
+# Why include dense linear algebra in the C++ Standard Library?
 
 1. "Direction for ISO C++" (P0939R4)
     explicitly calls out "Linear Algebra" as a potential priority for C++23.
@@ -378,7 +380,7 @@ of applications for which robust and accurate implementations are
 indispensible.  We think that linear algebra operations are at least
 as broadly useful, and in many cases significantly more so.
 
-## Why base a C++ linear algebra library on the BLAS?
+# Why base a C++ linear algebra library on the BLAS?
 
 1. The BLAS is a standard that codifies decades of existing practice.
 
@@ -443,7 +445,7 @@ implementations have also had ABI issues that required work-arounds.
 This dependence on ABI details makes availability in a standard C++
 library valuable.
 
-## Criteria for including algorithms
+# Criteria for including algorithms
 
 We include algorithms in our proposal based on the following criteria,
 ordered by decreasing importance.
@@ -502,9 +504,9 @@ like scaled elementwise vector sums,
 as well as functions that generally require human effort to optimize,
 like matrix-matrix multiply.
 
-## Notation and conventions
+# Notation and conventions
 
-### The BLAS uses Fortran terms
+## The BLAS uses Fortran terms
 
 The BLAS' "native" language is Fortran.  It has a C binding as well,
 but the BLAS Standard and documentation use Fortran terms.  Where
@@ -513,13 +515,13 @@ possibly confusing differences with corresponding C++ ideas.  Our
 paper P1674R0 ("Evolving a Standard C++ Linear Algebra Library from
 the BLAS") goes into more detail on these issues.
 
-### We call "subroutines" functions
+## We call "subroutines" functions
 
 Like Fortran, the BLAS distinguishes between functions that return a
 value, and subroutines that do not return a value.  In what follows,
 we will refer to both as "BLAS functions" or "functions."
 
-### Element types and BLAS function name prefix
+## Element types and BLAS function name prefix
 
 The BLAS implements functionality for four different matrix, vector,
 or scalar element types:
@@ -586,9 +588,9 @@ Standard includes complex numbers, so a Standard linear algebra
 library needs to respect the mathematical structures that go along
 with complex numbers.
 
-## What we exclude from the design
+# What we exclude from the design
 
-### Functions not in the Reference BLAS
+## Functions not in the Reference BLAS
 
 The BLAS Standard includes functionality that appears neither in the
 [Reference
@@ -625,7 +627,7 @@ following reasons:
 4. Our proposal subsumes some dense mixed-precision functionality (see
     below).
 
-### LAPACK or related functionality
+## LAPACK or related functionality
 
 The <a href="http://www.netlib.org/lapack/">LAPACK</a> Fortran library implements
 solvers for the following classes of mathematical problems:
@@ -703,7 +705,7 @@ For these reasons, we have left LAPACK-like functionality for future
 work.  It would be natural for a future LAPACK-like C++ library to
 build on our proposal.
 
-### Extended-precision BLAS
+## Extended-precision BLAS
 
 Our interface subsumes some functionality of the Mixed-Precision BLAS
 specification (Chapter 4 of the BLAS Standard).  For example, users
@@ -727,7 +729,7 @@ example, it is possible to make floating-point sums completely
 [independent of parallel evaluation
 order](https://bebop.cs.berkeley.edu/reproblas/).
 
-### Arithmetic operators and associated expression templates
+## Arithmetic operators and associated expression templates
 
 Our proposal omits arithmetic operators on matrices and vectors.
 We do so for the following reasons:
@@ -831,7 +833,7 @@ introduce no more potential for dangling references than
 self-documenting; it tells users that they need to take responsibility
 for scope of the viewed data.
 
-### Banded matrix layouts
+## Banded matrix layouts
 
 This proposal omits banded matrix types.  It would be easy to add the
 required layouts and specializations of algorithms later.  The packed
@@ -840,7 +842,7 @@ the major concerns that would arise in the banded case, like
 nonstrided and nonunique layouts, and matrix types that forbid access
 to some multi-indices in the Cartesian product of extents.
 
-### Tensors
+## Tensors
 
 We exclude tensors from this proposal, for the following reasons.
 First, tensor libraries naturally build on optimized dense linear
@@ -854,7 +856,7 @@ a special case of tensor algebra, users of linear algebra have
 different interface expectations than users of tensor algebra.  Thus,
 it makes sense to have two separate interfaces.
 
-### Explicit support for asynchronous return of scalar values
+## Explicit support for asynchronous return of scalar values
 
 After we presented revision 2 of this paper,
 LEWG asked us to consider support for discrete graphics processing units (GPUs).
@@ -898,7 +900,7 @@ but none of these suggest returning results asynchronously by pointer.
 Our proposal deliberately imitates the existing standard algorithms.
 Right now, we have no standard asynchronous algorithms to imitate.
 
-## Design justification
+# Design justification
 
 We take a step-wise approach.  We begin with core BLAS dense linear
 algebra functionality.  We then deviate from that only as much as
@@ -919,7 +921,7 @@ and "Historical lessons for C++ linear algebra library standardization"
 [(P1417R0)](https://wg21.link/p1417r0).  They will give details and references
 for many of the points that we summarize here.
 
-### We do not require using the BLAS library
+## We do not require using the BLAS library
 
 Our proposal is based on the BLAS interface, and it would be natural
 for implementers to use an existing C or Fortran BLAS library.
@@ -931,7 +933,7 @@ implementation that does not depend on an external library.  They
 will, in any case, need a "generic" C++ implementation for matrix and
 vector element types other than the four that the BLAS supports.
 
-### Why use `mdspan`?
+## Why use `mdspan`?
 
 * C++ does not currently have a data structure for representing
     multidimensional arrays.
@@ -974,7 +976,7 @@ vector element types other than the four that the BLAS supports.
 * Using `mdspan` will make it easier for us to add
     an efficient "batched" interface in future proposals.
 
-#### Defining a concept for the data structures instead
+### Defining a concept for the data structures instead
 
 LEWGI requested in the 2019 Cologne meeting that we explore using a
 concept instead of `mdspan` to define the arguments for the
@@ -1022,7 +1024,7 @@ LEWGI accepted our position that having our algorithms take `mdspan`
 instead of template parameters constrained by a multidimensional array concept
 would be fine for now.
 
-### Function argument aliasing and zero scalar multipliers
+## Function argument aliasing and zero scalar multipliers
 
 Summary:
 
@@ -1064,7 +1066,7 @@ Summary:
 For a detailed analysis, see "Evolving a Standard C++ Linear Algebra
 Library from the BLAS" (P1674R0).
 
-### Support for different matrix layouts
+## Support for different matrix layouts
 
 Summary:
 
@@ -1114,7 +1116,7 @@ for representing what amounts to sparse matrices.  We think that BLAS
 matrix "type" is better represented with a higher-level library that
 builds on our proposal.
 
-### Over- and underflow wording for vector 2-norm
+## Over- and underflow wording for vector 2-norm
 
 SG6 recommended to us at Belfast 2019 to change the special overflow /
 underflow wording for `vector_norm2` to imitate the BLAS Standard more
@@ -1202,9 +1204,9 @@ permissible to skip (see e.g., MPI 3.0, Section 2.1, p. 9).  We thus
 interpret "Advice to implementors" in the BLAS Standard as a
 nonbinding quality of implementation (QoI) recommendation.
 
-### Why no concepts for template parameters?
+## Why no concepts for template parameters?
 
-#### We need adverbs, not adjectives
+### We need adverbs, not adjectives
 
 LEWG's 2020 review of P1673R2 asked us to investigate conceptification of its algorithms.
 "Conceptification" here refers to an effort like that of P1813R0
@@ -1230,7 +1232,7 @@ that describe the algorithms we apply to those arrays.
 The Standard already has machinery like *GENERALIZED_SUM*
 that we can (and do) use to describe our algorithms in an adverbial way.
 
-#### Associativity is too strict
+### Associativity is too strict
 
 P1813R0 requires associative addition for many algorithms, such as `reduce`.
 However, many practical arithmetic systems that users might like to use
@@ -1270,7 +1272,7 @@ Compare to `MPI_Op_create`'s `commute` parameter,
 that affects the behavior of algorithms like `MPI_Reduce`
 when used with the resulting user-defined reduction operator.)
 
-#### Generalizing associativity does not help
+### Generalizing associativity does not help
 
 Suppose we accept that associativity and related properties are not useful
 for describing our proposed algorithms.
@@ -1341,7 +1343,7 @@ The problem, again, is that we need adverbs, not adjectives.
 We want to describe what the algorithms do -- e.g., that they can rearrange terms in a sum --
 not how the types that go into the algorithms behave.
 
-#### Summary
+### Summary
 
 * Many useful types have nonassociative or even non-closed arithmetic.
 * Lack of (e.g.,) associativity is not just a rounding error issue.
@@ -1352,7 +1354,7 @@ not how the types that go into the algorithms behave.
 * We can and do use existing Standard language, like *GENERALIZED_SUM*,
     for expressing permissions that algorithms have.
 
-## Future work
+# Future work
 
 Summary:
 
@@ -1361,7 +1363,7 @@ Summary:
 
 2. Add batched linear algebra overloads.
 
-### Generalize function parameters
+## Generalize function parameters
 
 Our functions differ from the C++ Standard algorithms, in that they
 take a concrete type `mdspan` with template parameters, rather
@@ -1405,7 +1407,7 @@ direct overloads of our functions for `mdarray` or other types.
 This would address any concerns about overhead of converting from
 `mdarray` to `mdspan`.
 
-### Batched linear algebra
+## Batched linear algebra
 
 We plan to write a separate proposal that will add "batched" versions
 of linear algebra functions to this proposal.  "Batched" linear
@@ -1437,9 +1439,9 @@ batch dimension.  Input arguments may also have an additional rank to
 match; if they do not, the function will use ("broadcast") the same
 input argument for all the output arguments in the batch.
 
-## Data structures and utilities borrowed from other proposals
+# Data structures and utilities borrowed from other proposals
 
-### `mdspan`
+## `mdspan`
 
 This proposal depends on <a href="https://wg21.link/p0009r12">P0009R12</a>
 and its follow-on paper <a href="https://wg21.link/p2299r3">P2299R3</a>,
@@ -1468,7 +1470,7 @@ The `mdspan` class has an alias `mdspan` that uses the default
 `Layout` and `Accessor`.  In this paper, when we refer to `mdspan`
 without other qualifiers, we mean the most general `mdspan`.
 
-### New `mdspan` layouts in this proposal
+## New `mdspan` layouts in this proposal
 
 Our proposal uses the layout mapping policy of `mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
@@ -1523,7 +1525,7 @@ Some of our functions explicitly require outputs with specific
 nonunique layouts.  This includes low-rank updates to symmetric or
 Hermitian matrices.
 
-## Acknowledgments
+# Acknowledgments
 
 Sandia National Laboratories is a multimission laboratory managed and
 operated by National Technology & Engineering Solutions of Sandia,
@@ -1536,9 +1538,9 @@ charge to add linear algebra to the C++ Standard Library, and for many
 fruitful discussions.  Thanks also to Andrew Lumsdaine for his
 pioneering efforts and history lessons.
 
-## References
+# References
 
-### References by coathors
+## References by coathors
 
 * G. Ballard, E. Carson, J. Demmel, M. Hoemmen, N. Knight, and
     O. Schwartz,
@@ -1576,7 +1578,7 @@ pioneering efforts and history lessons.
     M. Dominiak, "A General Property Customization Mechanism,"
     <a href="https://wg21.link/p1393r0">P1393R0</a>, Jan. 2019.
 
-### Other references
+## Other references
 
 * [Basic Linear Algebra Subprograms Technical (BLAST) Forum Standard](http://netlib.org/blas/blast-forum/blas-report.pdf),
     International Journal of High Performance Applications and Supercomputing,
@@ -1625,7 +1627,7 @@ pioneering efforts and history lessons.
 * D. Vandevoorde and N. A. Josuttis,
     "C++ Templates: The Complete Guide," Addison-Wesley Professional, 2003.
 
-## Wording
+# Wording
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
@@ -1635,7 +1637,7 @@ pioneering efforts and history lessons.
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
-### Header `<linalg>` synopsis [linalg.syn]
+## Header `<linalg>` synopsis [linalg.syn]
 
 ```c++
 namespace std::linalg {
@@ -3050,9 +3052,9 @@ void triangular_matrix_matrix_right_solve(
 }
 ```
 
-### Tag classes [linalg.tags]
+## Tag classes [linalg.tags]
 
-#### Storage order tags [linalg.tags.order]
+### Storage order tags [linalg.tags.order]
 
 ```c++
 struct column_major_t { };
@@ -3067,7 +3069,7 @@ indicates a row-major order.  The interpretation of each depends on
 the specific layout that uses the tag.  See `layout_blas_general` and
 `layout_blas_packed` below.
 
-#### Triangle tags [linalg.tags.triangle]
+### Triangle tags [linalg.tags.triangle]
 
 Some linear algebra algorithms distinguish between the "upper
 triangle," "lower triangle," and "diagonal" of a matrix.
@@ -3097,7 +3099,7 @@ access the upper triangle (`upper_triangular_t`) or lower triangle
 restrictions of `implicit_unit_diagonal_t` if that tag is also
 applied; see below.
 
-#### Diagonal tags [linalg.tags.diagonal]
+### Diagonal tags [linalg.tags.diagonal]
 
 ```c++
 struct implicit_unit_diagonal_t { };
@@ -3123,9 +3125,9 @@ The `implicit_unit_diagonal_t` tag indicates two things:
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
 
-### Layouts for general and packed matrix types [linalg.layouts]
+## Layouts for general and packed matrix types [linalg.layouts]
 
-#### `layout_blas_general` [linalg.layouts.general]
+### `layout_blas_general` [linalg.layouts.general]
 
 `layout_blas_general` is an `mdspan` layout mapping policy.  Its
 `StorageOrder` template parameter determines whether the matrix's data
@@ -3365,7 +3367,7 @@ constexpr bool is_strided() const noexcept;
 
 * *Returns:* `true`.
 
-#### `layout_blas_packed` [linalg.layouts.packed]
+### `layout_blas_packed` [linalg.layouts.packed]
 
 `layout_blas_packed` is an `mdspan` layout mapping policy that
 represents a square matrix that stores only the entries in one
@@ -3585,7 +3587,7 @@ constexpr bool is_strided() const noexcept;
 
 * *Returns:* `true` if `extent(0)` is less than 2, else `false`.
 
-### Scaled in-place transformation [linalg.scaled]
+## Scaled in-place transformation [linalg.scaled]
 
 The `scaled` function takes a value `alpha` and an `mdspan`
 `x`, and returns a new read-only `mdspan` with the same domain
@@ -3627,7 +3629,7 @@ run-time value(s) of the relevant BLAS function arguments (e.g.,
 
 --*end note]*
 
-#### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
+### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
 
 The class template `accessor_scaled` is an `mdspan` accessor
 policy whose reference type represents the product of a fixed value
@@ -3744,7 +3746,7 @@ ScalingFactor scaling_factor() const;
 
 * *Effects:* Equivalent to `return scaling_factor_;`.
 
-#### `scaled` [linalg.scaled.scaled]
+### `scaled` [linalg.scaled.scaled]
 
 The `scaled` function takes a value `alpha` and an `mdspan`
 `x`, and returns a new read-only `mdspan` with the same domain
@@ -3829,7 +3831,7 @@ void test_scaled(mdspan<double, extents<10>> a)
 ```
 --*end example*]
 
-### Conjugated in-place transformation [linalg.conj]
+## Conjugated in-place transformation [linalg.conj]
 
 The `conjugated` function takes an `mdspan` `x`, and returns
 a new read-only `mdspan` `y` with the same domain as `x`, whose
@@ -3848,7 +3850,7 @@ BLAS function.
 
 --*end note]*
 
-#### Class template `accessor_conjugate` [linalg.conj.accessor_conjugate]
+### Class template `accessor_conjugate` [linalg.conj.accessor_conjugate]
 
 The class template `accessor_conjugate` is an `mdspan` accessor
 policy whose reference type represents the complex conjugate of its
@@ -3977,7 +3979,7 @@ Accessor nested_accessor() const;
 
 * *Effects:* Equivalent to `return acc;`.
 
-#### `conjugated` [linalg.conj.conjugated]
+### `conjugated` [linalg.conj.conjugated]
 
 ```c++
 template<class ElementType,
@@ -4060,7 +4062,7 @@ void test_conjugated_real(
 ```
 --*end example*]
 
-### Transpose in-place transformation [linalg.transp]
+## Transpose in-place transformation [linalg.transp]
 
 `layout_transpose` is an `mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
@@ -4080,7 +4082,7 @@ value(s) of the relevant `TRANS*` BLAS function arguments.
 
 --*end note]*
 
-#### `layout_transpose` [linalg.transp.layout_transpose]
+### `layout_transpose` [linalg.transp.layout_transpose]
 
 `layout_transpose` is an `mdspan` layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
@@ -4290,7 +4292,7 @@ stride(typename Extents::size_type r) const
 * *Effects:* Equivalent to `return nested_mapping_.stride(s);`,
     where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
-#### `transposed` [linalg.transp.transposed]
+### `transposed` [linalg.transp.transposed]
 
 The `transposed` function takes a rank-2 `mdspan`
 representing a matrix, and returns a new read-only `mdspan`
@@ -4400,7 +4402,7 @@ void test_transposed(mdspan<double, extents<3, 4>> a)
 ```
 --*end example*]
 
-### Conjugate transpose transform [linalg.conj_transp]
+## Conjugate transpose transform [linalg.conj_transp]
 
 The `conjugate_transposed` function returns a conjugate transpose
 view of an object.  This combines the effects of `transposed` and
@@ -4457,9 +4459,9 @@ void test_conjugate_transposed(
 ```
 --*end example*]
 
-### Algorithms [linalg.algs]
+## Algorithms [linalg.algs]
 
-#### Requirements [linalg.algs.reqs]
+### Requirements [linalg.algs.reqs]
 
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
@@ -4530,7 +4532,7 @@ or other things as appropriate.
     a `const` lvalue reference to an `mdspan`, or
     a (non-`const`) rvalue reference to an `mdspan`.
 
-#### BLAS 1 functions [linalg.algs.blas1]
+### BLAS 1 functions [linalg.algs.blas1]
 
 *[Note:*
 
@@ -4544,9 +4546,9 @@ BLAS 1 operations, even though it only operates on scalars.
 
 --*end note]*
 
-##### Givens rotations [linalg.algs.blas1.givens]
+#### Givens rotations [linalg.algs.blas1.givens]
 
-###### Compute Givens rotation [linalg.algs.blas1.givens.lartg]
+##### Compute Givens rotation [linalg.algs.blas1.givens.lartg]
 
 ```c++
 template<class Real>
@@ -4600,7 +4602,7 @@ note]*
 
 * *Throws:* Nothing.
 
-###### Apply a computed Givens rotation to vectors [linalg.algs.blas1.givens.rot]
+##### Apply a computed Givens rotation to vectors [linalg.algs.blas1.givens.rot]
 
 ```c++
 template<class inout_vector_1_t,
@@ -4679,7 +4681,7 @@ this.
     as if the rotation were a 2 x 2 matrix and
     the input vectors were successive rows of a matrix with two rows.
 
-###### Swap matrix or vector elements [linalg.algs.blas1.swap]
+#### Swap matrix or vector elements [linalg.algs.blas1.swap]
 
 ```c++
 template<class inout_object_1_t,
@@ -4718,7 +4720,7 @@ void swap_elements(ExecutionPolicy&& exec,
 * *Effects:* Swap all corresponding elements of the objects
     `x` and `y`.
 
-##### Multiply the elements of an object in place by a scalar [linalg.algs.blas1.scal]
+#### Multiply the elements of an object in place by a scalar [linalg.algs.blas1.scal]
 
 ```c++
 template<class Scalar,
@@ -4746,7 +4748,7 @@ void scale(ExecutionPolicy&& exec,
 
 * *Effects*: Multiply each element of `obj` in place by `alpha`.
 
-##### Copy elements of one matrix or vector into another [linalg.algs.blas1.copy]
+#### Copy elements of one matrix or vector into another [linalg.algs.blas1.copy]
 
 ```c++
 template<class in_object_t,
@@ -4783,7 +4785,7 @@ void copy(ExecutionPolicy&& exec,
 * *Effects:* Overwrite each element of `y` with the corresponding
     element of `x`.
 
-##### Add vectors or matrices elementwise [linalg.algs.blas1.add]
+#### Add vectors or matrices elementwise [linalg.algs.blas1.add]
 
 ```c++
 template<class in_object_1_t,
@@ -4835,9 +4837,9 @@ void add(ExecutionPolicy&& exec,
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
-##### Dot product of two vectors [linalg.algs.blas1.dot]
+#### Dot product of two vectors [linalg.algs.blas1.dot]
 
-###### Nonconjugated dot product of two vectors [linalg.algs.blas1.dot.dotu]
+##### Nonconjugated dot product of two vectors [linalg.algs.blas1.dot.dotu]
 
 *[Note:* The functions in this section correspond to the BLAS
 functions `xDOT` (for real element types) and `xDOTU` (for complex
@@ -4917,7 +4919,7 @@ auto dot(ExecutionPolicy&& exec,
     two-parameter overload is equivalent to `dot(v1, v2, T{});`, and the
     three-parameter overload is equivalent to `dot(exec, v1, v2, T{});`.
 
-###### Conjugated dot product of two vectors [linalg.algs.blas1.dot.dotc]
+##### Conjugated dot product of two vectors [linalg.algs.blas1.dot.dotc]
 
 *[Note:*
 
@@ -4974,7 +4976,7 @@ auto dotc(ExecutionPolicy&& exec,
     equivalent to `dotc(v1, v2, T{});`, and the three-parameter overload
     is equivalent to `dotc(exec, v1, v2, T{});`.
 
-##### Scaled sum of squares of a vector's elements [linalg.algs.blas1.ssq]
+#### Scaled sum of squares of a vector's elements [linalg.algs.blas1.ssq]
 
 ```c++
 template<class T>
@@ -5028,9 +5030,9 @@ sum_of_squares_result<T> vector_sum_of_squares(
     * any guarantees regarding overflow and underflow of `vector_sum_of_squares`
         are implementation-defined.
 
-##### Euclidean norm of a vector [linalg.algs.blas1.nrm2]
+#### Euclidean norm of a vector [linalg.algs.blas1.nrm2]
 
-###### Euclidean norm with specified result type
+##### Euclidean norm with specified result type
 
 ```c++
 template<class in_vector_t,
@@ -5075,7 +5077,7 @@ T vector_norm2(ExecutionPolicy&& exec,
 for floating-point types `T`, is to return the `scaled_sum_of_squares` result
 from `vector_sum_of_squares(x, {0.0, 1.0})`. --*end note]*
 
-###### Euclidean norm with default result type
+##### Euclidean norm with default result type
 
 ```c++
 template<class in_vector_t>
@@ -5092,9 +5094,9 @@ auto vector_norm2(ExecutionPolicy&& exec,
     and the two-parameter overload is equivalent to
     `vector_norm2(exec, v, T{});`.
 
-##### Sum of absolute values of vector elements [linalg.algs.blas1.asum]
+#### Sum of absolute values of vector elements [linalg.algs.blas1.asum]
 
-###### Sum of absolute values with specified result type
+##### Sum of absolute values with specified result type
 
 ```c++
 template<class in_vector_t,
@@ -5142,7 +5144,7 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
     and if `T` has higher precision than `in_vector_type::element_type`,
     then intermediate terms in the sum use `T`'s precision or greater.
 
-###### Sum of absolute values with default result type
+##### Sum of absolute values with default result type
 
 ```c++
 template<class in_vector_t>
@@ -5158,7 +5160,7 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
     and the two-parameter overload is equivalent to
     `vector_abs_sum(exec, v, T{});`.
 
-##### Index of maximum absolute value of vector elements [linalg.algs.blas1.iamax]
+#### Index of maximum absolute value of vector elements [linalg.algs.blas1.iamax]
 
 ```c++
 template<class in_vector_t>
@@ -5181,9 +5183,9 @@ extents<>::size_type idx_abs_max(
     the first element of `v` having largest absolute value.  If `v` has
     zero elements, then returns `numeric_limits<extents<>::size_type>::max()`.
 
-##### Frobenius norm of a matrix [linalg.algs.blas1.matfrobnorm]
+#### Frobenius norm of a matrix [linalg.algs.blas1.matfrobnorm]
 
-###### Frobenius norm with specified result type
+##### Frobenius norm with specified result type
 
 ```c++
 template<class in_matrix_t,
@@ -5226,7 +5228,7 @@ T matrix_frob_norm(
     * any guarantees regarding overflow and underflow of `matrix_frob_norm`
         are implementation-defined.
 
-###### Frobenius norm with default result type
+##### Frobenius norm with default result type
 
 ```c++
 template<class in_matrix_t>
@@ -5245,9 +5247,9 @@ auto matrix_frob_norm(
     and the two-parameter overload is equivalent to
     `matrix_frob_norm(exec, A, T{});`.
 
-##### One norm of a matrix [linalg.algs.blas1.matonenorm]
+#### One norm of a matrix [linalg.algs.blas1.matonenorm]
 
-###### One norm with specified result type
+##### One norm with specified result type
 
 ```c++
 template<class in_matrix_t,
@@ -5288,7 +5290,7 @@ T matrix_one_norm(
     and if `T` has higher precision than `in_matrix_type::element_type`,
     then intermediate terms in each sum use `T`'s precision or greater.
 
-###### One norm with default result type
+##### One norm with default result type
 
 ```c++
 template<class in_matrix_t>
@@ -5307,9 +5309,9 @@ auto matrix_one_norm(
     and the two-parameter overload is equivalent to
     `matrix_one_norm(exec, A, T{});`.
 
-##### Infinity norm of a matrix [linalg.algs.blas1.matinfnorm]
+#### Infinity norm of a matrix [linalg.algs.blas1.matinfnorm]
 
-###### Infinity norm with specified result type
+##### Infinity norm with specified result type
 
 ```c++
 template<class in_matrix_t,
@@ -5350,7 +5352,7 @@ T matrix_inf_norm(
     and if `T` has higher precision than `in_matrix_type::element_type`,
     then intermediate terms in each sum use `T`'s precision or greater.
 
-###### Infinity norm with default result type
+##### Infinity norm with default result type
 
 ```c++
 template<class in_matrix_t>
@@ -5369,9 +5371,9 @@ auto matrix_inf_norm(
     and the two-parameter overload is equivalent to
     `matrix_inf_norm(exec, A, T{});`.
 
-#### BLAS 2 functions [linalg.algs.blas2]
+### BLAS 2 functions [linalg.algs.blas2]
 
-##### General matrix-vector product [linalg.algs.blas2.gemv]
+#### General matrix-vector product [linalg.algs.blas2.gemv]
 
 *[Note:* These functions correspond to the BLAS function
 `xGEMV`. --*end note]*
@@ -5407,7 +5409,7 @@ The following requirements apply to all functions in this section.
         `dynamic_extent`, then `y.static_extent(0)` equals
         `z.static_extent(0)` (if applicable).
 
-###### Overwriting matrix-vector product
+##### Overwriting matrix-vector product
 
 ```c++
 template<class in_vector_t,
@@ -5467,7 +5469,7 @@ void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
 ```
 --*end example*]
 
-###### Updating matrix-vector product
+##### Updating matrix-vector product
 
 ```c++
 template<class in_vector_1_t,
@@ -5497,7 +5499,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
     `y`, and the product of the matrix `A` with the vector `x`.
 
-##### Symmetric matrix-vector product [linalg.algs.blas2.symv]
+#### Symmetric matrix-vector product [linalg.algs.blas2.symv]
 
 *[Note:* These functions correspond to the BLAS functions `xSYMV` and
 `xSPMV`. --*end note]*
@@ -5547,7 +5549,7 @@ The following requirements apply to all functions in this section.
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-###### Overwriting symmetric matrix-vector product
+##### Overwriting symmetric matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -5577,7 +5579,7 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
     `A` with the vector `x`.
 
-###### Updating symmetric matrix-vector product
+##### Updating symmetric matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -5613,7 +5615,7 @@ void symmetric_matrix_vector_product(
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
     `y`, with the product of the matrix `A` with the vector `x`.
 
-##### Hermitian matrix-vector product [linalg.algs.blas2.hemv]
+#### Hermitian matrix-vector product [linalg.algs.blas2.hemv]
 
 *[Note:* These functions correspond to the BLAS functions `xHEMV` and
 `xHPMV`. --*end note]*
@@ -5669,7 +5671,7 @@ The following requirements apply to all functions in this section.
         triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
         functions will assume that `A(j,i)` equals `A(i,j)`.
 
-###### Overwriting Hermitian matrix-vector product
+##### Overwriting Hermitian matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -5703,7 +5705,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `y` the product of the matrix
     `A` with the vector `x`.
 
-###### Updating Hermitian matrix-vector product
+##### Updating Hermitian matrix-vector product
 
 ```c++
 template<class in_matrix_t,
@@ -5742,7 +5744,7 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
     `y`, and the product of the matrix `A` with the vector `x`.
 
-##### Triangular matrix-vector product [linalg.algs.blas2.trmv]
+#### Triangular matrix-vector product [linalg.algs.blas2.trmv]
 
 *[Note:* These functions correspond to the BLAS functions `xTRMV` and
 `xTPMV`. --*end note]*
@@ -5805,7 +5807,7 @@ The following requirements apply to all functions in this section.
         function needs to be able to form an `element_type` value equal to
         one. --*end note]*
 
-###### Overwriting triangular matrix-vector product [linalg.algs.blas2.trmv.ov]
+##### Overwriting triangular matrix-vector product [linalg.algs.blas2.trmv.ov]
 
 ```c++
 template<class in_matrix_t,
@@ -5840,7 +5842,7 @@ void triangular_matrix_vector_product(
 * *Effects:* Assigns to the elements of `y` the product of the matrix
     `A` with the vector `x`.
 
-###### In-place triangular matrix-vector product [linalg.algs.blas2.trmv.in-place]
+##### In-place triangular matrix-vector product [linalg.algs.blas2.trmv.in-place]
 
 ```c++
 template<class in_matrix_t,
@@ -5866,7 +5868,7 @@ void triangular_matrix_vector_product(
 * *Effects:* Overwrites `y` (on output) with the product of the matrix
     `A` with the vector `y` (on input).
 
-###### Updating triangular matrix-vector product [linalg.algs.blas2.trmv.up]
+##### Updating triangular matrix-vector product [linalg.algs.blas2.trmv.up]
 
 ```c++
 template<class in_matrix_t,
@@ -5904,7 +5906,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
     `y`, with the product of the matrix `A` with the vector `x`.
 
-##### Solve a triangular linear system [linalg.algs.blas2.trsv]
+#### Solve a triangular linear system [linalg.algs.blas2.trsv]
 
 *[Note:* These functions correspond to the BLAS functions `xTRSV` and
 `xTPSV`. --*end note]*
@@ -5951,7 +5953,7 @@ The following requirements apply to all functions in this section.
         function needs to be able to form an `element_type` value equal to
         one. --*end note]
 
-###### Not-in-place triangular solve [linalg.algs.blas2.trsv.not-in-place]
+##### Not-in-place triangular solve [linalg.algs.blas2.trsv.not-in-place]
 
 ```c++
 template<class in_matrix_t,
@@ -6004,7 +6006,7 @@ void triangular_matrix_vector_solve(
 * *Effects:* Assigns to the elements of `x` the result of solving the
     triangular linear system Ax=b.
 
-###### In-place triangular solve [linalg.algs.blas2.trsv.in-place]
+##### In-place triangular solve [linalg.algs.blas2.trsv.in-place]
 
 ```c++
 template<class in_matrix_t,
@@ -6056,9 +6058,9 @@ This is why the `ExecutionPolicy` overload exists.
 * *Effects:* Overwrites `b` with the result of solving the triangular
     linear system Ax=b for x.
 
-##### Rank-1 (outer product) update of a matrix [linalg.algs.blas2.rank1]
+#### Rank-1 (outer product) update of a matrix [linalg.algs.blas2.rank1]
 
-###### Nonsymmetric nonconjugated rank-1 update [linalg.algs.blas2.rank1.geru]
+##### Nonsymmetric nonconjugated rank-1 update [linalg.algs.blas2.rank1.geru]
 
 ```c++
 template<class in_vector_1_t,
@@ -6115,7 +6117,7 @@ note]*
 as the result of `conjugated`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
 
-###### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.gerc]
+##### Nonsymmetric conjugated rank-1 update [linalg.algs.blas2.rank1.gerc]
 
 ```c++
 template<class in_vector_1_t,
@@ -6143,7 +6145,7 @@ note]*
 
 * *Effects:* Equivalent to `matrix_rank_1_update(x, conjugated(y), A);`.
 
-###### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.syr]
+##### Rank-1 update of a Symmetric matrix [linalg.algs.blas2.rank1.syr]
 
 ```c++
 template<class in_vector_t,
@@ -6242,7 +6244,7 @@ impossible to express updates like C = C - x x^T otherwise.
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-###### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.her]
+##### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.her]
 
 ```c++
 template<class in_vector_t,
@@ -6357,7 +6359,7 @@ impossible to express the update A = A - x x^H otherwise.
         triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
         functions will assume that `A(j,k)` equals `A(i,j)`.
 
-##### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
+#### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
 ```c++
 template<class in_vector_1_t,
@@ -6428,7 +6430,7 @@ void symmetric_matrix_rank_2_update(
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-##### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.her2]
+#### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.her2]
 
 ```c++
 template<class in_vector_1_t,
@@ -6523,9 +6525,9 @@ void hermitian_matrix_rank_2_update(
         triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
         functions will assume that `A(j,i)` equals `A(i,j)`.
 
-#### BLAS 3 functions [linalg.algs.blas3]
+### BLAS 3 functions [linalg.algs.blas3]
 
-##### General matrix-matrix product [linalg.algs.blas3.gemm]
+#### General matrix-matrix product [linalg.algs.blas3.gemm]
 
 *[Note:* These functions correspond to the BLAS function `xGEMM`.
 --*end note]*
@@ -6571,7 +6573,7 @@ The following requirements apply to all functions in this section.
     `dynamic_extent`, then `B.static_extent(1)` equals
     `C.static_extent(1)`.
 
-###### Overwriting general matrix-matrix product
+##### Overwriting general matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -6598,7 +6600,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Effects:* Assigns to the elements of the matrix `C` the product of
     the matrices `A` and `B`.
 
-###### Updating general matrix-matrix product
+##### Updating general matrix-matrix product
 
 ```c++
 template<class in_matrix_1_t,
@@ -6633,7 +6635,7 @@ void matrix_product(ExecutionPolicy&& exec,
 * *Remarks:* `C` and `E` may refer to the same matrix.
     If so, then they must have the same layout.
 
-##### Symmetric matrix-matrix product [linalg.algs.blas3.symm]
+#### Symmetric matrix-matrix product [linalg.algs.blas3.symm]
 
 *[Note:*
 
@@ -6739,7 +6741,7 @@ The following requirements apply to all overloads of
     `dynamic_extent`, then `A.static_extent(1)` equals
     `C.static_extent(1)`.
 
-###### Overwriting symmetric matrix-matrix left product [linalg.algs.blas3.symm.ov.left]
+##### Overwriting symmetric matrix-matrix left product [linalg.algs.blas3.symm.ov.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -6772,7 +6774,7 @@ void symmetric_matrix_left_product(
 * *Effects:* Assigns to the elements of the matrix `C`
     the product of the matrices `A` and `B`.
 
-###### Overwriting symmetric matrix-matrix right product [linalg.algs.blas3.symm.ov.right]
+##### Overwriting symmetric matrix-matrix right product [linalg.algs.blas3.symm.ov.right]
 
 ```c++
 template<class in_matrix_1_t,
@@ -6805,7 +6807,7 @@ void symmetric_matrix_right_product(
 * *Effects:* Assigns to the elements of the matrix `C`
     the product of the matrices `B` and `A`.
 
-###### Updating symmetric matrix-matrix left product [linalg.algs.blas3.symm.up.left]
+##### Updating symmetric matrix-matrix left product [linalg.algs.blas3.symm.up.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -6842,7 +6844,7 @@ void symmetric_matrix_left_product(
 * *Effects:* assigns to the elements of the matrix `C` on output,
     the elementwise sum of `E` and the product of the matrices `A` and `B`.
 
-###### Updating symmetric matrix-matrix right product [linalg.algs.blas3.symm.up.right]
+##### Updating symmetric matrix-matrix right product [linalg.algs.blas3.symm.up.right]
 
 ```c++
 template<class in_matrix_1_t,
@@ -6879,7 +6881,7 @@ void symmetric_matrix_right_product(
 * *Effects:* assigns to the elements of the matrix `C` on output, the
     elementwise sum of `E` and the product of the matrices `B` and `A`.
 
-##### Hermitian matrix-matrix product [linalg.algs.blas3.hemm]
+#### Hermitian matrix-matrix product [linalg.algs.blas3.hemm]
 
 *[Note:*
 
@@ -6989,7 +6991,7 @@ The following requirements apply to all overloads of
     `dynamic_extent`, then `A.static_extent(1)` equals
     `C.static_extent(1)`.
 
-###### Overwriting Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.ov.left]
+##### Overwriting Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.ov.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7022,7 +7024,7 @@ void hermitian_matrix_left_product(
 * *Effects:* Assigns to the elements of the matrix `C` the product of
     the matrices `A` and `B`.
 
-###### Overwriting Hermitian matrix-matrix right product [linalg.algs.blas3.hemm.ov.right]
+##### Overwriting Hermitian matrix-matrix right product [linalg.algs.blas3.hemm.ov.right]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7055,7 +7057,7 @@ void hermitian_matrix_right_product(
 * *Effects:* Assigns to the elements of the matrix `C` the product of
     the matrices `B` and `A`.
 
-###### Updating Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.up.left]
+##### Updating Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.up.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7092,7 +7094,7 @@ void hermitian_matrix_left_product(
 * *Effects:* Assigns to the elements of the matrix `C` on output,
     the elementwise sum of `E` and the product of the matrices `A` and `B`.
 
-###### Updating Hermitian matrix-matrix right product [linalg.algs.blas3.hemm.up.right]
+##### Updating Hermitian matrix-matrix right product [linalg.algs.blas3.hemm.up.right]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7129,7 +7131,7 @@ void hermitian_matrix_right_product(
 * *Effects:* Assigns to the elements of the matrix `C` on output, the
     elementwise sum of `E` and the product of the matrices `B` and `A`.
 
-##### Triangular matrix-matrix product [linalg.algs.blas3.trmm]
+#### Triangular matrix-matrix product [linalg.algs.blas3.trmm]
 
 *[Note:* These functions correspond to the BLAS function `xTRMM`.
 --*end note]*
@@ -7235,7 +7237,7 @@ The following requirements apply to all overloads of
     `dynamic_extent`, then `A.static_extent(1)` equals
     `C.static_extent(1)`.
 
-###### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
+##### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
 
 Not-in-place overwriting triangular matrix-matrix left product
 
@@ -7312,7 +7314,7 @@ void triangular_matrix_left_product(
 * *Effects:* Overwrites <pre highlight="c++">C</pre> on output with the product of the matrices
     `A` and <pre highlight="c++">C</pre> (on input).
 
-###### Overwriting triangular matrix-matrix right product [linalg.algs.blas3.trmm.ov.right]
+##### Overwriting triangular matrix-matrix right product [linalg.algs.blas3.trmm.ov.right]
 
 Not-in-place overwriting triangular matrix-matrix right product
 ```c++
@@ -7387,7 +7389,7 @@ void triangular_matrix_right_product(
 * *Effects:* Overwrites `C` on output
     with the product of the matrices `C` (on input) and `A`.
 
-###### Updating triangular matrix-matrix left product [linalg.algs.blas3.trmm.up.left]
+##### Updating triangular matrix-matrix left product [linalg.algs.blas3.trmm.up.left]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7428,7 +7430,7 @@ void triangular_matrix_left_product(
 * *Effects:* Assigns to the elements of the matrix `C` on output,
     the elementwise sum of `E` and the product of the matrices `A` and `B`.
 
-###### Updating triangular matrix-matrix right product [linalg.algs.blas3.trmm.up.right]
+##### Updating triangular matrix-matrix right product [linalg.algs.blas3.trmm.up.right]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7469,13 +7471,13 @@ void triangular_matrix_right_product(
 * *Effects:* Assigns to the elements of the matrix `C` on output,
     the elementwise sum of `E` and the product of the matrices `B` and `A`.
 
-##### Rank-k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank-k]
+#### Rank-k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank-k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
 BLAS functions, by applying `transposed` or `conjugate_transposed`
 to the input matrix. --*end note]*
 
-###### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.syrk]
+##### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.syrk]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7572,7 +7574,7 @@ impossible to express the update C = C - A A^T otherwise.
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-###### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.herk]
+##### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.herk]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7679,13 +7681,13 @@ otherwise.
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-##### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
+#### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
 BLAS functions, by applying `transposed` or `conjugate_transposed`
 to the input matrices. --*end note]*
 
-###### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.syr2k]
+##### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.syr2k]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7760,7 +7762,7 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-###### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.her2k]
+##### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.her2k]
 
 ```c++
 template<class in_matrix_1_t,
@@ -7858,7 +7860,7 @@ void hermitian_matrix_rank_2k_update(
     triangle, that `C(j,i)` equals `conj(C(i,j))`.  Otherwise, the
     functions will assume that `C(j,i)` equals `C(i,j)`.
 
-##### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
+#### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
 *[Note:* These functions correspond to the BLAS function `xTRSM`.  The
 Reference BLAS does not have a `xTPSM` function. --*end note]*
@@ -7917,7 +7919,7 @@ The following requirements apply to all functions in this section.
     function needs to be able to form an `element_type` value equal to
     one. --*end note]
 
-###### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
+##### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
 Not-in-place left solve of multiple triangular systems
 
@@ -8015,7 +8017,7 @@ This is why the `ExecutionPolicy` overload exists.
 * *Effects:* Overwrites `B` with the result of solving the triangular
      linear system(s) AX=B for X.
 
-###### Solve multiple triangular linear systems with triangular matrix on the right [linalg.alg.blas3.trsm.right]
+##### Solve multiple triangular linear systems with triangular matrix on the right [linalg.alg.blas3.trsm.right]
 
 Not-in-place right solve of multiple triangular systems
 
@@ -8113,9 +8115,9 @@ This is why the `ExecutionPolicy` overload exists.
 * *Effects:* Overwrites `B` with the result of solving the triangular
      linear system(s) XA=B for X.
 
-## Examples
+# Examples
 
-### Cholesky factorization
+## Cholesky factorization
 
 This example shows how to compute the Cholesky factorization of a real
 symmetric positive definite matrix A stored as an `mdspan` with a
@@ -8196,7 +8198,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
 }
 ```
 
-### Solve linear system using Cholesky factorization
+## Solve linear system using Cholesky factorization
 
 This example shows how to solve a symmetric positive definite linear
 system Ax=b, using the Cholesky factorization computed in the previous
@@ -8238,7 +8240,7 @@ void cholesky_solve(
 }
 ```
 
-### Compute QR factorization of a tall skinny matrix
+## Compute QR factorization of a tall skinny matrix
 
 This example shows how to compute the QR factorization of a "tall and
 skinny" matrix `V`, using a cache-blocked algorithm based on rank-k
