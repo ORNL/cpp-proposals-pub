@@ -4253,50 +4253,49 @@ required_span_size() const
   noexcept(noexcept(nested_mapping_.required_span_size()));
 ```
 
-* *Effects:* Equivalent to
-    `return nested_mapping_.required_span_size();'.
+* *Effects:* Equivalent to `return nested_mapping_.required_span_size();`.
 
 ```c++
 bool is_unique() const
   noexcept(noexcept(nested_mapping_.is_unique()));
 ```
 
-* *Effects:* Equivalent to `return nested_mapping_.is_unique();'.
+* *Effects:* Equivalent to `return nested_mapping_.is_unique();`.
 
 ```c++
 bool is_contiguous() const
   noexcept(noexcept(nested_mapping_.is_contiguous()));
 ```
 
-* *Effects:* Equivalent to `return nested_mapping_.is_contiguous();'.
+* *Effects:* Equivalent to `return nested_mapping_.is_contiguous();`.
 
 ```c++
 bool is_strided() const
   noexcept(noexcept(nested_mapping_.is_strided()));
 ```
 
-* *Effects:* Equivalent to `return nested_mapping_.is_strided();'.
+* *Effects:* Equivalent to `return nested_mapping_.is_strided();`.
 
 ```c++
 static constexpr bool is_always_unique();
 ```
 
 * *Effects:* Equivalent to
-    `return nested_mapping_type::is_always_unique();'.
+    `return nested_mapping_type::is_always_unique();`.
 
 ```c++
 static constexpr bool is_always_contiguous();
 ```
 
 * *Effects:* Equivalent to
-    `return nested_mapping_type::is_always_contiguous();'.
+    `return nested_mapping_type::is_always_contiguous();`.
 
 ```c++
 static constexpr bool is_always_strided();
 ```
 
 * *Effects:* Equivalent to
-    `return nested_mapping_type::is_always_strided();'.
+    `return nested_mapping_type::is_always_strided();`.
 
 ```c++
 typename Extents::size_type
@@ -4306,7 +4305,7 @@ stride(typename Extents::size_type r) const
 
 * *Constraints:* `is_always_strided()` is <pre highlight="c++">true</pre>.
 
-* *Effects:* Equivalent to `return nested_mapping_.stride(s);',
+* *Effects:* Equivalent to `return nested_mapping_.stride(s);`,
     where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
 
 #### `transposed` [linalg.transp.transposed]
@@ -4336,44 +4335,43 @@ Let `R` name the type
 `mdspan<ReturnElementType, ReturnExtents, ReturnLayout, Accessor>`,
 where
 
-  * `ReturnElementType` is either `ElementType` or
+* `ReturnElementType` is either `ElementType` or
     `const ElementType`; and
 
-  * `ReturnLayout` is:
+* `ReturnLayout` is:
 
-     * if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
-         then `layout_blas_packed<OppositeTriangle, OppositeStorageOrder>`,
-         where
+    * if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+        then `layout_blas_packed<OppositeTriangle, OppositeStorageOrder>`,
+        where
 
-       * `OppositeTriangle` names the type
-         `conditional_t<is_same_v<Triangle, upper_triangle_t>,
-                        lower_triangle_t, upper_triangle_t>`, and
+        * `OppositeTriangle` names the type
+            `conditional_t<is_same_v<Triangle, upper_triangle_t>,
+            lower_triangle_t, upper_triangle_t>`, and
 
-       * `OppositeStorageOrder` names the type
-         `conditional_t<is_same_v<StorageOrder, column_major_t>,
-                        row_major_t, column_major_t>`;
+        * `OppositeStorageOrder` names the type
+            `conditional_t<is_same_v<StorageOrder, column_major_t>,
+            row_major_t, column_major_t>`;
 
-     * else, if `Layout` is `layout_transpose<NestedLayout>`
-         for some `NestedLayout`, then
-         either `NestedLayout` or `layout_transpose<Layout>`,
+    * else, if `Layout` is `layout_transpose<NestedLayout>`
+        for some `NestedLayout`, then
+        either `NestedLayout` or `layout_transpose<Layout>`,
 
-     * else `layout_transpose<Layout>`.
+    * else `layout_transpose<Layout>`.
 
 * *Effects:*
 
-  * If `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
-    then equivalent to
-    `return R(a.data(), ReturnMapping(a.mapping().extents()),
-              a.accessor());`;
+    * If `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+        then equivalent to
+        `return R(a.data(), ReturnMapping(a.mapping().extents()), a.accessor());`;
 
-  * else, if `Layout` is `layout_transpose<NestedLayout>` and
-    `ReturnLayout` is `NestedLayout`, then equivalent to
-    `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
+    * else, if `Layout` is `layout_transpose<NestedLayout>` and
+        `ReturnLayout` is `NestedLayout`, then equivalent to
+        `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
 
-  * else, equivalent to
-    `return R(a.data(), ReturnMapping(a.mapping()), a.accessor);`,
-    where `ReturnMapping` names the type
-    `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
+    * else, equivalent to
+        `return R(a.data(), ReturnMapping(a.mapping()), a.accessor);`,
+        where `ReturnMapping` names the type
+        `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
 
 * *Remarks:* The elements of the returned `mdspan` are read only.
 
