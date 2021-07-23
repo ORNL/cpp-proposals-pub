@@ -4105,13 +4105,13 @@ For `InputExtents` a specialization of `extents`,
 `transpose_extents_t<InputExtents>` names the `extents` type
 `OutputExtents` such that
 
-  * `InputExtents::static_extent(InputExtents::rank()-1)` equals
+* `InputExtents::static_extent(InputExtents::rank()-1)` equals
     `OutputExtents::static_extent(OutputExtents::rank()-2)`,
 
-  * `InputExtents::static_extent(InputExtents::rank()-2)` equals
+* `InputExtents::static_extent(InputExtents::rank()-2)` equals
     `OutputExtents::static_extent(OutputExtents::rank()-1)`, and
 
-  * `InputExtents::static_extent(r)` equals
+* `InputExtents::static_extent(r)` equals
     `OutputExtents::static_extent(r)` for 0 ≤ `r` <
     `InputExtents::rank()-2`.
 
@@ -4129,12 +4129,11 @@ transpose_extents(const InputExtents in); // exposition only
 
 * *Returns:* An `extents` object `out` such that
 
-  * `out.extent(in.rank()-1)` equals `in.extent(in.rank()-2)`,
+    * `out.extent(in.rank()-1)` equals `in.extent(in.rank()-2)`,
 
-  * `out.extent(in.rank()-2)` equals `in.extent(in.rank()-1)`, and
+    * `out.extent(in.rank()-2)` equals `in.extent(in.rank()-1)`, and
 
-  * `out.extent(r)` equals `in.extent(r)`
-    for 0 ≤ `r` < `in.rank()-2`.
+    * `out.extent(r)` equals `in.extent(r)` for 0 ≤ `r` < `in.rank()-2`.
 
 ```c++
 template<class Layout>
@@ -4190,17 +4189,10 @@ public:
 };
 ```
 
-* *Requires:*
+* *Requires:* `Layout` shall meet the `mdspan` layout mapping policy requirements.
 
-  * `Layout` shall meet the `mdspan` layout mapping policy
-    requirements. *[Note:* See *[mdspan.layout.reqs]* in P0009R12.
-    --*end note]*
-
-* *Constraints:*
-
-  * For all specializations `E` of `extents` with `E::rank()` equal to
-    2, `typename Layout::template mapping<E>::is_always_unique()` is
-    `true`.
+* *Constraints:* For all specializations `E` of `extents` with `E::rank()` equal to 2,
+    `typename Layout::template mapping<E>::is_always_unique()` is `true`.
 
 ```c++
 mapping(const nested_mapping_type& map);
@@ -4303,7 +4295,7 @@ stride(typename Extents::size_type r) const
   noexcept(noexcept(nested_mapping_.stride(r)));
 ```
 
-* *Constraints:* `is_always_strided()` is <pre highlight="c++">true</pre>.
+* *Constraints:* `is_always_strided()` is `true`.
 
 * *Effects:* Equivalent to `return nested_mapping_.stride(s);`,
     where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
