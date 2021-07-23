@@ -5264,8 +5264,9 @@ T matrix_one_norm(
 
 * *Requires:*
 
-  * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*.
-  * `abs(A(0,0))` shall be convertible to `T`.
+    * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*, and
+
+    * `abs(A(0,0))` shall be convertible to `T`.
 
 * *Constraints:* For all `i,j` in the domain of `A`
     and for `val` of type `T&`,
@@ -5273,13 +5274,15 @@ T matrix_one_norm(
 
 * *Effects:*
 
-  * If `A.extent(1)` is zero, returns `init`;
-  * Else, returns the one norm of the matrix `A`, that is,
-    the maximum over all columns of `A`,
-    of the sum of the absolute values of the elements of the column.
+    * If `A.extent(1)` is zero, returns `init`;
+
+    * else, returns the one norm of the matrix `A`, that is,
+        the maximum over all columns of `A`,
+        of the sum of the absolute values of the elements of the column.
 
 * *Remarks:* If `in_matrix_t::element_type` is a floating-point type
-    or a complex version thereof, if `T` is a floating-point type,
+    or `complex<R>` for some floating-point type `R`,
+    if `T` is a floating-point type,
     and if `T` has higher precision than `in_matrix_type::element_type`,
     then intermediate terms in each sum use `T`'s precision or greater.
 
