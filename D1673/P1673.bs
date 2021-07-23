@@ -6388,39 +6388,38 @@ void symmetric_matrix_rank_2_update(
 
 * *Requires:*
 
-  * `A.extent(0)` equals `A.extent(1)`.
+    * `A.extent(0)` equals `A.extent(1)`,
 
-  * `A.extent(0)` equals `x.extent(0)`.
+    * `A.extent(0)` equals `x.extent(0)`, and
 
-  * `A.extent(0)` equals `y.extent(0)`.
+    * `A.extent(0)` equals `y.extent(0)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
+    * `A.rank()` equals 2, `x.rank()` equals 1, and `y.rank()` equals 1.
 
-  * `A` either has unique layout, or `layout_blas_packed` layout.
+    * `A` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `A` has `layout_blas_packed` layout, then the layout's
-    `Triangle` template argument has the same type as the function's
-    `Triangle` template argument.
+    * If `A` has `layout_blas_packed` layout, then the layout's
+        `Triangle` template argument has the same type as the function's
+        `Triangle` template argument.
 
-  * For `i,j` in the domain of `A`, the expression
-    `A(i,j) += x(i)*y(j) + y(i)*x(j)` is well formed.
+    * For `i,j` in the domain of `A`, the expression
+        `A(i,j) += x(i)*y(j) + y(i)*x(j)` is well formed.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `A.static_extent(1)`.
+    * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `A.static_extent(1)`.
 
-  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `x.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `x.static_extent(0)`.
 
-  * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `y.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `y.static_extent(0)`.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, the
     outer product of `x` and `y`, and the outer product of `y` and `x`.
@@ -6460,56 +6459,55 @@ void hermitian_matrix_rank_2_update(
 
 * *Requires:*
 
-  * `A.extent(0)` equals `A.extent(1)`.
+    * `A.extent(0)` equals `A.extent(1)`,
 
-  * `A.extent(0)` equals `x.extent(0)`.
+    * `A.extent(0)` equals `x.extent(0)`, and
 
-  * `A.extent(0)` equals `y.extent(0)`.
+    * `A.extent(0)` equals `y.extent(0)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `x.rank()` equals 1, and
-    `y.rank()` equals 1.
+    * `A.rank()` equals 2, `x.rank()` equals 1, and `y.rank()` equals 1.
 
-  * `A` either has unique layout, or `layout_blas_packed` layout.
+    * `A` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `A` has `layout_blas_packed` layout, then the layout's
-    `Triangle` template argument has the same type as the function's
-    `Triangle` template argument.
+    * If `A` has `layout_blas_packed` layout, then the layout's
+        `Triangle` template argument has the same type as the function's
+        `Triangle` template argument.
 
-  * For `i,j` in the domain of `A`:
+    * For `i,j` in the domain of `A`:
 
-    * If `in_vector_2_t::element_type` is `complex<RY>` for some `RY`,
+        * If `in_vector_2_t::element_type` is `complex<RY>` for some `RY`,
 
-      * if `in_vector_1_t::element_type` is `complex<RX>` for some
-        `RX`, then the expression `A(i,j) += x(i)*conj(y(j)) +
-        y(i)*conj(x(j))` is well formed;
+            * if `in_vector_1_t::element_type` is `complex<RX>` for some `RX`,
+                then the expression
+                `A(i,j) += x(i)*conj(y(j)) + y(i)*conj(x(j))` is well formed;
 
-      * else, the expression `A(i,j) += x(i)*conj(y(j)) + y(i)*x(j)`
-        is well formed;
+            * else, the expression `A(i,j) += x(i)*conj(y(j)) + y(i)*x(j)`
+                is well formed;
 
-    * else,
+        * else,
 
-      * if `in_vector_1_t::element_type` is `complex<RX>` for some
-        `RX`, then the expression `A(i,j) += x(i)*y(j) +
-        y(i)*conj(x(j))` is well formed;
+            * if `in_vector_1_t::element_type` is `complex<RX>` for some `RX`,
+                then the expression `A(i,j) += x(i)*y(j) + y(i)*conj(x(j))`
+                is well formed;
 
-      * else, the expression `A(i,j) += x(i)*y(j)) + y(i)*x(j)`
-        is well formed.
+            * else, the expression `A(i,j) += x(i)*y(j)) + y(i)*x(j)`
+                is well formed.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `A.static_extent(1)`.
+    * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `A.static_extent(1)`.
 
-  * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `x.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `x.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `x.static_extent(0)`.
 
-  * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `y.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `y.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `y.static_extent(0)`.
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input,
     the outer product of `x` and the conjugate of `y`,
@@ -6517,13 +6515,13 @@ void hermitian_matrix_rank_2_update(
 
 * *Remarks:*
 
-  * The functions will only access the triangle of `A`
-    specified by the `Triangle` argument `t`.
+    * The functions will only access the triangle of `A`
+        specified by the `Triangle` argument `t`.
 
-  * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
-    then the functions will assume for indices `i,j` outside that
-    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
-    functions will assume that `A(j,i)` equals `A(i,j)`.
+    * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
+        then the functions will assume for indices `i,j` outside that
+        triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+        functions will assume that `A(j,i)` equals `A(i,j)`.
 
 #### BLAS 3 functions [linalg.algs.blas3]
 
