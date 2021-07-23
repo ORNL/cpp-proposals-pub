@@ -935,52 +935,95 @@ vector element types other than the four that the BLAS supports.
 
 ## Why use `mdspan`?
 
-* C++ does not currently have a data structure for representing
-    multidimensional arrays.
+### View of a multidimensional array
 
-* The BLAS' C interface takes a large number of pointer and integer
-    arguments that represent matrices and vectors.  Using
-    multidimensional array data structures in the C++ interface reduces
-    the number of arguments and avoids common errors.
+The BLAS operates on what C++ programmers might call views of multidimensional arrays.
+Users of the BLAS can store their data in whatever data structures they like,
+and handle their allocation and lifetime as they see fit,
+as long as the data have a BLAS-compatible memory layout.
 
-* `mdspan` supports row-major, column-major,
-    and strided layouts out of the box, and it has `Layout` as an
-    extension point.  This lets our interface support layouts beyond
-    what the BLAS Standard permits.
+The corresponding C++ data structure is `mdspan`.
+This class encapsulates the large number of pointer and integer arguments
+that BLAS functions take, that represent views of matrices and vectors.
+Using `mdspan` in the C++ interface reduce the number of arguments
+and avoids common errors, like mixing up the order of arguments.
+It supports all the array memory layouts that the BLAS supports,
+including row major and column major.
+It also expresses the same data ownership model that the BLAS expresses.
+Users may manage allocation and deallocation however they wish.
+In addition, `mdspan` lets our algorithms exploit any dimensions known at compile time.
 
-* Using `mdspan` lets our algorithms exploit
-    any dimensions or strides known at compile time.
+### Ease of use
 
-* `mdspan` has built-in "slicing" capabilities via `submdspan`.
+The `mdspan` class' layout and accessor policies
+let us simplify our interfaces,
+by encapsulating transpose, conjugate, and scalar arguments.
+Features of `mdspan` make implementing BLAS-like algorithms
+much less error prone and easier to read.
+These include its encapsulation of matrix indexing
+and its built-in "slicing" capabilities via `submdspan`.
 
-* `mdspan`'s layout and accessor policies let us simplify our
-    interfaces, by encapsulating transpose, conjugate, and
-    scalar arguments.  See below for details.
+### BLAS and `mdspan` are low level
 
-* `mdspan` is low level; it imposes no
-    mathematical meaning on multidimensional arrays.  This gives users
-    the freedom to develop mathematical libraries with the semantics
-    they want.  (Some users object to calling something a "matrix" or
-    "tensor" if it doesn't have the right mathematical properties.  The
-    C++ Standard has already taken the word `vector`.)
+The BLAS is low level; it imposes no mathematical meaning on multidimensional arrays.
+This gives users the freedom to develop mathematical libraries with the semantics they want.
+Similarly, `mdspan` is just a view of a multidimensional array;
+it has no mathematical meaning on its own.
 
-* Using `mdspan` offers us a hook for future expansion
-    to support heterogeneous memory spaces.
-    (This is a key feature of `Kokkos::View`,
-    the data structure that inspired `mdspan`.)
+We mention this because "matrix," "vector," and "tensor"
+are mathematical ideas that mean more than just arrays of numbers.
+This is more than just a theoretical concern.
+Some BLAS functions operate on "triangular," "symmetric," or "Hermitian" matrices,
+but they do not assert that a matrix has any of these mathematical properties.
+Rather, they only read only one side of the matrix (the lower or upper triangle),
+and compute as if the rest of the matrix satisfies the mathematical property.
+A key feature of the BLAS and libraries that build on it, like LAPACK,
+is that they can operate on the matrix's data in place.
+These operations change both the matrix's mathematical properties and its representation in memory.
+For example, one might have an N x N array representing a matrix that is symmetric in theory,
+but computed and stored in a way that might not result in exactly symmetric data.
+In order to solve linear systems with this matrix,
+one might give the array to LAPACK's `xSYTRF` to compute an LDL^T factorization,
+asking `xSYTRF` only to access the array's lower triangle.
+If `xSYTRF` finishes successfully,
+it has overwritten the lower triangle of its input
+with a representation of both the lower triangular factor L
+and the block diagonal matrix D,
+as computed assuming that the matrix is the sum of the lower triangle
+and the transpose of the lower triangle.
+The resulting N x N array no longer represents a symmetric matrix.
+Rather, it contains part of the representation of a LDL^T factorization of the matrix.
+The upper triangle still contains the original input matrix's data.
+One may then solve linear systems by giving `xSYTRS` the lower triangle,
+along with other output of `xSYTRF`.
 
-* `mdspan`'s encapsulation of matrix indexing
-    makes C++ implementations of BLAS-like operations
-    much less error prone and easier to read.
+The point of this example is that a "symmetric matrix class"
+is the wrong way to model this situation.
+There's an N x N array, whose mathematical interpretation changes
+with each in-place operation performed on it.
+The low-level `mdspan` data structure carries no mathematical properties in itself,
+so it models this situation better.
 
-* Using `mdspan` will make it easier for us to add
-    an efficient "batched" interface in future proposals.
+### Hook for future expansion
 
-### Defining a concept for the data structures instead
+The `mdspan` class treats its layout as an extension point.
+This lets our interface support layouts beyond what the BLAS Standard permits.
+The accessor extension point offers us a hook for future expansion
+to support heterogeneous memory spaces.
+(This is a key feature of `Kokkos::View`,
+the data structure that inspired `mdspan`.)
+In addition, using `mdspan` will make it easier for us to add
+an efficient "batched" interface in future proposals.
+
+### Generic enough to replace a "multidimensional array concept"
 
 LEWGI requested in the 2019 Cologne meeting that we explore using a
 concept instead of `mdspan` to define the arguments for the
 linear algebra functions.
+This would mean, instead of having our functions take `mdspan` parameters,
+they would be generic on one or more suitably constrained multidimensional array types.
+The constraints would form a "multidimensional array concept."
+
 We investigated this option, and rejected it, for the following reasons.
 
 1. Our proposal uses enough features of `mdspan`
