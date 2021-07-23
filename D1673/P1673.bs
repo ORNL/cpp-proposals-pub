@@ -3767,32 +3767,31 @@ Let `R` name the type
 `mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
-  * `ReturnElementType` is either `ElementType` or
-    `const ElementType`; and
+* `ReturnElementType` is either `ElementType` or `const ElementType`; and
 
-  * `ReturnAccessor` is:
+* `ReturnAccessor` is:
 
-     * if `Accessor` is `accessor_scaled<NestedScalingFactor, NestedAccessor>`
-         for some `NestedScalingFactor` and `NestedAccessor`, then
-         either `accessor_scaled<ProductScalingFactor, NestedAccessor>` or
-         `accessor_scaled<ScalingFactor, Accessor>`,
-         where `ProductScalingFactor` is
-         `decltype(s * a.accessor().scaling_factor())`;
+    * if `Accessor` is `accessor_scaled<NestedScalingFactor, NestedAccessor>`
+        for some `NestedScalingFactor` and `NestedAccessor`, then
+        either `accessor_scaled<ProductScalingFactor, NestedAccessor>` or
+        `accessor_scaled<ScalingFactor, Accessor>`,
+        where `ProductScalingFactor` is
+        `decltype(s * a.accessor().scaling_factor())`;
 
-     * else, `accessor_scaled<ScalingFactor, Accessor>`.
+    * else, `accessor_scaled<ScalingFactor, Accessor>`.
 
 * *Effects:*
 
-  * If `Accessor` is
-    `accessor_scaled<NestedScalingFactor, NestedAccessor>` and
-    `ReturnAccessor` is
-    `accessor_scaled<ProductScalingFactor, NestedAccessor>`,
-    then equivalent to
-    `return R(a.data(), a.mapping(), ReturnAccessor(product_s, a.accessor().nested_accessor()));`,
-    where `product_s` equals `s * a.accessor().scaling_factor()`;
+    * If `Accessor` is
+        `accessor_scaled<NestedScalingFactor, NestedAccessor>` and
+        `ReturnAccessor` is
+        `accessor_scaled<ProductScalingFactor, NestedAccessor>`,
+        then equivalent to
+        `return R(a.data(), a.mapping(), ReturnAccessor(product_s, a.accessor().nested_accessor()));`,
+        where `product_s` equals `s * a.accessor().scaling_factor()`;
 
-  * else, equivalent to
-    `return R(a.data(), a.mapping(), ReturnAccessor(s, a.accessor()));`.
+    * else, equivalent to
+        `return R(a.data(), a.mapping(), ReturnAccessor(s, a.accessor()));`.
 
 * *Remarks:* The elements of the returned `mdspan` are read only.
 
@@ -3803,8 +3802,9 @@ to optimize applying `accessor_scaled` twice in a row.
 However, implementations are not required to optimize arbitrary combinations
 of nested `accessor_scaled` interspersed with other nested accessors.
 
-The point of `ReturnElementType` is that, based on P0009R12,
-it may not be possible to deduce the const version of `Accessor`
+The point of `ReturnElementType` is that
+`mdspan` does not provide a generic mechanism
+for deducing the const version of `Accessor`
 for use in `accessor_scaled`.
 In general, it may not be correct or efficient to use an `Accessor`
 meant for a nonconst `ElementType`, with `const ElementType`.
