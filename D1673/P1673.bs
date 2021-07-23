@@ -6536,42 +6536,42 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * `C.extent(0)` equals `E.extent(0)` (if applicable).
+    * `C.extent(0)` equals `E.extent(0)` (if applicable),
 
-  * `C.extent(1)` equals `E.extent(1)` (if applicable).
+    * `C.extent(1)` equals `E.extent(1)` (if applicable),
 
-  * `A.extent(1)` equals `B.extent(0)`.
+    * `A.extent(1)` equals `B.extent(0)`,
 
-  * `A.extent(0)` equals `C.extent(0)`.
+    * `A.extent(0)` equals `C.extent(0)`, and
 
-  * `B.extent(1)` equals `C.extent(1)`.
+    * `B.extent(1)` equals `C.extent(1)`.
 
 * *Constraints:*
 
-  * `in_matrix_1_t`, `in_matrix_2_t`, `in_matrix_3_t` (if applicable),
-    and `out_matrix_t` have unique layout.
+    * `in_matrix_1_t`, `in_matrix_2_t`, `in_matrix_3_t` (if applicable),
+        and `out_matrix_t` have unique layout.
 
-  * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
-    `E.rank()` (if applicable) equals 2.
+    * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
+        `E.rank()` (if applicable) equals 2.
 
 * *Mandates:*
 
-  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
-    `C.static_extent(r)` nor `E.static_extent(r)` equals
-    `dynamic_extent`, then `C.static_extent(r)` equals
-    `E.static_extent(r)` (if applicable).
+    * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
+        `C.static_extent(r)` nor `E.static_extent(r)` equals
+        `dynamic_extent`, then `C.static_extent(r)` equals
+        `E.static_extent(r)` (if applicable).
 
-  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `B.static_extent(0)`.
+    * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `B.static_extent(0)`.
 
-  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `C.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `C.static_extent(0)`.
 
-  * If neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `C.static_extent(1)`.
+    * If neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `C.static_extent(1)`.
 
 ##### Overwriting general matrix-matrix product
 
@@ -6593,9 +6593,10 @@ void matrix_product(ExecutionPolicy&& exec,
                     out_matrix_t C);
 ```
 
-* *Constraints:* For `i,j` in the domain of `C`, `i,k` in the domain
-    of `A`, and `k,j` in the domain of `B`, the expression `C(i,j) +=
-    A(i,k)*B(k,j)` is well formed.
+* *Constraints:* For `i,j` in the domain of `C`,
+    `i,k` in the domain of `A`,
+    and `k,j` in the domain of `B`,
+    the expression `C(i,j) += A(i,k)*B(k,j)` is well formed.
 
 * *Effects:* Assigns to the elements of the matrix `C` the product of
     the matrices `A` and `B`.
@@ -6650,96 +6651,96 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * `A.extent(0)` equals `A.extent(1)`.
+    * `A.extent(0)` equals `A.extent(1)`,
 
-  * `C.extent(0)` equals `E.extent(0)` (if applicable).
+    * `C.extent(0)` equals `E.extent(0)` (if applicable), and
 
-  * `C.extent(1)` equals `E.extent(1)` (if applicable).
+    * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
 * *Constraints:*
 
-  * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
-    layout.
+    * `in_matrix_1_t` either has unique layout,
+        or `layout_blas_packed` layout.
 
-  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
-    `out_matrix_t` have unique layout.
+    * `in_matrix_2_t`, `in_matrix_3_t` (if applicable),
+        and `out_matrix_t` have unique layout.
 
-  * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
-    layout's `Triangle` template argument has the same type as
-    the function's `Triangle` template argument.
+    * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
+        layout's `Triangle` template argument has the same type as
+        the function's `Triangle` template argument.
 
-  * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
-    `E.rank()` (if applicable) equals 2.
+    * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
+        `E.rank()` (if applicable) equals 2.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `A.static_extent(1)`.
+    * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `A.static_extent(1)`.
 
-  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
-    `C.static_extent(r)` nor `E.static_extent(r)` equals
-    `dynamic_extent`, then `C.static_extent(r)` equals
-    `E.static_extent(r)` (if applicable).
+    * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
+        `C.static_extent(r)` nor `E.static_extent(r)` equals
+        `dynamic_extent`, then `C.static_extent(r)` equals
+        `E.static_extent(r)` (if applicable).
 
 * *Remarks:*
 
-  * The functions will only access the triangle of `A` specified by
-    the `Triangle` argument `t`, and will assume for indices `i,j`
-    outside that triangle, that `A(j,i)` equals `A(i,j)`.
+    * The functions will only access the triangle of `A` specified by
+        the `Triangle` argument `t`, and will assume for indices `i,j`
+        outside that triangle, that `A(j,i)` equals `A(i,j)`.
 
-  * *Remarks:* `C` and `E` (if applicable) may refer to the same
-    matrix.  If so, then they must have the same layout.
+    * *Remarks:* `C` and `E` (if applicable) may refer to the same
+        matrix.  If so, then they must have the same layout.
 
 The following requirements apply to all overloads of
 `symmetric_matrix_left_product`.
 
 * *Requires:*
 
-   * `A.extent(1)` equals `B.extent(0)`,
+    * `A.extent(1)` equals `B.extent(0)`,
 
-   * `A.extent(0)` equals `C.extent(0)`, and
+    * `A.extent(0)` equals `C.extent(0)`, and
 
-   * `B.extent(1)` equals `C.extent(1)`.
+    * `B.extent(1)` equals `C.extent(1)`.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `B.static_extent(0)`;
+    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `B.static_extent(0)`;
 
-  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `C.static_extent(0)`; and
+    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `C.static_extent(0)`; and
 
-  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `C.static_extent(1)`.
+    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `C.static_extent(1)`.
 
 The following requirements apply to all overloads of
 `symmetric_matrix_right_product`.
 
 * *Requires:*
 
-   * `B.extent(1)` equals `A.extent(0)`,
+    * `B.extent(1)` equals `A.extent(0)`,
 
-   * `B.extent(0)` equals `C.extent(0)`, and
+    * `B.extent(0)` equals `C.extent(0)`, and
 
-   * `A.extent(1)` equals `C.extent(1)`.
+    * `A.extent(1)` equals `C.extent(1)`.
 
 * *Mandates:*
 
-  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `A.static_extent(0)`;
+    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `A.static_extent(0)`;
 
-  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `B.static_extent(0)` equals
-    `C.static_extent(0)`; and
+    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `B.static_extent(0)` equals
+        `C.static_extent(0)`; and
 
-  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `C.static_extent(1)`.
+    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `C.static_extent(1)`.
 
 ##### Overwriting symmetric matrix-matrix left product [linalg.algs.blas3.symm.ov.left]
 
@@ -6896,100 +6897,100 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * `A.extent(0)` equals `A.extent(1)`.
+    * `A.extent(0)` equals `A.extent(1)`,
 
-  * `C.extent(0)` equals `E.extent(0)` (if applicable).
+    * `C.extent(0)` equals `E.extent(0)` (if applicable), and
 
-  * `C.extent(1)` equals `E.extent(1)` (if applicable).
+    * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
 * *Constraints:*
 
-  * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
-    layout.
+    * `in_matrix_1_t` either has unique layout,
+        or `layout_blas_packed` layout.
 
-  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
-    `out_matrix_t` have unique layout.
+    * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), and
+        `out_matrix_t` have unique layout.
 
-  * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
-    layout's `Triangle` template argument has the same type as
-    the function's `Triangle` template argument.
+    * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
+        layout's `Triangle` template argument has the same type as
+        the function's `Triangle` template argument.
 
-  * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
-    `E.rank()` (if applicable) equals 2.
+    * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
+        `E.rank()` (if applicable) equals 2.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `A.static_extent(1)`.
+    * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `A.static_extent(1)`.
 
-  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
-    `C.static_extent(r)` nor `E.static_extent(r)` equals
-    `dynamic_extent`, then `C.static_extent(r)` equals
-    `E.static_extent(r)` (if applicable).
+    * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
+        `C.static_extent(r)` nor `E.static_extent(r)` equals
+        `dynamic_extent`, then `C.static_extent(r)` equals
+        `E.static_extent(r)` (if applicable).
 
 * *Remarks:*
 
-  * The functions will only access the triangle of `A` specified by
-    the `Triangle` argument `t`.
+    * The functions will only access the triangle of `A` specified by
+        the `Triangle` argument `t`.
 
-  * If `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`,
-    then the functions will assume for indices `i,j` outside that
-    triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
-    functions will assume that `A(j,i)` equals `A(i,j)`.
+    * If `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`,
+        then the functions will assume for indices `i,j` outside that
+        triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
+        functions will assume that `A(j,i)` equals `A(i,j)`.
 
-  * `C` and `E` (if applicable) may refer to the same matrix.
-    If so, then they must have the same layout.
+    * `C` and `E` (if applicable) may refer to the same matrix.
+        If so, then they must have the same layout.
 
 The following requirements apply to all overloads of
 `hermitian_matrix_left_product`.
 
 * *Requires:*
 
-  * `A.extent(1)` equals `B.extent(0)`,
+    * `A.extent(1)` equals `B.extent(0)`,
 
-  * `A.extent(0)` equals `C.extent(0)`, and
+    * `A.extent(0)` equals `C.extent(0)`, and
 
-  * `B.extent(1)` equals `C.extent(1)`.
+    * `B.extent(1)` equals `C.extent(1)`.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `B.static_extent(0)`;
+    * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `B.static_extent(0)`;
 
-  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `C.static_extent(0)`; and
+    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `C.static_extent(0)`; and
 
-  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `C.static_extent(1)`.
+    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `C.static_extent(1)`.
 
 The following requirements apply to all overloads of
 `hermitian_matrix_right_product`.
 
 * *Requires:*
 
-  * `B.extent(1)` equals `A.extent(0)`,
+    * `B.extent(1)` equals `A.extent(0)`,
 
-  * `B.extent(0)` equals `C.extent(0)`, and
+    * `B.extent(0)` equals `C.extent(0)`, and
 
-  * `A.extent(1)` equals `C.extent(1)`.
+    * `A.extent(1)` equals `C.extent(1)`.
 
 * *Mandates:*
 
-  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `A.static_extent(0)`;
+    * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `A.static_extent(0)`;
 
-  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `B.static_extent(0)` equals
-    `C.static_extent(0)`; and
+    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `B.static_extent(0)` equals
+        `C.static_extent(0)`; and
 
-  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `C.static_extent(1)`.
+    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `C.static_extent(1)`.
 
 ##### Overwriting Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.ov.left]
 
@@ -7140,102 +7141,102 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * `A.extent(0)` equals `A.extent(1)`.
+    * `A.extent(0)` equals `A.extent(1)`,
 
-  * `C.extent(0)` equals `E.extent(0)` (if applicable).
+    * `C.extent(0)` equals `E.extent(0)` (if applicable), and
 
-  * `C.extent(1)` equals `E.extent(1)` (if applicable).
+    * `C.extent(1)` equals `E.extent(1)` (if applicable).
 
 * *Constraints:*
 
-  * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
-    layout.
+    * `in_matrix_1_t` either has unique layout,
+        or `layout_blas_packed` layout.
 
-  * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), `out_matrix_t`,
-    and `inout_matrix_t` (if applicable) have unique layout.
+    * `in_matrix_2_t`, `in_matrix_3_t` (if applicable), `out_matrix_t`,
+        and `inout_matrix_t` (if applicable) have unique layout.
 
-  * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
-    layout's `Triangle` template argument has the same type as
-    the function's `Triangle` template argument.
+    * If `in_matrix_1_t` has `layout_blas_packed` layout, then the
+        layout's `Triangle` template argument has the same type as
+        the function's `Triangle` template argument.
 
-  * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
-    `E.rank()` (if applicable) equals 2.
+    * `A.rank()` equals 2, `B.rank()` equals 2, `C.rank()` equals 2, and
+        `E.rank()` (if applicable) equals 2.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `A.static_extent(1)`.
+    * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `A.static_extent(1)`.
 
-  * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
-    `C.static_extent(r)` nor `E.static_extent(r)` equals
-    `dynamic_extent`, then `C.static_extent(r)` equals
-    `E.static_extent(r)` (if applicable).
+    * For all `r` in 0, 1, ..., `C.rank()` - 1, if neither
+        `C.static_extent(r)` nor `E.static_extent(r)` equals
+        `dynamic_extent`, then `C.static_extent(r)` equals
+        `E.static_extent(r)` (if applicable).
 
 * *Remarks:*
 
-  * The functions will only access the triangle of `A` specified by
-    the `Triangle` argument `t`.
+    * The functions will only access the triangle of `A` specified by
+        the `Triangle` argument `t`.
 
-  * If the `DiagonalStorage` template argument has type
-    `implicit_unit_diagonal_t`, then the functions will not access the
-    diagonal of `A`, and will assume that that the diagonal elements
-    of `A` all equal one. *[Note:* This does not imply that the
-    function needs to be able to form an `element_type` value equal to
-    one. --*end note]
+    * If the `DiagonalStorage` template argument has type
+        `implicit_unit_diagonal_t`, then the functions will not access the
+        diagonal of `A`, and will assume that that the diagonal elements
+        of `A` all equal one. *[Note:* This does not imply that the
+        function needs to be able to form an `element_type` value equal to
+        one. --*end note]
 
-  * `C` and `E` (if applicable) may refer to the same matrix.
-    If so, then they must have the same layout.
+    * `C` and `E` (if applicable) may refer to the same matrix.
+        If so, then they must have the same layout.
 
 The following requirements apply to all overloads of
 `triangular_matrix_left_product`.
 
 * *Requires:*
 
-  * `A.extent(1)` equals `B.extent(0)` (if applicable),
+    * `A.extent(1)` equals `B.extent(0)` (if applicable),
 
-  * `A.extent(0)` equals `C.extent(0)`, and
+    * `A.extent(0)` equals `C.extent(0)`, and
 
-  * `B.extent(1)` equals `C.extent(1)` (if applicable).
+    * `B.extent(1)` equals `C.extent(1)` (if applicable).
 
 * *Mandates:*
 
-  * If neither `A.static_extent(1)` nor `B.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `B.static_extent(0)` (if applicable);
+    * if neither `A.static_extent(1)` nor `B.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `B.static_extent(0)` (if applicable);
 
-  * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `C.static_extent(0)`; and
+    * if neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `C.static_extent(0)`; and
 
-  * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `C.static_extent(1)` (if applicable).
+    * if neither `B.static_extent(1)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `C.static_extent(1)` (if applicable).
 
 The following requirements apply to all overloads of
 `triangular_matrix_right_product`.
 
 * *Requires:*
 
-  * `B.extent(1)` equals `A.extent(0)` (if applicable),
+    * `B.extent(1)` equals `A.extent(0)` (if applicable),
 
-  * `B.extent(0)` equals `C.extent(0)` (if applicable), and
+    * `B.extent(0)` equals `C.extent(0)` (if applicable), and
 
-  * `A.extent(1)` equals `C.extent(1)`.
+    * `A.extent(1)` equals `C.extent(1)`.
 
 * *Mandates:*
 
-  * If neither `B.static_extent(1)` nor `A.static_extent(0)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `A.static_extent(0)` (if applicable);
+    * if neither `B.static_extent(1)` nor `A.static_extent(0)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `A.static_extent(0)` (if applicable);
 
-  * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `B.static_extent(0)` equals
-    `C.static_extent(0)` (if applicable); and
+    * if neither `B.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `B.static_extent(0)` equals
+        `C.static_extent(0)` (if applicable); and
 
-  * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(1)` equals
-    `C.static_extent(1)`.
+    * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `C.static_extent(1)`.
 
 ##### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
 
@@ -7311,8 +7312,8 @@ void triangular_matrix_left_product(
     equals `dynamic_extent`,
     then `A.static_extent(1)` equals `C.static_extent(0)`.
 
-* *Effects:* Overwrites <pre highlight="c++">C</pre> on output with the product of the matrices
-    `A` and <pre highlight="c++">C</pre> (on input).
+* *Effects:* Overwrites `C` on output with the product of the matrices
+    `A` and `C` (on input).
 
 ##### Overwriting triangular matrix-matrix right product [linalg.algs.blas3.trmm.ov.right]
 
@@ -7529,46 +7530,46 @@ impossible to express the update C = C - A A^T otherwise.
 
 * *Requires:*
 
-  * `A.extent(0)` equals `C.extent(0)`.
+    * `A.extent(0)` equals `C.extent(0)`, and
 
-  * `C.extent(0)` equals `C.extent(1)`.
+    * `C.extent(0)` equals `C.extent(1)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2 and `C.rank()` equals 2.
+    * `A.rank()` equals 2 and `C.rank()` equals 2.
 
-  * `C` either has unique layout, or `layout_blas_packed` layout.
+    * `C` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `C` has `layout_blas_packed` layout, then the layout's
-    `Triangle` template argument has the same type as the function's
-    `Triangle` template argument.
+    * If `C` has `layout_blas_packed` layout, then the layout's
+        `Triangle` template argument has the same type as the function's
+        `Triangle` template argument.
 
-  * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
-    of `A`, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
+    * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
+        of `A`, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
 
-  * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
-    of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
-    formed (if applicable).
+    * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
+        of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
+        formed (if applicable).
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `C.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `C.static_extent(0)`.
 
-  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `C.static_extent(0)` equals
-    `C.static_extent(1)`.
+    * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `C.static_extent(0)` equals
+        `C.static_extent(1)`.
 
 * *Effects:*
 
-  * Overloads without `alpha` assign to `C` on output, the elementwise
-    sum of `C` on input with (the matrix product of `A` and the
-    nonconjugated transpose of `A`).
+    * Overloads without `alpha` assign to `C` on output, the elementwise
+        sum of `C` on input with (the matrix product of `A` and the
+        nonconjugated transpose of `A`).
 
-  * Overloads with `alpha` assign to `C` on output, the elementwise
-    sum of `C` on input with alpha times (the matrix product of `A`
-    and the nonconjugated transpose of `A`).
+    * Overloads with `alpha` assign to `C` on output, the elementwise
+        sum of `C` on input with alpha times (the matrix product of `A`
+        and the nonconjugated transpose of `A`).
 
 * *Remarks:* The functions will only access the triangle of `C`
     specified by the `Triangle` argument `t`, and will assume for
@@ -7627,55 +7628,55 @@ otherwise.
 
 * *Requires:*
 
-  * `A.extent(0)` equals `C.extent(0)`.
+    * `A.extent(0)` equals `C.extent(0)`, and
 
-  * `C.extent(0)` equals `C.extent(1)`.
+    * `C.extent(0)` equals `C.extent(1)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2 and `C.rank()` equals 2.
+    * `A.rank()` equals 2 and `C.rank()` equals 2.
 
-  * `C` either has unique layout, or `layout_blas_packed` layout.
+    * `C` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `C` has `layout_blas_packed` layout, then the layout's
-    `Triangle` template argument has the same type as the function's
-    `Triangle` template argument.
+    * If `C` has `layout_blas_packed` layout, then the layout's
+        `Triangle` template argument has the same type as the function's
+        `Triangle` template argument.
 
-  * For overloads without `alpha`: For `i,j` in the domain of `C`, and
-    `i,k` and `k,i` in the domain of `A`,
+    * For overloads without `alpha`: For `i,j` in the domain of `C`, and
+        `i,k` and `k,i` in the domain of `A`,
 
-    * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
-        then the expression `C(i,j) += A(i,k)*conj(A(j,k))` is well formed;
+        * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
+            then the expression `C(i,j) += A(i,k)*conj(A(j,k))` is well formed;
 
-    * else, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
+        * else, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
 
-  * For overloads with `alpha`: For `i,j` in the domain of `C`, and
-    `i,k` and `k,i` in the domain of `A`,
+    * For overloads with `alpha`: For `i,j` in the domain of `C`, and
+        `i,k` and `k,i` in the domain of `A`,
 
-    * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
-        then the expression `C(i,j) += alpha*A(i,k)*conj(A(j,k))` is well formed;
+        * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
+            then the expression `C(i,j) += alpha*A(i,k)*conj(A(j,k))` is well formed;
 
-    * else, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well formed.
+        * else, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well formed.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `C.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `C.static_extent(0)`.
 
-  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `C.static_extent(0)` equals
-    `C.static_extent(1)`.
+    * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `C.static_extent(0)` equals
+        `C.static_extent(1)`.
 
 * *Effects:*
 
-  * Overloads without `alpha` assign to `C` on output, the elementwise
-    sum of `C` on input with (the matrix product of `A` and the
-    conjugated transpose of `A`).
+    * Overloads without `alpha` assign to `C` on output, the elementwise
+        sum of `C` on input with (the matrix product of `A` and the
+        conjugated transpose of `A`).
 
-  * Overloads with `alpha` assign to `C` on output, the elementwise
-    sum of `C` on input with alpha times (the matrix product of `A`
-    and the conjugated transpose of `A`).
+    * Overloads with `alpha` assign to `C` on output, the elementwise
+        sum of `C` on input with alpha times (the matrix product of `A`
+        and the conjugated transpose of `A`).
 
 * *Remarks:* The functions will only access the triangle of `C`
     specified by the `Triangle` argument `t`, and will assume for
@@ -7718,40 +7719,40 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
 
 * *Requires:*
 
-  * `A.extent(0)` equals `C.extent(0)`.
+    * `A.extent(0)` equals `C.extent(0)`,
 
-  * `B.extent(1)` equals `C.extent(0)`.
+    * `B.extent(1)` equals `C.extent(0)`, and
 
-  * `C.extent(0)` equals `C.extent(1)`.
+    * `C.extent(0)` equals `C.extent(1)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `B.rank()` equals 2, and
-    `C.rank()` equals 2.
+    * `A.rank()` equals 2, `B.rank()` equals 2, and `C.rank()` equals 2.
 
-  * `C` either has unique layout, or `layout_blas_packed` layout.
+    * `C` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `C` has `layout_blas_packed` layout, then the layout's
-    `Triangle` template argument has the same type as the function's
-    `Triangle` template argument.
+    * If `C` has `layout_blas_packed` layout, then the layout's
+        `Triangle` template argument has the same type as the function's
+        `Triangle` template argument.
 
-  * For `i,j` in the domain of `C`, `i,k` and `k,i` in the domain of
-    `A`, and `j,k` and `k,j` in the domain of `B`, the expression
-    `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)` is well formed.
+    * For `i,j` in the domain of `C`,
+        `i,k` and `k,i` in the domain of `A`,
+        and `j,k` and `k,j` in the domain of `B`,
+        the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)` is well formed.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `C.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `C.static_extent(0)`.
 
-  * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `C.static_extent(0)`.
+    * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `C.static_extent(0)`.
 
-  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `C.static_extent(0)` equals
-    `C.static_extent(1)`.
+    * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `C.static_extent(0)` equals
+        `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
     input with (the matrix product of `A` and the nonconjugated
@@ -7793,57 +7794,58 @@ void hermitian_matrix_rank_2k_update(
 
 * *Requires:*
 
-  * `A.extent(0)` equals `C.extent(0)`.
+    * `A.extent(0)` equals `C.extent(0)`,
 
-  * `B.extent(1)` equals `C.extent(0)`.
+    * `B.extent(1)` equals `C.extent(0)`, and
 
-  * `C.extent(0)` equals `C.extent(1)`.
+    * `C.extent(0)` equals `C.extent(1)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2, `B.rank()` equals 2, and
-    `C.rank()` equals 2.
+    * `A.rank()` equals 2, `B.rank()` equals 2, and `C.rank()` equals 2.
 
-  * `C` either has unique layout, or `layout_blas_packed` layout.
+    * `C` either has unique layout, or `layout_blas_packed` layout.
 
-  * If `C` has `layout_blas_packed` layout, then the layout's
-    `Triangle` template argument has the same type as the function's
-    `Triangle` template argument.
+    * If `C` has `layout_blas_packed` layout, then the layout's
+        `Triangle` template argument has the same type as the function's
+        `Triangle` template argument.
 
-  * For `i,j` in the domain of `C`, `i,k` and `k,i` in the domain of
-    `A`, and `j,k` and `k,j` in the domain of `B`,
+    * For `i,j` in the domain of `C`,
+        `i,k` and `k,i` in the domain of `A`,
+        and `j,k` and `k,j` in the domain of `B`,
 
-    * if `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`, then
+        * if `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`, then
 
-      * if `in_matrix_2_t::element_type` is `complex<RB>` for some
-        `RB`, then the expression `C(i,j) += A(i,k)*conj(B(j,k)) +
-        B(i,k)*conj(A(j,k))` is well formed;
+            * if `in_matrix_2_t::element_type` is `complex<RB>` for some `RB`,
+                then the expression
+                `C(i,j) += A(i,k)*conj(B(j,k)) + B(i,k)*conj(A(j,k))`
+                is well formed;
 
-      * else, the expression `C(i,j) += A(i,k)*B(j,k) +
-        B(i,k)*conj(A(j,k))` is well formed;
+            * else, the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*conj(A(j,k))`
+                is well formed;
 
-    * else,
+        * else,
 
-      * if `in_matrix_2_t::element_type` is `complex<RB>` for some
-        `RB`, then the expression `C(i,j) += A(i,k)*conj(B(j,k)) +
-        B(i,k)*A(j,k)` is well formed;
+            * if `in_matrix_2_t::element_type` is `complex<RB>` for some `RB`,
+                then the expression `C(i,j) += A(i,k)*conj(B(j,k)) + B(i,k)*A(j,k)`
+                is well formed;
 
-      * else, the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)`
-        is well formed.
+            * else, the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)`
+                is well formed.
 
 * *Mandates:*
 
-  * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `C.static_extent(0)`.
+    * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `C.static_extent(0)`.
 
-  * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
-    `dynamic_extent`, then `B.static_extent(1)` equals
-    `C.static_extent(0)`.
+    * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
+        `dynamic_extent`, then `B.static_extent(1)` equals
+        `C.static_extent(0)`.
 
-  * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
-    `dynamic_extent`, then `C.static_extent(0)` equals
-    `C.static_extent(1)`.
+    * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
+        `dynamic_extent`, then `C.static_extent(0)` equals
+        `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output,
     the elementwise sum of `C` on input with
@@ -7852,13 +7854,13 @@ void hermitian_matrix_rank_2k_update(
 
 * *Remarks:*
 
-  * The functions will only access the triangle of `C` specified by
-    the `Triangle` argument `t`.
+    * The functions will only access the triangle of `C` specified by
+        the `Triangle` argument `t`.
 
-  * If `inout_matrix_t::element_type` is `complex<RC>` for some `RC`,
-    then the functions will assume for indices `i,j` outside that
-    triangle, that `C(j,i)` equals `conj(C(i,j))`.  Otherwise, the
-    functions will assume that `C(j,i)` equals `C(i,j)`.
+    * If `inout_matrix_t::element_type` is `complex<RC>` for some `RC`,
+        then the functions will assume for indices `i,j` outside that
+        triangle, that `C(j,i)` equals `conj(C(i,j))`.  Otherwise, the
+        functions will assume that `C(j,i)` equals `C(i,j)`.
 
 #### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
@@ -7869,55 +7871,54 @@ The following requirements apply to all functions in this section.
 
 * *Requires:*
 
-  * For all `r` in 0, 1, ..., `B.rank()` - 1,
-    `X.extent(r)` equals `B.extent(r)` (if applicable).
+    * For all `r` in 0, 1, ..., `B.rank()` - 1,
+        `X.extent(r)` equals `B.extent(r)` (if applicable); and
 
-  * `A.extent(0)` equals `A.extent(1)`.
+    * `A.extent(0)` equals `A.extent(1)`.
 
 * *Constraints:*
 
-  * `A.rank()` equals 2 and `B.rank()` equals 2.
+    * `A.rank()` equals 2 and `B.rank()` equals 2;
 
-  * `X.rank()` equals 2 (if applicable).
+    * `X.rank()` equals 2 (if applicable);
 
-  * `in_matrix_1_t` either has unique layout, or `layout_blas_packed`
-    layout.
+    * `in_matrix_1_t` either has unique layout, or `layout_blas_packed` layout;
 
-  * `in_matrix_2_t` has unique layout (if applicable).
+    * `in_matrix_2_t` has unique layout (if applicable);
 
-  * `out_matrix_t` has unique layout.
+    * `out_matrix_t` has unique layout;
 
-  * `inout_matrix_t` has unique layout (if applicable).
+    * `inout_matrix_t` has unique layout (if applicable);
 
-  * If `r,j` is in the domain of `X` and `B`, then the expression
-    `X(r,j) = B(r,j)` is well formed (if applicable).
+    * if `r,j` is in the domain of `X` and `B`, then the expression
+        `X(r,j) = B(r,j)` is well formed (if applicable); and
 
-  * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
-    domain of `X`, then the expression `X(i,j) /= A(i,i)` is well
-    formed (if applicable).
+    * if `DiagonalStorage` is `explicit_diagonal_t`,
+        and `i,j` is in the domain of `X`,
+        then the expression `X(i,j) /= A(i,i)` is well formed (if applicable).
 
 * *Mandates:*
 
-  * For all `r` in 0, 1, ..., `X.rank()` - 1, if neither
-    `X.static_extent(r)` nor `B.static_extent(r)` equals
-    `dynamic_extent`, then `X.static_extent(r)` equals
-    `B.static_extent(r)` (if applicable).
+    * For all `r` in 0, 1, ..., `X.rank()` - 1, if neither
+        `X.static_extent(r)` nor `B.static_extent(r)` equals
+        `dynamic_extent`, then `X.static_extent(r)` equals
+        `B.static_extent(r)` (if applicable).
 
-  * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
-    `dynamic_extent`, then `A.static_extent(0)` equals
-    `A.static_extent(1)`.
+    * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `A.static_extent(1)`.
 
 * *Remarks:*
 
-  * The functions will only access the triangle of `A` specified by
-    the `Triangle` argument `t`.
+    * The functions will only access the triangle of `A` specified by
+        the `Triangle` argument `t`.
 
-  * If the `DiagonalStorage` template argument has type
-    `implicit_unit_diagonal_t`, then the functions will not access the
-    diagonal of `A`, and will assume that that the diagonal elements
-    of `A` all equal one. *[Note:* This does not imply that the
-    function needs to be able to form an `element_type` value equal to
-    one. --*end note]
+    * If the `DiagonalStorage` template argument has type
+        `implicit_unit_diagonal_t`, then the functions will not access the
+        diagonal of `A`, and will assume that that the diagonal elements
+        of `A` all equal one. *[Note:* This does not imply that the
+        function needs to be able to form an `element_type` value equal to
+        one. --*end note]
 
 ##### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
@@ -8003,12 +8004,12 @@ This is why the `ExecutionPolicy` overload exists.
 
 * *Constraints:*
 
-  * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
-    domain of `B`, then the expression `B(i,j) /= A(i,i)` is well
-    formed (if applicable).
+    * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
+        domain of `B`, then the expression `B(i,j) /= A(i,i)` is well
+        formed (if applicable).
 
-  * If `i,j` and `i,k` are in the domain of `X`, then the expression
-    `B(i,j) -= A(i,k) * B(k,j)` is well formed.
+    * If `i,j` and `i,k` are in the domain of `X`, then the expression
+        `B(i,j) -= A(i,k) * B(k,j)` is well formed.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(0)`
     equals `dynamic_extent`, then
@@ -8101,12 +8102,12 @@ This is why the `ExecutionPolicy` overload exists.
 
 * *Constraints:*
 
-  * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
-    domain of `B`, then the expression `B(i,j) /= A(i,i)` is well
-    formed (if applicable).
+    * If `DiagonalStorage` is `explicit_diagonal_t`,
+        and `i,j` is in the domain of `B`,
+        then the expression `B(i,j) /= A(i,i)` is well formed (if applicable).
 
-  * If `i,j` and `i,k` are in the domain of `X`, then the expression
-    `B(i,j) -= B(i,k) * A(k,j)` is well formed.
+    * If `i,j` and `i,k` are in the domain of `X`, then the expression
+        `B(i,j) -= B(i,k) * A(k,j)` is well formed.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(1)`
     equals `dynamic_extent`, then
