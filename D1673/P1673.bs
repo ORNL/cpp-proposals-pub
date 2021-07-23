@@ -3444,13 +3444,13 @@ public:
 
 * *Constraints:*
 
-  * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
+    * `Triangle` is either `upper_triangle_t` or `lower_triangle_t`.
 
-  * `StorageOrder` is either `column_major_t` or `row_major_t`.
+    * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
-  * `Extents` is a specialization of `extents`.
+    * `Extents` is a specialization of `extents`.
 
-  * `Extents::rank()` equals 2.
+    * `Extents::rank()` equals 2.
 
 ```c++
 constexpr mapping(const Extents& e);
@@ -3467,9 +3467,9 @@ constexpr mapping(const mapping<OtherExtents>& e);
 
 * *Constraints:*
 
-  * `OtherExtents` is a specialization of `extents`.
+    * `OtherExtents` is a specialization of `extents`.
 
-  * `OtherExtents::rank()` equals 2.
+    * `OtherExtents::rank()` equals 2.
 
 * *Effects:* Initializes `extents_` with `e`.
 
@@ -3481,31 +3481,31 @@ operator() (typename Extents::size_type i,
 
 * *Requires:*
 
-  * 0 ≤ `i` < `extent(0)`, and
+    * 0 ≤ `i` < `extent(0)`, and
 
-  * 0 ≤ `j` < `extent(1)`.
+    * 0 ≤ `j` < `extent(1)`.
 
 * *Returns:* Let `N` equal `extent(0)`.  Then:
 
-  * If `StorageOrder` is `column_major_t` and
+    * If `StorageOrder` is `column_major_t` and
 
-    * if `Triangle` is `upper_triangle_t`,
-        then `i + j(j+1)/2` if `i` >= `j`,
-        else `j + i(i+1)/2`;
+        * if `Triangle` is `upper_triangle_t`,
+            then `i + j(j+1)/2` if `i` >= `j`,
+            else `j + i(i+1)/2`;
 
-    * else, if `Triangle` is `lower_triangle_t`,
-        then `i + Nj - j(j+1)/2` if `i` <= `j`,
-        else `j + Ni - i(i+1)/2`;
+        * else, if `Triangle` is `lower_triangle_t`,
+            then `i + Nj - j(j+1)/2` if `i` <= `j`,
+            else `j + Ni - i(i+1)/2`;
 
-  * else, if `StorageOrder` is `row_major_t` and
+    * else, if `StorageOrder` is `row_major_t` and
 
-    * if `Triangle` is `upper_triangle_t`,
-        then `j + Ni - i(i+1)/2` if `j` <= `i`,
-        else `i + Nj - j(j+1)/2`;
+        * if `Triangle` is `upper_triangle_t`,
+            then `j + Ni - i(i+1)/2` if `j` <= `i`,
+            else `i + Nj - j(j+1)/2`;
 
-    * else, if `Triangle` is `lower_triangle_t`,
-        then `j + i(i+1)/2` if `j` >= `i`,
-        else `i + j(j+1)/2`.
+        * else, if `Triangle` is `lower_triangle_t`,
+            then `j + i(i+1)/2` if `j` >= `i`,
+            else `i + j(j+1)/2`.
 
 ```c++
 template<class OtherExtents>
