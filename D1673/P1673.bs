@@ -3149,13 +3149,13 @@ columns is always one.  *[Note:* This is a generalization of
 the General (GE) matrix type in the BLAS' C binding.  It has two
 advantages:
 
-  1. Unlike `layout_left` and `layout_right`, any "submatrix" (subspan
-     of consecutive rows and consecutive columns) of a matrix with
-     `layout_blas_general<StorageOrder>` layout also has
-     `layout_blas_general<StorageOrder>` layout.
+1. Unlike `layout_left` and `layout_right`, any "submatrix" (subspan
+    of consecutive rows and consecutive columns) of a matrix with
+    `layout_blas_general<StorageOrder>` layout also has
+    `layout_blas_general<StorageOrder>` layout.
 
-  2. Unlike `layout_stride`, it always has compile-time unit stride in
-     one of the matrix's two extents.
+2. Unlike `layout_stride`, it always has compile-time unit stride in
+    one of the matrix's two extents.
 
 BLAS functions call the possibly nonunit stride of the matrix the
 "leading dimension" of that matrix.  For example, a BLAS function
@@ -3212,11 +3212,11 @@ public:
 
 * *Constraints:*
 
-  * `StorageOrder` is either `column_major_t` or `row_major_t`.
+    * `StorageOrder` is either `column_major_t` or `row_major_t`.
 
-  * `Extents` is a specialization of `extents`.
+    * `Extents` is a specialization of `extents`.
 
-  * `Extents::rank()` equals 2.
+    * `Extents::rank()` equals 2.
 
 ```c++
 constexpr mapping(const Extents& e,
@@ -3225,9 +3225,11 @@ constexpr mapping(const Extents& e,
 
 * *Requires:*
 
-  * If `StorageOrder` is `column_major_t`, then `s` is greater than or
-    equal to `e.extent(0)`.  Otherwise, if `StorageOrder` is
-    `row_major_t`, then `s` is greater than or equal to `e.extent(1)`.
+    * If `StorageOrder` is `column_major_t`,
+        then `s` is greater than or equal to `e.extent(0)`.
+        
+    * Otherwise, if `StorageOrder` is `row_major_t`,
+        then `s` is greater than or equal to `e.extent(1)`.
 
 * *Effects:* Initializes `extents_` with `e`, and initializes `stride_` with `s`.
 
@@ -3248,9 +3250,9 @@ constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 
 * *Constraints:*
 
-  * `OtherExtents` is a specialization of `extents`.
+    * `OtherExtents` is a specialization of `extents`.
 
-  * `OtherExtents::rank()` equals 2.
+    * `OtherExtents::rank()` equals 2.
 
 * *Effects:* Initializes `extents_` with `m.extents_`, and initializes `stride_` with `m.stride_`.
 
@@ -3262,17 +3264,17 @@ operator() (typename Extents::size_type i,
 
 * *Requires:*
 
-  * 0 ≤ `i` < `extent(0)`, and
+    * 0 ≤ `i` < `extent(0)`, and
 
-  * 0 ≤ `j` < `extent(1)`.
+    * 0 ≤ `j` < `extent(1)`.
 
 * *Returns:*
 
-  * If `StorageOrder` is `column_major_t`, then
-    `i + stride(1)*j`;
+    * If `StorageOrder` is `column_major_t`, then
+        `i + stride(1)*j`;
 
-  * else, if `StorageOrder` is `row_major_t`, then
-    `stride(0)*i + j`.
+    * else, if `StorageOrder` is `row_major_t`, then
+        `stride(0)*i + j`.
 
 ```c++
 template<class OtherExtents>
@@ -3281,8 +3283,7 @@ bool operator==(const mapping<OtherExtents>& m) const;
 
 * *Constraints:* `OtherExtents::rank()` equals `rank()`.
 
-* *Returns:* `true` if and only if
-    for 0 ≤ `r` < `rank()`,
+* *Returns:* `true` if and only if for 0 ≤ `r` < `rank()`,
     `m.extent(r)` equals `extent(r)` and
     `m.stride(r)` equals `stride(r)`.
 
@@ -3293,7 +3294,7 @@ bool operator!=(const mapping<OtherExtents>& m) const;
 
 * *Constraints:* `OtherExtents::rank()` equals `rank()`.
 
-* *Returns:* * *Returns:* `true` if and only if
+* *Returns:* `true` if and only if
     there exists `r` with 0 ≤ `r` < `rank()` such that
     `m.extent(r)` does not equal `extent(r)` or
     `m.stride(r)` does not equal `stride(r)`.
@@ -3305,11 +3306,9 @@ stride(typename Extents::size_type r) const noexcept;
 
 * *Returns:*
 
-  * If `StorageOrder` is `column_major_t`, `stride_` if `r` equals 1,
-    else 1;
+    * If `StorageOrder` is `column_major_t`, `stride_` if `r` equals 1, else 1;
 
-  * else, if `StorageOrder` is `row_major_t`, `stride_` if `r` equals
-    0, else 1.
+    * else, if `StorageOrder` is `row_major_t`, `stride_` if `r` equals 0, else 1.
 
 ```c++
 constexpr typename Extents::size_type
@@ -3354,11 +3353,11 @@ constexpr bool is_contiguous() const noexcept;
 
 * *Returns:*
 
-  * If `StorageOrder` is `column_major_t`, then
-    `true` if `stride(1)` equals `extent(0)`, else `false`;
+    * If `StorageOrder` is `column_major_t`,
+        then `true` if `stride(1)` equals `extent(0)`, else `false`;
 
-  * else, if `StorageOrder` is `row_major_t`, then
-    `true` if `stride(0)` equals `extent(1)`, else `false`.
+    * else, if `StorageOrder` is `row_major_t`,
+        then `true` if `stride(0)` equals `extent(1)`, else `false`.
 
 ```c++
 constexpr bool is_strided() const noexcept;
