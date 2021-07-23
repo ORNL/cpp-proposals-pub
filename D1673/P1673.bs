@@ -4808,30 +4808,30 @@ void add(ExecutionPolicy&& exec,
 
 * *Requires:* For all `r` in 0, 1, ..., `x.rank()` - 1,
 
-  * `x.extent(r)` equals `z.extent(r)`.
+    * `x.extent(r)` equals `z.extent(r)`.
 
-  * `y.extent(r)` equals `z.extent(r)`.
+    * `y.extent(r)` equals `z.extent(r)`.
 
 * *Constraints:*
 
-  * `x.rank()`, `y.rank()`, and `z.rank()` are all equal.
+    * `x.rank()`, `y.rank()`, and `z.rank()` are all equal.
 
-  * For `i...` in the domain of `x`, `y`, and `z`, the expression
-    `z(i...) = x(i...) + y(i...)` is well formed.
+    * For `i...` in the domain of `x`, `y`, and `z`,
+        the expression `z(i...) = x(i...) + y(i...)` is well formed.
 
 * *Mandates:* For all `r` in 0, 1, ..., `x.rank()` - 1,
 
-  * if neither `x.static_extent(r)` nor `z.static_extent(r)` equals
-    `dynamic_extent`, then `x.static_extent(r)` equals
-    `z.static_extent(r)`; and
+    * if neither `x.static_extent(r)` nor `z.static_extent(r)` equals
+        `dynamic_extent`, then `x.static_extent(r)` equals
+        `z.static_extent(r)`; and
 
-  * if neither `y.static_extent(r)` nor `z.static_extent(r)` equals
-    `dynamic_extent`, then `y.static_extent(r)` equals
-    `z.static_extent(r)`.
+    * if neither `y.static_extent(r)` nor `z.static_extent(r)` equals
+        `dynamic_extent`, then `y.static_extent(r)` equals
+        `z.static_extent(r)`.
 
-  * if neither `x.static_extent(r)` nor `y.static_extent(r)` equals
-    `dynamic_extent`, then `x.static_extent(r)` equals
-    `y.static_extent(r)`;
+    * if neither `x.static_extent(r)` nor `y.static_extent(r)` equals
+        `dynamic_extent`, then `x.static_extent(r)` equals
+        `y.static_extent(r)`;
 
 * *Effects*: Compute the elementwise sum z = x + y.
 
@@ -4864,15 +4864,15 @@ T dot(ExecutionPolicy&& exec,
 
 * *Requires:*
 
-  * `T` shall be *Cpp17MoveConstructible*.
+    * `T` shall be *Cpp17MoveConstructible*,
 
-  * `init + v1(0)*v2(0)` shall be convertible to `T`.
+    * `init + v1(0)*v2(0)` shall be convertible to `T`, and
 
-  * `v1.extent(0)` equals `v2.extent(0)`.
+    * `v1.extent(0)` equals `v2.extent(0)`.
 
 * *Constraints:* For all `i` in the domain of `v1` and `v2` and for
-    `val` of type `T&`, the expression `val += v1(i)*v2(i)` is well
-    formed.
+    `val` of type `T&`,
+    the expression `val += v1(i)*v2(i)` is well formed.
 
 * *Mandates:* If neither `v1.static_extent(0)` nor
     `v2.static_extent(0)` equals `dynamic_extent`, then
