@@ -5050,8 +5050,9 @@ T vector_norm2(ExecutionPolicy&& exec,
 
 * *Requires:*
 
-  * `T` shall be *Cpp17MoveConstructible*.
-  * `init + abs(v(0))*abs(v(0))` shall be convertible to `T`.
+    * `T` shall be *Cpp17MoveConstructible*, and
+
+    * `init + abs(v(0))*abs(v(0))` shall be convertible to `T`.
 
 * *Constraints:* For all `i` in the domain of `v` and for `val`
     of type `T&`, the expressions `val += abs(v(i))*abs(v(i))` and
@@ -5065,10 +5066,10 @@ T vector_norm2(ExecutionPolicy&& exec,
 * *Remarks:* If `in_vector_t::element_type` is a floating-point type
     or a complex version thereof, and if `T` is a floating-point type, then
 
-  * if `T` has higher precision than `in_vector_type::element_type`, then
-    intermediate terms in the sum use `T`'s precision or greater; and
-  * any guarantees regarding overflow and underflow of `vector_norm2`
-    are implementation-defined.
+    * if `T` has higher precision than `in_vector_type::element_type`, then
+        intermediate terms in the sum use `T`'s precision or greater; and
+    * any guarantees regarding overflow and underflow of `vector_norm2`
+        are implementation-defined.
 
 *[Note:* A suggested implementation of this function
 for floating-point types `T`, is to return the `scaled_sum_of_squares` result
