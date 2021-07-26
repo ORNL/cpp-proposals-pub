@@ -4986,6 +4986,8 @@ void test_conjugate_transposed(
 
 ### Requirements [linalg.algs.reqs]
 
+#### Requirements based on template parameter name [linalg.algs.reqs.name]
+
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
 requirements.  In the requirements below, we use `*` in a typename to
@@ -4996,14 +4998,13 @@ or other things as appropriate.
     are parallel algorithms **[algorithms.parallel.defns]**.
 
 * `Scalar` meets the requirements of `semiregular<Scalar>`.
-    (Some algorithms below impose further requirements.)
 
 * `Real` is any type such that `complex<Real>` is specified.
     *[Note:* See **[complex.numbers.general]**. --*end note]*
 
 * `in_vector*_t` is a rank-1 `mdspan` with a
-    potentially `const` element type and a unique layout.  If the algorithm
-    accesses the object, it will do so in read-only fashion.
+    potentially `const` element type and a unique layout.
+    If the algorithm accesses the object, it will do so in read-only fashion.
 
 * `inout_vector*_t` is a rank-1 `mdspan`
     with a non-`const` element type,
@@ -5017,15 +5018,15 @@ or other things as appropriate.
     If the algorithm accesses the object, it will do so in write-only fashion.
 
 * `in_matrix*_t` is a rank-2 `mdspan` with a
-    `const` element type.  If the algorithm accesses the object, it will
-    do so in read-only fashion.
+    `const` element type.
+    If the algorithm accesses the object, it will do so in read-only fashion.
 
 * `inout_matrix*_t` is a rank-2 `mdspan`
     with a non-`const` element type.
 
 * `out_matrix*_t` is a rank-2 `mdspan` with
-    a non-`const` element type.  If the algorithm accesses the object,
-    it will do so in write-only fashion.
+    a non-`const` element type.
+    If the algorithm accesses the object, it will do so in write-only fashion.
 
 * `in_object*_t` is a rank-1 or rank-2
     `mdspan` with a potentially `const` element type,
@@ -5054,6 +5055,125 @@ or other things as appropriate.
 * `inout_*_t` and `out_*_t` template parameters may deduce
     a `const` lvalue reference to an `mdspan`, or
     a (non-`const`) rvalue reference to an `mdspan`.
+
+#### Array value and reference requirements [linalg.algs.reqs.array]
+
+This clause lists the minimum requirements for the `mdspan` parameter(s)
+of any algorithm in **[linalg.algs]**.
+The requirements specifically refer to the `mdspan` parameter(s)'
+`value_type` and `reference` type aliases.
+
+These type requirements are parameterized by the algorithm using the type.
+Each algorithm using the type has an associated mathematical expression
+that defines the algorithm's behavior.
+The requirements below will refer to that mathematical expression.
+
+*[Note:*
+This notion of parameterizing requirements on a mathematical expression
+generalizes *GENERALIZED_SUM*.
+--*end note]*
+
+If the algorithm has an output `mdspan`, then let `output_reference`
+refer to the output `mdspan`'s `reference` type alias,
+and let `output_value_type` refer to the output `mdspan`'s `value_type` type alias.
+Given an algorithm, the algorithm and any of the algorithm's `mdspan` parameters
+satisfy the following requirements.
+All of these requirements presume that the algorithm's asymptotic complexity requirements,
+if any, are satisfied.
+
+1. Any input or output `mdspan`'s `value_type` is `semiregular`. 
+
+2. The algorithm may perform read-only access on any input or output `mdspan`
+    arbitrarily many times.
+
+3. The algorithm or method may make arbitrary instances or copies
+    of any input or output `mdspan`'s `value_type`.
+
+4. The algorithm may assign arbitrarily many times to any reference
+    resulting from a valid output `mdspan` access,
+    as long as the algorithm's asymptotic complexity requirements are satisfied.
+
+5. The algorithm may assign any addend
+    in the algorithm's mathematical expression
+    to any reference resulting from a valid output `mdspan` access.
+
+6. The algorithm may reorder addends in its mathematical expression arbitrarily.
+    *[Note:*
+    The algorithm may *not* reorder products arbitrarily.
+    This is because the algorithms do not assume that multiplication is commutative.
+    --*end note]*
+
+7. The algorithm may use either `output_reference::operator=`
+    or `output_reference::operator+=`,
+    as if `R = R + x`, `R = x + R`, and `R += x` gave the same result
+    for any addend `x`
+    that appears in the algorithm's mathematical expression.
+
+8. If `R` has type `output_reference` and `V` has type `output_value_type`,
+    then the algorithm may assume that the following expressions are equal,
+    for `x` being any sum term in the algorithm's mathematical expression:
+
+    a. `R = output_value_type{} + x`;
+    
+    b. `V = x + output_value_type{}`; and
+
+    c. `V = x`.
+
+9. If the algorithm's mathematical expression uses subtraction,
+    then it may assume that `x + (-y)` equals `x - y` equals `-y + x`
+    for any addend or subtrahend in its mathematical expression.
+
+10. If the algorithm's mathematical expression uses subtraction,
+    then it may use either `output_reference::operator=`
+    or `output_reference::operator-=`,
+    as if `R = R - x` and `R -= x` gave the same result
+    for any addend or subtrahend `x`
+    that appears in the algorithm's mathematical expression.
+
+#### Other value type requirements [linalg.algs.reqs.type]
+
+This clause lists the minimum requirements for any of the following types:
+
+* the `ScalingFactor` template parameter in `accessor_scaled` and `scaled`
+    (see **[linalg.scaled]**);
+
+* the `Scalar` template parameter of any algorithm in **[linalg.algs]**; or
+
+* the `T` template parameter of any algorithm in **[linalg.algs]**
+    with a `T init` parameter.
+
+As with the requirements in **[linalg.algs.reqs.array]**,
+the requirements here are parameterized
+by the algorithm or method using the type.
+Each algorithm or method using the type
+has an associated mathematical expression that defines the algorithm's or method's behavior.
+The requirements below will refer to that mathematical expression.
+
+Given an algorithm or method, let the type for which to define requirements be `T`.
+The type `T` then satisfies the following requirements.
+All of these requirements presume that the algorithm's asymptotic complexity requirements,
+if any, are satisfied.
+
+1. `T` is `semiregular`. 
+
+2. The algorithm or method may make arbitrary instances or copies of `T`,
+    and may assign arbitrarily many times to instances of `T`.
+
+3. The algorithm or method may reorder addends in its mathematical expression arbitrarily.
+    *[Note:*
+    The algorithm or method may *not* reorder products arbitrarily.
+    This is because the algorithms and methods do not assume that multiplication is commutative.
+    --*end note]*
+
+4. The algorithm or method may assume that the following expressions result in equal values,
+    for `x` being any addend in the algorithm's or method's mathematical expression,
+    where `t` is an instance of type `T`:
+
+    a. `t = T{} + x`;
+    
+    b. `t = x + t{}`; and
+
+    c. `t = x`.
 
 ### BLAS 1 functions [linalg.algs.blas1]
 
