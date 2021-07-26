@@ -384,7 +384,7 @@ as broadly useful, and in many cases significantly more so.
 
 1. The BLAS is a standard that codifies decades of existing practice.
 
-2. The BLAS separates out "performance primitives" for hardware
+2. The BLAS separates "performance primitives" for hardware
     experts to tune, from mathematical operations that rely on those
     primitives for good performance.
 
@@ -527,16 +527,22 @@ The BLAS implements functionality for four different matrix, vector,
 or scalar element types:
 
 * `REAL` (`float` in C++ terms)
+
 * `DOUBLE PRECISION` (`double` in C++ terms)
+
 * `COMPLEX` (`complex<float>` in C++ terms)
+
 * `DOUBLE COMPLEX` (`complex<double>` in C++ terms)
 
 The BLAS' Fortran 77 binding uses a function name prefix to
 distinguish functions based on element type:
 
 * `S` for `REAL` ("single")
+
 * `D` for `DOUBLE PRECISION`
+
 * `C` for `COMPLEX`
+
 * `Z` for `DOUBLE COMPLEX`
 
 For example, the four BLAS functions `SAXPY`, `DAXPY`, `CAXPY`, and
@@ -578,6 +584,7 @@ Examples of the third category include the following:
 
 * nonconjugated dot product `xDOTU` and conjugated dot product
     `xDOTC`; and
+
 * rank-1 symmetric (`xGERU`) vs. Hermitian (`xGERC`) matrix update.
 
 The conjugate transpose and the (nonconjugated) transpose are the
@@ -813,10 +820,12 @@ array into contiguous temporary storage.)
 Expression templates work well, but have issues.  Our papers
 <a href="https://wg21.link/p1417r0">P1417R0</a> and
 "Evolving a Standard C++ Linear Algebra Library from the BLAS" (P1674R0) give more detail on these
-issues.  A particularly troublesome one is that modern C++ `auto`
-makes it easy for users to capture expressions before their evaluation
-and writing into an output array.  For matrices and vectors with
-container semantics, this makes it easy to create dangling references.
+issues.  A particularly troublesome one is that C++ `auto` type deduction
+makes it easy for users to capture expressions
+before the expression templates system
+has the chance to evaluate them and write the result into the output.
+For matrices and vectors with container semantics,
+this makes it easy to create dangling references.
 Users might not realize that they need to assign expressions to named
 types before actual work and storage happen.  [Eigen's
 documentation](https://eigen.tuxfamily.org/dox/TopicPitfalls.html)
@@ -1247,9 +1256,41 @@ permissible to skip (see e.g., MPI 3.0, Section 2.1, p. 9).  We thus
 interpret "Advice to implementors" in the BLAS Standard as a
 nonbinding quality of implementation (QoI) recommendation.
 
-## Why no concepts for template parameters?
+## Constraining matrix and vector element types and scalars
 
-### We need adverbs, not adjectives
+### Introduction
+
+The BLAS only accepts four different types of scalars and matrix and vector elements.
+In C++ terms, these are `float`, `double`, `complex<float>`, and `complex<double>`.
+The algorithms we propose generalize the BLAS
+by accepting any matrix, vector, or scalar element types that make sense for each algorithm.
+Those may be built-in types, like floating-point numbers or integers,
+or they may be custom types.
+Those custom types might not behave like conventional real or complex numbers.
+For example, quaternions have noncommutative multiplication (`a * b` might not equal `b * a`),
+polynomials in one variable over a field lack division,
+and some types might not even have subtraction defined.
+
+"Constraining matrix and vector element types and scalars"
+means defining how these types must behave
+in order for our algorithms to make sense.
+This includes both syntactic and semantic constraints.
+We have three goals:
+
+1. to help implementers implement our algorithms correctly;
+
+2. to give implementers the freedom to make quality of implementation (QoI) enhancements,
+    for both performance and accuracy; and
+
+3. to help users understand what types they may use with our algorithms.
+
+The whole point of the BLAS was to identify key operations
+for vendors to optimize.
+Thus, performance is a major concern.
+"Accuracy" here refers to either to rounding error or to approximation error
+(for matrix or vector element types where either makes sense).
+
+### We need adverbs more than adjectives
 
 LEWG's 2020 review of P1673R2 asked us to investigate conceptification of its algorithms.
 "Conceptification" here refers to an effort like that of P1813R0
@@ -1259,7 +1300,7 @@ of numeric algorithms like `reduce` or `transform`.
 (We are not referring to LEWGI's request for us to consider
 generalizing our algorithm's parameters from `mdspan`
 to a hypothetical multidimensional array concept.
-We discuss that above; see "Defining a concept for the data structures instead.")
+We discuss that above, in the "Why use `mdspan`?" section.)
 The numeric algorithms are relevant to P1673 because many of the algorithms proposed in P1673
 look like generalizations of `reduce` or `transform`.
 We intend for our algorithms to be generic on their matrix and vector element types,
@@ -1282,7 +1323,9 @@ However, many practical arithmetic systems that users might like to use
 with algorithms like `reduce` have non-associative addition.  These include
 
 * systems with rounding;
+
 * systems with an "infinity": e.g., if 10 is Inf, 3 + 8 - 7 could be either Inf or 4; and
+
 * saturating arithmetic: e.g., if 10 saturates, 3 + 8 - 7 could be either 3 or 4.
 
 Note that the latter two arithmetic systems have nothing to do with rounding error.
@@ -1315,7 +1358,7 @@ Compare to `MPI_Op_create`'s `commute` parameter,
 that affects the behavior of algorithms like `MPI_Reduce`
 when used with the resulting user-defined reduction operator.)
 
-### Generalizing associativity does not help
+### Generalizing associativity helps little
 
 Suppose we accept that associativity and related properties are not useful
 for describing our proposed algorithms.
@@ -1327,13 +1370,14 @@ The operation need not be associative or commutative.
 While this seems almost too general to be useful,
 there are two reasons why even a magma is too specific for our proposal.
 
-* It only assumes one set, that is, one type.
+1. A magma only assumes one set, that is, one type.
     This does not accurately describe what the algorithms do,
     and it excludes useful features like mixed precision and types that use expression templates.
-* Magma is too specific, because algorithms are useful even if the binary operation is not closed.
+
+2. A magma is too specific, because algorithms are useful even if the binary operation is not closed.
 
 First, even for simple linear algebra operations that "only" use plus and times,
-there is no one "set $M$" over which plus and times operate.
+there is no one "set M" over which plus and times operate.
 There are actually three operations: plus, times, and assignment.
 Each operation may have completely heterogeneous input(s) and output.
 The sets (types) that may occur vary from algorithm to algorithm,
@@ -1386,16 +1430,430 @@ The problem, again, is that we need adverbs, not adjectives.
 We want to describe what the algorithms do -- e.g., that they can rearrange terms in a sum --
 not how the types that go into the algorithms behave.
 
-### Summary
+In summary:
 
 * Many useful types have nonassociative or even non-closed arithmetic.
+
 * Lack of (e.g.,) associativity is not just a rounding error issue.
+
 * It can be useful to let algorithms do things like reparenthesize sums or products,
     even for types that are not associative.
+
 * Permission for an algorithm to reparenthesize sums
     is not the same as a concept constraining the terms in the sum.
+
 * We can and do use existing Standard language, like *GENERALIZED_SUM*,
     for expressing permissions that algorithms have.
+
+In the sections that follow, we will describe a different way
+to constrain the matrix and vector element types and scalars in our algorithms.
+We will start by categorizing the different quality of implementation (QoI) enhancements
+that implementers might like to make.
+These enhancements call for changing algorithms in different ways.
+We will distinguish textbook from non-textbook ways of changing algorithms,
+explain that we only permit non-textbook changes for floating-point types,
+then develop constraints on types that permit textbook changes.
+
+### Categories of QoI enhancements
+
+An important goal of constraining our algorithms is
+to give implementers the freedom to make QoI enhancements.
+We categorize QoI enhancements in three ways:
+
+1. those that depend entirely on the computer architecture;
+
+2. those that might have architecture-dependent parameters,
+    but could otherwise be written in an architecture-independent way; and
+
+3. those that diverge from a textbook description of the algorithm,
+    and depend on element types having properties more specific
+    than what that description requires.
+
+An example of Category (1) would be special hardware instructions
+that perform matrix-matrix multiplications on small, fixed-size blocks.
+The hardware might only support a few types,
+such as integers, fixed-point reals, or floating-point types.
+Implementations might use these instructions for the entire algorithm,
+if the problem sizes and element types match the instruction's requirements.
+They might also use these instructions to solve subproblems.
+In either case, these instructions might reorder sums
+or create temporary values.
+
+Examples of Category (2) include blocking
+to increase cache or translation lookaside buffer (TLE) reuse,
+or using SIMD instructions (given the Parallelism TS' inclusion of SIMD).
+Many of these optimizations relate to memory locality or parallelism.
+For an overview, see (Goto 2008) or Section 2.6 of (Demmel 1997).
+All such optimizations reorder sums and create temporary values.
+
+Examples of Category (3) include Strassen's algorithm for matrix multiplication.
+The textbook formulation of matrix multiplication only uses additions and multiplies,
+but Strassen's algorithm also performs subtractions.
+A common feature of Category (3) enhancements
+is that their implementation diverges
+from a "textbook description of the algorithm"
+in ways beyond just reordering sums.
+As a "textbook," we recommend either (Strang 2016),
+or the concise mathematical description of operations in the BLAS Standard.
+In the next section, we will list properties of textbook descriptions,
+and explain some ways in which QoI enhancements might fail to adhere to those properties.
+
+### Properties of textbook algorithm descriptions
+
+"Textbook descriptions" of the algorithms we propose 
+tend to have the following properties.
+For each property, we give an example of a "non-textbook" algorithm,
+and how it assumes something extra about the matrix's element type.
+
+a. They compute floating-point sums straightforwardly
+   (possibly reordered, or with temporary intermediate values),
+   rather than using any of several algorithms that improve accuracy
+   (e.g., compensated summation)
+   or even make the result independent of evaluation order (see Demmel 2013).
+   All such non-straightforward algorithms
+   depend on properties of floating-point arithmetic.
+   We will define below what "possibly reordered,
+   or with temporary intermediate values" means.
+
+b. They use only those arithmetic operations
+   on the matrix and vector element types
+   that the textbook description of the algorithm requires,
+   even if using other kinds of arithmetic operations
+   would improve performance
+   or give an asymptotically faster algorithm.
+
+c. They use exact algorithms (not considering rounding error),
+   rather than approximations
+   (that would not be exact even if computing with real numbers).
+
+d. They do not use parallel algorithms
+   that would give an asymptotically faster parallelization
+   in the theoretical limit of infinitely many available parallel processing units,
+   at the cost of likely unacceptable rounding error in floating-point arithmetic.
+
+As an example of (b), the textbook matrix multiplication algorithm
+only adds or multiplies the matrices' elements.
+In contrast, Strassen's algorithm for matrix-matrix multiply
+subtracts as well as adds and multiplies the matrices' elements.
+Use of subtraction assumes that arbitrary elements have an additive inverse,
+but the textbook matrix multiplication algorithm makes sense
+even for element types that lack additive inverses for all elements.
+Also, use of subtractions changes floating-point rounding behavior
+in a way that was only fully understood recently (see Demmel 2007).
+
+As an example of (c), the textbook substitution algorithm
+for solving triangular linear systems is exact.
+In contrast, one can approximate triangular solve with a stationary iteration.
+(See, e.g., Section 5 of (Chow 2015).
+That paper concerns the sparse matrix case;
+we cite it merely as an example of an approximate algorithm,
+not as a recommendation for dense triangular solve.)
+Approximation only makes sense for element types
+that have enough precision for the approximation to be accurate.
+If the approximation checks convergence,
+than the algorithm also requires less-than comparison
+of absolute values of differences.
+
+Multiplication by the reciprocal of a number,
+rather than division by that number,
+could fit into (b) or (c).
+As an example of (c), implementations for hardware
+where floating-point division is slow compared with multiplication
+could use an approximate reciprocal multiplication to implement division.
+
+As an example of (d), the textbook substitution algorithm
+for solving triangular linear systems has data dependencies
+that limit its theoretical parallelism.
+In contrast, one can solve a triangular linear system
+by building all powers of the matrix in parallel,
+then solving the linear system as with a Krylov subspace method.
+This approach is exact for real numbers,
+but commits too much rounding error to be useful in practice
+for all but the smallest linear systems.
+In fact, the algorithm requires that the matrix's element type
+have precision exponential in the matrix's dimension.
+
+Many of these non-textbook algorithms rely on properties of floating-point arithmetic.
+Strassen's algorithm makes sense for unsigned integer types,
+but it could lead to unwarranted and unexpected overflow for signed integer types.
+Thus, we think it best to limit implementers to textbook algorithms,
+unless all matrix and vector element types are floating-point types.
+We always forbid non-textbook algorithms of type (d).
+If all matrix and vector element types are floating-point types,
+we permit non-textbook algorithms of Types (a), (b), and (c),
+under two conditions:
+
+1. they satisfy the complexity requirements; and
+
+2. they result in a *logarithmically stable* algorithm,
+    in the sense of (Demmel 2007).
+
+We believe that Condition (2) is a reasonable interpretation of Section 2.7 of the BLAS Standard.
+This says that "no particular computational order is mandated by the function specifications.
+In other words, any algorithm that produces results 'close enough'
+to the usual algorithms presented in a standard book on matrix computations
+is acceptable."
+Examples of what the BLAS Standard considers "acceptable"
+include Strassen's algorithm, and implementing matrix multiplication as
+`C = (alpha * A) * B + (beta * C)`,
+`C = alpha * (A * B) + (beta * C)`, or
+`C = A * (alpha * B) + (beta * C)`.
+
+"Textbook algorithms" includes optimizations commonly found in BLAS implementations.
+This includes any available hardware acceleration,
+as well as the locality and parallelism optimizations we describe below.
+Thus, we think restricting generic implementations to textbook algorithms
+will not overly limit implementers.
+
+The set of floating-point types currently has three members:
+`float`, `double`, and `long double`.
+If a proposal like P1467R4 ("Extended floating-point types and standard names") is accepted,
+it will grow to include implementation-specific types,
+such as short or extended-precision floats.
+This "future-proofs" our proposal in some sense,
+though implementers will need to take care to avoid approximations
+if the element type lacks the needed precision.
+
+### Reordering sums and creating temporaries
+
+Even textbook descriptions of linear algebra algorithms
+presume the freedom to reorder sums and create temporary values.
+Optimizations for memory locality and parallelism depend on this.
+This freedom imposes requirements on algorithms' matrix and vector element types.
+
+We could get this freedom either by
+limiting our proposal to the Standard's current arithmetic types,
+or by forbidding reordering and temporaries for types other than arithmetic types.
+However, doing so would unnecessarily prevent straightforward optimizations
+for small and fast types that act just like arithmetic types.
+This includes so-called "short floats" such as bfloat16 or binary16,
+extended-precision floating-point numbers, and fixed-point reals.
+Some of these types may be implementation defined,
+and others may be user-specified.
+We intend to permit implementers to optimize for these types as well.
+This motivates us to describe our algorithms' type requirements in a generic way.
+
+#### Special case: Only one element type
+
+We find it easier to think about type requirements
+by starting with the assumption that
+all element and scalar types in algorithms are the same.
+One can then generalize to input element type(s) that might differ
+from the output element type and/or scalar result type.
+
+Optimizations for memory locality and parallelism
+both create temporary values, and change the order of sums.
+For example, reorganizing matrix data to reduce stride involves
+making a temporary copy of a subset of the matrix,
+and accumulating partial sums into the temporary copy.
+Thus, both kinds of optimizations impose
+a common set of requirements and assumptions on types.
+Let `value_type` be the output `mdspan`'s `value_type`.
+Implementations may:
+
+1. value-initialize objects of type `value_type`;
+
+2. assign to objects of type `value_type`;
+
+3. make arbitrary copies or value-initialized instances of `value_type`;
+
+4. perform sums in any order;
+
+5. assume that `value_type{} + x` equals `x + value_type{}` equals `x`,
+    for any `x` of type `value_type`.
+    That is, value-initialization results in a two-sided additive identity.
+
+Assumptions (1), (2), and (3) imply that the output value type is `semiregular`.
+Contrast with **[algorithms.parallel.exec]**:
+"Unless otherwise stated,
+implementations may make arbitrary copies of elements of type `T`,
+from sequences where `is_­trivially_­copy_­constructible_­v<T>`
+and `is_­trivially_­destructible_­v<T>` are true."
+We omit the trivially constructible and destructible requirements here
+and permit any `semiregular` type.
+Linear algebra algorithms assume mathematical properties
+that let us impose more specific requirements than general parallel algorithms.
+Nevertheless, implementations may want to enable optimizations
+that create significant temporary storage
+only if the value type is trivially constructible,
+trivially destructible, and not too large.
+
+Regarding Assumption (4):
+The freedom to compute sums in any order is not necessarily a type constraint.
+Rather, it's a right that the algorithm claims,
+regardless of whether the type is actually associative or commutative. 
+For example, floating-point sums are not associative,
+yet both parallelization and customary linear algebra optimizations
+rely on reordering sums.
+See the above "adverbs, not adjectives" section for a more detailed explanation.
+
+#### General case: Multiple input element types
+
+An important feature of P1673 is the ability to compute
+with mixed matrix or vector element types.
+For instance, `add(y, scaled(alpha, x), z)` implements the operation z = y + alpha*x,
+an elementwise scaled vector sum.
+The element types of the vectors x, y, and z could be all different,
+and could differ from the type of alpha.
+
+##### Accumulate into output value type
+
+Generic algorithms would use the output `mdspan`'s `value_type`
+to accumulate partial sums, and for any temporary results.
+This is the analog of `std::reduce`'s scalar result type `T`.
+Implementations for floating-point types might accumulate into higher-precision temporaries,
+or use other ways to increase accuracy when accumulating partial sums,
+but the output `mdspan`'s `value_type` would still control accumulation behavior in general.
+
+##### Proxy references or expression templates
+
+1. Proxy references: The input and/or output `mdspan` might have an accessor
+    with a `reference` type other than `element_type&`.
+    For example, the output `mdspan` might have a value type `value_type`,
+    but its `reference` type might be `atomic_ref<value_type>`.
+
+2. Expression templates: The element types themselves might have arithmetic operations
+    that defer the actual computation until the expression is assigned.
+    These "expression template" types typically hold
+    some kind of reference or pointer to their input arguments.
+
+Neither proxy references nor expression template types are `semiregular`,
+because they behave like references, not like values.
+However, we can still require that their underlying value type be `semiregular`.
+For instance, the possiblity of proxy references just means that
+we need to use the output `mdspan`'s `value_type`
+when constructing or value-initializing temporary values,
+rather than trying to deduce the value type
+from the type of an expression that indexes into the output `mdspan`.
+Expression templates just mean that we need to use the output `mdspan`'s `value_type`
+to construct or value-initialize temporaries,
+rather than trying to deduce the temporaries' type
+from the right-hand side of the expression.
+
+The z = y + alpha*x example above shows that some of the algorithms we propose
+have multiple terms in a sum on the right-hand side of the expression
+that defines the algorithm.
+If algorithms have permission to rearrange the order of sums,
+then they need to be able to break up such expressions into separate terms,
+even if some of those expressions are expression templates.
+
+### General constraints and assumptions
+
+The list of constraints below relates to algorithms with an output `mdspan`.
+The constraints also apply to algorithms that produce a scalar result,
+if we replace "the output `mdspan`'s `value_type`" with "the scalar result type."
+We sometimes use the phrase "the expression defining an algorithm,"
+which we abbreviate as "the algorithm's expression."
+This is the mathematical expression that defines what the algorithm assigns to each output element,
+and/or to the scalar output (if applicable).
+
+1. The output `value_type` is `semiregular`.
+
+2. Value-initialization of the output `value_type`
+    results in a two-sided additive identity,
+    for both the output `value_type`,
+    and for the type of any sum term
+    on the right-hand side of the algorithm's expression.
+
+3. Algorithms can perform sums in any order,
+    and can assign any sum term in the algorithm's expression
+    to any instance of the output's `value_type`,
+    or to any `reference` produced by a valid output array access.
+
+4. Implementations may make arbitrary instances
+    or copies of elements of the output `value_type`.
+
+5. Implementations may assign arbitrarily many times
+    to any instance of the output' `value_type`,
+    or to any `reference` produced by a valid output array access,
+    as long as the algorithm's asymptotic complexity requirements are satisfied.
+
+### "Textbook" algorithm description in semiring terms
+
+As we explain in the "adverbs, not adjectives" section above,
+we deliberately do not constrain matrix and vector element types
+to require associative addition.
+This means that we do not, for instance, define concepts like "ring" or "group."
+We cannot even speak of a single set of values
+that would permit defining things like a "ring" or "group."
+This is because our algorithms must handle mixed value types,
+expression templates, and proxy references.
+However, it may still be helpful to use mathematical language
+to explain what we mean by "a textbook description of the algorithm."
+
+Most of the algorithms we propose only depend on addition and multiplication.
+We describe these algorithms in terms of a mathematical expression
+on elements of a *semiring* with possibly noncommutative multiplication.
+The only difference between a semiring and a ring
+is that a semiring does not require all elements to have an additive inverse.
+That is, addition is allowed, but not subtraction.
+Implementers may apply any mathematical transformation to the expressions
+that would give the same result for any semiring.
+
+#### Why a semiring?
+
+We use a semiring because
+
+1. we generally want to reorder terms in sums,
+    but we do not want to order terms in products; and
+
+2. we do not want to assume that subtraction works.
+
+The first is because linear algebra computations are useful
+for matrix or vector element types with noncommutative multiplication,
+such as quaternions or matrices.
+The second is because algebra operations might be useful for signed integers,
+where a formulation using subtraction risks unexpected undefined behavior.
+
+#### Semirings and testing
+
+It's important that implementers be able to test our proposed algorithms
+for custom element types, not just the built-in arithmetic types.
+We don't want to require hypothetical "exact real arithmetic" types
+that take particular expertise to implement.
+Instead, we propose testing with simple classes built out of unsigned integers.
+This section is not part of our Standard Library proposal,
+but we include it to give guidance to implementers
+and to show that it's feasible to test our proposal.
+
+##### Commutative multiplication
+
+C++ unsigned integers implement commutative rings.
+(Rings always have commutative addition;
+a "commutative ring" has commutative multiplication as well.)
+We may transform (say) `uint32_t` into a commutative semiring
+by wrapping it in a class that does not provide unary or binary `operator-`.
+Adding a "tag" template parameter to this class
+would let implementers build tests for mixed element types.
+
+#### Noncommutative multiplication
+
+The semiring of 2x2 matrices with element type a commutative semiring
+is itself a semiring,
+but with noncommutative multiplication.
+This is a good way to build a noncommutative semiring for testing.
+
+### Summary
+
+* Constraining the matrix and vector element types and scalar types in our functions
+    gives implementers the freedom to make QoI enhancements
+    without risking correctness.
+
+* Mathematical concepts like "ring" are adjectives, describing types.
+    We think adverbs, describing algorithms' implementation freedom,
+    are more useful.
+    For example, we permit implementations to reorder sums,
+    but this does not mean that they assume sums are associative.
+
+* We categorize different ways that implementers might like to change algorithms,
+    list categories we exclude and categories we permit,
+    and use the permitted categories to derive constraints
+    on the types of matrix and vector elements and scalar results.
+
+* We explain how a semiring is a good way to talk about implementation freedom,
+    even though we do not think it is a good way to constrain types.
+    We then use the semiring description to explain how implementers
+    can test generic algorithms.
 
 # Future work
 
