@@ -6230,6 +6230,10 @@ The following requirements apply to all functions in this section.
         `dynamic_extent`, then `y.static_extent(0)` equals
         `z.static_extent(0)` (if applicable).
 
+* *Complexity:* All algorithms in this Clause with `mdspan` parameters
+    perform a count of `mdspan` array accesses and arithmetic operations
+    that is linear in `x.extent(0)` times `A.extent(1)`.
+
 * *Remarks:* The functions will only access the triangle of `A`
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
@@ -6345,6 +6349,10 @@ The following requirements apply to all functions in this section.
     * If neither `y.static_extent(0)` nor `z.static_extent(0)` equals
         `dynamic_extent`, then `y.static_extent(0)` equals
         `z.static_extent(0)` (if applicable).
+
+* *Complexity:* All algorithms in this Clause with `mdspan` parameters
+    perform a count of `mdspan` array accesses and arithmetic operations
+    that is linear in `x.extent(0)` times `A.extent(1)`.
 
 * *Remarks:*
 
@@ -6479,6 +6487,10 @@ The following requirements apply to all functions in this section.
     * if neither `y.static_extent(0)` nor `z.static_extent(0)` equals
         `dynamic_extent`, then `y.static_extent(0)` equals
         `z.static_extent(0)` (if applicable).
+
+* *Complexity:* All algorithms in this Clause with `mdspan` parameters
+    perform a count of `mdspan` array accesses and arithmetic operations
+    that is linear in `x.extent(0)` times `A.extent(1)`.
 
 * *Remarks:*
 
@@ -6625,6 +6637,10 @@ The following requirements apply to all functions in this section.
     * if neither `A.static_extent(1)` nor `b.static_extent(0)` equals
         `dynamic_extent`, then `A.static_extent(1)` equals
         `b.static_extent(0)`.
+
+* *Complexity:* All algorithms in this Clause with `mdspan` parameters
+    perform a count of `mdspan` array accesses and arithmetic operations
+    that is linear in `x.extent(0)` times `A.extent(1)`.
 
 * *Remarks:*
 
@@ -6798,6 +6814,9 @@ note]*
 * *Effects:* Assigns to `A` on output the sum of `A` on input, and the
     outer product of `x` and `y`.
 
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `x.extent(0)` times `y.extent(0)`.
+
 *[Note:* Users can get `xGERC` behavior by giving the second argument
 as the result of `conjugated`.  Alternately, they can use the shortcut
 `matrix_rank_1_update_c` below. --*end note]*
@@ -6925,6 +6944,9 @@ impossible to express updates like C = C - x x^T otherwise.
         sum of `A` on input, with alpha times (the outer product of `x`
         and `x`).
 
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `x.extent(0)` times `x.extent(0)`.
+
 * *Remarks:* The functions will only access the triangle of `A`
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
@@ -7034,6 +7056,9 @@ impossible to express the update A = A - x x^H otherwise.
         sum of `A` on input, with alpha times (the outer product of `x`
         and the conjugate of `x`).
 
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `x.extent(0)` times `x.extent(0)`.
+
 * *Remarks:*
 
     * The functions will only access the triangle of `A` specified by
@@ -7110,6 +7135,9 @@ void symmetric_matrix_rank_2_update(
 
 * *Effects:* Assigns to `A` on output the sum of `A` on input, the
     outer product of `x` and `y`, and the outer product of `y` and `x`.
+
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `x.extent(0)` times `y.extent(0)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
     specified by the `Triangle` argument `t`, and will assume for
@@ -7200,6 +7228,9 @@ void hermitian_matrix_rank_2_update(
     the outer product of `x` and the conjugate of `y`,
     and the outer product of `y` and the conjugate of `x`.
 
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `x.extent(0)` times `y.extent(0)`.
+
 * *Remarks:*
 
     * The functions will only access the triangle of `A`
@@ -7257,6 +7288,9 @@ The following requirements apply to all functions in this section.
     * If neither `B.static_extent(1)` nor `C.static_extent(1)` equals
         `dynamic_extent`, then `B.static_extent(1)` equals
         `C.static_extent(1)`.
+
+* *Complexity:* For all algorithms in this Clause, the count of `mdspan` array accesses and arithmetic operations
+    is linear in `A.extent(0)` times `B.extent(1)` times `A.extent(1)`.
 
 ##### Overwriting general matrix-matrix product
 
@@ -7402,6 +7436,9 @@ The following requirements apply to all overloads of
         `dynamic_extent`, then `B.static_extent(1)` equals
         `C.static_extent(1)`.
 
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `A.extent(0)` times `B.extent(1)` times `A.extent(1)`.
+
 The following requirements apply to all overloads of
 `symmetric_matrix_right_product`.
 
@@ -7426,6 +7463,9 @@ The following requirements apply to all overloads of
     * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
         `dynamic_extent`, then `A.static_extent(1)` equals
         `C.static_extent(1)`.
+
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `B.extent(0)` times `A.extent(1)` times `B.extent(1)`.
 
 ##### Overwriting symmetric matrix-matrix left product [linalg.algs.blas3.symm.ov.left]
 
@@ -7652,6 +7692,9 @@ The following requirements apply to all overloads of
         `dynamic_extent`, then `B.static_extent(1)` equals
         `C.static_extent(1)`.
 
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `A.extent(0)` times `B.extent(1)` times `A.extent(1)`.
+
 The following requirements apply to all overloads of
 `hermitian_matrix_right_product`.
 
@@ -7676,6 +7719,9 @@ The following requirements apply to all overloads of
     * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
         `dynamic_extent`, then `A.static_extent(1)` equals
         `C.static_extent(1)`.
+
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `B.extent(0)` times `A.extent(1)` times `B.extent(1)`.
 
 ##### Overwriting Hermitian matrix-matrix left product [linalg.algs.blas3.hemm.ov.left]
 
@@ -7898,6 +7944,9 @@ The following requirements apply to all overloads of
         `dynamic_extent`, then `B.static_extent(1)` equals
         `C.static_extent(1)` (if applicable).
 
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `A.extent(0)` times `B.extent(1)` times `A.extent(1)`.
+
 The following requirements apply to all overloads of
 `triangular_matrix_right_product`.
 
@@ -7922,6 +7971,9 @@ The following requirements apply to all overloads of
     * if neither `A.static_extent(1)` nor `C.static_extent(1)` equals
         `dynamic_extent`, then `A.static_extent(1)` equals
         `C.static_extent(1)`.
+
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `B.extent(0)` times `A.extent(1)` times `B.extent(1)`.
 
 ##### Overwriting triangular matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]
 
@@ -8163,6 +8215,9 @@ void triangular_matrix_right_product(
 BLAS functions, by applying `transposed` or `conjugate_transposed`
 to the input matrix. --*end note]*
 
+* *Complexity:* For all algorithms in this Clause, the count of `mdspan` array accesses and arithmetic operations
+    is linear in `A.extent(0)` times `A.extent(1)` times `A.extent(0)`.
+
 ##### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.syrk]
 
 ```c++
@@ -8372,6 +8427,9 @@ otherwise.
 *[Note:* Users can achieve the effect of the `TRANS` argument of these
 BLAS functions, by applying `transposed` or `conjugate_transposed`
 to the input matrices. --*end note]*
+
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `A.extent(0)` times `A.extent(1)` times `B.extent(1)`.
 
 ##### Rank-2k symmetric matrix update [linalg.alg.blas3.rank2k.syr2k]
 
@@ -8607,6 +8665,9 @@ The following requirements apply to all functions in this section.
 
 ##### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `A.extent(0)` times `A.extent(1)` times `X.extent(1)`.
+
 Not-in-place left solve of multiple triangular systems
 
 ```c++
@@ -8704,6 +8765,9 @@ This is why the `ExecutionPolicy` overload exists.
      linear system(s) AX=B for X.
 
 ##### Solve multiple triangular linear systems with triangular matrix on the right [linalg.alg.blas3.trsm.right]
+
+* *Complexity:* The count of `mdspan` array accesses and arithmetic operations
+    is linear in `B.extent(0)` times `B.extent(1)` times `A.extent(1)`.
 
 Not-in-place right solve of multiple triangular systems
 
