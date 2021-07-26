@@ -196,6 +196,8 @@ Date: 2021-07-23
 
     * Change file format from Markdown to Bikeshed.
 
+    * Impose requirements on the types on which algorithms compute, and on the algorithms themselves (e.g., what rearrangements are permitted).  Add a section explaining how we came up with the requirements.
+
 # Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -5083,7 +5085,7 @@ satisfy the following requirements.
 All of these requirements presume that the algorithm's asymptotic complexity requirements,
 if any, are satisfied.
 
-1. Any input or output `mdspan`'s `value_type` is `semiregular`. 
+1. Any input or output `mdspan`'s `value_type` meets the requirements of `semiregular`.
 
 2. The algorithm may perform read-only access on any input or output `mdspan`
     arbitrarily many times.
@@ -5132,6 +5134,13 @@ if any, are satisfied.
     for any addend or subtrahend `x`
     that appears in the algorithm's mathematical expression.
 
+10. If the algorithm's mathematical expression uses division,
+    then it may use either `output_reference::operator=`
+    or `output_reference::operator/=`,
+    as if `R = R / x` and `R /= x` gave the same result
+    for any divisor `x`
+    that appears in the algorithm's mathematical expression.
+
 #### Other value type requirements [linalg.algs.reqs.type]
 
 This clause lists the minimum requirements for any of the following types:
@@ -5153,7 +5162,7 @@ The type `T` then satisfies the following requirements.
 All of these requirements presume that the algorithm's asymptotic complexity requirements,
 if any, are satisfied.
 
-1. `T` is `semiregular`. 
+1. `T` meets the requirements of `semiregular`.
 
 2. The algorithm or method may make arbitrary instances or copies of `T`,
     and may assign arbitrarily many times to instances of `T`.
@@ -5174,6 +5183,32 @@ if any, are satisfied.
 
     c. `t = x`.
 
+#### Algorithm implementation requirements [linalg.algs.reqs.impl]
+
+For all algorithms in **[linalg.algs]**,
+suppose that
+
+* all input and output `mdspan` have `value_type` a floating-point type,
+
+* any `Scalar` template argument has a floating-point type, and
+
+* any argument corresponding to the `T init` parameter has a floating-point type.
+
+Then, algorithms may do the following:
+
+1. compute floating-point sums in any way that improves their accuracy for arbitrary input;
+
+2. perform arithmetic operations other than those in the mathematical expression defining the algorithm, in order to improve performance or accuracy; and
+
+3. use approximations (that might not be exact even if computing with real numbers), instead of algorithms that would be exact if it were possible to compute without rounding error;
+
+as long as
+
+1. the algorithm satisfies the complexity requirements; and
+
+2. the algorithm is *logarithmically stable*,
+    in the sense of (Demmel 2007).
+
 ### BLAS 1 functions [linalg.algs.blas1]
 
 *[Note:*
@@ -5187,6 +5222,10 @@ The BLAS traditionally lists computing a Givens rotation among the
 BLAS 1 operations, even though it only operates on scalars.
 
 --*end note]*
+
+All algorithms in this Clause with `mdspan` parameters
+perform a count of `mdspan` array accesses and arithmetic operations
+that is linear in the maximum product of extents of any `mdspan` parameter.
 
 #### Givens rotations [linalg.algs.blas1.givens]
 
@@ -6050,6 +6089,10 @@ The following requirements apply to all functions in this section.
     * If neither `y.static_extent(0)` nor `z.static_extent(0)` equals
         `dynamic_extent`, then `y.static_extent(0)` equals
         `z.static_extent(0)` (if applicable).
+
+* *Complexity:* All algorithms in this Clause with `mdspan` parameters
+    perform a count of `mdspan` array accesses and arithmetic operations
+    that is linear in `x.extent(0)` times `A.extent(1)`.
 
 ##### Overwriting matrix-vector product
 
