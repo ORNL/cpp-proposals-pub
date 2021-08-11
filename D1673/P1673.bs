@@ -1655,19 +1655,16 @@ a common set of requirements and assumptions on types.
 Let `value_type` be the output `mdspan`'s `value_type`.
 Implementations may:
 
-1. value-initialize objects of type `value_type`;
+1. create arbitrarily many objects of type `value_type`,
+    value-initializing them or direct-initializing them
+    with any existing object of that type;
 
-2. assign to objects of type `value_type`;
+2. perform sums in any order; or
 
-3. make arbitrary copies or value-initialized instances of `value_type`;
+3. replace any value with the sum of that value
+    and a value-initialized `value_type` object.
 
-4. perform sums in any order;
-
-5. assume that `value_type{} + x` equals `x + value_type{}` equals `x`,
-    for any `x` of type `value_type`.
-    That is, value-initialization results in a two-sided additive identity.
-
-Assumptions (1), (2), and (3) imply that the output value type is `semiregular`.
+Assumption (1) implies that the output value type is `semiregular`.
 Contrast with **[algorithms.parallel.exec]**:
 "Unless otherwise stated,
 implementations may make arbitrary copies of elements of type `T`,
@@ -1682,7 +1679,7 @@ that create significant temporary storage
 only if the value type is trivially constructible,
 trivially destructible, and not too large.
 
-Regarding Assumption (4):
+Regarding Assumption (2):
 The freedom to compute sums in any order is not necessarily a type constraint.
 Rather, it's a right that the algorithm claims,
 regardless of whether the type's addition is associative or commutative.
@@ -1691,6 +1688,12 @@ yet both parallelization and customary linear algebra optimizations
 rely on reordering sums.
 See the above "Value type constraints do not suffice to describe algorithm behavior" section
 for a more detailed explanation.
+
+Regarding Assumption (3),
+we do not actually say that
+value-initialization produces a two-sided additive identity.
+What matters is what the algorithm's implementation may assume,
+not whether the type actually behaves in this way.
 
 #### General case: Multiple input element types
 
