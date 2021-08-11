@@ -5052,16 +5052,21 @@ or other things as appropriate.
     a `const` lvalue reference to an `mdspan`, or
     a (non-`const`) rvalue reference to an `mdspan`.
 
-#### Array value and reference requirements [linalg.algs.reqs.array]
+#### Value and reference requirements [linalg.algs.reqs.array]
 
-This clause lists the minimum requirements for the `mdspan` parameter(s)
-of any algorithm in **[linalg.algs]**.
-The requirements specifically refer to the `mdspan` parameter(s)'
-`value_type` and `reference` type aliases.
+This clause lists the minimum requirements for all algorithms and classes in **[linalg.alg]**,
+and for the following types:
 
-These type requirements are parameterized by the algorithm using the type.
-Each algorithm using the type has an associated mathematical expression
-that defines the algorithm's behavior.
+* for any input or output `mdspan` parameter(s) of any algorithm in **[linalg.algs]**, the parameter(s)' `value_type` and `reference` type aliases;
+
+* the `Scalar` template parameter (if any) of any algorithm or class in **[linalg.algs]**; and
+
+* the `T` template parameter of any algorithm in **[linalg.algs]** with a `T init` parameter.
+
+In this clause, we refer to these types as *linear algebra value types*.
+These type requirements are parameterized by the algorithm or class using the type.
+Each algorithm or class using the type has an associated mathematical expression
+that defines the algorithm's or class' behavior.
 The requirements below will refer to that mathematical expression.
 
 *[Note:*
@@ -5069,23 +5074,18 @@ This notion of parameterizing requirements on a mathematical expression
 generalizes *GENERALIZED_SUM*.
 --*end note]*
 
-If the algorithm has an output `mdspan`, then let `output_reference`
-refer to the output `mdspan`'s `reference` type alias,
-and let `output_value_type` refer to the output `mdspan`'s `value_type` type alias.
-Given an algorithm, the algorithm and any of the algorithm's `mdspan` parameters
-satisfy the following requirements.
-All of these requirements presume that the algorithm's asymptotic complexity requirements,
+All of the following requirements presume that the algorithm's asymptotic complexity requirements,
 if any, are satisfied.
 
-1. Any input or output `mdspan`'s `value_type`
+1. Any linear algebra value type
     meets the requirements of `semiregular`.
 
 2. The algorithm may perform read-only access
     on any input or output `mdspan` arbitrarily many times.
 
 3. The algorithm or method may make arbitrary many objects
-    of any input or output `mdspan`'s `value_type`,
-    value-initializing them or direct-initializing them
+    of any linear algebra value type,
+    value-initializing or direct-initializing them
     with any existing object of that type.
 
 4. The algorithm may assign arbitrarily many times
@@ -5155,49 +5155,12 @@ if any, are satisfied.
     and a value-initialized object
     of any input or output `mdspan`'s `value_type`.
 
-#### Other value type requirements [linalg.algs.reqs.type]
+12. If the algorithm has a `T init` parameter,
+    then the algorithm may replace any value
+    with the sum of that value
+    and a value-initialized object of type `T`.
 
-This clause lists the minimum requirements for any of the following types:
-
-* the `Scalar` template parameter of any algorithm in **[linalg.algs]**; or
-
-* the `T` template parameter of any algorithm in **[linalg.algs]**
-    with a `T init` parameter.
-
-As with the requirements in **[linalg.algs.reqs.array]**,
-the requirements here are parameterized
-by the algorithm or method using the type.
-Each algorithm or method using the type
-has an associated mathematical expression that defines the algorithm's or method's behavior.
-The requirements below will refer to that mathematical expression.
-
-Given an algorithm or method, let the type for which to define requirements be `T`.
-The type `T` then satisfies the following requirements.
-All of these requirements presume that the algorithm's asymptotic complexity requirements,
-if any, are satisfied.
-
-1. `T` meets the requirements of `semiregular`.
-
-2. The algorithm or method may make arbitrary instances or copies of `T`,
-    and may assign arbitrarily many times to instances of `T`.
-
-3. The algorithm or method may reorder addends in its mathematical expression arbitrarily.
-    *[Note:*
-    The algorithm or method may *not* reorder products arbitrarily.
-    This is because the algorithms and methods do not assume that multiplication is commutative.
-    --*end note]*
-
-4. The algorithm or method may assume that the following expressions result in equal values,
-    for `x` being any addend in the algorithm's or method's mathematical expression,
-    where `t` is an instance of type `T`:
-
-    a. `t = T{} + x`;
-    
-    b. `t = x + t{}`; and
-
-    c. `t = x`.
-
-#### Algorithm implementation requirements [linalg.algs.reqs.impl]
+#### Requirements for algorithms on floating-point values [linalg.algs.reqs.flpt]
 
 For all algorithms in **[linalg.algs]**,
 suppose that
@@ -5222,6 +5185,10 @@ as long as
 
 2. the algorithm is *logarithmically stable*,
     in the sense of (Demmel 2007).
+
+*[Note:*
+Strassen's algorithm for matrix-matrix multiply is an example of a logarithmically stable algorithm.
+--*end note]*
 
 ### BLAS 1 functions [linalg.algs.blas1]
 
