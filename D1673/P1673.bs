@@ -5064,61 +5064,77 @@ satisfy the following requirements.
 All of these requirements presume that the algorithm's asymptotic complexity requirements,
 if any, are satisfied.
 
-1. Any input or output `mdspan`'s `value_type` meets the requirements of `semiregular`.
+1. Any input or output `mdspan`'s `value_type`
+    meets the requirements of `semiregular`.
 
-2. The algorithm may perform read-only access on any input or output `mdspan`
-    arbitrarily many times.
+2. The algorithm may perform read-only access
+    on any input or output `mdspan` arbitrarily many times.
 
-3. The algorithm or method may make arbitrary instances or copies
-    of any input or output `mdspan`'s `value_type`.
+3. The algorithm or method may make arbitrary many objects
+    of any input or output `mdspan`'s `value_type`,
+    value-initializing them or direct-initializing them
+    with any existing object of that type.
 
-4. The algorithm may assign arbitrarily many times to any reference
-    resulting from a valid output `mdspan` access,
-    as long as the algorithm's asymptotic complexity requirements are satisfied.
+4. The algorithm may assign arbitrarily many times
+    to any reference
+    resulting from a valid output `mdspan` access.
 
-5. The algorithm may assign any addend
-    in the algorithm's mathematical expression
-    to any reference resulting from a valid output `mdspan` access.
+5. If the algorithm's mathematical expression
+    uses addition,
+    but not subtraction, multiplication, or division,
+    then the algorithm evaluates the mathematical expression
+    using a sequence of evaluations of
+    `+`, `+=`, and `=` operators
+    that would produce the correct result
+    when operating on elements of a commutative semigroup.
 
-6. The algorithm may reorder addends in its mathematical expression arbitrarily.
+6. If the algorithm's mathematical expression
+    uses multiplication and possibly also addition,
+    but not subtraction or division,
+    then the algorithm
+    evaluates the mathematical expression
+    using a sequence of evaluations of
+    `*`, `*=`, `+`, `+=`, and `=` operators
+    that would produce the correct result
+    when operating on elements of a semiring
+    with noncommutative multiplication.
+
+7. If the algorithm's mathematical expression
+    uses subtraction and possibly also
+    addition and multiplication, but not division,
+    then the algorithm
+    evaluates the mathematical expression
+    using a sequence of evaluations of
+    `*`, `*=`, `+`, `+=`,
+    unary `-`, binary `-`, `-=`,
+    and `=` operators
+    that would produce the correct result
+    when operating on elements of a ring
+    with noncommutative multiplication.
+
+8. If the algorithm's mathematical expression
+    uses division and possibly also
+    addition, subtraction, and multiplication,
+    then the algorithm
+    evaluates the mathematical expression
+    using a sequence of evaluations of
+    `*`, `*=`, `/`, `/=`,
+    `+`, `+=`, unary `-`, binary `-`, `-=`,
+    and `=` operators
+    that would produce the correct result
+    when operating on elements of a field
+    with noncommutative multiplication.
+
+9. The algorithm may reorder addends in its mathematical expression arbitrarily.
     *[Note:*
     Factors in each product are not reordered.
     This is because the algorithms do not assume that multiplication is commutative.
     --*end note]*
 
-7. The algorithm may use either `output_reference::operator=`
-    or `output_reference::operator+=`,
-    as if `R = R + x`, `R = x + R`, and `R += x` gave the same result
-    for any addend `x`
-    that appears in the algorithm's mathematical expression.
-
-8. If `R` has type `output_reference` and `V` has type `output_value_type`,
-    then the algorithm may assume that the following expressions are equal,
-    for `x` being any sum term in the algorithm's mathematical expression:
-
-    a. `R = output_value_type{} + x`;
-    
-    b. `V = x + output_value_type{}`; and
-
-    c. `V = x`.
-
-9. If the algorithm's mathematical expression uses subtraction,
-    then it may assume that `x + (-y)` equals `x - y` equals `-y + x`
-    for any addend or subtrahend in its mathematical expression.
-
-10. If the algorithm's mathematical expression uses subtraction,
-    then it may use either `output_reference::operator=`
-    or `output_reference::operator-=`,
-    as if `R = R - x` and `R -= x` gave the same result
-    for any addend or subtrahend `x`
-    that appears in the algorithm's mathematical expression.
-
-10. If the algorithm's mathematical expression uses division,
-    then it may use either `output_reference::operator=`
-    or `output_reference::operator/=`,
-    as if `R = R / x` and `R /= x` gave the same result
-    for any divisor `x`
-    that appears in the algorithm's mathematical expression.
+10. The algorithm may replace any value
+    with the sum of that value
+    and a value-initialized object
+    of any input or output `mdspan`'s `value_type`.
 
 #### Other value type requirements [linalg.algs.reqs.type]
 
