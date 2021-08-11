@@ -1230,14 +1230,18 @@ The latter is a special case of computing floating-point sums exactly,
 which is costly for vectors of arbitrary length.  While it would be a
 useful feature, it is difficult enough that we do not want to require
 it, especially since the BLAS Standard itself does not.
-The Reference BLAS implementation of vector 2-norms
-[`DNRM2`](https://www.netlib.org/lapack/explore-html/da/d7f/dnrm2_8f_source.html)
-maintains the current maximum absolute value of all the vector entries seen thus far,
-and scales each vector entry by that maximum,
-in the same way as the LAPACK routine `DLASSQ`.
-Implementations could also first compute the sum of squares in a straightforward loop.
-They could then recompute if needed,
-for example by testing if the result is `Inf` or `NaN`.
+The implementation of vector 2-norms in the Reference BLAS included with LAPACK 3.10.0
+partitions the running sum of squares into three different accumulators:
+one for big values (that might cause the sum to overflow without rescaling),
+one for small values (that might cause the sum to underflow without rescaling),
+and one for the remaining "medium" values.
+(See Anderson 2017.)
+Earlier implementations merely rescaled by the current maximum absolute value
+of all the vector entries seen thus far.
+(See Blue 1978.)
+Implementations could also just compute the sum of squares in a straightforward loop,
+then check floating-point status flags for underflow or overflow,
+and recompute if needed.
 
 For all of the functions listed on p. 35 of the BLAS Standard as
 needing "particularly careful implementations," *except* vector norm,
@@ -2061,16 +2065,25 @@ on constraints wording.
 
 ## Other references
 
-* [Basic Linear Algebra Subprograms Technical (BLAST) Forum Standard](http://netlib.org/blas/blast-forum/blas-report.pdf),
-    International Journal of High Performance Applications and Supercomputing,
-    Vol. 16. No. 1, Spring 2002.
+* E. Anderson,
+    "Algorithm 978: Safe Scaling in the Level 1 BLAS,"
+    *ACM Transactions on Mathematical Software*,
+    Vol. 44, pp. 1-28, 2017.
+
+* ["Basic Linear Algebra Subprograms Technical (BLAST) Forum Standard,"](http://netlib.org/blas/blast-forum/blas-report.pdf)
+    *International Journal of High Performance Applications and Supercomputing*,
+    Vol. 16, No. 1, Spring 2002.
 
 * L. S. Blackford, J. Demmel, J. Dongarra, I. Duff, S. Hammarling,
     G. Henry, M. Heroux, L. Kaufman, A. Lumsdaine, A. Petitet, R. Pozo,
     K. Remington, and R. C. Whaley,
     ["An updated set of basic linear algebra subprograms (BLAS),"](https://doi.org/10.1145/567806.567807)
-    *ACM Transactions on Mathematical Software* (TOMS),
+    *ACM Transactions on Mathematical Software*,
     Vol. 28, No. 2, Jun. 2002, pp. 135-151.
+
+* J. L. Blue,
+    "A Portable Fortran Program to Find the Euclidean Norm of a Vector,"
+    *ACM Transactions on Mathematical Software*, Vol. 4, pp. 15-23, 1978.
 
 * E. Chow and A. Patel,
     "Fine-Grained Parallel Incomplete LU Factorization",
