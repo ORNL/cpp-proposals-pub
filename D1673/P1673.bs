@@ -336,6 +336,158 @@ This integrates naturally with "block" factorizations of matrices.
 The resulting notation is concise, yet still computes in place,
 without unnecessary copies of any part of the matrix.
 
+Here is a table that maps between Reference BLAS function name,
+and algorithm or function name in our proposal.
+The mapping is not always one to one.
+"N/A" in the "BLAS name(s)" field means that the function is not in the BLAS.
+
+<table>
+  <tr>
+    <th>BLAS name(s)</th>
+    <th>Our name(s)</th>
+  </tr>
+  <tr>
+    <td>xLARTG</td>
+    <td>`givens_rotation_setup`</td>
+  </tr>
+  <tr>
+    <td>xROT</td>
+    <td>`givens_rotation_apply`</td>
+  </tr>
+  <tr>
+    <td>xSWAP</td>
+    <td>`swap_elements`</td>
+  </tr>
+  <tr>
+    <td>xSCAL</td>
+    <td>`scale`, `scaled`</td>
+  </tr>
+  <tr>
+    <td>xCOPY</td>
+    <td>`copy`</td>
+  </tr>
+  <tr>
+    <td>xAXPY</td>
+    <td>`add`, `scaled`</td>
+  </tr>
+  <tr>
+    <td>xDOT, xDOTU</td>
+    <td>`dot`</td>
+  </tr>
+  <tr>
+    <td>xDOTC</td>
+    <td>`dotc`</td>
+  </tr>
+  <tr>
+    <td>N/A</td>
+    <td>`sum_of_squares`</td>
+  </tr>
+  <tr>
+    <td>xNRM2</td>
+    <td>`vector_norm2`</td>
+  </tr>
+  <tr>
+    <td>xASUM</td>
+    <td>`vector_abs_sum`</td>
+  </tr>
+  <tr>
+    <td>xIAMAX</td>
+    <td>`idx_abs_max`</td>
+  </tr>
+  <tr>
+    <td>N/A</td>
+    <td>`matrix_frob_norm`</td>
+  </tr>
+  <tr>
+    <td>N/A</td>
+    <td>`matrix_one_norm`</td>
+  </tr>
+  <tr>
+    <td>N/A</td>
+    <td>`matrix_inf_norm`</td>
+  </tr>
+  <tr>
+    <td>xGEMV</td>
+    <td>`matrix_vector_product`</td>
+  </tr>
+  <tr>
+    <td>xSYMV</td>
+    <td>`symmetric_matrix_vector_product`</td>
+  </tr>
+  <tr>
+    <td>xHEMV</td>
+    <td>`hermitian_matrix_vector_product`</td>
+  </tr>
+  <tr>
+    <td>xTRMV</td>
+    <td>`triangular_matrix_vector_product`</td>
+  </tr>
+  <tr>
+    <td>xTRSV</td>
+    <td>`triangular_matrix_vector_solve`</td>
+  </tr>
+  <tr>
+    <td>xGER, xGERU</td>
+    <td>`matrix_rank_1_update`</td>
+  </tr>
+  <tr>
+    <td>xGERC</td>
+    <td>`matrix_rank_1_update_c`</td>
+  </tr>
+  <tr>
+    <td>xSYR</td>
+    <td>`symmetric_matrix_rank_1_update`</td>
+  </tr>
+  <tr>
+    <td>xHER</td>
+    <td>`hermitian_matrix_rank_1_update`</td>
+  </tr>
+  <tr>
+    <td>xSYR2</td>
+    <td>`symmetric_matrix_rank_2_update`</td>
+  </tr>
+  <tr>
+    <td>xHER2</td>
+    <td>`hermitian_matrix_rank_2_update`</td>
+  </tr>
+  <tr>
+    <td>xGEMM</td>
+    <td>`matrix_product`</td>
+  </tr>
+  <tr>
+    <td>xSYMM</td>
+    <td>`symmetric_matrix_{left,right}_product`</td>
+  </tr>
+  <tr>
+    <td>xHEMM</td>
+    <td>`hermitian_matrix_{left,right}_product`</td>
+  </tr>
+  <tr>
+    <td>xTRMM</td>
+    <td>`triangular_matrix_{left,right}_product`</td>
+  </tr>
+  <tr>
+    <td>xSYRK</td>
+    <td>`symmetric_matrix_rank_k_update`</td>
+  </tr>
+  <tr>
+    <td>xHERK</td>
+    <td>`hermitian_matrix_rank_k_update`</td>
+  </tr>
+  <tr>
+    <td>xSYR2K</td>
+    <td>`symmetric_matrix_rank_2k_update`</td>
+  </tr>
+  <tr>
+    <td>xHER2K</td>
+    <td>`hermitian_matrix_rank_2k_update`</td>
+  </tr>
+  <tr>
+    <td>xTRSM</td>
+    <td>`triangular_matrix_matrix_{left,right}_solve`</td>
+  </tr>
+</table>
+
 # Interoperable with other linear algebra proposals
 
 We believe this proposal is complementary to P1385R6,
