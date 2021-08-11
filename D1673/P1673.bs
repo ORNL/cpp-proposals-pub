@@ -262,7 +262,7 @@ Our proposal also has the following distinctive characteristics:
     applications that need to do many small matrix or vector operations
     at once.
 
-# Overview
+# Overview of contents
 
 Section <a href="#interoperable-with-other-linear-algebra-proposals"><span class="secno">5</span></a>
 explains how this proposal is interoperable with other linear algebra proposals currently under WG21 review.
@@ -293,13 +293,52 @@ We imitate the BLAS in aiming to be a set of "performance primitives"
 on which external libraries or applications
 may build a more complete linear algebra solution.
 
+Section <a href="#design-justification"><span class="secno">11</span></a>
+elaborates on our design justification.
+This section explains
+
+* why we use `mdspan` to represent matrix and vector parameters;
+
+* how we translate the BLAS' Fortran-centric idioms into C++;
+
+* how the BLAS' different "matrix types" map to different algorithms,
+    rather than different `mdspan` layouts;
+
+* how we express quality-of-implementation recommendations
+    about avoiding undue overflow and underflow; and
+
+* how we impose requirements on algorithms' behavior
+    and on the various value types that algorithms encounter.
+
+Section <a href="#future-work"><span class="secno">12</span></a>
+lists future work, that is, ways future proposals could build on this one.
+
+Section <a href="#data-structures-and-utilities-borrowed-from-other-proposals"><span class="secno">13</span></a>
+gives the data structures and utilities from other proposals on which we depend.
+In particular, we rely heavily on `mdspan` (P0009R12 and P2299R3),
+and add custom layouts and accessors.
+
+Section <a href="#acknowledgments"><span class="secno">14</span></a> credits funding agencies and contributors.
+
+Section <a href="#references"><span class="secno">15</span></a> is our bibliography.
+
+Section <a href="#wording"><span class="secno">16</span></a>
+is where readers will find the normative wording we propose.
+
+Finally, Section <a href="#examples"><span class="secno">17</span></a>
+gives some more elaborate examples of linear algebra algorithms that use our proposal.
+The examples show how `mdspan`'s features let users easily describe "submatrices" with `submdspan`.
+This integrates naturally with "block" factorizations of matrices.
+The resulting notation is concise, yet still computes in place,
+without unnecessary copies of any part of the matrix.
+
 # Interoperable with other linear algebra proposals
 
 We believe this proposal is complementary to P1385R6,
 a proposal for a C++ Standard linear algebra library
 that introduces matrix and vector classes with overloaded arithmetic operators.
-The P1385 authors and we have expressed together in a joint paper,
-[P1891](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf),
+The P1385 authors and we have expressed together in
+[a joint paper, P1891](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf),
 that P1673 and P1385 "are orthogonal.
 They are not competing papers; ...
 there is no overlap of functionality."
@@ -2083,6 +2122,9 @@ on constraints wording.
     J. Michopoulos, and N. Liber,
     "`mdspan`," <a href="https://wg21.link/p0009r12">P0009R12</a>,
     May 2021.
+
+* G. Davidson, M. Hoemmen, D. S. Hollman, B. Steagall, and C. Trott,
+    <a href="https://wg21.link/p1891r0">P1891R0</a>, Oct. 2019.
 
 * B. A. Lelbach, "`mdspan` of All Dynamic Extents,"
     <a href="https://wg21.link/p2299r3">P2299R3</a>, Jun. 2021.
