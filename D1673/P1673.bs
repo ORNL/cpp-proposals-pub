@@ -1264,7 +1264,7 @@ nonbinding quality of implementation (QoI) recommendation.
 ### Introduction
 
 The BLAS only accepts four different types of scalars and matrix and vector elements.
-In C++ terms, these are `float`, `double`, `complex<float>`, and `complex<double>`.
+In C++ terms, these correspond to `float`, `double`, `complex<float>`, and `complex<double>`.
 The algorithms we propose generalize the BLAS
 by accepting any matrix, vector, or scalar element types that make sense for each algorithm.
 Those may be built-in types, like floating-point numbers or integers,
@@ -1273,6 +1273,7 @@ Those custom types might not behave like conventional real or complex numbers.
 For example, quaternions have noncommutative multiplication (`a * b` might not equal `b * a`),
 polynomials in one variable over a field lack division,
 and some types might not even have subtraction defined.
+Nevertheless, many BLAS operations would make sense for all of these types.
 
 "Constraining matrix and vector element types and scalars"
 means defining how these types must behave
@@ -1313,8 +1314,8 @@ We agree that it is useful to set constraints
 that make it possible to reason about correctness of algorithms.
 However, our concern is that P1813R0 imposes requirements
 that are too strict to be useful for practical types, like associativity.
-Concepts give us _adjectives_, that describe the element types of input and output arrays.
-What we actually want are _adverbs_,
+Concepts give us *adjectives*, that describe the element types of input and output arrays.
+What we actually want are *adverbs*,
 that describe the algorithms we apply to those arrays.
 The Standard already has machinery like *GENERALIZED_SUM*
 that we can (and do) use to describe our algorithms in an adverbial way.
