@@ -1745,37 +1745,6 @@ If algorithms have permission to rearrange the order of sums,
 then they need to be able to break up such expressions into separate terms,
 even if some of those expressions are expression templates.
 
-### General constraints and assumptions
-
-The list of constraints below relates to algorithms with an output `mdspan`.
-The constraints also apply to algorithms that produce a scalar result,
-if we replace "the output `mdspan`'s `value_type`" with "the scalar result type."
-We sometimes use the phrase "the expression defining an algorithm,"
-which we abbreviate as "the algorithm's expression."
-This is the mathematical expression that defines what the algorithm assigns to each output element,
-and/or to the scalar output (if applicable).
-
-1. The output `value_type` is `semiregular`.
-
-2. Value-initialization of the output `value_type`
-    results in a two-sided additive identity,
-    for both the output `value_type`,
-    and for the type of any sum term
-    on the right-hand side of the algorithm's expression.
-
-3. Algorithms can perform sums in any order,
-    and can assign any sum term in the algorithm's expression
-    to any instance of the output's `value_type`,
-    or to any `reference` produced by a valid output array access.
-
-4. Implementations may make arbitrary instances
-    or copies of elements of the output `value_type`.
-
-5. Implementations may assign arbitrarily many times
-    to any instance of the output' `value_type`,
-    or to any `reference` produced by a valid output array access,
-    as long as the algorithm's asymptotic complexity requirements are satisfied.
-
 ### "Textbook" algorithm description in semiring terms
 
 As we explain in the
