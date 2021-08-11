@@ -1408,10 +1408,11 @@ then slightly different sum expressions involving `x(i)` and/or `y(i)`
 (e.g., `alpha * x(i) + y(i)`, `x(i) + y(i)`, or `y(i) + x(i)`)
 might all have different types,
 all of which differ from value type of `x` or `y`.
+All of these types must be assignable and convertible to the output value type.
 
 We could try to describe this with a concept that expresses a sum type.
 The sum type would include all the types that might show up in the expression.
-However, we do not think this would improve clarity over just the expression.
+However, we do not think this would improve clarity over just the expression itself.
 Furthermore, different algorithms may need different expressions,
 so we would need multiple concepts, one for each expression.
 Why not just use the expressions to describe what the algorithms can do?
@@ -5137,13 +5138,19 @@ if any, are satisfied.
     when operating on elements of a field
     with noncommutative multiplication.
 
-9. The algorithm may reorder addends in its mathematical expression arbitrarily.
+9. If the algorithm has an output `mdspan`,
+    then all addends (or subtrahends, if applicable)
+    in the algorithm's mathematical expression
+    have types that are assignable and convertible to
+    the output `mdspan`'s `value_type`.
+
+10. The algorithm may reorder addends in its mathematical expression arbitrarily.
     *[Note:*
     Factors in each product are not reordered;
     multiplication is not necessarily commutative.
     --*end note]*
 
-10. The algorithm may replace any value
+11. The algorithm may replace any value
     with the sum of that value
     and a value-initialized object
     of any input or output `mdspan`'s `value_type`.
