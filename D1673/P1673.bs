@@ -262,18 +262,59 @@ Our proposal also has the following distinctive characteristics:
     applications that need to do many small matrix or vector operations
     at once.
 
+# Overview
+
+Section <a href="#interoperable-with-other-linear-algebra-proposals"><span class="secno">5</span></a>
+explains how this proposal is interoperable with other linear algebra proposals currently under WG21 review.
+In particular, we believe this proposal is complementary to P1385R6,
+and the authors of P1385R6 have expressed the same view.
+
+Section <a href="#why-include-dense-linear-algebra-in-the-c-standard-library"><span class="secno">6</span></a>
+motivates considering *any* dense linear algebra proposal for the C++ Standard Library.
+
+Section <a href="#why-base-a-c-linear-algebra-library-on-the-blas"><span class="secno">7</span></a>
+shows why we chose the BLAS as a starting point for our proposed library.
+The BLAS is an existing standard with decades of use,
+a rich set of functions,
+and many optimized implementations.
+
+Section <a href="#criteria-for-including-algorithms"><span class="secno">8</span></a>
+lists what we consider general criteria for including algorithms in the C++ Standard Library.
+We rely on these criteria to justify the algorithms in this proposal.
+
+Section <a href="#notation-and-conventions"><span class="secno">9</span></a>
+describes BLAS notation and conventions in C++ terms.
+Understanding this will give readers context for algorithms,
+and show how our proposed algorithms expand on BLAS functionality.
+
+Section <a href="#what-we-exclude-from-the-design"><span class="secno">10</span></a>
+lists functionality that we intentionally exclude from our proposal.
+We imitate the BLAS in aiming to be a set of "performance primitives"
+on which external libraries or applications
+may build a more complete linear algebra solution.
+
 # Interoperable with other linear algebra proposals
 
-We believe this proposal is complementary to
-P1385R6, a proposal for a C++ Standard linear
-algebra library that introduces matrix and vector classes with
-overloaded arithmetic operators.  In fact, we think that our proposal
-would make a natural foundation for a library like what P1385
-proposes.  However, a free function interface -- which clearly
-separates algorithms from data structures -- more naturally allows for
-a richer set of operations such as what the BLAS provides.  A natural
-extension of the present proposal would include accepting P1385's
-matrix and vector objects as input for the algorithms proposed here.
+We believe this proposal is complementary to P1385R6,
+a proposal for a C++ Standard linear algebra library
+that introduces matrix and vector classes with overloaded arithmetic operators.
+The P1385 authors and we have expressed together in a joint paper,
+[P1891](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf),
+that P1673 and P1385 "are orthogonal.
+They are not competing papers; ...
+there is no overlap of functionality."
+
+Many of us have had experience using and implementing
+matrix and vector operator arithmetic libraries like what P1385 proposes.
+We designed P1673 in part as a natural foundation or implementation layer for such libraries.
+Our view is that a free function interface like P1673's
+clearly separates algorithms from data structures,
+and more naturally allows for a richer set of operations such as what the BLAS provides.
+P1674 explains why we think our proposal is a minimal C++ "respelling" of the BLAS.
+
+A natural extension of the present proposal would include
+accepting P1385's matrix and vector objects as input
+for the algorithms proposed here.
 A straightforward way to do that would be for P1385's matrix and vector objects
 to make views of their data available as `mdspan`.
 
@@ -600,17 +641,16 @@ with complex numbers.
 
 # What we exclude from the design
 
-## Functions not in the Reference BLAS
+## Most functions not in the Reference BLAS
 
 The BLAS Standard includes functionality that appears neither in the
-[Reference
-BLAS](http://www.netlib.org/lapack/explore-html/d1/df9/group__blas.html)
+[Reference BLAS](http://www.netlib.org/lapack/explore-html/d1/df9/group__blas.html)
 library, nor in the classic BLAS "level" 1, 2, and 3 papers.  (For
 history of the BLAS "levels" and a bibliography, see P1417R0.
-For a paper describing functions not in
-the Reference BLAS, see "An updated set of basic linear algebra
-subprograms (BLAS)," listed in "Other references" below.)  For
-example, the BLAS Standard has
+For a paper describing functions not in the Reference BLAS,
+see "An updated set of basic linear algebra subprograms (BLAS),"
+listed in "Other references" below.)
+For example, the BLAS Standard has
 
 * several new dense functions, like a fused vector update and dot
     product;
@@ -636,6 +676,11 @@ following reasons:
 
 4. Our proposal subsumes some dense mixed-precision functionality (see
     below).
+
+We have included vector sum-of-squares and matrix norms as exceptions,
+for the same reason that we include vector 2-norm:
+to expose hooks for quality-of-implementation improvements
+that avoid underflow or overflow when computing with floating-point values.
 
 ## LAPACK or related functionality
 
