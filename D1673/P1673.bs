@@ -1402,9 +1402,10 @@ The types of `x(i)` and `y(i)` might be more complicated;
 e.g., `x(i)` might be a polynomial with `double` coefficients,
 and `y(i)` a polynomial with `float` coefficients.
 If those polynomials use expression templates,
-then the expression `x(i) + x(i)` might have a completely different type
-than `decltype(x(i))` (possibly with references removed),
-and might also have a completely different type than `alpha * x(i) + y(i)`.
+then slightly different sum expressions involving `x(i)` and/or `y(i)`
+(e.g., `alpha * x(i) + y(i)`, `x(i) + y(i)`, or `y(i) + x(i)`)
+might all have different types,
+all of which differ from value type of `x` or `y`.
 
 We could try to describe this with a concept that expresses a sum type.
 The sum type would include all the types that might show up in the expression.
