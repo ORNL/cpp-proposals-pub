@@ -1294,7 +1294,7 @@ Thus, performance is a major concern.
 "Accuracy" here refers to either to rounding error or to approximation error
 (for matrix or vector element types where either makes sense).
 
-### We need adverbs more than adjectives
+### Value type constraints do not suffice to describe algorithm behavior
 
 LEWG's 2020 review of P1673R2 asked us to investigate conceptification of its algorithms.
 "Conceptification" here refers to an effort like that of P1813R0
@@ -1312,13 +1312,12 @@ so these questions matter a lot to us.
 
 We agree that it is useful to set constraints
 that make it possible to reason about correctness of algorithms.
-However, our concern is that P1813R0 imposes requirements
-that are too strict to be useful for practical types, like associativity.
-Concepts give us *adjectives*, that describe the element types of input and output arrays.
-What we actually want are *adverbs*,
-that describe the algorithms we apply to those arrays.
-The Standard already has machinery like *GENERALIZED_SUM*
-that we can (and do) use to describe our algorithms in an adverbial way.
+However, we do not think constraints on value types suffice for this purpose.
+First, requirements like associativity are too strict to be useful for practical types.
+Second, what we really want to do is describe the behavior of algorithms,
+regardless of value types' semantics.
+"The algorithm may reorder sums" means something different
+than "addition on the terms in the sum is associative."
 
 ### Associativity is too strict
 
@@ -1343,11 +1342,11 @@ just like `operator==` isn't the right match for describing "nearly the same."
 For some number systems, a rounding error bound might be more appropriate,
 or guarantees on when underflow or overflow may occur (as in POSIX's `hypot`).
 
-The problem is a mismatch between the constraint we want to express --
+The problem is a mismatch between the requirement we want to express --
 that "the algorithm may reparenthesize addition" --
 and the constraint that "addition is associative."
-The former is an adverb, describing what the algorithm (a verb) does.
-The latter is an adjective, describing the type (a noun) used with an algorithm.
+The former describes the algorithm's behavior,
+while the latter describes the types used with that algorithm.
 Given the huge variety of possible arithmetic systems,
 an approach like the Standard's use of *GENERALIZED_SUM* to describe `reduce` and its kin seems more helpful.
 If the Standard describes an algorithm in terms of *GENERALIZED_SUM*,
@@ -1356,8 +1355,8 @@ The caller then takes responsibility for interpreting the algorithm's results.
 
 We think this is important both for adding new algorithms (like those in this proposal)
 and for defining behavior of an algorithm with respect to different `ExecutionPolicy` arguments.
-(For instance, `par_unseq` could imply that the algorithm might change the order of terms in a sum,
-while `par` need not.
+(For instance, `execution::par_unseq` could imply that the algorithm might change the order of terms in a sum,
+while `execution::par` need not.
 Compare to `MPI_Op_create`'s `commute` parameter,
 that affects the behavior of algorithms like `MPI_Reduce`
 when used with the resulting user-defined reduction operator.)
@@ -1366,9 +1365,9 @@ when used with the resulting user-defined reduction operator.)
 
 Suppose we accept that associativity and related properties are not useful
 for describing our proposed algorithms.
-Could there be a generalization of associativity that _would_ be useful?
+Could there be a generalization of associativity that *would* be useful?
 P1813R0's most general concept is a `magma`.
-Mathematically, a _magma_ is a set M with a binary operation ×,
+Mathematically, a *magma* is a set M with a binary operation ×,
 such that if a and b are in M, then a × b is in M.
 The operation need not be associative or commutative.
 While this seems almost too general to be useful,
@@ -1431,9 +1430,9 @@ This point returns us to the concerns we expressed earlier about assuming associ
 The way to refine these concepts usefully is to describe the behavior of a type fully,
 e.g., the way that IEEE 754 describes the behavior of floating-point numbers. 
 However, algorithms rarely depend on all the properties in a specification like IEEE 754.
-The problem, again, is that we need adverbs, not adjectives.
-We want to describe what the algorithms do -- e.g., that they can rearrange terms in a sum --
-not how the types that go into the algorithms behave.
+The problem, again, is that we need to describe
+what algorithms do -- e.g., that they can rearrange terms in a sum -- not how the types
+that go into the algorithms behave.
 
 In summary:
 
@@ -1686,11 +1685,12 @@ trivially destructible, and not too large.
 Regarding Assumption (4):
 The freedom to compute sums in any order is not necessarily a type constraint.
 Rather, it's a right that the algorithm claims,
-regardless of whether the type is actually associative or commutative. 
+regardless of whether the type's addition is associative or commutative.
 For example, floating-point sums are not associative,
 yet both parallelization and customary linear algebra optimizations
 rely on reordering sums.
-See the above "adverbs, not adjectives" section for a more detailed explanation.
+See the above "Value type constraints do not suffice to describe algorithm behavior" section
+for a more detailed explanation.
 
 #### General case: Multiple input element types
 
@@ -1775,8 +1775,9 @@ and/or to the scalar output (if applicable).
 
 ### "Textbook" algorithm description in semiring terms
 
-As we explain in the "adverbs, not adjectives" section above,
-we deliberately do not constrain matrix and vector element types
+As we explain in the
+"Value type constraints do not suffice to describe algorithm behavior" section above,
+we deliberately constrain matrix and vector element types
 to require associative addition.
 This means that we do not, for instance, define concepts like "ring" or "group."
 We cannot even speak of a single set of values
@@ -1844,9 +1845,10 @@ This is a good way to build a noncommutative semiring for testing.
     gives implementers the freedom to make QoI enhancements
     without risking correctness.
 
-* Mathematical concepts like "ring" are adjectives, describing types.
-    We think adverbs, describing algorithms' implementation freedom,
-    are more useful.
+    "Value type constraints do not suffice to describe algorithm behavior" section above,
+
+* We think describing algorithms' behavior and implementation freedom
+    is more useful than mathematical concepts like "ring."
     For example, we permit implementations to reorder sums,
     but this does not mean that they assume sums are associative.
 
