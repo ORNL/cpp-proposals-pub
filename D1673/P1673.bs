@@ -3868,38 +3868,32 @@ asymptotic complexity requirements, if any, are satisfied.
     resulting from a valid output `mdspan` access.
 
 5. If the algorithm's or method's mathematical expression
-    uses addition,
-    but not subtraction, multiplication, or division,
-    then the algorithm or method evaluates the mathematical expression
-    using a sequence of evaluations of
-    `+`, `+=`, and `=` operators
-    that would produce the correct result
-    when operating on elements of a commutative semigroup.
-    Any addend,
-    any partial sum of addends in any order,
-    and any assignment in the mathematical expression
-    shall be well formed.
-
-6. If the algorithm's or method's mathematical expression
-    uses multiplication and possibly also addition,
-    but not subtraction or division,
+    uses division and possibly also
+    addition, subtraction, and multiplication,
     then the algorithm or method
     evaluates the mathematical expression
     using a sequence of evaluations of
-    `*`, `*=`, `+`, `+=`, and `=` operators
+    `*`, `*=`, `/`, `/=`,
+    `+`, `+=`, unary `-`, binary `-`, `-=`,
+    and `=` operators
     that would produce the correct result
-    when operating on elements of a semiring
+    when operating on elements of a field
     with noncommutative multiplication.
+    (We interpret `a / b` as `a` times the multiplicative inverse of `b`.)
     Any addend,
-    any partial sum of addends in any order,
+    any subtrahend,
+    any partial sum of addends in any order
+    (treating any difference as a sum with the second term negated),
     any factor,
-    any partial product of factors respecting their order in the mathematical expression, 
+    any partial product of factors respecting their order in the mathematical expression,
+    any numerator,
+    any denominator,
     and any assignment in the mathematical expression
     shall be well formed.
 
-7. If the algorithm's or method's mathematical expression
+6. Otherwise, if the algorithm's or method's mathematical expression
     uses subtraction and possibly also
-    addition and multiplication, but not division,
+    addition and multiplication,
     then the algorithm or method
     evaluates the mathematical expression
     using a sequence of evaluations of
@@ -3918,38 +3912,39 @@ asymptotic complexity requirements, if any, are satisfied.
     and any assignment in the mathematical expression
     shall be well formed.
 
-8. If the algorithm's or method's mathematical expression
-    uses division and possibly also
-    addition, subtraction, and multiplication,
+7. Otherwise, if the algorithm's or method's mathematical expression
+    uses multiplication and possibly also addition,
     then the algorithm or method
     evaluates the mathematical expression
     using a sequence of evaluations of
-    `*`, `*=`, `/`, `/=`,
-    `+`, `+=`, unary `-`, binary `-`, `-=`,
-    and `=` operators
+    `*`, `*=`, `+`, `+=`, and `=` operators
     that would produce the correct result
-    when operating on elements of a field
+    when operating on elements of a semiring
     with noncommutative multiplication.
     Any addend,
-    any subtrahend,
-    any partial sum of addends in any order
-    (treating any difference as a sum with the second term negated),
+    any partial sum of addends in any order,
     any factor,
-    any partial product of factors respecting their order in the mathematical expression,
-    any numerator,
-    any denominator,
+    any partial product of factors respecting their order in the mathematical expression, 
     and any assignment in the mathematical expression
     shall be well formed.
 
-9. If the algorithm's or method's mathematical expression includes `conj(z)`
-    for an expression `z` that is *not* convertible to `complex<R>` for some `R`,
-    then the `conj(z)` expression is interpreted as `z` for the requirement below.
+8. Otherwise, if the algorithm's or method's mathematical expression
+    uses addition,
+    then the algorithm or method evaluates the mathematical expression
+    using a sequence of evaluations of
+    `+`, `+=`, and `=` operators
+    that would produce the correct result
+    when operating on elements of a commutative semigroup.
+    Any addend,
+    any partial sum of addends in any order,
+    and any assignment in the mathematical expression
+    shall be well formed.
 
-10. If the algorithm's or method's mathematical expression includes any of the following:
+9. If the algorithm's or method's mathematical expression includes any of the following:
 
-    a. `conj(z)` for some expression `z` convertible to `complex<R>` for some `R`, or
+    a. `conj(z)` for some expression `z`,
 
-    b. `abs(x)` for some expression `x`,
+    b. `abs(x)` for some expression `x`, or
 
     c. `sqrt(x)` for some expression `x`,
 
@@ -3958,25 +3953,28 @@ asymptotic complexity requirements, if any, are satisfied.
     In addition, any of the above subexpressions that appear
     in the algorithm's or method's mathematical expression
     shall be well formed.
+    However, if the mathematical expression includes `conj(z)`
+    for an expression `z` that is *not* convertible to `complex<R>` for some `R`,
+    then the `conj(z)` expression is interpreted as `z` for this requirement.
 
-11. If the algorithm or method has an output `mdspan`,
+10. If the algorithm or method has an output `mdspan`,
     then all addends (or subtrahends, if applicable)
     in the algorithm's or method's mathematical expression
     are assignable and convertible to the output `mdspan`'s `value_type`.
 
-12. The algorithm or method may reorder addends and partial sums
+11. The algorithm or method may reorder addends and partial sums
     in its mathematical expression arbitrarily.
     *[Note:*
     Factors in each product are not reordered;
     multiplication is not necessarily commutative.
     --*end note]*
 
-13. The algorithm or method may replace any value
+12. The algorithm or method may replace any value
     with the sum of that value
     and a value-initialized object
     of any input or output `mdspan`'s `value_type`.
 
-14. If the algorithm or method has a `T init` parameter,
+13. If the algorithm or method has a `T init` parameter,
     then the algorithm or method may replace any value
     with the sum of that value
     and a value-initialized object of type `T`.
