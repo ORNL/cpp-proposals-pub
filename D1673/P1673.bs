@@ -190,18 +190,25 @@ Date: 2021-07-23
     * Make `Real` requirements refer to **[complex.numbers.general]**,
         rather than explicitly listing allowed types.
         Remove redundant constraints on `Real`.
-
+    
     * In **[linalg.algs.reqs]**, clarify that "unique layout"
         for output matrix, vector, or object types
         means `is_always_unique()` equals `true`.
 
     * Change file format from Markdown to Bikeshed.
 
-    * Impose requirements on the types on which algorithms compute, and on the algorithms themselves (e.g., what rearrangements are permitted).  Add a section explaining how we came up with the requirements.
+    * Impose requirements on the types on which algorithms compute,
+        and on the algorithms themselves (e.g., what rearrangements are permitted).
+        Add a section explaining how we came up with the requirements.
+        Lift the requirements into a new higher-level section
+        that applies to the entire contents of **[linalg]**,
+        not just to **[linalg.algs]**.
 
     * Add "Overview of contents" section.
 
-    * In the last review, LEWG had asked us to consider using exposition-only concepts and `requires` clauses to express requirements more clearly.  We decided not to do so, because we did not think it would add clarity.
+    * In the last review, LEWG had asked us to consider using exposition-only concepts
+        and `requires` clauses to express requirements more clearly.
+        We decided not to do so, because we did not think it would add clarity.
 
 # Purpose of this paper
 
@@ -3812,6 +3819,200 @@ void triangular_matrix_matrix_right_solve(
 }
 ```
 
+## Requirements [linalg.reqs]
+
+### Value and reference requirements [linalg.reqs.val]
+
+This clause lists the minimum requirements for all algorithms and classes in **[linalg]**,
+and for the following types:
+
+* for any input or output `mdspan` parameter(s) of any algorithm or method in **[linalg]**,
+    the parameter(s)' `value_type` and `reference` type aliases;
+
+* the `Scalar` template parameter (if any) of any algorithm or class in **[linalg]**;
+
+* the `T` template parameter of any algorithm in **[linalg]** with a `T init` parameter; and
+
+* the template parameter of `sum_of_squares_result`.
+
+In this clause, we refer to these types as *linear algebra value types*.
+These type requirements are parameterized by the algorithm or method using the type.
+Each algorithm or method using the type has one or more associated mathematical expressions
+that defines the algorithm's or method's behavior.
+For each algorithm or method,
+its mathematical expression(s) are either explicitly stated as such,
+or are implicitly stated in the algorithm's or method's description.
+The requirements below will refer to those mathematical expression(s).
+
+*[Note:*
+This notion of parameterizing requirements on a mathematical expression
+generalizes *GENERALIZED_SUM*.
+--*end note]*
+
+All of the following requirements presume that the algorithm's
+asymptotic complexity requirements, if any, are satisfied.
+
+1. Any linear algebra value type
+    meets the requirements of `semiregular`.
+
+2. The algorithm or method may perform read-only access
+    on any input or output `mdspan` arbitrarily many times.
+
+3. The algorithm or method may make arbitrary many objects
+    of any linear algebra value type,
+    value-initializing or direct-initializing them
+    with any existing object of that type.
+
+4. The algorithm or method may assign arbitrarily many times
+    to any reference
+    resulting from a valid output `mdspan` access.
+
+5. If the algorithm's or method's mathematical expression
+    uses addition,
+    but not subtraction, multiplication, or division,
+    then the algorithm or method evaluates the mathematical expression
+    using a sequence of evaluations of
+    `+`, `+=`, and `=` operators
+    that would produce the correct result
+    when operating on elements of a commutative semigroup.
+    Any addend,
+    any partial sum of addends in any order,
+    and any assignment in the mathematical expression
+    shall be well formed.
+
+6. If the algorithm's or method's mathematical expression
+    uses multiplication and possibly also addition,
+    but not subtraction or division,
+    then the algorithm or method
+    evaluates the mathematical expression
+    using a sequence of evaluations of
+    `*`, `*=`, `+`, `+=`, and `=` operators
+    that would produce the correct result
+    when operating on elements of a semiring
+    with noncommutative multiplication.
+    Any addend,
+    any partial sum of addends in any order,
+    any factor,
+    any partial product of factors respecting their order in the mathematical expression, 
+    and any assignment in the mathematical expression
+    shall be well formed.
+
+7. If the algorithm's or method's mathematical expression
+    uses subtraction and possibly also
+    addition and multiplication, but not division,
+    then the algorithm or method
+    evaluates the mathematical expression
+    using a sequence of evaluations of
+    `*`, `*=`, `+`, `+=`,
+    unary `-`, binary `-`, `-=`,
+    and `=` operators
+    that would produce the correct result
+    when operating on elements of a ring
+    with noncommutative multiplication.
+    Any addend,
+    any subtrahend,
+    any partial sum of addends in any order
+    (treating any difference as a sum with the second term negated),
+    any factor,
+    any partial product of factors respecting their order in the mathematical expression, 
+    and any assignment in the mathematical expression
+    shall be well formed.
+
+8. If the algorithm's or method's mathematical expression
+    uses division and possibly also
+    addition, subtraction, and multiplication,
+    then the algorithm or method
+    evaluates the mathematical expression
+    using a sequence of evaluations of
+    `*`, `*=`, `/`, `/=`,
+    `+`, `+=`, unary `-`, binary `-`, `-=`,
+    and `=` operators
+    that would produce the correct result
+    when operating on elements of a field
+    with noncommutative multiplication.
+    Any addend,
+    any subtrahend,
+    any partial sum of addends in any order
+    (treating any difference as a sum with the second term negated),
+    any factor,
+    any partial product of factors respecting their order in the mathematical expression,
+    any numerator,
+    any denominator,
+    and any assignment in the mathematical expression
+    shall be well formed.
+
+9. If the algorithm's or method's mathematical expression includes `conj(z)`
+    for an expression `z` that is *not* convertible to `complex<R>` for some `R`,
+    then the `conj(z)` expression is interpreted as `z` for the requirement below.
+
+10. If the algorithm's or method's mathematical expression includes any of the following:
+
+    a. `conj(z)` for some expression `z` convertible to `complex<R>` for some `R`, or
+
+    b. `abs(x)` for some expression `x`,
+
+    c. `sqrt(x)` for some expression `x`,
+
+    but otherwise conforms to case (5), (6), (7), or (8),
+    then the relevant case (5), (6), (7), or (8) applies.
+    In addition, any of the above subexpressions that appear
+    in the algorithm's or method's mathematical expression
+    shall be well formed.
+
+11. If the algorithm or method has an output `mdspan`,
+    then all addends (or subtrahends, if applicable)
+    in the algorithm's or method's mathematical expression
+    are assignable and convertible to the output `mdspan`'s `value_type`.
+
+12. The algorithm or method may reorder addends and partial sums
+    in its mathematical expression arbitrarily.
+    *[Note:*
+    Factors in each product are not reordered;
+    multiplication is not necessarily commutative.
+    --*end note]*
+
+13. The algorithm or method may replace any value
+    with the sum of that value
+    and a value-initialized object
+    of any input or output `mdspan`'s `value_type`.
+
+14. If the algorithm or method has a `T init` parameter,
+    then the algorithm or method may replace any value
+    with the sum of that value
+    and a value-initialized object of type `T`.
+
+### Requirements for algorithms and methods on floating-point values [linalg.reqs.flpt]
+
+For all algorithms and classes in **[linalg]**, suppose that
+
+* all input and output `mdspan` have `value_type` a floating-point type,
+
+* any `Scalar` template argument has a floating-point type, and
+
+* any argument corresponding to the `T init` parameter has a floating-point type.
+
+Then, algorithms and classes' methods may do the following:
+
+1. compute floating-point sums in any way that improves their accuracy for arbitrary input;
+
+2. perform arithmetic operations other than those in the mathematical expression
+    defining the algorithm, in order to improve performance or accuracy; and
+
+3. use approximations (that might not be exact even if computing with real numbers),
+    instead of computations that would be exact
+    if it were possible to compute without rounding error;
+
+as long as
+
+1. the algorithm or method satisfies the complexity requirements; and
+
+2. the algorithm or method is *logarithmically stable*,
+    in the sense of (Demmel 2007).
+
+*[Note:*
+Strassen's algorithm for matrix-matrix multiply is an example of a logarithmically stable algorithm.
+--*end note]*
+
 ## Tag classes [linalg.tags]
 
 ### Storage order tags [linalg.tags.order]
@@ -5230,9 +5431,7 @@ void test_conjugate_transposed(
 
 ## Algorithms [linalg.algs]
 
-### Requirements [linalg.algs.reqs]
-
-#### Requirements based on template parameter name [linalg.algs.reqs.name]
+### Requirements based on template parameter name [linalg.algs.reqs]
 
 Throughout this Clause, where the template parameters are not
 constrained, the names of template parameters are used to express type
@@ -5299,198 +5498,6 @@ or other things as appropriate.
 * `inout_*_t` and `out_*_t` template parameters may deduce
     a `const` lvalue reference to an `mdspan`, or
     a (non-`const`) rvalue reference to an `mdspan`.
-
-#### Value and reference requirements [linalg.algs.reqs.val]
-
-This clause lists the minimum requirements for all algorithms and classes in **[linalg.alg]**,
-and for the following types:
-
-* for any input or output `mdspan` parameter(s) of any algorithm in **[linalg.algs]**,
-    the parameter(s)' `value_type` and `reference` type aliases;
-
-* the `Scalar` template parameter (if any) of any algorithm or class in **[linalg.algs]**;
-
-* the `T` template parameter of any algorithm in **[linalg.algs]** with a `T init` parameter; and
-
-* the template parameter of `sum_of_squares_result`.
-
-In this clause, we refer to these types as *linear algebra value types*.
-These type requirements are parameterized by the algorithm or method using the type.
-Each algorithm or method using the type has one or more associated mathematical expressions
-that defines the algorithm's or method's behavior.
-For each algorithm or method,
-its mathematical expression(s) are either explicitly stated as such,
-or are implicitly stated in the algorithm's or method's description.
-The requirements below will refer to those mathematical expression(s).
-
-*[Note:*
-This notion of parameterizing requirements on a mathematical expression
-generalizes *GENERALIZED_SUM*.
---*end note]*
-
-All of the following requirements presume that the algorithm's
-asymptotic complexity requirements, if any, are satisfied.
-
-1. Any linear algebra value type
-    meets the requirements of `semiregular`.
-
-2. The algorithm or method may perform read-only access
-    on any input or output `mdspan` arbitrarily many times.
-
-3. The algorithm or method may make arbitrary many objects
-    of any linear algebra value type,
-    value-initializing or direct-initializing them
-    with any existing object of that type.
-
-4. The algorithm or method may assign arbitrarily many times
-    to any reference
-    resulting from a valid output `mdspan` access.
-
-5. If the algorithm's or method's mathematical expression
-    uses addition,
-    but not subtraction, multiplication, or division,
-    then the algorithm or method evaluates the mathematical expression
-    using a sequence of evaluations of
-    `+`, `+=`, and `=` operators
-    that would produce the correct result
-    when operating on elements of a commutative semigroup.
-    Any addend,
-    any partial sum of addends in any order,
-    and any assignment in the mathematical expression
-    shall be well formed.
-
-6. If the algorithm's or method's mathematical expression
-    uses multiplication and possibly also addition,
-    but not subtraction or division,
-    then the algorithm or method
-    evaluates the mathematical expression
-    using a sequence of evaluations of
-    `*`, `*=`, `+`, `+=`, and `=` operators
-    that would produce the correct result
-    when operating on elements of a semiring
-    with noncommutative multiplication.
-    Any addend,
-    any partial sum of addends in any order,
-    any factor,
-    any partial product of factors respecting their order in the mathematical expression, 
-    and any assignment in the mathematical expression
-    shall be well formed.
-
-7. If the algorithm's or method's mathematical expression
-    uses subtraction and possibly also
-    addition and multiplication, but not division,
-    then the algorithm or method
-    evaluates the mathematical expression
-    using a sequence of evaluations of
-    `*`, `*=`, `+`, `+=`,
-    unary `-`, binary `-`, `-=`,
-    and `=` operators
-    that would produce the correct result
-    when operating on elements of a ring
-    with noncommutative multiplication.
-    Any addend,
-    any subtrahend,
-    any partial sum of addends in any order
-    (treating any difference as a sum with the second term negated),
-    any factor,
-    any partial product of factors respecting their order in the mathematical expression, 
-    and any assignment in the mathematical expression
-    shall be well formed.
-
-8. If the algorithm's or method's mathematical expression
-    uses division and possibly also
-    addition, subtraction, and multiplication,
-    then the algorithm or method
-    evaluates the mathematical expression
-    using a sequence of evaluations of
-    `*`, `*=`, `/`, `/=`,
-    `+`, `+=`, unary `-`, binary `-`, `-=`,
-    and `=` operators
-    that would produce the correct result
-    when operating on elements of a field
-    with noncommutative multiplication.
-    Any addend,
-    any subtrahend,
-    any partial sum of addends in any order
-    (treating any difference as a sum with the second term negated),
-    any factor,
-    any partial product of factors respecting their order in the mathematical expression,
-    any numerator,
-    any denominator,
-    and any assignment in the mathematical expression
-    shall be well formed.
-
-9. If the algorithm's or method's mathematical expression includes `conj(z)`
-    for an expression `z` that is *not* convertible to `complex<R>` for some `R`,
-    then the `conj(z)` expression is interpreted as `z` for the requirement below.
-
-10. If the algorithm's or method's mathematical expression includes any of the following:
-
-    a. `conj(z)` for some expression `z` convertible to `complex<R>` for some `R`, or
-
-    b. `abs(x)` for some expression `x`,
-
-    c. `sqrt(x)` for some expression `x`,
-
-    but otherwise conforms to case (5), (6), (7), or (8),
-    then the relevant case (5), (6), (7), or (8) applies.
-    In addition, any of the above subexpressions that appear
-    in the algorithm's or method's mathematical expression
-    shall be well formed.
-
-11. If the algorithm or method has an output `mdspan`,
-    then all addends (or subtrahends, if applicable)
-    in the algorithm's or method's mathematical expression
-    are assignable and convertible to the output `mdspan`'s `value_type`.
-
-12. The algorithm or method may reorder addends and partial sums
-    in its mathematical expression arbitrarily.
-    *[Note:*
-    Factors in each product are not reordered;
-    multiplication is not necessarily commutative.
-    --*end note]*
-
-13. The algorithm or method may replace any value
-    with the sum of that value
-    and a value-initialized object
-    of any input or output `mdspan`'s `value_type`.
-
-14. If the algorithm or method has a `T init` parameter,
-    then the algorithm or method may replace any value
-    with the sum of that value
-    and a value-initialized object of type `T`.
-
-#### Requirements for algorithms on floating-point values [linalg.algs.reqs.flpt]
-
-For all algorithms and methods in **[linalg.algs]**, suppose that
-
-* all input and output `mdspan` have `value_type` a floating-point type,
-
-* any `Scalar` template argument has a floating-point type, and
-
-* any argument corresponding to the `T init` parameter has a floating-point type.
-
-Then, algorithms and methods may do the following:
-
-1. compute floating-point sums in any way that improves their accuracy for arbitrary input;
-
-2. perform arithmetic operations other than those in the mathematical expression
-    defining the algorithm, in order to improve performance or accuracy; and
-
-3. use approximations (that might not be exact even if computing with real numbers),
-    instead of computations that would be exact
-    if it were possible to compute without rounding error;
-
-as long as
-
-1. the algorithm or method satisfies the complexity requirements; and
-
-2. the algorithm or method is *logarithmically stable*,
-    in the sense of (Demmel 2007).
-
-*[Note:*
-Strassen's algorithm for matrix-matrix multiply is an example of a logarithmically stable algorithm.
---*end note]*
 
 ### BLAS 1 functions [linalg.algs.blas1]
 
