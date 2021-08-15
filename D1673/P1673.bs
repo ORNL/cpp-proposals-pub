@@ -6965,19 +6965,19 @@ void triangular_matrix_vector_solve(
   out_vector_t x);
 ```
 
-For `i` in the domain of `x`,
-if `DiagonalStorage` is `explicit_diagonal_t`,
-then the mathematical expression for the algorithm is
+If `DiagonalStorage` is `explicit_diagonal_t`,
+then for `i` in the domain of `x`,
+the mathematical expression for the algorithm is
 `x(i) = b(i) - s / A(i,i)`,
 where `s` is the sum of `A(i,j) * x(j)`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
-For `i` in the domain of `x`,
-if `DiagonalStorage` is `implicit_unit_diagonal_t`,
-then the mathematical expression for the algorithm is
+If `DiagonalStorage` is `implicit_unit_diagonal_t`,
+then for `i` in the domain of `x`,
+the mathematical expression for the algorithm is
 `x(i) = b(i) - s`,
-where `s` is the sum of `A(i,j) * b(j)`
+where `s` is the sum of `A(i,j) * x(j)`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
@@ -7025,17 +7025,17 @@ This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
 
-For `i` in the domain of `x`,
-if `DiagonalStorage` is `explicit_diagonal_t`,
-then the mathematical expression for the algorithm is
+If `DiagonalStorage` is `explicit_diagonal_t`,
+then for `i` in the domain of `x`,
+the mathematical expression for the algorithm is
 `b(i) = b(i) - s / A(i,i)`,
 where `s` is the sum of `A(i,j) * b(j)`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
-For `i` in the domain of `x`,
-if `DiagonalStorage` is `implicit_unit_diagonal_t`,
-then the mathematical expression for the algorithm is
+If `DiagonalStorage` is `implicit_unit_diagonal_t`,
+then for `i` in the domain of `x`,
+the mathematical expression for the algorithm is
 `b(i) = b(i) - s`,
 where `s` is the sum of `A(i,j) * b(j)`
 for all `j` not equal to `i`
@@ -9054,6 +9054,22 @@ void triangular_matrix_matrix_left_solve(
   out_matrix_t X);
 ```
 
+If `DiagonalStorage` is `explicit_diagonal_t`,
+then for `i,k` in the domain of `X`,
+the mathematical expression for the algorithm is
+`X(i,k) = B(i,k) - s / A(i,i)`,
+where `s` is the sum of `A(i,j) * X(j,k)`
+for all `j` not equal to `i`
+in the subset of the domain of `A` specified by `t` and `d`.
+
+If `DiagonalStorage` is `implicit_unit_diagonal_t`,
+then for `i,k` in the domain of `X`,
+then the mathematical expression for the algorithm is
+`X(i,k) = B(i,k) - s`,
+where `s` is the sum of `A(i,j) * X(j,k)`
+for all `j` not equal to `i`
+in the subset of the domain of `A` specified by `t` and `d`.
+
 * *Requires:* `A.extent(1)` equals `B.extent(0)`.
 
 * *Constraints:* If `i,j` and `i,k` are in the domain of `X`, then
@@ -9102,6 +9118,22 @@ such as vectorization, are still possible.
 This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
+
+If `DiagonalStorage` is `explicit_diagonal_t`,
+then for `i,k` in the domain of `B`,
+the mathematical expression for the algorithm is
+`B(i,k) = B(i,k) - s / A(i,i)`,
+where `s` is the sum of `A(i,j) * B(j,k)`
+for all `j` not equal to `i`
+in the subset of the domain of `A` specified by `t` and `d`.
+
+If `DiagonalStorage` is `implicit_unit_diagonal_t`,
+then for `i,k` in the domain of `B`,
+then the mathematical expression for the algorithm is
+`B(i,k) = B(i,k) - s`,
+where `s` is the sum of `A(i,j) * B(j,k)`
+for all `j` not equal to `i`
+in the subset of the domain of `A` specified by `t` and `d`.
 
 * *Requires:* `A.extent(1)` equals `B.extent(0)`.
 
@@ -9155,10 +9187,23 @@ void triangular_matrix_matrix_right_solve(
   out_matrix_t X);
 ```
 
-* *Requires:* `A.extent(1)` equals `B.extent(1)`.
+If `DiagonalStorage` is `explicit_diagonal_t`,
+then for `i,k` in the domain of `X`,
+the mathematical expression for the algorithm is
+`X(i,k) = B(i,k) - s / A(i,i)`,
+where `s` is the sum of `X(i,j) * A(j,k)`
+for all `j` not equal to `i`
+in the subset of the domain of `A` specified by `t` and `d`.
 
-* *Constraints:* If `i,j` and `i,k` are in the domain of `X`, then
-    the expression `X(i,j) -= X(i,k) * A(k,j)` is well formed.
+If `DiagonalStorage` is `implicit_unit_diagonal_t`,
+then for `i,k` in the domain of `X`,
+then the mathematical expression for the algorithm is
+`X(i,k) = B(i,k) - s`,
+where `s` is the sum of `X(i,j) * A(j,k)`
+for all `j` not equal to `i`
+in the subset of the domain of `A` specified by `t` and `d`.
+
+* *Requires:* `A.extent(1)` equals `B.extent(1)`.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(1)`
     equals `dynamic_extent`, then
@@ -9204,16 +9249,23 @@ This is why the `ExecutionPolicy` overload exists.
 
 --*end note]*
 
+If `DiagonalStorage` is `explicit_diagonal_t`,
+then for `i,k` in the domain of `B`,
+the mathematical expression for the algorithm is
+`B(i,k) = B(i,k) - s / A(i,i)`,
+where `s` is the sum of `B(i,j) * A(j,k)`
+for all `j` not equal to `i`
+in the subset of the domain of `A` specified by `t` and `d`.
+
+If `DiagonalStorage` is `implicit_unit_diagonal_t`,
+then for `i,k` in the domain of `B`,
+then the mathematical expression for the algorithm is
+`B(i,k) = B(i,k) - s`,
+where `s` is the sum of `B(i,j) * A(j,k)`
+for all `j` not equal to `i`
+in the subset of the domain of `A` specified by `t` and `d`.
+
 * *Requires:* `A.extent(1)` equals `B.extent(1)`.
-
-* *Constraints:*
-
-    * If `DiagonalStorage` is `explicit_diagonal_t`,
-        and `i,j` is in the domain of `B`,
-        then the expression `B(i,j) /= A(i,i)` is well formed (if applicable).
-
-    * If `i,j` and `i,k` are in the domain of `X`, then the expression
-        `B(i,j) -= B(i,k) * A(k,j)` is well formed.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(1)`
     equals `dynamic_extent`, then
