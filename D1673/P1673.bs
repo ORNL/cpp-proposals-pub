@@ -210,12 +210,14 @@ Date: 2021-07-23
         and `requires` clauses to express requirements more clearly.
         We decided not to do so, because we did not think it would add clarity.
 
+    * Add more examples.
+
 # Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
 interface based on the dense Basic Linear Algebra Subroutines (BLAS).
-This corresponds to a subset of the [BLAS
-Standard](http://www.netlib.org/blas/blast-forum/blas-report.pdf).
+This corresponds to a subset of the
+[BLAS Standard](http://www.netlib.org/blas/blast-forum/blas-report.pdf).
 Our proposal implements the following classes of algorithms on arrays that represent
 matrices and vectors:
 
@@ -3993,8 +3995,9 @@ Then, algorithms and classes' methods may do the following:
 
 1. compute floating-point sums in any way that improves their accuracy for arbitrary input;
 
-2. perform arithmetic operations other than those in the mathematical expression
-    defining the algorithm, in order to improve performance or accuracy; and
+2. perform arithmetic operations other than those
+    in the algorithm's or method's mathematical expression,
+    in order to improve performance or accuracy; and
 
 3. use approximations (that might not be exact even if computing with real numbers),
     instead of computations that would be exact
@@ -5637,21 +5640,6 @@ the mathematical expressions for the algorithm are
 
 * *Requires:* `x.extent(0)` equals `y.extent(0)`.
 
-* *Constraints:*
-
-    * For the overloads that take the last argument `s` as `Real`,
-        for `i` in the domain of `x` and `j` in the domain of `y`,
-        the expressions
-        `x(i) = c*x(i) + s*y(j)` and
-        `y(j) = c*y(j) - s*x(i)`
-        are well formed.
-
-    * For the overloads that take the last argument `s` as
-        `const complex<Real>`,
-        for `i` in the domain of `x` and `j` in the domain of `y`,
-        the expressions `x(i) = c*x(i) + s*y(j)` and
-        `y(j) = c*y(j) - conj(s)*x(i)` are well formed.
-
 * *Mandates:* If neither `x.static_extent(0)` nor `y.static_extent(0)`
     equals `dynamic_extent`, then `x.static_extent(0)` equals
     `y.static_extent(0)`.
@@ -5843,7 +5831,8 @@ T dot(ExecutionPolicy&& exec,
 
 For `N` equal to `v1.extent(0)`,
 the mathematical expression for the algorithm is
-`init = init + v1(0) * v2(0) + ` ... ` + v1(N-1) * v2(N-1)`.
+`init = init` plus the sum of `v1(i) * v2(i)`
+for all `i` in the domain of `v1`.
 
 * *Requires:* `v1.extent(0)` equals `v2.extent(0)`.
 
@@ -6023,17 +6012,15 @@ T vector_norm2(ExecutionPolicy&& exec,
 
 For `N` equal to `v.extent(0)`,
 the mathematical expression for the algorithm is
-`sqrt(init + abs(v(0)) * abs(v(0)) + ` ... ` + abs(v(N-1)) * abs(v(N-1)))`.
+`sqrt(init + s)`,
+where `s` is the sum of `abs(v(i)) * abs(v(i))`
+for all `i` in the domain of `v`.
 *[Note:*
 This does not imply a recommended implementation for floating-point types.
 See *Remarks* below.
 --*end note]*
 
 * *Requires:* `init + abs(v(0))*abs(v(0))` shall be convertible to `T`.
-
-* *Constraints:* For all `i` in the domain of `v` and for `val`
-    of type `T&`, the expressions `val += abs(v(i))*abs(v(i))` and
-    `sqrt(val)` are well formed.
 
 * *Effects:* Returns the Euclidean norm (also called 2-norm)
     of the vector `v`.
@@ -6094,7 +6081,8 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
 
 For `N` equal to `v.extent(0)`,
 the mathematical expression for the algorithm is
-`init + abs(v(0)) + ` ... ` + abs(v(N-1))`.
+`init` plus the sum of `abs(v(i))`
+for all `i` in the domain of `v`.
 
 * *Requires:* For `i` in the domain of `v`,
     `init + abs(v(i))` shall be convertible to `T`.
@@ -6384,7 +6372,8 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 For `i` in the domain of `y` and `N` equal to `A.extent(1)`,
 the mathematical expression for the algorithm is
-`y(i) = A(i,0) * x(0) + ` ... ` + A(i,N-1) * x(N-1)`. 
+`y(i) =` the sum of `A(i,j) * x(j)`
+for all `j` such that `i,j` is in the domain of `A`.
 
 * *Effects:* Assigns to the elements of `y` the product of the matrix
     `A` with the vector `x`.
@@ -6449,7 +6438,8 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 For `i` in the domain of `z` and `N` equal to `A.extent(1)`,
 the mathematical expression for the algorithm is
-`z(i) = y(i) + A(i,0) * x(0) + ` ... ` + A(i,N-1) * x(N-1)`. 
+`z(i) = y(i) + A(i,j) * x(j)`
+for all `j` such that `i,j` is in the domain of `A`.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
     `y`, and the product of the matrix `A` with the vector `x`.
@@ -7315,25 +7305,6 @@ the mathematical expression for the algorithm is
         `Triangle` template argument has the same type as the function's
         `Triangle` template argument.
 
-    * For overloads without `alpha`:
-
-        * For `i,j` in the domain of `A`:
-
-            * if `in_vector_t::element_type` is `complex<RX>` for some `RX`,
-                then the expression `A(i,j) += x(i)*conj(x(j))` is well formed;
-
-            * else, the expression `A(i,j) += x(i)*x(j)` is well formed.
-
-    * For overloads with `alpha`:
-
-        * For `i,j` in the domain of `A`:
-
-            * if `in_vector_t::element_type` is `complex<RX>` for some `RX`,
-                then the expression `A(i,j) += alpha*x(i)*conj(x(j))` is well
-                formed;
-
-            * else, the expression `A(i,j) += alpha*x(i)*x(j)` is well formed.
-
 * *Mandates:*
 
     * If neither `A.static_extent(0)` nor `A.static_extent(1)` equals
@@ -7399,7 +7370,7 @@ void symmetric_matrix_rank_2_update(
 For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
-`A(i,j) += x(i) * y(j) + y(i) * x(i)`.
+`A(i,j) += x(i) * y(j) + y(i) * x(j)`.
 
 * *Requires:*
 
@@ -7475,7 +7446,7 @@ void hermitian_matrix_rank_2_update(
 For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
-`A(i,j) += x(i) * conj(y(j)) + y(i) * conj(x(i))`.
+`A(i,j) += x(i) * conj(y(j)) + y(i) * conj(x(j))`.
 
 * *Requires:*
 
@@ -7494,26 +7465,6 @@ the mathematical expression for the algorithm is
     * If `A` has `layout_blas_packed` layout, then the layout's
         `Triangle` template argument has the same type as the function's
         `Triangle` template argument.
-
-    * For `i,j` in the domain of `A`:
-
-        * If `in_vector_2_t::element_type` is `complex<RY>` for some `RY`,
-
-            * if `in_vector_1_t::element_type` is `complex<RX>` for some `RX`,
-                then the expression
-                `A(i,j) += x(i)*conj(y(j)) + y(i)*conj(x(j))` is well formed;
-
-            * else, the expression `A(i,j) += x(i)*conj(y(j)) + y(i)*x(j)`
-                is well formed;
-
-        * else,
-
-            * if `in_vector_1_t::element_type` is `complex<RX>` for some `RX`,
-                then the expression `A(i,j) += x(i)*y(j) + y(i)*conj(x(j))`
-                is well formed;
-
-            * else, the expression `A(i,j) += x(i)*y(j)) + y(i)*x(j)`
-                is well formed.
 
 * *Mandates:*
 
@@ -9077,9 +9028,6 @@ in the subset of the domain of `A` specified by `t` and `d`.
 
 * *Requires:* `A.extent(1)` equals `B.extent(0)`.
 
-* *Constraints:* If `i,j` and `i,k` are in the domain of `X`, then
-    the expression `X(i,j) -= A(i,k) * X(k,j)` is well formed.
-
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(0)`
     equals `dynamic_extent`, then
     `A.static_extent(1)` equals `B.static_extent(0)`.
@@ -9141,15 +9089,6 @@ for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
 * *Requires:* `A.extent(1)` equals `B.extent(0)`.
-
-* *Constraints:*
-
-    * If `DiagonalStorage` is `explicit_diagonal_t`, and `i,j` is in the
-        domain of `B`, then the expression `B(i,j) /= A(i,i)` is well
-        formed (if applicable).
-
-    * If `i,j` and `i,k` are in the domain of `X`, then the expression
-        `B(i,j) -= A(i,k) * B(k,j)` is well formed.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(0)`
     equals `dynamic_extent`, then
