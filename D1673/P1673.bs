@@ -8628,6 +8628,20 @@ impossible to express the update C = C - A A^T otherwise.
 
 --*end note]*
 
+For all overloads without an `alpha` parameter,
+for `i,j` in the domain of `C`
+and in the triangle of `C` specified by `t`,
+the mathematical expression for the algorithm is
+`C(i,j) = C(i,j)` plus the sum of `A(i,k) * A(j,k)`
+for all `k` such that `i,k` is in the domain of `A`.
+
+For all overloads with an `alpha` parameter,
+for `i,j` in the domain of `C`
+and in the triangle of `C` specified by `t`,
+the mathematical expression for the algorithm is
+`C(i,j) = C(i,j)` plus the sum of `alpha * A(i,k) * A(j,k)`
+for all `k` such that `i,k` is in the domain of `A`.
+
 * *Requires:*
 
     * `A.extent(0)` equals `C.extent(0)`, and
@@ -8643,13 +8657,6 @@ impossible to express the update C = C - A A^T otherwise.
     * If `C` has `layout_blas_packed` layout, then the layout's
         `Triangle` template argument has the same type as the function's
         `Triangle` template argument.
-
-    * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
-        of `A`, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
-
-    * For `i,j` in the domain of `C`, and `i,k` and `k,i` in the domain
-        of `A`, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well
-        formed (if applicable).
 
 * *Mandates:*
 
@@ -8675,7 +8682,7 @@ impossible to express the update C = C - A A^T otherwise.
     specified by the `Triangle` argument `t`, and will assume for
     indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
 
-##### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.herk]
+##### Rank-k Hermitian matrix update [linalg.alg.blas3.rank-k.herk]
 
 ```c++
 template<class in_matrix_1_t,
@@ -8726,6 +8733,20 @@ otherwise.
 
 --*end note]*
 
+For all overloads without an `alpha` parameter,
+for `i,j` in the domain of `C`
+and in the triangle of `C` specified by `t`,
+the mathematical expression for the algorithm is
+`C(i,j) = C(i,j)` plus the sum of `A(i,k) * conj(A(j,k))`
+for all `k` such that `i,k` is in the domain of `A`.
+
+For all overloads with an `alpha` parameter,
+for `i,j` in the domain of `C`
+and in the triangle of `C` specified by `t`,
+the mathematical expression for the algorithm is
+`C(i,j) = C(i,j)` plus the sum of `alpha * A(i,k) * conj(A(j,k))`
+for all `k` such that `i,k` is in the domain of `A`.
+
 * *Requires:*
 
     * `A.extent(0)` equals `C.extent(0)`, and
@@ -8741,22 +8762,6 @@ otherwise.
     * If `C` has `layout_blas_packed` layout, then the layout's
         `Triangle` template argument has the same type as the function's
         `Triangle` template argument.
-
-    * For overloads without `alpha`: For `i,j` in the domain of `C`, and
-        `i,k` and `k,i` in the domain of `A`,
-
-        * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
-            then the expression `C(i,j) += A(i,k)*conj(A(j,k))` is well formed;
-
-        * else, the expression `C(i,j) += A(i,k)*A(j,k)` is well formed.
-
-    * For overloads with `alpha`: For `i,j` in the domain of `C`, and
-        `i,k` and `k,i` in the domain of `A`,
-
-        * if `in_matrix_1_t::element_type` is `complex<R>` for some `R`,
-            then the expression `C(i,j) += alpha*A(i,k)*conj(A(j,k))` is well formed;
-
-        * else, the expression `C(i,j) += alpha*A(i,k)*A(j,k)` is well formed.
 
 * *Mandates:*
 
@@ -8820,6 +8825,14 @@ void symmetric_matrix_rank_2k_update(
 The BLAS "quick reference" has a typo; the "ALPHA" argument of
 `CSYR2K` and `ZSYR2K` should not be conjugated.  --*end note]*
 
+For `i,j` in the domain of `C`
+and in the triangle of `C` specified by `t`,
+the mathematical expression for the algorithm is
+`C(i,j) = C(i,j)` plus the sum of `A(i,k) * B(j,k)`
+for all `k1` such that `i,k1` is in the domain of `A`,
+plus the sum of `B(i,k2) * A(j,k2)`
+for all `k2` such that `i,k2` is in the domain of `B`.
+
 * *Requires:*
 
     * `A.extent(0)` equals `C.extent(0)`,
@@ -8837,11 +8850,6 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
     * If `C` has `layout_blas_packed` layout, then the layout's
         `Triangle` template argument has the same type as the function's
         `Triangle` template argument.
-
-    * For `i,j` in the domain of `C`,
-        `i,k` and `k,i` in the domain of `A`,
-        and `j,k` and `k,j` in the domain of `B`,
-        the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)` is well formed.
 
 * *Mandates:*
 
@@ -8895,6 +8903,14 @@ void hermitian_matrix_rank_2k_update(
 *[Note:* These functions correspond to the BLAS function `xHER2K`.
 --*end note]*
 
+For `i,j` in the domain of `C`
+and in the triangle of `C` specified by `t`,
+the mathematical expression for the algorithm is
+`C(i,j) = C(i,j)` plus the sum of `A(i,k) * conj(B(j,k))`
+for all `k1` such that `i,k1` is in the domain of `A`,
+plus the sum of `B(i,k2) * conj(A(j,k2))`
+for all `k2` such that `i,k2` is in the domain of `B`.
+
 * *Requires:*
 
     * `A.extent(0)` equals `C.extent(0)`,
@@ -8912,29 +8928,6 @@ void hermitian_matrix_rank_2k_update(
     * If `C` has `layout_blas_packed` layout, then the layout's
         `Triangle` template argument has the same type as the function's
         `Triangle` template argument.
-
-    * For `i,j` in the domain of `C`,
-        `i,k` and `k,i` in the domain of `A`,
-        and `j,k` and `k,j` in the domain of `B`,
-
-        * if `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`, then
-
-            * if `in_matrix_2_t::element_type` is `complex<RB>` for some `RB`,
-                then the expression
-                `C(i,j) += A(i,k)*conj(B(j,k)) + B(i,k)*conj(A(j,k))`
-                is well formed;
-
-            * else, the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*conj(A(j,k))`
-                is well formed;
-
-        * else,
-
-            * if `in_matrix_2_t::element_type` is `complex<RB>` for some `RB`,
-                then the expression `C(i,j) += A(i,k)*conj(B(j,k)) + B(i,k)*A(j,k)`
-                is well formed;
-
-            * else, the expression `C(i,j) += A(i,k)*B(j,k) + B(i,k)*A(j,k)`
-                is well formed.
 
 * *Mandates:*
 
