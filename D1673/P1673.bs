@@ -5420,7 +5420,11 @@ asymptotic complexity requirements, if any, are satisfied.
     and any assignment in the mathematical expression
     shall be well formed.
 
-9. If the algorithm's or method's mathematical expression includes any of the following:
+9. If the algorithm's or method's mathematical expression includes `conj(z)`
+    for an expression `z` that is *not* convertible to `complex<R>` for some `R`,
+    then the `conj(z)` expression is interpreted as `z` for the requirement below.
+
+10. If the algorithm's or method's mathematical expression includes any of the following:
 
     a. `conj(z)` for some expression `z` convertible to `complex<R>` for some `R`, or
 
@@ -5434,24 +5438,24 @@ asymptotic complexity requirements, if any, are satisfied.
     in the algorithm's or method's mathematical expression
     shall be well formed.
 
-10. If the algorithm or method has an output `mdspan`,
+11. If the algorithm or method has an output `mdspan`,
     then all addends (or subtrahends, if applicable)
     in the algorithm's or method's mathematical expression
     are assignable and convertible to the output `mdspan`'s `value_type`.
 
-11. The algorithm or method may reorder addends and partial sums
+12. The algorithm or method may reorder addends and partial sums
     in its mathematical expression arbitrarily.
     *[Note:*
     Factors in each product are not reordered;
     multiplication is not necessarily commutative.
     --*end note]*
 
-12. The algorithm or method may replace any value
+13. The algorithm or method may replace any value
     with the sum of that value
     and a value-initialized object
     of any input or output `mdspan`'s `value_type`.
 
-13. If the algorithm or method has a `T init` parameter,
+14. If the algorithm or method has a `T init` parameter,
     then the algorithm or method may replace any value
     with the sum of that value
     and a value-initialized object of type `T`.
