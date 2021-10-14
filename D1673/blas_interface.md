@@ -916,7 +916,7 @@ Our proposal is based on the BLAS interface, and it would be natural
 for implementers to use an existing C or Fortran BLAS library.
 However, we do not require an underlying BLAS C interface.
 Vendors should have the freedom to decide whether they want to rely on an
-existing BLAS library.  
+existing BLAS library.
 They may also want to write a "pure" C++
 implementation that does not depend on an external library.  They
 will, in any case, need a "generic" C++ implementation for matrix and
@@ -1326,7 +1326,7 @@ However, saying that would not accurately express the type's behavior.
 This point returns us to the concerns we expressed earlier about assuming associativity.
 "Approximately associative" or "usually associative" are not useful concepts without further refinement.
 The way to refine these concepts usefully is to describe the behavior of a type fully,
-e.g., the way that IEEE 754 describes the behavior of floating-point numbers. 
+e.g., the way that IEEE 754 describes the behavior of floating-point numbers.
 However, algorithms rarely depend on all the properties in a specification like IEEE 754.
 The problem, again, is that we need adverbs, not adjectives.
 We want to describe what the algorithms do -- e.g., that they can rearrange terms in a sum --
@@ -4907,7 +4907,7 @@ addition.  However, implementations may perform extra work to make the
 result deterministic.  They may do so for all `dot` overloads, or just
 for specific `ExecutionPolicy` types. --*end note]*
 
-*[Note:* Users can get `xDOTC` behavior by giving the second argument
+*[Note:* Users can get `xDOTC` behavior by giving the first argument
 as the result of `conjugated`.  Alternately, they can use the shortcut `dotc`
 below. --*end note]*
 
@@ -4962,9 +4962,9 @@ T dotc(ExecutionPolicy&& exec,
 ```
 
 * *Effects:* The three-argument overload is equivalent to
-  `dot(v1, conjugated(v2), init);`.
+  `dot(conjugated(v1), v2, init);`.
   The four-argument overload is equivalent to
-  `dot(exec, v1, conjugated(v2), init);`.
+  `dot(exec, conjugated(v1), v2, init);`.
 
 Conjugated dot product with default result type
 
@@ -4981,8 +4981,8 @@ auto dotc(ExecutionPolicy&& exec,
           in_vector_2_t v2) -> /* see-below */;
 ```
 
-* *Effects:* If `in_vector_2_t::element_type` is `complex<R>` for some
-  `R`, let `T` be `decltype(v1(0)*conj(v2(0)))`; else, let `T` be
+* *Effects:* If `in_vector_1_t::element_type` is `complex<R>` for some
+  `R`, let `T` be `decltype(conj(v1(0))*v2(0))`; else, let `T` be
   `decltype(v1(0)*v2(0))`.  Then, the two-parameter overload is
   equivalent to `dotc(v1, v2, T{});`, and the three-parameter overload
   is equivalent to `dotc(exec, v1, v2, T{});`.
