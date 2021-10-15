@@ -1,8 +1,8 @@
 <pre class='metadata'>
-Title: D1673R4: A free function linear algebra interface based on the BLAS
-Shortname: D1673R4
-Status: iso/D
-Level: 4
+Title: P1673R5: A free function linear algebra interface based on the BLAS
+Shortname: P1673R5
+Status: iso/P
+Level: 5
 Group: WG21
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs
 Editor: Mark Hoemmen, Stellar Science https://www.stellarscience.com, mhoemmen@stellarscience.com
@@ -212,6 +212,12 @@ Date: 2021-08-15
 
     * Add more examples.
 
+* Revision 5 (electronic), to be submitted 2021-10-15
+
+    * P0009R13 (to be submitted 2021-10-15) changes `mdspan` to use `operator[]`
+        instead of `operator()` as the array access operator.
+        Revision 5 of P1673 adopts this change, and is "rebased" atop P1673R5.
+
 # Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -245,7 +251,7 @@ Our proposal also has the following distinctive characteristics:
 * The interface is designed in the spirit of the C++ Standard Library's
     algorithms.
 
-* It uses `mdspan` (see P0009R12 and P2299R3),
+* It uses `mdspan` (see P0009R13),
     a multidimensional array view, to represent matrices and vectors.
     In the future,
     it could support other proposals' matrix and vector data structures.
@@ -287,14 +293,14 @@ by a constant factor, first sequentially, then in parallel.
 
   mdspan x(x_vec.data(), N);
   for(size_t i = 0; i < N; ++i) {
-    x(i) = double(i);
-    y(i) = double(i) + 1.0;
+    x[i] = double(i);
+    y[i] = double(i) + 1.0;
   }
 
   linalg::scale(2.0, x); // x = 2.0 * x
   linalg::scale(std::execution::par_unseq, 3.0, x);
   for(size_t i = 0; i < N; ++i) {
-    assert(x(i) == 6.0 * double(i));
+    assert(x[i] == 6.0 * double(i));
   }
 ```
 
@@ -319,14 +325,14 @@ mdspan<double, extents<N>> y(y_vec.data());
 
 for(int i = 0; i < A.extent(0); ++i) {
   for(int j = 0; j < A.extent(1); ++j) {
-    A(i,j) = 100.0 * i + j;
+    A[i,j] = 100.0 * i + j;
   }
 }
 for(int j = 0; j < x.extent(0); ++j) {
-  x(i) = 1.0 * j;
+  x[i] = 1.0 * j;
 }
 for(int i = 0; i < y.extent(0); ++i) {
-  y(i) = -1.0 * i;
+  y[i] = -1.0 * i;
 }
 
 linalg::matrix_vector_product(A, x, y); // y = A * x
@@ -355,18 +361,18 @@ mdspan<double, extents<dynamic_extent, 8>> y(y_vec.data(), M);
 for(size_t m = 0; m < A.extent(0); ++m) {
   for(size_t i = 0; i < A.extent(1); ++i) {
     for(size_t j = 0; j < A.extent(2); ++j) {
-      A(m,i,j) = 1000.0 * m + 100.0 * i + j;
+      A[m,i,j] = 1000.0 * m + 100.0 * i + j;
     }
   }
 }
 for(size_t i = 0; i < x.extent(0); ++i) {
   for(size_t m = 0; m < x.extent(1); ++m) {
-    x(i,m) = 33. * i + 0.33 * m;
+    x[i,m] = 33. * i + 0.33 * m;
   }
 }
 for(size_t m = 0; m < y.extent(0); ++m) {
   for(size_t i = 0; i < y.extent(1); ++i) {
-    y(m,i) = 33. * m + 0.33 * i;
+    y[m,i] = 33. * m + 0.33 * i;
   }
 }
 
@@ -432,7 +438,7 @@ lists future work, that is, ways future proposals could build on this one.
 
 Section <a href="#data-structures-and-utilities-borrowed-from-other-proposals"><span class="secno">13</span></a>
 gives the data structures and utilities from other proposals on which we depend.
-In particular, we rely heavily on `mdspan` (P0009R12 and P2299R3),
+In particular, we rely heavily on `mdspan` (P0009R13),
 and add custom layouts and accessors.
 
 Section <a href="#acknowledgments"><span class="secno">14</span></a> credits funding agencies and contributors.
@@ -928,7 +934,7 @@ As an example of the second category, the BLAS functions `SASUM` and
 `DASUM` compute the sums of absolute values of a vector's elements.
 Their complex counterparts `CSASUM` and `DZASUM` compute the sums of
 absolute values of real and imaginary components of a vector `v`, that
-is, the sum of `abs(real(v(i))) + abs(imag(v(i)))` for all `i` in the
+is, the sum of `abs(real(v[i])) + abs(imag(v[i]))` for all `i` in the
 domain of `v`.  The latter operation is still useful as a vector norm,
 but it requires fewer arithmetic operations.
 
@@ -1746,19 +1752,19 @@ We might need several different concepts to cover all the expressions that algor
 and the concepts would end up being less useful to users than the expressions themselves.
 
 For instance, consider the Level 1 BLAS "AXPY" function.
-This computes `y(i) = alpha * x(i) + y(i)` elementwise.
-What type does the expression `alpha * x(i) + y(i)` have?
-It doesn't need to have the same type as `y(i)`;
-it just needs to be assignable to `y(i)`.
-The types of `alpha`, `x(i)`, and `y(i)` could all differ.
+This computes `y[i] = alpha * x[i] + y[i]` elementwise.
+What type does the expression `alpha * x[i] + y[i]` have?
+It doesn't need to have the same type as `y[i]`;
+it just needs to be assignable to `y[i]`.
+The types of `alpha`, `x[i]`, and `y[i]` could all differ.
 As a simple example, `alpha` might be `int`,
-`x(i)` might be `float`, and `y(i)` might be `double`.
-The types of `x(i)` and `y(i)` might be more complicated;
-e.g., `x(i)` might be a polynomial with `double` coefficients,
-and `y(i)` a polynomial with `float` coefficients.
+`x[i]` might be `float`, and `y[i]` might be `double`.
+The types of `x[i]` and `y[i]` might be more complicated;
+e.g., `x[i]` might be a polynomial with `double` coefficients,
+and `y[i]` a polynomial with `float` coefficients.
 If those polynomials use expression templates,
-then slightly different sum expressions involving `x(i)` and/or `y(i)`
-(e.g., `alpha * x(i) + y(i)`, `x(i) + y(i)`, or `y(i) + x(i)`)
+then slightly different sum expressions involving `x[i]` and/or `y[i]`
+(e.g., `alpha * x[i] + y[i]`, `x[i] + y[i]`, or `y[i] + x[i]`)
 might all have different types,
 all of which differ from value type of `x` or `y`.
 All of these types must be assignable and convertible to the output value type.
@@ -2225,7 +2231,7 @@ for storage.  Contiguity matters because `mdspan` views a subset
 of a contiguous pointer range, and we want to be able to get a
 `mdspan` that views the `mdarray`.  The `mdarray` class will
 come with support for two different underlying containers: `array` and
-`vector`.  Calling `submdspan` (see P0009R12) on an
+`vector`.  Calling `submdspan` (see P0009R13) on an
 `mdarray` will return an `mdspan` with the appropriate
 layout and corresponding accessor.  Users must guard against dangling
 pointers, just as they currently must do when using `span` to view a
@@ -2280,9 +2286,8 @@ input argument for all the output arguments in the batch.
 
 ## `mdspan`
 
-This proposal depends on <a href="https://wg21.link/p0009r12">P0009R12</a>
-and its follow-on paper <a href="https://wg21.link/p2299r3">P2299R3</a>,
-which together propose adding multidimensional arrays to the C++ Standard
+This proposal depends on <a href="https://wg21.link/p0009r13">P0009R13</a>,
+which proposes adding multidimensional arrays to the C++ Standard
 Library.  P0009's main class is `mdspan`, which is a "view"
 (in the sense of `span`) of a multidimensional array.  The rank
 (number of dimensions) is fixed at compile time.  Users may specify
@@ -2303,21 +2308,17 @@ customization points:
     implement "scaled views" and "conjugated views" of an existing
     `mdspan`.
 
-The `mdspan` class has an alias `mdspan` that uses the default
-`Layout` and `Accessor`.  In this paper, when we refer to `mdspan`
-without other qualifiers, we mean the most general `mdspan`.
-
 ## New `mdspan` layouts in this proposal
 
 Our proposal uses the layout mapping policy of `mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009R12 have three basic properties:
+policies as described by P0009R13 have three basic properties:
 
 * Unique
 * Contiguous
 * Strided
 
-P0009R12 includes three different layouts -- `layout_left`,
+P0009R13 includes three different layouts -- `layout_left`,
 `layout_right`, and `layout_stride` -- all of which are unique and
 strided.  Only `layout_left` and `layout_right` are contiguous.
 
@@ -2347,7 +2348,7 @@ different function names.
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
-the first addition to the layouts in P0009R12 that is neither always
+the first addition to the layouts in P0009R13 that is neither always
 unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
@@ -2389,14 +2390,11 @@ on constraints wording.
 * C. Trott, D. S. Hollman, D. Lebrun-Grande, M. Hoemmen, D. Sunderland,
     H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
     J. Michopoulos, and N. Liber,
-    "`mdspan`," <a href="https://wg21.link/p0009r12">P0009R12</a>,
-    May 2021.
+    "`mdspan`," <a href="https://wg21.link/p0009r13">P0009R13</a>,
+    Oct. 2021.
 
 * G. Davidson, M. Hoemmen, D. S. Hollman, B. Steagall, and C. Trott,
     <a href="https://wg21.link/p1891r0">P1891R0</a>, Oct. 2019.
-
-* B. A. Lelbach, "`mdspan` of All Dynamic Extents,"
-    <a href="https://wg21.link/p2299r3">P2299R3</a>, Jun. 2021.
 
 * M. Hoemmen, D. S. Hollman, and C. Trott, "Evolving a Standard C++
     Linear Algebra Library from the BLAS,"
@@ -2504,9 +2502,8 @@ on constraints wording.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording first from P0009R12, and then from P2299R3.
-> (This proposal is a "rebase" atop the changes proposed by P0009R12 and P2299R3.
-> P2299R3's changes are relative to those proposed by P0009R12.)
+> First, apply all wording from P0009R13.
+> (This proposal is a "rebase" atop the changes proposed by P0009R13.)
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -4141,13 +4138,13 @@ Some linear algebra algorithms distinguish between the "upper
 triangle," "lower triangle," and "diagonal" of a matrix.
 
 * The *upper triangle* of a matrix `A` is the set of all elements of
-    `A` accessed by `A(i,j)` with `i` >= `j`.
+    `A` accessed by `A[i,j]` with `i` >= `j`.
 
 * The *lower triangle* of `A` is the set of all elements of `A`
-    accessed by `A(i,j)` with `i` <= `j`.
+    accessed by `A[i,j]` with `i` <= `j`.
 
 * The *diagonal* is the set of all elements of `A` accessed by
-    `A(i,i)`.  It is included in both the upper triangle and the lower
+    `A[i,i]`.  It is included in both the upper triangle and the lower
     triangle.
 
 ```c++
@@ -4823,7 +4820,7 @@ element of `x`.
 
 For `i...` in the domain of `x`,
 the mathematical expression for element `i...` of `scaled(alpha, x)`
-is `alpha * x(i...)`.
+is `alpha * x[i...]`.
 *[Note:*
 Terms in this product will not be reordered.
 --*end note]*
@@ -4900,7 +4897,7 @@ void test_scaled(mdspan<double, extents<10>> x)
 {
   auto x_scaled = scaled(5.0, x);
   for(int i = 0; i < x.extent(0); ++i) {
-    assert(x_scaled(i) == 5.0 * x(i));
+    assert(x_scaled[i] == 5.0 * x[i]);
   }
 }
 ```
@@ -5114,11 +5111,11 @@ void test_conjugated_complex(
 {
   auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
-    assert(a_conj(i) == conj(a(i));
+    assert(a_conj[i] == conj(a[i]);
   }
   auto a_conj_conj = conjugated(a_conj);
   for(int i = 0; i < a.extent(0); ++i) {
-    assert(a_conj_conj(i) == a(i));
+    assert(a_conj_conj[i] == a[i]);
   }
 }
 
@@ -5127,11 +5124,11 @@ void test_conjugated_real(
 {
   auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
-    assert(a_conj(i) == a(i));
+    assert(a_conj[i] == a[i]);
   }
   auto a_conj_conj = conjugated(a_conj);
   for(int i = 0; i < a.extent(0); ++i) {
-    assert(a_conj_conj(i) == a(i));
+    assert(a_conj_conj[i] == a[i]);
   }
 }
 ```
@@ -5458,7 +5455,7 @@ void test_transposed(mdspan<double, extents<3, 4>> a)
 
   for(extents<>::size_type row = 0; row < num_rows; ++row) {
     for(extents<>::size_type col = 0; col < num_rows; ++col) {
-      assert(a(row, col) == a_t(col, row));
+      assert(a[row, col] == a_t[col, row]);
     }
   }
 
@@ -5470,7 +5467,7 @@ void test_transposed(mdspan<double, extents<3, 4>> a)
 
   for(extents<>::size_type row = 0; row < num_rows; ++row) {
     for(extents<>::size_type col = 0; col < num_rows; ++col) {
-      assert(a(row, col) == a_t_t(row, col));
+      assert(a[row, col] == a_t_t[row, col]);
     }
   }
 }
@@ -5514,7 +5511,7 @@ void test_conjugate_transposed(
 
   for(extents<>::size_type row = 0; row < num_rows; ++row) {
     for(extents<>::size_type col = 0; col < num_rows; ++col) {
-      assert(a(row, col) == conj(a_ct(col, row)));
+      assert(a[row, col] == conj(a_ct[col, row]));
     }
   }
 
@@ -5526,8 +5523,8 @@ void test_conjugate_transposed(
 
   for(extents<>::size_type row = 0; row < num_rows; ++row) {
     for(extents<>::size_type col = 0; col < num_rows; ++col) {
-      assert(a(row, col) == a_ct_ct(row, col));
-      assert(conj(a_ct(col, row)) == a_ct_ct(row, col));
+      assert(a[row, col] == a_ct_ct[row, col]);
+      assert(conj(a_ct[col, row]) == a_ct_ct[row, col]);
     }
   }
 }
@@ -5733,14 +5730,14 @@ this.
 For the overloads that take the last argument `s` as `Real`,
 for `i` in the domains of both `x` and `y`,
 the mathematical expressions for the algorithm are
-`x(i) = c*x(i) + s*y(i)` and
-`y(i) = c*y(i) - s*x(i)`.
+`x[i] = c*x[i] + s*y[i]` and
+`y[i] = c*y[i] - s*x[i]`.
 
 For the overloads that take the last argument `s` as `const complex<Real>`,
 for `i` in the domains of both `x` and `y`,
 the mathematical expressions for the algorithm are
-`x(i) = c*x(i) + s*y(i)` and
-`y(i) = c*y(i) - conj(s)*x(i)`.
+`x[i] = c*x[i] + s*y[i]` and
+`y[i] = c*y[i] - conj(s)*x[i]`.
 
 * *Requires:* `x.extent(0)` equals `y.extent(0)`.
 
@@ -5782,7 +5779,7 @@ void swap_elements(ExecutionPolicy&& exec,
     * `x.rank()` is no more than 2.
 
     * For `i...` in the domain of `x` and `y`,
-        the expression `x(i...) = y(i...)` is well formed.
+        the expression `x[i...] = y[i...]` is well formed.
 
 * *Mandates:* For all `r` in 0, 1, ..., `x.rank()` - 1,
     if neither `x.static_extent(r)` nor `y.static_extent(r)`
@@ -5812,7 +5809,7 @@ void scale(ExecutionPolicy&& exec,
 --*end note]*
 
 For `i...` in the domain of `obj`,
-the mathematical expression for the algorithm is `obj(i...) = alpha * obj(i...)`.
+the mathematical expression for the algorithm is `obj[i...] = alpha * obj[i...]`.
 
 * *Constraints:* `obj.rank()` is less than or equal to 2.
 
@@ -5846,7 +5843,7 @@ void copy(ExecutionPolicy&& exec,
     * `x.rank()` equals `y.rank()`.
 
     * For all `i...` in the domain of `x` and `y`,
-        the expression `y(i...) = x(i...)` is well formed.
+        the expression `y[i...] = x[i...]` is well formed.
 
 * *Mandates:* For all `r` in 0, 1, ..., `x.rank()` - 1, if neither
     `x.static_extent(r)` nor `y.static_extent(r)` equals
@@ -5880,7 +5877,7 @@ void add(ExecutionPolicy&& exec,
 --*end note]*
 
 For `i...` in the domains of `x`, `y`, and `z`,
-the mathematical expression for the algorithm is `z(i...) = x(i...) + y(i...)`.
+the mathematical expression for the algorithm is `z[i...] = x[i...] + y[i...]`.
 
 * *Requires:* For all `r` in 0, 1, ..., `x.rank()` - 1,
 
@@ -5935,7 +5932,7 @@ T dot(ExecutionPolicy&& exec,
 
 For `N` equal to `v1.extent(0)`,
 the mathematical expression for the algorithm is
-`init = init` plus the sum of `v1(i) * v2(i)`
+`init = init` plus the sum of `v1[i] * v2[i]`
 for all `i` in the domain of `v1`.
 
 * *Requires:* `v1.extent(0)` equals `v2.extent(0)`.
@@ -5946,7 +5943,7 @@ for all `i` in the domain of `v1`.
 
 * *Effects:* Let `N` be `v1.extent(0)`.
     If `N` is zero, returns `init`, else returns
-    *GENERALIZED_SUM*(`plus<>()`, `init`, `v1(0)*v2(0)`, ..., `v1(N-1)*v2(N-1)`).
+    *GENERALIZED_SUM*(`plus<>()`, `init`, `v1[0]*v2[0]`, ..., `v1[N-1]*v2[N-1]`).
 
 * *Remarks:* If `in_vector_t::element_type` and `T` are both
     floating-point types or complex versions thereof, and if `T` has
@@ -5979,7 +5976,7 @@ auto dot(ExecutionPolicy&& exec,
          in_vector_2_t v2) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(v1(0)*v2(0))`.  Then, the
+* *Effects:* Let `T` be `decltype(v1[0]*v2[0])`.  Then, the
     two-parameter overload is equivalent to `dot(v1, v2, T{});`, and the
     three-parameter overload is equivalent to `dot(exec, v1, v2, T{});`.
 
@@ -6035,8 +6032,8 @@ auto dotc(ExecutionPolicy&& exec,
 ```
 
 * *Effects:* If `in_vector_1_t::element_type` is `complex<R>` for some
-    `R`, let `T` be `decltype(conj(v1(0))*v2(0))`; else, let `T` be
-    `decltype(v1(0)*v2(0))`.  Then, the two-parameter overload is
+    `R`, let `T` be `decltype(conj(v1[0])*v2[0])`; else, let `T` be
+    `decltype(v1[0]*v2[0])`.  Then, the two-parameter overload is
     equivalent to `dotc(v1, v2, T{});`, and the three-parameter overload
     is equivalent to `dotc(exec, v1, v2, T{});`.
 
@@ -6069,20 +6066,20 @@ sum_of_squares_result<T> vector_sum_of_squares(
 
     * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*, and
 
-    * `abs(x(0))` shall be convertible to `T`.
+    * `abs(x[0])` shall be convertible to `T`.
 
 * *Constraints:* For all `i` in the domain of `v`,
     and for `f` and `ssq` of type `T`,
-    the expression `ssq = ssq + (abs(x(i)) / f)*(abs(x(i)) / f)` is well formed.
+    the expression `ssq = ssq + (abs(x[i]) / f)*(abs(x[i]) / f)` is well formed.
 
 * *Effects:* Returns two values:
 
     * `scaling_factor`: the maximum of `init.scaling_factor`
-        and `abs(x(i))` for all `i` in the domain of `v`; and
+        and `abs(x[i])` for all `i` in the domain of `v`; and
 
     * `scaled_sum_of_squares`: a value such that
         `scaling_factor * scaling_factor * scaled_sum_of_squares`
-        equals the sum of squares of `abs(x(i))` plus
+        equals the sum of squares of `abs(x[i])` plus
         `init.scaling_factor * init.scaling_factor * init.scaled_sum_of_squares`.
 
 * *Remarks:* If `in_vector_t::element_type` is either a floating-point type
@@ -6117,14 +6114,14 @@ T vector_norm2(ExecutionPolicy&& exec,
 For `N` equal to `v.extent(0)`,
 the mathematical expression for the algorithm is
 `sqrt(init + s)`,
-where `s` is the sum of `abs(v(i)) * abs(v(i))`
+where `s` is the sum of `abs(v[i]) * abs(v[i])`
 for all `i` in the domain of `v`.
 *[Note:*
 This does not imply a recommended implementation for floating-point types.
 See *Remarks* below.
 --*end note]*
 
-* *Requires:* `init + abs(v(0))*abs(v(0))` shall be convertible to `T`.
+* *Requires:* `init + abs(v[0])*abs(v[0])` shall be convertible to `T`.
 
 * *Effects:* Returns the Euclidean norm (also called 2-norm)
     of the vector `v`.
@@ -6154,7 +6151,7 @@ auto vector_norm2(ExecutionPolicy&& exec,
                   in_vector_t v) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(v(0)) * abs(v(0)))`.
+* *Effects:* Let `T` be `decltype(abs(v[0]) * abs(v[0]))`.
     Then, the one-parameter overload is equivalent to
     `vector_norm2(v, T{});`,
     and the two-parameter overload is equivalent to
@@ -6185,11 +6182,11 @@ one-norm for many linear algebra algorithms in practice. --*end note]*
 
 For `N` equal to `v.extent(0)`,
 the mathematical expression for the algorithm is
-`init` plus the sum of `abs(v(i))`
+`init` plus the sum of `abs(v[i])`
 for all `i` in the domain of `v`.
 
 * *Requires:* For `i` in the domain of `v`,
-    `init + abs(v(i))` shall be convertible to `T`.
+    `init + abs(v[i])` shall be convertible to `T`.
 
 * *Effects:* Let `N` be `v.extent(0)`:
 
@@ -6197,11 +6194,11 @@ for all `i` in the domain of `v`.
 
     * else, if `in_vector_t::element_type` is `complex<R>` for some `R`,
         then returns *GENERALIZED_SUM*(`plus<>()`, `init`,
-        `abs(real(v(0))) + abs(imag(v(0)))`, ...,
-        `abs(real(v(N-1))) + abs(imag(v(N-1)))`).
+        `abs(real(v[0])) + abs(imag(v[0]))`, ...,
+        `abs(real(v[N-1])) + abs(imag(v[N-1]))`).
 
     * else, returns *GENERALIZED_SUM*(`plus<>()`, `init`,
-        `abs(v(0))`, ..., `abs(v(N-1))`).
+        `abs(v[0])`, ..., `abs(v[N-1])`).
 
 * *Remarks:* If `in_vector_t::element_type` is a floating-point type
     or a complex version thereof, if `T` is a floating-point type,
@@ -6219,7 +6216,7 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
                     in_vector_t v) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(v(0)))`.  Then, the
+* *Effects:* Let `T` be `decltype(abs(v[0]))`.  Then, the
     one-parameter overload is equivalent to `vector_abs_sum(v, T{});`,
     and the two-parameter overload is equivalent to
     `vector_abs_sum(exec, v, T{});`.
@@ -6241,7 +6238,7 @@ extents<>::size_type idx_abs_max(
 --*end note]*
 
 * *Requires:* For `i` in the domain of `v`,
-    let `abs_value_type` be `decltype(v(i))`;
+    let `abs_value_type` be `decltype(v[i])`;
     then, `abs_value_type` shall be *Cpp17LessThanComparable*.
 
 * *Effects:* Returns the index (in the domain of `v`) of
@@ -6298,7 +6295,7 @@ auto matrix_frob_norm(
   in_matrix_t A) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(A(0,0)) * abs(A(0,0)))`.
+* *Effects:* Let `T` be `decltype(abs(A[0,0]) * abs(A[0,0]))`.
     Then, the one-parameter overload is equivalent to
     `matrix_frob_norm(A, T{});`,
     and the two-parameter overload is equivalent to
@@ -6323,7 +6320,7 @@ T matrix_one_norm(
   T init);
 ```
 
-* *Requires:* `abs(A(0,0))` shall be convertible to `T`.
+* *Requires:* `abs(A[0,0])` shall be convertible to `T`.
 
 * *Effects:*
 
@@ -6352,7 +6349,7 @@ auto matrix_one_norm(
   in_matrix_t A) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(A(0,0))`.
+* *Effects:* Let `T` be `decltype(abs(A[0,0])`.
     Then, the one-parameter overload is equivalent to
     `matrix_one_norm(A, T{});`,
     and the two-parameter overload is equivalent to
@@ -6377,7 +6374,7 @@ T matrix_inf_norm(
   T init);
 ```
 
-* *Requires:* `abs(A(0,0))` shall be convertible to `T`.
+* *Requires:* `abs(A[0,0])` shall be convertible to `T`.
 
 * *Effects:*
 
@@ -6406,7 +6403,7 @@ auto matrix_inf_norm(
   in_matrix_t A) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(A(0,0))`.
+* *Effects:* Let `T` be `decltype(abs(A[0,0])`.
     Then, the one-parameter overload is equivalent to
     `matrix_inf_norm(A, T{});`,
     and the two-parameter overload is equivalent to
@@ -6476,7 +6473,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 For `i` in the domain of `y` and `N` equal to `A.extent(1)`,
 the mathematical expression for the algorithm is
-`y(i) =` the sum of `A(i,j) * x(j)`
+`y[i] =` the sum of `A[i,j] * x[j]`
 for all `j` such that `i,j` is in the domain of `A`.
 
 * *Effects:* Assigns to the elements of `y` the product of the matrix
@@ -6542,7 +6539,7 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 
 For `i` in the domain of `z` and `N` equal to `A.extent(1)`,
 the mathematical expression for the algorithm is
-`z(i) = y(i) + A(i,j) * x(j)`
+`z[i] = y[i] + A[i,j] * x[j]`
 for all `j` such that `i,j` is in the domain of `A`.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
@@ -6600,7 +6597,7 @@ The following requirements apply to all functions in this section.
 
 * *Remarks:* The functions will only access the triangle of `A`
     specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
 
 ##### Overwriting symmetric matrix-vector product
 
@@ -6628,9 +6625,9 @@ void symmetric_matrix_vector_product(ExecutionPolicy&& exec,
 
 For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
-`y(i) =` the sum of `A(i,j) * x(j)`
+`y[i] =` the sum of `A[i,j] * x[j]`
 for all `j` in the triangle of `A` specified by `t`,
-plus the sum of `A(j,i) * x(j)`
+plus the sum of `A[j,i] * x[j]`
 for all `j` not equal to `i` such that `j,i` is in the domain of A
 but not in the triangle of `A` specified by `t`.
 
@@ -6669,9 +6666,9 @@ void symmetric_matrix_vector_product(
 
 For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
-`z(i) = y(i)` plus the sum of `A(i,j) * x(j)`
+`z[i] = y[i]` plus the sum of `A[i,j] * x[j]`
 for all `j` in the triangle of `A` specified by `t`,
-plus the sum of `A(j,i) * x(j)`
+plus the sum of `A[j,i] * x[j]`
 for all `j` not equal to `i` such that `j,i` is in the domain of A
 but not in the triangle of `A` specified by `t`.
 
@@ -6735,8 +6732,8 @@ The following requirements apply to all functions in this section.
 
     * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
         then the functions will assume for indices `i,j` outside that
-        triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
-        functions will assume that `A(j,i)` equals `A(i,j)`.
+        triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
+        functions will assume that `A[j,i]` equals `A[i,j]`.
 
 ##### Overwriting Hermitian matrix-vector product
 
@@ -6764,9 +6761,9 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 
 For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
-`y(i) =` the sum of `A(i,j) * x(j)`
+`y[i] =` the sum of `A[i,j] * x[j]`
 for all `j` in the triangle of `A` specified by `t`,
-plus the sum of `conj(A(j,i)) * x(j)`
+plus the sum of `conj(A[j,i]) * x[j]`
 for all `j` not equal to `i` such that `j,i` is in the domain of A
 but not in the triangle of `A` specified by `t`.
 
@@ -6803,9 +6800,9 @@ void hermitian_matrix_vector_product(ExecutionPolicy&& exec,
 
 For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
-`z(i) = y(i)` plus the sum of `A(i,j) * x(j)`
+`z[i] = y[i]` plus the sum of `A[i,j] * x[j]`
 for all `j` in the triangle of `A` specified by `t`,
-plus the sum of `conj(A(j,i)) * x(j)`
+plus the sum of `conj(A[j,i]) * x[j]`
 for all `j` not equal to `i` such that `j,i` is in the domain of A
 but not in the triangle of `A` specified by `t`.
 
@@ -6910,7 +6907,7 @@ void triangular_matrix_vector_product(
 
 For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
-`y(i) =` the sum of `A(i,j) * x(j)`
+`y[i] =` the sum of `A[i,j] * x[j]`
 for all `j` in the subset of the domain of `A` specified by `t` and `d`.
 
 * *Effects:* Assigns to the elements of `y` the product of the matrix
@@ -6932,7 +6929,7 @@ void triangular_matrix_vector_product(
 
 For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
-`y(i) =` the sum of `A(i,j) * y(j)`
+`y[i] =` the sum of `A[i,j] * y[j]`
 for all `j` in the subset of the domain of `A` specified by `t` and `d`.
 
 * *Requires:* `A.extent(1)` equals `y.extent(0)`.
@@ -6978,7 +6975,7 @@ void triangular_matrix_vector_product(ExecutionPolicy&& exec,
 
 For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
-`z(i) = y(i)` plus the sum of `A(i,j) * x(j)`
+`z[i] = y[i]` plus the sum of `A[i,j] * x[j]`
 for all `j` in the subset of the domain of `A` specified by `t` and `d`.
 
 * *Effects:* Assigns to the elements of `z` the elementwise sum of
@@ -7067,16 +7064,16 @@ void triangular_matrix_vector_solve(
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i` in the domain of `x`,
 the mathematical expression for the algorithm is
-`x(i) = b(i) - s / A(i,i)`,
-where `s` is the sum of `A(i,j) * x(j)`
+`x[i] = b[i] - s / A[i,i]`,
+where `s` is the sum of `A[i,j] * x[j]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i` in the domain of `x`,
 the mathematical expression for the algorithm is
-`x(i) = b(i) - s`,
-where `s` is the sum of `A(i,j) * x(j)`
+`x[i] = b[i] - s`,
+where `s` is the sum of `A[i,j] * x[j]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
@@ -7127,16 +7124,16 @@ This is why the `ExecutionPolicy` overload exists.
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i` in the domain of `x`,
 the mathematical expression for the algorithm is
-`b(i) = b(i) - s / A(i,i)`,
-where `s` is the sum of `A(i,j) * b(j)`
+`b[i] = b[i] - s / A[i,i]`,
+where `s` is the sum of `A[i,j] * b[j]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i` in the domain of `x`,
 the mathematical expression for the algorithm is
-`b(i) = b(i) - s`,
-where `s` is the sum of `A(i,j) * b(j)`
+`b[i] = b[i] - s`,
+where `s` is the sum of `A[i,j] * b[j]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
@@ -7179,7 +7176,7 @@ note]*
 
 For `i,j` in the domain of `A`,
 the mathematical expression for the algorithm is
-`A(i,j) += x(i) * y(j)`.
+`A[i,j] += x[i] * y[j]`.
 
 * *Requires:*
 
@@ -7291,8 +7288,8 @@ impossible to express updates like C = C - x x^T otherwise.
 For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
-`A(i,j) += x(i) * x(j)` for overloads without an `alpha` parameter, and
-`A(i,j) += alpha * x(i) * x(j)` for overloads with an `alpha` parameter.
+`A[i,j] += x[i] * x[j]` for overloads without an `alpha` parameter, and
+`A[i,j] += alpha * x[i] * x[j]` for overloads with an `alpha` parameter.
 
 * *Requires:*
 
@@ -7335,7 +7332,7 @@ the mathematical expression for the algorithm is
 
 * *Remarks:* The functions will only access the triangle of `A`
     specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
 
 ##### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.her]
 
@@ -7390,8 +7387,8 @@ impossible to express the update A = A - x x^H otherwise.
 For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
-`A(i,j) += x(i) * conj(x(j))` for overloads without an `alpha` parameter, and
-`A(i,j) += alpha * x(i) * conj(x(j))` for overloads without an `alpha` parameter.
+`A[i,j] += x[i] * conj(x[j])` for overloads without an `alpha` parameter, and
+`A[i,j] += alpha * x[i] * conj(x[j])` for overloads without an `alpha` parameter.
 
 * *Requires:*
 
@@ -7439,8 +7436,8 @@ the mathematical expression for the algorithm is
 
     * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
         then the functions will assume for indices `i,j` outside that
-        triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
-        functions will assume that `A(j,k)` equals `A(i,j)`.
+        triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
+        functions will assume that `A[j,k]` equals `A[i,j]`.
 
 #### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
@@ -7474,7 +7471,7 @@ void symmetric_matrix_rank_2_update(
 For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
-`A(i,j) += x(i) * y(j) + y(i) * x(j)`.
+`A[i,j] += x[i] * y[j] + y[i] * x[j]`.
 
 * *Requires:*
 
@@ -7516,7 +7513,7 @@ the mathematical expression for the algorithm is
 
 * *Remarks:* The functions will only access the triangle of `A`
     specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A(j,i)` equals `A(i,j)`.
+    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
 
 #### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.her2]
 
@@ -7550,7 +7547,7 @@ void hermitian_matrix_rank_2_update(
 For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
-`A(i,j) += x(i) * conj(y(j)) + y(i) * conj(x(j))`.
+`A[i,j] += x[i] * conj(y[j]) + y[i] * conj(x[j])`.
 
 * *Requires:*
 
@@ -7598,8 +7595,8 @@ the mathematical expression for the algorithm is
 
     * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
         then the functions will assume for indices `i,j` outside that
-        triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
-        functions will assume that `A(j,i)` equals `A(i,j)`.
+        triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
+        functions will assume that `A[j,i]` equals `A[i,j]`.
 
 ### BLAS 3 functions [linalg.algs.blas3]
 
@@ -7675,7 +7672,7 @@ void matrix_product(ExecutionPolicy&& exec,
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) =` the sum of `A(i,k) * B(k,j)`
+`C[i,j] =` the sum of `A[i,k] * B[k,j]`
 for all `k` such that `i,k` is in the domain of `A`.
 
 * *Effects:* Assigns to the elements of the matrix `C` the product of
@@ -7707,7 +7704,7 @@ void matrix_product(ExecutionPolicy&& exec,
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = E(i,j)` plus the sum of `A(i,k) * B(k,j)`
+`C[i,j] = E[i,j]` plus the sum of `A[i,k] * B[k,j]`
 for all `k` such that `i,k` is in the domain of `A`.
 
 * *Effects:* Assigns to the elements of the matrix `C` on output, the
@@ -7767,7 +7764,7 @@ The following requirements apply to all functions in this section.
 
     * The functions will only access the triangle of `A` specified by
         the `Triangle` argument `t`, and will assume for indices `i,j`
-        outside that triangle, that `A(j,i)` equals `A(i,j)`.
+        outside that triangle, that `A[j,i]` equals `A[i,j]`.
 
     * *Remarks:* `C` and `E` (if applicable) may refer to the same
         matrix.  If so, then they must have the same layout.
@@ -7855,11 +7852,11 @@ void symmetric_matrix_left_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = A(i,i) * B(i,j)` plus the sum of `A(i,k1) * B(k1,j)`
+`C[i,j] = A[i,i] * B[i,j]` plus the sum of `A[i,k1] * B[k1,j]`
 for all `k1` not equal to `i`
 such that `i,k1` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `A(k2,i) * B(k2,j)`
+plus the sum of `A[k2,i] * B[k2,j]`
 for all `k2` not equal to `i`
 such that `k2,i` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -7894,12 +7891,12 @@ void symmetric_matrix_right_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = B(i,j) * A(i,i)`
-plus the sum of `B(i,k1) * A(k1,j)`
+`C[i,j] = B[i,j] * A[i,i]`
+plus the sum of `B[i,k1] * A[k1,j]`
 for all `k1` not equal to `j`
 such that `k1,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `B(i,k2) * A(j,k2)`
+plus the sum of `B[i,k2] * A[j,k2]`
 for all `k2` not equal to `j`
 such that `k2,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -7938,11 +7935,11 @@ void symmetric_matrix_left_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = E(i,j) + A(i,i) * B(i,j)` plus the sum of `A(i,k1) * B(k1,j)`
+`C[i,j] = E[i,j] + A[i,i] * B[i,j]` plus the sum of `A[i,k1] * B[k1,j]`
 for all `k1` not equal to `i`
 such that `i,k1` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `A(k2,i) * B(k2,j)`
+plus the sum of `A[k2,i] * B[k2,j]`
 for all `k2` not equal to `i`
 such that `k2,i` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -7981,12 +7978,12 @@ void symmetric_matrix_right_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = E(i,j) + B(i,j) * A(i,i)`
-plus the sum of `B(i,k1) * A(k1,j)`
+`C[i,j] = E[i,j] + B[i,j] * A[i,i]`
+plus the sum of `B[i,k1] * A[k1,j]`
 for all `k1` not equal to `j`
 such that `k1,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `B(i,k2) * A(j,k2)`
+plus the sum of `B[i,k2] * A[j,k2]`
 for all `k2` not equal to `j`
 such that `k2,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8048,8 +8045,8 @@ The following requirements apply to all functions in this section.
 
     * If `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`,
         then the functions will assume for indices `i,j` outside that
-        triangle, that `A(j,i)` equals `conj(A(i,j))`.  Otherwise, the
-        functions will assume that `A(j,i)` equals `A(i,j)`.
+        triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
+        functions will assume that `A[j,i]` equals `A[i,j]`.
 
     * `C` and `E` (if applicable) may refer to the same matrix.
         If so, then they must have the same layout.
@@ -8137,12 +8134,12 @@ void hermitian_matrix_left_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = A(i,i) * B(i,j)`
-plus the sum of `A(i,k1) * B(k1,j)`
+`C[i,j] = A[i,i] * B[i,j]`
+plus the sum of `A[i,k1] * B[k1,j]`
 for all `k1` not equal to `i`
 such that `i,k1` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `conj(A(k2,i)) * B(k2,j)`
+plus the sum of `conj(A[k2,i]) * B[k2,j]`
 for all `k2` not equal to `i`
 such that `k2,i` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8177,12 +8174,12 @@ void hermitian_matrix_right_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = B(i,j) * A(i,i)`
-plus the sum of `B(i,k1) * A(k1,j)`
+`C[i,j] = B[i,j] * A[i,i]`
+plus the sum of `B[i,k1] * A[k1,j]`
 for all `k1` not equal to `j`
 such that `k1,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `B(i,k2) * conj(A(j,k2))`
+plus the sum of `B[i,k2] * conj(A[j,k2])`
 for all `k2` not equal to `j`
 such that `k2,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8221,12 +8218,12 @@ void hermitian_matrix_left_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = E(i,j) + A(i,i) * B(i,j)`
-plus the sum of `A(i,k1) * B(k1,j)`
+`C[i,j] = E[i,j] + A[i,i] * B[i,j]`
+plus the sum of `A[i,k1] * B[k1,j]`
 for all `k1` not equal to `i`
 such that `i,k1` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `conj(A(k2,i)) * B(k2,j)`
+plus the sum of `conj(A[k2,i]) * B[k2,j]`
 for all `k2` not equal to `i`
 such that `k2,i` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8265,12 +8262,12 @@ void hermitian_matrix_right_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = E(i,j) + B(i,j) * A(i,i)`
-plus the sum of `B(i,k1) * A(k1,j)`
+`C[i,j] = E[i,j] + B[i,j] * A[i,i]`
+plus the sum of `B[i,k1] * A[k1,j]`
 for all `k1` not equal to `j`
 such that `k1,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `B(i,k2) * conj(A(j,k2))`
+plus the sum of `B[i,k2] * conj(A[j,k2])`
 for all `k2` not equal to `j`
 such that `k2,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8423,7 +8420,7 @@ void triangular_matrix_left_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = ` the sum of `A(i,k) * B(k,j)`
+`C[i,j] = ` the sum of `A[i,k] * B[k,j]`
 for all `k` such that `i,k` is in the domain of `A`
 and in the triangle of `A` specified by `t` and `d`.
 
@@ -8457,7 +8454,7 @@ void triangular_matrix_left_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = ` the sum of `A(i,k) * C(k,j)`
+`C[i,j] = ` the sum of `A[i,k] * C[k,j]`
 for all `k` such that `i,k` is in the domain of `A`
 and in the triangle of `A` specified by `t` and `d`.
 
@@ -8502,7 +8499,7 @@ void triangular_matrix_right_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = ` the sum of `B(i,k) * A(k,j)`
+`C[i,j] = ` the sum of `B[i,k] * A[k,j]`
 for all `k` such that `k,j` is in the domain of `A`
 and in the triangle of `A` specified by `t` and `d`.
 
@@ -8535,7 +8532,7 @@ void triangular_matrix_right_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = ` the sum of `C(i,k) * A(k,j)`
+`C[i,j] = ` the sum of `C[i,k] * A[k,j]`
 for all `k` such that `k,j` is in the domain of `A`
 and in the triangle of `A` specified by `t` and `d`.
 
@@ -8583,7 +8580,7 @@ void triangular_matrix_left_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = E(i,j)` plus the sum of `A(i,k) * B(k,j)`
+`C[i,j] = E[i,j]` plus the sum of `A[i,k] * B[k,j]`
 for all `k` such that `i,k` is in the domain of `A`
 and in the triangle of `A` specified by `t` and `d`.
 
@@ -8625,7 +8622,7 @@ void triangular_matrix_right_product(
 
 For `i,j` in the domain of `C`,
 the mathematical expression for the algorithm is
-`C(i,j) = E(i,j)` plus the sum of `B(i,k) * A(k,j)`
+`C[i,j] = E[i,j]` plus the sum of `B[i,k] * A[k,j]`
 for all `k` such that `k,j` is in the domain of `A`
 and in the triangle of `A` specified by `t` and `d`.
 
@@ -8696,14 +8693,14 @@ For all overloads without an `alpha` parameter,
 for `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
-`C(i,j) = C(i,j)` plus the sum of `A(i,k) * A(j,k)`
+`C[i,j] = C[i,j]` plus the sum of `A[i,k] * A[j,k]`
 for all `k` such that `i,k` is in the domain of `A`.
 
 For all overloads with an `alpha` parameter,
 for `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
-`C(i,j) = C(i,j)` plus the sum of `alpha * A(i,k) * A(j,k)`
+`C[i,j] = C[i,j]` plus the sum of `alpha * A[i,k] * A[j,k]`
 for all `k` such that `i,k` is in the domain of `A`.
 
 * *Requires:*
@@ -8744,7 +8741,7 @@ for all `k` such that `i,k` is in the domain of `A`.
 
 * *Remarks:* The functions will only access the triangle of `C`
     specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
+    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
 
 ##### Rank-k Hermitian matrix update [linalg.alg.blas3.rank-k.herk]
 
@@ -8801,14 +8798,14 @@ For all overloads without an `alpha` parameter,
 for `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
-`C(i,j) = C(i,j)` plus the sum of `A(i,k) * conj(A(j,k))`
+`C[i,j] = C[i,j]` plus the sum of `A[i,k] * conj(A[j,k])`
 for all `k` such that `i,k` is in the domain of `A`.
 
 For all overloads with an `alpha` parameter,
 for `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
-`C(i,j) = C(i,j)` plus the sum of `alpha * A(i,k) * conj(A(j,k))`
+`C[i,j] = C[i,j]` plus the sum of `alpha * A[i,k] * conj(A[j,k])`
 for all `k` such that `i,k` is in the domain of `A`.
 
 * *Requires:*
@@ -8849,7 +8846,7 @@ for all `k` such that `i,k` is in the domain of `A`.
 
 * *Remarks:* The functions will only access the triangle of `C`
     specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
+    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
 
 #### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
@@ -8892,9 +8889,9 @@ The BLAS "quick reference" has a typo; the "ALPHA" argument of
 For `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
-`C(i,j) = C(i,j)` plus the sum of `A(i,k) * B(j,k)`
+`C[i,j] = C[i,j]` plus the sum of `A[i,k] * B[j,k]`
 for all `k1` such that `i,k1` is in the domain of `A`,
-plus the sum of `B(i,k2) * A(j,k2)`
+plus the sum of `B[i,k2] * A[j,k2]`
 for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Requires:*
@@ -8936,7 +8933,7 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Remarks:* The functions will only access the triangle of `C`
     specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C(j,i)` equals `C(i,j)`.
+    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
 
 ##### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.her2k]
 
@@ -8970,9 +8967,9 @@ void hermitian_matrix_rank_2k_update(
 For `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
-`C(i,j) = C(i,j)` plus the sum of `A(i,k) * conj(B(j,k))`
+`C[i,j] = C[i,j]` plus the sum of `A[i,k] * conj(B[j,k])`
 for all `k1` such that `i,k1` is in the domain of `A`,
-plus the sum of `B(i,k2) * conj(A(j,k2))`
+plus the sum of `B[i,k2] * conj(A[j,k2])`
 for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Requires:*
@@ -9019,8 +9016,8 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
     * If `inout_matrix_t::element_type` is `complex<RC>` for some `RC`,
         then the functions will assume for indices `i,j` outside that
-        triangle, that `C(j,i)` equals `conj(C(i,j))`.  Otherwise, the
-        functions will assume that `C(j,i)` equals `C(i,j)`.
+        triangle, that `C[j,i]` equals `conj(C[i,j])`.  Otherwise, the
+        functions will assume that `C[j,i]` equals `C[i,j]`.
 
 #### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
@@ -9055,7 +9052,7 @@ The following requirements apply to all functions in this section.
 
     * if `DiagonalStorage` is `explicit_diagonal_t`,
         and `i,j` is in the domain of `X`,
-        then the expression `X(i,j) /= A(i,i)` is well formed (if applicable).
+        then the expression `X[i,j] /= A[i,i]` is well formed (if applicable).
 
 * *Mandates:*
 
@@ -9117,16 +9114,16 @@ void triangular_matrix_matrix_left_solve(
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i,k` in the domain of `X`,
 the mathematical expression for the algorithm is
-`X(i,k) = B(i,k) - s / A(i,i)`,
-where `s` is the sum of `A(i,j) * X(j,k)`
+`X[i,k] = B[i,k] - s / A[i,i]`,
+where `s` is the sum of `A[i,j] * X[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i,k` in the domain of `X`,
 then the mathematical expression for the algorithm is
-`X(i,k) = B(i,k) - s`,
-where `s` is the sum of `A(i,j) * X(j,k)`
+`X[i,k] = B[i,k] - s`,
+where `s` is the sum of `A[i,j] * X[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
@@ -9179,16 +9176,16 @@ This is why the `ExecutionPolicy` overload exists.
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i,k` in the domain of `B`,
 the mathematical expression for the algorithm is
-`B(i,k) = B(i,k) - s / A(i,i)`,
-where `s` is the sum of `A(i,j) * B(j,k)`
+`B[i,k] = B[i,k] - s / A[i,i]`,
+where `s` is the sum of `A[i,j] * B[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i,k` in the domain of `B`,
 then the mathematical expression for the algorithm is
-`B(i,k) = B(i,k) - s`,
-where `s` is the sum of `A(i,j) * B(j,k)`
+`B[i,k] = B[i,k] - s`,
+where `s` is the sum of `A[i,j] * B[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
@@ -9238,16 +9235,16 @@ void triangular_matrix_matrix_right_solve(
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i,k` in the domain of `X`,
 the mathematical expression for the algorithm is
-`X(i,k) = B(i,k) - s / A(i,i)`,
-where `s` is the sum of `X(i,j) * A(j,k)`
+`X[i,k] = B[i,k] - s / A[i,i]`,
+where `s` is the sum of `X[i,j] * A[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i,k` in the domain of `X`,
 then the mathematical expression for the algorithm is
-`X(i,k) = B(i,k) - s`,
-where `s` is the sum of `X(i,j) * A(j,k)`
+`X[i,k] = B[i,k] - s`,
+where `s` is the sum of `X[i,j] * A[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
@@ -9300,16 +9297,16 @@ This is why the `ExecutionPolicy` overload exists.
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i,k` in the domain of `B`,
 the mathematical expression for the algorithm is
-`B(i,k) = B(i,k) - s / A(i,i)`,
-where `s` is the sum of `B(i,j) * A(j,k)`
+`B[i,k] = B[i,k] - s / A[i,i]`,
+where `s` is the sum of `B[i,j] * A[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i,k` in the domain of `B`,
 then the mathematical expression for the algorithm is
-`B(i,k) = B(i,k) - s`,
-where `s` is the sum of `B(i,j) * A(j,k)`
+`B[i,k] = B[i,k] - s`,
+where `s` is the sum of `B[i,j] * A[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
@@ -9351,10 +9348,10 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     return 0;
   }
   else if (n == 1) {
-    if (A(0,0) <= ZERO || isnan(A(0,0))) {
+    if (A[0,0] <= ZERO || isnan(A[0,0])) {
       return 1;
     }
-    A(0,0) = sqrt(A(0,0));
+    A[0,0] = sqrt(A[0,0]);
   }
   else {
     // Partition A into [A11, A12,
@@ -9471,7 +9468,7 @@ int cholesky_tsqr_one_step(
   constexpr R_element_type ZERO {};
   for(extents<>::size_type i = 0; i < R.extent(0); ++i) {
     for(extents<>::size_type j = 0; j < R.extent(1); ++j) {
-      R(0,0) = ZERO;
+      R[0,0] = ZERO;
     }
   }
 
