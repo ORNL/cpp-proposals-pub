@@ -58,6 +58,12 @@ auto foo(double* a_ptr, int N, int M) {
   - but simple wrapper/subclass could provide both `operator()` and `operator[]` and forward the former to the latter
   - automatic refactoring tools can be used
 
+## Necessary fix for bug in default accessor
+
+- as pointed out by ... `mdspan` with `default_accessor` would allow assignment of `mdspan<derived,dextents<..>>` to `mdspan<base,dextents<..>>` which would lead to all kinds of faulty behavior upon access.
+- simple fix: change `default_accessor` conversion constructor/assignment to mirror wording from `span`:
+- we do NOT want to enforce that wording on `mdspan` itself, since we could actually define accessors which allow the above assignment (see below)
+ 
 ## Viability of customization points
 - One of the primary design concerns of `mdspan` are customization points
 - orthogonalization of pointer, access and layout allows for maximum flexibility
@@ -167,4 +173,102 @@ void vector_add(MDS a, std::enable_if_t<!std::is_same_v<typename MDS::accessor_t
 }
 ```
 
+### Safe BaseClass Array
 
+- `span` has special wording to prevent assignment of derived class pointers to base class pointers
+  - prevents slicing
+  - as mentioned before we need to use that wording in `default_accessor`
+- But someone could have a special accessor which makes it safe to view an mdspan of derived as an mdspan of base
+```c++
+template<class T>
+struct baseclass_accessor {
+  using element_type = T;
+  using pointer =  T*;
+  using reference = T&;
+  using offset_policy = baseclass_accessor;
+
+  reference access(const pointer p, int i) const {
+    pointer offset_ptr = reinterpret_cast<pointer>(reinterpret_cast<char*>(p)+offset_bytes*i);
+    return *offset_ptr;
+  }
+
+  pointer offset(const pointer p, int i) const {
+    return p+i;
+  }
+
+  // Converting from and to default_accessor
+  template<class OT>
+  baseclass_accessor(stdex::default_accessor<OT>) {
+    OT* ptr = nullptr;
+    OT* ptr2 = ptr + 1;
+    offset_bytes = std::distance(reinterpret_cast<char*>(ptr),reinterpret_cast<char*>(ptr2));
+  }
+  operator stdex::default_accessor<T>() const {
+    pointer ptr = nullptr;
+    pointer ptr2 = ptr + 1;
+    if(std::distance(reinterpret_cast<char*>(ptr),reinterpret_cast<char*>(ptr2)) != offset_bytes)
+      throw(std::runtime_error("Invalid baseclass_accessor to default_accessor conversion"));
+    return stdex::default_accessor<T>{}; 
+  }
+  ptrdiff_t offset_bytes;
+};
+
+struct Base {
+  int a;
+  int b;
+  virtual int value() const { return a*b; }
+};
+
+struct Derived : public Base {
+  int c;
+  int value() const { return a*b*c; }
+};
+
+using mds_t = stdex::mdspan<Derived, stdex::dextents<1>>;
+using mds_base_t = stdex::mdspan<Base, stdex::dextents<1>, 
+                    stdex::layout_right, baseclass_accessor<Base>>;
+using mds_unsafe_base_t = stdex::mdspan<Base, stdex::dextents<1>>; 
+  
+template<class MDS>
+void foo(MDS view, int val) {
+  for(int i=0; i<view.extent(0); i++) { 
+    view(i).a = val;  
+    view(i).b = val;
+  }
+}
+
+void bar(mds_t view) {
+  for(int i=0; i<view.extent(0); i++) view(i).c = i;  
+}
+
+template<class MDS>
+void print(MDS view) {
+  for(int i=0; i<view.extent(0); i++) std::cout << view(i).value() << " " ;
+  std::cout << std::endl;  
+}
+int main(int argc, char* argv[]) {
+  int N = 10;
+  Derived* ptr = new Derived[N];
+  mds_t derived(ptr,N);
+  mds_base_t safe_base(derived);
+
+  std::cout << sizeof(Derived) << " " << sizeof(Base) << " " << alignof(Derived) << " " << alignof(Base) << std::endl;
+  
+  foo(derived,1);
+  bar(derived);
+  print(derived);
+  print(safe_base);
+
+  foo(safe_base,2);
+  print(derived);
+  print(safe_base);
+
+  // This would crash
+  //Base* ptr_base = ptr;
+  //mds_unsafe_base_t unsafe_base(ptr_base,N);
+  //foo(unsafe_base,3);
+  //print(derived);
+  delete [] ptr;
+  std::cout << "Done" << std::endl;
+}
+```
