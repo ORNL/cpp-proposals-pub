@@ -62,6 +62,8 @@ auto foo(double* a_ptr, int N, int M) {
 
 - as pointed out by ... `mdspan` with `default_accessor` would allow assignment of `mdspan<derived,dextents<..>>` to `mdspan<base,dextents<..>>` which would lead to all kinds of faulty behavior upon access.
 - simple fix: change `default_accessor` conversion constructor/assignment to mirror wording from `span`:
+  - now: `is_convertible_v<typename default_accessor<OtherElementType>::pointer, pointer>` is `true`.
+  - becomes: `is_convertible_v<typename default_accessor<OtherElementType>::pointer[], pointer[]>` is `true`
 - we do NOT want to enforce that wording on `mdspan` itself, since we could actually define accessors which allow the above assignment (see below)
  
 ## Viability of customization points
