@@ -80,7 +80,7 @@ auto foo(double* a_ptr, int N, int M) {
   
 ```c++
 template<class T, size_t Align>
-struct alligned_accessor {
+struct aligned_accessor {
   using element_type = T;
   using pointer =  T*;
   using reference = T&;
