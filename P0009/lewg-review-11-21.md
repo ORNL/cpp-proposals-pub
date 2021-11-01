@@ -79,6 +79,9 @@ auto foo(double* a_ptr, int N, int M) {
 ## Viability of customization points
 - One of the primary design concerns of `mdspan` are customization points
 - orthogonalization of pointer, access and layout allows for maximum flexibility
+- compared to Kokkos `mdspan` predecessor it is significantly easier to leverage customization points
+  - one of our most complex special use cases are "ensemble types" which are runtime sized and stored interleaved
+  - in previous Kokkos version that required 3k lines of special code, now with `mdspan` down to 300
 
 ### Simple Access Modifications
 
@@ -285,3 +288,22 @@ int main(int argc, char* argv[]) {
   std::cout << "Done" << std::endl;
 }
 ```
+
+### Other Accessors we did
+
+- PGAS (partitioned global address space) pointers/accessors: allows `mdspan` to view system wide (over network) arrays
+- restrict accessor
+
+## Custom Layouts
+
+- already used in P1673 for BLAS
+- the Kokkos predecessor for `mdspan` has a number of other layouts, including "tiled" layouts and "offset" layouts which allow negative indicies
+
+## Future Extensions
+
+- will come as separate papers
+- Accessors: atomic, aligned, maybe the safe_base_class?
+- P1673 accessors and layouts
+- customization point for `submdspan`
+  - enable submdspan to work for custom layouts if so desired
+
