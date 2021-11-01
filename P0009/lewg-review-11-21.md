@@ -112,3 +112,57 @@ void foo(aligned_mdsp a, aligned_mdsp b) {
 ```
 
 ### Make Typesafe GPU Accesses
+
+- Want to encode MemorySpace in an mdspan, i.e. from which execution context is it accessible
+  - enables us to catch when accessing GPU only memory on host
+  - enables overload for host vs GPU dispatch
+  - use `default_accessor` as type erasure
+  - https://godbolt.org/z/zWhKKeMef
+  
+```
+struct GPUSpace {};
+struct HostSpace {};
+
+template<class T, class MemSpace>
+struct memspace_accessor {
+  using element_type = T;
+  using pointer =  T*;
+  using reference = T&;
+  using offset_policy = memspace_accessor;
+
+  reference access(const pointer p, int i) const {
+    #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+    static_assert(std::is_same_v<MemSpace,GPUSpace>,"Accessing Host Memory from GPU");
+    #else
+    static_assert(std::is_same_v<MemSpace,HostSpace>,"Accessing GPU Memory from Host");    
+    #endif
+    return p[i];
+  }
+
+  pointer offset(const pointer p, int i) const {
+    return p+i;
+  }
+
+  // Converting from and to default_accessor
+  memspace_accessor(std::default_accessor<T>) {}
+  operator std::default_accessor<T>() const { return std::default_accessor<T>{}; }
+};
+
+template<class MDS>
+void vector_add(MDS a, std::enable_if_t<std::is_same_v<typename MDS::accessor_type, 
+                memspace_accessor<MDS::element_type,GPUSpace>,MDS> b) {
+   // dispatch to GPU
+   // ...
+   // this would fail:
+   // for(int i=0; i<a.extent(0); i++)
+   //   a(i) += b(i);
+}
+
+template<class MDS>
+void vector_add(MDS a, std::enable_if_t<!std::is_same_v<typename MDS::accessor_type, 
+                memspace_accessor<MDS::element_type,GPUSpace>,MDS> b) {
+   // run on host
+   for(int i=0; i<a.extent(0); i++)
+     a(i) += b(i);
+}
+```
