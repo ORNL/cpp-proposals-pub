@@ -119,7 +119,7 @@ void foo(aligned_mdsp a, aligned_mdsp b) {
   - use `default_accessor` as type erasure
   - https://godbolt.org/z/zWhKKeMef
   
-```
+```c++
 struct GPUSpace {};
 struct HostSpace {};
 
@@ -166,3 +166,5 @@ void vector_add(MDS a, std::enable_if_t<!std::is_same_v<typename MDS::accessor_t
      a(i) += b(i);
 }
 ```
+
+
