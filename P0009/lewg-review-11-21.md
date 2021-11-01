@@ -64,8 +64,9 @@ auto foo(double* a_ptr, int N, int M) {
 - simple fix: change `default_accessor` conversion constructor/assignment to mirror wording from `span`:
   - now: `is_convertible_v<typename default_accessor<OtherElementType>::pointer, pointer>` is `true`.
   - becomes: `is_convertible_v<typename default_accessor<OtherElementType>::pointer[], pointer[]>` is `true`
+  - https://godbolt.org/z/eMbTo7hcE
 - we do NOT want to enforce that wording on `mdspan` itself, since we could actually define accessors which allow the above assignment (see below)
- 
+
 ## Viability of customization points
 - One of the primary design concerns of `mdspan` are customization points
 - orthogonalization of pointer, access and layout allows for maximum flexibility
