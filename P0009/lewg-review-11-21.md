@@ -181,6 +181,7 @@ void vector_add(MDS a, std::enable_if_t<!std::is_same_v<typename MDS::accessor_t
   - prevents slicing
   - as mentioned before we need to use that wording in `default_accessor`
 - But someone could have a special accessor which makes it safe to view an mdspan of derived as an mdspan of base
+- https://godbolt.org/z/rfKbaqv38
 ```c++
 template<class T>
 struct baseclass_accessor {
