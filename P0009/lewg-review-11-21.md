@@ -67,6 +67,15 @@ auto foo(double* a_ptr, int N, int M) {
   - https://godbolt.org/z/eMbTo7hcE
 - we do NOT want to enforce that wording on `mdspan` itself, since we could actually define accessors which allow the above assignment (see below)
 
+## Other Questions In EMails
+
+### Why do we need dynamic to static extent conversion and vice versa?
+
+- `span` allows this (at least in constructors)
+  - https://godbolt.org/z/dn3eMW7f5
+- `dynamic_extent` serves as type erasure
+- for performance oriented specialization one may convert dynamic to static extents 
+
 ## Viability of customization points
 - One of the primary design concerns of `mdspan` are customization points
 - orthogonalization of pointer, access and layout allows for maximum flexibility
