@@ -60,5 +60,55 @@ auto foo(double* a_ptr, int N, int M) {
 
 ## Viability of customization points
 - One of the primary design concerns of `mdspan` are customization points
-- 
+- orthogonalization of pointer, access and layout allows for maximum flexibility
 
+### Simple Access Modifications
+
+- Example 1: attach `std::assume_aligned` to an array
+  - `std::assume_aligned` is used locally in access, not part of pointer type!
+  - offset_policy can't propagate `std::assume_aligned` since it might not be aligned
+  - https://godbolt.org/z/Gbas5Esvf
+  
+```c++
+template<class T, size_t Align>
+struct alligned_accessor {
+  using element_type = T;
+  using pointer =  T*;
+  using reference = T&;
+  
+  // arbitrary offsetted pointer is not aligned 
+  // so just return default_accessor
+  using offset_policy = default_accessor<T>;
+
+  reference access(const pointer p, int i) const {
+    pointer p_align = std::assume_aligned<Align>(p);
+    return p_align[i];
+  }
+
+  pointer offset(const pointer p, int i) const {
+    return p+i;
+  }
+
+  operator std::default_accessor<T>() const { return std::default_accessor<T>{}; }
+};
+
+using aligned_mdsp = std::mdspan<double,std::dextents<2>,
+                          std::layout_right,aligned_accessor<double,16>>;
+                          
+void bar(std::mdspan<double,std::dextents<1>> a) {
+  for(int i=0; i<a.extent(0); i++) a[i] = 1.*i;
+}
+
+void foo(aligned_mdsp a, aligned_mdsp b) {
+   // aligned access
+   for(int i=0; i<a.extent(0)-1; i++)
+     for(int j=0; j<a.extent(1); j++)
+       a[i,j] += b[i,j];
+   // last column may not be aligned
+   // through offset_policy this will just get default_accessor
+   auto a_last = std::submdspan(a,a.extent(0)-1,std::full_extent);
+   bar(a_last);
+}
+```
+
+### Make Typesafe GPU Accesses
