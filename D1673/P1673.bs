@@ -1,14 +1,14 @@
 <pre class='metadata'>
-Title: P1673R5: A free function linear algebra interface based on the BLAS
-Shortname: P1673R5
+Title: P1673R6: A free function linear algebra interface based on the BLAS
+Shortname: P1673
 Status: iso/P
-Level: 5
+Level: 6
 Group: WG21
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs
 Editor: Mark Hoemmen, Stellar Science https://www.stellarscience.com, mhoemmen@stellarscience.com
 Abstract: We propose a C++ Standard Library dense linear algebra interface based on the dense Basic Linear Algebra Subroutines (BLAS).  This corresponds to a subset of the BLAS Standard.
 Markup Shorthands: markdown yes
-Date: 2021-08-15
+Date: 2021-12-15
 </pre>
 
 # Authors and contributors
@@ -229,6 +229,8 @@ Date: 2021-08-15
         that included "batched" operations.)
     
     * Fix `vector_sum_of_squares` name in BLAS comparison table.
+
+    * Replace "Requires" with "Preconditions," per new wording guidelines.
 
 # Purpose of this paper
 
@@ -4291,7 +4293,7 @@ constexpr mapping(const Extents& e,
   const typename Extents::size_type s);
 ```
 
-* *Requires:*
+* *Preconditions:*
 
     * If `StorageOrder` is `column_major_t`,
         then `s` is greater than or equal to `e.extent(0)`.
@@ -4330,7 +4332,7 @@ operator() (typename Extents::size_type i,
             typename Extents::size_type j) const;
 ```
 
-* *Requires:*
+* *Preconditions:*
 
     * 0 ≤ `i` < `extent(0)`, and
 
@@ -4524,7 +4526,7 @@ public:
 constexpr mapping(const Extents& e);
 ```
 
-* *Requires:* `e.extent(0)` equals `e.extent(1)`.
+* *Preconditions:* `e.extent(0)` equals `e.extent(1)`.
 
 * *Effects:* Initializes `extents_` with `e`.
 
@@ -4547,7 +4549,7 @@ operator() (typename Extents::size_type i,
             typename Extents::size_type j) const;
 ```
 
-* *Requires:*
+* *Preconditions:*
 
     * 0 ≤ `i` < `extent(0)`, and
 
@@ -4726,7 +4728,7 @@ public:
 };
 ```
 
-* *Requires:* `ScalingFactor` and `Reference` shall be *Cpp17CopyConstructible*.
+* *Preconditions:* `ScalingFactor` and `Reference` shall be *Cpp17CopyConstructible*.
 
 * *Constraints:* The expression `scaling_factor * value` is well formed.
 
@@ -4740,7 +4742,7 @@ scaled_scalar(const ScalingFactor& s, Reference v);
 operator result_type() const;
 ```
 
-* *Requires:* This operator may be invoked arbitrarily many times.
+* *Preconditions:* This operator may be invoked arbitrarily many times.
 
 * *Effects:* Equivalent to `return scaling_factor * value;`.
 
@@ -4777,7 +4779,7 @@ private:
 };
 ```
 
-* *Requires:*
+* *Preconditions:*
 
     * `ScalingFactor` and `Accessor` shall be *Cpp17CopyConstructible*.
 
@@ -4952,7 +4954,7 @@ private:
 };
 ```
 
-* *Requires:* `Reference` shall be *Cpp17CopyConstructible*.
+* *Preconditions:* `Reference` shall be *Cpp17CopyConstructible*.
 
 * *Constraints:* The expression `conj(val)` is well formed and is convertible to
     `ElementType`.  *[Note:* This implies that `ElementType` is
@@ -4998,7 +5000,7 @@ public:
 };
 ```
 
-* *Requires:*
+* *Preconditions:*
 
     * `Accessor` shall be *Cpp17CopyConstructible*.
 
@@ -5182,7 +5184,7 @@ For `InputExtents` a specialization of `extents`,
     `OutputExtents::static_extent(r)` for 0 ≤ `r` <
     `InputExtents::rank()-2`.
 
-* *Requires:* `InputExtents` is a specialization of `extents`.
+* *Preconditions:* `InputExtents` is a specialization of `extents`.
 
 * *Constraints:* `InputExtents::rank()` equals 2.
 
@@ -5256,7 +5258,7 @@ public:
 };
 ```
 
-* *Requires:* `Layout` shall meet the `mdspan` layout mapping policy requirements.
+* *Preconditions:* `Layout` shall meet the `mdspan` layout mapping policy requirements.
 
 * *Constraints:* For all specializations `E` of `extents` with `E::rank()` equal to 2,
     `typename Layout::template mapping<E>::is_always_unique()` is `true`.
@@ -5742,7 +5744,7 @@ the mathematical expressions for the algorithm are
 `x[i] = c*x[i] + s*y[i]` and
 `y[i] = c*y[i] - conj(s)*x[i]`.
 
-* *Requires:* `x.extent(0)` equals `y.extent(0)`.
+* *Preconditions:* `x.extent(0)` equals `y.extent(0)`.
 
 * *Mandates:* If neither `x.static_extent(0)` nor `y.static_extent(0)`
     equals `dynamic_extent`, then `x.static_extent(0)` equals
@@ -5772,7 +5774,7 @@ void swap_elements(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS function `xSWAP`.
 --*end note]*
 
-* *Requires:* For all `r` in 0, 1, ..., `x.rank()` - 1,
+* *Preconditions:* For all `r` in 0, 1, ..., `x.rank()` - 1,
     `x.extent(r)` equals `y.extent(r)`.
 
 * *Constraints:*
@@ -5838,7 +5840,7 @@ void copy(ExecutionPolicy&& exec,
 *[Note:* These functions correspond to the BLAS function `xCOPY`.
 --*end note]*
 
-* *Requires:* For all `r` in 0, 1, ..., `x.rank()` - 1,
+* *Preconditions:* For all `r` in 0, 1, ..., `x.rank()` - 1,
     `x.extent(r)` equals `y.extent(r)`.
 
 * *Constraints:*
@@ -5882,7 +5884,7 @@ void add(ExecutionPolicy&& exec,
 For `i...` in the domains of `x`, `y`, and `z`,
 the mathematical expression for the algorithm is `z[i...] = x[i...] + y[i...]`.
 
-* *Requires:* For all `r` in 0, 1, ..., `x.rank()` - 1,
+* *Preconditions:* For all `r` in 0, 1, ..., `x.rank()` - 1,
 
     * `x.extent(r)` equals `z.extent(r)`.
 
@@ -5938,7 +5940,7 @@ the mathematical expression for the algorithm is
 `init = init` plus the sum of `v1[i] * v2[i]`
 for all `i` in the domain of `v1`.
 
-* *Requires:* `v1.extent(0)` equals `v2.extent(0)`.
+* *Preconditions:* `v1.extent(0)` equals `v2.extent(0)`.
 
 * *Mandates:* If neither `v1.static_extent(0)` nor
     `v2.static_extent(0)` equals `dynamic_extent`, then
@@ -6065,7 +6067,7 @@ sum_of_squares_result<T> vector_sum_of_squares(
 *[Note:* These functions correspond to the LAPACK function `xLASSQ`.
 --*end note]*
 
-* *Requires:*
+* *Preconditions:*
 
     * `T` shall be *Cpp17MoveConstructible* and *Cpp17LessThanComparable*, and
 
@@ -6124,7 +6126,7 @@ This does not imply a recommended implementation for floating-point types.
 See *Remarks* below.
 --*end note]*
 
-* *Requires:* `init + abs(v[0])*abs(v[0])` shall be convertible to `T`.
+* *Preconditions:* `init + abs(v[0])*abs(v[0])` shall be convertible to `T`.
 
 * *Effects:* Returns the Euclidean norm (also called 2-norm)
     of the vector `v`.
@@ -6188,7 +6190,7 @@ the mathematical expression for the algorithm is
 `init` plus the sum of `abs(v[i])`
 for all `i` in the domain of `v`.
 
-* *Requires:* For `i` in the domain of `v`,
+* *Preconditions:* For `i` in the domain of `v`,
     `init + abs(v[i])` shall be convertible to `T`.
 
 * *Effects:* Let `N` be `v.extent(0)`:
@@ -6240,7 +6242,7 @@ extents<>::size_type idx_abs_max(
 *[Note:* These functions correspond to the BLAS function `IxAMAX`.
 --*end note]*
 
-* *Requires:* For `i` in the domain of `v`,
+* *Preconditions:* For `i` in the domain of `v`,
     let `abs_value_type` be `decltype(v[i])`;
     then, `abs_value_type` shall be *Cpp17LessThanComparable*.
 
@@ -6323,7 +6325,7 @@ T matrix_one_norm(
   T init);
 ```
 
-* *Requires:* `abs(A[0,0])` shall be convertible to `T`.
+* *Preconditions:* `abs(A[0,0])` shall be convertible to `T`.
 
 * *Effects:*
 
@@ -6377,7 +6379,7 @@ T matrix_inf_norm(
   T init);
 ```
 
-* *Requires:* `abs(A[0,0])` shall be convertible to `T`.
+* *Preconditions:* `abs(A[0,0])` shall be convertible to `T`.
 
 * *Effects:*
 
@@ -6421,7 +6423,7 @@ auto matrix_inf_norm(
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(1)` equals `x.extent(0)`,
 
@@ -6555,7 +6557,7 @@ for all `j` such that `i,j` is in the domain of `A`.
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`,
 
@@ -6685,7 +6687,7 @@ but not in the triangle of `A` specified by `t`.
 
 The following requirements apply to all functions in this section.
 
-* *Requires:"*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`,
 
@@ -6819,7 +6821,7 @@ but not in the triangle of `A` specified by `t`.
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`,
 
@@ -6935,7 +6937,7 @@ the mathematical expression for the algorithm is
 `y[i] =` the sum of `A[i,j] * y[j]`
 for all `j` in the subset of the domain of `A` specified by `t` and `d`.
 
-* *Requires:* `A.extent(1)` equals `y.extent(0)`.
+* *Preconditions:* `A.extent(1)` equals `y.extent(0)`.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `y.static_extent(0)`
     equals `dynamic_extent`, then `A.static_extent(1)` equals
@@ -6991,7 +6993,7 @@ for all `j` in the subset of the domain of `A` specified by `t` and `d`.
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`, and
 
@@ -7080,7 +7082,7 @@ where `s` is the sum of `A[i,j] * x[j]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
-* *Requires:* `A.extent(0)` equals `x.extent(0)`.
+* *Preconditions:* `A.extent(0)` equals `x.extent(0)`.
 
 * *Constraints:* `x.rank()` equals 1 and `b.rank()` equals 1.
 
@@ -7140,7 +7142,7 @@ where `s` is the sum of `A[i,j] * b[j]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
-* *Requires:* `A.extent(0)` equals `b.extent(0)`.
+* *Preconditions:* `A.extent(0)` equals `b.extent(0)`.
 
 * *Mandates:* If neither `A.static_extent(0)` nor `b.static_extent(0)`
     equals `dynamic_extent`,
@@ -7181,7 +7183,7 @@ For `i,j` in the domain of `A`,
 the mathematical expression for the algorithm is
 `A[i,j] += x[i] * y[j]`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `x.extent(0)`, and
 
@@ -7294,7 +7296,7 @@ the mathematical expression for the algorithm is
 `A[i,j] += x[i] * x[j]` for overloads without an `alpha` parameter, and
 `A[i,j] += alpha * x[i] * x[j]` for overloads with an `alpha` parameter.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`, and
 
@@ -7393,7 +7395,7 @@ the mathematical expression for the algorithm is
 `A[i,j] += x[i] * conj(x[j])` for overloads without an `alpha` parameter, and
 `A[i,j] += alpha * x[i] * conj(x[j])` for overloads without an `alpha` parameter.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`; and
 
@@ -7476,7 +7478,7 @@ and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
 `A[i,j] += x[i] * y[j] + y[i] * x[j]`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`,
 
@@ -7552,7 +7554,7 @@ and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
 `A[i,j] += x[i] * conj(y[j]) + y[i] * conj(x[j])`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`,
 
@@ -7610,7 +7612,7 @@ the mathematical expression for the algorithm is
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * `C.extent(0)` equals `E.extent(0)` (if applicable),
 
@@ -7729,7 +7731,7 @@ that the input matrix `A` -- not the output matrix -- is symmetric.
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`,
 
@@ -7775,7 +7777,7 @@ The following requirements apply to all functions in this section.
 The following requirements apply to all overloads of
 `symmetric_matrix_left_product`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(1)` equals `B.extent(0)`,
 
@@ -7803,7 +7805,7 @@ The following requirements apply to all overloads of
 The following requirements apply to all overloads of
 `symmetric_matrix_right_product`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `B.extent(1)` equals `A.extent(0)`,
 
@@ -8007,7 +8009,7 @@ that the input matrix -- not the output matrix -- is Hermitian.
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`,
 
@@ -8057,7 +8059,7 @@ The following requirements apply to all functions in this section.
 The following requirements apply to all overloads of
 `hermitian_matrix_left_product`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(1)` equals `B.extent(0)`,
 
@@ -8085,7 +8087,7 @@ The following requirements apply to all overloads of
 The following requirements apply to all overloads of
 `hermitian_matrix_right_product`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `B.extent(1)` equals `A.extent(0)`,
 
@@ -8285,7 +8287,7 @@ and in the triangle of `A` specified by `t`.
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `A.extent(1)`,
 
@@ -8337,7 +8339,7 @@ The following requirements apply to all functions in this section.
 The following requirements apply to all overloads of
 `triangular_matrix_left_product`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(1)` equals `B.extent(0)` (if applicable),
 
@@ -8365,7 +8367,7 @@ The following requirements apply to all overloads of
 The following requirements apply to all overloads of
 `triangular_matrix_right_product`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `B.extent(1)` equals `A.extent(0)` (if applicable),
 
@@ -8461,7 +8463,7 @@ the mathematical expression for the algorithm is
 for all `k` such that `i,k` is in the domain of `A`
 and in the triangle of `A` specified by `t` and `d`.
 
-* *Requires:* `A.extent(1)` equals `C.extent(0)`.
+* *Preconditions:* `A.extent(1)` equals `C.extent(0)`.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `C.static_extent(0)`
     equals `dynamic_extent`,
@@ -8539,7 +8541,7 @@ the mathematical expression for the algorithm is
 for all `k` such that `k,j` is in the domain of `A`
 and in the triangle of `A` specified by `t` and `d`.
 
-* *Requires:* `C.extent(1)` equals `A.extent(0)`.
+* *Preconditions:* `C.extent(1)` equals `A.extent(0)`.
 
 * *Mandates:* If neither `C.static_extent(1)` nor `A.static_extent(0)`
     equals `dynamic_extent`, then `C.static_extent(1)` equals
@@ -8706,7 +8708,7 @@ the mathematical expression for the algorithm is
 `C[i,j] = C[i,j]` plus the sum of `alpha * A[i,k] * A[j,k]`
 for all `k` such that `i,k` is in the domain of `A`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `C.extent(0)`, and
 
@@ -8811,7 +8813,7 @@ the mathematical expression for the algorithm is
 `C[i,j] = C[i,j]` plus the sum of `alpha * A[i,k] * conj(A[j,k])`
 for all `k` such that `i,k` is in the domain of `A`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `C.extent(0)`, and
 
@@ -8897,7 +8899,7 @@ for all `k1` such that `i,k1` is in the domain of `A`,
 plus the sum of `B[i,k2] * A[j,k2]`
 for all `k2` such that `i,k2` is in the domain of `B`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `C.extent(0)`,
 
@@ -8975,7 +8977,7 @@ for all `k1` such that `i,k1` is in the domain of `A`,
 plus the sum of `B[i,k2] * conj(A[j,k2])`
 for all `k2` such that `i,k2` is in the domain of `B`.
 
-* *Requires:*
+* *Preconditions:*
 
     * `A.extent(0)` equals `C.extent(0)`,
 
@@ -9029,7 +9031,7 @@ Reference BLAS does not have a `xTPSM` function. --*end note]*
 
 The following requirements apply to all functions in this section.
 
-* *Requires:*
+* *Preconditions:*
 
     * For all `r` in 0, 1, ..., `B.rank()` - 1,
         `X.extent(r)` equals `B.extent(r)` (if applicable); and
@@ -9130,7 +9132,7 @@ where `s` is the sum of `A[i,j] * X[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
-* *Requires:* `A.extent(1)` equals `B.extent(0)`.
+* *Preconditions:* `A.extent(1)` equals `B.extent(0)`.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(0)`
     equals `dynamic_extent`, then
@@ -9192,7 +9194,7 @@ where `s` is the sum of `A[i,j] * B[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
-* *Requires:* `A.extent(1)` equals `B.extent(0)`.
+* *Preconditions:* `A.extent(1)` equals `B.extent(0)`.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(0)`
     equals `dynamic_extent`, then
@@ -9251,7 +9253,7 @@ where `s` is the sum of `X[i,j] * A[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
-* *Requires:* `A.extent(1)` equals `B.extent(1)`.
+* *Preconditions:* `A.extent(1)` equals `B.extent(1)`.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(1)`
     equals `dynamic_extent`, then
@@ -9313,7 +9315,7 @@ where `s` is the sum of `B[i,j] * A[j,k]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
 
-* *Requires:* `A.extent(1)` equals `B.extent(1)`.
+* *Preconditions:* `A.extent(1)` equals `B.extent(1)`.
 
 * *Mandates:* If neither `A.static_extent(1)` nor `B.static_extent(1)`
     equals `dynamic_extent`, then
