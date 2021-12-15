@@ -232,6 +232,12 @@ Date: 2021-12-15
 
     * Replace "Requires" with "Preconditions," per new wording guidelines.
 
+    * Remove all overloads of `symmetric_matrix_rank_k_update` and
+        `hermitian_matrix_rank_k_update` that do not take an `alpha` parameter.
+        This prevents ambiguity between overloads
+        that take `ExecutionPolicy&&` but not `alpha`,
+        and overloads that take `alpha` but not `ExecutionPolicy&&`.
+
 # Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -3704,22 +3710,6 @@ void triangular_matrix_right_product(
 
 // [linalg.alg.blas3.rank-k.syrk],
 // rank-k symmetric matrix update
-template<class in_matrix_1_t,
-         class inout_matrix_t,
-         class Triangle>
-void symmetric_matrix_rank_k_update(
-  in_matrix_1_t A,
-  inout_matrix_t C,
-  Triangle t);
-template<class ExecutionPolicy,
-         class in_matrix_1_t,
-         class inout_matrix_t,
-         class Triangle>
-void symmetric_matrix_rank_k_update(
-  ExecutionPolicy&& exec,
-  in_matrix_1_t A,
-  inout_matrix_t C,
-  Triangle t);
 template<class T,
          class in_matrix_1_t,
          class inout_matrix_t,
@@ -3743,22 +3733,6 @@ void symmetric_matrix_rank_k_update(
 
 // [linalg.alg.blas3.rank-k.herk],
 // rank-k Hermitian matrix update
-template<class in_matrix_1_t,
-         class inout_matrix_t,
-         class Triangle>
-void hermitian_matrix_rank_k_update(
-  in_matrix_1_t A,
-  inout_matrix_t C,
-  Triangle t);
-template<class ExecutionPolicy,
-         class in_matrix_1_t,
-         class inout_matrix_t,
-         class Triangle>
-void hermitian_matrix_rank_k_update(
-  ExecutionPolicy&& exec,
-  in_matrix_1_t A,
-  inout_matrix_t C,
-  Triangle t);
 template<class T,
          class in_matrix_1_t,
          class inout_matrix_t,
@@ -8647,22 +8621,6 @@ to the input matrix. --*end note]*
 ##### Rank-k symmetric matrix update [linalg.alg.blas3.rank-k.syrk]
 
 ```c++
-template<class in_matrix_1_t,
-         class inout_matrix_t,
-         class Triangle>
-void symmetric_matrix_rank_k_update(
-  in_matrix_1_t A,
-  inout_matrix_t C,
-  Triangle t);
-template<class ExecutionPolicy,
-         class in_matrix_1_t,
-         class inout_matrix_t,
-         class Triangle>
-void symmetric_matrix_rank_k_update(
-  ExecutionPolicy&& exec,
-  in_matrix_1_t A,
-  inout_matrix_t C,
-  Triangle t);
 template<class T,
          class in_matrix_1_t,
          class inout_matrix_t,
@@ -8689,20 +8647,14 @@ void symmetric_matrix_rank_k_update(
 
 These functions correspond to the BLAS function `xSYRK`.
 
-They take an optional scaling factor `alpha`, because it would be
+They take a scaling factor `alpha`, because it would be
 impossible to express the update C = C - A A^T otherwise.
+The scaling factor parameter is required
+in order to avoid ambiguity with `ExecutionPolicy`.
 
 --*end note]*
 
-For all overloads without an `alpha` parameter,
-for `i,j` in the domain of `C`
-and in the triangle of `C` specified by `t`,
-the mathematical expression for the algorithm is
-`C[i,j] = C[i,j]` plus the sum of `A[i,k] * A[j,k]`
-for all `k` such that `i,k` is in the domain of `A`.
-
-For all overloads with an `alpha` parameter,
-for `i,j` in the domain of `C`
+For `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
 `C[i,j] = C[i,j]` plus the sum of `alpha * A[i,k] * A[j,k]`
@@ -8736,12 +8688,8 @@ for all `k` such that `i,k` is in the domain of `A`.
 
 * *Effects:*
 
-    * Overloads without `alpha` assign to `C` on output, the elementwise
-        sum of `C` on input with (the matrix product of `A` and the
-        nonconjugated transpose of `A`).
-
-    * Overloads with `alpha` assign to `C` on output, the elementwise
-        sum of `C` on input with alpha times (the matrix product of `A`
+    * Assigns to `C` on output, the elementwise sum of `C` on input
+        with `alpha` times (the matrix product of `A`
         and the nonconjugated transpose of `A`).
 
 * *Remarks:* The functions will only access the triangle of `C`
@@ -8751,22 +8699,6 @@ for all `k` such that `i,k` is in the domain of `A`.
 ##### Rank-k Hermitian matrix update [linalg.alg.blas3.rank-k.herk]
 
 ```c++
-template<class in_matrix_1_t,
-         class inout_matrix_t,
-         class Triangle>
-void hermitian_matrix_rank_k_update(
-  in_matrix_1_t A,
-  inout_matrix_t C,
-  Triangle t);
-template<class ExecutionPolicy,
-         class in_matrix_1_t,
-         class inout_matrix_t,
-         class Triangle>
-void hermitian_matrix_rank_k_update(
-  ExecutionPolicy&& exec,
-  in_matrix_1_t A,
-  inout_matrix_t C,
-  Triangle t);
 template<class T,
          class in_matrix_1_t,
          class inout_matrix_t,
@@ -8793,21 +8725,15 @@ void hermitian_matrix_rank_k_update(
 
 These functions correspond to the BLAS function `xHERK`.
 
-They take an optional scaling factor `alpha`, because it would be
+They take a scaling factor `alpha`, because it would be
 impossible to express the updates C = C - A A^T or C = C - A A^H
 otherwise.
+The scaling factor parameter is required
+in order to avoid ambiguity with `ExecutionPolicy`.
 
 --*end note]*
 
-For all overloads without an `alpha` parameter,
-for `i,j` in the domain of `C`
-and in the triangle of `C` specified by `t`,
-the mathematical expression for the algorithm is
-`C[i,j] = C[i,j]` plus the sum of `A[i,k] * conj(A[j,k])`
-for all `k` such that `i,k` is in the domain of `A`.
-
-For all overloads with an `alpha` parameter,
-for `i,j` in the domain of `C`
+For `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
 `C[i,j] = C[i,j]` plus the sum of `alpha * A[i,k] * conj(A[j,k])`
@@ -8841,11 +8767,7 @@ for all `k` such that `i,k` is in the domain of `A`.
 
 * *Effects:*
 
-    * Overloads without `alpha` assign to `C` on output, the elementwise
-        sum of `C` on input with (the matrix product of `A` and the
-        conjugated transpose of `A`).
-
-    * Overloads with `alpha` assign to `C` on output, the elementwise
+    * Assigns to `C` on output, the elementwise
         sum of `C` on input with alpha times (the matrix product of `A`
         and the conjugated transpose of `A`).
 
@@ -9489,7 +9411,8 @@ int cholesky_tsqr_one_step(
       pair{num_rows_per_block, A_rest.extent(0)}, full_extent);
     // R = R + A_cur^T * A_cur
     using std::linalg::symmetric_matrix_rank_k_update;
-    symmetric_matrix_rank_k_update(transposed(A_cur),
+    constexpr R_element_type ONE(1.0);
+    symmetric_matrix_rank_k_update(ONE, transposed(A_cur),
                                    R, upper_triangle);
   }
 
