@@ -237,6 +237,9 @@ Date: 2021-12-15
         This prevents ambiguity between overloads
         that take `ExecutionPolicy&&` but not `alpha`,
         and overloads that take `alpha` but not `ExecutionPolicy&&`.
+    
+    * Harmonize with the implementation, by adding `operator+`, `operator*`,
+        and comparison operators to `conjugated_scalar`.
 
 # Purpose of this paper
 
@@ -4923,9 +4926,38 @@ public:
 
   operator ElementType() const;
 
+  template<class T2>
+  auto operator* (const T2 upd) const {
+    using std::conj;
+    return conj(val) * upd;
+  }
+
+  template<class T2>
+  auto operator+ (const T2 upd) const {
+    using std::conj;
+    return conj(val) + upd;
+  }
+
+  template<class T2>
+  bool operator== (const T2 upd) const {
+    using std::conj;
+    return conj(val) == upd;
+  }
+
+  template<class T2>
+  bool operator!= (const T2 upd) const {
+    using std::conj;
+    return conj(val) != upd;
+  }
+
 private:
   Reference val;
 };
+
+template<class T1, class Reference, class Element>
+auto operator* (const T1 x, const conjugated_scalar<Reference, Element> y) {
+  return x * Reference(y);
+}
 ```
 
 * *Preconditions:* `Reference` shall be *Cpp17CopyConstructible*.
