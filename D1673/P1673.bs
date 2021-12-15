@@ -218,6 +218,10 @@ Date: 2021-08-15
         instead of `operator()` as the array access operator.
         Revision 5 of P1673 adopts this change, and is "rebased" atop P1673R5.
 
+* Revision 6 (electronic), to be submitted 2021-12-15
+
+    * Update references to P0009 and P2128.
+
 # Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -251,7 +255,7 @@ Our proposal also has the following distinctive characteristics:
 * The interface is designed in the spirit of the C++ Standard Library's
     algorithms.
 
-* It uses `mdspan` (see P0009R13),
+* It uses `mdspan` (see P0009),
     a multidimensional array view, to represent matrices and vectors.
     In the future,
     it could support other proposals' matrix and vector data structures.
@@ -438,7 +442,7 @@ lists future work, that is, ways future proposals could build on this one.
 
 Section <a href="#data-structures-and-utilities-borrowed-from-other-proposals"><span class="secno">13</span></a>
 gives the data structures and utilities from other proposals on which we depend.
-In particular, we rely heavily on `mdspan` (P0009R13),
+In particular, we rely heavily on `mdspan` (P0009),
 and add custom layouts and accessors.
 
 Section <a href="#acknowledgments"><span class="secno">14</span></a> credits funding agencies and contributors.
@@ -1407,7 +1411,7 @@ We investigated this option, and rejected it, for the following reasons.
 3. We could always generalize our algorithms later.
 
 4. Any multidimensional array concept would need revision
-    in the light of <a href="https://wg21.link/p2128r5">P2128R5</a>.
+    in the light of <a href="https://wg21.link/p2128r6">P2128R6</a>.
 
 This proposal refers to almost all of `mdspan`'s features,
 including `extents`, `layout`, and `accessor_policy`.
@@ -1428,10 +1432,11 @@ If we later wanted to support such types,
 we could always generalize our algorithms later.
 
 Finally, any multidimensional array concept would need revision
-in the light of <a href="https://wg21.link/p2128r5">P2128R5</a>,
-which has been sent by EWG to electronic polling, targeting CWG.
-P2128 proposes letting `operator[]` take multiple parameters.
+in the light of <a href="https://wg21.link/p2128r6">P2128R6</a>,
+which has been approved at Plenary.
+P2128 lets `operator[]` take multiple parameters.
 Its authors intend to let `mdspan` use `operator[]` instead of `operator()`.
+P0009 has adopted this change.
 
 After further discussion at the 2019 Belfast meeting,
 LEWGI accepted our position that having our algorithms take `mdspan`
@@ -2224,31 +2229,21 @@ return an `mdspan` that views its argument's data.
 
 The `mdarray` class, proposed in <a href="https://wg21.link/p1684r0">P1684R0</a>, is the
 container analog of `mdspan`.  It is a new kind of container,
-with the same copy behavior as containers like `vector`.  It has the same
-extension points as `mdspan`, and also has the ability to use
-any *contiguous container* (see **[container.requirements.general]**)
-for storage.  Contiguity matters because `mdspan` views a subset
-of a contiguous pointer range, and we want to be able to get a
-`mdspan` that views the `mdarray`.  The `mdarray` class will
-come with support for two different underlying containers: `array` and
-`vector`.  Calling `submdspan` (see P0009R13) on an
-`mdarray` will return an `mdspan` with the appropriate
-layout and corresponding accessor.  Users must guard against dangling
-pointers, just as they currently must do when using `span` to view a
-subset of a `vector`.
-
+with the same copy behavior as containers like `vector`.
+It will be possible to get an `mdspan` that views an `mdarray`.
 Previous versions of this proposal included function overloads that
 took `mdarray` directly.  The goals were user convenience, and
 to avoid any potential overhead of conversion to `mdspan`,
 especially for very small matrices and vectors.  In a future revision
-of P1684, `mdarray` may implement `get_mdspan`.  This would let
-users use `mdarray` directly in our functions.  This
-customization point approach would also simplify using our functions
-with other matrix and vector types, such as those proposed by
-P1385R6.  Implementations may optionally add
-direct overloads of our functions for `mdarray` or other types.
-This would address any concerns about overhead of converting from
-`mdarray` to `mdspan`.
+of P1684, `mdarray` may implement a customization point `get_mdspan`
+(final name yet to be decided).
+This would let users use `mdarray` directly in our functions.
+This customization point approach would also simplify using our functions
+with other matrix and vector types, such as those proposed by P1385R6.
+Implementations may optionally add direct overloads of our functions
+for `mdarray` or other types.
+This would address any concerns about overhead
+of converting from `mdarray` to `mdspan`.
 
 ## Batched linear algebra
 
@@ -2286,7 +2281,7 @@ input argument for all the output arguments in the batch.
 
 ## `mdspan`
 
-This proposal depends on <a href="https://wg21.link/p0009r13">P0009R13</a>,
+This proposal depends on P0009,
 which proposes adding multidimensional arrays to the C++ Standard
 Library.  P0009's main class is `mdspan`, which is a "view"
 (in the sense of `span`) of a multidimensional array.  The rank
@@ -2312,13 +2307,13 @@ customization points:
 
 Our proposal uses the layout mapping policy of `mdspan` in order
 to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009R13 have three basic properties:
+policies as described by P0009 have three basic properties:
 
 * Unique
 * Contiguous
 * Strided
 
-P0009R13 includes three different layouts -- `layout_left`,
+P0009 includes three different layouts -- `layout_left`,
 `layout_right`, and `layout_stride` -- all of which are unique and
 strided.  Only `layout_left` and `layout_right` are contiguous.
 
@@ -2348,7 +2343,7 @@ different function names.
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
-the first addition to the layouts in P0009R13 that is neither always
+the first addition to the layouts in P0009 that is neither always
 unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
@@ -2390,8 +2385,8 @@ on constraints wording.
 * C. Trott, D. S. Hollman, D. Lebrun-Grande, M. Hoemmen, D. Sunderland,
     H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
     J. Michopoulos, and N. Liber,
-    "`mdspan`," <a href="https://wg21.link/p0009r13">P0009R13</a>,
-    Oct. 2021.
+    "`mdspan`," <a href="https://wg21.link/p0009r14">P0009R14</a>,
+    Nov. 2021.
 
 * G. Davidson, M. Hoemmen, D. S. Hollman, B. Steagall, and C. Trott,
     <a href="https://wg21.link/p1891r0">P1891R0</a>, Oct. 2019.
@@ -2407,7 +2402,7 @@ on constraints wording.
 
 * M. Hoemmen, D. S. Hollman, C. Jabot, I. Muerte, and C. Trott,
     "Multidimensional subscript operator,"
-    <a href="https://wg21.link/p2128r5">P2128R5</a>, Apr. 2021.
+    <a href="https://wg21.link/p2128r6">P2128R6</a>, Sep. 2021.
 
 * D. S. Hollman, C. Trott, M. Hoemmen, and D. Sunderland,
     "`mdarray`: An Owning Multidimensional Array Analog of `mdspan`",
@@ -2502,8 +2497,8 @@ on constraints wording.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R13.
-> (This proposal is a "rebase" atop the changes proposed by P0009R13.)
+> First, apply all wording from P0009R14.
+> (This proposal is a "rebase" atop the changes proposed by P0009R14.)
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
