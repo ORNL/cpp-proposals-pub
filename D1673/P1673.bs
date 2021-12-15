@@ -220,7 +220,13 @@ Date: 2021-08-15
 
 * Revision 6 (electronic), to be submitted 2021-12-15
 
-    * Update references to P0009 and P2128.
+    * Update references to P0009 (P0009R14) and P2128 (P2128R6).
+
+    * Fix typos in `*rank_2k` descriptions.
+
+    * Remove references to any `mdspan` rank greater than 2.
+        (These were left over from earlier versions of the proposal
+        that included "batched" operations.)
 
 # Purpose of this paper
 
@@ -5176,7 +5182,7 @@ For `InputExtents` a specialization of `extents`,
 
 * *Requires:* `InputExtents` is a specialization of `extents`.
 
-* *Constraints:* `InputExtents::rank()` is at least 2.
+* *Constraints:* `InputExtents::rank()` equals 2.
 
 ```c++
 template<class InputExtents>
@@ -5184,7 +5190,7 @@ transpose_extents_t<InputExtents>
 transpose_extents(const InputExtents in); // exposition only
 ```
 
-* *Constraints:* `InputExtents::rank()` is at least 2.
+* *Constraints:* `InputExtents::rank()` equals 2.
 
 * *Returns:* An `extents` object `out` such that
 
