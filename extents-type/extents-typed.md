@@ -56,7 +56,13 @@ The same is observed for the `mdspan` variant when switching in the `mdspan` imp
 The 31ms result can also be obtained when leaving `size_type` as `size_t` but casting `extents.extent(r)` to the user provided
 index type inside the *layout mappings* index calculation `operator` while using `int` as the loop index type in the algorithm.
 
+### Possible Ways To Address The Issue
 
+#### Mappings Doing Offset Calculation With Argument Type
+
+#### Second Extents Type Templated on `size_type`
+
+#### Template `extents` on `size_type`
 
 
 
