@@ -14,8 +14,42 @@ graphics (arguably the core constitutiency for `mdspan`), the ratio between 32bi
 
 ### Example
 
-To experiment with the impact we were investigating a simple benchmark code, which is hosted in the mdspan reference implementation.
+To experiment with the impact we investigated a simple stencil code benchmark, which is hosted in the mdspan reference implementation.
 That benchmark is using CUDA and compares a variant with raw pointers and explicit index calculation with a version which uses mdspan.
+
+The `mdspan` variant does in each CUDA thread the following code:
+```c++
+for(size_t i = blockIdx.x+d; i < s.extent(0)-d; i += gridDim.x) {
+  for(size_t j = threadIdx.z+d; j < s.extent(1)-d; j += blockDim.z) {
+    for(size_t k = threadIdx.y+d; k < s.extent(2)-d; k += blockDim.y) {
+      value_type sum_local = 0;
+      for(size_t di = i-d; di < i+d+1; di++) {
+      for(size_t dj = j-d; dj < j+d+1; dj++) {
+      for(size_t dk = k-d; dk < k+d+1; dk++) {
+        sum_local += s(di, dj, dk);
+      }}}
+      o(i,j,k) = sum_local;
+    }
+  }
+}
+```
+
+The raw pointer variant looks like this:
+```c++
+for(size_t i = blockIdx.x+d; i < x-d; i += gridDim.x) {
+  for(size_t j = threadIdx.z+d; j < y-d; j += blockDim.z) {
+    for(size_t k = threadIdx.y+d; k < z-d; k += blockDim.y) {
+      value_type sum_local = 0;
+      for(size_t di = i-d; di < i+d+1; di++) {
+      for(size_t dj = j-d; dj < j+d+1; dj++) {
+      for(size_t dk = k-d; dk < k+d+1; dk++) {
+        sum_local += data[dk + dj*z + di*z*y];
+      }}}
+      data_o[k + j*z + i*z*y] = sum_local;
+    }
+  }
+}
+```
 
 Running the raw pointer variant with `int` vs `size_t` as the loop indecies, results in a timing of 31ms vs 56ms. 
 The same is observed for the `mdspan` variant when switching in the `mdspan` implementation the `size_type` from `size_t` to `int`.
