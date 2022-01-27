@@ -2269,7 +2269,8 @@ otherwise <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 If <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a
 dynamic extent, let <span class="math inline"><em>D</em><sub><em>r</em></sub></span> be the value
-of <span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>e</em><em>x</em><em>t</em><em>e</em><em>n</em><em>t</em><em>s</em></span><code>[</code><span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>i</em><em>n</em><em>d</em><em>e</em><em>x</em></span><code>(</code><em>r</em><code>)]</code>.
+of
+<em><code>dynamic-extents</code></em><code>[</code><em><code>dynamic-index</code></em><code>(</code><em>r</em><code>)]</code>.
 The <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span>
 interval of an <code>extents</code> object is as follows:</p>
 <ul>
@@ -2296,7 +2297,8 @@ extent.</p></li>
 <em>Precondition:</em> <code>i &lt; rank_dynamic()</code> is
 <code>true</code></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">10</a></span>
-<em>Returns:</em> Minimum value of <span class="math inline"><em>r</em></span> such that <span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>i</em><em>n</em><em>d</em><em>e</em><em>x</em></span><code>(</code><span class="math inline"><em>r</em></span><code>+1) == i+1</code> is
+<em>Returns:</em> Minimum value of <span class="math inline"><em>r</em></span> such that
+<em><code>dynamic-index</code></em><code>(</code><span class="math inline"><em>r</em></span><code>+1) == i+1</code> is
 <code>true</code>.</p></li>
 </ul>
 <p><b>22.7.�.3 Constructors and assignment [mdspan.extents.cons]</b></p>
@@ -2323,8 +2325,8 @@ other.extent(r)</code> is <code>true</code>.</p></li>
 <em>Effects:</em> For each <span class="math inline"><em>i</em></span>
 in the range <span class="math inline">[0, <em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em><sub><em>r</em></sub><em>a</em><em>n</em><em>k</em>())</span>,
 initializes the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span>
-element of <span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>e</em><em>x</em><em>t</em><em>e</em><em>n</em><em>t</em><em>s</em></span>
-with <code>other.extents(</code><span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>i</em><em>n</em><em>d</em><em>e</em><em>x</em> − <em>i</em><em>n</em><em>v</em></span><code>(i))</code>.</p></li>
+element of <em><code>dynamic-extent</code></em> with
+<code>other.extents(</code><em><code>dynamic-index-inv</code></em><code>(i))</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Remarks:</em> The expression inside <code>explicit</code> is
 equivalent to: <code>(((Extents!=dynamic_extent) &amp;&amp;
@@ -2364,14 +2366,14 @@ the values getting stored, or from all the extents with a precondition.
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span> If
 <code>sizeof...(sizeTypes)</code> equals <code>dynamic_rank()</code>,
-initializes <span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>e</em><em>x</em><em>t</em><em>e</em><em>n</em><em>t</em><em>s</em></span>
-with <code>{exts...}</code>.</p></li>
+initializes <em><code>dynamic-extent</code></em> with
+<code>{exts...}</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span> If
 <code>sizeof...(SizeTypes)</code> equals <code>rank()</code>, for each
 <span class="math inline"><em>i</em></span> in the range <span class="math inline">[0, <em>r</em><em>a</em><em>n</em><em>k</em><sub><em>d</em></sub><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em>())</span>,
 initializes the <span class="math inline"><em>i</em><sup><em>t</em><em>h</em></sup></span>
-element of <span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>e</em><em>x</em><em>t</em><em>e</em><em>n</em><em>t</em><em>s</em></span>
-with <code>std::array&lt;size_type,rank()&gt;{exts...}[</code><span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>i</em><em>n</em><em>d</em><em>e</em><em>x</em> − <em>i</em><em>n</em><em>v</em></span><code>(i)]</code>.</p></li>
+element of <em><code>dynamic-extent</code></em> with
+<code>std::array&lt;size_type,rank()&gt;{exts...}[</code><em><code>dynamic-index-inv</code></em><code>(i)]</code>.</p></li>
 </ul></li>
 </ul>
 <div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
@@ -2398,12 +2400,13 @@ with <code>std::array&lt;size_type,rank()&gt;{exts...}[</code><span class="math 
 <em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(10.1)</a></span> If
-<code>N</code> equals <code>dynamic_rank()</code>, initializes <span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>e</em><em>x</em><em>t</em><em>e</em><em>n</em><em>t</em><em>s</em></span>
-with <code>exts</code>.</p></li>
+<code>N</code> equals <code>dynamic_rank()</code>, initializes
+<em><code>dynamic-extent</code></em> with <code>exts</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span> If
 <code>N</code> equals <code>rank()</code>, for all <span class="math inline"><em>d</em></span> in the range <code>[0,
-rank_dynamic())</code>, initializes <span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>e</em><em>x</em><em>t</em><em>e</em><em>n</em><em>t</em><em>s</em></span><code>[d]</code>
-with <code>exts[</code><span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>i</em><em>n</em><em>d</em><em>e</em><em>x</em> − <em>i</em><em>n</em><em>v</em></span><code>(d)]</code>.</p></li>
+rank_dynamic())</code>, initializes
+<em><code>dynamic-extent</code></em><code>[d]</code> with
+<code>exts[</code><em><code>dynamic-index-inv</code></em><code>(d)]</code>.</p></li>
 </ul></li>
 </ul>
 <p><br /> <b>22.7.�.3 Observers of the domain multidimensional index
@@ -2423,7 +2426,8 @@ value of <code>Extents</code>.</p></li>
 <em>Preconditions:</em> <code>r &lt; rank()</code> is
 <code>true</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Returns:</em> <span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>e</em><em>x</em><em>t</em><em>e</em><em>n</em><em>t</em><em>s</em></span><code>[</code><span class="math inline"><em>d</em><em>y</em><em>n</em><em>a</em><em>m</em><em>i</em><em>c</em> − <em>i</em><em>n</em><em>d</em><em>e</em><em>x</em></span><code>(r)]</code>
+<em>Returns:</em>
+<em><code>dynamic-extent</code></em><code>[</code><em><code>dynamic-index</code></em><code>(r)]</code>
 if <code>static_extent(r) == dynamic_extent</code> is <code>true</code>,
 otherwise <code>static_extent(r)</code>.</p></li>
 </ul>
@@ -3675,10 +3679,10 @@ AccessorPolicy::element_type,ElementType&gt;</code> equals
 <em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-Initializes <span class="math inline"><em>p</em><em>t</em><em>r</em>_</span> with
-<code>ptr</code>, and</p></li>
+Initializes <em><code>ptr_</code></em> with <code>ptr</code>,
+and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-Initializes <span class="math inline"><em>m</em><em>a</em><em>p</em>_</span> with
+Initializes <em><code>map_</code></em> with
 <code>Extents(exts...)</code>.</p></li>
 </ul></li>
 </ul>
@@ -3706,10 +3710,9 @@ is <code>true</code>,</p></li>
 <em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-Initializes <span class="math inline"><em>p</em><em>t</em><em>r</em>_</span> with
-<code>p</code>, and</p></li>
+Initializes <em><code>ptr_</code></em> with <code>p</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
-Initializes <span class="math inline"><em>m</em><em>a</em><em>p</em>_</span> with
+Initializes <em><code>map_</code></em> with
 <code>Extents(exts)</code>.</p></li>
 </ul></li>
 </ul>
@@ -3739,11 +3742,9 @@ mapping_type(ext))</code>.</p></li>
 <em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(8.1)</a></span>
-Initializes <span class="math inline"><em>p</em><em>t</em><em>r</em>_</span> with
-<code>p</code>, and</p></li>
+Initializes <em><code>ptr_</code></em> with <code>p</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(8.2)</a></span>
-Initializes <span class="math inline"><em>m</em><em>a</em><em>p</em>_</span> with
-<code>m</code>.</p></li>
+Initializes <em><code>map_</code></em> with <code>m</code>.</p></li>
 </ul></li>
 </ul>
 <div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> accessor_type<span class="op">&amp;</span> a<span class="op">)</span>;</span></code></pre></div>
@@ -3751,14 +3752,11 @@ Initializes <span class="math inline"><em>m</em><em>a</em><em>p</em>_</span> wit
 <li><p><span class="marginalizedparent"><a class="marginalized">9</a></span><em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
-Initializes <span class="math inline"><em>p</em><em>t</em><em>r</em>_</span> with
-<code>p</code>,</p></li>
+Initializes <em><code>ptr_</code></em> with <code>p</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
-Initializes <span class="math inline"><em>m</em><em>a</em><em>p</em>_</span> with
-<code>m</code>, and</p></li>
+Initializes <em><code>map_</code></em> with <code>m</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
-Initializes <span class="math inline"><em>a</em><em>c</em><em>c</em>_</span> with
-<code>a</code>.</p></li>
+Initializes <em><code>acc_</code></em> with <code>a</code>.</p></li>
 </ul></li>
 </ul>
 <div class="sourceCode" id="cb69"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents,</span>
@@ -3797,14 +3795,14 @@ static_extent(r) != dynamic_extent</code> is <code>true</code>, then
 <em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.1)</a></span>
-Initializes <span class="math inline"><em>p</em><em>t</em><em>r</em>_</span> with
-<code>other.</code><span class="math inline"><em>p</em><em>t</em><em>r</em>_</span>,</p></li>
+Initializes <em><code>ptr_</code></em> with
+<code>other.</code><em><code>ptr_</code></em>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span>
-initializes <span class="math inline"><em>m</em><em>a</em><em>p</em>_</span> with
-<code>other.</code><span class="math inline"><em>m</em><em>a</em><em>p</em>_</span>, and</p></li>
+initializes <em><code>map_</code></em> with
+<code>other.</code><em><code>map_</code></em>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.3)</a></span>
-initializes <span class="math inline"><em>a</em><em>c</em><em>c</em>_</span> with
-<code>other.</code><span class="math inline"><em>a</em><em>c</em><em>c</em>_</span>.</p></li>
+initializes <em><code>acc_</code></em> with
+<code>other.</code><em><code>acc_</code></em>.</p></li>
 </ul></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Remarks:</em> The expression inside <code>explicit</code> is
@@ -3838,10 +3836,12 @@ OtherAccessorPolicy::pointer, pointer&gt;</code></p></li>
 <code>true</code>.</p></li>
 </ul></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em> <span class="math inline"><em>a</em><em>c</em><em>c</em>_</span><code>.access(</code><span class="math inline"><em>p</em><em>t</em><em>r</em>_</span><code>,</code><span class="math inline"><em>m</em><em>a</em><em>p</em>_</span><code>(indices...))</code>
+<em>Preconditions:</em>
+<em><code>acc_</code></em><code>.access(</code><em><code>ptr_</code></em><code>,</code><em><code>map_</code></em><code>(indices...))</code>
 shall be valid.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Effects:</em> Equivalent to: <code>return</code><span class="math inline"><em>a</em><em>c</em><em>c</em>_</span><code>.access(</code><span class="math inline"><em>p</em><em>t</em><em>r</em>_</span><code>,</code><span class="math inline"><em>m</em><em>a</em><em>p</em>_</span><code>(indices...));</code>.</p></li>
+<em>Effects:</em> Equivalent to:
+<code>return</code><em><code>acc_</code></em><code>.access(</code><em><code>ptr_</code></em><code>,</code><em><code>map_</code></em><code>(indices...));</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb71"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
 <span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span><span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;</span> indices<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
@@ -4039,12 +4039,12 @@ else</li>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em></p>
 <ul>
-<li>Initializes <code>sub.</code><span class="math inline"><em>a</em><em>c</em><em>c</em>_</span> with
+<li>Initializes <code>sub.</code><em><code>acc_</code></em> with
 <code>src.accessor()</code>.</li>
-<li>Initializes <code>sub.</code><span class="math inline"><em>p</em><em>t</em><em>r</em>_</span> with
+<li>Initializes <code>sub.</code><em><code>ptr_</code></em> with
 <code>src.accessor().offset(src.data(),apply(src.mapping(),first))</code>.</li>
-<li>Initializes <code>sub.</code><span class="math inline"><em>m</em><em>a</em><em>p</em>_</span> in a way that
-above conditions are satisfied.</li>
+<li>Initializes <code>sub.</code><em><code>map_</code></em> in a way
+that above conditions are satisfied.</li>
 </ul>
 <p><br /></p>
 <p><em>[Note:* Example of <code>submdspan</code> use:]</em></p>
