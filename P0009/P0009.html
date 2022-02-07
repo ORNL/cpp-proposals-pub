@@ -2296,13 +2296,12 @@ extent.</p>
 <code>true</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> <span class="op">...</span> Extents<span class="op">&gt;</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> <em>fwd-prod-of-extents</em><span class="op">(</span>extents<span class="op">&lt;</span>Extents<span class="op">&gt;</span> e, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Precondition:</em> <code>i &lt; e.rank()</code> is
 <code>true</code></p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Returns:</em> If <code>i &gt; 0</code> is <code>true</code> product
-of <code>e.extent(k)</code> for all <code>k</code> in the range $[0, $
-<code>i</code> $) $, otherwise <code>1</code>.</p>
+of <code>e.extent(k)</code> for all <code>k</code> in the range <span class="math inline">[0,</span> <code>i</code> <span class="math inline">)</span>, otherwise <code>1</code>.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> <span class="op">...</span> Extents<span class="op">&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> <em>rev-prod-of-extents</em><span class="op">(</span>extents<span class="op">&lt;</span>Extents<span class="op">&gt;</span>, <span class="dt">size_t</span><span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
@@ -2311,8 +2310,7 @@ of <code>e.extent(k)</code> for all <code>k</code> in the range $[0, $
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Returns:</em> If <code>i+1 &lt; e.rank()</code> is <code>true</code>
 product of <code>e.extent(k)</code> for all <code>k</code> in the range
-<span class="math inline">[</span> <code>i</code> $, $
-<code>e.rank()</code> $) $, otherwise <code>1</code>.</p>
+<span class="math inline">[</span> <code>i</code> <span class="math inline">,</span> <code>e.rank()</code> <span class="math inline">)</span>, otherwise <code>1</code>.</p>
 <p><b>22.7.�.3 Constructors and assignment [mdspan.extents.cons]</b></p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span><span class="op">...</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(</span><em>see below</em><span class="op">)</span></span>
@@ -2397,8 +2395,9 @@ is <code>true</code>, and</p></li>
 <em><code>dynamic-extent</code></em> with <code>exts</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span>
 Otherwise, for all <span class="math inline"><em>d</em></span> in the
-range $[0, $ <code>rank_dynamic()</code><span class="math inline">)</span>, initializes
-<em><code>dynamic-extent</code></em><code>[d]</code> with
+range <span class="math inline">[0,</span>
+<code>rank_dynamic()</code><span class="math inline">)</span>,
+initializes <em><code>dynamic-extent</code></em><code>[d]</code> with
 <code>exts[</code><em><code>dynamic-index-inv</code></em><code>(d)]</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Integrals<span class="op">&gt;</span></span>
@@ -3181,9 +3180,8 @@ Otherwise, <code>false</code>.</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">20</a></span>
 <em>Returns:</em> If <code>x.extents() == y.extents()</code> is
 <code>true</code> and each of <code>x.stride(r) == y.stride(r)</code> is
-<code>true</code> for <code>r</code> in the range of $[$0,
-<code>x.extents.rank()</code> <span class="math inline">)</span>,
-<code>true</code>. Otherwise, <code>false</code>.</p>
+<code>true</code> for <code>r</code> in the range of <span class="math inline">[0,</span> <code>x.extents.rank()</code> <span class="math inline">)</span>, <code>true</code>. Otherwise,
+<code>false</code>.</p>
 <!--
 
 
