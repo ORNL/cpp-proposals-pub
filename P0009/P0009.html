@@ -537,28 +537,31 @@ Related Work<span></span></a></li>
 <h2 data-number="1.1" id="p0009r15-2022-01-mailing"><span class="header-section-number">1.1</span> P0009r15: 2022-01 Mailing<a href="#p0009r15-2022-01-mailing" class="self-link"></a></h2>
 <h4 data-number="1.1.0.1" id="changes-from-r14"><span class="header-section-number">1.1.0.1</span> Changes from R14<a href="#changes-from-r14" class="self-link"></a></h4>
 <ul>
-<li><code>mdspan::rank[_dynamic]</code> returns <code>size_t</code></li>
-<li>fix comparison operator for <code>layout_stride</code> to take
-strides into account.</li>
-<li>fix <code>layout_stride</code> mapping
-<code>required_span_size</code></li>
-<li>Consistently use “<code>&lt;</code><em>expr</em><code>&gt;</code> is
-<code>true</code>” instead of
-“<code>&lt;</code><em>expr</em><code>&gt;</code> is true”.</li>
-<li>In the layout mappings’ <code>operator()</code> <em>Effects</em>
+<li><p><code>mdspan::rank[_dynamic]</code> returns
+<code>size_t</code></p></li>
+<li><p>fix comparison operator for <code>layout_stride</code> to take
+strides into account.</p></li>
+<li><p>fix <code>layout_stride</code> mapping
+<code>required_span_size</code></p></li>
+<li><p>Consistently use “<code>&lt;</code><em>expr</em><code>&gt;</code>
+is <code>true</code>” instead of
+“<code>&lt;</code><em>expr</em><code>&gt;</code> is true”.</p></li>
+<li><p>In the layout mappings’ <code>operator()</code> <em>Effects</em>
 clauses, use only <code>index_sequence</code>and fix syntax error in
-<code>stride(P())</code>.</li>
-<li>Replace various unary folds with binary to handle
-<code>extents&lt;&gt;</code>.</li>
-<li>Consistently use <code>Extents::rank()</code> in layout mapping
-wording.</li>
-<li>Typo in <code>mdspan::mapping_type</code>:
+<code>stride(P())</code>.</p></li>
+<li><p>Replace various unary folds with binary to handle
+<code>extents&lt;&gt;</code>.</p></li>
+<li><p>Consistently use <code>Extents::rank()</code> in layout mapping
+wording.</p></li>
+<li><p>Typo in <code>mdspan::mapping_type</code>:
 <code>template mapping_type</code> should be
-<code>template mapping</code>.</li>
-<li><code>mdspan</code>’s <code>array</code> constructor calls
-<code>Extents</code>’s <code>array</code> constructor.</li>
-<li>Clarify the value of <code>static_stride</code> for
-<code>submdspan</code>’s result.</li>
+<code>template mapping</code>.</p></li>
+<li><p><code>mdspan</code>’s <code>array</code> constructor calls
+<code>Extents</code>’s <code>array</code> constructor.</p></li>
+<li><p>Clarify the value of <code>static_stride</code> for
+<code>submdspan</code>’s result.</p></li>
+<li><p>Significant editorial changes based on LWG small-group
+review</p></li>
 </ul>
 <h2 data-number="1.2" id="p0009r14-2021-11-mailing"><span class="header-section-number">1.2</span> P0009r14: 2021-11 Mailing<a href="#p0009r14-2021-11-mailing" class="self-link"></a></h2>
 <h4 data-number="1.2.0.1" id="lewg-review-11012021"><span class="header-section-number">1.2.0.1</span> LEWG Review 11/01/2021<a href="#lewg-review-11012021" class="self-link"></a></h4>
@@ -2190,7 +2193,8 @@ value of <code>idx</code> is an integer in the interval <span class="math inline
 of <span class="math inline"><em>S</em></span>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-For the following subsections, let <span class="math inline"><em>r</em></span> be a value in the range <span class="math inline">[0,</span>rank<span class="math inline">)</span>.</p>
+An integer <code>r</code> is a <em>rank index</em> of an index space
+<span class="math inline"><em>S</em></span> if <span class="math inline"><em>r</em></span> is in the range <span class="math inline">[0,</span>rank<span class="math inline">)</span>.</p>
 <!--
                   888                     888
                   888                     888
@@ -2431,8 +2435,8 @@ space [mdspan.extents.obs]</b></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Returns:</em> true if <code>lhs.rank()</code> equals
 <code>rhs.rank()</code> and <code>lhs.extents(r)</code> equals
-<code>rhs.extents(r)</code> for all <code>r</code>, otherwise
-<code>false</code>.</p>
+<code>rhs.extents(r)</code> for every rank index <code>r</code>,
+otherwise <code>false</code>.</p>
 <p><br /> <b>22.7.�.5 Template alias <code>dextents</code></b></p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="dt">size_t</span> Rank<span class="op">&gt;</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> dextents <span class="op">=</span> <em>see below</em>;</span></code></pre></div>
