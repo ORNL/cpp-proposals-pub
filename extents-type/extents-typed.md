@@ -60,9 +60,185 @@ index type inside the *layout mappings* index calculation `operator` while using
 
 #### Mappings Doing Offset Calculation With Argument Type
 
-#### Second Extents Type Templated on `size_type`
+One way to address this issue would be for mappings to do all their internal calculations with the `common_type` of the user provided indicies.
+That includes casting `extents.extent(i)`. However the drawback of this approach is hard to identify overflows, which depend on layout as well.
+
+```c++
+// The following is ok, extents converts to size_t, required_span_size returns size_t too
+mdspan<double,dextents<3>,layout_right> r(ptr,2000,2000,2000); 
+mdspan<double,dextents<3>,layout_left>  l(ptr,2000,2000,2000);
+...
+r(1,1,1000) = 5; // ok
+r(1000,1,1) = 5; // overflow
+l(1,1,1000) = 5; // overflow
+l(1000,1,1) = 5; // ok
+```
+
+In particular in situations where allocations and `mdspan` creation happens in another code location this could be an issue.
 
 #### Template `extents` on `size_type`
 
+In order to make overflow a better controllable artifact, and avoiding accidental overflows we can make the index type part of the type.
+The natural place for this is `extents`. 
+Every index calculation related piece of the `mdspan` proposal gets its `size_type` from `extents`,
+specifically both layout mappings and `mdspan` itself is required to get its public `size_type` type member from `extents_type::size_type`.
+Furthermore, `extents` defines the complete iteration space for `mdspan`.
+While mapping might require a larger integer range than the product of extents (e.g. `layout_stride::required_span_size` can return a number
+larger than the product of its extents) ...
+
+
+#### Second Extents Type Templated on `size_type`
+
+Instead of modifying `extents`, we could introduce a new type `basic_extents` which is templated on the size type and the extents, but otherwise is identical to `extents`:
+When we can make anything in the mdspan proposal which accepts `extents` also accept `basic_extents`. 
+
+Potentially, `extents` could be just a template alias to `basic_extents`:
+```c++
+template<size_t ... Extents>
+using extents = basic_extents<size_t, Extents...>;
+```
+
+Unfortunately that means that the following type of code would not work:
+```c++
+template<class T, class L, class A, size_t ... Extents>
+void foo(mdspan<T,extents<Extents...>,L,A> a) {...{
+```
+
+However we believe the common use case would be to template on the extents object itself, mitigating this issue:
+
+```c++
+template<class T, class E, class L, class A>
+void foo(mdspan<T,E,L,A> a) {...}
+```
+
+## Why we can't fix this later
+
+In principle we could add a second extents type later, though it may break code such as the one shown before (in the sense that it wouldn't generally work for every instance of `mdspan` anymore):
+```c++
+template<class T, class L, class A, size_t ... Extents>
+void foo(mdspan<T,extents<Extents...>,L,A> a) {...{
+```
+
+
+## Wording Modifying Extents:
+
+In 22.7.X [mdspan.syn]
+
+Replace:
+
+```c++
+template<size_t... Extents>
+  class extents;
+```
+
+with:
+
+```c++
+template<integral SizeT, size_t... Extents>
+  class extents;
+```
+
+In 22.7.X.1 [mdspan.extents.overview] change synopsis to:
+
+```c++
+namespace std {
+
+template<integral SizeT, size_t... Extents>
+class extents {
+public:
+  using size_type = SizeT;
+
+  // [mdspan.extents.cons], Constructors and assignment
+  constexpr extents() noexcept = default;
+  constexpr extents(const extents&) noexcept = default;
+  constexpr extents& operator=(const extents&) noexcept = default;
+
+  template<integral OtherSizeT, size_t... OtherExtents>
+    explicit(@_see below_@)
+    constexpr extents(const extents<OtherSizeT, OtherExtents...>&) noexcept;
+  template<class... SizeTypes>
+    explicit constexpr extents(SizeTypes...) noexcept;
+  template<class SizeType, size_t N>
+    explicit(N != rank_dynamic())
+    constexpr extents(const array<SizeType, N>&) noexcept;
+
+  // [mdspan.extents.obs], Observers of the domain multidimensional index space
+  static constexpr size_t rank() noexcept { return sizeof...(Extents); }
+  static constexpr size_t rank_dynamic() noexcept
+    { return ((Extents == dynamic_extent) + ... + 0); }
+  static constexpr size_type static_extent(size_t) noexcept;
+  constexpr size_type extent(size_t) const noexcept;
+
+  // [mdspan.extents.compare], extents comparison operators
+  template<integral OtherSizeT, size_t... OtherExtents>
+    friend constexpr bool operator==(const extents&, const extents<OtherSizeT, OtherExtents...>&) noexcept;
+
+private:
+  static constexpr size_t @_dynamic-index_@(size_t) noexcept; // @_exposition only_@
+  static constexpr size_t @_dynamic-index-inv_@(size_t) noexcept; // @_exposition only_@
+  array<size_type, rank_dynamic()> @_dynamic-extents_@{}; // @_exposition only_@
+};
+
+template <class... Integrals>
+explicit extents(Integrals...)
+  -> extents<@_see below_@>;
+
+template<integral SizeT, size_t ... Extents>
+constexpr size_t @_fwd-prod-of-extents_@(extents<SizeT, Extents...>, size_t) noexcept; // @_exposition only_@
+
+template<integral SizeT, size_t ... Extents>
+constexpr size_t @_rev-prod-of-extents_@(extents<SizeT, Extents...>, size_t) noexcept; // @_exposition only_@
+}
+```
+
+* Change paragraph 2 to
+
+`extents<SizeType,Extents...>` is a trivially copyable type.
+
+* Change code in paragraph 10 to
+
+```c++
+template<inegral SizeT, size_t ... Extents>
+constexpr size_t @_fwd-prod-of-extents_@(extents<SizeT, Extents...> e, size_t i) noexcept; // @_exposition only_@
+```
+
+* Change code in paragraph 12 to
+
+```c++
+template<inegral SizeT, size_t ... Extents>
+constexpr size_t @_rev-prod-of-extents_@(extents<SizeT, Extents...> e, size_t i) noexcept; // @_exposition only_@
+```
+
+In subsection 22.7.X.3 [mdspan.extents.cons]
+
+* Change the following: 
+
+```c++
+template<size_t... OtherExtents>
+  explicit(@_see below_@)
+  constexpr extents(const extents<OtherExtents...>& other) noexcept;
+```
+
+to:
+
+```c++
+template<integral OtherSizeT, size_t... OtherExtents>
+  explicit(@_see below_@)
+  constexpr extents(const extents<OtherSizeT, OtherExtents...>& other) noexcept;
+```
+
+* Change paragraph 13 to:
+
+*Remarks:* Let the exposition only class _`default-size-type`_ be:
+
+```c++
+struct @_default-size-type_@ {
+  static size_t type() { return 0; }
+  template<class ... Integrals>
+  static typename std::common_type<Extents...>::type type(Integrals...) { return 0;}
+};
+```
+
+Then the deduced type is `dextents<decltype(`_`default-size-type`_`::type(declval(Integrals)...)), sizeof...(Integrals)>`.
 
 
