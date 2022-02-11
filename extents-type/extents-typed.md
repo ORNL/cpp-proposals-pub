@@ -122,7 +122,7 @@ void foo(mdspan<T,extents<Extents...>,L,A> a) {...{
 
 ## Wording Modifying Extents:
 
-In 22.7.X [mdspan.syn]
+### In 22.7.X [mdspan.syn]
 
 Replace:
 
@@ -134,16 +134,16 @@ template<size_t... Extents>
 with:
 
 ```c++
-template<integral SizeT, size_t... Extents>
+template<unsigned_integral SizeT, size_t... Extents>
   class extents;
 ```
 
-In 22.7.X.1 [mdspan.extents.overview] change synopsis to:
+### In 22.7.X.1 [mdspan.extents.overview] change synopsis to:
 
 ```c++
 namespace std {
 
-template<integral SizeT, size_t... Extents>
+template<unsigned_integral SizeT, size_t... Extents>
 class extents {
 public:
   using size_type = SizeT;
@@ -166,7 +166,7 @@ public:
   static constexpr size_t rank() noexcept { return sizeof...(Extents); }
   static constexpr size_t rank_dynamic() noexcept
     { return ((Extents == dynamic_extent) + ... + 0); }
-  static constexpr size_type static_extent(size_t) noexcept;
+  static constexpr size_t static_extent(size_t) noexcept;
   constexpr size_type extent(size_t) const noexcept;
 
   // [mdspan.extents.compare], extents comparison operators
@@ -183,7 +183,7 @@ template <class... Integrals>
 explicit extents(Integrals...)
   -> extents<@_see below_@>;
 
-template<integral SizeT, size_t ... Extents>
+template<unsigned_integral SizeT, size_t ... Extents>
 constexpr size_t @_fwd-prod-of-extents_@(extents<SizeT, Extents...>, size_t) noexcept; // @_exposition only_@
 
 template<integral SizeT, size_t ... Extents>
@@ -198,18 +198,18 @@ constexpr size_t @_rev-prod-of-extents_@(extents<SizeT, Extents...>, size_t) noe
 * Change code in paragraph 10 to
 
 ```c++
-template<inegral SizeT, size_t ... Extents>
+template<unsigned_integral SizeT, size_t ... Extents>
 constexpr size_t @_fwd-prod-of-extents_@(extents<SizeT, Extents...> e, size_t i) noexcept; // @_exposition only_@
 ```
 
 * Change code in paragraph 12 to
 
 ```c++
-template<inegral SizeT, size_t ... Extents>
+template<unsigned_integral SizeT, size_t ... Extents>
 constexpr size_t @_rev-prod-of-extents_@(extents<SizeT, Extents...> e, size_t i) noexcept; // @_exposition only_@
 ```
 
-In subsection 22.7.X.3 [mdspan.extents.cons]
+### In subsection 22.7.X.3 [mdspan.extents.cons]
 
 * Change the following: 
 
@@ -222,23 +222,133 @@ template<size_t... OtherExtents>
 to:
 
 ```c++
-template<integral OtherSizeT, size_t... OtherExtents>
+template<unsigned_integral OtherSizeT, size_t... OtherExtents>
   explicit(@_see below_@)
   constexpr extents(const extents<OtherSizeT, OtherExtents...>& other) noexcept;
 ```
 
 * Change paragraph 13 to:
 
-*Remarks:* Let the exposition only class _`default-size-type`_ be:
+*Remarks:* The deduced type is `dextents<size_t, sizeof...(Integrals)>`.
+
+### In subsection 22.7.X.4 [mdspan.extents.obs]
+
+* Replace the following:
 
 ```c++
-struct @_default-size-type_@ {
-  static size_t type() { return 0; }
-  template<class ... Integrals>
-  static typename std::common_type<Extents...>::type type(Integrals...) { return 0;}
-};
+constexpr size_type static_extent(size_t i) const noexcept;
 ```
 
-Then the deduced type is `dextents<decltype(`_`default-size-type`_`::type(declval(Integrals)...)), sizeof...(Integrals)>`.
+with:
 
+```c++
+constexpr size_t static_extent(size_t i) const noexcept;
+```
+
+
+### In subsection 22.7.X.5 [mdspan.extents.compare]
+
+* Replace the following:
+
+```c++
+template<size_t... OtherExtents>
+  friend constexpr bool operator==(const extents& lhs,
+                                   const extents<OtherExtents...>& rhs) noexcept;
+```
+
+with:
+
+
+```c++
+template<unsigned_integral OtherSizeT, size_t... OtherExtents>
+  friend constexpr bool operator==(const extents& lhs,
+                                   const extents<OtherSizeT, OtherExtents...>& rhs) noexcept;
+```
+
+### In subsection 22.7.X.6 [mdspan.extents.dextents]
+
+* Replace section with: 
+
+```c++
+template <unsigned_integral SizeT, size_t Rank>
+  using dextents = @_see below_@;
+```
+
+[1]{.pnum} *Result:*  A type `E` that is a specialization of `extents` such that
+`E::rank() == Rank && E::rank() == E::rank_dynamic()`  is `true` and `is_same_v<E::size_type,SizeT>` is `true`.
+
+
+### In Subsection 22.7.X.1 [mdspan.mdspan.overview]
+
+* In the synopsis replace:
+
+```c++
+static constexpr size_type static_extent(size_t r) { return Extents::static_extent(r); }
+```
+
+with:
+
+```c++
+static constexpr size_t static_extent(size_t r) { return Extents::static_extent(r); }
+```
+
+* In the synopsis replace:
+
+```c++
+constexpr size_type size() const;
+```
+
+with
+
+```c++
+constexpr size_t size() const;
+```
+
+* In the synopsis replace:
+
+```c++
+template <class ElementType, size_t... ExtentsPack>
+mdspan(ElementType*, const extents<ExtentsPack...>&)
+  -> mdspan<see below>;
+```
+
+with:
+
+```c++
+template <class ElementType, unsigned_integral SizeT, size_t... ExtentsPack>
+mdspan(ElementType*, const extents<SizeT, ExtentsPack...>&)
+  -> mdspan<see below>;
+```
+
+### In Subesction 22.7.X.2 [mdspan.mdspan.cons] 
+
+* Change paragraph 21 to:
+
+*Remarks:* The deduced type is `mdspan<ElementType, dextents<size_t, sizeof...(Integrals)>>`.
+
+* Following paragraph 22 replace:
+
+```c++
+template <class ElementType, size_t... ExtentsPack>
+mdspan(ElementType*, const extents<ExtentsPack...>&)
+  -> mdspan<see below>;
+```
+
+with:
+
+```c++
+template <class ElementType, unsigned_integral SizeT, size_t... ExtentsPack>
+mdspan(ElementType*, const extents<SizeT, ExtentsPack...>&)
+  -> mdspan<see below>;
+```
+
+* Change paragraph 23 to:
+
+*Remarks:* The deduced type is `mdspan<ElementType, extents<size_t, ExtentsPack...>>`.
+
+### In Subsection 22.7.X [mdspan.submdspan]
+
+* Add a subbullet in 11.1:
+
+  * `typename SubExtents::size_type` is `typename Extents::size_type`
 
