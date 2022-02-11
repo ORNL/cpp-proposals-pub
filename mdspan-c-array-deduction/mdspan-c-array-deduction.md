@@ -22,7 +22,7 @@ static_assert(decltype(b)::rank()==0);
 
 ## Proposal
 
-We propose to fix this issue by adding a templated constructor which is constrainted to take a c-array, and add deduction guides for 
+We propose to fix this issue by adding a templated constructor which is constrained to take a c-array, and add deduction guides for 
 a single argument, one handling c-arrays and one pointers.
 
 This would enable the following:
@@ -43,7 +43,7 @@ This would enable the following:
 }
 {
   int a[2][3] = {1,2,3,4,5,6};
-  mdspan<int, extents<dyanmic_extent,3>> b(a);
+  mdspan<int, extents<dynamic_extent,3>> b(a);
   static_assert(decltype(b)::rank()==2);
   // b.extent(0)==2
 }
@@ -117,7 +117,7 @@ template<class CArray>
 constexpr mdspan(CArray a);
 ```
 
-Let `extract-extents` be the exposition only template class defined as:
+Let _`extract-extents`_ be the exposition only template class defined as:
 ```c++
 template <class T, std::size_t... Exts>
 struct extract-extents {
@@ -126,12 +126,12 @@ struct extract-extents {
 };
 
 template <class T, std::size_t... Exts>
-struct extract-extents<T*, Exts...>
-    : extract-extents<T, std::experimental::dynamic_extent, Exts...> {};
+struct @_extract-extents_@<T*, Exts...>
+    : @_extract-extents_@<T, std::experimental::dynamic_extent, Exts...> {};
 
 template <class T, std::size_t N, std::size_t... Exts>
-struct extract-extents<T[N], Exts...>
-    : extract-extents<T, Exts..., size_t{N}> {};
+struct @_extract-extents_@<T[N], Exts...>
+    : @_extract-extents_@<T, Exts..., size_t{N}> {};
 }
 ```
 *Constraints:* 
