@@ -72,22 +72,29 @@ It would still be possible to do the following with 1D c-arrays, which can still
 }
 ```
 
+### Implementation
+
+A modification of the `mdspan` reference implementation from https://github.com/kokkos/mdspan is available on godbolt: https://godbolt.org/z/GqzsK4rG9 
+We plan to have this with a proper configure option in the main repo in the near future.
+
 ## Wording
 
 ### In SubSection 22.7.X.1 [mdspan.mdspan.overview]
 
-* Add the following constructor after 
+#### *Add after*
 
 ```c++
 constexpr mdspan(pointer p, const mapping_type& m, const accessor_type& a);
 ```
+
+*the following constructor:*
 
 ```c++
 template<class CArray>
 constexpr mdspan(CArray);
 ```
 
-* Add the following deduction guides after the class definition:
+#### *Add the following deduction guides after the class definition:*
 
 ```c++
 template<class CArray>
@@ -103,7 +110,7 @@ mdspan(Pointer)
 
 ### In SubSection 22.7.X.2 [mdspan.mdspan.cons]
 
-* Insert after paragraph 14:
+#### *Insert after paragraph 14:*
 
 ```c++
 template<class CArray>
@@ -148,7 +155,7 @@ struct extract-extents<T[N], Exts...>
   * Direct-non-list-initializes `map_` with `typename extract-extents<T>::extents_type()`.
 
 
-* Insert after paragraph 19:
+#### *Insert after paragraph 19:*
 
 ```c++
 template<class CArray>
@@ -179,7 +186,7 @@ mdspan(Pointer)
    
    * The deduced type is: `mdspan< std::remove_pointer_t<T>, extents<> >`
 
-* Modify paragraph 20 to be:
+#### *Modify paragraph 20 to be:*
 
 *Constraints:* `(is_convertible_v<Integrals, size_type> && ...)` is `true` and `sizeof...(Integrals)>0` is `true`.
 
