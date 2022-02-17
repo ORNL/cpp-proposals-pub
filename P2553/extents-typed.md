@@ -1,6 +1,26 @@
-# Controling size_type of mdspan
+---
+title: "`Make mdspan size_type controllable`"
+document: PXXXX
+date: today
+audience: LEWG
+author:
+  - name: Christian Trott 
+    email: <crtrott@sandia.gov>
+  - name: Damien Lebrun-Grandie 
+    email: <lebrungrandt@ornl.gov>
+  - name: Mark Hoemmen 
+    email: <mhoemmen@stellarscience.com>
+  - name: Daniel Sunderland
+    email: <dansunderland@gmail.com>
+toc: true
+---
 
-## Problem
+
+# Revision History
+## Initial Version 2022-02 Mailing
+
+
+# Description
 
 P0009 explicitly sets the `size_type` of `extents` to `size_t`, which is then inherited by *layout mappings* and `mdspan`.
 While this matches `span` whose `extent` function returns `size_t`, this behavior has significant performance impact on
@@ -12,7 +32,7 @@ array is accompanied by an offset calculation which typically costs two integer 
 On current GPUs, which are an essential hardware component in machines used for high performance computing, machine learning and 
 graphics (arguably the core constitutiency for `mdspan`), the ratio between 32bit and 64bit integer throughput is often 2x-4x.
 
-### Example
+## Example
 
 To experiment with the impact we investigated a simple stencil code benchmark, which is hosted in the mdspan reference implementation.
 That benchmark is using CUDA and compares a variant with raw pointers and explicit index calculation with a version which uses mdspan.
@@ -51,14 +71,14 @@ for(size_t i = blockIdx.x+d; i < x-d; i += gridDim.x) {
 }
 ```
 
-Running the raw pointer variant with `int` vs `size_t` as the loop indecies, results in a timing of 31ms vs 56ms. 
-The same is observed for the `mdspan` variant when switching in the `mdspan` implementation the `size_type` from `size_t` to `int`.
+Running the raw pointer variant with `unsigned` vs `size_t` as the loop indices, results in a timing of 31ms vs 56ms. 
+The same is observed for the `mdspan` variant when switching in the `mdspan` implementation the `size_type` from `size_t` to `unsigned`.
 The 31ms result can also be obtained when leaving `size_type` as `size_t` but casting `extents.extent(r)` to the user provided
-index type inside the *layout mappings* index calculation `operator` while using `int` as the loop index type in the algorithm.
+index type inside the *layout mappings* index calculation `operator` while using `unsigned` as the loop index type in the algorithm.
 
-### Possible Ways To Address The Issue
+## Possible Ways To Address The Issue
 
-#### Mappings Doing Offset Calculation With Argument Type
+### Mappings Doing Offset Calculation With Argument Type
 
 One way to address this issue would be for mappings to do all their internal calculations with the `common_type` of the user provided indicies.
 That includes casting `extents.extent(i)`. However the drawback of this approach is hard to identify overflows, which depend on layout as well.
@@ -76,18 +96,18 @@ l(1000,1,1) = 5; // ok
 
 In particular in situations where allocations and `mdspan` creation happens in another code location this could be an issue.
 
-#### Template `extents` on `size_type`
+### Template `extents` on `size_type`
 
-In order to make overflow a better controllable artifact, and avoiding accidental overflows we can make the index type part of the type.
+In order to make overflow a better controllable artifact, and avoid accidental overflows we can make the index type part of the type.
 The natural place for this is `extents`. 
 Every index calculation related piece of the `mdspan` proposal gets its `size_type` from `extents`,
-specifically both layout mappings and `mdspan` itself is required to get its public `size_type` type member from `extents_type::size_type`.
+specifically both layout mappings, and `mdspan` itself is required to get its public `size_type` type member from `extents_type::size_type`.
 Furthermore, `extents` defines the complete iteration space for `mdspan`.
-While mapping might require a larger integer range than the product of extents (e.g. `layout_stride::required_span_size` can return a number
-larger than the product of its extents) ...
+Note, that a mapping might require a larger integer range that the product of extents (e.g. `layout_stride::required_span_size` can return a number
+larger than the product of its extents).
 
 
-#### Second Extents Type Templated on `size_type`
+### Second Extents Type Templated on `size_type`
 
 Instead of modifying `extents`, we could introduce a new type `basic_extents` which is templated on the size type and the extents, but otherwise is identical to `extents`:
 When we can make anything in the mdspan proposal which accepts `extents` also accept `basic_extents`. 
@@ -111,6 +131,26 @@ template<class T, class E, class L, class A>
 void foo(mdspan<T,E,L,A> a) {...}
 ```
 
+### Template LayoutPolicy on `size_type`
+
+We could also template the layout policy class on `size_type`, and use that type for the offset calculation, casting `extents::extent` explicitly on use. 
+However this still means that the size of the object is larger (i.e. we would still store 64bit extents, instead of 32bit) and that additional casts will happen. 
+
+### What we prefer:
+
+All in all we prefer the option of making `extents` require the additional argument (2.2.2), with the next best thing being the introduction `basic_extents` and making `extents` an alias to `basic_extents` with `size_t` as the `size_type`.
+If LEWG would prefer the second option, the wording is largely the same with the following changes at the end:
+
+* Rename `extents` to `basic_extents` throughout P0009 and
+
+* Add an alias in [mdspan.syn]:
+```c++
+template<size_t ... Extents>
+using extents = basic_extents<size_t, Extents...>;
+```
+
+LEWG would need to decide whether to make `dextents` have a `size_type` template parameter or not.
+
 ## Why we can't fix this later
 
 In principle we could add a second extents type later, though it may break code such as the one shown before (in the sense that it wouldn't generally work for every instance of `mdspan` anymore):
@@ -120,9 +160,31 @@ void foo(mdspan<T,extents<Extents...>,L,A> a) {...{
 ```
 
 
-## Wording Modifying Extents:
+Editing Notes
+=============
 
-### In 22.7.X [mdspan.syn]
+The proposed changes are relative to the working draft of the standard
+as of [P0009](https://wg21.link/P0009) R15. 
+
+
+<!--
+
+ /$$      /$$                           /$$ /$$
+| $$  /$ | $$                          | $$|__/
+| $$ /$$$| $$  /$$$$$$   /$$$$$$   /$$$$$$$ /$$ /$$$$$$$   /$$$$$$
+| $$/$$ $$ $$ /$$__  $$ /$$__  $$ /$$__  $$| $$| $$__  $$ /$$__  $$
+| $$$$_  $$$$| $$  \ $$| $$  \__/| $$  | $$| $$| $$  \ $$| $$  \ $$
+| $$$/ \  $$$| $$  | $$| $$      | $$  | $$| $$| $$  | $$| $$  | $$
+| $$/   \  $$|  $$$$$$/| $$      |  $$$$$$$| $$| $$  | $$|  $$$$$$$
+|__/     \__/ \______/ |__/       \_______/|__/|__/  |__/ \____  $$
+                                                          /$$  \ $$
+                                                         |  $$$$$$/
+                                                          \______/
+-->
+
+# Wording
+
+## In 22.7.X [mdspan.syn]
 
 Replace:
 
@@ -138,7 +200,7 @@ template<unsigned_integral SizeT, size_t... Extents>
   class extents;
 ```
 
-### In 22.7.X.1 [mdspan.extents.overview] change synopsis to:
+## In 22.7.X.1 [mdspan.extents.overview] change synopsis to:
 
 ```c++
 namespace std {
@@ -153,7 +215,7 @@ public:
   constexpr extents(const extents&) noexcept = default;
   constexpr extents& operator=(const extents&) noexcept = default;
 
-  template<integral OtherSizeT, size_t... OtherExtents>
+  template<unsigned_integral OtherSizeT, size_t... OtherExtents>
     explicit(@_see below_@)
     constexpr extents(const extents<OtherSizeT, OtherExtents...>&) noexcept;
   template<class... SizeTypes>
@@ -170,7 +232,7 @@ public:
   constexpr size_type extent(size_t) const noexcept;
 
   // [mdspan.extents.compare], extents comparison operators
-  template<integral OtherSizeT, size_t... OtherExtents>
+  template<unsigned_integral OtherSizeT, size_t... OtherExtents>
     friend constexpr bool operator==(const extents&, const extents<OtherSizeT, OtherExtents...>&) noexcept;
 
 private:
@@ -186,7 +248,7 @@ explicit extents(Integrals...)
 template<unsigned_integral SizeT, size_t ... Extents>
 constexpr size_t @_fwd-prod-of-extents_@(extents<SizeT, Extents...>, size_t) noexcept; // @_exposition only_@
 
-template<integral SizeT, size_t ... Extents>
+template<unsigned_integral SizeT, size_t ... Extents>
 constexpr size_t @_rev-prod-of-extents_@(extents<SizeT, Extents...>, size_t) noexcept; // @_exposition only_@
 }
 ```
@@ -209,7 +271,7 @@ template<unsigned_integral SizeT, size_t ... Extents>
 constexpr size_t @_rev-prod-of-extents_@(extents<SizeT, Extents...> e, size_t i) noexcept; // @_exposition only_@
 ```
 
-### In subsection 22.7.X.3 [mdspan.extents.cons]
+## In subsection 22.7.X.3 [mdspan.extents.cons]
 
 * Change the following: 
 
@@ -231,7 +293,7 @@ template<unsigned_integral OtherSizeT, size_t... OtherExtents>
 
 *Remarks:* The deduced type is `dextents<size_t, sizeof...(Integrals)>`.
 
-### In subsection 22.7.X.4 [mdspan.extents.obs]
+## In subsection 22.7.X.4 [mdspan.extents.obs]
 
 * Replace the following:
 
@@ -246,7 +308,7 @@ constexpr size_t static_extent(size_t i) const noexcept;
 ```
 
 
-### In subsection 22.7.X.5 [mdspan.extents.compare]
+## In subsection 22.7.X.5 [mdspan.extents.compare]
 
 * Replace the following:
 
@@ -265,7 +327,7 @@ template<unsigned_integral OtherSizeT, size_t... OtherExtents>
                                    const extents<OtherSizeT, OtherExtents...>& rhs) noexcept;
 ```
 
-### In subsection 22.7.X.6 [mdspan.extents.dextents]
+## In subsection 22.7.X.6 [mdspan.extents.dextents]
 
 * Replace section with: 
 
@@ -278,7 +340,7 @@ template <unsigned_integral SizeT, size_t Rank>
 `E::rank() == Rank && E::rank() == E::rank_dynamic()`  is `true` and `is_same_v<E::size_type,SizeT>` is `true`.
 
 
-### In Subsection 22.7.X.1 [mdspan.mdspan.overview]
+## In subsection 22.7.X.1 [mdspan.mdspan.overview]
 
 * In the synopsis replace:
 
@@ -320,7 +382,7 @@ mdspan(ElementType*, const extents<SizeT, ExtentsPack...>&)
   -> mdspan<see below>;
 ```
 
-### In Subesction 22.7.X.2 [mdspan.mdspan.cons] 
+## In subsection 22.7.X.2 [mdspan.mdspan.cons] 
 
 * Change paragraph 21 to:
 
@@ -346,9 +408,18 @@ mdspan(ElementType*, const extents<SizeT, ExtentsPack...>&)
 
 *Remarks:* The deduced type is `mdspan<ElementType, extents<size_t, ExtentsPack...>>`.
 
-### In Subsection 22.7.X [mdspan.submdspan]
+## In Subsection 22.7.X [mdspan.submdspan]
 
 * Add a subbullet in 11.1:
 
   * `typename SubExtents::size_type` is `typename Extents::size_type`
 
+
+Implementation
+============
+
+There is an mdspan implementation available at [https://github.com/kokkos/mdspan/](https://github.com/kokkos/mdspan/).
+
+Related Work
+============
+-   <b>P0009</b> : `mdspan`
