@@ -440,6 +440,7 @@ Owning Multidimensional Array Analog of <code>mdspan</code></h1>
       Daisy Hollman<br>&lt;<a href="mailto:me@dsh.fyi" class="email">me@dsh.fyi</a>&gt;<br>
       Mark Hoemmen<br>&lt;<a href="mailto:mark.hoemmen@gmail.com" class="email">mark.hoemmen@gmail.com</a>&gt;<br>
       Daniel Sunderland<br>&lt;<a href="mailto:dansunderland@gmail.com" class="email">dansunderland@gmail.com</a>&gt;<br>
+      Damien Lebrun-Grandie<br>&lt;<a href="mailto:lebrungrandt@ornl.gov" class="email">lebrungrandt@ornl.gov</a>&gt;<br>
     </td>
   </tr>
 </table>
@@ -508,14 +509,15 @@ Mailing<a href="#p1684r2-to-submit-to-2022-04-mailing" class="self-link"></a></h
 <li>fix synopsis missing Alloc argument in some places</li>
 <li>fix constraints on some constructors to allow std::array as
 container</li>
-<li>add missing wording for std::initializer list</li>
+<li>add missing wording for constructors from
+<code>std::initializer_list</code></li>
 <li>add constructors from ranges</li>
-<li>always use std::vector as the default container type, based on LWEG
-guidance</li>
+<li>always use <code>std::vector</code> as the default container type,
+based on LEWG guidance</li>
 <li>remove container accessor function
 <ul>
-<li>its a bad idea to allow someone to resize the container owned by an
-mdarray …</li>
+<li>it’s a bad idea to allow someone to resize the container owned by an
+<code>mdarray</code> …</li>
 </ul></li>
 </ul>
 <h2 data-number="1.2" id="p1684r1-2022-03-mailing"><span class="header-section-number">1.2</span> P1684r1: 2022-03 Mailing<a href="#p1684r1-2022-03-mailing" class="self-link"></a></h2>
@@ -1347,7 +1349,7 @@ is <code>true</code>,</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Preconditions:</em> If <code>container_type</code> is a
 specialization of <code>array</code>,
-<code>mapping_type(Extents(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size() &gt;= size(container_type())</code>
+<code>mapping_type(Extents(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size() == size(container_type())</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em></p>
@@ -1377,7 +1379,7 @@ is <code>true</code>, and</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Preconditions:</em> If <code>container_type</code> is a
 specialization of <code>array</code>,
-<code>mapping_type(Extents(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size() &gt;= size(container_type())</code>
+<code>mapping_type(Extents(std::move(ext))).required_span_size() == size(container_type())</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em></p>
@@ -1399,7 +1401,7 @@ specialization of <code>array</code>,
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Preconditions:</em> If <code>container_type</code> is a
 specialization of <code>array</code>,
-<code>mapping_type(Extents(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size() &gt;= size(container_type())</code>
+<code>mapping_type(Extents(m.required_span_size() == size(container_type())</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em></p>
@@ -1429,7 +1431,7 @@ is <code>true</code>,</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Preconditions:</em>
-<code>c.size() &gt;= mapping_type(extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size()</code>
+<code>c.size() == mapping_type(extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size()</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em></p>
@@ -1449,7 +1451,7 @@ Direct-non-list-initializes <code>ctr_</code> with
 is <code>true</code>, and</p>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em>
-<code>c.size() &gt;= mapping_type(ext).required_span_size()</code> is
+<code>c.size() == mapping_type(ext).required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Effects:</em></p>
@@ -1463,9 +1465,8 @@ Direct-non-list-initializes <code>ctr_</code> with
 </ul>
 <div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> container_type<span class="op">&amp;</span> c, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Preconditions:</em>
-<code>c.size() &gt;= m.required_span_size()</code> is
-<code>true</code>.</p>
+<em>Preconditions:</em> <code>c.size() == m.required_span_size()</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -1493,7 +1494,7 @@ is <code>true</code>,</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
 <em>Preconditions:</em>
-<code>c.size() &gt;= mapping_type(extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size()</code>
+<code>c.size() == mapping_type(extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size()</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">17</a></span>
 <em>Effects:</em></p>
@@ -1513,7 +1514,7 @@ Direct-non-list-initializes <code>ctr_</code> with
 is <code>true</code>, and</p>
 <p><span class="marginalizedparent"><a class="marginalized">18</a></span>
 <em>Preconditions:</em>
-<code>c.size() &gt;= mapping_type(ext).required_span_size()</code> is
+<code>c.size() == mapping_type(ext).required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">19</a></span>
 <em>Effects:</em></p>
@@ -1527,9 +1528,8 @@ Direct-non-list-initializes <code>ctr_</code> with
 </ul>
 <div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span>container_type<span class="op">&amp;&amp;</span> c, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">20</a></span>
-<em>Preconditions:</em>
-<code>c.size() &gt;= m.required_span_size()</code> is
-<code>true</code>.</p>
+<em>Preconditions:</em> <code>c.size() == m.required_span_size()</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">21</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -1560,7 +1560,7 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Preconditions:</em>
-<code>init.size() &gt;= mapping_type(extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size()</code>
+<code>init.size() == mapping_type(extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size()</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em></p>
@@ -1585,7 +1585,7 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em>
-<code>init.size() &gt;= mapping_type(ext).required_span_size()</code> is
+<code>init.size() == mapping_type(ext).required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Effects:</em></p>
@@ -1604,7 +1604,7 @@ Direct-non-list-initializes <code>ctr_</code> with
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Preconditions:</em>
-<code>init.size() &gt;= m.required_span_size()</code> is
+<code>init.size() == m.required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Effects:</em></p>
@@ -1637,7 +1637,7 @@ is well formed.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Preconditions:</em>
-<code>init.size() &gt;= mapping_type(extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size()</code>
+<code>init.size() == mapping_type(extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)).required_span_size()</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em></p>
@@ -1664,7 +1664,7 @@ is well formed.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em>
-<code>size(rg) &gt;= mapping_type(ext).required_span_size()</code> is
+<code>size(rg) == mapping_type(ext).required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Effects:</em></p>
@@ -1683,9 +1683,8 @@ Direct-non-list-initializes <code>ctr_</code> with
 <code>ranges::to&lt;container_type&gt;(std::forward&lt;R&gt;(rg))</code>
 is well formed.</p>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Preconditions:</em>
-<code>size(rg) &gt;= m.required_span_size()</code> is
-<code>true</code>.</p>
+<em>Preconditions:</em> <code>size(rg) == m.required_span_size()</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -1801,7 +1800,7 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">33</a></span>
 <em>Preconditions:</em>
-<code>c.size() &gt;= mapping_type(ext).required_span_size()</code> is
+<code>c.size() == mapping_type(ext).required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">34</a></span>
 <em>Effects:</em></p>
@@ -1820,9 +1819,8 @@ first argument and <code>a</code> as the second argument.</p></li>
 <code>is_constructible_v&lt;container_type, container_type, Alloc&gt;</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">36</a></span>
-<em>Preconditions:</em>
-<code>c.size() &gt;= m.required_span_size()</code> is
-<code>true</code>.</p>
+<em>Preconditions:</em> <code>c.size() == m.required_span_size()</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">37</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -1847,7 +1845,7 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">39</a></span>
 <em>Preconditions:</em>
-<code>c.size() &gt;= mapping_type(ext).required_span_size()</code> is
+<code>c.size() == mapping_type(ext).required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">40</a></span>
 <em>Effects:</em></p>
@@ -1867,9 +1865,8 @@ the second argument.</p></li>
 <code>is_constructible_v&lt;container_type, container_type, Alloc&gt;</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">42</a></span>
-<em>Preconditions:</em>
-<code>c.size() &gt;= m.required_span_size()</code> is
-<code>true</code>.</p>
+<em>Preconditions:</em> <code>c.size() == m.required_span_size()</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">43</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -1878,7 +1875,7 @@ Direct-non-list-initializes <em><code>map_</code></em> with
 <code>m</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(43.2)</a></span>
 Direct-non-list-initializes <code>ctr_</code> with
-<code>std::move(c)</code> as the first argumnet and <code>a</code> as
+<code>std::move(c)</code> as the first argument and <code>a</code> as
 the second argument.</p></li>
 </ul>
 <div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Alloc<span class="op">&gt;</span></span>
@@ -1894,7 +1891,7 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em>
-<code>init.size() &gt;= mapping_type(ext).required_span_size()</code> is
+<code>init.size() == mapping_type(ext).required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Effects:</em></p>
@@ -1915,7 +1912,7 @@ as the second argument.</p></li>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Preconditions:</em>
-<code>init.size() &gt;= m.required_span_size()</code> is
+<code>init.size() == m.required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Effects:</em></p>
@@ -1942,7 +1939,7 @@ is well formed.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em>
-<code>size(rg) &gt;= mapping_type(ext).required_span_size()</code> is
+<code>size(rg) == mapping_type(ext).required_span_size()</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Effects:</em></p>
@@ -1961,9 +1958,8 @@ Direct-non-list-initializes <code>ctr_</code> with
 <code>ranges::to&lt;container_type&gt;(std::forward&lt;R&gt;(rg), a)</code>
 is well formed.</p>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Preconditions:</em>
-<code>size(rg) &gt;= m.required_span_size()</code> is
-<code>true</code>.</p>
+<em>Preconditions:</em> <code>size(rg) == m.required_span_size()</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Effects:</em></p>
 <ul>
