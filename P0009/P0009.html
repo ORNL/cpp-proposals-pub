@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-04-01" />
+  <meta name="dcterms.date" content="2022-04-05" />
   <title>MDSPAN</title>
   <style>
       code{white-space: pre-wrap;}
@@ -424,7 +424,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-04-01</td>
+    <td>2022-04-05</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -542,6 +542,11 @@ this paper for wording review.</p>
 <h4 data-number="1.1.0.1" id="changes-from-r16"><span class="header-section-number">1.1.0.1</span> Changes from R16<a href="#changes-from-r16" class="self-link"></a></h4>
 <ul>
 <li>significant wording updates based on LWG feedback</li>
+<li>fixed precondition violation in submdspan when dealing with some
+types size 0 multi dim index spaces
+<ul>
+<li>e.g. <code>submdspan(a,typle{a.extent(0),a.extent(0)})</code></li>
+</ul></li>
 </ul>
 <h2 data-number="1.2" id="p0009r16-2022-03-mailing"><span class="header-section-number">1.2</span> P0009r16: 2022-03 Mailing<a href="#p0009r16-2022-03-mailing" class="self-link"></a></h2>
 <h4 data-number="1.2.0.1" id="changes-from-r15"><span class="header-section-number">1.2.0.1</span> Changes from R15<a href="#changes-from-r15" class="self-link"></a></h4>
@@ -4013,10 +4018,21 @@ is <code>true</code>.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
 Direct-non-list-initializes <code>sub.</code><em><code>acc_</code></em>
 with <code>src.accessor()</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
-Direct-non-list-initializes <code>sub.</code><em><code>ptr_</code></em>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span> If
+<em><code>first</code></em><code>[r] &lt; src.extent(r)</code> for all
+rank index <code>r</code> of <code>src.extents()</code>, then
+direct-non-list-initializes <code>sub.</code><em><code>ptr_</code></em>
 with
-<code>src.accessor().offset(src.data(), apply(src.mapping(),</code><em><code>first</code></em><code>))</code>.</p></li>
+<code>src.accessor().offset(src.data(), apply(src.mapping(),</code><em><code>first</code></em><code>))</code>.
+Otherwise, direct-non-list-initializes
+<code>sub.</code><em><code>ptr_</code></em> with
+<code>src.accessor().offset(src.data(), src.mapping().required_span_size())</code>.
+<i>[Note:</i> The condition protects against applying invalid indicies
+to the source mapping in cases such as
+<code>submdspan(a, tuple{a.extent(0), a.extent(0)})</code>, where
+<em><code>first</code></em><code>[0] ==</code>
+<em><code>last</code></em><code>[0] == src.extent(0)</code>. <i>- end
+note]</i></p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Postconditions:</em></p>
