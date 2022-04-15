@@ -1,21 +1,21 @@
 <pre class='metadata'>
-Title: P1673R6: A free function linear algebra interface based on the BLAS
+Title: A free function linear algebra interface based on the BLAS
 Shortname: P1673
 Status: iso/P
-Level: 6
+Level: 7
 Group: WG21
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs
-Editor: Mark Hoemmen, Stellar Science https://www.stellarscience.com, mhoemmen@stellarscience.com
+Editor: Mark Hoemmen, NVIDIA, mark.hoemmen@stellarscience.com
 Abstract: We propose a C++ Standard Library dense linear algebra interface based on the dense Basic Linear Algebra Subroutines (BLAS).  This corresponds to a subset of the BLAS Standard.
 Markup Shorthands: markdown yes
-Date: 2021-12-15
+Date: 2022-04-15
 </pre>
 
 # Authors and contributors
 
 ## Authors
 
-* Mark Hoemmen (mhoemmen@stellarscience.com) (Stellar Science)
+* Mark Hoemmen (mark.hoemmen@gmail.com) (NVIDIA)
 * Daisy Hollman (cpp@dsh.fyi) (Google)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Daniel Sunderland (dansunderland@gmail.com)
@@ -240,6 +240,23 @@ Date: 2021-12-15
     
     * Harmonize with the implementation, by adding `operator+`, `operator*`,
         and comparison operators to `conjugated_scalar`.
+
+* Revision 7 (electronic), to be submitted 2022-04-15
+
+    * Update author affiliations and e-mail addresses
+
+    * Update proposal references
+
+    * Fix typo observed <a href="https://github.com/kokkos/stdBLAS/issues/158">here</a>
+
+    * Add missing `ExecutionPolicy` overload of in-place
+        `triangular_matrix_vector_product`; issue was observed
+        <a href="https://github.com/kokkos/stdBLAS/issues/150">here</a>
+
+    * Fix mixed-up order of `sum_of_squares_result` aggregate initialization arguments
+        in `vector_norm2` note
+
+    * Fill in missing parts of `matrix_frob_norm` and `vector_norm2` specification, addressing <a href="https://github.com/kokkos/stdBLAS/issues/143">this issue</a>
 
 # Purpose of this paper
 
@@ -647,7 +664,8 @@ We designed P1673 in part as a natural foundation or implementation layer for su
 Our view is that a free function interface like P1673's
 clearly separates algorithms from data structures,
 and more naturally allows for a richer set of operations such as what the BLAS provides.
-P1674 explains why we think our proposal is a minimal C++ "respelling" of the BLAS.
+Our paper <a href="https://isocpp.org/files/papers/P1674R1.pdf">P1674</a>
+explains why we think our proposal is a minimal C++ "respelling" of the BLAS.
 
 A natural extension of the present proposal would include
 accepting P1385's matrix and vector objects as input
@@ -816,9 +834,10 @@ exists and it has a liberal software license for easy reuse.
 
 We have experience in the exercise of wrapping a C or Fortran BLAS
 implementation for use in portable C++ libraries.  We describe this
-exercise in detail in our paper ["Evolving a Standard C++ Linear
-Algebra Library from the BLAS" (P1674)](https://wg21.link/p1674).  It
-is straightforward for vendors, but has pitfalls for developers.  For
+exercise in detail in our paper
+"Evolving a Standard C++ Linear Algebra Library from the BLAS"
+[(P1674R1)](https://isocpp.org/files/papers/P1674R1.pdf).
+It is straightforward for vendors, but has pitfalls for developers.  For
 example, Fortran's application binary interface (ABI) differs across
 platforms in ways that can cause run-time errors (even incorrect
 results, not just crashing).  Historical examples of vendors' C BLAS
@@ -893,8 +912,9 @@ The BLAS' "native" language is Fortran.  It has a C binding as well,
 but the BLAS Standard and documentation use Fortran terms.  Where
 applicable, we will call out relevant Fortran terms and highlight
 possibly confusing differences with corresponding C++ ideas.  Our
-paper P1674R0 ("Evolving a Standard C++ Linear Algebra Library from
-the BLAS") goes into more detail on these issues.
+paper <a href="https://isocpp.org/files/papers/P1674R1.pdf">P1674</a>
+("Evolving a Standard C++ Linear Algebra Library from the BLAS")
+goes into more detail on these issues.
 
 ## We call "subroutines" functions
 
@@ -1204,8 +1224,10 @@ array into contiguous temporary storage.)
 
 Expression templates work well, but have issues.  Our papers
 <a href="https://wg21.link/p1417r0">P1417R0</a> and
-"Evolving a Standard C++ Linear Algebra Library from the BLAS" (P1674R0) give more detail on these
-issues.  A particularly troublesome one is that C++ `auto` type deduction
+"Evolving a Standard C++ Linear Algebra Library from the BLAS"
+[(P1674R1)](https://isocpp.org/files/papers/P1674R1.pdf)
+give more detail on these concerns.
+A particularly troublesome one is that C++ `auto` type deduction
 makes it easy for users to capture expressions
 before the expression templates system
 has the chance to evaluate them and write the result into the output.
@@ -1309,8 +1331,9 @@ variant of `mdspan` with container semantics as well as any type
 implementing a `get_mdspan` customization point.
 We explain the value of these choices below.
 
-Please refer to our papers "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" [(P1674R0)](https://wg21.link/p1674r0)
+Please refer to our papers
+"Evolving a Standard C++ Linear Algebra Library from the BLAS"
+[(P1674R1)](https://isocpp.org/files/papers/P1674R1.pdf)
 and "Historical lessons for C++ linear algebra library standardization"
 [(P1417R0)](https://wg21.link/p1417r0).  They will give details and references
 for many of the points that we summarize here.
@@ -1487,10 +1510,12 @@ Summary:
    a. For triangular solve and triangular multiply, in-place behavior
       is essential for computing matrix factorizations in place,
       without requiring extra storage proportional to the input
-      matrix's dimensions.  However, in-place functions cannot be
-      parallelized for arbitrary execution policies.  Thus, we have
-      both not-in-place and in-place overloads, and only the
-      not-in-place overloads take an optional `ExecutionPolicy&&`.
+      matrix's dimensions.  However, in-place functions may hinder
+      implementations' use of some forms of parallelism.
+      Thus, we have both not-in-place and in-place overloads.
+      Both take an optional `ExecutionPolicy&&`,
+      as some forms of parallelism (e.g., vectorization)
+      may still be effective with in-place operations.
 
    b. Else, if the BLAS function unconditionally updates (like
       `xGER`), we retain read-and-write behavior for that argument.
@@ -1501,8 +1526,9 @@ Summary:
       (as if `beta` is zero), and a read-and-write version (as if
       `beta` is nonzero).
 
-For a detailed analysis, see "Evolving a Standard C++ Linear Algebra
-Library from the BLAS" (P1674R0).
+For a detailed analysis, please see our paper
+"Evolving a Standard C++ Linear Algebra Library from the BLAS"
+<a href="https://isocpp.org/files/papers/P1674R1.pdf">(P1674R1)</a>.
 
 ## Support for different matrix layouts
 
@@ -1523,8 +1549,9 @@ Summary:
     the matrix type is.
 
 For more details, including a list and description of the matrix
-"types" that the dense BLAS supports, see our paper "Evolving a
-Standard C++ Linear Algebra Library from the BLAS" (P1674R0).
+"types" that the dense BLAS supports, please see our paper
+"Evolving a Standard C++ Linear Algebra Library from the BLAS"
+[(P1674R1)](https://isocpp.org/files/papers/P1674R1.pdf).
 
 A C++ linear algebra library has a few possibilities for
 distinguishing the matrix "type":
@@ -2246,7 +2273,7 @@ the `get_mdspan` customization point, as long as the return value of
 `get_mdspan` satisfies the current requirements.  `get_mdspan` would
 return an `mdspan` that views its argument's data.
 
-The `mdarray` class, proposed in <a href="https://wg21.link/p1684r0">P1684R0</a>, is the
+The `mdarray` class, proposed in <a href="https://wg21.link/p1684">P1684</a>, is the
 container analog of `mdspan`.  It is a new kind of container,
 with the same copy behavior as containers like `vector`.
 It will be possible to get an `mdspan` that views an `mdarray`.
@@ -2254,11 +2281,12 @@ Previous versions of this proposal included function overloads that
 took `mdarray` directly.  The goals were user convenience, and
 to avoid any potential overhead of conversion to `mdspan`,
 especially for very small matrices and vectors.  In a future revision
-of P1684, `mdarray` may implement a customization point `get_mdspan`
-(final name yet to be decided).
+of P1684, `mdarray` will implement a customization point `view`
+(final name yet to be decided),
+that returns an `mdspan` viewing the elements of the `mdarray`.
 This would let users use `mdarray` directly in our functions.
 This customization point approach would also simplify using our functions
-with other matrix and vector types, such as those proposed by P1385R6.
+with other matrix and vector types, such as those proposed by P1385.
 Implementations may optionally add direct overloads of our functions
 for `mdarray` or other types.
 This would address any concerns about overhead
@@ -2349,8 +2377,10 @@ These layouts have "tag" template parameters that control their
 properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
-(SY), Hermitian (HE), and Triangular (TR).  P1674 explains our
-reasoning.  In summary: Their actual layout -- the arrangement of
+(SY), Hermitian (HE), and Triangular (TR).
+Our paper <a href="https://isocpp.org/files/papers/P1674R1.pdf">P1674</a>
+explains our reasoning.
+In summary: Their actual layout -- the arrangement of
 matrix elements in memory -- is the same as General.  The only
 differences are constraints on what entries of the matrix algorithms
 may access, and assumptions about the matrix's mathematical
@@ -2404,15 +2434,16 @@ on constraints wording.
 * C. Trott, D. S. Hollman, D. Lebrun-Grande, M. Hoemmen, D. Sunderland,
     H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
     J. Michopoulos, and N. Liber,
-    "`mdspan`," <a href="https://wg21.link/p0009r14">P0009R14</a>,
-    Nov. 2021.
+    "`mdspan`," <a href="https://wg21.link/p0009r16">P0009R16</a>,
+    Mar. 2022.
 
 * G. Davidson, M. Hoemmen, D. S. Hollman, B. Steagall, and C. Trott,
     <a href="https://wg21.link/p1891r0">P1891R0</a>, Oct. 2019.
 
 * M. Hoemmen, D. S. Hollman, and C. Trott, "Evolving a Standard C++
     Linear Algebra Library from the BLAS,"
-    <a href="https://wg21.link/p1674">P1674R0</a>, Jun. 2019.
+    <a href="https://isocpp.org/files/papers/P1674R1.pdf">P1674R1</a>,
+    Apr. 2022.
 
 * M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
     J. Michopoulos, "Historical lessons for C++ linear algebra library
@@ -2423,10 +2454,10 @@ on constraints wording.
     "Multidimensional subscript operator,"
     <a href="https://wg21.link/p2128r6">P2128R6</a>, Sep. 2021.
 
-* D. S. Hollman, C. Trott, M. Hoemmen, and D. Sunderland,
+* C. Trott, D. S. Hollman, M. Hoemmen, and D. Sunderland,
     "`mdarray`: An Owning Multidimensional Array Analog of `mdspan`",
-    <a href="https://isocpp.org/files/papers/P1684R0.pdf">P1684R0</a>,
-    Jun. 2019.
+    <a href="https://wg21.link/p1684r1">P1684R1</a>,
+    Mar. 2022.
 
 * D. S. Hollman, C. Kohlhoff, B. A. Lelbach, J. Hoberock, G. Brown, and
     M. Dominiak, "A General Property Customization Mechanism,"
@@ -2456,7 +2487,7 @@ on constraints wording.
 
 * E. Chow and A. Patel,
     "Fine-Grained Parallel Incomplete LU Factorization",
-    SIAM J. Sci. Comput., 37(2), C169–C193, 2015.
+    SIAM J. Sci. Comput., 37(2), C169-C193, 2015.
 
 * G. Davidson and B. Steagall, "A proposal to add linear algebra
     support to the C++ standard library,"
@@ -2516,8 +2547,8 @@ on constraints wording.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R14.
-> (This proposal is a "rebase" atop the changes proposed by P0009R14.)
+> First, apply all wording from P0009R16.
+> (This proposal is a "rebase" atop the changes proposed by P0009R16.)
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -3062,6 +3093,17 @@ template<class in_matrix_t,
          class DiagonalStorage,
          class inout_vector_t>
 void triangular_matrix_vector_product(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t y);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_product(
+  ExecutionPolicy&& exec,
   in_matrix_t A,
   Triangle t,
   DiagonalStorage d,
@@ -6132,23 +6174,33 @@ This does not imply a recommended implementation for floating-point types.
 See *Remarks* below.
 --*end note]*
 
-* *Preconditions:* `init + abs(v[0])*abs(v[0])` shall be convertible to `T`.
+* *Preconditions:* `init + abs(declval<in_vector_t::value_type>())*abs(declval<in_vector_t::value_type>())`
+    shall be convertible to `T`.
 
-* *Effects:* Returns the Euclidean norm (also called 2-norm)
-    of the vector `v`.
+* *Effects:* Returns the square root of the sum of squares
+    of `init` and the absolute values of the elements of `A`.
+    *[Note:*
+    For `init` equal to zero, this is the Euclidean norm
+    (also called 2-norm) of the vector `v`.
+
+    This description does not imply a recommended implementation
+    for floating-point types.
+    See *Remarks* below.
+    --*end note]*
 
 * *Remarks:* If `in_vector_t::element_type` is a floating-point type
     or a complex version thereof, and if `T` is a floating-point type, then
 
     * if `T` has higher precision than `in_vector_type::element_type`, then
         intermediate terms in the sum use `T`'s precision or greater; and
+
     * any guarantees regarding overflow and underflow of `vector_norm2`
         are implementation-defined.
 
 *[Note:*
 A suggested implementation of this function for floating-point types `T`
 would use the `scaled_sum_of_squares` result
-from `vector_sum_of_squares(x, {0.0, 1.0})`.
+from `vector_sum_of_squares(x, {.scaling_factor=1.0, .scaled_sum_of_squares=init})`.
 --*end note]*
 
 ##### Euclidean norm with default result type
@@ -6275,11 +6327,16 @@ T matrix_frob_norm(
   T init);
 ```
 
-* *Effects:* Returns the Frobenius norm of the matrix `A`, that is,
-    the square root of the sum of squares
-    of the absolute values of the elements of `A`.
+* *Preconditions:* `init + abs(declval<in_matrix_t::value_type>())*abs(declval<in_matrix_t::value_type>())`
+    shall be convertible to `T`.
+
+* *Effects:* Returns the square root of the sum of squares
+    of `init` and the absolute values of the elements of `A`.
     *[Note:*
-    This does not imply a recommended implementation for floating-point types.
+    For `init` equal to zero, this is the Frobenius norm of the matrix `A`.
+
+    This description does not imply a recommended implementation
+    for floating-point types.
     See *Remarks* below.
     --*end note]*
 
@@ -6306,7 +6363,7 @@ auto matrix_frob_norm(
   in_matrix_t A) -> /* see-below */;
 ```
 
-* *Effects:* Let `T` be `decltype(abs(A[0,0]) * abs(A[0,0]))`.
+* *Effects:* Let `T` be `abs(declval<in_matrix_t::value_type>())*abs(declval<in_matrix_t::value_type>())`.
     Then, the one-parameter overload is equivalent to
     `matrix_frob_norm(A, T{});`,
     and the two-parameter overload is equivalent to
@@ -6936,7 +6993,27 @@ void triangular_matrix_vector_product(
   Triangle t,
   DiagonalStorage d,
   inout_vector_t y);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t>
+void triangular_matrix_vector_product(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t y);
 ```
+
+*[Note:*
+
+Performing this operation in place hinders parallelization.
+However, other `ExecutionPolicy`-specific optimizations,
+such as vectorization, are still possible.
+This is why the `ExecutionPolicy` overload exists.
+
+--*end note]*
 
 For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
@@ -7448,7 +7525,7 @@ the mathematical expression for the algorithm is
     * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
         then the functions will assume for indices `i,j` outside that
         triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
-        functions will assume that `A[j,k]` equals `A[i,j]`.
+        functions will assume that `A[j,i]` equals `A[i,j]`.
 
 #### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
