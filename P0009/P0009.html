@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-04-28" />
+  <meta name="dcterms.date" content="2022-04-29" />
   <title>MDSPAN</title>
   <style>
       code{white-space: pre-wrap;}
@@ -424,7 +424,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-04-28</td>
+    <td>2022-04-29</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -2522,16 +2522,17 @@ A type <code>M</code> meets the <em>layout mapping</em> requirements
 if:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>M</code> meets the requirements of
-<em>Cpp17CopyConstructible</em>, <em>Cpp17CopyAssignable</em>, and
-<em>Cpp17EqualityComparable</em>,</p></li>
+<code>M</code> models <code>regular</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
 <code>is_nothrow_move_constructible_v&lt;M&gt;</code> is
 <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
-<code>is_nothrow_move_assignable_v&lt;M&gt;</code> is <code>true</code>,
+<code>is_nothrow_move_assignable_v&lt;M&gt;</code> is
+<code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span>
+<code>is_nothrow_swappable_v&lt;M&gt;</code> is <code>true</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span> the
 following types and expressions are well-formed and have the specified
 semantics.</p></li>
 </ul>
@@ -3145,25 +3146,23 @@ multidimensional index into <code>m.extents()</code> and each element of
 <code>z</code> equals <code>0</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-Let <em><code>is-extents</code></em> be the exposition only class
-defined as follows:</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> <em>is-extents</em> <span class="op">:</span> false_type <span class="op">{}</span>;</span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> <span class="op">...</span> Args<span class="op">&gt;</span></span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> <em>is-extents</em><span class="op">&lt;</span>extents<span class="op">&lt;</span>Args<span class="op">...&gt;</span> <span class="op">:</span> true_type <span class="op">{}</span>;</span></code></pre></div>
+Let <em><code>is-extents</code></em> be the exposition only template
+value:</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>is-extents</em> <span class="op">=</span> <span class="kw">false</span>;</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> <span class="op">...</span> args<span class="op">&gt;</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>is-extents</em><span class="op">&lt;</span>extents<span class="op">&lt;</span>args<span class="op">...&gt;&gt;</span> <span class="op">=</span> <span class="kw">true</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 Let <em><code>layout-mapping-alike</code></em> be the exposition-only
 concept defined as follows:</p>
 <div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> M<span class="op">&gt;</span></span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="kw">concept</span> <em>layout-mapping-alike</em> <span class="op">=</span> <span class="kw">requires</span> <span class="op">{</span></span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> <em>is-extents</em><span class="op">&lt;</span><span class="kw">typename</span> M<span class="op">::</span>extents_type<span class="op">&gt;::</span>value;</span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  bool_constant<span class="op">&lt;</span>M<span class="op">::</span>is_always_strided<span class="op">()&gt;::</span>value;</span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  bool_constant<span class="op">&lt;</span>M<span class="op">::</span>is_always_contiguous<span class="op">()&gt;::</span>value;</span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  bool_constant<span class="op">&lt;</span>M<span class="op">::</span>is_always_unique<span class="op">()&gt;::</span>value;</span>
-<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  same_as<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>M<span class="op">::</span>is_always_strided<span class="op">())</span>, <span class="dt">bool</span><span class="op">&gt;</span>;</span>
-<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>  same_as<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>M<span class="op">::</span>is_always_contiguous<span class="op">())</span>, <span class="dt">bool</span><span class="op">&gt;</span>;</span>
-<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>  same_as<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>M<span class="op">::</span>is_always_unique<span class="op">())</span>, <span class="dt">bool</span><span class="op">&gt;</span>;</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> <em>is-extents</em><span class="op">&lt;</span><span class="kw">typename</span> M<span class="op">::</span>extents_type<span class="op">&gt;</span>;</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span> M<span class="op">::</span>is_always_strided<span class="op">()</span> <span class="op">}</span> <span class="op">-&gt;</span> same_as<span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span>;</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span> M<span class="op">::</span>is_always_contiguous<span class="op">()</span> <span class="op">}</span> <span class="op">-&gt;</span> same_as<span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span>;</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span> M<span class="op">::</span>is_always_unique<span class="op">()</span> <span class="op">}</span> <span class="op">-&gt;</span> same_as<span class="op">&lt;</span><span class="dt">bool</span><span class="op">&gt;</span>;</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  bool_constant<span class="op">&lt;</span>M<span class="op">::</span>is_always_strided<span class="op">()&gt;::</span>value;</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>  bool_constant<span class="op">&lt;</span>M<span class="op">::</span>is_always_contiguous<span class="op">()&gt;::</span>value;</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>  bool_constant<span class="op">&lt;</span>M<span class="op">::</span>is_always_unique<span class="op">()&gt;::</span>value;</span>
 <span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><i>[Note:</i> This concept checks that the functions
 <code>M::is_always_strided()</code>,
@@ -3348,122 +3347,123 @@ for <span class="math inline"><em>r</em></span> in the range of <span class="mat
 <!--
 [1]{.pnum} An *accessor policy* defines types and operations by which
 a set of objects are accessed from a subset of a contiguous range of integer indices.
+
+[1]{.pnum} An *accessor policy* defines types and operations by which a reference to a single object is created from an abstract data handle to a number of such objects and an index.
 -->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 An <em>accessor policy</em> defines types and operations by which a
 reference to a single object is created from an abstract data handle to
 a number of such objects and an index.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+A range of indicies <span class="math inline">[0, <em>N</em>)</span> is
+an <em>accessible range</em> of a given data handle and an accessor, if
+for each <code>i</code> in the range the accessor policies
+<code>access</code> function produces a valid reference to an
+object.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 In subclause 24.7.�.2,</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
 <code>A</code> denotes an accessor policy.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>a</code> denotes a possibly const object of type
-<code>A</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>p</code> denotes a possibly const object of type
-<code>A::pointer</code>. <i>[Note:</i> The type of <code>pointer</code>
-need not be a dereferenceable type. For example, the expression
-<code>*std::declval&lt;A::pointer&gt;()</code> need not be valid. <i>-
-end note]</i></p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-<code>n</code>, <code>i</code> and <code>j</code> each denote a
-<code>size_t</code> value.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<code>a</code> denotes a value of type <code>A</code> or
+<code>const A</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
+<code>p</code> denotes a value of type <code>A::pointer</code> or
+<code>const A::pointer</code>. <i>[Note:</i> The type
+<code>A::pointer</code> need not be dereferenceable. <i>- end
+note]</i></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.4)</a></span>
+<code>n</code>, <code>i</code> and <code>j</code> each denote values of
+type <code>size_t</code>.</p></li>
 </ul>
 <p><br /> <b>24.7.�.2 Requirements [mdspan.accessor.reqmts]</b></p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 A type <code>A</code> meets the accessor policy requirements if</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
-<code>A</code> meets the requirements of <em>Cpp17CopyConstructible</em>
-and <em>Cpp17CopyAssignable</em>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
+<code>A</code> models <code>semiregular</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
 <code>is_nothrow_move_constructible_v&lt;A&gt;</code> is
 <code>true</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
-<code>is_nothrow_move_assignable_v&lt;A&gt;</code> is <code>true</code>,
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
+<code>is_nothrow_move_assignable_v&lt;A&gt;</code> is
+<code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span>
+<code>is_nothrow_swappable_v&lt;A&gt;</code> is <code>true</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.4)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span> the
 following types and expressions are well-formed and have the specified
 semantics.</p></li>
 </ul>
 <div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> A<span class="op">::</span>element_type</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Result:</em> A complete object type that is not an abstract class
 type.</p>
 <div class="sourceCode" id="cb67"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> A<span class="op">::</span>pointer</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Result:</em> A type that models <code>semiregular</code> and
-<code>swappable</code> ([swappable.requirements]), and for which
-<code>is_nothrow_move_constructible_v&lt;A::pointer&gt;</code> is
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Result:</em> A type that models <code>semiregular</code>, and for
+which <code>is_nothrow_move_constructible_v&lt;A::pointer&gt;</code> is
 <code>true</code>,
 <code>is_nothrow_move_assignable_v&lt;A::pointer&gt;</code> is
 <code>true</code>, and
 <code>is_nothrow_swappable_v&lt;A::pointer&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <i>[Note:</i> The type of <code>pointer</code> need not be
 <code>element_type*</code>. <i>— end note]</i></p>
 <div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> A<span class="op">::</span>reference</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Result:</em> A type that models
-<code>convertible_to&lt;A::element_type&gt;</code>, and if
-<code>A::element_type&amp;</code> models
-<code>assignable_from&lt;A::element_type&gt;</code> then
-<code>is_assignable_v&lt;A::reference, A::element_type&gt;</code> is
-<code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<code>common_reference_with&lt;A::reference&amp;&amp;, A::element_type&amp;&gt;</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <i>[Note:</i> The type of <code>reference</code> need not be
 <code>element_type&amp;</code>. <i>— end note]</i></p>
 <div class="sourceCode" id="cb69"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> A<span class="op">::</span>offset_policy</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Result:</em> A type <code>OP</code> such that:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
 <code>OP</code> meets the accessor policy requirements.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
 <code>constructible_from&lt;OP, const A&amp;&gt;</code> is
 modeled.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
 <code>is_same_v&lt;typename OP::element_type, typename A::element_type&gt;</code>
 is <code>true</code></p></li>
 </ul>
 <div class="sourceCode" id="cb70"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>a<span class="op">.</span>access<span class="op">(</span>p, i<span class="op">)</span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Result:</em> <code>A::reference</code></p>
-<p><span class="marginalizedparent"><a class="marginalized">11</a></span> <span class="math inline">[</span><code>p</code>, <code>n</code><span class="math inline">)</span> is an <em>accessible range</em> for
-<code>a</code> if, for each <span class="math inline"><em>i</em></span>
-in the range <span class="math inline">[0,</span><code>n</code><span class="math inline">)</span>, <code>a.access(p,</code><span class="math inline"><em>i</em></span><code>)</code> is valid.
-<i>[Note:</i> Concrete accessor policies will generally impose
-preconditions for their <code>access</code> function. However, they
-might not. For example, one could imagine an accessor where
-<code>p</code> is
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<em>Remarks:</em> The expression is equality preserving.</p>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
+<i>[Note:</i> Concrete accessor policies can impose preconditions for
+their <code>access</code> function. However, they might not. For
+example, one could imagine an accessor where <code>p</code> is
 <code>span&lt;A::element_type,dynamic_extent&gt;</code> and
-<code>access(p,i)</code> returns
-<code>i &lt; p.size() ? p[i] : p[p.size()-1]</code>. <i>- end
+<code>access(p,i)</code> returns <code>p[i % p.size()]</code>. <i>- end
 note]</i></p>
 <div class="sourceCode" id="cb71"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>a<span class="op">.</span>offset<span class="op">(</span>p, i<span class="op">)</span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Result:</em> <code>A::offset_policy::pointer</code></p>
-<p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Returns:</em> <code>p_sub</code> such that for <code>a_sub</code>
-being <code>A::offset_policy(a)</code>, and any integer <code>n</code>
-for which <span class="math inline">[</span><code>p</code>,
+<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
+<em>Returns:</em> <code>q</code> such that for <code>b</code> being
+<code>A::offset_policy(a)</code>, and any integer <code>n</code> for
+which <span class="math inline">[</span><code>0</code>,
 <code>n</code><span class="math inline">)</span> is an accessible range
-of <code>a</code>:</p>
+of <code>p</code> and <code>a</code>:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(13.1)</a></span>
-<span class="math inline">[</span><code>p_sub</code>,
-<code>n-i</code><span class="math inline">)</span> is an accessible
-range of <code>a_sub</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(13.2)</a></span>
-<code>a_sub.access(p_sub,</code><span class="math inline"><em>j</em></span><code>)</code> provides access to
-the same element as <code>a.access(p, i+</code><span class="math inline"><em>j</em></span><code>)</code>, for every <span class="math inline"><em>j</em></span> in the range <span class="math inline">[</span><code>0</code>, <code>n-i</code><span class="math inline">)</span>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(12.1)</a></span>
+<span class="math inline">[</span><code>0</code>, <code>n-i</code><span class="math inline">)</span> is an accessible range of <code>q</code>
+and <code>b</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span>
+<code>b.access(q, j)</code> provides access to the same element as
+<code>a.access(p, i + j)</code>, for every <code>j</code> in the range
+<span class="math inline">[</span><code>0</code>, <code>n-i</code><span class="math inline">)</span>.</p></li>
 </ul>
-<!--
-[13]{.pnum} The accessible range $R$ of an accessor `a` for a pointer `p` is defined by the set of integers `i` for which `a.access(p, i)` is well defined.
--->
+<p><span class="marginalizedparent"><a class="marginalized">13</a></span>
+<em>Remarks:</em> The expression is equality preserving.</p>
 <!--
 
                                     #            #
@@ -3488,15 +3488,14 @@ the same element as <code>a.access(p, i+</code><span class="math inline"><em>j</
 <span id="cb72-11"><a href="#cb72-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
 <span id="cb72-12"><a href="#cb72-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> default_accessor<span class="op">(</span>default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span></span>
 <span id="cb72-13"><a href="#cb72-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb72-14"><a href="#cb72-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>pointer</span>
-<span id="cb72-15"><a href="#cb72-15" aria-hidden="true" tabindex="-1"></a>      offset<span class="op">(</span>pointer p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb72-16"><a href="#cb72-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb72-17"><a href="#cb72-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference access<span class="op">(</span>pointer p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb72-18"><a href="#cb72-18" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
-<span id="cb72-19"><a href="#cb72-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb72-14"><a href="#cb72-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference access<span class="op">(</span>pointer p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb72-15"><a href="#cb72-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-16"><a href="#cb72-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> pointer offset<span class="op">(</span>pointer p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb72-17"><a href="#cb72-17" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
+<span id="cb72-18"><a href="#cb72-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<code>default_accessor</code> meets the requirements of accessor
-policy.</p>
+<code>default_accessor</code> meets the accessor policy
+requirements.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <code>ElementType</code> is required to be a complete object type that
 is neither an abstract class type nor an array type.
@@ -3505,31 +3504,22 @@ is neither an abstract class type nor an array type.
 Each specialization of <code>default_accessor</code> is a trivially
 copyable type.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-For a <code>pointer</code> <code>p</code> and <code>size_type</code>
-<code>n</code>, <span class="math inline">[</span><code>p</code>,
-<code>n</code><span class="math inline">)</span> is an accessible range
-for an instance of <code>default_accessor</code> if and only if <span class="math inline">[</span><code>p</code>, <code>p+n</code><span class="math inline">)</span> is a valid range.</p>
+<span class="math inline">[</span><code>0</code>, <code>n</code><span class="math inline">)</span> is an accessible range for an object
+<code>p</code> of type <code>pointer</code> and an object of type
+<code>default_accessor</code> if and only if <span class="math inline">[</span><code>p</code>, <code>p+n</code><span class="math inline">)</span> is a valid range.</p>
 <p><b>24.7.�.3.2 Members [mdspan.accessor.default.members]</b></p>
 <div class="sourceCode" id="cb73"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> default_accessor<span class="op">(</span>default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Constraints:</em></p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>is_convertible_v&lt;typename default_accessor&lt;OtherElementType&gt;::element_type(*)[], element_type(*)[]&gt;</code>
-is <code>true</code>.</li>
-</ul>
-<div class="sourceCode" id="cb74"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>pointer</span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>  offset<span class="op">(</span>pointer p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<em>Constraints:</em>
+<code>is_convertible_v&lt;OtherElementType(*)[], element_type(*)[]&gt;</code>
+is <code>true</code>.</p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>pointer p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em> <code>p + i</code> is dereferenceable.</p>
+<em>Effects:</em> equivalent to <code>return p[i];</code></p>
+<div class="sourceCode" id="cb75"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> pointer offset<span class="op">(</span>pointer p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Returns:</em> <code>p + i</code>.</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>pointer p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Preconditions:</em> <code>p + i</code> is dereferenceable.</p>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Returns:</em> <code>p[i]</code>.</p>
+<em>Effects:</em> equivalent to <code>return p + i;</code>.</p>
 <!--
                    888
                    888
@@ -3569,117 +3559,130 @@ elements accessible from a contiguous range of integer indices.</p>
 <span id="cb76-14"><a href="#cb76-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> pointer <span class="op">=</span> <span class="kw">typename</span> accessor_type<span class="op">::</span>pointer;</span>
 <span id="cb76-15"><a href="#cb76-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference <span class="op">=</span> <span class="kw">typename</span> accessor_type<span class="op">::</span>reference;</span>
 <span id="cb76-16"><a href="#cb76-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-17"><a href="#cb76-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.mdspan.ctor], mdspan Constructors</span></span>
-<span id="cb76-18"><a href="#cb76-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">()</span> <span class="kw">requires</span><span class="op">(</span>rank_dynamic<span class="op">()</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb76-19"><a href="#cb76-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span><span class="kw">const</span> mdspan<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb76-20"><a href="#cb76-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span>mdspan<span class="op">&amp;&amp;</span> rhs<span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb76-17"><a href="#cb76-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> rank_type rank<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> extents_type<span class="op">::</span>rank<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb76-18"><a href="#cb76-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> rank_type rank_dynamic<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> extents_type<span class="op">::</span>rank_dynamic<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb76-19"><a href="#cb76-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> size_type static_extent<span class="op">(</span>rank_type r<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> extents_type<span class="op">::</span>static_extent<span class="op">(</span>r<span class="op">)</span>; <span class="op">}</span></span>
+<span id="cb76-20"><a href="#cb76-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> size_type extent<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> extents<span class="op">().</span>extent<span class="op">(</span>r<span class="op">)</span>; <span class="op">}</span></span>
 <span id="cb76-21"><a href="#cb76-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-22"><a href="#cb76-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SizeTypes<span class="op">&gt;</span></span>
-<span id="cb76-23"><a href="#cb76-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span> <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer ptr, SizeTypes<span class="op">...</span> exts<span class="op">)</span>;</span>
-<span id="cb76-24"><a href="#cb76-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb76-25"><a href="#cb76-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span><span class="op">(</span>N <span class="op">!=</span> rank_dynamic<span class="op">())</span></span>
-<span id="cb76-26"><a href="#cb76-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, span<span class="op">&lt;</span>SizeType, N<span class="op">&gt;</span> exts<span class="op">)</span>;</span>
-<span id="cb76-27"><a href="#cb76-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb76-28"><a href="#cb76-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span><span class="op">(</span>N <span class="op">!=</span> rank_dynamic<span class="op">())</span></span>
-<span id="cb76-29"><a href="#cb76-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;</span> exts<span class="op">)</span>;</span>
-<span id="cb76-30"><a href="#cb76-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> extents_type<span class="op">&amp;</span> ext<span class="op">)</span>;</span>
-<span id="cb76-31"><a href="#cb76-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m<span class="op">)</span>;</span>
-<span id="cb76-32"><a href="#cb76-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> accessor_type<span class="op">&amp;</span> a<span class="op">)</span>;</span>
-<span id="cb76-33"><a href="#cb76-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-34"><a href="#cb76-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents, </span>
-<span id="cb76-35"><a href="#cb76-35" aria-hidden="true" tabindex="-1"></a>           <span class="kw">class</span> OtherLayoutPolicy, <span class="kw">class</span> OtherAccessorPolicy<span class="op">&gt;</span></span>
-<span id="cb76-36"><a href="#cb76-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span><span class="op">(</span><em>see below</em><span class="op">)</span></span>
-<span id="cb76-37"><a href="#cb76-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">(</span></span>
-<span id="cb76-38"><a href="#cb76-38" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mdspan<span class="op">&lt;</span>OtherElementType, OtherExtents, </span>
-<span id="cb76-39"><a href="#cb76-39" aria-hidden="true" tabindex="-1"></a>                   OtherLayoutPolicy, OtherAccessorPolicy<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span>
-<span id="cb76-40"><a href="#cb76-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-41"><a href="#cb76-41" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mdspan<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb76-42"><a href="#cb76-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span>mdspan<span class="op">&amp;&amp;</span> rhs<span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb76-43"><a href="#cb76-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-44"><a href="#cb76-44" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.mdspan.members], mdspan members</span></span>
-<span id="cb76-45"><a href="#cb76-45" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SizeTypes<span class="op">&gt;</span></span>
-<span id="cb76-46"><a href="#cb76-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span>SizeTypes<span class="op">...</span> indices<span class="op">)</span> <span class="kw">const</span>;</span>
-<span id="cb76-47"><a href="#cb76-47" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType<span class="op">&gt;</span></span>
-<span id="cb76-48"><a href="#cb76-48" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span>span<span class="op">&lt;</span>SizeType, rank<span class="op">()&gt;</span> indices<span class="op">)</span> <span class="kw">const</span>;</span>
-<span id="cb76-49"><a href="#cb76-49" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType<span class="op">&gt;</span></span>
-<span id="cb76-50"><a href="#cb76-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span><span class="kw">const</span> array<span class="op">&lt;</span>SizeType, rank<span class="op">()&gt;&amp;</span> indices<span class="op">)</span> <span class="kw">const</span>;</span>
-<span id="cb76-51"><a href="#cb76-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-52"><a href="#cb76-52" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> accessor_type<span class="op">&amp;</span> accessor<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>acc_</em>; <span class="op">}</span></span>
-<span id="cb76-53"><a href="#cb76-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-54"><a href="#cb76-54" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> rank_type rank<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> extents_type<span class="op">::</span>rank<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb76-55"><a href="#cb76-55" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> rank_type rank_dynamic<span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> extents_type<span class="op">::</span>rank_dynamic<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb76-56"><a href="#cb76-56" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> size_type static_extent<span class="op">(</span>rank_type r<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> extents_type<span class="op">::</span>static_extent<span class="op">(</span>r<span class="op">)</span>; <span class="op">}</span></span>
-<span id="cb76-57"><a href="#cb76-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-58"><a href="#cb76-58" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>map_</em><span class="op">.</span>extents<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb76-59"><a href="#cb76-59" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> size_type extent<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> extents<span class="op">().</span>extent<span class="op">(</span>r<span class="op">)</span>; <span class="op">}</span></span>
-<span id="cb76-60"><a href="#cb76-60" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> size_type size<span class="op">()</span> <span class="kw">const</span>;</span>
-<span id="cb76-61"><a href="#cb76-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-62"><a href="#cb76-62" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> pointer<span class="op">&amp;</span> data<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>ptr_</em>; <span class="op">}</span></span>
-<span id="cb76-63"><a href="#cb76-63" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> mapping_type<span class="op">&amp;</span> mapping<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>map_</em>; <span class="op">}</span></span>
-<span id="cb76-64"><a href="#cb76-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-65"><a href="#cb76-65" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb76-66"><a href="#cb76-66" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_unique<span class="op">()</span>;</span>
-<span id="cb76-67"><a href="#cb76-67" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb76-68"><a href="#cb76-68" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb76-69"><a href="#cb76-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_contiguous<span class="op">()</span>;</span>
-<span id="cb76-70"><a href="#cb76-70" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb76-71"><a href="#cb76-71" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb76-72"><a href="#cb76-72" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_strided<span class="op">()</span>;</span>
-<span id="cb76-73"><a href="#cb76-73" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb76-74"><a href="#cb76-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-75"><a href="#cb76-75" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb76-76"><a href="#cb76-76" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_unique<span class="op">()</span>;</span>
-<span id="cb76-77"><a href="#cb76-77" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb76-78"><a href="#cb76-78" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb76-79"><a href="#cb76-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_contiguous<span class="op">()</span>;</span>
-<span id="cb76-80"><a href="#cb76-80" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb76-81"><a href="#cb76-81" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb76-82"><a href="#cb76-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_strided<span class="op">()</span>;</span>
-<span id="cb76-83"><a href="#cb76-83" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb76-84"><a href="#cb76-84" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> size_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb76-85"><a href="#cb76-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>stride<span class="op">(</span>r<span class="op">)</span>;</span>
-<span id="cb76-86"><a href="#cb76-86" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb76-87"><a href="#cb76-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-88"><a href="#cb76-88" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb76-89"><a href="#cb76-89" aria-hidden="true" tabindex="-1"></a>  accessor_type <em>acc_</em>; <span class="co">// <em>exposition only</em></span></span>
-<span id="cb76-90"><a href="#cb76-90" aria-hidden="true" tabindex="-1"></a>  mapping_type <em>map_</em>; <span class="co">// <em>exposition only</em></span></span>
-<span id="cb76-91"><a href="#cb76-91" aria-hidden="true" tabindex="-1"></a>  pointer <em>ptr_</em> <span class="op">=</span> pointer<span class="op">()</span>; <span class="co">// <em>exposition only</em></span></span>
-<span id="cb76-92"><a href="#cb76-92" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb76-93"><a href="#cb76-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-94"><a href="#cb76-94" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span><span class="op">...</span> Integrals<span class="op">&gt;</span></span>
-<span id="cb76-95"><a href="#cb76-95" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span> mdspan<span class="op">(</span>ElementType<span class="op">*</span>, Integrals<span class="op">...)</span></span>
-<span id="cb76-96"><a href="#cb76-96" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> <em>see below</em>;</span>
-<span id="cb76-97"><a href="#cb76-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-98"><a href="#cb76-98" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb76-99"><a href="#cb76-99" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, span<span class="op">&lt;</span>SizeType, N<span class="op">&gt;)</span></span>
-<span id="cb76-100"><a href="#cb76-100" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>;</span>
-<span id="cb76-101"><a href="#cb76-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-102"><a href="#cb76-102" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb76-103"><a href="#cb76-103" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;)</span></span>
-<span id="cb76-104"><a href="#cb76-104" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>;</span>
-<span id="cb76-105"><a href="#cb76-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-106"><a href="#cb76-106" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span><span class="op">...</span> ExtentsPack<span class="op">&gt;</span></span>
-<span id="cb76-107"><a href="#cb76-107" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> extents<span class="op">&lt;</span>ExtentsPack<span class="op">...&gt;&amp;)</span></span>
-<span id="cb76-108"><a href="#cb76-108" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, extents<span class="op">&lt;</span>ExtentsPack<span class="op">...&gt;&gt;</span>;</span>
-<span id="cb76-109"><a href="#cb76-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-110"><a href="#cb76-110" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType<span class="op">&gt;</span></span>
-<span id="cb76-111"><a href="#cb76-111" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;)</span></span>
-<span id="cb76-112"><a href="#cb76-112" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type,</span>
-<span id="cb76-113"><a href="#cb76-113" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type<span class="op">&gt;</span>;</span>
-<span id="cb76-114"><a href="#cb76-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-115"><a href="#cb76-115" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType, <span class="kw">class</span> AccessorType<span class="op">&gt;</span></span>
-<span id="cb76-116"><a href="#cb76-116" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;</span>, <span class="kw">const</span> AccessorType<span class="op">&amp;)</span></span>
-<span id="cb76-117"><a href="#cb76-117" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type, </span>
-<span id="cb76-118"><a href="#cb76-118" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type, AccessorType<span class="op">&gt;</span>;</span>
-<span id="cb76-119"><a href="#cb76-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-120"><a href="#cb76-120" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb76-22"><a href="#cb76-22" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.mdspan.ctor], mdspan Constructors</span></span>
+<span id="cb76-23"><a href="#cb76-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">()</span> <span class="kw">requires</span><span class="op">(</span>rank_dynamic<span class="op">()</span> <span class="op">!=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb76-24"><a href="#cb76-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span><span class="kw">const</span> mdspan<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb76-25"><a href="#cb76-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span>mdspan<span class="op">&amp;&amp;</span> rhs<span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb76-26"><a href="#cb76-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-27"><a href="#cb76-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SizeTypes<span class="op">&gt;</span></span>
+<span id="cb76-28"><a href="#cb76-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span> <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer ptr, SizeTypes<span class="op">...</span> exts<span class="op">)</span>;</span>
+<span id="cb76-29"><a href="#cb76-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb76-30"><a href="#cb76-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span><span class="op">(</span>N <span class="op">!=</span> rank_dynamic<span class="op">())</span></span>
+<span id="cb76-31"><a href="#cb76-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, span<span class="op">&lt;</span>SizeType, N<span class="op">&gt;</span> exts<span class="op">)</span>;</span>
+<span id="cb76-32"><a href="#cb76-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb76-33"><a href="#cb76-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span><span class="op">(</span>N <span class="op">!=</span> rank_dynamic<span class="op">())</span></span>
+<span id="cb76-34"><a href="#cb76-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;</span> exts<span class="op">)</span>;</span>
+<span id="cb76-35"><a href="#cb76-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> extents_type<span class="op">&amp;</span> ext<span class="op">)</span>;</span>
+<span id="cb76-36"><a href="#cb76-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m<span class="op">)</span>;</span>
+<span id="cb76-37"><a href="#cb76-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> accessor_type<span class="op">&amp;</span> a<span class="op">)</span>;</span>
+<span id="cb76-38"><a href="#cb76-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-39"><a href="#cb76-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents, </span>
+<span id="cb76-40"><a href="#cb76-40" aria-hidden="true" tabindex="-1"></a>           <span class="kw">class</span> OtherLayoutPolicy, <span class="kw">class</span> OtherAccessorPolicy<span class="op">&gt;</span></span>
+<span id="cb76-41"><a href="#cb76-41" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span><span class="op">(</span><em>see below</em><span class="op">)</span></span>
+<span id="cb76-42"><a href="#cb76-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">(</span></span>
+<span id="cb76-43"><a href="#cb76-43" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mdspan<span class="op">&lt;</span>OtherElementType, OtherExtents, </span>
+<span id="cb76-44"><a href="#cb76-44" aria-hidden="true" tabindex="-1"></a>                   OtherLayoutPolicy, OtherAccessorPolicy<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span>
+<span id="cb76-45"><a href="#cb76-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-46"><a href="#cb76-46" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mdspan<span class="op">&amp;</span> rhs<span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb76-47"><a href="#cb76-47" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdspan<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span>mdspan<span class="op">&amp;&amp;</span> rhs<span class="op">)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb76-48"><a href="#cb76-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-49"><a href="#cb76-49" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.mdspan.members], mdspan members</span></span>
+<span id="cb76-50"><a href="#cb76-50" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SizeTypes<span class="op">&gt;</span></span>
+<span id="cb76-51"><a href="#cb76-51" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span>SizeTypes<span class="op">...</span> indices<span class="op">)</span> <span class="kw">const</span>;</span>
+<span id="cb76-52"><a href="#cb76-52" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType<span class="op">&gt;</span></span>
+<span id="cb76-53"><a href="#cb76-53" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span>span<span class="op">&lt;</span>SizeType, rank<span class="op">()&gt;</span> indices<span class="op">)</span> <span class="kw">const</span>;</span>
+<span id="cb76-54"><a href="#cb76-54" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SizeType<span class="op">&gt;</span></span>
+<span id="cb76-55"><a href="#cb76-55" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference <span class="kw">operator</span><span class="op">[](</span><span class="kw">const</span> array<span class="op">&lt;</span>SizeType, rank<span class="op">()&gt;&amp;</span> indices<span class="op">)</span> <span class="kw">const</span>;</span>
+<span id="cb76-56"><a href="#cb76-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-57"><a href="#cb76-57" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> size_type size<span class="op">()</span> <span class="kw">const</span>;</span>
+<span id="cb76-58"><a href="#cb76-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-59"><a href="#cb76-59" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>map_</em><span class="op">.</span>extents<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb76-60"><a href="#cb76-60" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> pointer<span class="op">&amp;</span> data<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>ptr_</em>; <span class="op">}</span></span>
+<span id="cb76-61"><a href="#cb76-61" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> mapping_type<span class="op">&amp;</span> mapping<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>map_</em>; <span class="op">}</span></span>
+<span id="cb76-62"><a href="#cb76-62" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> accessor_type<span class="op">&amp;</span> accessor<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>acc_</em>; <span class="op">}</span></span>
+<span id="cb76-63"><a href="#cb76-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-64"><a href="#cb76-64" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb76-65"><a href="#cb76-65" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_unique<span class="op">()</span>;</span>
+<span id="cb76-66"><a href="#cb76-66" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb76-67"><a href="#cb76-67" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb76-68"><a href="#cb76-68" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_contiguous<span class="op">()</span>;</span>
+<span id="cb76-69"><a href="#cb76-69" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb76-70"><a href="#cb76-70" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb76-71"><a href="#cb76-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_strided<span class="op">()</span>;</span>
+<span id="cb76-72"><a href="#cb76-72" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb76-73"><a href="#cb76-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-74"><a href="#cb76-74" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb76-75"><a href="#cb76-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_unique<span class="op">()</span>;</span>
+<span id="cb76-76"><a href="#cb76-76" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb76-77"><a href="#cb76-77" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb76-78"><a href="#cb76-78" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_contiguous<span class="op">()</span>;</span>
+<span id="cb76-79"><a href="#cb76-79" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb76-80"><a href="#cb76-80" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb76-81"><a href="#cb76-81" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_strided<span class="op">()</span>;</span>
+<span id="cb76-82"><a href="#cb76-82" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb76-83"><a href="#cb76-83" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> size_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb76-84"><a href="#cb76-84" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>stride<span class="op">(</span>r<span class="op">)</span>;</span>
+<span id="cb76-85"><a href="#cb76-85" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb76-86"><a href="#cb76-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-87"><a href="#cb76-87" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb76-88"><a href="#cb76-88" aria-hidden="true" tabindex="-1"></a>  accessor_type <em>acc_</em>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb76-89"><a href="#cb76-89" aria-hidden="true" tabindex="-1"></a>  mapping_type <em>map_</em>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb76-90"><a href="#cb76-90" aria-hidden="true" tabindex="-1"></a>  pointer <em>ptr_</em> <span class="op">=</span> pointer<span class="op">()</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb76-91"><a href="#cb76-91" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb76-92"><a href="#cb76-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-93"><a href="#cb76-93" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span><span class="op">...</span> Integrals<span class="op">&gt;</span></span>
+<span id="cb76-94"><a href="#cb76-94" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span> mdspan<span class="op">(</span>ElementType<span class="op">*</span>, Integrals<span class="op">...)</span></span>
+<span id="cb76-95"><a href="#cb76-95" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> <em>see below</em>;</span>
+<span id="cb76-96"><a href="#cb76-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-97"><a href="#cb76-97" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb76-98"><a href="#cb76-98" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, span<span class="op">&lt;</span>SizeType, N<span class="op">&gt;)</span></span>
+<span id="cb76-99"><a href="#cb76-99" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>;</span>
+<span id="cb76-100"><a href="#cb76-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-101"><a href="#cb76-101" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb76-102"><a href="#cb76-102" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;)</span></span>
+<span id="cb76-103"><a href="#cb76-103" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>;</span>
+<span id="cb76-104"><a href="#cb76-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-105"><a href="#cb76-105" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span><span class="op">...</span> ExtentsPack<span class="op">&gt;</span></span>
+<span id="cb76-106"><a href="#cb76-106" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> extents<span class="op">&lt;</span>ExtentsPack<span class="op">...&gt;&amp;)</span></span>
+<span id="cb76-107"><a href="#cb76-107" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, extents<span class="op">&lt;</span>ExtentsPack<span class="op">...&gt;&gt;</span>;</span>
+<span id="cb76-108"><a href="#cb76-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-109"><a href="#cb76-109" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType<span class="op">&gt;</span></span>
+<span id="cb76-110"><a href="#cb76-110" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;)</span></span>
+<span id="cb76-111"><a href="#cb76-111" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type,</span>
+<span id="cb76-112"><a href="#cb76-112" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type<span class="op">&gt;</span>;</span>
+<span id="cb76-113"><a href="#cb76-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-114"><a href="#cb76-114" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType, <span class="kw">class</span> AccessorType<span class="op">&gt;</span></span>
+<span id="cb76-115"><a href="#cb76-115" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;</span>, <span class="kw">const</span> AccessorType<span class="op">&amp;)</span></span>
+<span id="cb76-116"><a href="#cb76-116" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type, </span>
+<span id="cb76-117"><a href="#cb76-117" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type, AccessorType<span class="op">&gt;</span>;</span>
+<span id="cb76-118"><a href="#cb76-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-119"><a href="#cb76-119" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <!-- mfh 20 Jan 2019: Putting the template parameters after the class declaration imitates [span.overview]. -->
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+Each specialization <code>MDS</code> of <code>mdspan</code> models
+<code>semiregular</code> and</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<code>is_nothrow_move_constructible_v&lt;MDS&gt;</code> is
+<code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<code>is_nothrow_move_assignable_v&lt;MDS&gt;</code> is
+<code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
+<code>is_nothrow_swappable_v&lt;MDS&gt;</code> is
+<code>true</code>.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <code>mdspan&lt;ElementType, Extents, LayoutPolicy, AccessorPolicy&gt;</code>
 is a trivially copyable type if <code>AccessorPolicy</code>,
 <code>LayoutPolicy::mapping_type&lt;Extents&gt;</code> and
 <code>AccessorPolicy::pointer</code> are trivially copyable types.</p>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <code>ElementType</code> is required to be a complete object type that
 is neither an abstract class type nor an array type. If
 <code>Extents</code> is not a specialization of <code>extents</code>,
@@ -3717,11 +3720,11 @@ is <code>true</code>,</p></li>
 <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Precondition:</em> <span class="math inline">[</span><code>p</code>,
-<em><code>map_</code></em><code>.required_span_size()</code><span class="math inline">)</span> is an accesible range of
-<em><code>acc_</code></em> for the values of <em><code>map_</code></em>
-and <em><code>acc_</code></em> after the invocation of this
-constructor.</p>
+<em>Precondition:</em> <span class="math inline">[</span><code>0</code>,
+<em><code>map_</code></em><code>.required_span_size()</code><span class="math inline">)</span> is an accessible range of <code>p</code>
+and <em><code>acc_</code></em> for the values of
+<em><code>map_</code></em> and <em><code>acc_</code></em> after the
+invocation of this constructor.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -3755,11 +3758,11 @@ is <code>true</code>,</p></li>
 <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Precondition:</em> <span class="math inline">[</span><code>p</code>,
-<em><code>map_</code></em><code>.required_span_size()</code><span class="math inline">)</span> is an accesible range of
-<em><code>acc_</code></em> for the values of <em><code>map_</code></em>
-and <em><code>acc_</code></em> after the invocation of this
-constructor.</p>
+<em>Precondition:</em> <span class="math inline">[</span><code>0</code>,
+<em><code>map_</code></em><code>.required_span_size()</code><span class="math inline">)</span> is an accessible range of <code>p</code>
+and <em><code>acc_</code></em> for the values of
+<em><code>map_</code></em> and <em><code>acc_</code></em> after the
+invocation of this constructor.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -3782,11 +3785,11 @@ is <code>true</code>, and</p></li>
 <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
-<em>Precondition:</em> <span class="math inline">[</span><code>p</code>,
-<em><code>map_</code></em><code>.required_span_size()</code><span class="math inline">)</span> is an accessible range of
-<em><code>acc_</code></em> for the values of <em><code>map_</code></em>
-and <em><code>acc_</code></em> after the invocation of this
-constructor.</p>
+<em>Precondition:</em> <span class="math inline">[</span><code>0</code>,
+<em><code>map_</code></em><code>.required_span_size()</code><span class="math inline">)</span> is an accessible range of <code>p</code>
+and <em><code>acc_</code></em> for the values of
+<em><code>map_</code></em> and <em><code>acc_</code></em> after the
+invocation of this constructor.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -3803,10 +3806,11 @@ Direct-non-list-initializes <em><code>map_</code></em> with
 <code>is_default_constructible_v&lt;accessor_type&gt;</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
-<em>Precondition:</em> <span class="math inline">[</span><code>p</code>,
+<em>Precondition:</em> <span class="math inline">[</span><code>0</code>,
 <code>m.required_span_size()</code><span class="math inline">)</span> is
-an accessible range of <em><code>acc_</code></em> for value of
-<em><code>acc_</code></em> after the invocation of this constructor.</p>
+an accessible range of <code>p</code> and <em><code>acc_</code></em> for
+value of <em><code>acc_</code></em> after the invocation of this
+constructor.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -3819,9 +3823,9 @@ Direct-non-list-initializes <em><code>map_</code></em> with
 </ul>
 <div class="sourceCode" id="cb81"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> accessor_type<span class="op">&amp;</span> a<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Precondition:</em> <span class="math inline">[</span><code>p</code>,
+<em>Precondition:</em> <span class="math inline">[</span><code>0</code>,
 <code>m.required_span_size()</code><span class="math inline">)</span> is
-an accessible range of <code>a</code>.</p>
+an accessible range of <code>p</code> and <code>a</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span><em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(14.1)</a></span>
@@ -3928,10 +3932,9 @@ Let <code>I</code> be
 <em>Preconditions:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
-<span class="math inline">[</span><em><code>ptr_</code></em>
-<code>,</code>
+<span class="math inline">[</span><code>0</code> <code>,</code>
 <em><code>map_</code></em><code>.required_span_size()</code><span class="math inline">)</span> is an accessible range of
-<em><code>acc_</code></em>, and</p></li>
+<em><code>ptr_</code></em> and <em><code>acc_</code></em>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
 <code>I</code> is a multidimensional index in <code>extents()</code>.
 <i>[Note:</i> This implies that
