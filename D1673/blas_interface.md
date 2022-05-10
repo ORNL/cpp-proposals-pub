@@ -839,7 +839,7 @@ algebra libraries like the BLAS, so a linear algebra library is a good
 first step.  Second, `mdspan` has natural use as a
 low-level representation of dense tensors, so we are already partway
 there.  Third, even simple tensor operations that naturally generalize
-the BLAS have infintely many more cases than linear algebra.  It's not
+the BLAS have significantly more cases than linear algebra.  It's not
 clear to us which to optimize.  Fourth, even though linear algebra is
 a special case of tensor algebra, users of linear algebra have
 different interface expectations than users of tensor algebra.  Thus,
