@@ -329,7 +329,7 @@ in support of adding linear algebra to the C++ Standard Library.
   and Cerebras' [Wafer Scale
   Engine](https://www.cerebras.net/product/#chip).  Several large
   computer system vendors offer optimized linear algebra libraries
-  based on or closely resembling the BLAS; these include AMD's BLIS,
+  that implement the BLAS API; these include AMD's fork of BLIS,
   ARM's Performance Libraries, Cray's LibSci, Intel's Math Kernel
   Library (MKL), IBM's Engineering and Scientific Subroutine Library
   (ESSL), and NVIDIA's cuBLAS.
