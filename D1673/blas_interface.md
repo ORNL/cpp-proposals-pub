@@ -416,10 +416,11 @@ problem whose solutions could be parameterized for a variety of
 computer architectures.  See, for example, [Goto and van de Geijn
 2008](https://doi.org/10.1145/1356052.1356053).  There are optimized
 third-party BLAS implementations for common architectures, like
-[ATLAS](http://math-atlas.sourceforge.net/) and
-[GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2).
+[ATLAS](http://math-atlas.sourceforge.net/),
+[OpenBLAS](https://github.com/xianyi/OpenBLAS),
+and [BLIS](https://github.com/flame/blis).
 A (slow but correct) [reference implementation of the
-BLAS](http://www.netlib.org/blas/#_reference_blas_version_3_8_0)
+BLAS](http://www.netlib.org/blas/)
 exists and it has a liberal software license for easy reuse.
 
 We have experience in the exercise of wrapping a C or Fortran BLAS
@@ -834,9 +835,13 @@ to some multi-indices in the Cartesian product of extents.
 ### Tensors
 
 We exclude tensors from this proposal, for the following reasons.
-First, tensor libraries naturally build on optimized dense linear
+First, tensor libraries often build on optimized dense linear
 algebra libraries like the BLAS, so a linear algebra library is a good
-first step.  Second, `mdspan` has natural use as a
+first step ([Di Napoli et al.](https://arxiv.org/abs/1307.2100)),
+although it is likely that a native implementation is better
+([Matthews](https://arxiv.org/abs/1607.00291),
+ [Springer and Paolo Bientinesi](https://arxiv.org/abs/1607.00145)).
+Second, `mdspan` has natural use as a
 low-level representation of dense tensors, so we are already partway
 there.  Third, even simple tensor operations that naturally generalize
 the BLAS have significantly more cases than linear algebra.  It's not
@@ -1597,7 +1602,7 @@ pioneering efforts and history lessons.
   SLATE Working Notes, Innovative Computing Laboratory, University of
   Tennessee Knoxville, Feb. 2018.
 
-* K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
+* K. Goto and R. A. van de Geijn, ["Anatomy of high-performance matrix
   multiplication,"](https://doi.org/10.1145/1356052.1356053), *ACM
   Transactions on Mathematical Software* (TOMS), Vol. 34, No. 3, May
   2008.
@@ -1613,6 +1618,10 @@ pioneering efforts and history lessons.
 
 * D. Vandevoorde and N. A. Josuttis, "C++ Templates: The Complete
   Guide," Addison-Wesley Professional, 2003.
+
+* Field G. Van Zee and Robert A. van de Geijn,
+  ["BLIS: A Framework for Rapidly Instantiating BLAS Functionality,"](https://doi.org/10.1145/2764454),
+  *ACM Transactions on Mathematical Software* (TOMS), Vol. 41, No. 3, June 2015.
 
 ## Wording
 
