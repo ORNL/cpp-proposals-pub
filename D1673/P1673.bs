@@ -260,6 +260,9 @@ Date: 2022-05-15
 
 * Revision 8 (electronic), to be submitted 2022-05-15
 
+    * Remove `decay` member function from `accessor_conjugate` and `accessor_scaled`,
+        as it is no longer part of `mdspan`'s accessor policy requirements
+
     * Make sure `accessor_conjugate` and `conjugated` work correctly
         for user-defined complex types,
         introduce _`conj-if-needed`_ to simplify wording,
@@ -5027,8 +5030,6 @@ public:
   offset_policy::pointer
   offset(pointer p, extents<>::size_type i) const noexcept;
 
-  element_type* decay(pointer p) const noexcept;
-
   ScalingFactor scaling_factor() const;
 
 private:
@@ -5061,12 +5062,6 @@ offset(pointer p, extents<>::size_type i) const noexcept;
 ```
 
 * *Effects:* Equivalent to `return accessor.offset(p, i);`.
-
-```c++
-element_type* decay(pointer p) const noexcept;
-```
-
-* *Effects:* Equivalent to `return accessor.decay(p);`.
 
 ```c++
 ScalingFactor scaling_factor() const;
@@ -5270,9 +5265,6 @@ public:
   offset(pointer p, extents<>::size_type i) const
     noexcept(noexcept(acc.offset(p, i)));
 
-  element_type* decay(pointer p) const
-    noexcept(noexcept(acc.decay(p)));
-
   Accessor nested_accessor() const;
 };
 ```
@@ -5319,13 +5311,6 @@ offset(pointer p, extents<>::size_type i) const
 ```
 
 * *Effects:* Equivalent to `return acc.offset(p, i);`.
-
-```c++
-element_type* decay(pointer p) const
-  noexcept(noexcept(acc.decay(p)));
-```
-
-* *Effects:* Equivalent to `return acc.decay(p);`.
 
 ```c++
 Accessor nested_accessor() const;
