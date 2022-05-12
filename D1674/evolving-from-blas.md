@@ -100,10 +100,11 @@ comes only in Fortran.  It's also slow; for example,
 its matrix-matrix multiply routine uses nearly the same triply nested
 loops that a naïve developer would write.  The intent of the BLAS is
 that users who care about performance find optimized implementations,
-either by hardware vendors or by projects like ATLAS (Whaley et
-al. 2001), the
+either by hardware vendors or by projects like
+[ATLAS](http://math-atlas.sourceforge.net/) (see also Whaley et al. 2001),
 [GotoBLAS](https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2),
-or [OpenBLAS](http://www.openblas.net).
+[OpenBLAS](https://github.com/xianyi/OpenBLAS),
+or [BLIS](https://github.com/flame/blis).
 
 Suppose that our developer has found an optimized implementation of
 the BLAS, and they want to call some of its routines from C++.  Here
@@ -1494,16 +1495,16 @@ Thanks to Damien Lebrun-Grandie for reviewing Revision 1 changes.
   A Portable, High-Performance, ANSI C Coding Methodology and its
   application to Matrix Multiply," LAPACK Working Note 111, 1996.
 
-* K. Goto and R. A. van de Geijn, "Anatomy of high-performance matrix
-  multiplication", ACM Transactions of Mathematical Software (TOMS),
-  Vol. 34, No. 3, May 2008.
+* K. Goto and R. A. van de Geijn,
+  ["Anatomy of high-performance matrix multiplication"](https://doi.org/10.1145/1356052.1356053),
+  *ACM Transactions of Mathematical Software* (TOMS),
+  Vol. 34, No. 3, May 2008.  See also 
 
 * M. Hoemmen, D. Hollman, C. Trott, D. Sunderland, N. Liber, A. Klinvex,
   Li-Ta Lo, D. Lebrun-Grandie, G. Lopez, P. Caday, S. Knepper, P. Luszczek,
   and T. Costa,
   "A free function linear algebra interface based on the BLAS,"
-  P1673R6,
-  Dec. 2021.
+  P1673R7, Apr. 2022.
 
 * C. Trott, D. Hollman, M. Hoemmen, and D. Sunderland,
   "`mdarray`: An Owning Multidimensional Array Analog of `mdspan`",
@@ -1521,14 +1522,18 @@ Thanks to Damien Lebrun-Grandie for reviewing Revision 1 changes.
 
 * J. Siek and A. Lumsdaine, "The Matrix Template Library: A Generic
   Programming Approach to High Performance Numerical Linear Algebra,"
-  in proceedings of the Second International Symposium on Computing in
+  in Proceedings of the Second International Symposium on Computing in
   Object-Oriented Parallel Environments (ISCOPE) 1998, Santa Fe, NM,
   USA, Dec. 1998.
+  
+* F. G. Van Zee and R. A. van de Geijn,
+  ["BLIS: A Framework for Rapidly Instantiating BLAS Functionality,"](https://doi.org/10.1145/2764454),
+  *ACM Transactions on Mathematical Software* (TOMS), Vol. 41, No. 3, June 2015.
 
 * R. Vuduc, "Automatic performance tuning of sparse matrix kernels,"
   PhD dissertation, Electrical Engineering and Computer Science,
   University of California Berkeley, 2004.
 
 * R. C. Whaley, A. Petitet, and J. Dongarra, "Automated Empirical
-  Optimization of Software and the ATLAS Project," Parallel Computing,
+  Optimization of Software and the ATLAS Project," *Parallel Computing*,
   Vol. 27, No. 1-2, Jan. 2001, pp. 3-35.
