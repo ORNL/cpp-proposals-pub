@@ -2237,12 +2237,11 @@ This is a good way to build a noncommutative semiring for testing.
     gives implementers the freedom to make QoI enhancements
     without risking correctness.
 
-    "Value type constraints do not suffice to describe algorithm behavior" section above,
-
 * We think describing algorithms' behavior and implementation freedom
     is more useful than mathematical concepts like "ring."
     For example, we permit implementations to reorder sums,
     but this does not mean that they assume sums are associative.
+    This is why we do not define a hierarchy of number concepts.
 
 * We categorize different ways that implementers might like to change algorithms,
     list categories we exclude and categories we permit,
@@ -2258,8 +2257,10 @@ This is a good way to build a noncommutative semiring for testing.
 
 Summary:
 
-1. Consider generalizing function parameters to take any type that implements the
-    `get_mdspan` customization point, including `mdarray`.
+1. Consider generalizing function parameters to take any type
+    that implements a customization point
+    for getting an `mdspan` viewing its elements.
+    This includes `mdarray` (see P1684).
 
 2. Add batched linear algebra overloads.
 
