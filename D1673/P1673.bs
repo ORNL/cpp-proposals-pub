@@ -260,13 +260,17 @@ Date: 2022-05-15
 
 * Revision 8 (electronic), to be submitted 2022-05-15
 
+    * Resolve vagueness in `const`ness of return type of `scaled`,
+        and make its element type the type of the product,
+        rather than forcing it back to the input `mdspan`'s element type
+
     * Remove `decay` member function from `accessor_conjugate` and `accessor_scaled`,
         as it is no longer part of `mdspan`'s accessor policy requirements
 
     * Make sure `accessor_conjugate` and `conjugated` work correctly
         for user-defined complex types,
         introduce _`conj-if-needed`_ to simplify wording,
-        and resolve vagueness in return type of `conjugated`
+        and resolve vagueness in `const`ness of return type of `conjugated`
         (thanks to Yu You (NVIDIA, yuyou@nvidia.com) and
         Phil Miller (Intense Computing, `phil.miller@intensecomputing.com`)
         for helpful discussions)
@@ -4977,15 +4981,15 @@ template<class ScalingFactor,
          class Reference>
 class scaled_scalar { // exposition only
 private:
-  const ScalingFactor scaling_factor;
+  ScalingFactor scaling_factor;
   Reference value;
-  using result_type =
-    decltype (scaling_factor * value);
 
 public:
+  using element_type = decltype(scaling_factor * value);
+
   scaled_scalar(const ScalingFactor& s, Reference v);
 
-  operator result_type() const;
+  operator element_type() const;
 };
 ```
 
@@ -5000,7 +5004,7 @@ scaled_scalar(const ScalingFactor& s, Reference v);
 * *Effects:* Initializes `scaling_factor` with `s`, and initializes `value` with `v`.
 
 ```c++
-operator result_type() const;
+operator element_type() const;
 ```
 
 * *Preconditions:* This operator may be invoked arbitrarily many times.
@@ -5016,7 +5020,8 @@ template<class ScalingFactor,
          class Accessor>
 class accessor_scaled {
 public:
-  using element_type  = Accessor::element_type;
+  using element_type  =
+    scaled_scalar<ScalingFactor, Accessor::reference>::element_type;
   using pointer       = Accessor::pointer;
   using reference     =
     scaled_scalar<ScalingFactor, Accessor::reference>;
@@ -5033,7 +5038,7 @@ public:
   ScalingFactor scaling_factor() const;
 
 private:
-  const ScalingFactor scaling_factor_; // exposition only
+  ScalingFactor scaling_factor_; // exposition only
   Accessor accessor; // exposition only
 };
 ```
@@ -5071,7 +5076,7 @@ ScalingFactor scaling_factor() const;
 
 ### `scaled` [linalg.scaled.scaled]
 
-The `scaled` function takes a value `alpha` and an `mdspan`
+The `scaled` function takes a scaling factor `alpha` and an `mdspan`
 `x`, and returns a new read-only `mdspan` with the same domain
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
@@ -5099,7 +5104,12 @@ Let `R` name the type
 `mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
-* `ReturnElementType` is either `ElementType` or `const ElementType`; and
+* `ReturnElementType` is:
+
+    * if `Accessor` is `default_accessor<ElementType>`,
+        then `add_const_t<accessor_scaled<ScalingFactor, Accessor>::element_type>`;
+
+    * else, `accessor_scaled<ScalingFactor, Accessor>::element_type`;
 
 * `ReturnAccessor` is:
 
