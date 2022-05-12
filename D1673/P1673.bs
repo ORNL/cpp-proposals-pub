@@ -260,6 +260,9 @@ Date: 2022-05-15
 
 * Revision 8 (electronic), to be submitted 2022-05-15
 
+    * Optimize `transposed` for all known layouts,
+        so as to avoid use of `layout_transpose` when not needed
+
     * Fix matrix extents in constraints and mandates
         for `symmetric_matrix_rank_k_update` and `hermitian_matrix_rank_k_update`
         (thanks to Mikołaj Zuzek for reporting the issue)
@@ -5697,11 +5700,7 @@ The `transposed` function takes a rank-2 `mdspan`
 representing a matrix, and returns a new read-only `mdspan`
 representing the transpose of the input matrix.  The input matrix's
 data are not modified, and the returned `mdspan` accesses the
-input matrix's data in place.  If the input `mdspan`'s layout is
-already `layout_transpose<L>` for some layout `L`, then the returned
-`mdspan` has layout `L`.  Otherwise, the returned `mdspan`
-has layout `layout_transpose<L>`, where `L` is the input
-`mdspan`'s layout.
+input matrix's data in place.
 
 ```c++
 template<class ElementType,
@@ -5730,7 +5729,20 @@ where
 
 * `ReturnLayout` is:
 
-    * if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+    * if `Layout` is `layout_left`, then `layout_right`;
+
+    * else if `Layout` is `layout_right`, then `layout_left`;
+
+    * else if `Layout` is `layout_stride`, then `layout_stride`;
+
+    * else if `Layout` is `layout_blas_general<StorageOrder>`
+        for some `StorageOrder`,
+        then `layout_blas_general<OppositeStorageOrder>`,
+        where `OppositeStorageOrder` names the type
+        `conditional_t<is_same_v<StorageOrder, column_major_t>, row_major_t, column_major_t>`;
+
+    * else if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`
+        for some `Triangle` and `StorageOrder`,
         then `layout_blas_packed<OppositeTriangle, OppositeStorageOrder>`,
         where
 
@@ -5742,11 +5754,12 @@ where
             `conditional_t<is_same_v<StorageOrder, column_major_t>,
             row_major_t, column_major_t>`;
 
-    * else, if `Layout` is `layout_transpose<NestedLayout>`
-        for some `NestedLayout`, then
-        either `NestedLayout` or `layout_transpose<Layout>`,
+    * else if `Layout` is `layout_transpose<NestedLayout>`
+        for some `NestedLayout`, then `NestedLayout` *[Note:*
+        this optimizes applying `layout_transpose` twice,
+        as long as there are no intervening layout changes --*end note]*;
 
-    * else `layout_transpose<Layout>`;
+    * else, `layout_transpose<Layout>`;
 
 * and, `ReturnAccessor` is:
 
@@ -5757,12 +5770,14 @@ where
 
 * *Effects:*
 
-    * If `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+    * If `Layout` is `layout_left`, `layout_right`, `layout_stride`,
+        `layout_blas_general<StorageOrder>` for some `StorageOrder`, or
+        `layout_blas_packed<Triangle, StorageOrder>` for some `Triangle` and `StorageOrder`,
         then equivalent to
-        `return R(a.data(), ReturnMapping(a.mapping().extents()), a.accessor());`;
+        `return R(a.data(), ReturnMapping(transpose_extents(a.mapping().extents())), a.accessor());`;
 
-    * else, if `Layout` is `layout_transpose<NestedLayout>` and
-        `ReturnLayout` is `NestedLayout`, then equivalent to
+    * else, if `Layout` is `layout_transpose<NestedLayout>`
+        for some `NestedLayout`, then equivalent to
         `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
 
     * else, equivalent to
@@ -5771,15 +5786,6 @@ where
         `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
 
 * *Remarks:* The elements of the returned `mdspan` are read only.
-
-*[Note:*
-
-Implementations may optimize applying `layout_transpose` twice in a
-row.  However, implementations need not optimize arbitrary
-combinations of nested `layout_transpose` interspersed with other
-nested layouts.
-
---*end note]*
 
 [*Example:*
 ```c++
