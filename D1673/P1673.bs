@@ -5032,6 +5032,9 @@ public:
 
   accessor_scaled(const ScalingFactor& s, Accessor a);
 
+  template<class OtherElementType>
+  accessor_scaled(const ScalingFactor& s, default_accessor<OtherElementType> a);
+
   reference access(pointer p, extents<>::size_type i) const noexcept;
 
   offset_policy::pointer
@@ -5056,6 +5059,22 @@ accessor_scaled(const ScalingFactor& s, Accessor a);
 ```
 
 * *Effects:* Initializes `scaling_factor_` with `s`, and initializes `accessor` with `a`.
+
+```c++
+template<class OtherElementType>
+accessor_scaled(const ScalingFactor& s, default_accessor<OtherElementType> a);
+``
+
+* *Constraints:*
+`is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
+
+* *Effects:* Initializes `scaling_factor_` with `s`, and initializes `accessor` with `a`.
+
+*[Note:*
+This constructor exists so that if `scaled` is given an `mdspan`
+with nonconst element type `T` and accessor `default_accessor<T>`,
+`scaled` can then return an `mdspan` with `const` element type.
+--*end note]*
 
 ```c++
 reference access(pointer p, extents<>::size_type i) const noexcept;
@@ -5270,6 +5289,9 @@ public:
 
   accessor_conjugate(Accessor a);
 
+  template<class OtherElementType>
+  accessor_conjugate(default_accessor<OtherElementType> a);
+
   reference access(pointer p, extents<>::size_type i) const
     noexcept(noexcept(reference(acc.access(p, i))));
 
@@ -5308,6 +5330,22 @@ accessor_conjugate(Accessor a);
 ```
 
 * *Effects:* Initializes `acc` with `a`.
+
+```c++
+template<class OtherElementType>
+accessor_conjugate(default_accessor<OtherElementType> a);
+``
+
+* *Constraints:*
+`is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
+
+* *Effects:* Initializes `scaling_factor_` with `s`, and initializes `acc` with `a`.
+
+*[Note:*
+This constructor exists so that if `conjugated` is given an `mdspan`
+with nonconst element type `T` and accessor `default_accessor<T>`,
+`conjugated` can then return an `mdspan` with `const` element type.
+--*end note]*
 
 ```c++
 reference access(pointer p, extents<>::size_type i) const
