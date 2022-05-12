@@ -260,6 +260,10 @@ Date: 2022-05-15
 
 * Revision 8 (electronic), to be submitted 2022-05-15
 
+    * Fix matrix extents in constraints and mandates
+        for `symmetric_matrix_rank_k_update` and `hermitian_matrix_rank_k_update`
+        (thanks to Mikołaj Zuzek for reporting the issue)
+
     * Resolve vagueness in `const`ness of return type of `transposed`
 
     * Resolve vagueness in `const`ness of return type of `scaled`,
@@ -9199,11 +9203,11 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Preconditions:*
 
-    * `A.extent(0)` equals `C.extent(0)`,
+    * `A.extent(0)` equals `B.extent(0)`,
 
-    * `B.extent(1)` equals `C.extent(0)`, and
+    * `A.extent(1)` equals `B.extent(1)`, and
 
-    * `C.extent(0)` equals `C.extent(1)`.
+    * `A.extent(0)` equals `C.extent(0)`.
 
 * *Constraints:*
 
@@ -9217,17 +9221,17 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Mandates:*
 
+    * If neither `A.static_extent(0)` nor `B.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `B.static_extent(0)`.
+
+    * If neither `A.static_extent(1)` nor `B.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `B.static_extent(1)`.
+
     * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
         `dynamic_extent`, then `A.static_extent(0)` equals
         `C.static_extent(0)`.
-
-    * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
-        `dynamic_extent`, then `B.static_extent(1)` equals
-        `C.static_extent(0)`.
-
-    * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
-        `dynamic_extent`, then `C.static_extent(0)` equals
-        `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
     input with (the matrix product of `A` and the nonconjugated
@@ -9277,11 +9281,11 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Preconditions:*
 
-    * `A.extent(0)` equals `C.extent(0)`,
+    * `A.extent(0)` equals `B.extent(0)`,
 
-    * `B.extent(1)` equals `C.extent(0)`, and
+    * `A.extent(1)` equals `B.extent(1)`, and
 
-    * `C.extent(0)` equals `C.extent(1)`.
+    * `A.extent(0)` equals `C.extent(0)`.
 
 * *Constraints:*
 
@@ -9295,17 +9299,17 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Mandates:*
 
+    * If neither `A.static_extent(0)` nor `B.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `B.static_extent(0)`.
+
+    * If neither `A.static_extent(1)` nor `B.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `B.static_extent(1)`.
+
     * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
         `dynamic_extent`, then `A.static_extent(0)` equals
         `C.static_extent(0)`.
-
-    * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
-        `dynamic_extent`, then `B.static_extent(1)` equals
-        `C.static_extent(0)`.
-
-    * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
-        `dynamic_extent`, then `C.static_extent(0)` equals
-        `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output,
     the elementwise sum of `C` on input with
