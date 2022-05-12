@@ -260,6 +260,8 @@ Date: 2022-05-15
 
 * Revision 8 (electronic), to be submitted 2022-05-15
 
+    * Resolve vagueness in `const`ness of return type of `transposed`
+
     * Resolve vagueness in `const`ness of return type of `scaled`,
         and make its element type the type of the product,
         rather than forcing it back to the input `mdspan`'s element type
@@ -5671,11 +5673,18 @@ transposed(
 
 Let `ReturnExtents` name the type `transpose_extents_t<Extents>`.
 Let `R` name the type
-`mdspan<ReturnElementType, ReturnExtents, ReturnLayout, Accessor>`,
+`mdspan<ReturnElementType, ReturnExtents, ReturnLayout, ReturnAccessor>`,
 where
 
-* `ReturnElementType` is either `ElementType` or
-    `const ElementType`; and
+* `ReturnElementType` is:
+
+    * if `Accessor` is `default_accessor<ElementType>`,
+        then `add_const_t<ElementType>`;
+
+    * else, `ElementType`; *[Note:* For general accessors,
+        the `const ElementType` version of the accessor may not exist;
+        Even if it does, `transposed` has no way to deduce it generically.
+        --*end note]*
 
 * `ReturnLayout` is:
 
@@ -5695,7 +5704,14 @@ where
         for some `NestedLayout`, then
         either `NestedLayout` or `layout_transpose<Layout>`,
 
-    * else `layout_transpose<Layout>`.
+    * else `layout_transpose<Layout>`;
+
+* and, `ReturnAccessor` is:
+
+    * if `Accessor` is `default_accessor<ElementType>`,
+        then `default_accessor<add_const_t<ElementType>>`;
+
+    * else, `Accessor`.
 
 * *Effects:*
 
