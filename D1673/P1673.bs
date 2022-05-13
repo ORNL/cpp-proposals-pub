@@ -260,6 +260,9 @@ Date: 2022-05-15
 
 * Revision 8 (electronic), to be submitted 2022-05-15
 
+    * Explain why we apply `Triangle` to the possibly transformed input matrix,
+        while the BLAS applies `UPLO` to the original input matrix
+
     * Optimize `transposed` for all known layouts,
         so as to avoid use of `layout_transpose` when not needed
 
@@ -1607,6 +1610,105 @@ meant to be easy for the compiler to optimize -- with extra baggage
 for representing what amounts to sparse matrices.  We think that BLAS
 matrix "type" is better represented with a higher-level library that
 builds on our proposal.
+
+## Interpretation of "lower / upper triangular"
+
+### Triangle refers to what part of the matrix is accessed
+
+The triangular, symmetric, and Hermitian algorithms in this proposal
+all take a `Triangle` tag that specifies whether the algorithm
+should access the upper or lower triangle of the matrix.
+This has the same function as the `UPLO` argument
+of the corresponding BLAS routines.
+The upper or lower triangular argument
+only refers to what part of the matrix the algorithm will access.
+The "other triangle" of the matrix need not contain useful data.
+For example, with the symmetric algorithms,
+`A[j, i]` need not equal `A[i, j]`
+for any `i` and `j` in the domain of `A` with `i != j`.
+The algorithm just accesses one triangle and interprets the other triangle
+as the result of flipping the accessed triangle over the diagonal.
+
+This "interpretation" approach to representing triangular matrices
+is critical for matrix factorizations.
+For example, LAPACK's LU factorization (`xGETRF`)
+overwrites a matrix A with both its L (lower triangular,
+implicitly represented diagonal of all ones)
+and U (upper triangular, explicitly stored diagonal) factors.
+Solving linear systems Ax=b with this factorization,
+as LAPACK's `xGETRS` routine does,
+requires solving first a linear system with the upper triangular matrix U,
+and then solving a linear system with the lower triangular matrix L.
+If the BLAS required that the "other triangle"
+of a triangular matrix had all zero elements,
+then LU factorization would require at least twice the storage.
+For symmetric and Hermitian matrices,
+only accessing the matrix's elements nonredundantly
+ensures that the matrix remains mathematically symmetric resp. Hermitian,
+even in the presence of rounding error.
+
+### BLAS applies UPLO to original matrix; we apply Triangle to transformed matrix
+
+The BLAS routines that take an `UPLO` argument
+generally also take a `TRANS` argument.
+The `TRANS` argument says whether to apply the matrix,
+its transpose, or its conjugate transpose.
+The BLAS applies the `UPLO` argument to the "original" matrix,
+not to the transposed matrix.
+For example, if `TRANS='T'` or `TRANS='C'`,
+`UPLO='U'` means the routine will access the upper triangle of the matrix,
+not the upper triangle of the matrix's transpose.
+
+Our proposal takes the opposite approach.
+It applies `Triangle` to the input matrix,
+which may be the result of a transformation
+such as `transposed` or `conjugate_transposed`.
+For example, if `Triangle` is `upper_triangle_t`,
+the algorithm will always access the matrix
+for `i,j` in its domain with `i <= j`
+(or `i < j`, if the algorithm takes a `Diagonal` tag
+and `Diagonal` is `implicit_unit_diagonal_t`).
+If the input matrix is `transposed(A)` for a `layout_left` `mdspan` `A`,
+this means that the algorithm will access the upper triangle of `transposed(A)`,
+which is actually the *lower* triangle of `A`.
+
+We took this approach because our interface permits arbitrary layouts,
+with possibly arbitrary nesting of layout transformations.
+This comes from `mdspan`'s design itself, not even necessarily from our proposal.
+For example, users might define `antitranspose(A)`,
+that flips indices over the antidiagonal
+(the "other diagonal" that goes from the lower left to the upper right of the matrix,
+instead of from the upper left to the lower right).
+Layout transformations need not even be one-to-one,
+because layouts themselves need not be (hence `is_unique`).
+Since it's not possible to "undo" a general layout,
+there's no way to get back to the "original matrix."
+
+Our approach, while not consistent with the BLAS, is internally consistent.
+`Triangle` always has a clear meaning,
+no matter what transformations users apply to the input.
+Layout transformations like `transposed`
+have the same interpretation for all the matrix algorithms,
+whether for general, triangular, symmetric, or Hermitian matrices.
+This interpretation is consistent with the standard meaning of `mdspan` layouts.
+
+C BLAS implementations already apply layout transformations like this
+so that they can use an existing column-major Fortran BLAS
+to implement operations on matrices with different layouts.
+For example, the transpose of an `M` x `N` `layout_left` matrix
+is just the same data, viewed as an `N` x `M` `layout_right` matrix.
+Thus, `transposed` is consistent with current practice.
+In fact, `transposed` need not use a special `layout_transpose`,
+if it knows how to reinterpret the input layout.
+
+### Summary
+
+1. BLAS applies `UPLO` to the original matrix, before any transposition.
+    Our proposal applies `Triangle` to the transformed matrix,
+    after any transposition.
+
+2. Our approach is the only reasonable way to handle the full generality
+    of user-defined layouts and layout transformations.
 
 ## Over- and underflow wording for vector 2-norm
 
