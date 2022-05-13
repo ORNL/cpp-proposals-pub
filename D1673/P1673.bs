@@ -4568,23 +4568,23 @@ struct explicit_diagonal_t { };
 inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
-These tag classes specify what algorithms and other users of a matrix
-should assume about the diagonal entries of the matrix, and whether
-algorithms and users of the matrix should access those diagonal
-entries explicitly.
+These tag classes specify whether algorithms
+should access the matrix's diagonal entries, and if not,
+then how algorithms should interpret
+the matrix's implicitly represented diagonal values.
 
 The `implicit_unit_diagonal_t` tag indicates two things:
 
-  * the function will never access the `i,i` element of the matrix; and
+  * the algorithm will never access the `i,i` element of the matrix; and
 
-  * the function will interpret the matrix as if it has a "unit diagonal,"
+  * the algorithm will interpret the matrix as if it has a "unit diagonal,"
       a diagonal each of whose elements behaves
       as a two-sided multiplicative identity
       (even if the matrix's value type does not have
       a two-sided multiplicative identity).
 
-The tag `explicit_diagonal_t` indicates that algorithms and other
-users of the viewer may access the matrix's diagonal entries directly.
+The tag `explicit_diagonal_t` indicates that algorithms
+may access the matrix's diagonal entries directly.
 
 ## Layouts for general and packed matrix types [linalg.layouts]
 
