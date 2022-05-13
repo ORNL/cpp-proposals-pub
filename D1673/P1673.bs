@@ -260,6 +260,8 @@ Date: 2022-05-15
 
 * Revision 8 (electronic), to be submitted 2022-05-15
 
+    * Fix `Triangle` and `R[0,0]` in Cholesky TSQR example
+
     * Explain why we apply `Triangle` to the possibly transformed input matrix,
         while the BLAS applies `UPLO` to the original input matrix
 
@@ -9490,9 +9492,10 @@ The following requirements apply to all functions in this section.
         the `Triangle` argument `t`.
 
     * If the `DiagonalStorage` template argument has type
-        `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that each of the diagonal elements
-        of `A` behaves as a two-sided multiplicative identity.
+        `implicit_unit_diagonal_t`,
+        then the functions will not access the diagonal of `A`,
+        and will interpret `A` as if each of its diagonal elements
+        behaves as a two-sided multiplicative identity.
 
 ##### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
@@ -9752,6 +9755,14 @@ if row/column k has a zero or NaN (not a number) diagonal entry.
 #include <linalg>
 #include <cmath>
 
+// Flip upper to lower, and lower to upper
+lower_triangular_t opposite_triangle(upper_triangular_t) {
+  return {}
+}
+upper_triangular_t opposite_triangle(lower_triangular_t) {
+  return {}
+}
+
 template<class inout_matrix_t,
          class Triangle>
 int cholesky_factor(inout_matrix_t A, Triangle t)
@@ -9791,11 +9802,15 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       // Update and scale A12
       auto A12 = submdspan(A, pair{0, n1}, pair{n1, n});
       using std::linalg::triangular_matrix_matrix_left_solve;
+      // BLAS would use original triangle; we need to flip it
       triangular_matrix_matrix_left_solve(transposed(A11),
-        upper_triangle, explicit_diagonal, A12);
+        opposite_triangle(t), explicit_diagonal, A12);
       // A22 = A22 - A12^T * A12
+      //
+      // The Triangle argument applies to A22,
+      // not transposed(A12), so we don't flip it.
       symmetric_matrix_rank_k_update(-ONE, transposed(A12),
-                                      A22, t);
+                                     A22, t);
     }
     else {
       //
@@ -9804,8 +9819,9 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       // Update and scale A21
       auto A21 = submdspan(A, pair{n1, n}, pair{0, n1});
       using std::linalg::triangular_matrix_matrix_right_solve;
+      // BLAS would use original triangle; we need to flip it
       triangular_matrix_matrix_right_solve(transposed(A11),
-        lower_triangle, explicit_diagonal, A21);
+        opposite_triangle(t), explicit_diagonal, A21);
       // A22 = A22 - A21 * A21^T
       symmetric_matrix_rank_k_update(-ONE, A21, A22, t);
     }
@@ -9844,7 +9860,7 @@ void cholesky_solve(
     // Solve Ax=b where A = U^T U
     //
     // Solve U^T c = b, using x to store c.
-    triangular_matrix_vector_solve(transposed(A), t,
+    triangular_matrix_vector_solve(transposed(A), opposite_triangle(t),
                                    explicit_diagonal, b, x);
     // Solve U x = c, overwriting x with result.
     triangular_matrix_vector_solve(A, t, explicit_diagonal, x);
@@ -9855,7 +9871,7 @@ void cholesky_solve(
     // Solve L c = b, using x to store c.
     triangular_matrix_vector_solve(A, t, explicit_diagonal, b, x);
     // Solve L^T x = c, overwriting x with result.
-    triangular_matrix_vector_solve(transposed(A), t,
+    triangular_matrix_vector_solve(transposed(A), opposite_triangle(t),
                                    explicit_diagonal, x);
   }
 }
@@ -9883,9 +9899,9 @@ int cholesky_tsqr_one_step(
 
   using R_element_type = typename out_matrix_t::element_type;
   constexpr R_element_type ZERO {};
-  for(extents<>::size_type i = 0; i < R.extent(0); ++i) {
-    for(extents<>::size_type j = 0; j < R.extent(1); ++j) {
-      R[0,0] = ZERO;
+  for(extents<>::size_type j = 0; j < R.extent(1); ++j) {
+    for(extents<>::size_type i = 0; i < R.extent(0); ++i) {
+      R[i,j] = ZERO;
     }
   }
 
@@ -9902,6 +9918,8 @@ int cholesky_tsqr_one_step(
     // R = R + A_cur^T * A_cur
     using std::linalg::symmetric_matrix_rank_k_update;
     constexpr R_element_type ONE(1.0);
+    // The Triangle argument applies to R,
+    // not transposed(A_cur), so we don't flip it.
     symmetric_matrix_rank_k_update(ONE, transposed(A_cur),
                                    R, upper_triangle);
   }
