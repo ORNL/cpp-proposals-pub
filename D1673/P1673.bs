@@ -4543,6 +4543,18 @@ access the upper triangle (`upper_triangular_t`) or lower triangle
 restrictions of `implicit_unit_diagonal_t` if that tag is also
 applied; see below.
 
+*[Note:*
+The `conjugate_transposed` and `transposed` functions in this section
+return a view of an input `mdspan` with its indices effectively reversed.
+Regardless, when we refer to the upper triangle of `B = transposed(A)`,
+we still mean the elements of `B` accessed by `B[i,j]` with `i` >= `j`.
+For all algorithms in this section that take a triangle tag parameter,
+the triangle tag refers to the actual input matrix,
+*after* any transformations like `transposed`.
+This differs from the BLAS' `UPLO` argument,
+which refers to the pre-transformed "original" matrix.
+--*end note]*
+
 ### Diagonal tags [linalg.tags.diagonal]
 
 ```c++
@@ -4561,10 +4573,13 @@ entries explicitly.
 
 The `implicit_unit_diagonal_t` tag indicates two things:
 
-  * the function will never access the `i,i` element of the matrix,
-    and
+  * the function will never access the `i,i` element of the matrix; and
 
-  * the matrix has a diagonal of ones (a "unit diagonal").
+  * the function will interpret the matrix as if it has a "unit diagonal,"
+      a diagonal each of whose elements behaves
+      as a two-sided multiplicative identity
+      (even if the matrix's value type does not have
+      a two-sided multiplicative identity).
 
 The tag `explicit_diagonal_t` indicates that algorithms and other
 users of the viewer may access the matrix's diagonal entries directly.
@@ -4836,11 +4851,6 @@ entry.
 `layout_blas_packed` describes the data layout used by the BLAS'
 Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
 (TP) matrix types.
-
-If `transposed`'s input has layout `layout_blas_packed`, the
-return type also has layout `layout_blas_packed`, but with opposite
-`Triangle` and `StorageOrder`.  For example, the transpose of a packed
-column-major upper triangle, is a packed row-major lower triangle.
 
 --*end note]*
 
@@ -7050,9 +7060,10 @@ The following requirements apply to all functions in this section.
     perform a count of `mdspan` array accesses and arithmetic operations
     that is linear in `x.extent(0)` times `A.extent(1)`.
 
-* *Remarks:* The functions will only access the triangle of `A`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
+* *Remarks:* The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`, and will interpret the value `A[i,j]`
+    as equal to `A[j,i]` for indices `i,j`
+    in the domain of `A` but outside the triangle specified by `t`.
 
 ##### Overwriting symmetric matrix-vector product
 
@@ -7180,13 +7191,10 @@ The following requirements apply to all functions in this section.
     perform a count of `mdspan` array accesses and arithmetic operations
     that is linear in `x.extent(0)` times `A.extent(1)`.
 
-* *Remarks:*
-
-    * The functions will only access the triangle of `A` specified by
-        the `Triangle` argument `t`.
-
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
+* *Remarks:* The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`, and will interpret the value `A[i,j]`
+    as equal to _`conj-if-needed`_`A[j,i]` for indices `i,j`
+    in the domain of `A` but outside the triangle specified by `t`.
 
 ##### Overwriting Hermitian matrix-vector product
 
@@ -7323,11 +7331,10 @@ The following requirements apply to all functions in this section.
         the `Triangle` argument `t`.
 
     * If the `DiagonalStorage` template argument has type
-        `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that that the diagonal elements
-        of `A` all equal one. *[Note:* This does not imply that the
-        function needs to be able to form an `element_type` value equal to
-        one. --*end note]*
+        `implicit_unit_diagonal_t`,
+        then the functions will not access the diagonal of `A`,
+        and will interpret `A` as if each of its diagonal elements
+        behaves as a two-sided multiplicative identity.
 
 ##### Overwriting triangular matrix-vector product [linalg.algs.blas2.trmv.ov]
 
@@ -7499,11 +7506,10 @@ The following requirements apply to all functions in this section.
         the `Triangle` argument `t`.
 
     * If the `DiagonalStorage` template argument has type
-        `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that that the diagonal elements
-        of `A` all equal one. *[Note:* This does not imply that the
-        function needs to be able to form an `element_type` value equal to
-        one. --*end note]
+        `implicit_unit_diagonal_t`,
+        then the functions will not access the diagonal of `A`,
+        and will interpret `A` as if each of its diagonal elements
+        behaves as a two-sided multiplicative identity.
 
 ##### Not-in-place triangular solve [linalg.algs.blas2.trsv.not-in-place]
 
@@ -7804,8 +7810,9 @@ the mathematical expression for the algorithm is
     is linear in `x.extent(0)` times `x.extent(0)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
+    specified by the `Triangle` argument `t`,
+    and will interpret the value `A[i,j]` as equal to `A[j,i]`
+    for indices `i,j` in the domain `A` but outside that triangle.
 
 ##### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.her]
 
@@ -7907,8 +7914,10 @@ the mathematical expression for the algorithm is
     * The functions will only access the triangle of `A` specified by
         the `Triangle` argument `t`.
 
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
+    * For indices `i,j` in the domain of `A`
+        but outside the triangle specified by `t`,
+        the functions will interpret the value `A[i,j]`
+        as equal to _`conj-if-needed`_`A[j,i]`.
 
 #### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
@@ -7983,8 +7992,9 @@ the mathematical expression for the algorithm is
     is linear in `x.extent(0)` times `y.extent(0)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
+    specified by the `Triangle` argument `t`,
+    and will interpret the value `A[i,j]` as equal to `A[j,i]`
+    for indices `i,j` in the domain `A` but outside that triangle.
 
 #### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.her2]
 
@@ -8059,13 +8069,10 @@ the mathematical expression for the algorithm is
 * *Complexity:* The count of `mdspan` array accesses and arithmetic operations
     is linear in `x.extent(0)` times `y.extent(0)`.
 
-* *Remarks:*
-
-    * The functions will only access the triangle of `A`
-        specified by the `Triangle` argument `t`.
-
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
+* *Remarks:* The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`, and will interpret the value `A[i,j]`
+    as equal to _`conj-if-needed`_`A[j,i]` for indices `i,j`
+    in the domain of `A` but outside the triangle specified by `t`.
 
 ### BLAS 3 functions [linalg.algs.blas3]
 
@@ -8231,9 +8238,10 @@ The following requirements apply to all functions in this section.
 
 * *Remarks:*
 
-    * The functions will only access the triangle of `A` specified by
-        the `Triangle` argument `t`, and will assume for indices `i,j`
-        outside that triangle, that `A[j,i]` equals `A[i,j]`.
+    * *Remarks:* The functions will only access the triangle of `A`
+        specified by the `Triangle` argument `t`,
+        and will interpret the value `A[i,j]` as equal to `A[j,i]`
+        for indices `i,j` in the domain `A` but outside that triangle.
 
     * *Remarks:* `C` and `E` (if applicable) may refer to the same
         matrix.  If so, then they must have the same layout.
@@ -8510,10 +8518,9 @@ The following requirements apply to all functions in this section.
 * *Remarks:*
 
     * The functions will only access the triangle of `A` specified by
-        the `Triangle` argument `t`.
-
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
+        the `Triangle` argument `t`, and will interpret the value `A[i,j]`
+        as equal to _`conj-if-needed`_`A[j,i]` for indices `i,j`
+        in the domain of `A` but outside the triangle specified by `t`.
 
     * `C` and `E` (if applicable) may refer to the same matrix.
         If so, then they must have the same layout.
@@ -8789,11 +8796,10 @@ The following requirements apply to all functions in this section.
         the `Triangle` argument `t`.
 
     * If the `DiagonalStorage` template argument has type
-        `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that that the diagonal elements
-        of `A` all equal one. *[Note:* This does not imply that the
-        function needs to be able to form an `element_type` value equal to
-        one. --*end note]
+        `implicit_unit_diagonal_t`,
+        then the functions will not access the diagonal of `A`,
+        and will interpret `A` as if each of its diagonal elements
+        behaves as a two-sided multiplicative identity.
 
     * `C` and `E` (if applicable) may refer to the same matrix.
         If so, then they must have the same layout.
@@ -9180,9 +9186,10 @@ for all `k` such that `i,k` is in the domain of `A`.
         with `alpha` times (the matrix product of `A`
         and the nonconjugated transpose of `A`).
 
-* *Remarks:* The functions will only access the triangle of `C`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
+* *Remarks:* The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`, and will interpret the value `C[i,j]`
+    as equal to `C[j,i]` for indices `i,j`
+    in the domain of `C` but outside the triangle specified by `t`.
 
 ##### Rank-k Hermitian matrix update [linalg.alg.blas3.rank-k.herk]
 
@@ -9259,9 +9266,10 @@ for all `k` such that `i,k` is in the domain of `A`.
         sum of `C` on input with alpha times (the matrix product of `A`
         and the conjugated transpose of `A`).
 
-* *Remarks:* The functions will only access the triangle of `C`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
+* *Remarks:* The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`, and will interpret the value `C[i,j]`
+    as equal to `C[j,i]` for indices `i,j`
+    in the domain of `C` but outside the triangle specified by `t`.
 
 #### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
@@ -9346,9 +9354,10 @@ for all `k2` such that `i,k2` is in the domain of `B`.
     transpose of `B`) and (the matrix product of `B` and the
     nonconjugated transpose of `A`.)
 
-* *Remarks:* The functions will only access the triangle of `C`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
+* *Remarks:* The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`, and will interpret the value `C[i,j]`
+    as equal to `C[j,i]` for indices `i,j`
+    in the domain of `C` but outside the triangle specified by `t`.
 
 ##### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.her2k]
 
@@ -9424,13 +9433,10 @@ for all `k2` such that `i,k2` is in the domain of `B`.
     (the matrix product of `A` and the conjugate transpose of `B`) and
     (the matrix product of `B` and the conjugate transpose of `A`.)
 
-* *Remarks:*
-
-    * The functions will only access the triangle of `C` specified by
-        the `Triangle` argument `t`.
-
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `C[j,i]` equals _`conj-if-needed`_`(C[i,j])`.
+* *Remarks:* The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`, and will interpret the value `C[i,j]`
+    as equal to _`conj-if-needed`_`C[j,i]` for indices `i,j`
+    in the domain of `C` but outside the triangle specified by `t`.
 
 #### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
@@ -9485,10 +9491,8 @@ The following requirements apply to all functions in this section.
 
     * If the `DiagonalStorage` template argument has type
         `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that that the diagonal elements
-        of `A` all equal one. *[Note:* This does not imply that the
-        function needs to be able to form an `element_type` value equal to
-        one. --*end note]
+        diagonal of `A`, and will assume that each of the diagonal elements
+        of `A` behaves as a two-sided multiplicative identity.
 
 ##### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
