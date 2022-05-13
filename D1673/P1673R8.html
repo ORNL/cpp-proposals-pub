@@ -2687,7 +2687,8 @@ in <code class="highlight"><c- n>vector_norm2</c-></code> note</p>
 while the BLAS applies <code class="highlight"><c- n>UPLO</c-></code> to the original input matrix</p>
       <li data-md>
        <p>Optimize <code class="highlight"><c- n>transposed</c-></code> for all known layouts,
-so as to avoid use of <code class="highlight"><c- n>layout_transpose</c-></code> when not needed</p>
+so as to avoid use of <code class="highlight"><c- n>layout_transpose</c-></code> when not needed;
+fix computation of strides for transposed layouts</p>
       <li data-md>
        <p>Fix matrix extents in constraints and mandates
 for <code class="highlight"><c- n>symmetric_matrix_rank_k_update</c-></code> and <code class="highlight"><c- n>hermitian_matrix_rank_k_update</c-></code> (thanks to Mikołaj Zuzek for reporting the issue)</p>
@@ -7828,7 +7829,8 @@ where</p>
          <p><code class="highlight"><c- n>OppositeStorageOrder</c-></code> names the type <code class="highlight"><c- n>conditional_t</c-><c- o>&lt;</c-><c- n>is_same_v</c-><c- o>&lt;</c-><c- n>StorageOrder</c-><c- p>,</c-> <c- n>column_major_t</c-><c- o>></c-><c- p>,</c-> <c- n>row_major_t</c-><c- p>,</c-> <c- n>column_major_t</c-><c- o>></c-></code>;</p>
        </ul>
       <li data-md>
-       <p>else if <code class="highlight"><c- n>Layout</c-></code> is <code class="highlight"><c- n>layout_transpose</c-><c- o>&lt;</c-><c- n>NestedLayout</c-><c- o>></c-></code> for some <code class="highlight"><c- n>NestedLayout</c-></code>, then <code class="highlight"><c- n>NestedLayout</c-></code> <em>[Note:</em> this optimizes applying <code class="highlight"><c- n>layout_transpose</c-></code> twice,
+       <p>else if <code class="highlight"><c- n>Layout</c-></code> is <code class="highlight"><c- n>layout_transpose</c-><c- o>&lt;</c-><c- n>NestedLayout</c-><c- o>></c-></code> for some <code class="highlight"><c- n>NestedLayout</c-></code>, then <code class="highlight"><c- n>NestedLayout</c-></code> <em>[Note:</em> this optimizes applying <code class="highlight"><c- n>transposed</c-></code> twice
+to an <code class="highlight"><c- n>mdspan</c-></code> with a custom layout,
 as long as there are no intervening layout changes --<em>end note]</em>;</p>
       <li data-md>
        <p>else, <code class="highlight"><c- n>layout_transpose</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>></c-></code>;</p>
@@ -7846,12 +7848,36 @@ then <code class="highlight"><c- n>default_accessor</c-><c- o>&lt;</c-><c- n>add
      <p><em>Effects:</em></p>
      <ul>
       <li data-md>
-       <p>If <code class="highlight"><c- n>Layout</c-></code> is <code class="highlight"><c- n>layout_left</c-></code>, <code class="highlight"><c- n>layout_right</c-></code>, <code class="highlight"><c- n>layout_stride</c-></code>, <code class="highlight"><c- n>layout_blas_general</c-><c- o>&lt;</c-><c- n>StorageOrder</c-><c- o>></c-></code> for some <code class="highlight"><c- n>StorageOrder</c-></code>, or <code class="highlight"><c- n>layout_blas_packed</c-><c- o>&lt;</c-><c- n>Triangle</c-><c- p>,</c-> <c- n>StorageOrder</c-><c- o>></c-></code> for some <code class="highlight"><c- n>Triangle</c-></code> and <code class="highlight"><c- n>StorageOrder</c-></code>,
-then equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>ReturnMapping</c-><c- p>(</c-><c- n>transpose_extents</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>extents</c-><c- p>())),</c-> <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>());</c-></code>;</p>
+       <p>If <code class="highlight"><c- n>Layout</c-></code> is <code class="highlight"><c- n>layout_left</c-></code>, <code class="highlight"><c- n>layout_right</c-></code>, or <code class="highlight"><c- n>layout_blas_packed</c-><c- o>&lt;</c-><c- n>Triangle</c-><c- p>,</c-> <c- n>StorageOrder</c-><c- o>></c-></code> for some <code class="highlight"><c- n>Triangle</c-></code> and <code class="highlight"><c- n>StorageOrder</c-></code>,
+then equivalent to</p>
+<pre class="language-c++ highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c->
+  <c- n>ReturnMapping</c-><c- p>(</c-><c- n>transpose_extents</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>extents</c-><c- p>())),</c->
+  <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>());</c->
+</pre>
       <li data-md>
-       <p>else, if <code class="highlight"><c- n>Layout</c-></code> is <code class="highlight"><c- n>layout_transpose</c-><c- o>&lt;</c-><c- n>NestedLayout</c-><c- o>></c-></code> for some <code class="highlight"><c- n>NestedLayout</c-></code>, then equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>nested_mapping</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>());</c-></code>;</p>
+       <p>else, if <code class="highlight"><c- n>Layout</c-></code> is <code class="highlight"><c- n>layout_blas_general</c-><c- o>&lt;</c-><c- n>StorageOrder</c-><c- o>></c-></code> for some <code class="highlight"><c- n>StorageOrder</c-></code>, then equivalent to <em>[Note:</em> the ternary expression picks the "nontrivial" stride --<em>end note]</em></p>
+<pre class="language-c++ highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c->
+  <c- n>ReturnMapping</c-><c- p>(</c->
+    <c- n>transpose_extents</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>extents</c-><c- p>()),</c->
+    <c- n>is_same_v</c-><c- o>&lt;</c-><c- n>StorageOrder</c-><c- p>,</c-> <c- n>column_major_t</c-><c- o>></c-> <c- o>?</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-> <c- o>:</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>)),</c->
+    <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>());</c->
+</pre>
       <li data-md>
-       <p>else, equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>ReturnMapping</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>()),</c-> <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>);</c-></code>,
+       <p>else, if <code class="highlight"><c- n>Layout</c-></code> is <code class="highlight"><c- n>layout_stride</c-></code>, then equivalent to <em>[Note:</em> reverse the strides as well as the extents --<em>end note]</em></p>
+<pre class="language-c++ highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c->
+  <c- n>ReturnMapping</c-><c- p>(</c->
+    <c- n>transpose_extents</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>extents</c-><c- p>()),</c->
+    <c- n>array</c-><c- o>&lt;</c-><c- n>decltype</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>rank</c-><c- p>()</c-><c- o>></c-><c- p>{</c->
+      <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>),</c->
+      <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>)}),</c->
+    <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>());</c->
+</pre>
+      <li data-md>
+       <p>else, if <code class="highlight"><c- n>Layout</c-></code> is <code class="highlight"><c- n>layout_transpose</c-><c- o>&lt;</c-><c- n>NestedLayout</c-><c- o>></c-></code> for some <code class="highlight"><c- n>NestedLayout</c-></code>, then equivalent to <em>[Note:</em> getting the nested mapping untransposes the extents --<em>end note]</em></p>
+<pre class="language-c++ highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>().</c-><c- n>nested_mapping</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>());</c->
+</pre>
+      <li data-md>
+       <p>else, equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>ReturnMapping</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>()),</c-> <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>());</c-></code>,
 where <code class="highlight"><c- n>ReturnMapping</c-></code> names the type <code class="highlight"><c- k>typename</c-> <c- nc>layout_transpose</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>>::</c-><c- k>template</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>ReturnExtents</c-><c- o>></c-></code>.</p>
      </ul>
     <li data-md>

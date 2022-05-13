@@ -266,7 +266,8 @@ Date: 2022-05-15
         while the BLAS applies `UPLO` to the original input matrix
 
     * Optimize `transposed` for all known layouts,
-        so as to avoid use of `layout_transpose` when not needed
+        so as to avoid use of `layout_transpose` when not needed;
+        fix computation of strides for transposed layouts
 
     * Fix matrix extents in constraints and mandates
         for `symmetric_matrix_rank_k_update` and `hermitian_matrix_rank_k_update`
@@ -5870,7 +5871,8 @@ where
 
     * else if `Layout` is `layout_transpose<NestedLayout>`
         for some `NestedLayout`, then `NestedLayout` *[Note:*
-        this optimizes applying `layout_transpose` twice,
+        this optimizes applying `transposed` twice
+        to an `mdspan` with a custom layout,
         as long as there are no intervening layout changes --*end note]*;
 
     * else, `layout_transpose<Layout>`;
@@ -5884,18 +5886,48 @@ where
 
 * *Effects:*
 
-    * If `Layout` is `layout_left`, `layout_right`, `layout_stride`,
-        `layout_blas_general<StorageOrder>` for some `StorageOrder`, or
-        `layout_blas_packed<Triangle, StorageOrder>` for some `Triangle` and `StorageOrder`,
+    * If `Layout` is `layout_left`, `layout_right`, or
+        `layout_blas_packed<Triangle, StorageOrder>`
+        for some `Triangle` and `StorageOrder`,
         then equivalent to
-        `return R(a.data(), ReturnMapping(transpose_extents(a.mapping().extents())), a.accessor());`;
+```c++
+return R(a.data(),
+  ReturnMapping(transpose_extents(a.mapping().extents())),
+  a.accessor());
+```
+
+    * else, if `Layout` is `layout_blas_general<StorageOrder>`
+        for some `StorageOrder`, then equivalent to
+        *[Note:* the ternary expression picks the "nontrivial" stride --*end note]*
+```c++
+return R(a.data(),
+  ReturnMapping(
+    transpose_extents(a.mapping().extents()),
+    is_same_v<StorageOrder, column_major_t> ? a.mapping().stride(1) : a.mapping().stride(0)),
+    a.accessor());
+```
+
+    * else, if `Layout` is `layout_stride`, then equivalent to
+        *[Note:* reverse the strides as well as the extents --*end note]*
+```c++
+return R(a.data(),
+  ReturnMapping(
+    transpose_extents(a.mapping().extents()),
+    array<decltype(), a.mapping().rank()>{
+      a.mapping().stride(1),
+      a.mapping().stride(0)}),
+    a.accessor());
+```
 
     * else, if `Layout` is `layout_transpose<NestedLayout>`
         for some `NestedLayout`, then equivalent to
-        `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
+        *[Note:* getting the nested mapping untransposes the extents --*end note]*
+```c++        
+return R(a.data(), a.mapping().nested_mapping(), a.accessor());
+```
 
     * else, equivalent to
-        `return R(a.data(), ReturnMapping(a.mapping()), a.accessor);`,
+        `return R(a.data(), ReturnMapping(a.mapping()), a.accessor());`,
         where `ReturnMapping` names the type
         `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
 
