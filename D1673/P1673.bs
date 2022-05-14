@@ -286,10 +286,12 @@ Date: 2022-05-15
     * Make sure `accessor_conjugate` and `conjugated` work correctly
         for user-defined complex types,
         introduce _`conj-if-needed`_ to simplify wording,
-        and resolve vagueness in `const`ness of return type of `conjugated`
-        (thanks to Yu You (NVIDIA, yuyou@nvidia.com) and
+        and resolve vagueness in `const`ness of return type of `conjugated`.
+        Make sure that _`conj-if-needed`_ works for custom types
+        where `conj` is not type-preserving.
+        (Thanks to Yu You (NVIDIA, yuyou@nvidia.com) and
         Phil Miller (Intense Computing, `phil.miller@intensecomputing.com`)
-        for helpful discussions)
+        for helpful discussions.)
 
     * Fix typo in `givens_rotation_setup` for complex numbers, and other typos
         (thanks to Phil Miller for reporting the issue)
@@ -2497,11 +2499,16 @@ We can support `conjugated` (and thus `conjugated_transposed`) for all types as 
 2. For all other types (including specializations of `complex`),
     define `accessor_conjugate` to use `using std::conj; return conj(x);`.
 
-We could express this through an exposition-only function _`conj-if-needed`_:
+We could express this through an exposition-only function _`conj-if-needed`_.
+The generic version returns `auto`, not `T`,
+for cases where a user-defined `conj` returns a different type than its input.
+(Some user-defined types might take a cue
+from specializations of `std::conj` for arithmetic types,
+by returning a `complex` specialization for a real type.)
 
 ```c++
 template<class T>
-T <it>conj-if-needed</it>(const T& t)
+auto <it>conj-if-needed</it>(const T& t)
 {
     using std::conj;
     return conj(t);
@@ -2532,7 +2539,7 @@ For example:
 
 ```c++
 template<class T>
-T <it>conj-if-not-arithmetic</it>(const T& t)
+auto <it>conj-if-not-arithmetic</it>(const T& t)
 {
     using std::conj;
     return conj(t);
@@ -2547,7 +2554,7 @@ T <it>conj-if-not-arithmetic</it>(const T& t)
 template<class T>
 concept <it>conjugatable</it> = requires(T a)
 { // "using" declarations don't work in here
-    T b = <it>conj-if-not-arithmetic</it>(a);
+    auto b = <it>conj-if-not-arithmetic</it>(a);
 }
 
 template<class T>
@@ -2557,7 +2564,7 @@ T <it>conj-if-needed</it>(const T& t)
 }
 
 template<conjugatable T>
-T <it>conj-if-needed</it>(const T& t)
+auto <it>conj-if-needed</it>(const T& t)
 {
     return <it>conj-if-not-arithmetic</it>(t);
 }
@@ -4296,7 +4303,7 @@ void triangular_matrix_matrix_right_solve(
   inout_matrix_t B);
 
 template<class T>
-T <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
+auto <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
 {
     using std::conj;
     return conj(t);
@@ -5351,9 +5358,12 @@ template<class Reference,
          class ElementType>
 class conjugated_scalar { // exposition only
 public:
+  using conjugate_result_t =
+    decltype(<it>conj-if-needed</it>(declval<ElementType>()));
+
   conjugated_scalar(Reference v);
 
-  operator ElementType() const {
+  operator conjugate_result_t () const {
     return <it>conj-if-needed</it>(val);
   }
 
@@ -5385,12 +5395,16 @@ template<class T1, class Reference, class ElementType>
 auto operator* (const T1 x, const conjugated_scalar<Reference, ElementType> y) {
   return x * Reference(y);
 }
+
+template<class T1, class Reference, class ElementType>
+auto operator/ (const T1 x, const conjugated_scalar<Reference, ElementType> y) {
+  return x / Reference(y);
+}
 ```
 
 * *Preconditions:* `Reference` shall be *Cpp17CopyConstructible*.
 
-* *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed
-    and is convertible to `ElementType`.
+* *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed.
 
 ```c++
 conjugated_scalar(Reference v);
@@ -5405,7 +5419,7 @@ private:
   Accessor acc; // exposition only
 
 public:
-  using element_type  = typename Accessor::element_type;
+  using element_type = /* see below */
   using pointer       = typename Accessor::pointer;
   using reference     = /* see below */;
   using offset_policy = /* see below */;
@@ -5429,6 +5443,26 @@ public:
 * *Preconditions:*
 
     * `Accessor` shall meet the `mdspan` accessor policy requirements **[mdspan.accessor.reqmts]**.
+
+```c++
+using element_type = /* see below */
+```
+
+If `typename Accessor::element_type` is an arithmetic type,
+then let the exposition-only type alias `pre-const-element-type` name
+`typename Accessor::element_type`; otherwise, let it name
+`conjugated_scalar<typename Accessor::reference, element_type>::conjugate_result_t`.
+
+* If `Accessor` is `default_accessor<ElementType>`,
+    or if `Accessor` is
+    `accessor_scaled<ScalingFactor, default_accessor<InnerElementType>>`
+    for some `ScalingFactor` and `InnerElementType`,
+    then `element_type` names `add_const_t<`_`pre-const-element-type`_`>`;
+
+* else, `element_type` names _`pre-const-element-type`_ *[Note:* For general accessors,
+    the `const ElementType` version of the accessor may not exist;
+    Even if it does, `accessor_conjugate` has no way to deduce it generically.
+    --*end note]*
 
 ```c++
 using reference = /* see below */;
@@ -5507,20 +5541,7 @@ Let `R` name the type
 `mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
-* `ReturnElementType` is:
-
-    * if `Accessor` is `default_accessor<ElementType>`,
-        then `add_const_t<ElementType>`;
-
-    * else if `Accessor` is
-        `accessor_scaled<ScalingFactor, default_accessor<InnerElementType>>`
-        for some `ScalingFactor` and `InnerElementType`,
-        then `add_const_t<ElementType>`;
-
-    * else, `ElementType`; *[Note:* For general accessors,
-        the `const ElementType` version of the accessor may not exist;
-        Even if it does, `conjugated` has no way to deduce it generically.
-        --*end note]*
+* `ReturnElementType` is `accessor_conjugate<Accessor>::element_type`;
 
 * and, `ReturnAccessor` is:
 
