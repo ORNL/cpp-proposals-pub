@@ -5381,8 +5381,8 @@ private:
   Reference val;
 };
 
-template<class T1, class Reference, class Element>
-auto operator* (const T1 x, const conjugated_scalar<Reference, Element> y) {
+template<class T1, class Reference, class ElementType>
+auto operator* (const T1 x, const conjugated_scalar<Reference, ElementType> y) {
   return x * Reference(y);
 }
 ```
@@ -7903,7 +7903,7 @@ For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
 `A[i,j] += x[i] * `_`conj-if-needed`_`(x[j])` for overloads without an `alpha` parameter, and
-`A[i,j] += alpha * x[i] * `_`conj-if-needed`_`(x[j])` for overloads without an `alpha` parameter.
+`A[i,j] += alpha * x[i] * `_`conj-if-needed`_`(x[j])` for overloads with an `alpha` parameter.
 
 * *Preconditions:*
 
