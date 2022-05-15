@@ -1,4 +1,4 @@
-# P1674R1: Evolving a Standard C++ Linear Algebra Library from the BLAS
+# P1674R2: Evolving a Standard C++ Linear Algebra Library from the BLAS
 
 ## Authors
 
@@ -6,7 +6,7 @@
 * D. S. Hollman (me@dsh.fyi) (Google)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 
-## Date: 2022-04-15
+## Date: 2022-05-15
 
 ## Revision history
 
@@ -22,6 +22,15 @@
     which WG21 adopted on 2021-10
 
   * Account for changes to P1673 and other proposals in flight
+
+* Revision 2 to be submitted 2022-05-15
+
+  * To match the latest P1673 revision,
+    change language about Symmetric, Hermitian, and Triangular algorithms
+    from "assuming" things about the values in the not-accessed triangle,
+    to "interpreting" things about those values
+
+  * Added new references and updated existing ones (thanks to Jeff Hammond)
 
 ## Introduction
 
@@ -872,34 +881,35 @@ that BLAS function names use for each.
   additional integers, one for the upper band width, and one for the
   lower band width.
 
-* Symmetric (SY): Stored like General, but with the assumption of
-  symmetry (`A[i,j] == A[j,i]`), so that algorithms only need to
-  access half the matrix.  Functions take an `UPLO` argument to decide
+* Symmetric (SY): Stored like General,
+  but the algorithm may only access half of the matrix
+  (either the upper or lower triangle).
+  The algorithm interprets the other half as if the matrix is symmetric
+  (`A[i,j] == A[j,i]`).  Functions take an `UPLO` argument to decide
   whether to access the matrix's upper or lower triangle.
 
 * Symmetric Band (SB): The combination of General Band and Symmetric.
 
-* Symmetric Packed (SP): Assumes symmetry, but stores entries in a
-  contiguous column-major packed format.  The BLAS function takes an
-  `UPLO` argument to decide whether the packed format represents the
-  upper or lower triangle of the matrix.
+* Symmetric Packed (SP): Like Symmetric, but stores entries in a
+  contiguous column-major packed format.
 
-* Hermitian (HE): Like Symmetric, but assumes the Hermitian property
+* Hermitian (HE): Like Symmetric, but with the Hermitian property
   (the complex conjugate of `A[i,j]` equals `A[j,i]`) instead of
   symmetry.  Symmetry and the Hermitian property only differ if the
   matrix's element type is complex.
 
 * Hermitian Band (HB): The combination of General Band and Hermitian.
 
-* Hermitian Packed (SP): Like Symmetric Packed, but assumes the
-  Hermitian property instead of symmetry.
+* Hermitian Packed (SP): Like Symmetric Packed,
+  with the Hermitian property instead of symmetry.
 
 * Triangular (TR): Functions take an `UPLO` argument to decide whether
   to access the matrix's upper or lower triangle, and a `DIAG`
-  argument to decide whether to assume that the matrix has an
-  implicitly stored unit diagonal (all ones).  Both options are
-  relevant for using the results of matrix factorizations like LU and
-  Cholesky.
+  argument to decide whether to access the matrix's diagonal.
+  If `DIAG` is `'U'`, the function will not access the matrix's diagonal,
+  and will interpret the diagonal's elements as all ones (a "unit diagonal").
+  Both options are relevant for using the results
+  of an in-place LU matrix factorization.
 
 * Triangular Band (TB): The combination of General Band and
   Triangular.
@@ -918,7 +928,7 @@ The BLAS' "matrix types" conflate three different things:
 
 2. constraints on what entries of the matrix an algorithm may access --
    e.g., only the upper or lower triangle, or only the entries within a
-   band; and
+   band -- and interpretation of the values of entries not accessed; and
 
 3. mathematical properties of a matrix, like symmetric, Hermitian,
    banded, or triangular.
