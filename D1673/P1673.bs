@@ -260,12 +260,19 @@ Date: 2022-05-15
 
 * Revision 8 (electronic), to be submitted 2022-05-15
 
+    * Fix `Triangle` and `R[0,0]` in Cholesky TSQR example
+
+    * Explain why we apply `Triangle` to the possibly transformed input matrix,
+        while the BLAS applies `UPLO` to the original input matrix
+
     * Optimize `transposed` for all known layouts,
-        so as to avoid use of `layout_transpose` when not needed
+        so as to avoid use of `layout_transpose` when not needed;
+        fix computation of strides for transposed layouts
 
     * Fix matrix extents in constraints and mandates
         for `symmetric_matrix_rank_k_update` and `hermitian_matrix_rank_k_update`
-        (thanks to Mikołaj Zuzek for reporting the issue)
+        (thanks to Mikołaj Zuzek (NexGen Analytics, `mikolaj.zuzek@ng-analytics.com`) 
+        for reporting the issue)
 
     * Resolve vagueness in `const`ness of return type of `transposed`
 
@@ -279,10 +286,12 @@ Date: 2022-05-15
     * Make sure `accessor_conjugate` and `conjugated` work correctly
         for user-defined complex types,
         introduce _`conj-if-needed`_ to simplify wording,
-        and resolve vagueness in `const`ness of return type of `conjugated`
-        (thanks to Yu You (NVIDIA, yuyou@nvidia.com) and
+        and resolve vagueness in `const`ness of return type of `conjugated`.
+        Make sure that _`conj-if-needed`_ works for custom types
+        where `conj` is not type-preserving.
+        (Thanks to Yu You (NVIDIA, yuyou@nvidia.com) and
         Phil Miller (Intense Computing, `phil.miller@intensecomputing.com`)
-        for helpful discussions)
+        for helpful discussions.)
 
     * Fix typo in `givens_rotation_setup` for complex numbers, and other typos
         (thanks to Phil Miller for reporting the issue)
@@ -1608,6 +1617,105 @@ for representing what amounts to sparse matrices.  We think that BLAS
 matrix "type" is better represented with a higher-level library that
 builds on our proposal.
 
+## Interpretation of "lower / upper triangular"
+
+### Triangle refers to what part of the matrix is accessed
+
+The triangular, symmetric, and Hermitian algorithms in this proposal
+all take a `Triangle` tag that specifies whether the algorithm
+should access the upper or lower triangle of the matrix.
+This has the same function as the `UPLO` argument
+of the corresponding BLAS routines.
+The upper or lower triangular argument
+only refers to what part of the matrix the algorithm will access.
+The "other triangle" of the matrix need not contain useful data.
+For example, with the symmetric algorithms,
+`A[j, i]` need not equal `A[i, j]`
+for any `i` and `j` in the domain of `A` with `i != j`.
+The algorithm just accesses one triangle and interprets the other triangle
+as the result of flipping the accessed triangle over the diagonal.
+
+This "interpretation" approach to representing triangular matrices
+is critical for matrix factorizations.
+For example, LAPACK's LU factorization (`xGETRF`)
+overwrites a matrix A with both its L (lower triangular,
+implicitly represented diagonal of all ones)
+and U (upper triangular, explicitly stored diagonal) factors.
+Solving linear systems Ax=b with this factorization,
+as LAPACK's `xGETRS` routine does,
+requires solving first a linear system with the upper triangular matrix U,
+and then solving a linear system with the lower triangular matrix L.
+If the BLAS required that the "other triangle"
+of a triangular matrix had all zero elements,
+then LU factorization would require at least twice the storage.
+For symmetric and Hermitian matrices,
+only accessing the matrix's elements nonredundantly
+ensures that the matrix remains mathematically symmetric resp. Hermitian,
+even in the presence of rounding error.
+
+### BLAS applies UPLO to original matrix; we apply Triangle to transformed matrix
+
+The BLAS routines that take an `UPLO` argument
+generally also take a `TRANS` argument.
+The `TRANS` argument says whether to apply the matrix,
+its transpose, or its conjugate transpose.
+The BLAS applies the `UPLO` argument to the "original" matrix,
+not to the transposed matrix.
+For example, if `TRANS='T'` or `TRANS='C'`,
+`UPLO='U'` means the routine will access the upper triangle of the matrix,
+not the upper triangle of the matrix's transpose.
+
+Our proposal takes the opposite approach.
+It applies `Triangle` to the input matrix,
+which may be the result of a transformation
+such as `transposed` or `conjugate_transposed`.
+For example, if `Triangle` is `upper_triangle_t`,
+the algorithm will always access the matrix
+for `i,j` in its domain with `i <= j`
+(or `i < j`, if the algorithm takes a `Diagonal` tag
+and `Diagonal` is `implicit_unit_diagonal_t`).
+If the input matrix is `transposed(A)` for a `layout_left` `mdspan` `A`,
+this means that the algorithm will access the upper triangle of `transposed(A)`,
+which is actually the *lower* triangle of `A`.
+
+We took this approach because our interface permits arbitrary layouts,
+with possibly arbitrary nesting of layout transformations.
+This comes from `mdspan`'s design itself, not even necessarily from our proposal.
+For example, users might define `antitranspose(A)`,
+that flips indices over the antidiagonal
+(the "other diagonal" that goes from the lower left to the upper right of the matrix,
+instead of from the upper left to the lower right).
+Layout transformations need not even be one-to-one,
+because layouts themselves need not be (hence `is_unique`).
+Since it's not possible to "undo" a general layout,
+there's no way to get back to the "original matrix."
+
+Our approach, while not consistent with the BLAS, is internally consistent.
+`Triangle` always has a clear meaning,
+no matter what transformations users apply to the input.
+Layout transformations like `transposed`
+have the same interpretation for all the matrix algorithms,
+whether for general, triangular, symmetric, or Hermitian matrices.
+This interpretation is consistent with the standard meaning of `mdspan` layouts.
+
+C BLAS implementations already apply layout transformations like this
+so that they can use an existing column-major Fortran BLAS
+to implement operations on matrices with different layouts.
+For example, the transpose of an `M` x `N` `layout_left` matrix
+is just the same data, viewed as an `N` x `M` `layout_right` matrix.
+Thus, `transposed` is consistent with current practice.
+In fact, `transposed` need not use a special `layout_transpose`,
+if it knows how to reinterpret the input layout.
+
+### Summary
+
+1. BLAS applies `UPLO` to the original matrix, before any transposition.
+    Our proposal applies `Triangle` to the transformed matrix,
+    after any transposition.
+
+2. Our approach is the only reasonable way to handle the full generality
+    of user-defined layouts and layout transformations.
+
 ## Over- and underflow wording for vector 2-norm
 
 SG6 recommended to us at Belfast 2019 to change the special overflow /
@@ -2391,11 +2499,16 @@ We can support `conjugated` (and thus `conjugated_transposed`) for all types as 
 2. For all other types (including specializations of `complex`),
     define `accessor_conjugate` to use `using std::conj; return conj(x);`.
 
-We could express this through an exposition-only function _`conj-if-needed`_:
+We could express this through an exposition-only function _`conj-if-needed`_.
+The generic version returns `auto`, not `T`,
+for cases where a user-defined `conj` returns a different type than its input.
+(Some user-defined types might take a cue
+from specializations of `std::conj` for arithmetic types,
+by returning a `complex` specialization for a real type.)
 
 ```c++
 template<class T>
-T <it>conj-if-needed</it>(const T& t)
+auto <it>conj-if-needed</it>(const T& t)
 {
     using std::conj;
     return conj(t);
@@ -2426,7 +2539,7 @@ For example:
 
 ```c++
 template<class T>
-T <it>conj-if-not-arithmetic</it>(const T& t)
+auto <it>conj-if-not-arithmetic</it>(const T& t)
 {
     using std::conj;
     return conj(t);
@@ -2441,7 +2554,7 @@ T <it>conj-if-not-arithmetic</it>(const T& t)
 template<class T>
 concept <it>conjugatable</it> = requires(T a)
 { // "using" declarations don't work in here
-    T b = <it>conj-if-not-arithmetic</it>(a);
+    auto b = <it>conj-if-not-arithmetic</it>(a);
 }
 
 template<class T>
@@ -2451,7 +2564,7 @@ T <it>conj-if-needed</it>(const T& t)
 }
 
 template<conjugatable T>
-T <it>conj-if-needed</it>(const T& t)
+auto <it>conj-if-needed</it>(const T& t)
 {
     return <it>conj-if-not-arithmetic</it>(t);
 }
@@ -4190,7 +4303,7 @@ void triangular_matrix_matrix_right_solve(
   inout_matrix_t B);
 
 template<class T>
-T <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
+auto <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
 {
     using std::conj;
     return conj(t);
@@ -4441,6 +4554,18 @@ access the upper triangle (`upper_triangular_t`) or lower triangle
 restrictions of `implicit_unit_diagonal_t` if that tag is also
 applied; see below.
 
+*[Note:*
+The `conjugate_transposed` and `transposed` functions in this section
+return a view of an input `mdspan` with its indices effectively reversed.
+Regardless, when we refer to the upper triangle of `B = transposed(A)`,
+we still mean the elements of `B` accessed by `B[i,j]` with `i` >= `j`.
+For all algorithms in this section that take a triangle tag parameter,
+the triangle tag refers to the actual input matrix,
+*after* any transformations like `transposed`.
+This differs from the BLAS' `UPLO` argument,
+which refers to the pre-transformed "original" matrix.
+--*end note]*
+
 ### Diagonal tags [linalg.tags.diagonal]
 
 ```c++
@@ -4452,20 +4577,23 @@ struct explicit_diagonal_t { };
 inline constexpr explicit_diagonal_t explicit_diagonal = { };
 ```
 
-These tag classes specify what algorithms and other users of a matrix
-should assume about the diagonal entries of the matrix, and whether
-algorithms and users of the matrix should access those diagonal
-entries explicitly.
+These tag classes specify whether algorithms
+should access the matrix's diagonal entries, and if not,
+then how algorithms should interpret
+the matrix's implicitly represented diagonal values.
 
 The `implicit_unit_diagonal_t` tag indicates two things:
 
-  * the function will never access the `i,i` element of the matrix,
-    and
+  * the algorithm will never access the `i,i` element of the matrix; and
 
-  * the matrix has a diagonal of ones (a "unit diagonal").
+  * the algorithm will interpret the matrix as if it has a "unit diagonal,"
+      a diagonal each of whose elements behaves
+      as a two-sided multiplicative identity
+      (even if the matrix's value type does not have
+      a two-sided multiplicative identity).
 
-The tag `explicit_diagonal_t` indicates that algorithms and other
-users of the viewer may access the matrix's diagonal entries directly.
+The tag `explicit_diagonal_t` indicates that algorithms
+may access the matrix's diagonal entries directly.
 
 ## Layouts for general and packed matrix types [linalg.layouts]
 
@@ -4734,11 +4862,6 @@ entry.
 `layout_blas_packed` describes the data layout used by the BLAS'
 Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
 (TP) matrix types.
-
-If `transposed`'s input has layout `layout_blas_packed`, the
-return type also has layout `layout_blas_packed`, but with opposite
-`Triangle` and `StorageOrder`.  For example, the transpose of a packed
-column-major upper triangle, is a packed row-major lower triangle.
 
 --*end note]*
 
@@ -5235,9 +5358,12 @@ template<class Reference,
          class ElementType>
 class conjugated_scalar { // exposition only
 public:
+  using conjugate_result_t =
+    decltype(<it>conj-if-needed</it>(declval<ElementType>()));
+
   conjugated_scalar(Reference v);
 
-  operator ElementType() const {
+  operator conjugate_result_t () const {
     return <it>conj-if-needed</it>(val);
   }
 
@@ -5265,16 +5391,20 @@ private:
   Reference val;
 };
 
-template<class T1, class Reference, class Element>
-auto operator* (const T1 x, const conjugated_scalar<Reference, Element> y) {
+template<class T1, class Reference, class ElementType>
+auto operator* (const T1 x, const conjugated_scalar<Reference, ElementType> y) {
   return x * Reference(y);
+}
+
+template<class T1, class Reference, class ElementType>
+auto operator/ (const T1 x, const conjugated_scalar<Reference, ElementType> y) {
+  return x / Reference(y);
 }
 ```
 
 * *Preconditions:* `Reference` shall be *Cpp17CopyConstructible*.
 
-* *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed
-    and is convertible to `ElementType`.
+* *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed.
 
 ```c++
 conjugated_scalar(Reference v);
@@ -5289,7 +5419,7 @@ private:
   Accessor acc; // exposition only
 
 public:
-  using element_type  = typename Accessor::element_type;
+  using element_type = /* see below */
   using pointer       = typename Accessor::pointer;
   using reference     = /* see below */;
   using offset_policy = /* see below */;
@@ -5313,6 +5443,26 @@ public:
 * *Preconditions:*
 
     * `Accessor` shall meet the `mdspan` accessor policy requirements **[mdspan.accessor.reqmts]**.
+
+```c++
+using element_type = /* see below */
+```
+
+If `typename Accessor::element_type` is an arithmetic type,
+then let the exposition-only type alias `pre-const-element-type` name
+`typename Accessor::element_type`; otherwise, let it name
+`conjugated_scalar<typename Accessor::reference, element_type>::conjugate_result_t`.
+
+* If `Accessor` is `default_accessor<ElementType>`,
+    or if `Accessor` is
+    `accessor_scaled<ScalingFactor, default_accessor<InnerElementType>>`
+    for some `ScalingFactor` and `InnerElementType`,
+    then `element_type` names `add_const_t<`_`pre-const-element-type`_`>`;
+
+* else, `element_type` names _`pre-const-element-type`_ *[Note:* For general accessors,
+    the `const ElementType` version of the accessor may not exist;
+    Even if it does, `accessor_conjugate` has no way to deduce it generically.
+    --*end note]*
 
 ```c++
 using reference = /* see below */;
@@ -5391,20 +5541,7 @@ Let `R` name the type
 `mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
-* `ReturnElementType` is:
-
-    * if `Accessor` is `default_accessor<ElementType>`,
-        then `add_const_t<ElementType>`;
-
-    * else if `Accessor` is
-        `accessor_scaled<ScalingFactor, default_accessor<InnerElementType>>`
-        for some `ScalingFactor` and `InnerElementType`,
-        then `add_const_t<ElementType>`;
-
-    * else, `ElementType`; *[Note:* For general accessors,
-        the `const ElementType` version of the accessor may not exist;
-        Even if it does, `conjugated` has no way to deduce it generically.
-        --*end note]*
+* `ReturnElementType` is `accessor_conjugate<Accessor>::element_type`;
 
 * and, `ReturnAccessor` is:
 
@@ -5756,7 +5893,8 @@ where
 
     * else if `Layout` is `layout_transpose<NestedLayout>`
         for some `NestedLayout`, then `NestedLayout` *[Note:*
-        this optimizes applying `layout_transpose` twice,
+        this optimizes applying `transposed` twice
+        to an `mdspan` with a custom layout,
         as long as there are no intervening layout changes --*end note]*;
 
     * else, `layout_transpose<Layout>`;
@@ -5770,18 +5908,48 @@ where
 
 * *Effects:*
 
-    * If `Layout` is `layout_left`, `layout_right`, `layout_stride`,
-        `layout_blas_general<StorageOrder>` for some `StorageOrder`, or
-        `layout_blas_packed<Triangle, StorageOrder>` for some `Triangle` and `StorageOrder`,
+    * If `Layout` is `layout_left`, `layout_right`, or
+        `layout_blas_packed<Triangle, StorageOrder>`
+        for some `Triangle` and `StorageOrder`,
         then equivalent to
-        `return R(a.data(), ReturnMapping(transpose_extents(a.mapping().extents())), a.accessor());`;
+```c++
+return R(a.data(),
+  ReturnMapping(transpose_extents(a.mapping().extents())),
+  a.accessor());
+```
+
+    * else, if `Layout` is `layout_blas_general<StorageOrder>`
+        for some `StorageOrder`, then equivalent to
+        *[Note:* the ternary expression picks the "nontrivial" stride --*end note]*
+```c++
+return R(a.data(),
+  ReturnMapping(
+    transpose_extents(a.mapping().extents()),
+    is_same_v<StorageOrder, column_major_t> ? a.mapping().stride(1) : a.mapping().stride(0)),
+    a.accessor());
+```
+
+    * else, if `Layout` is `layout_stride`, then equivalent to
+        *[Note:* reverse the strides as well as the extents --*end note]*
+```c++
+return R(a.data(),
+  ReturnMapping(
+    transpose_extents(a.mapping().extents()),
+    array<decltype(), a.mapping().rank()>{
+      a.mapping().stride(1),
+      a.mapping().stride(0)}),
+    a.accessor());
+```
 
     * else, if `Layout` is `layout_transpose<NestedLayout>`
         for some `NestedLayout`, then equivalent to
-        `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
+        *[Note:* getting the nested mapping untransposes the extents --*end note]*
+```c++        
+return R(a.data(), a.mapping().nested_mapping(), a.accessor());
+```
 
     * else, equivalent to
-        `return R(a.data(), ReturnMapping(a.mapping()), a.accessor);`,
+        `return R(a.data(), ReturnMapping(a.mapping()), a.accessor());`,
         where `ReturnMapping` names the type
         `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
 
@@ -6948,9 +7116,10 @@ The following requirements apply to all functions in this section.
     perform a count of `mdspan` array accesses and arithmetic operations
     that is linear in `x.extent(0)` times `A.extent(1)`.
 
-* *Remarks:* The functions will only access the triangle of `A`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
+* *Remarks:* The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`, and will interpret the value `A[i,j]`
+    as equal to `A[j,i]` for indices `i,j`
+    in the domain of `A` but outside the triangle specified by `t`.
 
 ##### Overwriting symmetric matrix-vector product
 
@@ -7078,13 +7247,10 @@ The following requirements apply to all functions in this section.
     perform a count of `mdspan` array accesses and arithmetic operations
     that is linear in `x.extent(0)` times `A.extent(1)`.
 
-* *Remarks:*
-
-    * The functions will only access the triangle of `A` specified by
-        the `Triangle` argument `t`.
-
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
+* *Remarks:* The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`, and will interpret the value `A[i,j]`
+    as equal to _`conj-if-needed`_`A[j,i]` for indices `i,j`
+    in the domain of `A` but outside the triangle specified by `t`.
 
 ##### Overwriting Hermitian matrix-vector product
 
@@ -7221,11 +7387,10 @@ The following requirements apply to all functions in this section.
         the `Triangle` argument `t`.
 
     * If the `DiagonalStorage` template argument has type
-        `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that that the diagonal elements
-        of `A` all equal one. *[Note:* This does not imply that the
-        function needs to be able to form an `element_type` value equal to
-        one. --*end note]*
+        `implicit_unit_diagonal_t`,
+        then the functions will not access the diagonal of `A`,
+        and will interpret `A` as if each of its diagonal elements
+        behaves as a two-sided multiplicative identity.
 
 ##### Overwriting triangular matrix-vector product [linalg.algs.blas2.trmv.ov]
 
@@ -7397,11 +7562,10 @@ The following requirements apply to all functions in this section.
         the `Triangle` argument `t`.
 
     * If the `DiagonalStorage` template argument has type
-        `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that that the diagonal elements
-        of `A` all equal one. *[Note:* This does not imply that the
-        function needs to be able to form an `element_type` value equal to
-        one. --*end note]
+        `implicit_unit_diagonal_t`,
+        then the functions will not access the diagonal of `A`,
+        and will interpret `A` as if each of its diagonal elements
+        behaves as a two-sided multiplicative identity.
 
 ##### Not-in-place triangular solve [linalg.algs.blas2.trsv.not-in-place]
 
@@ -7702,8 +7866,9 @@ the mathematical expression for the algorithm is
     is linear in `x.extent(0)` times `x.extent(0)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
+    specified by the `Triangle` argument `t`,
+    and will interpret the value `A[i,j]` as equal to `A[j,i]`
+    for indices `i,j` in the domain `A` but outside that triangle.
 
 ##### Rank-1 update of a Hermitian matrix [linalg.algs.blas2.rank1.her]
 
@@ -7759,7 +7924,7 @@ For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
 `A[i,j] += x[i] * `_`conj-if-needed`_`(x[j])` for overloads without an `alpha` parameter, and
-`A[i,j] += alpha * x[i] * `_`conj-if-needed`_`(x[j])` for overloads without an `alpha` parameter.
+`A[i,j] += alpha * x[i] * `_`conj-if-needed`_`(x[j])` for overloads with an `alpha` parameter.
 
 * *Preconditions:*
 
@@ -7805,8 +7970,10 @@ the mathematical expression for the algorithm is
     * The functions will only access the triangle of `A` specified by
         the `Triangle` argument `t`.
 
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
+    * For indices `i,j` in the domain of `A`
+        but outside the triangle specified by `t`,
+        the functions will interpret the value `A[i,j]`
+        as equal to _`conj-if-needed`_`A[j,i]`.
 
 #### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
@@ -7881,8 +8048,9 @@ the mathematical expression for the algorithm is
     is linear in `x.extent(0)` times `y.extent(0)`.
 
 * *Remarks:* The functions will only access the triangle of `A`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `A[j,i]` equals `A[i,j]`.
+    specified by the `Triangle` argument `t`,
+    and will interpret the value `A[i,j]` as equal to `A[j,i]`
+    for indices `i,j` in the domain `A` but outside that triangle.
 
 #### Rank-2 update of a Hermitian matrix [linalg.algs.blas2.rank2.her2]
 
@@ -7957,13 +8125,10 @@ the mathematical expression for the algorithm is
 * *Complexity:* The count of `mdspan` array accesses and arithmetic operations
     is linear in `x.extent(0)` times `y.extent(0)`.
 
-* *Remarks:*
-
-    * The functions will only access the triangle of `A`
-        specified by the `Triangle` argument `t`.
-
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
+* *Remarks:* The functions will only access the triangle of `A` specified by
+    the `Triangle` argument `t`, and will interpret the value `A[i,j]`
+    as equal to _`conj-if-needed`_`A[j,i]` for indices `i,j`
+    in the domain of `A` but outside the triangle specified by `t`.
 
 ### BLAS 3 functions [linalg.algs.blas3]
 
@@ -8129,9 +8294,10 @@ The following requirements apply to all functions in this section.
 
 * *Remarks:*
 
-    * The functions will only access the triangle of `A` specified by
-        the `Triangle` argument `t`, and will assume for indices `i,j`
-        outside that triangle, that `A[j,i]` equals `A[i,j]`.
+    * *Remarks:* The functions will only access the triangle of `A`
+        specified by the `Triangle` argument `t`,
+        and will interpret the value `A[i,j]` as equal to `A[j,i]`
+        for indices `i,j` in the domain `A` but outside that triangle.
 
     * *Remarks:* `C` and `E` (if applicable) may refer to the same
         matrix.  If so, then they must have the same layout.
@@ -8408,10 +8574,9 @@ The following requirements apply to all functions in this section.
 * *Remarks:*
 
     * The functions will only access the triangle of `A` specified by
-        the `Triangle` argument `t`.
-
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
+        the `Triangle` argument `t`, and will interpret the value `A[i,j]`
+        as equal to _`conj-if-needed`_`A[j,i]` for indices `i,j`
+        in the domain of `A` but outside the triangle specified by `t`.
 
     * `C` and `E` (if applicable) may refer to the same matrix.
         If so, then they must have the same layout.
@@ -8687,11 +8852,10 @@ The following requirements apply to all functions in this section.
         the `Triangle` argument `t`.
 
     * If the `DiagonalStorage` template argument has type
-        `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that that the diagonal elements
-        of `A` all equal one. *[Note:* This does not imply that the
-        function needs to be able to form an `element_type` value equal to
-        one. --*end note]
+        `implicit_unit_diagonal_t`,
+        then the functions will not access the diagonal of `A`,
+        and will interpret `A` as if each of its diagonal elements
+        behaves as a two-sided multiplicative identity.
 
     * `C` and `E` (if applicable) may refer to the same matrix.
         If so, then they must have the same layout.
@@ -9078,9 +9242,10 @@ for all `k` such that `i,k` is in the domain of `A`.
         with `alpha` times (the matrix product of `A`
         and the nonconjugated transpose of `A`).
 
-* *Remarks:* The functions will only access the triangle of `C`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
+* *Remarks:* The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`, and will interpret the value `C[i,j]`
+    as equal to `C[j,i]` for indices `i,j`
+    in the domain of `C` but outside the triangle specified by `t`.
 
 ##### Rank-k Hermitian matrix update [linalg.alg.blas3.rank-k.herk]
 
@@ -9157,9 +9322,10 @@ for all `k` such that `i,k` is in the domain of `A`.
         sum of `C` on input with alpha times (the matrix product of `A`
         and the conjugated transpose of `A`).
 
-* *Remarks:* The functions will only access the triangle of `C`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
+* *Remarks:* The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`, and will interpret the value `C[i,j]`
+    as equal to `C[j,i]` for indices `i,j`
+    in the domain of `C` but outside the triangle specified by `t`.
 
 #### Rank-2k update of a symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]
 
@@ -9244,9 +9410,10 @@ for all `k2` such that `i,k2` is in the domain of `B`.
     transpose of `B`) and (the matrix product of `B` and the
     nonconjugated transpose of `A`.)
 
-* *Remarks:* The functions will only access the triangle of `C`
-    specified by the `Triangle` argument `t`, and will assume for
-    indices `i,j` outside that triangle, that `C[j,i]` equals `C[i,j]`.
+* *Remarks:* The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`, and will interpret the value `C[i,j]`
+    as equal to `C[j,i]` for indices `i,j`
+    in the domain of `C` but outside the triangle specified by `t`.
 
 ##### Rank-2k Hermitian matrix update [linalg.alg.blas3.rank2k.her2k]
 
@@ -9322,13 +9489,10 @@ for all `k2` such that `i,k2` is in the domain of `B`.
     (the matrix product of `A` and the conjugate transpose of `B`) and
     (the matrix product of `B` and the conjugate transpose of `A`.)
 
-* *Remarks:*
-
-    * The functions will only access the triangle of `C` specified by
-        the `Triangle` argument `t`.
-
-    * The functions will assume for indices `i,j` outside that
-        triangle, that `C[j,i]` equals _`conj-if-needed`_`(C[i,j])`.
+* *Remarks:* The functions will only access the triangle of `C` specified by
+    the `Triangle` argument `t`, and will interpret the value `C[i,j]`
+    as equal to _`conj-if-needed`_`C[j,i]` for indices `i,j`
+    in the domain of `C` but outside the triangle specified by `t`.
 
 #### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
@@ -9382,11 +9546,10 @@ The following requirements apply to all functions in this section.
         the `Triangle` argument `t`.
 
     * If the `DiagonalStorage` template argument has type
-        `implicit_unit_diagonal_t`, then the functions will not access the
-        diagonal of `A`, and will assume that that the diagonal elements
-        of `A` all equal one. *[Note:* This does not imply that the
-        function needs to be able to form an `element_type` value equal to
-        one. --*end note]
+        `implicit_unit_diagonal_t`,
+        then the functions will not access the diagonal of `A`,
+        and will interpret `A` as if each of its diagonal elements
+        behaves as a two-sided multiplicative identity.
 
 ##### Solve multiple triangular linear systems with triangular matrix on the left [linalg.alg.blas3.trsm.left]
 
@@ -9646,6 +9809,14 @@ if row/column k has a zero or NaN (not a number) diagonal entry.
 #include <linalg>
 #include <cmath>
 
+// Flip upper to lower, and lower to upper
+lower_triangular_t opposite_triangle(upper_triangular_t) {
+  return {}
+}
+upper_triangular_t opposite_triangle(lower_triangular_t) {
+  return {}
+}
+
 template<class inout_matrix_t,
          class Triangle>
 int cholesky_factor(inout_matrix_t A, Triangle t)
@@ -9685,11 +9856,15 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       // Update and scale A12
       auto A12 = submdspan(A, pair{0, n1}, pair{n1, n});
       using std::linalg::triangular_matrix_matrix_left_solve;
+      // BLAS would use original triangle; we need to flip it
       triangular_matrix_matrix_left_solve(transposed(A11),
-        upper_triangle, explicit_diagonal, A12);
+        opposite_triangle(t), explicit_diagonal, A12);
       // A22 = A22 - A12^T * A12
+      //
+      // The Triangle argument applies to A22,
+      // not transposed(A12), so we don't flip it.
       symmetric_matrix_rank_k_update(-ONE, transposed(A12),
-                                      A22, t);
+                                     A22, t);
     }
     else {
       //
@@ -9698,8 +9873,9 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
       // Update and scale A21
       auto A21 = submdspan(A, pair{n1, n}, pair{0, n1});
       using std::linalg::triangular_matrix_matrix_right_solve;
+      // BLAS would use original triangle; we need to flip it
       triangular_matrix_matrix_right_solve(transposed(A11),
-        lower_triangle, explicit_diagonal, A21);
+        opposite_triangle(t), explicit_diagonal, A21);
       // A22 = A22 - A21 * A21^T
       symmetric_matrix_rank_k_update(-ONE, A21, A22, t);
     }
@@ -9738,7 +9914,7 @@ void cholesky_solve(
     // Solve Ax=b where A = U^T U
     //
     // Solve U^T c = b, using x to store c.
-    triangular_matrix_vector_solve(transposed(A), t,
+    triangular_matrix_vector_solve(transposed(A), opposite_triangle(t),
                                    explicit_diagonal, b, x);
     // Solve U x = c, overwriting x with result.
     triangular_matrix_vector_solve(A, t, explicit_diagonal, x);
@@ -9749,7 +9925,7 @@ void cholesky_solve(
     // Solve L c = b, using x to store c.
     triangular_matrix_vector_solve(A, t, explicit_diagonal, b, x);
     // Solve L^T x = c, overwriting x with result.
-    triangular_matrix_vector_solve(transposed(A), t,
+    triangular_matrix_vector_solve(transposed(A), opposite_triangle(t),
                                    explicit_diagonal, x);
   }
 }
@@ -9777,9 +9953,9 @@ int cholesky_tsqr_one_step(
 
   using R_element_type = typename out_matrix_t::element_type;
   constexpr R_element_type ZERO {};
-  for(extents<>::size_type i = 0; i < R.extent(0); ++i) {
-    for(extents<>::size_type j = 0; j < R.extent(1); ++j) {
-      R[0,0] = ZERO;
+  for(extents<>::size_type j = 0; j < R.extent(1); ++j) {
+    for(extents<>::size_type i = 0; i < R.extent(0); ++i) {
+      R[i,j] = ZERO;
     }
   }
 
@@ -9796,6 +9972,8 @@ int cholesky_tsqr_one_step(
     // R = R + A_cur^T * A_cur
     using std::linalg::symmetric_matrix_rank_k_update;
     constexpr R_element_type ONE(1.0);
+    // The Triangle argument applies to R,
+    // not transposed(A_cur), so we don't flip it.
     symmetric_matrix_rank_k_update(ONE, transposed(A_cur),
                                    R, upper_triangle);
   }
