@@ -5,17 +5,17 @@ Status: iso/P
 Level: 8
 Group: WG21
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs
-Editor: Mark Hoemmen, NVIDIA, mark.hoemmen@stellarscience.com
+Editor: Mark Hoemmen, NVIDIA, mhoemmen@nvidia.com
 Abstract: We propose a C++ Standard Library dense linear algebra interface based on the dense Basic Linear Algebra Subroutines (BLAS).  This corresponds to a subset of the BLAS Standard.
 Markup Shorthands: markdown yes
-Date: 202?-??-??
+Date: 2022-05-15
 </pre>
 
 # Authors and contributors
 
 ## Authors
 
-* Mark Hoemmen (mark.hoemmen@gmail.com) (NVIDIA)
+* Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)
 * Daisy Hollman (cpp@dsh.fyi) (Google)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Daniel Sunderland (dansunderland@gmail.com)
@@ -258,10 +258,34 @@ Date: 202?-??-??
 
     * Fill in missing parts of `matrix_frob_norm` and `vector_norm2` specification, addressing <a href="https://github.com/kokkos/stdBLAS/issues/143">this issue</a>
 
-* Revision 8 (electronic), to be submitted 202?-??-??
+* Revision 8 (electronic), to be submitted 2022-05-15
 
-    * Fix typo in `givens_rotation_setup` for complex numbers
-        (thanks to Phil Miller `phil.miller@intensecomputing.com` for reporting the issue)
+    * Optimize `transposed` for all known layouts,
+        so as to avoid use of `layout_transpose` when not needed
+
+    * Fix matrix extents in constraints and mandates
+        for `symmetric_matrix_rank_k_update` and `hermitian_matrix_rank_k_update`
+        (thanks to Mikołaj Zuzek for reporting the issue)
+
+    * Resolve vagueness in `const`ness of return type of `transposed`
+
+    * Resolve vagueness in `const`ness of return type of `scaled`,
+        and make its element type the type of the product,
+        rather than forcing it back to the input `mdspan`'s element type
+
+    * Remove `decay` member function from `accessor_conjugate` and `accessor_scaled`,
+        as it is no longer part of `mdspan`'s accessor policy requirements
+
+    * Make sure `accessor_conjugate` and `conjugated` work correctly
+        for user-defined complex types,
+        introduce _`conj-if-needed`_ to simplify wording,
+        and resolve vagueness in `const`ness of return type of `conjugated`
+        (thanks to Yu You (NVIDIA, yuyou@nvidia.com) and
+        Phil Miller (Intense Computing, `phil.miller@intensecomputing.com`)
+        for helpful discussions)
+
+    * Fix typo in `givens_rotation_setup` for complex numbers, and other typos
+        (thanks to Phil Miller for reporting the issue)
 
 # Purpose of this paper
 
@@ -2235,12 +2259,11 @@ This is a good way to build a noncommutative semiring for testing.
     gives implementers the freedom to make QoI enhancements
     without risking correctness.
 
-    "Value type constraints do not suffice to describe algorithm behavior" section above,
-
 * We think describing algorithms' behavior and implementation freedom
     is more useful than mathematical concepts like "ring."
     For example, we permit implementations to reorder sums,
     but this does not mean that they assume sums are associative.
+    This is why we do not define a hierarchy of number concepts.
 
 * We categorize different ways that implementers might like to change algorithms,
     list categories we exclude and categories we permit,
@@ -2252,12 +2275,225 @@ This is a good way to build a noncommutative semiring for testing.
     We then use the semiring description to explain how implementers
     can test generic algorithms.
 
+## Support for user-defined complex number types
+
+### Need for user-defined complex number types
+
+The C++ Standard currently supports `complex<T>` for T = `float`, `double`, and `long double`.
+Users who want complex numbers of other types (such as integers or custom "bigfloat" types),
+or who have different alignment requirements for complex numbers,
+need to make their own complex number class (or class template).
+We want P1673 to "do the right thing" for these custom complex numbers,
+without requiring any more number traits machinery than the Standard already has.
+This means relying on argument-dependent lookup (ADL) to pick up overloads of `conj`,
+and not defining any new traits (such as `is_complex`).
+The idiom of `using std::conj; return conj(x);`,
+analogous to how `iter_swap` accesses `swap`, can manage this.
+Here is an example with a user-defined complex number class template `MyComplex`.
+
+```c++
+#include <cassert>
+#include <complex>
+
+namespace MyNamespace {
+
+template<class Real>
+struct MyComplex {
+    Real real;
+    Real imag;
+};
+
+template<class Real>
+MyComplex<Real> conj(const MyComplex<Real>& z) {
+    return {z.real, -z.imag};
+}
+
+} // MyNamespace
+
+int main() {
+    using std::conj;
+
+    MyNamespace::MyComplex<int> z{3, 4};
+    const auto z_conj = conj(z);
+    assert(z_conj.real == 3);
+    assert(z_conj.imag == -4);
+
+    std::complex<double> w{5.0, 6.0};
+    const auto w_conj = conj(w);
+    assert(w_conj.real() == 5.0);
+    assert(w_conj.imag() == -6.0);
+    return 0;
+}
+```
+
+Regarding alignment: The Standard explicitly specifies
+that `complex<T>` has the same alignment as `T[2]`.
+Some vectorized or parallel hardware would give better performance
+if complex numbers were aligned to `2 * sizeof(T)`.
+Some C++ extensions also require annotations on a type's member functions.
+The Kokkos software library has a `Kokkos::complex` type for these reasons.
+One of the authors wrote this type to make it possible
+to build and run Trilinos with complex number support
+on NVIDIA graphics processing units (GPUs).
+
+### Users may want to conjugate arithmetic types
+
+If we define `accessor_conjugate` to do `using std::conj; return conj(x);`,
+then we can support custom complex class templates.
+Users can define `conj` for their custom complex type outside the `std` namespace,
+and this approach will pick it up,
+analogous to how `iter_swap` can pick up a custom `swap` overload.
+However, this will do something different for arithmetic types like `double` or `int`.
+This is because `std::conj` is defined always to return a specialization of `complex`,
+even if the input is (say) `double`.
+
+One could argue that applying `conjugated` to a view of real numbers should be ill formed.
+However, users may want to use `conjugate_transposed`
+to write generic code that works for both real and complex numbers.
+Matlab takes this approach, by defining the single quote operator
+to take the conjugate transpose if its argument is complex,
+and the transpose if its argument is real.
+The Fortran BLAS also supports this to some extent,
+by having its real routines like `DGEMM` interpret `TRANSA='C'` as the transpose.
+Krylov subspace methods in Trilinos' Anasazi and Belos packages
+also follow a Matlab-like generic approach.
+
+The fact that `std::conj` converts arithmetic types to `complex`
+is not *mathematically* incorrect.
+However, it may complicate or prevent implementers
+from using an existing optimized BLAS library.
+If the user calls `matrix_product` with matrices all of value type `double`,
+use of the (mathematically harmless) `conjugate_transposed` function
+would make one matrix have value type `complex<double>`.
+Implementations would need more cleverness to undo the value type change
+so that they could call an optimized `DGEMM` routine for this case.
+If one input is  `conjugate_transposed` of a matrix of `double`,
+and another input is a matrix of custom real value type `Foo`,
+then users might be surpised that the matrix multiply no longer compiles,
+due to `complex<decltype(declval<double>() * declval<Foo>())>` not being well formed.
+
+Even though we think it should be possible to write
+"generic" (real or complex) linear algebra code using `conjugate_transposed`,
+we still need to distinguish between symmetric and Hermitian matrix algorithms.
+This is because symmetric does *not* mean the same thing as Hermitian
+for matrices of complex numbers.
+For example, a matrix whose off-diagonal elements are all `3 + 4i` is symmetric,
+but not Hermitian.  Complex symmetric matrices are useful in practice,
+for example when modeling damped vibrations (Craven 1969).
+
+### Our proposed approach
+
+We can support `conjugated` (and thus `conjugated_transposed`) for all types as follows.
+
+1. For arithmetic types, define `accessor_conjugate` specially to return just the reference.
+    Don't use `conj` at all.
+
+2. For all other types (including specializations of `complex`),
+    define `accessor_conjugate` to use `using std::conj; return conj(x);`.
+
+We could express this through an exposition-only function _`conj-if-needed`_:
+
+```c++
+template<class T>
+T <it>conj-if-needed</it>(const T& t)
+{
+    using std::conj;
+    return conj(t);
+}
+
+template<class T> requires is_arithmetic_v<T>
+T <it>conj-if-needed</it>(const T& t)
+{
+    return t;
+}
+```
+
+### Alternative: Always treat user-defined types as real
+
+One issue with the above approach is that `accessor_conjugate`
+will fail to compile for user-defined (and thus nonarithmetic) types,
+unless the type has `conj` defined.
+If a generic library of linear algebra algorithms
+uses `conjugate_transposed` throughout to express transposition,
+then users of this library could have an unpleasant surprise
+when they move from arithmetic types to custom real types.
+
+One could fix this by introducing an exposition-only function _`conj-if-not-arithmetic`_
+that applies `conj` in the above two-step manner to nonarithmetic types,
+and an exposition-only concept _`conjugatable`_
+satisfied by types for which calling _`conj-if-not-arithmetic`_ is well formed.
+For example:
+
+```c++
+template<class T>
+T <it>conj-if-not-arithmetic</it>(const T& t)
+{
+    using std::conj;
+    return conj(t);
+}
+
+template<class T> requires is_arithmetic_v<T>
+T <it>conj-if-not-arithmetic</it>(const T& t)
+{
+    return t;
+}
+
+template<class T>
+concept <it>conjugatable</it> = requires(T a)
+{ // "using" declarations don't work in here
+    T b = <it>conj-if-not-arithmetic</it>(a);
+}
+
+template<class T>
+T <it>conj-if-needed</it>(const T& t)
+{
+    return t;
+}
+
+template<conjugatable T>
+T <it>conj-if-needed</it>(const T& t)
+{
+    return <it>conj-if-not-arithmetic</it>(t);
+}
+```
+
+However, if users write a custom complex type and forget or misspell `conj`,
+then this alternative will make `conjugated` and `conjugate_transposed` silently incorrect.
+The intent of our proposed approach is to work around the problem of `conj` *existing*,
+but having a *different return type* (complex) for arithmetic (and therefore real) parameters.
+If users type `conjugated(A)` or `conjugate_transposed(A)`,
+then we think it reasonable to expect `conj` to be defined for `A`'s value type.
+Users of custom number types can supply a trivial definition of `conj`,
+even if the number type itself does not provide one.
+
+In general, we avoid defining traits classes or other code machinery
+for reasoning about generic number behavior.
+Detection of `conj` doesn't *quite* go there,
+but might lead users and implementers down the path of asking for a "complex number" concept.
+The P1673 way, which we believe is the C++ Standard Algorithms way,
+is for each algorithm to require only what that algorithm needs.
+
+### Design question
+
+Please pick one of the following:
+
+1. (Our proposal) `conjugated` and `conjugate_transposed` assume that
+    `using std::conj; T b = conj(a);` is well formed for any nonarithmetic type `T`.
+
+2. (Alternative) `conjugated` and `conjugate_transposed` do not use `conj`
+    if `using std::conj; T b = conj(a);` is not well formed for nonarithmetic `T`.
+
+    * Advantage: Assumes that any custom number type is real.
+    * Disadvantage: Same (silent errors if `conj` is missing or misspelled)
+
 # Future work
 
 Summary:
 
-1. Consider generalizing function parameters to take any type that implements the
-    `get_mdspan` customization point, including `mdarray`.
+1. Consider generalizing function parameters to take any type
+    that implements a customization point
+    for getting an `mdspan` viewing its elements.
+    This includes `mdarray` (see P1684).
 
 2. Add batched linear algebra overloads.
 
@@ -2488,6 +2724,11 @@ on constraints wording.
 * J. L. Blue,
     "A Portable Fortran Program to Find the Euclidean Norm of a Vector,"
     *ACM Transactions on Mathematical Software*, Vol. 4, pp. 15-23, 1978.
+
+* B. D. Craven,
+    <a href="https://doi.org/10.1017/S1446788700007588">"Complex symmetric matrices"</a>,
+    *Journal of the Australian Mathematical Society*,
+    Vol. 10, No. 3-4, Nov. 1969, pp. 341--354.
 
 * E. Chow and A. Patel,
     "Fine-Grained Parallel Incomplete LU Factorization",
@@ -3947,6 +4188,19 @@ void triangular_matrix_matrix_right_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
+
+template<class T>
+T <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
+{
+    using std::conj;
+    return conj(t);
+}
+
+template<class T> requires is_arithmetic_v<T>
+T <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
+{
+    return t;
+}
 }
 ```
 
@@ -4073,7 +4327,7 @@ asymptotic complexity requirements, if any, are satisfied.
 
 9. If the algorithm's or method's mathematical expression includes any of the following:
 
-    a. `conj(z)` for some expression `z`,
+    a. _`conj-if-needed`_`(z)` for some expression `z`,
 
     b. `abs(x)` for some expression `x`, or
 
@@ -4084,9 +4338,6 @@ asymptotic complexity requirements, if any, are satisfied.
     In addition, any of the above subexpressions that appear
     in the algorithm's or method's mathematical expression
     shall be well formed.
-    However, if the mathematical expression includes `conj(z)`
-    for an expression `z` that is *not* convertible to `complex<R>` for some `R`,
-    then the `conj(z)` expression is interpreted as `z` for this requirement.
 
 10. If the algorithm or method has an output `mdspan`,
     then all addends (or subtrahends, if applicable)
@@ -4739,15 +4990,15 @@ template<class ScalingFactor,
          class Reference>
 class scaled_scalar { // exposition only
 private:
-  const ScalingFactor scaling_factor;
+  ScalingFactor scaling_factor;
   Reference value;
-  using result_type =
-    decltype (scaling_factor * value);
 
 public:
+  using element_type = decltype(scaling_factor * value);
+
   scaled_scalar(const ScalingFactor& s, Reference v);
 
-  operator result_type() const;
+  operator element_type() const;
 };
 ```
 
@@ -4762,7 +5013,7 @@ scaled_scalar(const ScalingFactor& s, Reference v);
 * *Effects:* Initializes `scaling_factor` with `s`, and initializes `value` with `v`.
 
 ```c++
-operator result_type() const;
+operator element_type() const;
 ```
 
 * *Preconditions:* This operator may be invoked arbitrarily many times.
@@ -4778,7 +5029,8 @@ template<class ScalingFactor,
          class Accessor>
 class accessor_scaled {
 public:
-  using element_type  = Accessor::element_type;
+  using element_type  =
+    scaled_scalar<ScalingFactor, Accessor::reference>::element_type;
   using pointer       = Accessor::pointer;
   using reference     =
     scaled_scalar<ScalingFactor, Accessor::reference>;
@@ -4787,17 +5039,18 @@ public:
 
   accessor_scaled(const ScalingFactor& s, Accessor a);
 
+  template<class OtherElementType>
+  accessor_scaled(const ScalingFactor& s, default_accessor<OtherElementType> a);
+
   reference access(pointer p, extents<>::size_type i) const noexcept;
 
   offset_policy::pointer
   offset(pointer p, extents<>::size_type i) const noexcept;
 
-  element_type* decay(pointer p) const noexcept;
-
   ScalingFactor scaling_factor() const;
 
 private:
-  const ScalingFactor scaling_factor_; // exposition only
+  ScalingFactor scaling_factor_; // exposition only
   Accessor accessor; // exposition only
 };
 ```
@@ -4815,6 +5068,22 @@ accessor_scaled(const ScalingFactor& s, Accessor a);
 * *Effects:* Initializes `scaling_factor_` with `s`, and initializes `accessor` with `a`.
 
 ```c++
+template<class OtherElementType>
+accessor_scaled(const ScalingFactor& s, default_accessor<OtherElementType> a);
+```
+
+* *Constraints:*
+`is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
+
+* *Effects:* Initializes `scaling_factor_` with `s`, and initializes `accessor` with `a`.
+
+*[Note:*
+This constructor exists so that if `scaled` is given an `mdspan`
+with nonconst element type `T` and accessor `default_accessor<T>`,
+`scaled` can then return an `mdspan` with `const` element type.
+--*end note]*
+
+```c++
 reference access(pointer p, extents<>::size_type i) const noexcept;
 ```
 
@@ -4828,12 +5097,6 @@ offset(pointer p, extents<>::size_type i) const noexcept;
 * *Effects:* Equivalent to `return accessor.offset(p, i);`.
 
 ```c++
-element_type* decay(pointer p) const noexcept;
-```
-
-* *Effects:* Equivalent to `return accessor.decay(p);`.
-
-```c++
 ScalingFactor scaling_factor() const;
 ```
 
@@ -4841,7 +5104,7 @@ ScalingFactor scaling_factor() const;
 
 ### `scaled` [linalg.scaled.scaled]
 
-The `scaled` function takes a value `alpha` and an `mdspan`
+The `scaled` function takes a scaling factor `alpha` and an `mdspan`
 `x`, and returns a new read-only `mdspan` with the same domain
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
@@ -4869,7 +5132,12 @@ Let `R` name the type
 `mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
-* `ReturnElementType` is either `ElementType` or `const ElementType`; and
+* `ReturnElementType` is:
+
+    * if `Accessor` is `default_accessor<ElementType>`,
+        then `add_const_t<accessor_scaled<ScalingFactor, Accessor>::element_type>`;
+
+    * else, `accessor_scaled<ScalingFactor, Accessor>::element_type`;
 
 * `ReturnAccessor` is:
 
@@ -4936,8 +5204,7 @@ void test_scaled(mdspan<double, extents<10>> x)
 The `conjugated` function takes an `mdspan` `x`, and returns
 a new read-only `mdspan` `y` with the same domain as `x`, whose
 elements are the complex conjugates of the corresponding elements of
-`x`.  If the element type of `x` is not `complex<R>` for some `R`,
-then `y` is a read-only view of the elements of `x`.
+`x`.
 
 *[Note:*
 
@@ -4970,30 +5237,28 @@ class conjugated_scalar { // exposition only
 public:
   conjugated_scalar(Reference v);
 
-  operator ElementType() const;
+  operator ElementType() const {
+    return <it>conj-if-needed</it>(val);
+  }
 
   template<class T2>
   auto operator* (const T2 upd) const {
-    using std::conj;
-    return conj(val) * upd;
+    return <it>conj-if-needed</it>(val) * upd;
   }
 
   template<class T2>
   auto operator+ (const T2 upd) const {
-    using std::conj;
-    return conj(val) + upd;
+    return <it>conj-if-needed</it>(val) + upd;
   }
 
   template<class T2>
   bool operator== (const T2 upd) const {
-    using std::conj;
-    return conj(val) == upd;
+    return <it>conj-if-needed</it>(val) == upd;
   }
 
   template<class T2>
   bool operator!= (const T2 upd) const {
-    using std::conj;
-    return conj(val) != upd;
+    return <it>conj-if-needed</it>(val) != upd;
   }
 
 private:
@@ -5008,21 +5273,14 @@ auto operator* (const T1 x, const conjugated_scalar<Reference, Element> y) {
 
 * *Preconditions:* `Reference` shall be *Cpp17CopyConstructible*.
 
-* *Constraints:* The expression `conj(val)` is well formed and is convertible to
-    `ElementType`.  *[Note:* This implies that `ElementType` is
-    `complex<R>` for some type `R`.  --*end note]*
+* *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed
+    and is convertible to `ElementType`.
 
 ```c++
 conjugated_scalar(Reference v);
 ```
 
 * *Effects:* Initializes `val` with `v`.
-
-```c++
-operator T() const;
-```
-
-* *Effects:* Equivalent to `return conj(val);`.
 
 ```c++
 template<class Accessor>
@@ -5038,6 +5296,9 @@ public:
 
   accessor_conjugate(Accessor a);
 
+  template<class OtherElementType>
+  accessor_conjugate(default_accessor<OtherElementType> a);
+
   reference access(pointer p, extents<>::size_type i) const
     noexcept(noexcept(reference(acc.access(p, i))));
 
@@ -5045,40 +5306,53 @@ public:
   offset(pointer p, extents<>::size_type i) const
     noexcept(noexcept(acc.offset(p, i)));
 
-  element_type* decay(pointer p) const
-    noexcept(noexcept(acc.decay(p)));
-
   Accessor nested_accessor() const;
 };
 ```
 
 * *Preconditions:*
 
-    * `Accessor` shall be *Cpp17CopyConstructible*.
-
-    * `Accessor` shall meet the `mdspan` accessor policy requirements.
+    * `Accessor` shall meet the `mdspan` accessor policy requirements **[mdspan.accessor.reqmts]**.
 
 ```c++
 using reference = /* see below */;
 ```
 
-If `element_type` is `complex<R>` for some `R`, then this names
+If `element_type` is an arithmetic type,
+then this names `typename Accessor::reference`.
+Otherwise, it names
 `conjugated_scalar<typename Accessor::reference, element_type>`.
-Otherwise, it names `typename Accessor::reference`.
 
 ```c++
 using offset_policy = /* see below */;
 ```
 
-If `element_type` is `complex<R>` for some `R`, then this names
+If `element_type` is an arithmetic type,
+then this names `typename Accessor::offset_policy`.
+Otherwise, it names
 `accessor_conjugate<typename Accessor::offset_policy, element_type>`.
-Otherwise, it names `typename Accessor::offset_policy>`.
 
 ```c++
 accessor_conjugate(Accessor a);
 ```
 
 * *Effects:* Initializes `acc` with `a`.
+
+```c++
+template<class OtherElementType>
+accessor_conjugate(default_accessor<OtherElementType> a);
+```
+
+* *Constraints:*
+`is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
+
+* *Effects:* Initializes `scaling_factor_` with `s`, and initializes `acc` with `a`.
+
+*[Note:*
+This constructor exists so that if `conjugated` is given an `mdspan`
+with nonconst element type `T` and accessor `default_accessor<T>`,
+`conjugated` can then return an `mdspan` with `const` element type.
+--*end note]*
 
 ```c++
 reference access(pointer p, extents<>::size_type i) const
@@ -5094,13 +5368,6 @@ offset(pointer p, extents<>::size_type i) const
 ```
 
 * *Effects:* Equivalent to `return acc.offset(p, i);`.
-
-```c++
-element_type* decay(pointer p) const
-  noexcept(noexcept(acc.decay(p)));
-```
-
-* *Effects:* Equivalent to `return acc.decay(p);`.
 
 ```c++
 Accessor nested_accessor() const;
@@ -5124,18 +5391,33 @@ Let `R` name the type
 `mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
-* `ReturnElementType` is either `ElementType` or `const ElementType`; and
+* `ReturnElementType` is:
 
-* `ReturnAccessor` is:
+    * if `Accessor` is `default_accessor<ElementType>`,
+        then `add_const_t<ElementType>`;
+
+    * else if `Accessor` is
+        `accessor_scaled<ScalingFactor, default_accessor<InnerElementType>>`
+        for some `ScalingFactor` and `InnerElementType`,
+        then `add_const_t<ElementType>`;
+
+    * else, `ElementType`; *[Note:* For general accessors,
+        the `const ElementType` version of the accessor may not exist;
+        Even if it does, `conjugated` has no way to deduce it generically.
+        --*end note]*
+
+* and, `ReturnAccessor` is:
 
     * if `Accessor` is `accessor_conjugate<NestedAccessor>`
-        for some `NestedAccessor`, then
-        either `NestedAccessor` or `accessor_conjugate<Accessor>`,
+        for some `NestedAccessor`, then `NestedAccessor` *[Note:*
+        conjugation is self-annihilating --*end note]*;
 
-    * else if `ElementType` is `complex<U>` or `const complex<U>` for
-        some `U`, then `accessor_conjugate<Accessor>`,
+    * else if `remove_cv_t<ElementType>` is an arithmetic type,
+        then `Accessor` *[Note:* this reduces nesting
+        in cases where conjugation is known to be the identity
+        --*end note]*;
 
-    * else either `accessor_conjugate<Accessor>` or `Accessor`.
+    * else `accessor_conjugate<Accessor>`.
 
 * *Effects:*
 
@@ -5143,23 +5425,14 @@ where
         `ReturnAccessor` is `NestedAccessor`, then equivalent to
         `return R(a.data(), a.mapping(), a.nested_accessor());`;
 
-    * else, if `ReturnAccessor` is `accessor_conjugate<Accessor>`, then
-        equivalent to
-        `return R(a.data(), a.mapping(), accessor_conjugate<Accessor>(a.accessor()));`;
+    * else if `remove_cv_t<ElementType>` is an arithmetic type,
+        then equivalent to
+        `return R(a.data(), a.mapping(), a.accessor());`;
 
     * else, equivalent to
-        `return R(a.data(), a.mapping(), a.accessor());`.
+        `return R(a.data(), a.mapping(), accessor_conjugate<Accessor>(a.accessor()));`;
 
 * *Remarks:* The elements of the returned `mdspan` are read only.
-
-*[Note:*
-
-The point of `ReturnAccessor` is to give implementations freedom to
-optimize applying `accessor_conjugate` twice in a row.  However,
-implementations are not required to optimize arbitrary combinations of
-nested `accessor_conjugate` interspersed with other nested accessors.
-
---*end note]*
 
 [*Example:*
 ```c++
@@ -5427,11 +5700,7 @@ The `transposed` function takes a rank-2 `mdspan`
 representing a matrix, and returns a new read-only `mdspan`
 representing the transpose of the input matrix.  The input matrix's
 data are not modified, and the returned `mdspan` accesses the
-input matrix's data in place.  If the input `mdspan`'s layout is
-already `layout_transpose<L>` for some layout `L`, then the returned
-`mdspan` has layout `L`.  Otherwise, the returned `mdspan`
-has layout `layout_transpose<L>`, where `L` is the input
-`mdspan`'s layout.
+input matrix's data in place.
 
 ```c++
 template<class ElementType,
@@ -5445,15 +5714,35 @@ transposed(
 
 Let `ReturnExtents` name the type `transpose_extents_t<Extents>`.
 Let `R` name the type
-`mdspan<ReturnElementType, ReturnExtents, ReturnLayout, Accessor>`,
+`mdspan<ReturnElementType, ReturnExtents, ReturnLayout, ReturnAccessor>`,
 where
 
-* `ReturnElementType` is either `ElementType` or
-    `const ElementType`; and
+* `ReturnElementType` is:
+
+    * if `Accessor` is `default_accessor<ElementType>`,
+        then `add_const_t<ElementType>`;
+
+    * else, `ElementType`; *[Note:* For general accessors,
+        the `const ElementType` version of the accessor may not exist;
+        Even if it does, `transposed` has no way to deduce it generically.
+        --*end note]*
 
 * `ReturnLayout` is:
 
-    * if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+    * if `Layout` is `layout_left`, then `layout_right`;
+
+    * else if `Layout` is `layout_right`, then `layout_left`;
+
+    * else if `Layout` is `layout_stride`, then `layout_stride`;
+
+    * else if `Layout` is `layout_blas_general<StorageOrder>`
+        for some `StorageOrder`,
+        then `layout_blas_general<OppositeStorageOrder>`,
+        where `OppositeStorageOrder` names the type
+        `conditional_t<is_same_v<StorageOrder, column_major_t>, row_major_t, column_major_t>`;
+
+    * else if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`
+        for some `Triangle` and `StorageOrder`,
         then `layout_blas_packed<OppositeTriangle, OppositeStorageOrder>`,
         where
 
@@ -5465,20 +5754,30 @@ where
             `conditional_t<is_same_v<StorageOrder, column_major_t>,
             row_major_t, column_major_t>`;
 
-    * else, if `Layout` is `layout_transpose<NestedLayout>`
-        for some `NestedLayout`, then
-        either `NestedLayout` or `layout_transpose<Layout>`,
+    * else if `Layout` is `layout_transpose<NestedLayout>`
+        for some `NestedLayout`, then `NestedLayout` *[Note:*
+        this optimizes applying `layout_transpose` twice,
+        as long as there are no intervening layout changes --*end note]*;
 
-    * else `layout_transpose<Layout>`.
+    * else, `layout_transpose<Layout>`;
+
+* and, `ReturnAccessor` is:
+
+    * if `Accessor` is `default_accessor<ElementType>`,
+        then `default_accessor<add_const_t<ElementType>>`;
+
+    * else, `Accessor`.
 
 * *Effects:*
 
-    * If `Layout` is `layout_blas_packed<Triangle, StorageOrder>`,
+    * If `Layout` is `layout_left`, `layout_right`, `layout_stride`,
+        `layout_blas_general<StorageOrder>` for some `StorageOrder`, or
+        `layout_blas_packed<Triangle, StorageOrder>` for some `Triangle` and `StorageOrder`,
         then equivalent to
-        `return R(a.data(), ReturnMapping(a.mapping().extents()), a.accessor());`;
+        `return R(a.data(), ReturnMapping(transpose_extents(a.mapping().extents())), a.accessor());`;
 
-    * else, if `Layout` is `layout_transpose<NestedLayout>` and
-        `ReturnLayout` is `NestedLayout`, then equivalent to
+    * else, if `Layout` is `layout_transpose<NestedLayout>`
+        for some `NestedLayout`, then equivalent to
         `return R(a.data(), a.mapping().nested_mapping(), a.accessor());`;
 
     * else, equivalent to
@@ -5487,15 +5786,6 @@ where
         `typename layout_transpose<Layout>::template mapping<ReturnExtents>`.
 
 * *Remarks:* The elements of the returned `mdspan` are read only.
-
-*[Note:*
-
-Implementations may optimize applying `layout_transpose` twice in a
-row.  However, implementations need not optimize arbitrary
-combinations of nested `layout_transpose` interspersed with other
-nested layouts.
-
---*end note]*
 
 [*Example:*
 ```c++
@@ -5699,33 +5989,32 @@ void givens_rotation_setup(const complex<Real>& a,
 
 This function computes the plane (Givens) rotation represented by the
 two values `c` and `s` such that the 2x2 system of equations
+*[Note:* use of monospaced text in this equation does not indicate C++ code --*end note]*
 
 ```
-[c        s]   [a]   [r]
-[          ] * [ ] = [ ]
-[-conj(s) c]   [b]   [0]
+[c                  s]   [a]   [r]
+[                    ] * [ ] = [ ]
+[-conj-if-needed(s) c]   [b]   [0]
 ```
 
-holds, where `conj` indicates the mathematical conjugate of `s`, `c`
-is always a real scalar, and `c*c + abs(s)*abs(s)` equals one.  That
-is, `c` and `s` represent a 2 x 2 matrix, that when multiplied by the
+holds, where `c` is always a real scalar, and `c*c + abs(s)*abs(s)` equals one.
+That is, `c` and `s` represent a 2 x 2 matrix, that when multiplied by the
 right by the input vector whose components are `a` and `b`, produces a
 result vector whose first component `r` is the Euclidean norm of the
-input vector, and whose second component as zero.  *[Note:* The C++
-Standard Library `conj` function always returns `complex<T>` for some
-`T`, even though overloads exist for non-complex input.  The above
-expression uses `conj` as mathematical notation, not as code.  --*end
-note]*
+input vector, and whose second component as zero.
 
-*[Note:* This function corresponds to the LAPACK function `xLARTG`.
+*[Note:*
+This function corresponds to the LAPACK function `xLARTG`.
 The BLAS variant `xROTG` takes four arguments -- `a`, `b`, `c`, and
 `s`-- and overwrites the input `a` with `r`.  We have chosen
 `xLARTG`'s interface because it separates input and output, and to
-encourage following `xLARTG`'s more careful implementation.  --*end note]*
+encourage following `xLARTG`'s more careful implementation.
+--*end note]*
 
-*[Note:* `givens_rotation_setup` has an overload for complex numbers,
-because the output argument `c` (cosine) is a signed magnitude. --*end
-note]*
+*[Note:*
+`givens_rotation_setup` has an overload for complex numbers,
+because the output argument `c` (cosine) is a signed magnitude.
+--*end note]*
 
 * *Effects:* Assigns to `c` and `s` the plane (Givens) rotation
     corresponding to the input `a` and `b`.  Assigns to `r` the
@@ -5784,17 +6073,10 @@ form a plane (Givens) rotation.  Users normally would compute `c` and
 this.
 --*end note]*
 
-For the overloads that take the last argument `s` as `Real`,
-for `i` in the domains of both `x` and `y`,
+For `i` in the domains of both `x` and `y`,
 the mathematical expressions for the algorithm are
 `x[i] = c*x[i] + s*y[i]` and
-`y[i] = c*y[i] - s*x[i]`.
-
-For the overloads that take the last argument `s` as `const complex<Real>`,
-for `i` in the domains of both `x` and `y`,
-the mathematical expressions for the algorithm are
-`x[i] = c*x[i] + s*y[i]` and
-`y[i] = c*y[i] - conj(s)*x[i]`.
+`y[i] = c*y[i] - `_`conj-if-needed`_`(s)*x[i]`.
 
 * *Preconditions:* `x.extent(0)` equals `y.extent(0)`.
 
@@ -6088,9 +6370,8 @@ auto dotc(ExecutionPolicy&& exec,
           in_vector_2_t v2) -> /* see-below */;
 ```
 
-* *Effects:* If `in_vector_1_t::element_type` is `complex<R>` for some
-    `R`, let `T` be `decltype(conj(v1[0])*v2[0])`; else, let `T` be
-    `decltype(v1[0]*v2[0])`.  Then, the two-parameter overload is
+* *Effects:* Let `T` be `decltype(`_`conj-if-needed`_`(v1[0]) * v2[0])`.
+    Then, the two-parameter overload is
     equivalent to `dotc(v1, v2, T{});`, and the three-parameter overload
     is equivalent to `dotc(exec, v1, v2, T{});`.
 
@@ -6802,10 +7083,8 @@ The following requirements apply to all functions in this section.
     * The functions will only access the triangle of `A` specified by
         the `Triangle` argument `t`.
 
-    * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
-        then the functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
-        functions will assume that `A[j,i]` equals `A[i,j]`.
+    * The functions will assume for indices `i,j` outside that
+        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
 
 ##### Overwriting Hermitian matrix-vector product
 
@@ -6835,7 +7114,7 @@ For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
 `y[i] =` the sum of `A[i,j] * x[j]`
 for all `j` in the triangle of `A` specified by `t`,
-plus the sum of `conj(A[j,i]) * x[j]`
+plus the sum of _`conj-if-needed`_`(A[j,i]) * x[j]`
 for all `j` not equal to `i` such that `j,i` is in the domain of A
 but not in the triangle of `A` specified by `t`.
 
@@ -6874,7 +7153,7 @@ For `i` in the domain of `y`,
 the mathematical expression for the algorithm is
 `z[i] = y[i]` plus the sum of `A[i,j] * x[j]`
 for all `j` in the triangle of `A` specified by `t`,
-plus the sum of `conj(A[j,i]) * x[j]`
+plus the sum of _`conj-if-needed`_`(A[j,i]) * x[j]`
 for all `j` not equal to `i` such that `j,i` is in the domain of A
 but not in the triangle of `A` specified by `t`.
 
@@ -7479,8 +7758,8 @@ impossible to express the update A = A - x x^H otherwise.
 For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
-`A[i,j] += x[i] * conj(x[j])` for overloads without an `alpha` parameter, and
-`A[i,j] += alpha * x[i] * conj(x[j])` for overloads without an `alpha` parameter.
+`A[i,j] += x[i] * `_`conj-if-needed`_`(x[j])` for overloads without an `alpha` parameter, and
+`A[i,j] += alpha * x[i] * `_`conj-if-needed`_`(x[j])` for overloads without an `alpha` parameter.
 
 * *Preconditions:*
 
@@ -7526,10 +7805,8 @@ the mathematical expression for the algorithm is
     * The functions will only access the triangle of `A` specified by
         the `Triangle` argument `t`.
 
-    * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
-        then the functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
-        functions will assume that `A[j,i]` equals `A[i,j]`.
+    * The functions will assume for indices `i,j` outside that
+        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
 
 #### Rank-2 update of a symmetric matrix [linalg.algs.blas2.rank2.syr2]
 
@@ -7639,7 +7916,7 @@ void hermitian_matrix_rank_2_update(
 For `i,j` in the domain of `A`
 and in the triangle of `A` specified by `t`,
 the mathematical expression for the algorithm is
-`A[i,j] += x[i] * conj(y[j]) + y[i] * conj(x[j])`.
+`A[i,j] += x[i] * `_`conj-if-needed`_`(y[j]) + y[i] * `_`conj-if-needed`_`(x[j])`.
 
 * *Preconditions:*
 
@@ -7685,10 +7962,8 @@ the mathematical expression for the algorithm is
     * The functions will only access the triangle of `A`
         specified by the `Triangle` argument `t`.
 
-    * If `inout_matrix_t::element_type` is `complex<RA>` for some `RA`,
-        then the functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
-        functions will assume that `A[j,i]` equals `A[i,j]`.
+    * The functions will assume for indices `i,j` outside that
+        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
 
 ### BLAS 3 functions [linalg.algs.blas3]
 
@@ -8135,10 +8410,8 @@ The following requirements apply to all functions in this section.
     * The functions will only access the triangle of `A` specified by
         the `Triangle` argument `t`.
 
-    * If `in_matrix_1_t::element_type` is `complex<RA>` for some `RA`,
-        then the functions will assume for indices `i,j` outside that
-        triangle, that `A[j,i]` equals `conj(A[i,j])`.  Otherwise, the
-        functions will assume that `A[j,i]` equals `A[i,j]`.
+    * The functions will assume for indices `i,j` outside that
+        triangle, that `A[j,i]` equals _`conj-if-needed`_`(A[i,j])`.
 
     * `C` and `E` (if applicable) may refer to the same matrix.
         If so, then they must have the same layout.
@@ -8231,7 +8504,7 @@ plus the sum of `A[i,k1] * B[k1,j]`
 for all `k1` not equal to `i`
 such that `i,k1` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `conj(A[k2,i]) * B[k2,j]`
+plus the sum of _`conj-if-needed`_`(A[k2,i]) * B[k2,j]`
 for all `k2` not equal to `i`
 such that `k2,i` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8271,7 +8544,7 @@ plus the sum of `B[i,k1] * A[k1,j]`
 for all `k1` not equal to `j`
 such that `k1,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `B[i,k2] * conj(A[j,k2])`
+plus the sum of `B[i,k2] * `_`conj-if-needed`_`(A[j,k2])`
 for all `k2` not equal to `j`
 such that `k2,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8315,7 +8588,7 @@ plus the sum of `A[i,k1] * B[k1,j]`
 for all `k1` not equal to `i`
 such that `i,k1` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `conj(A[k2,i]) * B[k2,j]`
+plus the sum of _`conj-if-needed`_`(A[k2,i]) * B[k2,j]`
 for all `k2` not equal to `i`
 such that `k2,i` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8359,7 +8632,7 @@ plus the sum of `B[i,k1] * A[k1,j]`
 for all `k1` not equal to `j`
 such that `k1,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`,
-plus the sum of `B[i,k2] * conj(A[j,k2])`
+plus the sum of `B[i,k2] * `_`conj-if-needed`_`(A[j,k2])`
 for all `k2` not equal to `j`
 such that `k2,j` is in the domain of `A`
 and in the triangle of `A` specified by `t`.
@@ -8849,7 +9122,7 @@ in order to avoid ambiguity with `ExecutionPolicy`.
 For `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
-`C[i,j] = C[i,j]` plus the sum of `alpha * A[i,k] * conj(A[j,k])`
+`C[i,j] = C[i,j]` plus the sum of `alpha * A[i,k] * `_`conj-if-needed`_`(A[j,k])`
 for all `k` such that `i,k` is in the domain of `A`.
 
 * *Preconditions:*
@@ -8936,11 +9209,11 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Preconditions:*
 
-    * `A.extent(0)` equals `C.extent(0)`,
+    * `A.extent(0)` equals `B.extent(0)`,
 
-    * `B.extent(1)` equals `C.extent(0)`, and
+    * `A.extent(1)` equals `B.extent(1)`, and
 
-    * `C.extent(0)` equals `C.extent(1)`.
+    * `A.extent(0)` equals `C.extent(0)`.
 
 * *Constraints:*
 
@@ -8954,17 +9227,17 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Mandates:*
 
+    * If neither `A.static_extent(0)` nor `B.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `B.static_extent(0)`.
+
+    * If neither `A.static_extent(1)` nor `B.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `B.static_extent(1)`.
+
     * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
         `dynamic_extent`, then `A.static_extent(0)` equals
         `C.static_extent(0)`.
-
-    * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
-        `dynamic_extent`, then `B.static_extent(1)` equals
-        `C.static_extent(0)`.
-
-    * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
-        `dynamic_extent`, then `C.static_extent(0)` equals
-        `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output, the elementwise sum of `C` on
     input with (the matrix product of `A` and the nonconjugated
@@ -9007,18 +9280,18 @@ void hermitian_matrix_rank_2k_update(
 For `i,j` in the domain of `C`
 and in the triangle of `C` specified by `t`,
 the mathematical expression for the algorithm is
-`C[i,j] = C[i,j]` plus the sum of `A[i,k1] * conj(B[j,k1])`
+`C[i,j] = C[i,j]` plus the sum of `A[i,k1] * `_`conj-if-needed`_`(B[j,k1])`
 for all `k1` such that `i,k1` is in the domain of `A`,
-plus the sum of `B[i,k2] * conj(A[j,k2])`
+plus the sum of `B[i,k2] * `_`conj-if-needed`_`(A[j,k2])`
 for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Preconditions:*
 
-    * `A.extent(0)` equals `C.extent(0)`,
+    * `A.extent(0)` equals `B.extent(0)`,
 
-    * `B.extent(1)` equals `C.extent(0)`, and
+    * `A.extent(1)` equals `B.extent(1)`, and
 
-    * `C.extent(0)` equals `C.extent(1)`.
+    * `A.extent(0)` equals `C.extent(0)`.
 
 * *Constraints:*
 
@@ -9032,17 +9305,17 @@ for all `k2` such that `i,k2` is in the domain of `B`.
 
 * *Mandates:*
 
+    * If neither `A.static_extent(0)` nor `B.static_extent(0)` equals
+        `dynamic_extent`, then `A.static_extent(0)` equals
+        `B.static_extent(0)`.
+
+    * If neither `A.static_extent(1)` nor `B.static_extent(1)` equals
+        `dynamic_extent`, then `A.static_extent(1)` equals
+        `B.static_extent(1)`.
+
     * If neither `A.static_extent(0)` nor `C.static_extent(0)` equals
         `dynamic_extent`, then `A.static_extent(0)` equals
         `C.static_extent(0)`.
-
-    * If neither `B.static_extent(1)` nor `C.static_extent(0)` equals
-        `dynamic_extent`, then `B.static_extent(1)` equals
-        `C.static_extent(0)`.
-
-    * If neither `C.static_extent(0)` nor `C.static_extent(1)` equals
-        `dynamic_extent`, then `C.static_extent(0)` equals
-        `C.static_extent(1)`.
 
 * *Effects:* Assigns to `C` on output,
     the elementwise sum of `C` on input with
@@ -9054,10 +9327,8 @@ for all `k2` such that `i,k2` is in the domain of `B`.
     * The functions will only access the triangle of `C` specified by
         the `Triangle` argument `t`.
 
-    * If `inout_matrix_t::element_type` is `complex<RC>` for some `RC`,
-        then the functions will assume for indices `i,j` outside that
-        triangle, that `C[j,i]` equals `conj(C[i,j])`.  Otherwise, the
-        functions will assume that `C[j,i]` equals `C[i,j]`.
+    * The functions will assume for indices `i,j` outside that
+        triangle, that `C[j,i]` equals _`conj-if-needed`_`(C[i,j])`.
 
 #### Solve multiple triangular linear systems [linalg.alg.blas3.trsm]
 
