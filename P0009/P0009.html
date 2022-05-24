@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-04-29" />
+  <meta name="dcterms.date" content="2022-05-24" />
   <title>MDSPAN</title>
   <style>
       code{white-space: pre-wrap;}
@@ -424,7 +424,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-04-29</td>
+    <td>2022-05-24</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -538,6 +538,13 @@ Related Work<span></span></a></li>
 <p>Special thanks to Tomasz Kaminski for invaluable help in preparing
 this paper for wording review.</p>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
+<h4 data-number="1.0.0.1" id="changes-from-r17"><span class="header-section-number">1.0.0.1</span> Changes from R17<a href="#changes-from-r17" class="self-link"></a></h4>
+<ul>
+<li>significant wording updates based on LWG feedback</li>
+<li><code>submdspan</code> was moved into its own paper, allowing mdspan
+to go forward even if there is not enough time to review
+<code>submdspan</code></li>
+</ul>
 <h2 data-number="1.1" id="p0009r17-2022-04-mailing"><span class="header-section-number">1.1</span> P0009r17: 2022-04 Mailing<a href="#p0009r17-2022-04-mailing" class="self-link"></a></h2>
 <h4 data-number="1.1.0.1" id="changes-from-r16"><span class="header-section-number">1.1.0.1</span> Changes from R16<a href="#changes-from-r16" class="self-link"></a></h4>
 <ul>
@@ -1786,7 +1793,8 @@ multidimensional array view, <code>mdspan</code>, along with classes,
 class templates, and constants for describing and creating
 multidimensional array views. It also proposes adding the
 <code>submdspan</code> function that “slices” (returns an
-<code>mdspan</code> that views a subset of) an existing mdspan`.</p>
+<code>mdspan</code> that views a subset of) an existing
+<code>mdspan</code>.</p>
 <p>The <code>mdspan</code> class template can represent arbitrary mixes
 of compile-time or run-time extents. Its element type can be any
 complete object type that is neither an abstract class type nor an array
@@ -2028,6 +2036,10 @@ factorizations reuse textbook non-blocked algorithms by calling them on
 groups of contiguous columns at a time. This lets LAPACK spend as much
 time in dense matrix-matrix multiply (or algorithms with analogous
 performance) as possible.</p>
+<p>However, due to possible time constraints, it was decided in May 2022
+to move submdspan to its own paper. This would potentially allow mdspan
+to land C++23 even if there is not enough time to finish wording review
+on <code>submdspan</code>.</p>
 <h2 data-number="2.9" id="why-propose-a-multidimensional-array-view-before-a-container"><span class="header-section-number">2.9</span> Why propose a multidimensional
 array view before a container?<a href="#why-propose-a-multidimensional-array-view-before-a-container" class="self-link"></a></h2>
 <p>Factoring views from containers generally makes sense. For example,
@@ -2178,18 +2190,7 @@ Y88b  d88P Y88b 888 888  888 Y88..88P 888 d88P      X88 888      X88
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy <span class="op">=</span> layout_right,</span>
 <span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>           <span class="kw">class</span> AccessorPolicy <span class="op">=</span> default_accessor<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span></span>
 <span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">class</span> mdspan;</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan]</span></span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy,</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>           <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan<span class="op">(</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;&amp;</span>,</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...)</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  <span class="co">// tag supporting submdspan</span></span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> full_extent_t <span class="op">{</span> <span class="kw">explicit</span> full_extent_t<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>; <span class="op">}</span>;</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">inline</span> <span class="kw">constexpr</span> full_extent_t full_extent<span class="op">{}</span>;</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p><b>24.7.� Overview [mdspan.terms]</b></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 A <em>multidimensional index space</em> is a Cartesian product of
@@ -3965,252 +3966,6 @@ is <code>true</code>. <br /> Equivalent to:
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Returns:</em>
 <code>extents().</code><em><code>fwd-prod-of-extents</code></em><code>(rank())</code>.</p>
-<!--
-submdspan
-
-                     /$$
-                    | $$
-  /$$$$$$$ /$$   /$$| $$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$  /$$$$$$$
- /$$_____/| $$  | $$| $$__  $$ /$$_____/ /$$__  $$ |____  $$| $$__  $$
-|  $$$$$$ | $$  | $$| $$  \ $$|  $$$$$$ | $$  \ $$  /$$$$$$$| $$  \ $$
- \____  $$| $$  | $$| $$  | $$ \____  $$| $$  | $$ /$$__  $$| $$  | $$
- /$$$$$$$/|  $$$$$$/| $$$$$$$/ /$$$$$$$/| $$$$$$$/|  $$$$$$$| $$  | $$
-|_______/  \______/ |_______/ |_______/ | $$____/  \_______/|__/  |__/
-                                        | $$
-                                        | $$
-                                        |__/
--->
-<p><b>24.7.� submdspan [mdspan.submdspan]</b></p>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<code>submdspan</code> creates an <code>mdspan</code> with a domain that
-is a subset of the input <code>mdspan</code>’s domain, and a codomain
-that is a subset of the input <code>mdspan</code>’s codomain.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-The <code>SliceSpecifier</code> template argument(s) and the
-corresponding value(s) of the arguments of <code>submdspan</code> after
-<code>src</code> determine the subset of <code>src</code> that the
-<code>mdspan</code> returned by <code>submdspan</code> views.</p>
-<div class="sourceCode" id="cb88"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
-<span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan], submdspan creation</span></span>
-<span id="cb88-4"><a href="#cb88-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy,</span>
-<span id="cb88-5"><a href="#cb88-5" aria-hidden="true" tabindex="-1"></a>           <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb88-6"><a href="#cb88-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan<span class="op">(</span></span>
-<span id="cb88-7"><a href="#cb88-7" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;&amp;</span> src,</span>
-<span id="cb88-8"><a href="#cb88-8" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...</span>slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
-<span id="cb88-9"><a href="#cb88-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-Let <code>sub</code> be the return value of
-<code>submdspan(src, slices...)</code>, let <span class="math inline"><em>s</em><sub><em>k</em></sub></span> be the <span class="math inline"><em>k</em></span>-th element of <code>slices</code>,
-and let <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
-be the type of the <span class="math inline"><em>k</em></span>-th
-element of <code>slices</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-Let <em><code>map-rank</code></em> be an
-<code>array&lt;size_t, Extents::rank()&gt;</code> such that for each
-rank index <code>j</code> of <code>Extents</code>
-<em><code>map-rank</code></em><code>[j]</code> equals:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>dynamic_extent</code> if <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>j</em></sub></span><code>, size_t&gt;</code>
-is <code>true</code>, or else</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
-number of <span class="math inline"><em>S</em><sub><em>k</em></sub></span> with <span class="math inline"><em>k</em> &lt; <em>j</em></span> such that
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, size_t&gt;</code>
-is <code>false</code>.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-Let <em><code>first</code></em> and <em><code>last</code></em> be
-<code>array&lt;size_t, Extents::rank()&gt;</code>. For each rank index
-<code>r</code> of <code>src.extents()</code>, define the values of
-<em><code>first</code></em><code>[r]</code> and
-<em><code>last</code></em><code>[r]</code> as follows:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> if
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>r</em></sub></span><code>, size_t&gt;</code>
-is <code>true</code>, then <em><code>first</code></em><code>[r]</code>
-equals <span class="math inline"><em>s</em><sub><em>r</em></sub></span>,
-and <em><code>last</code></em><code>[r]</code> equals
-<em><code>first</code></em><code>[r]</code> + 1;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
-otherwise, if <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>r</em></sub></span><code>, tuple&lt;size_t, size_t&gt;&gt;</code>
-is <code>true</code>, then <em><code>first</code></em><code>[r]</code>
-equals <code>get&lt;0&gt;(t)</code>, and
-<em><code>last</code></em><code>[r]</code> equals
-<code>get&lt;1&gt;(t)</code>, where <code>t</code> is the result of
-converting <span class="math inline"><em>s</em><sub><em>r</em></sub></span> to
-<code>tuple&lt;size_t, size_t&gt;</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
-otherwise, <em><code>first</code></em><code>[r]</code> equals
-<code>0</code>, and <em><code>last</code></em><code>[r]</code> equals
-<code>src.extent(r)</code>.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Mandates:</em> For each rank index <code>r</code> of
-<code>src.extents()</code> only one of the following is
-<code>true</code>: <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, size_t&gt;</code>,
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;size_t, size_t&gt;&gt;</code>,
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
-<em>Constraints:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
-<code>sizeof...(slices)</code> equals
-<code>Extents::rank()</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span> For
-each rank index <code>k</code> of <code>src.extents()</code>,
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, size_t&gt; || is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;size_t, size_t&gt;&gt; || is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
-is <code>true</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
-<code>LayoutPolicy</code> is <code>layout_left</code>,
-<code>layout_right</code>, <code>layout_stride</code>, or an
-implementation-defined layout mapping policy type.
-<b>[mdspan.layout.reqs]</b> <i>[Note:</i> Implementation and
-user-defined layout mapping policies could exist, for which taking an
-arbitrary <code>submdspan</code> does not make sense. <i>— end
-note]</i>;</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
-<em>Preconditions:</em> For each rank index <code>r</code> of
-<code>src.extents()</code>,
-<code>0 &lt;=</code><em><code>first</code></em><code>[r] &amp;&amp;</code><em><code>first</code></em><code>[r] &lt;=</code><em><code>last</code></em><code>[r] &amp;&amp;</code><em><code>last</code></em><code>[r] &lt;= src.extent(r)</code>
-is <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
-<em>Effects:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
-Direct-non-list-initializes <code>sub.</code><em><code>acc_</code></em>
-with <code>src.accessor()</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span> Let
-<code>sub_offset</code> be
-<code>apply(src.mapping(),</code><em><code>first</code></em><code>)</code>
-if <em><code>first</code></em><code>[r] &lt; src.extent(r)</code> for
-all rank index <code>r</code> of <code>src.extents()</code>, and
-<code>src.mapping().required_span_size()</code> otherwise.
-Direct-non-list-initializes <code>sub.</code><em><code>ptr_</code></em>
-with <code>src.accessor().offset(src.data(), sub_offset)</code>.
-<i>[Note:</i> The condition protects against applying invalid indices to
-the source mapping in cases such as
-<code>submdspan(a, tuple{a.extent(0), a.extent(0)})</code>, where
-<em><code>first</code></em><code>[0] ==</code>
-<em><code>last</code></em><code>[0]</code> and
-<em><code>last</code></em><code>[0] == src.extent(0)</code>. <i>- end
-note]</i></p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
-<em>Postconditions:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.1)</a></span> For
-<span class="math inline">0 ≤</span> <code>k</code> &lt;
-<code>Extents::rank()</code>, if
-<em><code>map-rank</code></em><code>[k] != dynamic_extent</code> is
-<code>true</code>, then
-<code>sub.extent(</code><em><code>map-rank</code></em><code>[k])</code>
-equals
-<em><code>last</code></em><code>[k] -</code><em><code>first</code></em><code>[k]</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span> Let
-<code>j</code> be a multidimensional index in
-<code>sub.extents()</code>, let <code>J</code> be
-<code>array{static_cast&lt;size_t&gt;(j)...}</code>, let <code>I</code>
-be <code>array&lt;size_t, decltype(src)::rank()&gt;</code> such that
-<code>I[k] ==</code><em><code>first</code></em><code>[k] + (</code><em><code>map-rank</code></em><code>[k]==dynamic_extent?0:J[</code><em><code>map-rank</code></em><code>[k]])</code>
-is <code>true</code>, then <code>sub[J]</code> and <code>src[I]</code>
-refer to the same element.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.3)</a></span> If
-<code>src.is_strided()</code> is <code>true</code>, then
-<code>sub.is_strided()</code> is <code>true</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.4)</a></span> If
-<code>src.is_unique()</code> is <code>true</code>, then
-<code>sub.is_unique()</code> is <code>true</code>.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
-<em>Remarks:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(11.1)</a></span> Let
-<code>SubExtents</code> be a specialization of <code>extents</code> such
-that:</p>
-<ul>
-<li><p><code>SubExtents::rank()</code> equals the number of <span class="math inline"><em>k</em></span> such that
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, size_t&gt;</code>
-is <code>false</code>.</p></li>
-<li><p>For all rank index <code>k</code> of <code>Extents</code> such
-that <em><code>map-rank</code></em><code>[k] != dynamic_extent</code> is
-<code>true</code>
-<code>SubExtents::static_extent(</code><em><code>map-rank</code></em><code>[k])</code>
-equals:</p>
-<ul>
-<li><p><code>Extents::static_extent(k)</code> if
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
-is <code>true</code>, otherwise</p></li>
-<li><p><code>dynamic_extent</code>.</p></li>
-</ul></li>
-</ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(11.2)</a></span> Let
-<code>SubLayout</code> be a type that meets the requirements of layout
-mapping policy and:</p>
-<ul>
-<li><p>if <code>LayoutPolicy</code> is not one of
-<code>layout_left</code>, <code>layout_right</code>,
-<code>layout_stride</code>, then <code>SubLayout</code> is
-implementation defined, otherwise</p></li>
-<li><p>if <code>SubExtents::rank()</code> is <code>0</code>, then
-<code>SubLayout</code> is <code>LayoutPolicy</code>, otherwise</p></li>
-<li><p>if <code>LayoutPolicy</code> is <code>layout_left</code>,
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
-is <code>true</code> for all <span class="math inline"><em>k</em></span>
-in the range <span class="math inline">[0,</span><code>SubExtents::rank()-1</code><span class="math inline">)</span>, and <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, size_t&gt;</code>
-is <code>false</code> for <span class="math inline"><em>k</em></span>
-equal <code>SubExtents::rank()-1</code>, then <code>SubLayout</code> is
-<code>layout_left</code>, otherwise</p></li>
-<li><p>if <code>LayoutPolicy</code> is <code>layout_right</code>,
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
-is <code>true</code> for all <span class="math inline"><em>k</em></span>
-in the range <span class="math inline">[</span><code>Extents::rank()-SubExtents::rank()+1</code><span class="math inline">,</span> <code>Extents::rank()</code><span class="math inline">)</span> and <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, size_t&gt;</code>
-is <code>false</code> for <span class="math inline"><em>k</em></span>
-equal <code>Extents::rank()-SubExtents::rank()</code>, then
-<code>SubLayout</code> is <code>layout_right</code>, otherwise</p></li>
-<li><p><code>SubLayout</code> is <code>layout_stride</code>.</p></li>
-</ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(11.3)</a></span> The
-return type is
-<code>mdspan&lt;ElementType, SubExtents, SubLayout, typename Accesssor::offset_policy&gt;</code>.</p></li>
-</ul>
-<p><br /></p>
-<p><i>[Note:</i> Example of <code>submdspan</code> use: See code below
-<i>- end note]</i></p>
-<div class="sourceCode" id="cb89"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a mapping</span></span>
-<span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> Extents3D <span class="op">=</span> extents<span class="op">&lt;</span><span class="dv">3</span>, dynamic_extent, <span class="dv">7</span><span class="op">&gt;</span>;</span>
-<span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a>layout_right<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span>Extents3D<span class="op">&gt;</span> map_right<span class="op">(</span><span class="dv">10</span><span class="op">)</span>;</span>
-<span id="cb89-4"><a href="#cb89-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb89-5"><a href="#cb89-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Create an mdspan viewing allocated memory</span></span>
-<span id="cb89-6"><a href="#cb89-6" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span><span class="op">*</span> ptr <span class="op">=</span> <span class="kw">new</span> <span class="dt">int</span><span class="op">[</span><span class="dv">3</span><span class="op">*</span><span class="dv">8</span><span class="op">*</span><span class="dv">10</span><span class="op">]</span>;</span>
-<span id="cb89-7"><a href="#cb89-7" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">&lt;</span><span class="dt">int</span>, Extents3D, layout_right<span class="op">&gt;</span> a<span class="op">(</span>ptr, map_right<span class="op">)</span>;</span>
-<span id="cb89-8"><a href="#cb89-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb89-9"><a href="#cb89-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize the span</span></span>
-<span id="cb89-10"><a href="#cb89-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i0 <span class="op">=</span> <span class="dv">0</span>; i0 <span class="op">&lt;</span> a<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; <span class="op">++</span>i0<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb89-11"><a href="#cb89-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i1 <span class="op">=</span> <span class="dv">0</span>; i1 <span class="op">&lt;</span> a<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)</span>; <span class="op">++</span>i1<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb89-12"><a href="#cb89-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i2 <span class="op">=</span> <span class="dv">0</span>; i2 <span class="op">&lt;</span> a<span class="op">.</span>extent<span class="op">(</span><span class="dv">2</span><span class="op">)</span>; <span class="op">++</span>i2<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb89-13"><a href="#cb89-13" aria-hidden="true" tabindex="-1"></a>      a<span class="op">[</span>i0, i1, i2<span class="op">]</span> <span class="op">=</span> <span class="dv">10000</span><span class="op">*</span>i0 <span class="op">+</span> <span class="dv">100</span><span class="op">*</span>i1 <span class="op">+</span> i2;</span>
-<span id="cb89-14"><a href="#cb89-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb89-15"><a href="#cb89-15" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb89-16"><a href="#cb89-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb89-17"><a href="#cb89-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb89-18"><a href="#cb89-18" aria-hidden="true" tabindex="-1"></a><span class="co">// Create Subspan</span></span>
-<span id="cb89-19"><a href="#cb89-19" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> a_sub <span class="op">=</span> submdspan<span class="op">(</span>a, <span class="dv">1</span>, tuple<span class="op">{</span><span class="dv">4</span>, <span class="dv">6</span><span class="op">}</span>, tuple<span class="op">{</span><span class="dv">1</span>, <span class="dv">6</span><span class="op">})</span>;</span>
-<span id="cb89-20"><a href="#cb89-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb89-21"><a href="#cb89-21" aria-hidden="true" tabindex="-1"></a><span class="co">// Print values of submdspan</span></span>
-<span id="cb89-22"><a href="#cb89-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i0 <span class="op">=</span> <span class="dv">0</span>; i0 <span class="op">&lt;</span> a_sub<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; <span class="op">++</span>i0<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb89-23"><a href="#cb89-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i1 <span class="op">=</span> <span class="dv">0</span>; i1 <span class="op">&lt;</span> a_sub<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)</span>; <span class="op">++</span>i1<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb89-24"><a href="#cb89-24" aria-hidden="true" tabindex="-1"></a>    cout <span class="op">&lt;&lt;</span> a_sub<span class="op">[</span>i0, i1<span class="op">]</span> <span class="op">&lt;&lt;</span> <span class="st">&quot; &quot;</span>;</span>
-<span id="cb89-25"><a href="#cb89-25" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb89-26"><a href="#cb89-26" aria-hidden="true" tabindex="-1"></a>  cout <span class="op">&lt;&lt;</span> endl;</span>
-<span id="cb89-27"><a href="#cb89-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb89-28"><a href="#cb89-28" aria-hidden="true" tabindex="-1"></a><span class="kw">delete</span> <span class="op">[]</span> ptr;</span>
-<span id="cb89-29"><a href="#cb89-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb89-30"><a href="#cb89-30" aria-hidden="true" tabindex="-1"></a><span class="co">/* Output</span></span>
-<span id="cb89-31"><a href="#cb89-31" aria-hidden="true" tabindex="-1"></a><span class="co">10401 10402 10403 10404 10405</span></span>
-<span id="cb89-32"><a href="#cb89-32" aria-hidden="true" tabindex="-1"></a><span class="co">10501 10502 10503 10504 10505</span></span>
-<span id="cb89-33"><a href="#cb89-33" aria-hidden="true" tabindex="-1"></a><span class="co">*/</span></span></code></pre></div>
 <h1 data-number="5" id="implementation"><span class="header-section-number">5</span> Implementation<a href="#implementation" class="self-link"></a></h1>
 <p>There is an mdspan implementation available at <a href="https://github.com/kokkos/mdspan/">https://github.com/kokkos/mdspan/</a>.</p>
 <h1 data-number="6" id="related-work"><span class="header-section-number">6</span> Related Work<a href="#related-work" class="self-link"></a></h1>
