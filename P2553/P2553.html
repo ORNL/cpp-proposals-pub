@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-03-15" />
+  <meta name="dcterms.date" content="2022-05-27" />
   <title>Make mdspan size_type controllable</title>
   <style>
       code{white-space: pre-wrap;}
@@ -424,7 +424,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-03-15</td>
+    <td>2022-05-27</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -492,12 +492,12 @@ Wording<span></span></a>
 [mdspan.extents.overview]:<span></span></a></li>
 <li><a href="#in-22.7.x.2-mdspan.extents.helpers"><span class="toc-section-number">4.3</span> In 22.7.X.2
 [mdspan.extents.helpers]:<span></span></a></li>
-<li><a href="#in-subsection-22.7.x.3-mdspan.extents.cons"><span class="toc-section-number">4.4</span> In subsection 22.7.X.3
-[mdspan.extents.cons]<span></span></a></li>
+<li><a href="#in-subsection-22.7.x.3-mdspan.extents.ctor"><span class="toc-section-number">4.4</span> In subsection 22.7.X.3
+[mdspan.extents.ctor]<span></span></a></li>
 <li><a href="#in-subsection-22.7.x.4-mdspan.extents.obs"><span class="toc-section-number">4.5</span> In subsection 22.7.X.4
 [mdspan.extents.obs]<span></span></a></li>
-<li><a href="#in-subsection-22.7.x.5-mdspan.extents.compare"><span class="toc-section-number">4.6</span> In subsection 22.7.X.5
-[mdspan.extents.compare]<span></span></a></li>
+<li><a href="#in-subsection-22.7.x.5-mdspan.extents.cmp"><span class="toc-section-number">4.6</span> In subsection 22.7.X.5
+[mdspan.extents.cmp]<span></span></a></li>
 <li><a href="#in-subsection-22.7.x.6-mdspan.extents.dextents"><span class="toc-section-number">4.7</span> In subsection 22.7.X.6
 [mdspan.extents.dextents]<span></span></a></li>
 <li><a href="#in-subsection-22.7.x.3.1-mdspan.layout.left.ctors"><span class="toc-section-number">4.8</span> In subsection 22.7.X.3.1
@@ -508,10 +508,6 @@ Wording<span></span></a>
 [mdspan.layout.stride.cotrs]<span></span></a></li>
 <li><a href="#in-subsection-22.7.x.1-mdspan.mdspan.overview"><span class="toc-section-number">4.11</span> In subsection 22.7.X.1
 [mdspan.mdspan.overview]<span></span></a></li>
-<li><a href="#in-subsection-22.7.x.1-mdspan.mdspan.ctors"><span class="toc-section-number">4.12</span> In subsection 22.7.X.1
-[mdspan.mdspan.ctors]<span></span></a></li>
-<li><a href="#in-subsection-22.7.x-mdspan.submdspan"><span class="toc-section-number">4.13</span> In Subsection 22.7.X
-[mdspan.submdspan]<span></span></a></li>
 </ul></li>
 <li><a href="#implementation"><span class="toc-section-number">5</span>
 Implementation<span></span></a></li>
@@ -769,12 +765,15 @@ member functions:</li>
 <span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>are-valid-extents</em><span class="op">(</span>extents<span class="op">&lt;</span>OtherSizeT, OtherExtents<span class="op">&gt;)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherSizeT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>are-valid-extents</em><span class="op">(</span>array<span class="op">&lt;</span>OtherSizeT, N<span class="op">&gt;)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>are-valid-extents</em><span class="op">(</span>array<span class="op">&lt;</span>OtherSizeT, N<span class="op">&gt;)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherSizeT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>are-valid-extents</em><span class="op">(</span>span<span class="op">&lt;</span>OtherSizeT, N<span class="op">&gt;)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <ul>
-<li>After paragraph 2 insert a new paragraph 3:</li>
+<li>Before paragraph 2 insert a new paragraph 2:</li>
 </ul>
-<p>If <code>SizeT</code> is not an integral type other than
-<code>bool</code>, then the program is ill-formed.</p>
+<p><em>Mandates:</em> <code>SizeT</code> is an integral type other than
+<code>bool</code>.</p>
 <h2 data-number="4.3" id="in-22.7.x.2-mdspan.extents.helpers"><span class="header-section-number">4.3</span> In 22.7.X.2
 [mdspan.extents.helpers]:<a href="#in-22.7.x.2-mdspan.extents.helpers" class="self-link"></a></h2>
 <ul>
@@ -787,8 +786,8 @@ member functions:</li>
 <li><p><code>true</code> if <code>sizeof...(Integrals) == 0</code> is
 <code>true</code>, otherwise</p></li>
 <li><p><code>true</code> if
-<code>((values &gt; 0) &amp;&amp; ...)</code> is <code>true</code> and
-each element of <code>values</code> is a representable value of
+<code>((values &gt;= 0) &amp;&amp; ...)</code> is <code>true</code> and
+each element of <code>values</code> is a representable value of type
 <code>size_type</code>, otherwise</p></li>
 <li><p><code>false</code>.</p></li>
 </ul>
@@ -798,26 +797,28 @@ each element of <code>values</code> is a representable value of
 <ul>
 <li><p><code>true</code> if <code>sizeof...(OtherExtents) == 0</code> is
 <code>true</code>, otherwise</p></li>
-<li><p><code>true</code> if <code>e.extent(r) &gt; 0</code> is
+<li><p><code>true</code> if <code>e.extent(r) &gt;= 0</code> is
 <code>true</code> for all rank index <code>r</code> of <code>e</code>
-and <code>e.extent(r)</code> is a representable value of
+and <code>e.extent(r)</code> is a representable value of type
 <code>size_type</code> for all rank index <code>r</code> of
 <code>e</code>, otherwise</p></li>
 <li><p><code>false</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherSizeT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>are-valid-extents</em><span class="op">(</span>array<span class="op">&lt;</span>OtherSizeT, N<span class="op">&gt;</span> arr<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>are-valid-extents</em><span class="op">(</span>array<span class="op">&lt;</span>OtherSizeT, N<span class="op">&gt;</span> arr<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherSizeT, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>are-valid-extents</em><span class="op">(</span>span<span class="op">&lt;</span>OtherSizeT, N<span class="op">&gt;</span> arr<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><em>Returns</em>:</p>
 <ul>
 <li><p><code>true</code> if <code>N == 0</code> is <code>true</code>,
 otherwise</p></li>
-<li><p><code>true</code> if for all <code>r</code> in the range of <span class="math inline">[</span><code>0</code>,<code>N</code><span class="math inline">)</span> <code>arr[r] &gt; 0</code> is
+<li><p><code>true</code> if for all <code>r</code> in the range of <span class="math inline">[</span><code>0</code>,<code>N</code><span class="math inline">)</span> <code>arr[r] &gt;= 0</code> is
 <code>true</code> and <code>arr[r]</code> is a representable value of
-<code>size_type</code>, otherwise</p></li>
+type <code>size_type</code>, otherwise</p></li>
 <li><p><code>false</code>.</p></li>
 </ul>
-<h2 data-number="4.4" id="in-subsection-22.7.x.3-mdspan.extents.cons"><span class="header-section-number">4.4</span> In subsection 22.7.X.3
-[mdspan.extents.cons]<a href="#in-subsection-22.7.x.3-mdspan.extents.cons" class="self-link"></a></h2>
+<h2 data-number="4.4" id="in-subsection-22.7.x.3-mdspan.extents.ctor"><span class="header-section-number">4.4</span> In subsection 22.7.X.3
+[mdspan.extents.ctor]<a href="#in-subsection-22.7.x.3-mdspan.extents.ctor" class="self-link"></a></h2>
 <ul>
 <li>Change the following:</li>
 </ul>
@@ -839,11 +840,11 @@ extent, and</p></li>
 <code>true</code>.</p></li>
 </ul></li>
 <li><p>Add new paragraph 4:</p>
-<p><em>Remarks:</em> The expression inside explicit is equivalent
-to:</p>
+<p><em>Remarks:</em> The expression inside <code>explicit</code> is
+equivalent to:</p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>  <span class="op">(((</span>Extents<span class="op">!=</span>dynamic_extent<span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="op">(</span>OtherExtents<span class="op">==</span>dynamic_extent<span class="op">))</span> <span class="op">||</span> <span class="op">...</span> <span class="op">)</span> <span class="op">||</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">(</span>numeric_limits<span class="op">&lt;</span>size_type<span class="op">&gt;::</span>max<span class="op">()</span> <span class="op">&lt;</span> numeric_limits<span class="op">&lt;</span>OtherSizeT<span class="op">&gt;::</span>max<span class="op">())</span></span></code></pre></div></li>
-<li><p>Change Paragrpah 6 to:</p>
+<li><p>Change Paragraph 6 to:</p>
 <p><em>Preconditions</em>:</p>
 <ul>
 <li><p>If <code>sizeof...(SizeTypes) != rank_dynamic()</code> is
@@ -853,7 +854,7 @@ extent, and</p></li>
 <li><p><em><code>are-valid-extents</code></em><code>(exts...)</code> is
 <code>true</code>.</p></li>
 </ul></li>
-<li><p>Change Paragrpah 9 to:</p>
+<li><p>Change Paragraph 9 to:</p>
 <p><em>Preconditions</em>:</p>
 <ul>
 <li><p>If <code>N != rank_dynamic()</code> is <code>true</code>,
@@ -875,8 +876,8 @@ extent, and</p></li>
 </ul>
 <p>with:</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> static_extent<span class="op">(</span>rank_type i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<h2 data-number="4.6" id="in-subsection-22.7.x.5-mdspan.extents.compare"><span class="header-section-number">4.6</span> In subsection 22.7.X.5
-[mdspan.extents.compare]<a href="#in-subsection-22.7.x.5-mdspan.extents.compare" class="self-link"></a></h2>
+<h2 data-number="4.6" id="in-subsection-22.7.x.5-mdspan.extents.cmp"><span class="header-section-number">4.6</span> In subsection 22.7.X.5
+[mdspan.extents.cmp]<a href="#in-subsection-22.7.x.5-mdspan.extents.cmp" class="self-link"></a></h2>
 <ul>
 <li><p>Replace the following:</p>
 <div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span><span class="op">...</span> OtherExtents<span class="op">&gt;</span></span>
@@ -914,18 +915,20 @@ is <code>true</code> and <code>E::size_type</code> denotes
 <li>After paragraph 3 add new paragraph:</li>
 </ul>
 <p><em>Preconditions</em>: <code>other.required_span_size()</code> is a
-representable value of <code>size_type</code> ([basic.fundamental]).</p>
+representable value of type <code>size_type</code>
+([basic.fundamental]).</p>
 <ul>
 <li>After paragraph 5 add new paragraph:</li>
 </ul>
 <p><em>Preconditions</em>: <code>other.required_span_size()</code> is a
-representable value of <code>size_type</code> ([basic.fundamental]).</p>
+representable value of type <code>size_type</code>
+([basic.fundamental]).</p>
 <ul>
 <li>Change paragraph 8 to:</li>
 </ul>
 <p><em>Preconditions</em>:</p>
 <ul>
-<li><p>If <code>extents_type::rank() &gt; 0</code> is <code>true</code>
+<li><p>If <code>extents_type::rank() &gt; 0</code> is <code>true</code>,
 then for all <span class="math inline"><em>r</em></span> in the range
 <span class="math inline">[</span><code>0</code>,
 <code>extents_type::rank()</code><span class="math inline">)</span>,
@@ -933,7 +936,7 @@ then for all <span class="math inline"><em>r</em></span> in the range
 <code>extents().</code><em>fwd-prod-of-extents</em><code>(r)</code>,
 and</p></li>
 <li><p><code>other.required_span_size()</code> is a representable value
-of <code>size_type</code> ([basic.fundamental]).</p></li>
+of type <code>size_type</code> ([basic.fundamental]).</p></li>
 </ul>
 <h2 data-number="4.9" id="in-subsection-22.7.x.4.1-mdspna.layout.right.ctors"><span class="header-section-number">4.9</span> In subsection 22.7.X.4.1
 [mdspna.layout.right.ctors]<a href="#in-subsection-22.7.x.4.1-mdspna.layout.right.ctors" class="self-link"></a></h2>
@@ -941,26 +944,28 @@ of <code>size_type</code> ([basic.fundamental]).</p></li>
 <li>After paragraph 3 add new paragraph:</li>
 </ul>
 <p><em>Preconditions</em>: <code>other.required_span_size()</code> is a
-representable value of <code>size_type</code> ([basic.fundamental]).</p>
+representable value of type <code>size_type</code>
+([basic.fundamental]).</p>
 <ul>
 <li>After paragraph 5 add new paragraph:</li>
 </ul>
 <p><em>Preconditions</em>: <code>other.required_span_size()</code> is a
-representable value of <code>size_type</code> ([basic.fundamental]).</p>
+representable value of type <code>size_type</code>
+([basic.fundamental]).</p>
 <ul>
 <li>Change paragraph 8 to:</li>
 </ul>
 <p><em>Preconditions</em>:</p>
 <ul>
-<li><p>If <code>extents_type::rank() &gt; 0</code> is <code>true</code>
+<li><p>If <code>extents_type::rank() &gt; 0</code> is <code>true</code>,
 then for all <span class="math inline"><em>r</em></span> in the range
 <span class="math inline">[</span><code>0</code>,
 <code>extents_type::rank()</code><span class="math inline">)</span>,
 <code>other.stride(r)</code> equals
-<code>extents().</code><em>rev-prod-of-extents</em><code>(r+1)</code>,
+<code>extents().</code><em>rev-prod-of-extents</em><code>(r)</code>,
 and</p></li>
 <li><p><code>other.required_span_size()</code> is a representable value
-of <code>size_type</code> ([basic.fundamental]).</p></li>
+of type <code>size_type</code> ([basic.fundamental]).</p></li>
 </ul>
 <h2 data-number="4.10" id="in-subsection-22.7.x.5.2-mdspan.layout.stride.cotrs"><span class="header-section-number">4.10</span> In Subsection 22.7.X.5.2
 [mdspan.layout.stride.cotrs]<a href="#in-subsection-22.7.x.5.2-mdspan.layout.stride.cotrs" class="self-link"></a></h2>
@@ -987,39 +992,32 @@ rank index <code>r</code> of <code>extents()</code>,</li>
 <div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">size_t</span> size<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
 <ul>
 <li><p>In the synopsis replace:</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;)</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>;</span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span><span class="op">...</span> ExtentsPack<span class="op">&gt;</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> extents<span class="op">&lt;</span>ExtentsPack<span class="op">...&gt;&amp;)</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, extents<span class="op">&lt;</span>ExtentsPack<span class="op">...&gt;&gt;</span>;</span></code></pre></div></li>
+<div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span><span class="op">...</span> Integrals<span class="op">&gt;</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> mdspan<span class="op">(</span>ElementType<span class="op">*</span>, Integrals<span class="op">...)</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">((</span>is_convertible_v<span class="op">&lt;</span>Integrals, size_type<span class="op">&gt;</span> <span class="op">&amp;&amp;</span> <span class="op">...))</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span><span class="kw">sizeof</span><span class="op">...(</span>Integrals<span class="op">)&gt;&gt;</span>;</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">(</span>ElementType<span class="op">*</span>, span<span class="op">&lt;</span>SizeType, N<span class="op">&gt;)</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>;</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;)</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span>;</span></code></pre></div></li>
 </ul>
 <p>with:</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;)</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, N<span class="op">&gt;&gt;</span>;</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeT, <span class="dt">size_t</span><span class="op">...</span> ExtentsPack<span class="op">&gt;</span></span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>    mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> extents<span class="op">&lt;</span>SizeT, ExtentsPack<span class="op">...&gt;&amp;)</span></span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, extents<span class="op">&lt;</span>SizeT, ExtentsPack<span class="op">...&gt;&gt;</span>;</span></code></pre></div>
-<h2 data-number="4.12" id="in-subsection-22.7.x.1-mdspan.mdspan.ctors"><span class="header-section-number">4.12</span> In subsection 22.7.X.1
-[mdspan.mdspan.ctors]<a href="#in-subsection-22.7.x.1-mdspan.mdspan.ctors" class="self-link"></a></h2>
-<ul>
-<li><p>Change code after paragraph 19 to:</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;)</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, N<span class="op">&gt;&gt;</span>;</span></code></pre></div></li>
-</ul>
-<h2 data-number="4.13" id="in-subsection-22.7.x-mdspan.submdspan"><span class="header-section-number">4.13</span> In Subsection 22.7.X
-[mdspan.submdspan]<a href="#in-subsection-22.7.x-mdspan.submdspan" class="self-link"></a></h2>
-<ul>
-<li><p>Add a sub-bullet in 11.1:</p>
-<ul>
-<li><code>typename SubExtents::size_type</code> is
-<code>typename Extents::size_type</code></li>
-</ul></li>
-</ul>
+<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span><span class="op">...</span> Integrals<span class="op">&gt;</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> mdspan<span class="op">(</span>ElementType<span class="op">*</span>, Integrals<span class="op">...)</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">((</span>is_convertible_v<span class="op">&lt;</span>Integrals, size_type<span class="op">&gt;</span> <span class="op">&amp;&amp;</span> <span class="op">...))</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="kw">sizeof</span><span class="op">...(</span>Integrals<span class="op">)&gt;&gt;</span>;</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">(</span>ElementType<span class="op">*</span>, span<span class="op">&lt;</span>SizeType, N<span class="op">&gt;)</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, N<span class="op">&gt;&gt;</span>;</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>SizeType, N<span class="op">&gt;&amp;)</span></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, N<span class="op">&gt;&gt;</span>;</span></code></pre></div>
 <h1 data-number="5" id="implementation"><span class="header-section-number">5</span> Implementation<a href="#implementation" class="self-link"></a></h1>
 <p>There is an mdspan implementation available at <a href="https://github.com/kokkos/mdspan/">https://github.com/kokkos/mdspan/</a>.</p>
 <h1 data-number="6" id="related-work"><span class="header-section-number">6</span> Related Work<a href="#related-work" class="self-link"></a></h1>
