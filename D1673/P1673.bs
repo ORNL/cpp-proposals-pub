@@ -2,7 +2,7 @@
 Title: A free function linear algebra interface based on the BLAS
 Shortname: P1673
 Status: iso/P
-Level: 8
+Level: 9
 Group: WG21
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs
 Editor: Mark Hoemmen, NVIDIA, mhoemmen@nvidia.com
@@ -295,6 +295,18 @@ Date: 2022-05-15
 
     * Fix typo in `givens_rotation_setup` for complex numbers, and other typos
         (thanks to Phil Miller for reporting the issue)
+
+* Revision 9 (electronic), to be submitted 2022-06-15
+
+    * During LEWG review of P1673R8 on 2022/05/24,
+        LEWG asked us to add a section to the paper
+        explaining why we don't define an interface
+        for customization of the "back-end" optimized BLAS operations.
+        This section already existed, but we rewrote it to improve clarity.
+        Please see the section titled
+        "We do not require using the BLAS library or any particular 'back-end'."
+
+    * Fix P1674 links to point to R2.
 
 # Purpose of this paper
 
@@ -701,7 +713,7 @@ We designed P1673 in part as a natural foundation or implementation layer for su
 Our view is that a free function interface like P1673's
 clearly separates algorithms from data structures,
 and more naturally allows for a richer set of operations such as what the BLAS provides.
-Our paper <a href="https://isocpp.org/files/papers/P1674R1.pdf">P1674</a>
+Our paper <a href="https://wg21.link/p1674">P1674</a>
 explains why we think our proposal is a minimal C++ "respelling" of the BLAS.
 
 A natural extension of the present proposal would include
@@ -873,7 +885,7 @@ We have experience in the exercise of wrapping a C or Fortran BLAS
 implementation for use in portable C++ libraries.  We describe this
 exercise in detail in our paper
 "Evolving a Standard C++ Linear Algebra Library from the BLAS"
-[(P1674R1)](https://isocpp.org/files/papers/P1674R1.pdf).
+<a href="https://wg21.link/p1674">(P1674)</a>.
 It is straightforward for vendors, but has pitfalls for developers.  For
 example, Fortran's application binary interface (ABI) differs across
 platforms in ways that can cause run-time errors (even incorrect
@@ -949,7 +961,7 @@ The BLAS' "native" language is Fortran.  It has a C binding as well,
 but the BLAS Standard and documentation use Fortran terms.  Where
 applicable, we will call out relevant Fortran terms and highlight
 possibly confusing differences with corresponding C++ ideas.  Our
-paper <a href="https://isocpp.org/files/papers/P1674R1.pdf">P1674</a>
+paper <a href="https://wg21.link/p1674">P1674</a>
 ("Evolving a Standard C++ Linear Algebra Library from the BLAS")
 goes into more detail on these issues.
 
@@ -1262,7 +1274,7 @@ array into contiguous temporary storage.)
 Expression templates work well, but have issues.  Our papers
 <a href="https://wg21.link/p1417r0">P1417R0</a> and
 "Evolving a Standard C++ Linear Algebra Library from the BLAS"
-[(P1674R1)](https://isocpp.org/files/papers/P1674R1.pdf)
+<a href="https://wg21.link/p1674">(P1674)</a>
 give more detail on these concerns.
 A particularly troublesome one is that C++ `auto` type deduction
 makes it easy for users to capture expressions
@@ -1370,22 +1382,59 @@ We explain the value of these choices below.
 
 Please refer to our papers
 "Evolving a Standard C++ Linear Algebra Library from the BLAS"
-[(P1674R1)](https://isocpp.org/files/papers/P1674R1.pdf)
+<a href="https://wg21.link/p1674">(P1674)</a>
 and "Historical lessons for C++ linear algebra library standardization"
-[(P1417R0)](https://wg21.link/p1417r0).  They will give details and references
+<a href="https://wg21.link/p1417">(P1417)</a>
+They will give details and references
 for many of the points that we summarize here.
 
-## We do not require using the BLAS library
+## We do not require using the BLAS library or any particular "back-end"
 
-Our proposal is based on the BLAS interface, and it would be natural
-for implementers to use an existing C or Fortran BLAS library.
-However, we do not require an underlying BLAS C interface.
-Vendors should have the freedom to decide whether they want to rely on an
-existing BLAS library.
-They may also want to write a "pure" C++
-implementation that does not depend on an external library.  They
-will, in any case, need a "generic" C++ implementation for matrix and
-vector element types other than the four that the BLAS supports.
+Our proposal is inspired by and extends the dense BLAS interface.
+A natural implementation might look like this:
+
+1. wrap an existing C or Fortran BLAS library,
+
+2. hope that the BLAS library is optimized, and then
+
+3. extend the wrapper to include straightforward
+    Standard C++ implementations of P1673's algorithms
+    for matrix and vector value types and data layouts
+    that the BLAS does not support.
+
+P1674 describes the process of writing such an implementation.
+However, P1673 does not require implementations to wrap the BLAS.
+In particular, P1673 does not specify a "back-end" C-style interface
+that would let users or implementers "swap out" different BLAS libraries.
+Here are some reasons why we made this choice.
+
+First, it's possible to write an optimized implementation
+entirely in Standard C++, without calling external C or Fortran functions.
+For example, one can write a cache-blocked
+matrix-matrix multiply implementationen entirely in Standard C++.
+
+Second, different vendors may have their own libraries
+that support matrix and vector value types and/or layouts
+beyond what the standard dense BLAS supports.
+For example, they may have C functions
+for mixed-precision matrix-matrix multiply, like
+BLIS' `bli_gemm`
+<a href="https://github.com/flame/blis/blob/master/examples/oapi/11gemm_md.c">(example here)</a>,
+or NVIDIA's `cublasGemmEx`
+<a href="https://docs.nvidia.com/cuda/cublas/index.html#cublas-GemmEx">(example here)</a>.
+
+Third, just because a C or Fortran BLAS library can be found,
+doesn't mean that it's optimized at all or optimized well.
+For example, many Linux distributions have a BLAS software package
+that is built by compiling the Reference BLAS.
+This will give poor performance for BLAS 3 operations.
+Even "optimized" vendor BLAS libraries may not optimize all cases.
+Release notes even for recent versions show performance improvements.
+
+In summary: While a natural way to implement this proposal
+would be to wrap an existing C or Fortran BLAS library,
+we do not want to require this.
+Thus, we do not specify a "back-end" C-style interface.
 
 ## Why use `mdspan`?
 
@@ -1565,7 +1614,7 @@ Summary:
 
 For a detailed analysis, please see our paper
 "Evolving a Standard C++ Linear Algebra Library from the BLAS"
-<a href="https://isocpp.org/files/papers/P1674R1.pdf">(P1674R1)</a>.
+<a href="https://wg21.link/p1674">(P1674)</a>.
 
 ## Support for different matrix layouts
 
@@ -1588,7 +1637,7 @@ Summary:
 For more details, including a list and description of the matrix
 "types" that the dense BLAS supports, please see our paper
 "Evolving a Standard C++ Linear Algebra Library from the BLAS"
-[(P1674R1)](https://isocpp.org/files/papers/P1674R1.pdf).
+<a href="https://wg21.link/p1674">(P1674)</a>.
 
 A C++ linear algebra library has a few possibilities for
 distinguishing the matrix "type":
@@ -2731,7 +2780,7 @@ properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
 (SY), Hermitian (HE), and Triangular (TR).
-Our paper <a href="https://isocpp.org/files/papers/P1674R1.pdf">P1674</a>
+Our paper <a href="https://wg21.link/p1674">P1674</a>.
 explains our reasoning.
 In summary: Their actual layout -- the arrangement of
 matrix elements in memory -- is the same as General.  The only
@@ -2795,8 +2844,8 @@ on constraints wording.
 
 * M. Hoemmen, D. S. Hollman, and C. Trott, "Evolving a Standard C++
     Linear Algebra Library from the BLAS,"
-    <a href="https://isocpp.org/files/papers/P1674R1.pdf">P1674R1</a>,
-    Apr. 2022.
+    <a href="https://wg21.link/p1674r2">P1674R2</a>,
+    May 2022.
 
 * M. Hoemmen, J. Badwaik, M. Brucher, A. Iliopoulos, and
     J. Michopoulos, "Historical lessons for C++ linear algebra library
