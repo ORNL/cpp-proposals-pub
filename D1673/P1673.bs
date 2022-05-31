@@ -306,6 +306,12 @@ Date: 2022-05-15
         Please see the section titled
         "We do not require using the BLAS library or any particular 'back-end'."
 
+    * During LEWG review of P1673R8 on 2022/05/24,
+        LEWG asked us to add a section to the paper
+        showing how BLAS 1 and ranges algorithms would coexist.
+        We added this section, titled
+        "Criteria for including BLAS 1 algorithms; coexistence with ranges."
+
     * Fix P1674 links to point to R2.
 
 # Purpose of this paper
@@ -820,8 +826,9 @@ linear algebra functions.  Sparse matrix computations get best
 performance when they spend as much time as possible in dense linear
 algebra.
 
-The C++ Standard Library includes many "mathematical special
-functions" (**[sf.cmath]**), like incomplete elliptic integrals,
+The C++ Standard Library includes many
+<a href="https://eel.is/c++draft/sf.cmath">"mathematical special functions"</a>
+(**[sf.cmath]**), like incomplete elliptic integrals,
 Bessel functions, and other polynomials and functions named after
 various mathematicians.  Any of them comes with its own theory and set
 of applications for which robust and accurate implementations are
@@ -896,6 +903,8 @@ library valuable.
 
 # Criteria for including algorithms
 
+## Criteria for all the algorithms
+
 We include algorithms in our proposal based on the following criteria,
 ordered by decreasing importance.
 Many of our algorithms satisfy multiple criteria.
@@ -952,6 +961,193 @@ It includes functions that were nontrivial for compilers to optimize in its time
 like scaled elementwise vector sums,
 as well as functions that generally require human effort to optimize,
 like matrix-matrix multiply.
+
+## Criteria for including BLAS 1 algorithms; coexistence with ranges
+
+The BLAS developed in three "levels": 1, 2, and 3.
+BLAS 1 includes "vector-vector" operations like dot products, norms, and vector addition.
+BLAS 2 includes "matrix-vector" operations like matrix-vector products and outer products.
+BLAS 3 includes "matrix-matrix" operations like matrix-matrix products
+and triangular solve with multiple "right-hand side" vectors.
+The BLAS level coincides with the number of nested loops
+in a naïve sequential implementation of the operation.
+Increasing level also comes with increasing potential for data reuse.
+For history of the BLAS "levels" and a bibliography,
+see <a href="https://wg21.link/p1417">P1417</a>.
+
+We mention this here because some reviewers have asked
+how the algorithms in our proposal would coexist
+with the existing ranges algorithms in the C++ Standard Library.
+This question actually encloses two questions.
+
+1. Will our proposed algorithms syntactically collide
+    with existing ranges algorithms?
+
+2. How much overlap do our proposed algorithms
+    have with the existing ranges algorithms?
+    (That is, do we really need these new algorithms?)
+
+### Low risk of synactic collision with ranges
+
+We think there is low risk of our proposal
+colliding syntactically with existing ranges algorithms,
+for the following reasons.
+
+* We propose our algorithms in a new namespace `std::linalg`.
+
+* None of the algorithms we propose share names with any existing ranges algorithms.
+
+* We take care not to use `_view` as a suffix,
+    in order to avoid confusion or name collisions
+    with "views" in the sense of ranges.
+
+* We specifically do not use the names `transpose` or `transpose_view`,
+    since LEWG has advised us that ranges algorithms may want to claim these names.
+    (One could imagine "transposing" a range of ranges.)
+
+* We constrain our algorithms only to take vector and matrix parameters as `mdspan`.
+    `mdspan` is not currently a range,
+    and there are currently no proposals in flight that would make it a range.
+    Changing `mdspan` of arbitrary rank to be a range
+    would require a design for multidimensional iterators.
+    P0009's coauthors have not proposed a design,
+    and it has proven challenging to get compilers to optimize
+    any existing design for multidimensional iterators.
+
+### Minimal overlap with ranges is justified by user convenience
+
+The rest of this section answers the second question.
+The BLAS 2 and 3 algorithms require multiple nested loops,
+and high-performing implementations generally need intermediate storage.
+This would make it unnatural and difficult to express them in terms of ranges.
+Only the BLAS 1 algorithms in our proposal
+might have a reasonable translation to ranges algorithms.
+There, we limit ourselves to the BLAS 1 algorithms in what follows.
+
+Any rank-1 `mdspan` `x` can be translated into the following range:
+```c++
+auto x_range = views::iota(size_t(0), x.extent(0)) |
+    views::transform([x] (auto k) { return x[k]; });
+```
+with specializations possible for `mdspan`
+whose layout mapping's range
+is a contiguous or fixed-stride set of offsets.
+However, just because code _could_ be written in a certain way
+doesn't mean that it _should_ be.
+We have ranges even though the language has `for` loops;
+we don't need to step in the Turing tar-pit on purpose
+(see Perlis 1982).
+Thus, we will analyze the BLAS 1 algorithms in this proposal
+in the context of the previous section's four general criteria.
+
+Our proposal would add 61 new unique names to the C++ Standard Library.
+Of those, 16 are BLAS 1 algorithms, while 24 are BLAS 2 and 3 algorithms.
+The 16 BLAS 1 algorithms fall into three categories:
+
+1. Optimization hooks, like `copy`.  As with `memcpy`,
+    the fastest implementation may depend closely on the computer architecture,
+    and may differ significantly from a straightforward implementation.
+    Some of these algorithms, like `copy`,
+    can operate on multidimensional arrays as well,
+    though it is traditional to list them as BLAS 1 algorithms.
+
+2. Floating-point quality-of-implementation hooks, like `vector_sum_of_squares`.
+    These give vendors opportunities
+    to avoid preventable floating-point underflow and overflow
+    (as with `hypot`),
+    improve accuracy, and reduce or even avoid parallel nondeterminism
+    and order dependence of floating-point sums.
+
+3. Uncomplicated elementwise algorithms like `add`, `idx_abs_max`, and `scale`.
+
+We included the first category mainly because of Criterion (2)
+"Opportunity for vendors to provide hardware-specific optimizations,"
+and the second mainly because of Criterion (3)
+("Opportunity for vendors to provide quality-of-implementation improvements").
+Fast implementations of algorithms in the first category
+are not likely to be simple uses of ranges algorithms.
+
+Algorithms in the second category could be presented as ranges algorithms,
+as `mdspan` algorithms, or as both.
+The "iterating over elements" part of those algorithms
+is not the most challenging part of their implementation,
+nor is it what makes an implementation "high quality."
+
+Algorithms in the third category could be replaced
+with a few lines of C++ that use ranges algorithms.
+For example, here is a parallel implementation of `idx_abs_max`,
+omitting constraints on template parameters for simplicity.
+(Here is a <a href="https://godbolt.org/z/7eW9ExsKM">Compiler Explorer link</a>
+to a working example.)
+
+```c++
+template<class Element, std::extents<>::size_type Extent,
+  class Layout, class Accessor>
+std::extents<>::size_type idx_abs_max(
+  std::mdspan<Element, std::extents<Extent>, Layout, Accessor> x)
+{
+  auto theRange = std::views::iota(size_t(0), x.extent(0)) |
+    std::views::transform([=] (auto k) { return std::abs(x[k]); });
+  auto iterOfMax =
+    std::max_element(std::execution::par_unseq, theRange.begin(), theRange.end());
+  auto indexOfMax = std::ranges::distance(theRange.begin(), iterOfMax);
+  // In GCC 12.1, the return type is __int128.
+  return static_cast<extents<>::size_type>(indexOfMax);
+}
+```
+
+Even though the algorithms in the third category
+could be implemented straightforwardly with ranges,
+we provide them because of Criterion 4 ("User convenience").
+Criterion (4) applies to all the algorithms in this proposal,
+and particularly to the BLAS 1 algorithms.
+Matrix algorithm developers need BLAS 1 and 2 as well as BLAS 3,
+because matrix algorithms tend to decompose into vector algorithms.
+This is true even of so-called "block" matrix algorithms
+that have been optimized to use matrix-matrix operations wherever possible,
+in order to improve memory locality.
+Demmel et al. 1987 (p. 4) explains.
+
+> Block algorithms generally require an unblocked version
+> of the same algorithm to be available to operate on a single block.
+> Therefore, the development of the software will fall naturally into two phases:
+> first, develop unblocked versions of the routines,
+> calling the Level 2 BLAS wherever possible;
+> then develop blocked versions where possible,
+> calling the Level 3 BLAS.
+
+Dongarra et al. 1990 (pp. 12-15) outlines this development process
+for the specific example of Cholesky factorization.
+The Cholesky factorization algorithm (on p. 14)
+spends most of its time (for a sufficiently large input matrix)
+in matrix-matrix multiplies (`DGEMM`),
+rank-k symmetric matrices updates
+(`DSYRK`, a special case of matrix-matrix multiply),
+and triangular solves with multiple "right-hand side" vectors (`DTRSM`).
+However, it still needs an "unblocked" Cholesky factorization
+as the blocked factorization's "base case."
+This is called `DLLT` in Dongarra et al. 1990 (p. 15),
+and it uses `DDOT`, `DSCAL` (both BLAS2), and `DGEMV` (BLAS 2).
+In the case of Cholesky factorization,
+it's possible to express the "unblocked" case without using BLAS 1 or 2 operations,
+by using recursion.
+This is the approach that LAPACK takes with the blocked Cholesky factorization
+<a href="https://www.netlib.org/lapack/explore-html/d1/d7a/group__double_p_ocomputational_ga2f55f604a6003d03b5cd4a0adcfb74d6.html">`DPOTRF`</a>
+and its unblocked base case
+<a href="https://www.netlib.org/lapack/explore-html/d1/d7a/group__double_p_ocomputational_gad0718d061dc53c8b0fec6dc3710fab33.html">`DPOTRF2`</a>.
+However, even a recursive formulation of most matrix factorizations
+needs to use BLAS 1 or 2 operations.
+For example, the unblocked base case
+<a href="https://www.netlib.org/lapack/explore-html/dd/d9a/group__double_g_ecomputational_gabdd3af29e9f6bbaf4b352341a1e8b464.html">`DGETRF2`</a>
+of LAPACK's blocked LU factorization
+<a href="https://www.netlib.org/lapack/explore-html/d3/d6a/dgetrf_8f_source.html">`DGETRF`</a>
+needs to invoke vector-vector operations like `DSCAL`.
+
+In summary, matrix algorithm developers need vector algorithms,
+because matrix algorithms decompose into vector algorithms.
+If our proposal lacked BLAS 1 algorithms,
+even simple ones like `add` and `scale`,
+matrix algorithm developers would end up writing them anyway.
 
 # Notation and conventions
 
@@ -2894,7 +3090,7 @@ on constraints wording.
 
 * E. Chow and A. Patel,
     "Fine-Grained Parallel Incomplete LU Factorization",
-    SIAM J. Sci. Comput., 37(2), C169-C193, 2015.
+    *SIAM J. Sci. Comput.*, Vol. 37, No. 2, C169-C193, 2015.
 
 * G. Davidson and B. Steagall, "A proposal to add linear algebra
     support to the C++ standard library,"
@@ -2918,6 +3114,11 @@ on constraints wording.
     2013 IEEE 21st Symposium on Computer Arithmetic,
     2013, pp. 163-172, doi: 10.1109/ARITH.2013.9.
 
+* J. Dongarra, J. Du Croz, S. Hammarling, and I. Duff,
+    <a href="https://dl.acm.org/doi/10.1145/77626.79170">"A set of level 3 basic linear algebra subprograms,"</a>
+    *ACM Transactions on Mathematical Software*,
+    Vol. 16, No. 1, pp. 1-17, Mar. 1990.
+
 * J. Dongarra, R. Pozo, and D. Walker, "LAPACK++: A Design Overview of
     Object-Oriented Extensions for High Performance Linear Algebra," in
     Proceedings of Supercomputing '93, IEEE Computer Society Press,
@@ -2925,7 +3126,7 @@ on constraints wording.
 
 * M. Gates, P. Luszczek, A. Abdelfattah, J. Kurzak, J. Dongarra,
     K. Arturov, C. Cecka, and C. Freitag,
-    ["C++ API for BLAS and LAPACK,"](https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf)
+    <a href="https://www.icl.utk.edu/files/publications/2017/icl-utk-1031-2017.pdf">"C++ API for BLAS and LAPACK,"</a>
     SLATE Working Notes, Innovative Computing Laboratory,
     University of Tennessee Knoxville, Feb. 2018.
 
@@ -2942,6 +3143,9 @@ on constraints wording.
 
 * M. Kretz, "Data-Parallel Vector Types & Operations,"
     <a href="https://wg21.link/p0214r9">P0214R9</a>, Mar. 2018.
+
+* A. J. Perlis, "Epigrams on programming,"
+    SIGPLAN Notices, Vol. 17, No. 9, pp. 7-13, 1982.
 
 * G. Strang,
     "Introduction to Linear Algebra," 5th Edition,
