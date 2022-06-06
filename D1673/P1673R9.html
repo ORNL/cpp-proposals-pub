@@ -2731,12 +2731,11 @@ for helpful discussions.)</p>
      <p>Revision 9 (electronic), to be submitted 2022-06-15</p>
      <ul>
       <li data-md>
-       <p><code class="highlight"><c- n>layout_blas_general</c-></code> changes:</p>
-       <ul>
-        <li data-md>
-         <p>Fix wording of <code class="highlight"><c- n>layout_blas_general</c-></code> to incorporate recent changes to P0009.
+       <p>Fix wording of <code class="highlight"><c- n>layout_blas_packed</c-></code> to incorporate recent changes to P0009.
 (We will need more revisions if P2553 is approved.)</p>
-       </ul>
+      <li data-md>
+       <p>Fix wording of <code class="highlight"><c- n>layout_blas_general</c-></code> to incorporate recent changes to P0009.
+(We will need more revisions if P2553 is approved.)</p>
       <li data-md>
        <p><code class="highlight"><c- n>layout_transpose</c-></code> changes:</p>
        <ul>
@@ -6987,7 +6986,8 @@ called <code class="highlight"><c- n>LDA</c-></code>, for "leading dimension of 
     <c- n>constexpr</c-> <c- n>size_type</c-> <c- n>stride</c-><c- p>(</c-><c- b>size_t</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 
     <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-      <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
+      <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c->
+        <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
   <c- p>};</c->
 <c- p>};</c->
 </pre>
@@ -7098,7 +7098,8 @@ then <code class="highlight">true</code> if <code class="highlight"><c- n>stride
      </ul>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-  <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
+  <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c->
+    <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>
     <li data-md>
@@ -7132,40 +7133,42 @@ Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
 <c- n>public</c-><c- o>:</c->
   <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Extents</c-><c- o>></c->
   <c- k>struct</c-> <c- nc>mapping</c-> <c- p>{</c->
+  <c- n>public</c-><c- o>:</c->
+    <c- n>using</c-> <c- n>extents_type</c-> <c- o>=</c-> <c- n>Extents</c-><c- p>;</c->
+    <c- n>using</c-> <c- n>size_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>size_type</c-><c- p>;</c->
+    <c- n>using</c-> <c- n>layout_type</c-> <c- o>=</c-> <c- n>layout_blas_packed</c-><c- o>&lt;</c-><c- n>Triangle</c-><c- p>,</c-> <c- n>StorageOrder</c-><c- o>></c-><c- p>;</c->
+
   <c- n>private</c-><c- o>:</c->
-    <c- n>Extents</c-> <c- n>extents_</c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- n>Extents</c-> <c- n>extents_</c-><c- p>{};</c-> <c- c1>// exposition only</c->
 
   <c- n>public</c-><c- o>:</c->
-    <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>Extents</c-><c- o>&amp;</c-> <c- n>e</c-><c- p>);</c->
+    <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>e</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
 
     <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-    <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>e</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
+      <c- n>explicit</c-><c- p>(</c-><c- o>!</c-> <c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>></c-><c- p>)</c->
+        <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>e</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
 
-    <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-    <c- n>operator</c-><c- p>()</c-> <c- p>(</c-><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>,</c->
-                <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>j</c-><c- p>)</c-> <c- k>const</c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- n>extents_type</c-> <c- n>extents</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-> <c- p>{</c-> <c- k>return</c-> <c- n>extents_</c-><c- p>;</c-> <c- p>}</c->
 
-    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-    <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>m</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+    <c- n>constexpr</c-> <c- n>size_type</c-> <c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 
-    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-    <c- b>bool</c-> <c- n>operator</c-><c- o>!=</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>m</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>IndexType</c-><c- o>></c->
+      <c- n>constexpr</c-> <c- n>size_type</c->
+        <c- n>operator</c-><c- p>()</c-> <c- p>(</c-><c- n>IndexType</c-> <c- n>i</c-><c- p>,</c-> <c- n>IndexType</c-> <c- n>j</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 
-    <c- n>constexpr</c-> <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-    <c- n>stride</c-><c- p>(</c-><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
-
-    <c- n>constexpr</c-> <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-    <c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
-
-    <c- n>constexpr</c-> <c- n>Extents</c-> <c- n>extents</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
-
-    <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_unique</c-><c- p>();</c->
-    <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_contiguous</c-><c- p>();</c->
-    <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_strided</c-><c- p>();</c->
+    <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_unique</c-><c- p>()</c-> <c- p>{</c-> <c- k>return</c-> false<c- p>;</c-> <c- p>}</c->
+    <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_contiguous</c-><c- p>()</c-> <c- p>{</c-> <c- k>return</c-> true<c- p>;</c-> <c- p>}</c->
+    <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_strided</c-><c- p>()</c-> <c- p>{</c-> <c- k>return</c-> false<c- p>;</c-> <c- p>}</c->
 
     <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_unique</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
     <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_contiguous</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
     <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_strided</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+
+    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
+      <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c->
+        <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
+
+    <c- n>constexpr</c-> <c- n>size_type</c-> <c- n>stride</c-><c- p>(</c-><c- n>size_type</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 <c- p>};</c->
 </pre>
    <ul>
@@ -7182,32 +7185,37 @@ Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
        <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals 2.</p>
      </ul>
    </ul>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>Extents</c-><c- o>&amp;</c-> <c- n>e</c-><c- p>);</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>e</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>
     <li data-md>
      <p><em>Preconditions:</em> <code class="highlight"><c- n>e</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>e</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>.</p>
     <li data-md>
-     <p><em>Effects:</em> Initializes <code class="highlight"><c- n>extents_</c-></code> with <code class="highlight"><c- n>e</c-></code>.</p>
+     <p><em>Effects:</em> Direct-non-list-initializes <code class="highlight"><c- n>extents_</c-></code> with <code class="highlight"><c- n>e</c-></code>.</p>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-<c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>e</c-><c- p>);</c->
+  <c- n>explicit</c-><c- p>(</c-><c- o>!</c-> <c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>></c-><c- p>)</c->
+    <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>e</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>
     <li data-md>
      <p><em>Constraints:</em></p>
      <ul>
       <li data-md>
-       <p><code class="highlight"><c- n>OtherExtents</c-></code> is a specialization of <code class="highlight"><c- n>extents</c-></code>.</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals 2.</p>
+       <p><code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
      </ul>
     <li data-md>
-     <p><em>Effects:</em> Initializes <code class="highlight"><c- n>extents_</c-></code> with <code class="highlight"><c- n>e</c-></code>.</p>
+     <p><em>Effects:</em> Direct-non-list-initializes <code class="highlight"><c- n>extents_</c-></code> with <code class="highlight"><c- n>e</c-><c- p>.</c-><c- n>extents</c-><c- p>()</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-<c- n>operator</c-><c- p>()</c-> <c- p>(</c-><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>,</c->
-            <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>j</c-><c- p>)</c-> <c- k>const</c-><c- p>;</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>size_type</c-> <c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <ul>
+    <li data-md>
+     <p><em>Returns:</em> <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-><c- o>*</c-><c- p>(</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>IndexType</c-><c- o>></c->
+  <c- n>constexpr</c-> <c- n>size_type</c->
+    <c- n>operator</c-><c- p>()</c-> <c- p>(</c-><c- n>IndexType</c-> <c- n>i</c-><c- p>,</c-> <c- n>IndexType</c-> <c- n>j</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>
     <li data-md>
@@ -7247,64 +7255,6 @@ else <code class="highlight"><c- n>i</c-> <c- o>+</c-> <c- n>j</c-><c- p>(</c-><
        </ul>
      </ul>
    </ul>
-<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-<c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>m</c-><c- p>)</c-> <c- k>const</c-><c- p>;</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Constraints:</em> <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals <code class="highlight"><c- n>rank</c-><c- p>()</c-></code>.</p>
-    <li data-md>
-     <p><em>Returns:</em> <code class="highlight">true</code> if and only if
-for 0 ≤ <code class="highlight"><c- n>r</c-></code> &lt; <code class="highlight"><c- n>rank</c-><c- p>()</c-></code>, <code class="highlight"><c- n>m</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-<c- b>bool</c-> <c- n>operator</c-><c- o>!=</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>m</c-><c- p>)</c-> <c- k>const</c-><c- p>;</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Constraints:</em> <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals <code class="highlight"><c- n>rank</c-><c- p>()</c-></code>.</p>
-    <li data-md>
-     <p><em>Returns:</em> <code class="highlight">true</code> if and only if
-there exists <code class="highlight"><c- n>r</c-></code> with 0 ≤ <code class="highlight"><c- n>r</c-></code> &lt; <code class="highlight"><c- n>rank</c-><c- p>()</c-></code> such that <code class="highlight"><c- n>m</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-<c- n>stride</c-><c- p>(</c-><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Returns:</em> 1 if <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is less than 2, else 0.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-<c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Returns:</em> <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-><c- o>*</c-><c- p>(</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>Extents</c-> <c- n>extents</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>extents_</c-><c- p>;</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_unique</c-><c- p>();</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Returns:</em> <code class="highlight">false</code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_contiguous</c-><c- p>();</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Returns:</em> <code class="highlight">true</code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_strided</c-><c- p>();</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Returns:</em> <code class="highlight">false</code>.</p>
-   </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_unique</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>
@@ -7322,6 +7272,23 @@ there exists <code class="highlight"><c- n>r</c-></code> with 0 ≤ <code class=
    <ul>
     <li data-md>
      <p><em>Returns:</em> <code class="highlight">true</code> if <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is less than 2, else <code class="highlight">false</code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
+  <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c->
+    <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <ul>
+    <li data-md>
+     <p><em>Constraints:</em> <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals <code class="highlight"><c- n>rank</c-><c- p>()</c-></code>.</p>
+    <li data-md>
+     <p><em>Returns:</em> <code class="highlight">true</code> if and only if
+for 0 ≤ <code class="highlight"><c- n>r</c-></code> &lt; <code class="highlight"><c- n>rank</c-><c- p>()</c-></code>, <code class="highlight"><c- n>m</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- n>r</c-><c- p>)</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>size_type</c-> <c- n>stride</c-><c- p>(</c-><c- n>size_type</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <ul>
+    <li data-md>
+     <p><em>Returns:</em> 1 if <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is less than 2, else 0.</p>
    </ul>
    <h3 class="heading settled" data-level="16.5" id="scaled-in-place-transformation-linalgscaled"><span class="secno">16.5. </span><span class="content">Scaled in-place transformation [linalg.scaled]</span><a class="self-link" href="#scaled-in-place-transformation-linalgscaled"></a></h3>
    <p>The <code class="highlight"><c- n>scaled</c-></code> function takes a value <code class="highlight"><c- n>alpha</c-></code> and an <code class="highlight"><c- n>mdspan</c-></code> <code class="highlight"><c- n>x</c-></code>, and returns a new read-only <code class="highlight"><c- n>mdspan</c-></code> with the same domain
@@ -8003,7 +7970,8 @@ of any unique <code class="highlight"><c- n>mdspan</c-></code> layout mapping po
       <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>r</c-><c- p>)));</c->
 
     <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-      <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
+      <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c->
+        <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
   <c- p>};</c->
 <c- p>};</c->
 </pre>
@@ -8106,7 +8074,8 @@ reversing the last two elements of <code class="highlight"><c- n>indices</c-></c
      </ul>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-<c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
+  <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c->
+    <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>
     <li data-md>

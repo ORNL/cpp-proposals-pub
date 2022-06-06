@@ -298,10 +298,11 @@ Date: 2022-05-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
-    * `layout_blas_general` changes:
+    * Fix wording of `layout_blas_packed` to incorporate recent changes to P0009.
+        (We will need more revisions if P2553 is approved.)
 
-        * Fix wording of `layout_blas_general` to incorporate recent changes to P0009.
-            (We will need more revisions if P2553 is approved.)
+    * Fix wording of `layout_blas_general` to incorporate recent changes to P0009.
+        (We will need more revisions if P2553 is approved.)
 
     * `layout_transpose` changes:
 
@@ -4956,7 +4957,8 @@ public:
     constexpr size_type stride(size_t r) const noexcept;
 
     template<class OtherExtents>
-      friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+      friend constexpr bool
+        operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
   };
 };
 ```
@@ -5058,7 +5060,8 @@ constexpr size_type stride(size_t r) const noexcept;
 
 ```c++
 template<class OtherExtents>
-  friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+  friend constexpr bool
+    operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
 ```
 
 * *Constraints:* `OtherExtents::rank()` equals `rank()`.
@@ -5102,40 +5105,42 @@ class layout_blas_packed {
 public:
   template<class Extents>
   struct mapping {
+  public:
+    using extents_type = Extents;
+    using size_type = typename extents_type::size_type;
+    using layout_type = layout_blas_packed<Triangle, StorageOrder>;
+
   private:
-    Extents extents_; // exposition only
+    Extents extents_{}; // exposition only
 
   public:
-    constexpr mapping(const Extents& e);
+    constexpr mapping(const extents_type& e) noexcept;
 
     template<class OtherExtents>
-    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+      explicit(! is_convertible_v<OtherExtents, extents_type>)
+        constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 
-    typename Extents::size_type
-    operator() (typename Extents::size_type i,
-                typename Extents::size_type j) const;
+    constexpr extents_type extents() const noexcept { return extents_; }
 
-    template<class OtherExtents>
-    bool operator==(const mapping<OtherExtents>& m) const noexcept;
+    constexpr size_type required_span_size() const noexcept;
 
-    template<class OtherExtents>
-    bool operator!=(const mapping<OtherExtents>& m) const noexcept;
+    template<class IndexType>
+      constexpr size_type
+        operator() (IndexType i, IndexType j) const noexcept;
 
-    constexpr typename Extents::size_type
-    stride(typename Extents::size_type r) const noexcept;
-
-    constexpr typename Extents::size_type
-    required_span_size() const noexcept;
-
-    constexpr Extents extents() const noexcept;
-
-    static constexpr bool is_always_unique();
-    static constexpr bool is_always_contiguous();
-    static constexpr bool is_always_strided();
+    static constexpr bool is_always_unique() { return false; }
+    static constexpr bool is_always_contiguous() { return true; }
+    static constexpr bool is_always_strided() { return false; }
 
     constexpr bool is_unique() const noexcept;
     constexpr bool is_contiguous() const noexcept;
     constexpr bool is_strided() const noexcept;
+
+    template<class OtherExtents>
+      friend constexpr bool
+        operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+
+    constexpr size_type stride(size_type) const noexcept;
 };
 ```
 
@@ -5150,30 +5155,35 @@ public:
     * `Extents::rank()` equals 2.
 
 ```c++
-constexpr mapping(const Extents& e);
+constexpr mapping(const extents_type& e) noexcept;
 ```
 
 * *Preconditions:* `e.extent(0)` equals `e.extent(1)`.
 
-* *Effects:* Initializes `extents_` with `e`.
+* *Effects:* Direct-non-list-initializes `extents_` with `e`.
 
 ```c++
 template<class OtherExtents>
-constexpr mapping(const mapping<OtherExtents>& e);
+  explicit(! is_convertible_v<OtherExtents, extents_type>)
+    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 ```
 
 * *Constraints:*
 
-    * `OtherExtents` is a specialization of `extents`.
+    * `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-    * `OtherExtents::rank()` equals 2.
-
-* *Effects:* Initializes `extents_` with `e`.
+* *Effects:* Direct-non-list-initializes `extents_` with `e.extents()`.
 
 ```c++
-typename Extents::size_type
-operator() (typename Extents::size_type i,
-            typename Extents::size_type j) const;
+constexpr size_type required_span_size() const noexcept;
+```
+
+* *Returns:* `extent(0)*(extent(0) - 1)/2`.
+
+```c++
+template<class IndexType>
+  constexpr size_type
+    operator() (IndexType i, IndexType j) const noexcept;
 ```
 
 * *Preconditions:*
@@ -5205,66 +5215,6 @@ operator() (typename Extents::size_type i,
             else `i + j(j+1)/2`.
 
 ```c++
-template<class OtherExtents>
-bool operator==(const mapping<OtherExtents>& m) const;
-```
-
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
-
-* *Returns:* `true` if and only if
-    for 0 ≤ `r` < `rank()`,
-    `m.extent(r)` equals `extent(r)`.
-
-```c++
-template<class OtherExtents>
-bool operator!=(const mapping<OtherExtents>& m) const;
-```
-
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
-
-* *Returns:* `true` if and only if
-    there exists `r` with 0 ≤ `r` < `rank()` such that
-    `m.extent(r)` does not equal `extent(r)`.
-
-```c++
-constexpr typename Extents::size_type
-stride(typename Extents::size_type r) const noexcept;
-```
-
-* *Returns:* 1 if `extent(0)` is less than 2, else 0.
-
-```c++
-constexpr typename Extents::size_type
-required_span_size() const noexcept;
-```
-
-* *Returns:* `extent(0)*(extent(0) - 1)/2`.
-
-```c++
-constexpr Extents extents() const noexcept;
-```
-
-* *Effects:* Equivalent to `return extents_;`.
-
-```c++
-static constexpr bool is_always_unique();
-```
-
-* *Returns:* `false`.
-
-```c++
-static constexpr bool is_always_contiguous();
-```
-
-* *Returns:* `true`.
-
-```c++
-static constexpr bool is_always_strided();
-```
-
-* *Returns:* `false`.
-
-```c++
 constexpr bool is_unique() const noexcept;
 ```
 
@@ -5281,6 +5231,24 @@ constexpr bool is_strided() const noexcept;
 ```
 
 * *Returns:* `true` if `extent(0)` is less than 2, else `false`.
+
+```c++
+template<class OtherExtents>
+  friend constexpr bool
+    operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* `true` if and only if
+    for 0 ≤ `r` < `rank()`,
+    `m.extent(r)` equals `extent(r)`.
+
+```c++
+constexpr size_type stride(size_type) const noexcept;
+```
+
+* *Returns:* 1 if `extent(0)` is less than 2, else 0.
 
 ## Scaled in-place transformation [linalg.scaled]
 
@@ -6055,7 +6023,8 @@ public:
       noexcept(noexcept(nested_mapping_.stride(r)));
 
     template<class OtherExtents>
-      friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+      friend constexpr bool
+        operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
   };
 };
 ```
@@ -6160,7 +6129,8 @@ constexpr size_type stride(size_t r) const
 
 ```c++
 template<class OtherExtents>
-friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+  friend constexpr bool
+    operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
 ```
 
 * *Constraints:*
