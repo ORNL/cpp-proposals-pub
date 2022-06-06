@@ -298,6 +298,9 @@ Date: 2022-05-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
+    * Fix wording of `scaled_scalar` and `conjugated_scalar`
+        to include all the needed overloaded arithmetic operators.
+
     * During LEWG review of P1673R8 on 2022/05/24,
         LEWG asked us to add a section to the paper
         explaining why we don't define an interface
@@ -5347,6 +5350,114 @@ run-time value(s) of the relevant BLAS function arguments (e.g.,
 
 --*end note]*
 
+### Exposition-only class templates `proxy_reference_base` and `proxy_reference` [linalg.scaled.base]
+
+The exposition-only class `proxy_reference_base` is a tag
+to identify whether a class is a specialization of either
+`scaled_scalar` **[linalg.scaled.accessor_scaled]** or
+`conjugated_scalar` **[linalg.scaled.accessor_conjugated]**.
+
+The exposition-only class template `proxy_reference`
+is part of the implementation of 
+`scaled_scalar` **[linalg.scaled.accessor_scaled]** and
+`conjugated_scalar` **[linalg.scaled.accessor_conjugated]**.
+
+```c++
+class proxy_reference_base {}; // exposition only
+
+template<class Reference, class Value, class Derived>
+class proxy_reference : proxy_reference_base { // exposition only
+private:
+  using this_type = proxy_reference<Reference, Value, Derived>;
+  
+  Reference reference_;
+
+public:
+  using reference_type = Reference;
+  using value_type = Value;
+  using derived_type = Derived;
+
+  explicit proxy_reference(Reference reference) : reference_(reference) {}
+
+  operator value_type() const {
+    return static_cast<const Derived&>(*this).to_value(reference_);
+  }
+
+  friend auto operator-(const derived_type& cs)
+  {
+    return -value_type(cs);
+  }
+
+  template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
+  friend auto operator+ (derived_type lhs, Rhs rhs)
+  {
+    using rhs_value_type = typename Rhs::value_type; // exposition only
+    return value_type(lhs) + rhs_value_type(rhs);
+  }
+  template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
+  friend auto operator+ (derived_type lhs, Rhs rhs)
+  {
+    return value_type(lhs) + rhs;
+  }
+  template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
+  friend auto operator+ (Lhs lhs, derived_type rhs)
+  {
+    return lhs + value_type(rhs);
+  }
+
+  template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
+  friend auto operator- (derived_type lhs, Rhs rhs)
+  {
+    using rhs_value_type = typename Rhs::value_type; // exposition only
+    return value_type(lhs) - rhs_value_type(rhs);
+  }
+  template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
+  friend auto operator- (derived_type lhs, Rhs rhs)
+  {
+    return value_type(lhs) - rhs;
+  }
+  template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
+  friend auto operator- (Lhs lhs, derived_type rhs)
+  {
+    return lhs - value_type(rhs);
+  }
+
+  template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
+  friend auto operator* (derived_type lhs, Rhs rhs)
+  {
+    using rhs_value_type = typename Rhs::value_type; // exposition only
+    return value_type(lhs) * rhs_value_type(rhs);
+  }
+  template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
+  friend auto operator* (derived_type lhs, Rhs rhs)
+  {
+    return value_type(lhs) * rhs;
+  }
+  template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
+  friend auto operator* (Lhs lhs, derived_type rhs)
+  {
+    return lhs * value_type(rhs);
+  }
+
+  template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
+  friend auto operator/ (derived_type lhs, Rhs rhs)
+  {
+    using rhs_value_type = typename Rhs::value_type; // exposition only
+    return value_type(lhs) / rhs_value_type(rhs);
+  }
+  template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
+  friend auto operator/ (derived_type lhs, Rhs rhs)
+  {
+    return value_type(lhs) / rhs;
+  }
+  template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
+  friend auto operator/ (Lhs lhs, derived_type rhs)
+  {
+    return lhs / value_type(rhs);
+  }
+};
+```
+
 ### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
 
 The class template `accessor_scaled` is an `mdspan` accessor
@@ -5362,39 +5473,52 @@ with the definition of "assigning to a scaled scalar."  --*end note]*
 `scaled_scalar` is part of the implementation of `scaled_accessor`.
 
 ```c++
-template<class ScalingFactor,
-         class Reference>
-class scaled_scalar { // exposition only
+template<class ScalingFactor, class Reference, class ReferenceValue>
+class scaled_scalar : // exposition only
+  public proxy_reference<Reference, ReferenceValue,
+    scaled_scalar<ScalingFactor, Reference, ReferenceValue>>
+{
 private:
-  ScalingFactor scaling_factor;
-  Reference value;
+  ScalingFactor scaling_factor_;
 
+  using base_type = proxy_reference<Reference, ReferenceValue, my_type>; // exposition only
 public:
-  using element_type = decltype(scaling_factor * value);
+  explicit scaled_scalar(ScalingFactor scaling_factor, Reference reference);
 
-  scaled_scalar(const ScalingFactor& s, Reference v);
-
-  operator element_type() const;
+  using value_type = decltype(scaling_factor_ * ReferenceValue(std::declval<Reference>()));
+  value_type to_value(Reference reference) const;
 };
 ```
 
+*[Note:*
+
+The point of the `ReferenceValue` template parameter
+is so that the input of `to_value` can be cast to a value immediately,
+before any transformations are applied.
+This ensures the original order of operations,
+as if computing nonlazily.
+It also makes fewer requirements of the reference type.
+
+--*end note]*
+
 * *Preconditions:* `ScalingFactor` and `Reference` shall be *Cpp17CopyConstructible*.
 
-* *Constraints:* The expression `scaling_factor * value` is well formed.
+* *Constraints:* The expression `scaling_factor_ * ReferenceValue(reference)` is well formed.
 
 ```c++
-scaled_scalar(const ScalingFactor& s, Reference v);
+explicit scaled_scalar(ScalingFactor scaling_factor, Reference reference);
 ```
 
-* *Effects:* Initializes `scaling_factor` with `s`, and initializes `value` with `v`.
+* *Effects:* Initializes `base_type` with `reference`,
+    and initializes `scaling_factor_` with `move(scaling_factor)`.
 
 ```c++
-operator element_type() const;
+value_type to_value(Reference reference) const;
 ```
 
-* *Preconditions:* This operator may be invoked arbitrarily many times.
+* *Preconditions:* This function may be invoked arbitrarily many times.
 
-* *Effects:* Equivalent to `return scaling_factor * value;`.
+* *Effects:* Equivalent to `return scaling_factor_ * ReferenceValue(reference);`.
 
 The class template `accessor_scaled` is an `mdspan` accessor
 policy whose reference type represents the product of a scaling factor
@@ -5405,18 +5529,16 @@ template<class ScalingFactor,
          class Accessor>
 class accessor_scaled {
 public:
-  using element_type  =
-    scaled_scalar<ScalingFactor, Accessor::reference>::element_type;
-  using pointer       = Accessor::pointer;
   using reference     =
-    scaled_scalar<ScalingFactor, Accessor::reference>;
-  using offset_policy =
-    accessor_scaled<ScalingFactor, Accessor::offset_policy>;
+    scaled_scalar<ScalingFactor, Accessor::reference, remove_cv_t<Accessor::element_type>>;
+  using element_type  = add_const_t<typename reference::value_type>;
+  using pointer       = Accessor::pointer;
+  using offset_policy = accessor_scaled<ScalingFactor, Accessor::offset_policy>;
 
-  accessor_scaled(const ScalingFactor& s, Accessor a);
+  accessor_scaled(ScalingFactor s, Accessor a);
 
   template<class OtherElementType>
-  accessor_scaled(const ScalingFactor& s, default_accessor<OtherElementType> a);
+  accessor_scaled(ScalingFactor s, default_accessor<OtherElementType> a);
 
   reference access(pointer p, extents<>::size_type i) const noexcept;
 
@@ -5438,10 +5560,10 @@ private:
     * `Accessor` shall meet the `mdspan` accessor policy requirements.
 
 ```c++
-accessor_scaled(const ScalingFactor& s, Accessor a);
+accessor_scaled(ScalingFactor s, Accessor a);
 ```
 
-* *Effects:* Initializes `scaling_factor_` with `s`, and initializes `accessor` with `a`.
+* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor` with `a`.
 
 ```c++
 template<class OtherElementType>
@@ -5451,13 +5573,7 @@ accessor_scaled(const ScalingFactor& s, default_accessor<OtherElementType> a);
 * *Constraints:*
 `is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
 
-* *Effects:* Initializes `scaling_factor_` with `s`, and initializes `accessor` with `a`.
-
-*[Note:*
-This constructor exists so that if `scaled` is given an `mdspan`
-with nonconst element type `T` and accessor `default_accessor<T>`,
-`scaled` can then return an `mdspan` with `const` element type.
---*end note]*
+* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor` with `a`.
 
 ```c++
 reference access(pointer p, extents<>::size_type i) const noexcept;
@@ -5525,6 +5641,8 @@ where
         `decltype(alpha * x.accessor().scaling_factor())`;
 
     * else, `accessor_scaled<ScalingFactor, Accessor>`.
+
+Then:
 
 * *Effects:*
 
@@ -5607,52 +5725,25 @@ conjugate of a scalar."  --*end note]* `conjugated_scalar` is part of
 the implementation of `accessor_conjugate`.
 
 ```c++
-template<class Reference,
-         class ElementType>
-class conjugated_scalar { // exposition only
-public:
-  using conjugate_result_t =
-    decltype(<it>conj-if-needed</it>(declval<ElementType>()));
-
-  conjugated_scalar(Reference v);
-
-  operator conjugate_result_t () const {
-    return <it>conj-if-needed</it>(val);
-  }
-
-  template<class T2>
-  auto operator* (const T2 upd) const {
-    return <it>conj-if-needed</it>(val) * upd;
-  }
-
-  template<class T2>
-  auto operator+ (const T2 upd) const {
-    return <it>conj-if-needed</it>(val) + upd;
-  }
-
-  template<class T2>
-  bool operator== (const T2 upd) const {
-    return <it>conj-if-needed</it>(val) == upd;
-  }
-
-  template<class T2>
-  bool operator!= (const T2 upd) const {
-    return <it>conj-if-needed</it>(val) != upd;
-  }
-
+template<class Reference, class ReferenceValue>
+class conjugated_scalar : // exposition only
+  public proxy_reference<Reference, ReferenceValue, conjugated_scalar<Reference, ReferenceValue>>
+{
 private:
-  Reference val;
+  using my_type = conjugated_scalar<Reference, ReferenceValue>; // exposition only
+  using base_type = proxy_reference<Reference, ReferenceValue, my_type>; // exposition only
+
+public:
+  explicit conjugated_scalar(Reference reference);
+
+  // NOTE (mfh 2022/06/03) Consider moving this to proxy_reference,
+  // since it's duplicated in all the proxy reference "base" types.
+  // Doing so isn't easy, because this class is an incomplete type
+  // inside proxy_reference at the time when we need it to deduce this
+  // type.
+  using value_type = /* see below */;
+  static auto to_value(Reference reference);
 };
-
-template<class T1, class Reference, class ElementType>
-auto operator* (const T1 x, const conjugated_scalar<Reference, ElementType> y) {
-  return x * Reference(y);
-}
-
-template<class T1, class Reference, class ElementType>
-auto operator/ (const T1 x, const conjugated_scalar<Reference, ElementType> y) {
-  return x / Reference(y);
-}
 ```
 
 * *Preconditions:* `Reference` shall be *Cpp17CopyConstructible*.
@@ -5660,10 +5751,24 @@ auto operator/ (const T1 x, const conjugated_scalar<Reference, ElementType> y) {
 * *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed.
 
 ```c++
-conjugated_scalar(Reference v);
+using value_type = /* see below */;
 ```
 
-* *Effects:* Initializes `val` with `v`.
+`value_type` names the type `decltype(<it>conj-if-needed</it>(ReferenceValue(declval<Reference>())))`.
+
+```c++
+explicit conjugated_scalar(Reference reference);
+```
+
+* *Effects:* Initializes `base_type` with `reference`.
+
+```c++
+static auto to_value(Reference value_type);
+```
+
+* *Preconditions:* This function may be invoked arbitrarily many times.
+
+* *Effects:* Equivalent to `return `_`conj-if-needed`_`(ReferenceValue(reference));`.
 
 ```c++
 template<class Accessor>
@@ -5672,9 +5777,9 @@ private:
   Accessor acc; // exposition only
 
 public:
-  using element_type = /* see below */
-  using pointer       = typename Accessor::pointer;
   using reference     = /* see below */;
+  using element_type  = /* see below */;
+  using pointer       = typename Accessor::pointer;
   using offset_policy = /* see below */;
 
   accessor_conjugate(Accessor a);
@@ -5698,42 +5803,53 @@ public:
     * `Accessor` shall meet the `mdspan` accessor policy requirements **[mdspan.accessor.reqmts]**.
 
 ```c++
-using element_type = /* see below */
-```
-
-If `typename Accessor::element_type` is an arithmetic type,
-then let the exposition-only type alias `pre-const-element-type` name
-`typename Accessor::element_type`; otherwise, let it name
-`conjugated_scalar<typename Accessor::reference, element_type>::conjugate_result_t`.
-
-* If `Accessor` is `default_accessor<ElementType>`,
-    or if `Accessor` is
-    `accessor_scaled<ScalingFactor, default_accessor<InnerElementType>>`
-    for some `ScalingFactor` and `InnerElementType`,
-    then `element_type` names `add_const_t<`_`pre-const-element-type`_`>`;
-
-* else, `element_type` names _`pre-const-element-type`_ *[Note:* For general accessors,
-    the `const ElementType` version of the accessor may not exist;
-    Even if it does, `accessor_conjugate` has no way to deduce it generically.
-    --*end note]*
-
-```c++
 using reference = /* see below */;
 ```
 
-If `element_type` is an arithmetic type,
-then this names `typename Accessor::reference`.
-Otherwise, it names
-`conjugated_scalar<typename Accessor::reference, element_type>`.
+This names
+
+* `typename Accessor::reference`,
+    if `remove_cv_t<typename Accessor::element_type>` is an arithmetic type;
+
+* otherwise, `conjugated_scalar<typename Accessor::reference, remove_cv_t<typename Accessor::element_type>>`.
+
+```c++
+using element_type = /* see below */
+```
+
+Let the exposition-only type `pre-const-element-type` name
+
+* `typename Accessor::element_type`,
+    if `remove_cv<typename Accessor::element_type>` is an arithmetic type;
+
+* otherwise, `reference::value_type`.
+
+Then, `element_type` names
+
+* `add_const_t<`_`pre-const-element-type`_`>`,
+    if `Accessor` is `default_accessor<ElementType>`,
+    or if `Accessor` is 
+    `accessor_scaled<SF, default_accessor<InnerElementType>, RV>`
+    for some `ScalingFactor`, `InnerElementType`, and RV;
+
+* otherwise, _`pre-const-element-type`_.
+
+*[Note:*
+For general accessors,
+the `const ElementType` version of the accessor may not exist.
+Even if it does, `accessor_conjugate` has no way to deduce it generically.
+--*end note]*
 
 ```c++
 using offset_policy = /* see below */;
 ```
 
-If `element_type` is an arithmetic type,
-then this names `typename Accessor::offset_policy`.
-Otherwise, it names
-`accessor_conjugate<typename Accessor::offset_policy, element_type>`.
+This names
+
+* `typename Accessor::offset_policy`,
+    if `remove_cv_t<typename Accessor::element_type>` is an arithmetic type;
+
+* otherwise, `accessor_conjugate<typename Accessor::offset_policy>`.
 
 ```c++
 accessor_conjugate(Accessor a);
