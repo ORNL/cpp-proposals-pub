@@ -298,6 +298,24 @@ Date: 2022-05-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
+    * `layout_transpose` changes:
+
+        * Fix wording of `layout_transpose` to incorporate recent changes to P0009.
+            (We will need more revisions if P2553 is approved.)
+
+        * Make `layout_transpose::mapping(const nested_mapping_type&)` constructor
+            `explicit`, to avoid inadvertent transposition.
+
+        * Remove the following Constraint on `layout_transpose::mapping`: 
+            "for all specializations `E` of `extents` with `E::rank()` equal to 2,
+            `typename Layout::template mapping<E>::is_always_unique()` is `true`."
+	    (This Constraint was not correct, because the underlying mapping
+	    is allowed to be nonunique.)
+
+        * Make `layout_transpose::mapping::stride` wording
+	    independent of `rank()` equals 2 constraint,
+	    to improve consistency with rest of `layout_transpose` wording.
+
     * Fix wording of `scaled_scalar` and `conjugated_scalar`
         to include all the needed overloaded arithmetic operators.
 
@@ -5976,7 +5994,7 @@ void test_conjugated_real(
 swaps the rightmost two indices, extents, and strides (if applicable)
 of any unique `mdspan` layout mapping policy.
 
-The `transposed` function takes a rank-2 `mdspan`
+The `transposed` function takes an `mdspan`
 representing a matrix, and returns a new read-only `mdspan`
 representing the transpose of the input matrix.
 
@@ -6022,7 +6040,7 @@ For `InputExtents` a specialization of `extents`,
 ```c++
 template<class InputExtents>
 transpose_extents_t<InputExtents>
-transpose_extents(const InputExtents in); // exposition only
+transpose_extents(const InputExtents& in); // exposition only
 ```
 
 * *Constraints:* `InputExtents::rank()` equals 2.
@@ -6048,125 +6066,84 @@ public:
     nested_mapping_type nested_mapping_; // exposition only
 
   public:
-    mapping(const nested_mapping_type& map);
+    using extents_type = Extents;
+    using size_type = typename extents_type::size_type;
+    using layout_type = layout_transpose;
 
-    extents<>::size_type operator() (
-      extents<>::size_type i, extents<>::size_type j) const
-        noexcept(noexcept(nested_mapping_(j, i)));
+    constexpr explicit mapping(const nested_mapping_type& map);
+
+    constexpr extents_type extents() const
+      noexcept(noexcept(nested_mapping_.extents()));
+
+    constexpr size_type required_span_size() const
+      noexcept(noexcept(nested_mapping_.required_span_size()));
+
+    template<class... Indices>
+      constexpr size_type operator()(Indices... indices) const
+        noexcept(noexcept(nested_mapping_(indices...)));
 
     nested_mapping_type nested_mapping() const;
 
-    template<class OtherExtents>
-    bool operator==(const mapping<OtherExtents>& m) const;
-
-    template<class OtherExtents>
-    bool operator!=(const mapping<OtherExtents>& m) const;
-
-    Extents extents() const noexcept;
-
-    typename Extents::size_type required_span_size() const
-      noexcept(noexcept(nested_mapping_.required_span_size()));
-
-    bool is_unique() const
-      noexcept(noexcept(nested_mapping_.is_unique()));
-
-    bool is_contiguous() const
-      noexcept(noexcept(nested_mapping_.is_contiguous()));
-
-    bool is_strided() const
-      noexcept(noexcept(nested_mapping_.is_strided()));
-
     static constexpr bool is_always_unique();
-
     static constexpr bool is_always_contiguous();
-
     static constexpr bool is_always_strided();
 
-    typename Extents::size_type
-    stride(typename Extents::size_type r) const
+    constexpr bool is_unique() const
+      noexcept(noexcept(nested_mapping_.is_unique()));
+    constexpr bool is_contiguous() const
+      noexcept(noexcept(nested_mapping_.is_contiguous()));
+    constexpr bool is_strided() const
+      noexcept(noexcept(nested_mapping_.is_strided()));
+
+    constexpr size_type stride(size_t r) const
       noexcept(noexcept(nested_mapping_.stride(r)));
+
+    template<class OtherExtents>
+    friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
   };
 };
 ```
 
 * *Preconditions:* `Layout` shall meet the `mdspan` layout mapping policy requirements.
 
-* *Constraints:* For all specializations `E` of `extents` with `E::rank()` equal to 2,
-    `typename Layout::template mapping<E>::is_always_unique()` is `true`.
+* *Constraints:* `Extents::rank()` equals 2.
 
 ```c++
-mapping(const nested_mapping_type& map);
+constexpr explicit mapping(const nested_mapping_type& map);
 ```
 
 * *Effects:* Initializes `nested_mapping_` with `map`.
 
 ```c++
-extents<>::size_type operator() (
-  extents<>::size_type i, extents<>::size_type j) const
-    noexcept(noexcept(nested_mapping_(j, i)));
-```
-
-* *Effects:* Equivalent to `return nested_mapping_(j, i);`.
-
-```c++
-nested_mapping_type nested_mapping() const;
-```
-
-* *Effects:* Equivalent to `return nested_mapping_;`.
-
-```c++
-template<class OtherExtents>
-bool operator==(const mapping<OtherExtents>& m) const;
-```
-
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
-
-* *Effects:* Equivalent to `nested_mapping_ == m.nested_mapping_;`.
-
-```c++
-template<class OtherExtents>
-bool operator!=(const mapping<OtherExtents>& m) const;
-```
-
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
-
-* *Effects:* Equivalent to `nested_mapping_ != m.nested_mapping_;`.
-
-```c++
-Extents extents() const noexcept;
+constexpr extents_type extents() const
+  noexcept(noexcept(nested_mapping_.extents()));
 ```
 
 * *Effects:* Equivalent to
     `return transpose_extents(nested_mapping_.extents());`.
 
 ```c++
-typename Extents::size_type
-required_span_size() const
+constexpr size_type required_span_size() const
   noexcept(noexcept(nested_mapping_.required_span_size()));
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_.required_span_size();`.
 
 ```c++
-bool is_unique() const
-  noexcept(noexcept(nested_mapping_.is_unique()));
+template<class... Indices>
+  constexpr size_type operator()(Indices... indices) const
+    noexcept(noexcept(nested_mapping_(indices...)));
 ```
 
-* *Effects:* Equivalent to `return nested_mapping_.is_unique();`.
+* *Effects:* Equivalent to `return nested_mapping_(last_two_indices_reversed);`,
+    where `last_two_indices_reversed` is the result of
+    reversing the last two elements of `indices`.
 
 ```c++
-bool is_contiguous() const
-  noexcept(noexcept(nested_mapping_.is_contiguous()));
+nested_mapping_type nested_mapping() const;
 ```
 
-* *Effects:* Equivalent to `return nested_mapping_.is_contiguous();`.
-
-```c++
-bool is_strided() const
-  noexcept(noexcept(nested_mapping_.is_strided()));
-```
-
-* *Effects:* Equivalent to `return nested_mapping_.is_strided();`.
+* *Effects:* Equivalent to `return nested_mapping_;`.
 
 ```c++
 static constexpr bool is_always_unique();
@@ -6190,15 +6167,53 @@ static constexpr bool is_always_strided();
     `return nested_mapping_type::is_always_strided();`.
 
 ```c++
-typename Extents::size_type
-stride(typename Extents::size_type r) const
+constexpr bool is_unique() const
+  noexcept(noexcept(nested_mapping_.is_unique()));
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_unique();`.
+
+```c++
+constexpr bool is_contiguous() const
+  noexcept(noexcept(nested_mapping_.is_contiguous()));
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_contiguous();`.
+
+```c++
+constexpr bool is_strided() const
+  noexcept(noexcept(nested_mapping_.is_strided()));
+```
+
+* *Effects:* Equivalent to `return nested_mapping_.is_strided();`.
+
+```c++
+constexpr size_type stride(size_t r) const
   noexcept(noexcept(nested_mapping_.stride(r)));
 ```
 
 * *Constraints:* `is_always_strided()` is `true`.
 
-* *Effects:* Equivalent to `return nested_mapping_.stride(s);`,
-    where `s` is 0 if `r` is 1 and `s` is 1 if `r` is 0.
+* *Effects:* Equivalent to `return nested_mapping_.stride(s);`, where
+
+    * `s` is `rank()` - 2 if `r` equals `rank()` - 1,
+
+    * `s` is `rank()` - 1 if `r` equals `rank()` - 2, and
+
+    * `s` is `r` for 0 ≤ `r` < `in.rank()-2`.
+
+```c++
+template<class OtherExtents>
+friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+```
+
+* *Constraints:*
+
+    * `nested_mapping_type` and `decltype(m.nested_mapping_)` are equality comparable, and
+
+    * `OtherExtents::rank()` equals `rank()`.
+
+* *Effects:* Equivalent to `nested_mapping_ == m.nested_mapping_;`.
 
 ### `transposed` [linalg.transp.transposed]
 

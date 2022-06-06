@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version 863c107, updated Wed Jun 1 15:25:15 2022 -0700" name="generator">
+  <meta content="Bikeshed version 511ccb7, updated Mon Jun 6 13:31:59 2022 -0700" name="generator">
   <link href="https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>/* style-autolinks */
@@ -2730,6 +2730,24 @@ for helpful discussions.)</p>
     <li data-md>
      <p>Revision 9 (electronic), to be submitted 2022-06-15</p>
      <ul>
+      <li data-md>
+       <p><code class="highlight"><c- n>layout_transpose</c-></code> changes:</p>
+       <ul>
+        <li data-md>
+         <p>Fix wording of <code class="highlight"><c- n>layout_transpose</c-></code> to incorporate recent changes to P0009.
+(We will need more revisions if P2553 is approved.)</p>
+        <li data-md>
+         <p>Make <code class="highlight"><c- n>layout_transpose</c-><c- o>::</c-><c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>nested_mapping_type</c-><c- o>&amp;</c-><c- p>)</c-></code> constructor <code class="highlight"><c- k>explicit</c-></code>, to avoid inadvertent transposition.</p>
+        <li data-md>
+         <p>Remove the following Constraint on <code class="highlight"><c- n>layout_transpose</c-><c- o>::</c-><c- n>mapping</c-></code>:
+"for all specializations <code class="highlight"><c- n>E</c-></code> of <code class="highlight"><c- n>extents</c-></code> with <code class="highlight"><c- n>E</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equal to 2, <code class="highlight"><c- k>typename</c-> <c- nc>Layout</c-><c- o>::</c-><c- k>template</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>E</c-><c- o>>::</c-><c- n>is_always_unique</c-><c- p>()</c-></code> is <code class="highlight">true</code>."
+(This Constraint was not correct, because the underlying mapping
+is allowed to be nonunique.)</p>
+        <li data-md>
+         <p>Make <code class="highlight"><c- n>layout_transpose</c-><c- o>::</c-><c- n>mapping</c-><c- o>::</c-><c- n>stride</c-></code> wording
+independent of <code class="highlight"><c- n>rank</c-><c- p>()</c-></code> equals 2 constraint,
+to improve consistency with rest of <code class="highlight"><c- n>layout_transpose</c-></code> wording.</p>
+       </ul>
       <li data-md>
        <p>Fix wording of <code class="highlight"><c- n>scaled_scalar</c-></code> and <code class="highlight"><c- n>conjugated_scalar</c-></code> to include all the needed overloaded arithmetic operators.</p>
       <li data-md>
@@ -7935,7 +7953,7 @@ then equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(
    <p><code class="highlight"><c- n>layout_transpose</c-></code> is an <code class="highlight"><c- n>mdspan</c-></code> layout mapping policy that
 swaps the rightmost two indices, extents, and strides (if applicable)
 of any unique <code class="highlight"><c- n>mdspan</c-></code> layout mapping policy.</p>
-   <p>The <code class="highlight"><c- n>transposed</c-></code> function takes a rank-2 <code class="highlight"><c- n>mdspan</c-></code> representing a matrix, and returns a new read-only <code class="highlight"><c- n>mdspan</c-></code> representing the transpose of the input matrix.</p>
+   <p>The <code class="highlight"><c- n>transposed</c-></code> function takes an <code class="highlight"><c- n>mdspan</c-></code> representing a matrix, and returns a new read-only <code class="highlight"><c- n>mdspan</c-></code> representing the transpose of the input matrix.</p>
    <p><em>[Note:</em></p>
    <p>An implementation could dispatch to a function in the BLAS library, by
 noticing that the first argument has a <code class="highlight"><c- n>layout_transpose</c-></code> <code class="highlight"><c- n>Layout</c-></code> type, and/or an <code class="highlight"><c- n>accessor_conjugate</c-></code> (see below) <code class="highlight"><c- n>Accessor</c-></code> type.  It
@@ -7964,7 +7982,7 @@ of any unique <code class="highlight"><c- n>mdspan</c-></code> layout mapping po
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>InputExtents</c-><c- o>></c->
 <c- n>transpose_extents_t</c-><c- o>&lt;</c-><c- n>InputExtents</c-><c- o>></c->
-<c- n>transpose_extents</c-><c- p>(</c-><c- k>const</c-> <c- n>InputExtents</c-> <c- n>in</c-><c- p>);</c-> <c- c1>// exposition only</c->
+<c- n>transpose_extents</c-><c- p>(</c-><c- k>const</c-> <c- n>InputExtents</c-><c- o>&amp;</c-> <c- n>in</c-><c- p>);</c-> <c- c1>// exposition only</c->
 </pre>
    <ul>
     <li data-md>
@@ -7992,43 +8010,40 @@ of any unique <code class="highlight"><c- n>mdspan</c-></code> layout mapping po
     <c- n>nested_mapping_type</c-> <c- n>nested_mapping_</c-><c- p>;</c-> <c- c1>// exposition only</c->
 
   <c- n>public</c-><c- o>:</c->
-    <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>nested_mapping_type</c-><c- o>&amp;</c-> <c- n>map</c-><c- p>);</c->
+    <c- n>using</c-> <c- n>extents_type</c-> <c- o>=</c-> <c- n>Extents</c-><c- p>;</c->
+    <c- n>using</c-> <c- n>size_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>size_type</c-><c- p>;</c->
+    <c- n>using</c-> <c- n>layout_type</c-> <c- o>=</c-> <c- n>layout_transpose</c-><c- p>;</c->
 
-    <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>operator</c-><c- p>()</c-> <c- p>(</c->
-      <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>j</c-><c- p>)</c-> <c- k>const</c->
-        <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>(</c-><c- n>j</c-><c- p>,</c-> <c- n>i</c-><c- p>)));</c->
+    <c- n>constexpr</c-> <c- n>explicit</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>nested_mapping_type</c-><c- o>&amp;</c-> <c- n>map</c-><c- p>);</c->
+
+    <c- n>constexpr</c-> <c- n>extents_type</c-> <c- n>extents</c-><c- p>()</c-> <c- k>const</c->
+      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>extents</c-><c- p>()));</c->
+
+    <c- n>constexpr</c-> <c- n>size_type</c-> <c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c->
+      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()));</c->
+
+    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-><c- p>...</c-> <c- n>Indices</c-><c- o>></c->
+      <c- n>constexpr</c-> <c- n>size_type</c-> <c- n>operator</c-><c- p>()(</c-><c- n>Indices</c-><c- p>...</c-> <c- n>indices</c-><c- p>)</c-> <c- k>const</c->
+        <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>(</c-><c- n>indices</c-><c- p>...)));</c->
 
     <c- n>nested_mapping_type</c-> <c- nf>nested_mapping</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
 
-    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-    <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>m</c-><c- p>)</c-> <c- k>const</c-><c- p>;</c->
-
-    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-    <c- b>bool</c-> <c- n>operator</c-><c- o>!=</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>m</c-><c- p>)</c-> <c- k>const</c-><c- p>;</c->
-
-    <c- n>Extents</c-> <c- nf>extents</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
-
-    <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c->
-      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()));</c->
-
-    <c- b>bool</c-> <c- nf>is_unique</c-><c- p>()</c-> <c- k>const</c->
-      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_unique</c-><c- p>()));</c->
-
-    <c- b>bool</c-> <c- nf>is_contiguous</c-><c- p>()</c-> <c- k>const</c->
-      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_contiguous</c-><c- p>()));</c->
-
-    <c- b>bool</c-> <c- nf>is_strided</c-><c- p>()</c-> <c- k>const</c->
-      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_strided</c-><c- p>()));</c->
-
     <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_unique</c-><c- p>();</c->
-
     <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_contiguous</c-><c- p>();</c->
-
     <c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_strided</c-><c- p>();</c->
 
-    <c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-    <c- n>stride</c-><c- p>(</c-><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c->
+    <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_unique</c-><c- p>()</c-> <c- k>const</c->
+      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_unique</c-><c- p>()));</c->
+    <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_contiguous</c-><c- p>()</c-> <c- k>const</c->
+      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_contiguous</c-><c- p>()));</c->
+    <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_strided</c-><c- p>()</c-> <c- k>const</c->
+      <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_strided</c-><c- p>()));</c->
+
+    <c- n>constexpr</c-> <c- n>size_type</c-> <c- n>stride</c-><c- p>(</c-><c- b>size_t</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c->
       <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>r</c-><c- p>)));</c->
+
+    <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
+    <c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
   <c- p>};</c->
 <c- p>};</c->
 </pre>
@@ -8036,80 +8051,43 @@ of any unique <code class="highlight"><c- n>mdspan</c-></code> layout mapping po
     <li data-md>
      <p><em>Preconditions:</em> <code class="highlight"><c- n>Layout</c-></code> shall meet the <code class="highlight"><c- n>mdspan</c-></code> layout mapping policy requirements.</p>
     <li data-md>
-     <p><em>Constraints:</em> For all specializations <code class="highlight"><c- n>E</c-></code> of <code class="highlight"><c- n>extents</c-></code> with <code class="highlight"><c- n>E</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equal to 2, <code class="highlight"><c- k>typename</c-> <c- nc>Layout</c-><c- o>::</c-><c- k>template</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>E</c-><c- o>>::</c-><c- n>is_always_unique</c-><c- p>()</c-></code> is <code class="highlight">true</code>.</p>
+     <p><em>Constraints:</em> <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals 2.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>nested_mapping_type</c-><c- o>&amp;</c-> <c- n>map</c-><c- p>);</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>explicit</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>nested_mapping_type</c-><c- o>&amp;</c-> <c- n>map</c-><c- p>);</c->
 </pre>
    <ul>
     <li data-md>
      <p><em>Effects:</em> Initializes <code class="highlight"><c- n>nested_mapping_</c-></code> with <code class="highlight"><c- n>map</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>operator</c-><c- p>()</c-> <c- p>(</c->
-  <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>j</c-><c- p>)</c-> <c- k>const</c->
-    <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>(</c-><c- n>j</c-><c- p>,</c-> <c- n>i</c-><c- p>)));</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>(</c-><c- n>j</c-><c- p>,</c-> <c- n>i</c-><c- p>);</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- n>nested_mapping_type</c-> <c- nf>nested_mapping</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>;</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-<c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>m</c-><c- p>)</c-> <c- k>const</c-><c- p>;</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Constraints:</em> <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals <code class="highlight"><c- n>rank</c-><c- p>()</c-></code>.</p>
-    <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- n>nested_mapping_</c-> <c- o>==</c-> <c- n>m</c-><c- p>.</c-><c- n>nested_mapping_</c-><c- p>;</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
-<c- b>bool</c-> <c- n>operator</c-><c- o>!=</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>m</c-><c- p>)</c-> <c- k>const</c-><c- p>;</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Constraints:</em> <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals <code class="highlight"><c- n>rank</c-><c- p>()</c-></code>.</p>
-    <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- n>nested_mapping_</c-> <c- o>!=</c-> <c- n>m</c-><c- p>.</c-><c- n>nested_mapping_</c-><c- p>;</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- n>Extents</c-> <c- nf>extents</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>extents_type</c-> <c- n>extents</c-><c- p>()</c-> <c- k>const</c->
+  <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>extents</c-><c- p>()));</c->
 </pre>
    <ul>
     <li data-md>
      <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>transpose_extents</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>extents</c-><c- p>());</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-<c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>size_type</c-> <c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c->
   <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()));</c->
 </pre>
    <ul>
     <li data-md>
      <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>();</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- b>bool</c-> <c- nf>is_unique</c-><c- p>()</c-> <c- k>const</c->
-  <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_unique</c-><c- p>()));</c->
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-><c- p>...</c-> <c- n>Indices</c-><c- o>></c->
+  <c- n>constexpr</c-> <c- n>size_type</c-> <c- n>operator</c-><c- p>()(</c-><c- n>Indices</c-><c- p>...</c-> <c- n>indices</c-><c- p>)</c-> <c- k>const</c->
+    <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>(</c-><c- n>indices</c-><c- p>...)));</c->
 </pre>
    <ul>
     <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_unique</c-><c- p>();</c-></code>.</p>
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>(</c-><c- n>last_two_indices_reversed</c-><c- p>);</c-></code>,
+where <code class="highlight"><c- n>last_two_indices_reversed</c-></code> is the result of
+reversing the last two elements of <code class="highlight"><c- n>indices</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- b>bool</c-> <c- nf>is_contiguous</c-><c- p>()</c-> <c- k>const</c->
-  <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_contiguous</c-><c- p>()));</c->
+<pre class="language-c++ highlight"><c- n>nested_mapping_type</c-> <c- nf>nested_mapping</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
 </pre>
    <ul>
     <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_contiguous</c-><c- p>();</c-></code>.</p>
-   </ul>
-<pre class="language-c++ highlight"><c- b>bool</c-> <c- nf>is_strided</c-><c- p>()</c-> <c- k>const</c->
-  <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_strided</c-><c- p>()));</c->
-</pre>
-   <ul>
-    <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_strided</c-><c- p>();</c-></code>.</p>
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>;</c-></code>.</p>
    </ul>
 <pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_unique</c-><c- p>();</c->
 </pre>
@@ -8129,16 +8107,58 @@ of any unique <code class="highlight"><c- n>mdspan</c-></code> layout mapping po
     <li data-md>
      <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_type</c-><c- o>::</c-><c- n>is_always_strided</c-><c- p>();</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c->
-<c- n>stride</c-><c- p>(</c-><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_unique</c-><c- p>()</c-> <c- k>const</c->
+  <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_unique</c-><c- p>()));</c->
+</pre>
+   <ul>
+    <li data-md>
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_unique</c-><c- p>();</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_contiguous</c-><c- p>()</c-> <c- k>const</c->
+  <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_contiguous</c-><c- p>()));</c->
+</pre>
+   <ul>
+    <li data-md>
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_contiguous</c-><c- p>();</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_strided</c-><c- p>()</c-> <c- k>const</c->
+  <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_strided</c-><c- p>()));</c->
+</pre>
+   <ul>
+    <li data-md>
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>is_strided</c-><c- p>();</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>size_type</c-> <c- n>stride</c-><c- p>(</c-><c- b>size_t</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c->
   <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>nested_mapping_</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>r</c-><c- p>)));</c->
 </pre>
    <ul>
     <li data-md>
      <p><em>Constraints:</em> <code class="highlight"><c- n>is_always_strided</c-><c- p>()</c-></code> is <code class="highlight">true</code>.</p>
     <li data-md>
-     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>s</c-><c- p>);</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is 0 if <code class="highlight"><c- n>r</c-></code> is 1 and <code class="highlight"><c- n>s</c-></code> is 1 if <code class="highlight"><c- n>r</c-></code> is 0.</p>
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>nested_mapping_</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>s</c-><c- p>);</c-></code>, where</p>
+     <ul>
+      <li data-md>
+       <p><code class="highlight"><c- n>s</c-></code> is <code class="highlight"><c- n>rank</c-><c- p>()</c-></code> - 2 if <code class="highlight"><c- n>r</c-></code> equals <code class="highlight"><c- n>rank</c-><c- p>()</c-></code> - 1,</p>
+      <li data-md>
+       <p><code class="highlight"><c- n>s</c-></code> is <code class="highlight"><c- n>rank</c-><c- p>()</c-></code> - 1 if <code class="highlight"><c- n>r</c-></code> equals <code class="highlight"><c- n>rank</c-><c- p>()</c-></code> - 2, and</p>
+      <li data-md>
+       <p><code class="highlight"><c- n>s</c-></code> is <code class="highlight"><c- n>r</c-></code> for 0 ≤ <code class="highlight"><c- n>r</c-></code> &lt; <code class="highlight"><c- n>in</c-><c- p>.</c-><c- n>rank</c-><c- p>()</c-><c- mi>-2</c-></code>.</p>
+     </ul>
+   </ul>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
+<c- n>friend</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>operator</c-><c- o>==</c-><c- p>(</c-><c- k>const</c-> <c- n>mapping</c-><c- o>&amp;</c-><c- p>,</c-> <c- k>const</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <ul>
+    <li data-md>
+     <p><em>Constraints:</em></p>
+     <ul>
+      <li data-md>
+       <p><code class="highlight"><c- n>nested_mapping_type</c-></code> and <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>m</c-><c- p>.</c-><c- n>nested_mapping_</c-><c- p>)</c-></code> are equality comparable, and</p>
+      <li data-md>
+       <p><code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals <code class="highlight"><c- n>rank</c-><c- p>()</c-></code>.</p>
+     </ul>
+    <li data-md>
+     <p><em>Effects:</em> Equivalent to <code class="highlight"><c- n>nested_mapping_</c-> <c- o>==</c-> <c- n>m</c-><c- p>.</c-><c- n>nested_mapping_</c-><c- p>;</c-></code>.</p>
    </ul>
    <h4 class="heading settled" data-level="16.7.2" id="transposed-linalgtransptransposed"><span class="secno">16.7.2. </span><span class="content"><code class="highlight"><c- n>transposed</c-></code> [linalg.transp.transposed]</span><a class="self-link" href="#transposed-linalgtransptransposed"></a></h4>
    <p>The <code class="highlight"><c- n>transposed</c-></code> function takes a rank-2 <code class="highlight"><c- n>mdspan</c-></code> representing a matrix, and returns a new read-only <code class="highlight"><c- n>mdspan</c-></code> representing the transpose of the input matrix.  The input matrix’s
