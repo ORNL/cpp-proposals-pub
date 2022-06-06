@@ -298,6 +298,11 @@ Date: 2022-05-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
+    * `layout_blas_general` changes:
+
+        * Fix wording of `layout_blas_general` to incorporate recent changes to P0009.
+            (We will need more revisions if P2553 is approved.)
+
     * `layout_transpose` changes:
 
         * Fix wording of `layout_transpose` to incorporate recent changes to P0009.
@@ -4916,42 +4921,42 @@ class layout_blas_general {
 public:
   template<class Extents>
   struct mapping {
+  public:
+    using extents_type = Extents;
+    using size_type = typename extents_type::size_type;
+    using layout_type = layout_blas_general<StorageOrder>;
+
   private:
-    Extents extents_; // exposition only
-    const typename Extents::size_type stride_{}; // exposition only
+    extents_type extents_{}; // exposition only
+    size_type stride_{}; // exposition only
 
   public:
-    constexpr mapping(const Extents& e,
-      const typename Extents::size_type s);
+    constexpr mapping(const extents_type& e, size_type s) noexcept;
 
     template<class OtherExtents>
-    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+      explicit(! is_convertible_v<OtherExtents, extents_type>)
+        constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 
-    typename Extents::size_type
-    operator() (typename Extents::size_type i,
-                typename Extents::size_type j) const;
+    constexpr extents_type extents() const noexcept { return extents_; }
 
-    constexpr typename Extents::size_type
-    required_span_size() const noexcept;
+    constexpr size_type required_span_size() const noexcept;
 
-    typename Extents::size_type
-    stride(typename Extents::size_type r) const noexcept;
+    template<class IndexType>
+      constexpr size_type
+        operator() (IndexType i, IndexType j) const noexcept;
 
-    template<class OtherExtents>
-    bool operator==(const mapping<OtherExtents>& m) const noexcept;
+    static constexpr bool is_always_unique() { return true; }
+    static constexpr bool is_always_contiguous() { return true; }
+    static constexpr bool is_always_strided() { return true; }
 
-    template<class OtherExtents>
-    bool operator!=(const mapping<OtherExtents>& m) const noexcept;
-
-    Extents extents() const noexcept;
-
-    static constexpr bool is_always_unique();
-    static constexpr bool is_always_contiguous();
-    static constexpr bool is_always_strided();
-
-    constexpr bool is_unique() const noexcept;
+    constexpr bool is_unique() const noexcept { return true; }
     constexpr bool is_contiguous() const noexcept;
-    constexpr bool is_strided() const noexcept;
+    constexpr bool is_strided() const noexcept { return true; }
+
+    constexpr size_type stride(size_t r) const noexcept;
+
+    template<class OtherExtents>
+      friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
   };
 };
 ```
@@ -4965,8 +4970,7 @@ public:
     * `Extents::rank()` equals 2.
 
 ```c++
-constexpr mapping(const Extents& e,
-  const typename Extents::size_type s);
+constexpr mapping(const extents_type& e, size_type s) noexcept;
 ```
 
 * *Preconditions:*
@@ -4991,21 +4995,29 @@ requirement at run time.
 
 ```c++
 template<class OtherExtents>
-constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+  explicit(! is_convertible_v<OtherExtents, extents_type>)
+    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
 ```
 
 * *Constraints:*
 
-    * `OtherExtents` is a specialization of `extents`.
+    * `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
     * `OtherExtents::rank()` equals 2.
 
-* *Effects:* Initializes `extents_` with `m.extents_`, and initializes `stride_` with `m.stride_`.
+* *Effects:* Direct-non-list-initializes `extents_` with `m.extents_`,
+    and initializes `stride_` with `m.stride_`.
 
 ```c++
-typename Extents::size_type
-operator() (typename Extents::size_type i,
-            typename Extents::size_type j) const;
+constexpr size_type required_span_size() const noexcept;
+```
+
+* *Returns:* `stride(0)*stride(1)`.
+
+```c++
+template<class IndexType>
+  constexpr size_type
+    operator() (IndexType i, IndexType j) const noexcept;
 ```
 
 * *Preconditions:*
@@ -5023,77 +5035,6 @@ operator() (typename Extents::size_type i,
         `stride(0)*i + j`.
 
 ```c++
-template<class OtherExtents>
-bool operator==(const mapping<OtherExtents>& m) const;
-```
-
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
-
-* *Returns:* `true` if and only if for 0 ≤ `r` < `rank()`,
-    `m.extent(r)` equals `extent(r)` and
-    `m.stride(r)` equals `stride(r)`.
-
-```c++
-template<class OtherExtents>
-bool operator!=(const mapping<OtherExtents>& m) const;
-```
-
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
-
-* *Returns:* `true` if and only if
-    there exists `r` with 0 ≤ `r` < `rank()` such that
-    `m.extent(r)` does not equal `extent(r)` or
-    `m.stride(r)` does not equal `stride(r)`.
-
-```c++
-typename Extents::size_type
-stride(typename Extents::size_type r) const noexcept;
-```
-
-* *Returns:*
-
-    * If `StorageOrder` is `column_major_t`, `stride_` if `r` equals 1, else 1;
-
-    * else, if `StorageOrder` is `row_major_t`, `stride_` if `r` equals 0, else 1.
-
-```c++
-constexpr typename Extents::size_type
-required_span_size() const noexcept;
-```
-
-* *Returns:* `stride(0)*stride(1)`.
-
-```c++
-Extents extents() const noexcept;
-```
-
-* *Effects:* Equivalent to `return extents_;`.
-
-```c++
-static constexpr bool is_always_unique();
-```
-
-* *Returns:* `true`.
-
-```c++
-static constexpr bool is_always_contiguous();
-```
-
-* *Returns:* `false`.
-
-```c++
-static constexpr bool is_always_strided();
-```
-
-* *Returns:* `true`.
-
-```c++
-constexpr bool is_unique() const noexcept;
-```
-
-* *Returns:* `true`.
-
-```c++
 constexpr bool is_contiguous() const noexcept;
 ```
 
@@ -5106,10 +5047,25 @@ constexpr bool is_contiguous() const noexcept;
         then `true` if `stride(0)` equals `extent(1)`, else `false`.
 
 ```c++
-constexpr bool is_strided() const noexcept;
+constexpr size_type stride(size_t r) const noexcept;
 ```
 
-* *Returns:* `true`.
+* *Returns:*
+
+    * If `StorageOrder` is `column_major_t`, `stride_` if `r` equals 1, else 1;
+
+    * else, if `StorageOrder` is `row_major_t`, `stride_` if `r` equals 0, else 1.
+
+```c++
+template<class OtherExtents>
+  friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+```
+
+* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+
+* *Returns:* `true` if and only if for 0 ≤ `r` < `rank()`,
+    `m.extent(r)` equals `extent(r)` and
+    `m.stride(r)` equals `stride(r)`.
 
 ### `layout_blas_packed` [linalg.layouts.packed]
 
@@ -6099,7 +6055,7 @@ public:
       noexcept(noexcept(nested_mapping_.stride(r)));
 
     template<class OtherExtents>
-    friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+      friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
   };
 };
 ```
