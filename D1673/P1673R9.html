@@ -2082,7 +2082,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P1673R9<br>A free function linear algebra interface based on the BLAS</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-05-15">2022-05-15</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-06-15">2022-06-15</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -3967,7 +3967,7 @@ This is more than just a theoretical concern.
 Some BLAS functions operate on "triangular," "symmetric," or "Hermitian" matrices,
 but they do not assert that a matrix has any of these mathematical properties.
 Rather, they only read only one side of the matrix (the lower or upper triangle),
-and compute as if the rest of the matrix satisfies the mathematical property.
+and compute as if the other side of the matrix satisfies the mathematical property.
 A key feature of the BLAS and libraries that build on it, like LAPACK,
 is that they can operate on the matrix’s data in place.
 These operations change both the matrix’s mathematical properties and its representation in memory.
@@ -4142,7 +4142,7 @@ of the corresponding BLAS routines.
 The upper or lower triangular argument
 only refers to what part of the matrix the algorithm will access.
 The "other triangle" of the matrix need not contain useful data.
-For example, with the symmetric algorithms, <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-> <c- n>i</c-><c- p>]</c-></code> need not equal <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-> <c- n>j</c-><c- p>]</c-></code> for any <code class="highlight"><c- n>i</c-></code> and <code class="highlight"><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>A</c-></code> with <code class="highlight"><c- n>i</c-> <c- o>!=</c-> <c- n>j</c-></code>.
+For example, with the symmetric algorithms, <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-> <c- n>i</c-><c- p>]</c-></code> need not equal <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-> <c- n>j</c-><c- p>]</c-></code> for any <code class="highlight"><c- n>i</c-></code> and <code class="highlight"><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>A</c-></code> with <code class="highlight"><c- n>i</c-></code> not equal to <code class="highlight"><c- n>j</c-></code>.
 The algorithm just accesses one triangle and interprets the other triangle
 as the result of flipping the accessed triangle over the diagonal.</p>
    <p>This "interpretation" approach to representing triangular matrices
@@ -4177,7 +4177,8 @@ which may be the result of a transformation
 such as <code class="highlight"><c- n>transposed</c-></code> or <code class="highlight"><c- n>conjugate_transposed</c-></code>.
 For example, if <code class="highlight"><c- n>Triangle</c-></code> is <code class="highlight"><c- n>upper_triangle_t</c-></code>,
 the algorithm will always access the matrix
-for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in its domain with <code class="highlight"><c- n>i</c-> <c- o>&lt;=</c-> <c- n>j</c-></code> (or <code class="highlight"><c- n>i</c-> <c- o>&lt;</c-> <c- n>j</c-></code>, if the algorithm takes a <code class="highlight"><c- n>Diagonal</c-></code> tag
+for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in its domain with <code class="highlight"><c- n>i</c-></code> ≤ <code class="highlight"><c- n>j</c-></code> (or <code class="highlight"><c- n>i</c-></code> strictly less than <code class="highlight"><c- n>j</c-></code>,
+if the algorithm takes a <code class="highlight"><c- n>Diagonal</c-></code> tag
 and <code class="highlight"><c- n>Diagonal</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>).
 If the input matrix is <code class="highlight"><c- n>transposed</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> for a <code class="highlight"><c- n>layout_left</c-></code> <code class="highlight"><c- n>mdspan</c-></code> <code class="highlight"><c- n>A</c-></code>,
 this means that the algorithm will access the upper triangle of <code class="highlight"><c- n>transposed</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>,
@@ -6835,12 +6836,11 @@ the specific layout that uses the tag.  See <code class="highlight"><c- n>layout
 triangle," "lower triangle," and "diagonal" of a matrix.</p>
    <ul>
     <li data-md>
-     <p>The <em>upper triangle</em> of a matrix <code class="highlight"><c- n>A</c-></code> is the set of all elements of <code class="highlight"><c- n>A</c-></code> accessed by <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> with <code class="highlight"><c- n>i</c-></code> >= <code class="highlight"><c- n>j</c-></code>.</p>
+     <p>The <em>diagonal</em> is the set of all elements of <code class="highlight"><c- n>A</c-></code> accessed by <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code> for 0 ≤ <code class="highlight"><c- n>i</c-></code> &lt; min(<code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>, <code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>).</p>
     <li data-md>
-     <p>The <em>lower triangle</em> of <code class="highlight"><c- n>A</c-></code> is the set of all elements of <code class="highlight"><c- n>A</c-></code> accessed by <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> with <code class="highlight"><c- n>i</c-></code> &lt;= <code class="highlight"><c- n>j</c-></code>.</p>
+     <p>The <em>upper triangle</em> of a matrix <code class="highlight"><c- n>A</c-></code> is the set of all elements of <code class="highlight"><c- n>A</c-></code> accessed by <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> with <code class="highlight"><c- n>i</c-></code> ≤ <code class="highlight"><c- n>j</c-></code>.  It includes the diagonal.</p>
     <li data-md>
-     <p>The <em>diagonal</em> is the set of all elements of <code class="highlight"><c- n>A</c-></code> accessed by <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>.  It is included in both the upper triangle and the lower
-triangle.</p>
+     <p>The <em>lower triangle</em> of <code class="highlight"><c- n>A</c-></code> is the set of all elements of <code class="highlight"><c- n>A</c-></code> accessed by <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> with <code class="highlight"><c- n>i</c-></code> ≥ <code class="highlight"><c- n>j</c-></code>.  It includes the diagonal.</p>
    </ul>
 <pre class="language-c++ highlight"><c- k>struct</c-> <c- nc>upper_triangle_t</c-> <c- p>{</c-> <c- p>};</c->
 <c- kr>inline</c-> <c- n>constexpr</c-> <c- n>upper_triangle_t</c-> <c- n>upper_triangle</c-> <c- o>=</c-> <c- p>{</c-> <c- p>};</c->
@@ -6855,9 +6855,9 @@ access the upper triangle (<code class="highlight"><c- n>upper_triangular_t</c->
 restrictions of <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code> if that tag is also
 applied; see below.</p>
    <p><em>[Note:</em> The <code class="highlight"><c- n>conjugate_transposed</c-></code> and <code class="highlight"><c- n>transposed</c-></code> functions in this section
-return a view of an input <code class="highlight"><c- n>mdspan</c-></code> with its indices effectively reversed.
+return a view of an input <code class="highlight"><c- n>mdspan</c-></code> with its rightmost two indices effectively reversed.
 Regardless, when we refer to the upper triangle of <code class="highlight"><c- n>B</c-> <c- o>=</c-> <c- n>transposed</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>,
-we still mean the elements of <code class="highlight"><c- n>B</c-></code> accessed by <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> with <code class="highlight"><c- n>i</c-></code> >= <code class="highlight"><c- n>j</c-></code>.
+we still mean the elements of <code class="highlight"><c- n>B</c-></code> accessed by <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> with <code class="highlight"><c- n>i</c-></code> ≤ <code class="highlight"><c- n>j</c-></code>.
 For all algorithms in this section that take a triangle tag parameter,
 the triangle tag refers to the actual input matrix, <em>after</em> any transformations like <code class="highlight"><c- n>transposed</c-></code>.
 This differs from the BLAS' <code class="highlight"><c- n>UPLO</c-></code> argument,
@@ -6878,7 +6878,8 @@ the matrix’s implicitly represented diagonal values.</p>
    <p>The <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code> tag indicates two things:</p>
    <ul>
     <li data-md>
-     <p>the algorithm will never access the <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>i</c-></code> element of the matrix; and</p>
+     <p>the algorithm will never access the <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>i</c-></code> element
+  of the matrix for any <code class="highlight"><c- n>i</c-></code>; and</p>
     <li data-md>
      <p>the algorithm will interpret the matrix as if it has a "unit diagonal,"
   a diagonal each of whose elements behaves
@@ -11495,10 +11496,14 @@ where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="hig
    <h3 class="heading settled" data-level="17.1" id="cholesky-factorization"><span class="secno">17.1. </span><span class="content">Cholesky factorization</span><a class="self-link" href="#cholesky-factorization"></a></h3>
    <p>This example shows how to compute the Cholesky factorization of a real
 symmetric positive definite matrix A stored as an <code class="highlight"><c- n>mdspan</c-></code> with a
-unique non-packed layout.  The algorithm imitates <code class="highlight"><c- n>DPOTRF2</c-></code> in LAPACK
-3.9.0.  If <code class="highlight"><c- n>Triangle</c-></code> is <code class="highlight"><c- n>upper_triangle_t</c-></code>, then it computes the
-Cholesky factorization A = U^T U.  Otherwise, it computes the Cholesky
-factorization A = L L^T.  The function returns 0 if success, else k+1
+unique non-packed layout.
+The algorithm imitates <code class="highlight"><c- n>DPOTRF2</c-></code> in LAPACK 3.9.0.
+If <code class="highlight"><c- n>Triangle</c-></code> is <code class="highlight"><c- n>upper_triangle_t</c-></code>,
+then it computes the factorization A = U^T U in place,
+with U stored in the upper triangle of A on output.
+Otherwise, it computes the factorization A = L L^T in place,
+with L stored in the lower triangle of A on output.
+The function returns 0 if success, else k+1
 if row/column k has a zero or NaN (not a number) diagonal entry.</p>
 <pre class="language-c++ highlight"><c- cp>#include</c-> &lt;linalg>
 <c- cp>#include</c-> &lt;cmath>

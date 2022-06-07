@@ -298,6 +298,8 @@ Date: 2022-06-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
+    * Make sure all definitions of lower and upper triangle are consistent.
+
     * Address LEWG feedback to defer support for custom complex number types,
         pending support of a separate paper (which has not yet been submitted)
 	proposing a `conjugate` customization point.
@@ -1706,7 +1708,7 @@ This is more than just a theoretical concern.
 Some BLAS functions operate on "triangular," "symmetric," or "Hermitian" matrices,
 but they do not assert that a matrix has any of these mathematical properties.
 Rather, they only read only one side of the matrix (the lower or upper triangle),
-and compute as if the rest of the matrix satisfies the mathematical property.
+and compute as if the other side of the matrix satisfies the mathematical property.
 A key feature of the BLAS and libraries that build on it, like LAPACK,
 is that they can operate on the matrix's data in place.
 These operations change both the matrix's mathematical properties and its representation in memory.
@@ -1907,7 +1909,7 @@ only refers to what part of the matrix the algorithm will access.
 The "other triangle" of the matrix need not contain useful data.
 For example, with the symmetric algorithms,
 `A[j, i]` need not equal `A[i, j]`
-for any `i` and `j` in the domain of `A` with `i != j`.
+for any `i` and `j` in the domain of `A` with `i` not equal to `j`.
 The algorithm just accesses one triangle and interprets the other triangle
 as the result of flipping the accessed triangle over the diagonal.
 
@@ -1947,8 +1949,9 @@ which may be the result of a transformation
 such as `transposed` or `conjugate_transposed`.
 For example, if `Triangle` is `upper_triangle_t`,
 the algorithm will always access the matrix
-for `i,j` in its domain with `i <= j`
-(or `i < j`, if the algorithm takes a `Diagonal` tag
+for `i,j` in its domain with `i` ≤ `j`
+(or `i` strictly less than `j`,
+if the algorithm takes a `Diagonal` tag
 and `Diagonal` is `implicit_unit_diagonal_t`).
 If the input matrix is `transposed(A)` for a `layout_left` `mdspan` `A`,
 this means that the algorithm will access the upper triangle of `transposed(A)`,
@@ -4782,15 +4785,14 @@ the specific layout that uses the tag.  See `layout_blas_general` and
 Some linear algebra algorithms distinguish between the "upper
 triangle," "lower triangle," and "diagonal" of a matrix.
 
+* The *diagonal* is the set of all elements of `A` accessed by
+    `A[i,i]` for 0 ≤ `i` < min(`A.extent(0)`, `A.extent(1)`).
+
 * The *upper triangle* of a matrix `A` is the set of all elements of
-    `A` accessed by `A[i,j]` with `i` >= `j`.
+    `A` accessed by `A[i,j]` with `i` ≤ `j`.  It includes the diagonal.
 
 * The *lower triangle* of `A` is the set of all elements of `A`
-    accessed by `A[i,j]` with `i` <= `j`.
-
-* The *diagonal* is the set of all elements of `A` accessed by
-    `A[i,i]`.  It is included in both the upper triangle and the lower
-    triangle.
+    accessed by `A[i,j]` with `i` ≥ `j`.  It includes the diagonal.
 
 ```c++
 struct upper_triangle_t { };
@@ -4809,9 +4811,10 @@ applied; see below.
 
 *[Note:*
 The `conjugate_transposed` and `transposed` functions in this section
-return a view of an input `mdspan` with its indices effectively reversed.
+return a view of an input `mdspan`
+with its rightmost two indices effectively reversed.
 Regardless, when we refer to the upper triangle of `B = transposed(A)`,
-we still mean the elements of `B` accessed by `B[i,j]` with `i` >= `j`.
+we still mean the elements of `B` accessed by `B[i,j]` with `i` ≤ `j`.
 For all algorithms in this section that take a triangle tag parameter,
 the triangle tag refers to the actual input matrix,
 *after* any transformations like `transposed`.
@@ -4837,7 +4840,8 @@ the matrix's implicitly represented diagonal values.
 
 The `implicit_unit_diagonal_t` tag indicates two things:
 
-  * the algorithm will never access the `i,i` element of the matrix; and
+  * the algorithm will never access the `i,i` element
+      of the matrix for any `i`; and
 
   * the algorithm will interpret the matrix as if it has a "unit diagonal,"
       a diagonal each of whose elements behaves
@@ -10103,10 +10107,14 @@ in the subset of the domain of `A` specified by `t` and `d`.
 
 This example shows how to compute the Cholesky factorization of a real
 symmetric positive definite matrix A stored as an `mdspan` with a
-unique non-packed layout.  The algorithm imitates `DPOTRF2` in LAPACK
-3.9.0.  If `Triangle` is `upper_triangle_t`, then it computes the
-Cholesky factorization A = U^T U.  Otherwise, it computes the Cholesky
-factorization A = L L^T.  The function returns 0 if success, else k+1
+unique non-packed layout.
+The algorithm imitates `DPOTRF2` in LAPACK 3.9.0.
+If `Triangle` is `upper_triangle_t`,
+then it computes the factorization A = U^T U in place,
+with U stored in the upper triangle of A on output.
+Otherwise, it computes the factorization A = L L^T in place,
+with L stored in the lower triangle of A on output.
+The function returns 0 if success, else k+1
 if row/column k has a zero or NaN (not a number) diagonal entry.
 
 ```c++
