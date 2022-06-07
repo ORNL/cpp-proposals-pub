@@ -298,6 +298,10 @@ Date: 2022-05-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
+    * Address LEWG feedback to defer support for custom complex number types,
+        pending support of a separate paper (which has not yet been submitted)
+	proposing a `conjugate` customization point.
+
     * Fix wording of `layout_blas_packed` to incorporate recent changes to P0009.
         (We will need more revisions if P2553 is approved.)
 
@@ -2657,100 +2661,153 @@ This is a good way to build a noncommutative semiring for testing.
 
 ## Support for user-defined complex number types
 
-### Need for user-defined complex number types
+### `conj` does not have the desired interface
 
-The C++ Standard currently supports `complex<T>` for T = `float`, `double`, and `long double`.
-Users who want complex numbers of other types (such as integers or custom "bigfloat" types),
-or who have different alignment requirements for complex numbers,
-need to make their own complex number class (or class template).
-We want P1673 to "do the right thing" for these custom complex numbers,
-without requiring any more number traits machinery than the Standard already has.
-This means relying on argument-dependent lookup (ADL) to pick up overloads of `conj`,
-and not defining any new traits (such as `is_complex`).
-The idiom of `using std::conj; return conj(x);`,
-analogous to how `iter_swap` accesses `swap`, can manage this.
-Here is an example with a user-defined complex number class template `MyComplex`.
+Based on precedence from the BLAS and LAPACK,
+generic linear algebra code that works for both complex and real numbers
+uses the "conjugate transpose" for both cases,
+and intends conjugation to be the identity for real numbers.
+P1673 users may thus want to apply `conjugate_transposed`
+to matrices of arbitrary value types.
 
-```c++
-#include <cassert>
-#include <complex>
+The Standard currently offers `conj`
+as the way to compute the conjugate of a number.
+However, there are two issues with `conj`.
 
-namespace MyNamespace {
+1. For arguments of arithmetic type, `conj` returns `complex`.
+    The resulting value type change is mathematically unexpected,
+    and it can hinder use of an optimized BLAS.
 
-template<class Real>
-struct MyComplex {
-    Real real;
-    Real imag;
-};
+2. P1673 users have good reasons to define their own complex number types,
+    but users cannot overload `conj` for these types.
 
-template<class Real>
-MyComplex<Real> conj(const MyComplex<Real>& z) {
-    return {z.real, -z.imag};
-}
+### LEWG feedback on R8 solution
 
-} // MyNamespace
+In R8 of this paper,
+we proposed an exposition-only function _`conj-if-needed`_.
+For arithmetic types, it would be the identity function.
+This would fix Issue (1).
+For all other types, it would call `conj`
+through argument-dependent lookup (ADL),
+just like how `iter_swap` calls `swap`.
+This would fix Issue (2).
+However, it would force users who define custom _real_ number types
+to define a trivial `conj` (in their own namespace) for their type.
+The alternative would be to make _`conj-if-needed`_ the identity
+if it could not find `conj` via ADL lookup.
+However, that would cause silently incorrect results
+for users who define a custom complex number type,
+but forget or misspell `conj`.
 
-int main() {
-    using std::conj;
+When reviewing R8, LEWG expressed a preference for a different solution.
 
-    MyNamespace::MyComplex<int> z{3, 4};
-    const auto z_conj = conj(z);
-    assert(z_conj.real == 3);
-    assert(z_conj.imag == -4);
+1. Temporarily change P1673 to permit
+    use of `conjugated` and `conjugate_transposed`
+    only for value types that are either `complex` or arithmetic types.
+    Add a Note that reminds readers to look out for Steps (2) and (3) below.
 
-    std::complex<double> w{5.0, 6.0};
-    const auto w_conj = conj(w);
-    assert(w_conj.real() == 5.0);
-    assert(w_conj.imag() == -6.0);
-    return 0;
-}
-```
+2. Write a separate paper which introduces
+    a user-visible customization point,
+    provisionally named `conjugate`.
+    The paper could use any of various proposed
+    library-only customization point mechanisms,
+    such as the customization point objects used by ranges
+    or `tag_invoke`
+    (see <a href="https://wg21.link/p1895r0">P1895R0</a>,
+    with the expectation that LEWG and perhaps also EWG
+    (see e.g., <a href="https://wg21.link/P2547">P2547</a>)
+    may express a preference for a different mechanism.
 
-Regarding alignment: The Standard explicitly specifies
-that `complex<T>` has the same alignment as `T[2]`.
-Some vectorized or parallel hardware would give better performance
-if complex numbers were aligned to `2 * sizeof(T)`.
-Some C++ extensions also require annotations on a type's member functions.
-The Kokkos software library has a `Kokkos::complex` type for these reasons.
-One of the authors wrote this type to make it possible
-to build and run Trilinos with complex number support
-on NVIDIA graphics processing units (GPUs).
+3. If LEWG accepts the `conjugate` customization point,
+    then change P1673 again to use `conjugate`
+    (thus replacing R8's _`conj-if-needed`_).
+    This would thus reintroduce support for custom complex numbers.
 
-### Users may want to conjugate arithmetic types
+### Current solution
 
-If we define `accessor_conjugate` to do `using std::conj; return conj(x);`,
-then we can support custom complex class templates.
-Users can define `conj` for their custom complex type outside the `std` namespace,
-and this approach will pick it up,
-analogous to how `iter_swap` can pick up a custom `swap` overload.
-However, this will do something different for arithmetic types like `double` or `int`.
-This is because `std::conj` is defined always to return a specialization of `complex`,
-even if the input is (say) `double`.
+We have adopted this suggestion in our proposal's current version,
+with a slight modification: In Step (1),
+implementations may permit use of
+`conjugated` and `conjugate_transposed`
+for a set of implementation-defined value types,
+as well as for `complex` and arithmetic types.
+This will let vendors support their complex number types.
+Users of library-provided custom complex number types
+that are meant to be interchangeable with `std::complex`,
+like `Kokkos::complex` or `thrust::complex`,
+have the already common remedy of aliasing their type
+to the corresponding `std::complex` type.
 
-One could argue that applying `conjugated` to a view of real numbers should be ill formed.
-However, users may want to use `conjugate_transposed`
-to write generic code that works for both real and complex numbers.
+### Background
+
+#### Why users define their own complex number types
+
+1. `complex<R>` only permits `R` = `float`, `double`, and `long double`.
+
+2. `complex<R>` only has `sizeof(R)` alignment, not `2 * sizeof(R)`.
+
+3. Some C++ extensions cannot use `complex<R>`,
+    because they require annotations on a type's member functions.
+
+Users define their own complex number types for three reasons.
+First, the C++ Standard currently supports `complex<R>`
+only for `R` = `float`, `double`, and `long double`.
+This prevents use of other types, including
+
+* signed integers (the resulting complex numbers
+    represent the *Gaussian integers*);
+
+* "short" low-precision floating-point or fixed-point number types
+    that are critical for performance of machine learning applications;
+
+* extended-precision floating-point types like binary128
+    that can improve the accuracy of floating-point sums,
+    reduce parallel nondeterminism,
+    and make sums less dependent on evaluation order; and
+
+* custom number types such as "bigfloats"
+    (custom arbitrary-precision floating-point types).
+
+Second, the Standard explicitly specifies
+that `complex<R>` has the same alignment as `R[2]`.
+That is, it is aligned to `sizeof(R)`.
+Some systems would give better parallel or vectorized performance
+if complex numbers were aligned to `2 * sizeof(R)`.
+Some C++ extensions define their own complex number types
+partly for this reason.
+Software libraries that use these custom complex number types
+tempt users to alias between `complex<R>` and these custom types,
+which would have the same bit representation except for alignment.
+This has led to crashes or worse in software projects
+that the authors have worked on.
+Third, some C++ extensions cannot use `complex`,
+because they require types' member functions to have special annotations,
+in order to compile code to make use of accelerator hardware.
+
+These issues have led several software libraries and C++ extensions
+to define their own complex number types.
+These include CUDA, Kokkos, and Thrust.
+The SYCL standard is contemplating adding a custom complex number type.
+One of the authors wrote `Kokkos::complex` circa 2014
+to make it possible to build and run Trilinos' linear solvers
+with complex numbers on NVIDIA graphics processing units (GPUs).
+
+#### Why users want to "conjugate" matrices of real numbers
+
+It's possible to describe many linear algebra algorithms
+in a way that works for both complex and real numbers,
+by treating conjugation as the identity for real numbers.
+This makes the "conjugate transpose" just the transpose
+for a matrix of real numbers.
 Matlab takes this approach, by defining the single quote operator
 to take the conjugate transpose if its argument is complex,
 and the transpose if its argument is real.
-The Fortran BLAS also supports this to some extent,
-by having its real routines like `DGEMM` interpret `TRANSA='C'` as the transpose.
+The Fortran BLAS also supports this,
+by letting users specify the `'Conjugate Transpose'`
+(`TRANSA='C'`) even for real routines like `DGEMM`
+(double-precision general matrix-matrix multiply).
 Krylov subspace methods in Trilinos' Anasazi and Belos packages
 also follow a Matlab-like generic approach.
-
-The fact that `std::conj` converts arithmetic types to `complex`
-is not *mathematically* incorrect.
-However, it may complicate or prevent implementers
-from using an existing optimized BLAS library.
-If the user calls `matrix_product` with matrices all of value type `double`,
-use of the (mathematically harmless) `conjugate_transposed` function
-would make one matrix have value type `complex<double>`.
-Implementations would need more cleverness to undo the value type change
-so that they could call an optimized `DGEMM` routine for this case.
-If one input is  `conjugate_transposed` of a matrix of `double`,
-and another input is a matrix of custom real value type `Foo`,
-then users might be surpised that the matrix multiply no longer compiles,
-due to `complex<decltype(declval<double>() * declval<Foo>())>` not being well formed.
 
 Even though we think it should be possible to write
 "generic" (real or complex) linear algebra code using `conjugate_transposed`,
@@ -2761,115 +2818,31 @@ For example, a matrix whose off-diagonal elements are all `3 + 4i` is symmetric,
 but not Hermitian.  Complex symmetric matrices are useful in practice,
 for example when modeling damped vibrations (Craven 1969).
 
-### Our proposed approach
+#### Effects of `conj`'s real-to-complex change
 
-We can support `conjugated` (and thus `conjugated_transposed`) for all types as follows.
+The fact that `conj` for arithmetic-type arguments returns `complex`
+may complicate or prevent implementers
+from using an existing optimized BLAS library.
+If the user calls `matrix_product` with matrices all of value type `double`,
+use of the (mathematically harmless) `conjugate_transposed` function
+would make one matrix have value type `complex<double>`.
+Implementations could undo this value type change
+for known layouts and accessors,
+but would need to revert to generic code otherwise.
 
-1. For arithmetic types, define `accessor_conjugate` specially to return just the reference.
-    Don't use `conj` at all.
-
-2. For all other types (including specializations of `complex`),
-    define `accessor_conjugate` to use `using std::conj; return conj(x);`.
-
-We could express this through an exposition-only function _`conj-if-needed`_.
-The generic version returns `auto`, not `T`,
-for cases where a user-defined `conj` returns a different type than its input.
-(Some user-defined types might take a cue
-from specializations of `std::conj` for arithmetic types,
-by returning a `complex` specialization for a real type.)
-
-```c++
-template<class T>
-auto <it>conj-if-needed</it>(const T& t)
-{
-    using std::conj;
-    return conj(t);
-}
-
-template<class T> requires is_arithmetic_v<T>
-T <it>conj-if-needed</it>(const T& t)
-{
-    return t;
-}
-```
-
-### Alternative: Always treat user-defined types as real
-
-One issue with the above approach is that `accessor_conjugate`
-will fail to compile for user-defined (and thus nonarithmetic) types,
-unless the type has `conj` defined.
-If a generic library of linear algebra algorithms
-uses `conjugate_transposed` throughout to express transposition,
-then users of this library could have an unpleasant surprise
-when they move from arithmetic types to custom real types.
-
-One could fix this by introducing an exposition-only function _`conj-if-not-arithmetic`_
-that applies `conj` in the above two-step manner to nonarithmetic types,
-and an exposition-only concept _`conjugatable`_
-satisfied by types for which calling _`conj-if-not-arithmetic`_ is well formed.
-For example:
-
-```c++
-template<class T>
-auto <it>conj-if-not-arithmetic</it>(const T& t)
-{
-    using std::conj;
-    return conj(t);
-}
-
-template<class T> requires is_arithmetic_v<T>
-T <it>conj-if-not-arithmetic</it>(const T& t)
-{
-    return t;
-}
-
-template<class T>
-concept <it>conjugatable</it> = requires(T a)
-{ // "using" declarations don't work in here
-    auto b = <it>conj-if-not-arithmetic</it>(a);
-}
-
-template<class T>
-T <it>conj-if-needed</it>(const T& t)
-{
-    return t;
-}
-
-template<conjugatable T>
-auto <it>conj-if-needed</it>(const T& t)
-{
-    return <it>conj-if-not-arithmetic</it>(t);
-}
-```
-
-However, if users write a custom complex type and forget or misspell `conj`,
-then this alternative will make `conjugated` and `conjugate_transposed` silently incorrect.
-The intent of our proposed approach is to work around the problem of `conj` *existing*,
-but having a *different return type* (complex) for arithmetic (and therefore real) parameters.
-If users type `conjugated(A)` or `conjugate_transposed(A)`,
-then we think it reasonable to expect `conj` to be defined for `A`'s value type.
-Users of custom number types can supply a trivial definition of `conj`,
-even if the number type itself does not provide one.
-
-In general, we avoid defining traits classes or other code machinery
-for reasoning about generic number behavior.
-Detection of `conj` doesn't *quite* go there,
-but might lead users and implementers down the path of asking for a "complex number" concept.
-The P1673 way, which we believe is the C++ Standard Algorithms way,
-is for each algorithm to require only what that algorithm needs.
-
-### Design question
-
-Please pick one of the following:
-
-1. (Our proposal) `conjugated` and `conjugate_transposed` assume that
-    `using std::conj; T b = conj(a);` is well formed for any nonarithmetic type `T`.
-
-2. (Alternative) `conjugated` and `conjugate_transposed` do not use `conj`
-    if `using std::conj; T b = conj(a);` is not well formed for nonarithmetic `T`.
-
-    * Advantage: Assumes that any custom number type is real.
-    * Disadvantage: Same (silent errors if `conj` is missing or misspelled)
+For example, suppose that a custom real value type `MyReal`
+has arithmetic operators defined to permit
+all needed mixed-type expressions with `double`,
+where `double` times `MyReal` and `MyReal` times `double`
+both "promote" to `MyReal`.
+Users may then call `matrix_product(A, B, C)`
+with `A` having value type `double`,
+`B` having value type `MyReal`,
+and `C` having a value type `MyReal`.
+However, `matrix_product(conjugate_transposed(A), B, C)`
+would not compile,
+due to `complex<decltype(declval<double>() * declval<MyReal>())>`
+not being well formed.
 
 # Future work
 
@@ -4582,17 +4555,17 @@ void triangular_matrix_matrix_right_solve(
   DiagonalStorage d,
   inout_matrix_t B);
 
-template<class T>
-auto <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
+template<class R>
+std::complex<R>
+  <it>conj-if-needed</it>(const std::complex<R>& t) // <it>exposition only</it>
 {
-    using std::conj;
-    return conj(t);
+  return conj(t);
 }
 
 template<class T> requires is_arithmetic_v<T>
 T <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
 {
-    return t;
+  return t;
 }
 }
 ```
@@ -5692,6 +5665,27 @@ public:
 
 * *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed.
 
+*[Note:*
+
+The current constraints on _`conj-if-needed`_ imply that
+`ReferenceValue` may only be either `complex<R>` for some `R`,
+or an arithmetic type.
+
+Implementations can provide additional,
+implementation-defined overloads of _`conj-if-needed`_ as extensions.
+
+In a future, separate paper, we intend to add
+a user-visible customization point, provisionally named `conjugate`.
+If this future paper is accepted,
+then we will replace _`conj-if-needed`_ in P1673
+with this customization point.
+This will permit use of `conjugated` and `conjugate_transposed`
+with arguments of value type other than
+`complex<R>` or an arithmetic type.
+
+--*end note]*
+
+
 ```c++
 using value_type = /* see below */;
 ```
@@ -6470,9 +6464,9 @@ two values `c` and `s` such that the 2x2 system of equations
 *[Note:* use of monospaced text in this equation does not indicate C++ code --*end note]*
 
 ```
-[c                  s]   [a]   [r]
-[                    ] * [ ] = [ ]
-[-conj-if-needed(s) c]   [b]   [0]
+[c        s]   [a]   [r]
+[          ] * [ ] = [ ]
+[-conj(s) c]   [b]   [0]
 ```
 
 holds, where `c` is always a real scalar, and `c*c + abs(s)*abs(s)` equals one.

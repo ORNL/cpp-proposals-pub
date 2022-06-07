@@ -2200,11 +2200,16 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
       <li>
        <a href="#support-for-user-defined-complex-number-types"><span class="secno">11.8</span> <span class="content">Support for user-defined complex number types</span></a>
        <ol class="toc">
-        <li><a href="#need-for-user-defined-complex-number-types"><span class="secno">11.8.1</span> <span class="content">Need for user-defined complex number types</span></a>
-        <li><a href="#users-may-want-to-conjugate-arithmetic-types"><span class="secno">11.8.2</span> <span class="content">Users may want to conjugate arithmetic types</span></a>
-        <li><a href="#our-proposed-approach"><span class="secno">11.8.3</span> <span class="content">Our proposed approach</span></a>
-        <li><a href="#alternative-always-treat-user-defined-types-as-real"><span class="secno">11.8.4</span> <span class="content">Alternative: Always treat user-defined types as real</span></a>
-        <li><a href="#design-question"><span class="secno">11.8.5</span> <span class="content">Design question</span></a>
+        <li><a href="#conj-does-not-have-the-desired-interface"><span class="secno">11.8.1</span> <span class="content"><code class="highlight"><c- n>conj</c-></code> does not have the desired interface</span></a>
+        <li><a href="#lewg-feedback-on-r8-solution"><span class="secno">11.8.2</span> <span class="content">LEWG feedback on R8 solution</span></a>
+        <li><a href="#current-solution"><span class="secno">11.8.3</span> <span class="content">Current solution</span></a>
+        <li>
+         <a href="#background"><span class="secno">11.8.4</span> <span class="content">Background</span></a>
+         <ol class="toc">
+          <li><a href="#why-users-define-their-own-complex-number-types"><span class="secno">11.8.4.1</span> <span class="content">Why users define their own complex number types</span></a>
+          <li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers"><span class="secno">11.8.4.2</span> <span class="content">Why users want to "conjugate" matrices of real numbers</span></a>
+          <li><a href="#effects-of-conjs-real-to-complex-change"><span class="secno">11.8.4.3</span> <span class="content">Effects of <code class="highlight"><c- n>conj</c-></code>'s real-to-complex change</span></a>
+         </ol>
        </ol>
      </ol>
     <li>
@@ -2730,6 +2735,10 @@ for helpful discussions.)</p>
     <li data-md>
      <p>Revision 9 (electronic), to be submitted 2022-06-15</p>
      <ul>
+      <li data-md>
+       <p>Address LEWG feedback to defer support for custom complex number types,
+pending support of a separate paper (which has not yet been submitted)
+proposing a <code class="highlight"><c- n>conjugate</c-></code> customization point.</p>
       <li data-md>
        <p>Fix wording of <code class="highlight"><c- n>layout_blas_packed</c-></code> to incorporate recent changes to P0009.
 (We will need more revisions if P2553 is approved.)</p>
@@ -4802,90 +4811,136 @@ We then use the semiring description to explain how implementers
 can test generic algorithms.</p>
    </ul>
    <h3 class="heading settled" data-level="11.8" id="support-for-user-defined-complex-number-types"><span class="secno">11.8. </span><span class="content">Support for user-defined complex number types</span><a class="self-link" href="#support-for-user-defined-complex-number-types"></a></h3>
-   <h4 class="heading settled" data-level="11.8.1" id="need-for-user-defined-complex-number-types"><span class="secno">11.8.1. </span><span class="content">Need for user-defined complex number types</span><a class="self-link" href="#need-for-user-defined-complex-number-types"></a></h4>
-   <p>The C++ Standard currently supports <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code> for T = <code class="highlight"><c- b>float</c-></code>, <code class="highlight"><c- b>double</c-></code>, and <code class="highlight"><c- b>long</c-> <c- b>double</c-></code>.
-Users who want complex numbers of other types (such as integers or custom "bigfloat" types),
-or who have different alignment requirements for complex numbers,
-need to make their own complex number class (or class template).
-We want P1673 to "do the right thing" for these custom complex numbers,
-without requiring any more number traits machinery than the Standard already has.
-This means relying on argument-dependent lookup (ADL) to pick up overloads of <code class="highlight"><c- n>conj</c-></code>,
-and not defining any new traits (such as <code class="highlight"><c- n>is_complex</c-></code>).
-The idiom of <code class="highlight"><c- k>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c-> <c- k>return</c-> <c- n>conj</c-><c- p>(</c-><c- n>x</c-><c- p>);</c-></code>,
-analogous to how <code class="highlight"><c- n>iter_swap</c-></code> accesses <code class="highlight"><c- n>swap</c-></code>, can manage this.
-Here is an example with a user-defined complex number class template <code class="highlight"><c- n>MyComplex</c-></code>.</p>
-<pre class="language-c++ highlight"><c- cp>#include</c-> &lt;cassert>
-<c- cp>#include</c-> &lt;complex>
-
-<c- n>namespace</c-> <c- n>MyNamespace</c-> <c- p>{</c->
-
-<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Real</c-><c- o>></c->
-<c- k>struct</c-> <c- nc>MyComplex</c-> <c- p>{</c->
-    <c- n>Real</c-> <c- n>real</c-><c- p>;</c->
-    <c- n>Real</c-> <c- n>imag</c-><c- p>;</c->
-<c- p>};</c->
-
-<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Real</c-><c- o>></c->
-<c- n>MyComplex</c-><c- o>&lt;</c-><c- n>Real</c-><c- o>></c-> <c- n>conj</c-><c- p>(</c-><c- k>const</c-> <c- n>MyComplex</c-><c- o>&lt;</c-><c- n>Real</c-><c- o>>&amp;</c-> <c- n>z</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>return</c-> <c- p>{</c-><c- n>z</c-><c- p>.</c-><c- n>real</c-><c- p>,</c-> <c- o>-</c-><c- n>z</c-><c- p>.</c-><c- n>imag</c-><c- p>};</c->
-<c- p>}</c->
-
-<c- p>}</c-> <c- c1>// MyNamespace</c->
-
-<c- b>int</c-> <c- n>main</c-><c- p>()</c-> <c- p>{</c->
-    <c- n>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c->
-
-    <c- n>MyNamespace</c-><c- o>::</c-><c- n>MyComplex</c-><c- o>&lt;</c-><c- b>int</c-><c- o>></c-> <c- n>z</c-><c- p>{</c-><c- mi>3</c-><c- p>,</c-> <c- mi>4</c-><c- p>};</c->
-    <c- k>const</c-> <c- k>auto</c-> <c- n>z_conj</c-> <c- o>=</c-> <c- n>conj</c-><c- p>(</c-><c- n>z</c-><c- p>);</c->
-    <c- n>assert</c-><c- p>(</c-><c- n>z_conj</c-><c- p>.</c-><c- n>real</c-> <c- o>==</c-> <c- mi>3</c-><c- p>);</c->
-    <c- n>assert</c-><c- p>(</c-><c- n>z_conj</c-><c- p>.</c-><c- n>imag</c-> <c- o>==</c-> <c- mi>-4</c-><c- p>);</c->
-
-    <c- n>std</c-><c- o>::</c-><c- k>complex</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-> <c- n>w</c-><c- p>{</c-><c- mf>5.0</c-><c- p>,</c-> <c- mf>6.0</c-><c- p>};</c->
-    <c- k>const</c-> <c- k>auto</c-> <c- n>w_conj</c-> <c- o>=</c-> <c- n>conj</c-><c- p>(</c-><c- n>w</c-><c- p>);</c->
-    <c- n>assert</c-><c- p>(</c-><c- n>w_conj</c-><c- p>.</c-><c- n>real</c-><c- p>()</c-> <c- o>==</c-> <c- mf>5.0</c-><c- p>);</c->
-    <c- n>assert</c-><c- p>(</c-><c- n>w_conj</c-><c- p>.</c-><c- n>imag</c-><c- p>()</c-> <c- o>==</c-> <c- mf>-6.0</c-><c- p>);</c->
-    <c- k>return</c-> <c- mi>0</c-><c- p>;</c->
-<c- p>}</c->
-</pre>
-   <p>Regarding alignment: The Standard explicitly specifies
-that <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code> has the same alignment as <code class="highlight"><c- n>T</c-><c- p>[</c-><c- mi>2</c-><c- p>]</c-></code>.
-Some vectorized or parallel hardware would give better performance
-if complex numbers were aligned to <code class="highlight"><c- mi>2</c-> <c- o>*</c-> <c- k>sizeof</c-><c- p>(</c-><c- n>T</c-><c- p>)</c-></code>.
-Some C++ extensions also require annotations on a type’s member functions.
-The Kokkos software library has a <code class="highlight"><c- n>Kokkos</c-><c- o>::</c-><c- n>complex</c-></code> type for these reasons.
-One of the authors wrote this type to make it possible
-to build and run Trilinos with complex number support
-on NVIDIA graphics processing units (GPUs).</p>
-   <h4 class="heading settled" data-level="11.8.2" id="users-may-want-to-conjugate-arithmetic-types"><span class="secno">11.8.2. </span><span class="content">Users may want to conjugate arithmetic types</span><a class="self-link" href="#users-may-want-to-conjugate-arithmetic-types"></a></h4>
-   <p>If we define <code class="highlight"><c- n>accessor_conjugate</c-></code> to do <code class="highlight"><c- k>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c-> <c- k>return</c-> <c- n>conj</c-><c- p>(</c-><c- n>x</c-><c- p>);</c-></code>,
-then we can support custom complex class templates.
-Users can define <code class="highlight"><c- n>conj</c-></code> for their custom complex type outside the <code class="highlight"><c- n>std</c-></code> namespace,
-and this approach will pick it up,
-analogous to how <code class="highlight"><c- n>iter_swap</c-></code> can pick up a custom <code class="highlight"><c- n>swap</c-></code> overload.
-However, this will do something different for arithmetic types like <code class="highlight"><c- b>double</c-></code> or <code class="highlight"><c- b>int</c-></code>.
-This is because <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>conj</c-></code> is defined always to return a specialization of <code class="highlight"><c- n>complex</c-></code>,
-even if the input is (say) <code class="highlight"><c- b>double</c-></code>.</p>
-   <p>One could argue that applying <code class="highlight"><c- n>conjugated</c-></code> to a view of real numbers should be ill formed.
-However, users may want to use <code class="highlight"><c- n>conjugate_transposed</c-></code> to write generic code that works for both real and complex numbers.
+   <h4 class="heading settled" data-level="11.8.1" id="conj-does-not-have-the-desired-interface"><span class="secno">11.8.1. </span><span class="content"><code class="highlight"><c- n>conj</c-></code> does not have the desired interface</span><a class="self-link" href="#conj-does-not-have-the-desired-interface"></a></h4>
+   <p>Based on precedence from the BLAS and LAPACK,
+generic linear algebra code that works for both complex and real numbers
+uses the "conjugate transpose" for both cases,
+and intends conjugation to be the identity for real numbers.
+P1673 users may thus want to apply <code class="highlight"><c- n>conjugate_transposed</c-></code> to matrices of arbitrary value types.</p>
+   <p>The Standard currently offers <code class="highlight"><c- n>conj</c-></code> as the way to compute the conjugate of a number.
+However, there are two issues with <code class="highlight"><c- n>conj</c-></code>.</p>
+   <ol>
+    <li data-md>
+     <p>For arguments of arithmetic type, <code class="highlight"><c- n>conj</c-></code> returns <code class="highlight"><c- n>complex</c-></code>.
+The resulting value type change is mathematically unexpected,
+and it can hinder use of an optimized BLAS.</p>
+    <li data-md>
+     <p>P1673 users have good reasons to define their own complex number types,
+but users cannot overload <code class="highlight"><c- n>conj</c-></code> for these types.</p>
+   </ol>
+   <h4 class="heading settled" data-level="11.8.2" id="lewg-feedback-on-r8-solution"><span class="secno">11.8.2. </span><span class="content">LEWG feedback on R8 solution</span><a class="self-link" href="#lewg-feedback-on-r8-solution"></a></h4>
+   <p>In R8 of this paper,
+we proposed an exposition-only function <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-></code>_.
+For arithmetic types, it would be the identity function.
+This would fix Issue (1).
+For all other types, it would call <code class="highlight"><c- n>conj</c-></code> through argument-dependent lookup (ADL),
+just like how <code class="highlight"><c- n>iter_swap</c-></code> calls <code class="highlight"><c- n>swap</c-></code>.
+This would fix Issue (2).
+However, it would force users who define custom _real_ number types
+to define a trivial <code class="highlight"><c- n>conj</c-></code> (in their own namespace) for their type.
+The alternative would be to make <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-></code>_ the identity
+if it could not find <code class="highlight"><c- n>conj</c-></code> via ADL lookup.
+However, that would cause silently incorrect results
+for users who define a custom complex number type,
+but forget or misspell <code class="highlight"><c- n>conj</c-></code>.</p>
+   <p>When reviewing R8, LEWG expressed a preference for a different solution.</p>
+   <ol>
+    <li data-md>
+     <p>Temporarily change P1673 to permit
+use of <code class="highlight"><c- n>conjugated</c-></code> and <code class="highlight"><c- n>conjugate_transposed</c-></code> only for value types that are either <code class="highlight"><c- n>complex</c-></code> or arithmetic types.
+Add a Note that reminds readers to look out for Steps (2) and (3) below.</p>
+    <li data-md>
+     <p>Write a separate paper which introduces
+a user-visible customization point,
+provisionally named <code class="highlight"><c- n>conjugate</c-></code>.
+The paper could use any of various proposed
+library-only customization point mechanisms,
+such as the customization point objects used by ranges
+or <code class="highlight"><c- n>tag_invoke</c-></code> (see <a href="https://wg21.link/p1895r0">P1895R0</a>,
+with the expectation that LEWG and perhaps also EWG
+(see e.g., <a href="https://wg21.link/P2547">P2547</a>)
+may express a preference for a different mechanism.</p>
+    <li data-md>
+     <p>If LEWG accepts the <code class="highlight"><c- n>conjugate</c-></code> customization point,
+then change P1673 again to use <code class="highlight"><c- n>conjugate</c-></code> (thus replacing R8’s <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-></code>_).
+This would thus reintroduce support for custom complex numbers.</p>
+   </ol>
+   <h4 class="heading settled" data-level="11.8.3" id="current-solution"><span class="secno">11.8.3. </span><span class="content">Current solution</span><a class="self-link" href="#current-solution"></a></h4>
+   <p>We have adopted this suggestion in our proposal’s current version,
+with a slight modification: In Step (1),
+implementations may permit use of <code class="highlight"><c- n>conjugated</c-></code> and <code class="highlight"><c- n>conjugate_transposed</c-></code> for a set of implementation-defined value types,
+as well as for <code class="highlight"><c- n>complex</c-></code> and arithmetic types.
+This will let vendors support their complex number types.
+Users of library-provided custom complex number types
+that are meant to be interchangeable with <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>complex</c-></code>,
+like <code class="highlight"><c- n>Kokkos</c-><c- o>::</c-><c- n>complex</c-></code> or <code class="highlight"><c- n>thrust</c-><c- o>::</c-><c- n>complex</c-></code>,
+have the already common remedy of aliasing their type
+to the corresponding <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>complex</c-></code> type.</p>
+   <h4 class="heading settled" data-level="11.8.4" id="background"><span class="secno">11.8.4. </span><span class="content">Background</span><a class="self-link" href="#background"></a></h4>
+   <h5 class="heading settled" data-level="11.8.4.1" id="why-users-define-their-own-complex-number-types"><span class="secno">11.8.4.1. </span><span class="content">Why users define their own complex number types</span><a class="self-link" href="#why-users-define-their-own-complex-number-types"></a></h5>
+   <ol>
+    <li data-md>
+     <p><code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-></code> only permits <code class="highlight"><c- n>R</c-></code> = <code class="highlight"><c- b>float</c-></code>, <code class="highlight"><c- b>double</c-></code>, and <code class="highlight"><c- b>long</c-> <c- b>double</c-></code>.</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-></code> only has <code class="highlight"><c- k>sizeof</c-><c- p>(</c-><c- n>R</c-><c- p>)</c-></code> alignment, not <code class="highlight"><c- mi>2</c-> <c- o>*</c-> <c- k>sizeof</c-><c- p>(</c-><c- n>R</c-><c- p>)</c-></code>.</p>
+    <li data-md>
+     <p>Some C++ extensions cannot use <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-></code>,
+because they require annotations on a type’s member functions.</p>
+   </ol>
+   <p>Users define their own complex number types for three reasons.
+First, the C++ Standard currently supports <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-></code> only for <code class="highlight"><c- n>R</c-></code> = <code class="highlight"><c- b>float</c-></code>, <code class="highlight"><c- b>double</c-></code>, and <code class="highlight"><c- b>long</c-> <c- b>double</c-></code>.
+This prevents use of other types, including</p>
+   <ul>
+    <li data-md>
+     <p>signed integers (the resulting complex numbers
+represent the <em>Gaussian integers</em>);</p>
+    <li data-md>
+     <p>"short" low-precision floating-point or fixed-point number types
+that are critical for performance of machine learning applications;</p>
+    <li data-md>
+     <p>extended-precision floating-point types like binary128
+that can improve the accuracy of floating-point sums,
+reduce parallel nondeterminism,
+and make sums less dependent on evaluation order; and</p>
+    <li data-md>
+     <p>custom number types such as "bigfloats"
+(custom arbitrary-precision floating-point types).</p>
+   </ul>
+   <p>Second, the Standard explicitly specifies
+that <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-></code> has the same alignment as <code class="highlight"><c- n>R</c-><c- p>[</c-><c- mi>2</c-><c- p>]</c-></code>.
+That is, it is aligned to <code class="highlight"><c- k>sizeof</c-><c- p>(</c-><c- n>R</c-><c- p>)</c-></code>.
+Some systems would give better parallel or vectorized performance
+if complex numbers were aligned to <code class="highlight"><c- mi>2</c-> <c- o>*</c-> <c- k>sizeof</c-><c- p>(</c-><c- n>R</c-><c- p>)</c-></code>.
+Some C++ extensions define their own complex number types
+partly for this reason.
+Software libraries that use these custom complex number types
+tempt users to alias between <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-></code> and these custom types,
+which would have the same bit representation except for alignment.
+This has led to crashes or worse in software projects
+that the authors have worked on.
+Third, some C++ extensions cannot use <code class="highlight"><c- n>complex</c-></code>,
+because they require types' member functions to have special annotations,
+in order to compile code to make use of accelerator hardware.</p>
+   <p>These issues have led several software libraries and C++ extensions
+to define their own complex number types.
+These include CUDA, Kokkos, and Thrust.
+The SYCL standard is contemplating adding a custom complex number type.
+One of the authors wrote <code class="highlight"><c- n>Kokkos</c-><c- o>::</c-><c- n>complex</c-></code> circa 2014
+to make it possible to build and run Trilinos' linear solvers
+with complex numbers on NVIDIA graphics processing units (GPUs).</p>
+   <h5 class="heading settled" data-level="11.8.4.2" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="secno">11.8.4.2. </span><span class="content">Why users want to "conjugate" matrices of real numbers</span><a class="self-link" href="#why-users-want-to-conjugate-matrices-of-real-numbers"></a></h5>
+   <p>It’s possible to describe many linear algebra algorithms
+in a way that works for both complex and real numbers,
+by treating conjugation as the identity for real numbers.
+This makes the "conjugate transpose" just the transpose
+for a matrix of real numbers.
 Matlab takes this approach, by defining the single quote operator
 to take the conjugate transpose if its argument is complex,
 and the transpose if its argument is real.
-The Fortran BLAS also supports this to some extent,
-by having its real routines like <code class="highlight"><c- n>DGEMM</c-></code> interpret <code class="highlight"><c- n>TRANSA</c-><c- o>=</c-><c- sc>'C'</c-></code> as the transpose.
+The Fortran BLAS also supports this,
+by letting users specify the <code class="highlight">'<c- n>Conjugate</c-> <c- n>Transpose</c->'</code> (<code class="highlight"><c- n>TRANSA</c-><c- o>=</c-><c- sc>'C'</c-></code>) even for real routines like <code class="highlight"><c- n>DGEMM</c-></code> (double-precision general matrix-matrix multiply).
 Krylov subspace methods in Trilinos' Anasazi and Belos packages
 also follow a Matlab-like generic approach.</p>
-   <p>The fact that <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>conj</c-></code> converts arithmetic types to <code class="highlight"><c- n>complex</c-></code> is not <em>mathematically</em> incorrect.
-However, it may complicate or prevent implementers
-from using an existing optimized BLAS library.
-If the user calls <code class="highlight"><c- n>matrix_product</c-></code> with matrices all of value type <code class="highlight"><c- b>double</c-></code>,
-use of the (mathematically harmless) <code class="highlight"><c- n>conjugate_transposed</c-></code> function
-would make one matrix have value type <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-></code>.
-Implementations would need more cleverness to undo the value type change
-so that they could call an optimized <code class="highlight"><c- n>DGEMM</c-></code> routine for this case.
-If one input is <code class="highlight"><c- n>conjugate_transposed</c-></code> of a matrix of <code class="highlight"><c- b>double</c-></code>,
-and another input is a matrix of custom real value type <code class="highlight"><c- n>Foo</c-></code>,
-then users might be surpised that the matrix multiply no longer compiles,
-due to <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>declval</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-><c- p>()</c-> <c- o>*</c-> <c- n>declval</c-><c- o>&lt;</c-><c- n>Foo</c-><c- o>></c-><c- p>())</c-><c- o>></c-></code> not being well formed.</p>
    <p>Even though we think it should be possible to write
 "generic" (real or complex) linear algebra code using <code class="highlight"><c- n>conjugate_transposed</c-></code>,
 we still need to distinguish between symmetric and Hermitian matrix algorithms.
@@ -4894,106 +4949,22 @@ for matrices of complex numbers.
 For example, a matrix whose off-diagonal elements are all <code class="highlight"><c- mi>3</c-> <c- o>+</c-> <c- mi>4</c-><c- n>i</c-></code> is symmetric,
 but not Hermitian.  Complex symmetric matrices are useful in practice,
 for example when modeling damped vibrations (Craven 1969).</p>
-   <h4 class="heading settled" data-level="11.8.3" id="our-proposed-approach"><span class="secno">11.8.3. </span><span class="content">Our proposed approach</span><a class="self-link" href="#our-proposed-approach"></a></h4>
-   <p>We can support <code class="highlight"><c- n>conjugated</c-></code> (and thus <code class="highlight"><c- n>conjugated_transposed</c-></code>) for all types as follows.</p>
-   <ol>
-    <li data-md>
-     <p>For arithmetic types, define <code class="highlight"><c- n>accessor_conjugate</c-></code> specially to return just the reference.
-Don’t use <code class="highlight"><c- n>conj</c-></code> at all.</p>
-    <li data-md>
-     <p>For all other types (including specializations of <code class="highlight"><c- n>complex</c-></code>),
-define <code class="highlight"><c- n>accessor_conjugate</c-></code> to use <code class="highlight"><c- k>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c-> <c- k>return</c-> <c- n>conj</c-><c- p>(</c-><c- n>x</c-><c- p>);</c-></code>.</p>
-   </ol>
-   <p>We could express this through an exposition-only function <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-></code>_.
-The generic version returns <code class="highlight"><c- k>auto</c-></code>, not <code class="highlight"><c- n>T</c-></code>,
-for cases where a user-defined <code class="highlight"><c- n>conj</c-></code> returns a different type than its input.
-(Some user-defined types might take a cue
-from specializations of <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>conj</c-></code> for arithmetic types,
-by returning a <code class="highlight"><c- n>complex</c-></code> specialization for a real type.)</p>
-<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c->
-<c- k>auto</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c->
-<c- p>{</c->
-    <c- n>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c->
-    <c- k>return</c-> <c- n>conj</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
-<c- p>}</c->
-
-<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c-> <c- n>requires</c-> <c- n>is_arithmetic_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
-<c- n>T</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c->
-<c- p>{</c->
-    <c- k>return</c-> <c- n>t</c-><c- p>;</c->
-<c- p>}</c->
-</pre>
-   <h4 class="heading settled" data-level="11.8.4" id="alternative-always-treat-user-defined-types-as-real"><span class="secno">11.8.4. </span><span class="content">Alternative: Always treat user-defined types as real</span><a class="self-link" href="#alternative-always-treat-user-defined-types-as-real"></a></h4>
-   <p>One issue with the above approach is that <code class="highlight"><c- n>accessor_conjugate</c-></code> will fail to compile for user-defined (and thus nonarithmetic) types,
-unless the type has <code class="highlight"><c- n>conj</c-></code> defined.
-If a generic library of linear algebra algorithms
-uses <code class="highlight"><c- n>conjugate_transposed</c-></code> throughout to express transposition,
-then users of this library could have an unpleasant surprise
-when they move from arithmetic types to custom real types.</p>
-   <p>One could fix this by introducing an exposition-only function <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>not</c-><c- o>-</c-><c- n>arithmetic</c-></code>_
-that applies <code class="highlight"><c- n>conj</c-></code> in the above two-step manner to nonarithmetic types,
-and an exposition-only concept <code class="highlight" data-span-tag="_"><c- n>conjugatable</c-></code>_
-satisfied by types for which calling <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>not</c-><c- o>-</c-><c- n>arithmetic</c-></code>_ is well formed.
-For example:</p>
-<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c->
-<c- k>auto</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>not</c-><c- o>-</c-><c- n>arithmetic</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c->
-<c- p>{</c->
-    <c- n>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c->
-    <c- k>return</c-> <c- n>conj</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
-<c- p>}</c->
-
-<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c-> <c- n>requires</c-> <c- n>is_arithmetic_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
-<c- n>T</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>not</c-><c- o>-</c-><c- n>arithmetic</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c->
-<c- p>{</c->
-    <c- k>return</c-> <c- n>t</c-><c- p>;</c->
-<c- p>}</c->
-
-<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c->
-<c- n>concept</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conjugatable</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- n>requires</c-><c- p>(</c-><c- n>T</c-> <c- n>a</c-><c- p>)</c->
-<c- p>{</c-> <c- c1>// "using" declarations don’t work in here</c->
-    <c- k>auto</c-> <c- n>b</c-> <c- o>=</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>not</c-><c- o>-</c-><c- n>arithmetic</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- n>a</c-><c- p>);</c->
-<c- p>}</c->
-
-<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c->
-<c- n>T</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c->
-<c- p>{</c->
-    <c- k>return</c-> <c- n>t</c-><c- p>;</c->
-<c- p>}</c->
-
-<c- n>template</c-><c- o>&lt;</c-><c- n>conjugatable</c-> <c- n>T</c-><c- o>></c->
-<c- k>auto</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c->
-<c- p>{</c->
-    <c- k>return</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>not</c-><c- o>-</c-><c- n>arithmetic</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
-<c- p>}</c->
-</pre>
-   <p>However, if users write a custom complex type and forget or misspell <code class="highlight"><c- n>conj</c-></code>,
-then this alternative will make <code class="highlight"><c- n>conjugated</c-></code> and <code class="highlight"><c- n>conjugate_transposed</c-></code> silently incorrect.
-The intent of our proposed approach is to work around the problem of <code class="highlight"><c- n>conj</c-></code> <em>existing</em>,
-but having a <em>different return type</em> (complex) for arithmetic (and therefore real) parameters.
-If users type <code class="highlight"><c- n>conjugated</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code> or <code class="highlight"><c- n>conjugate_transposed</c-><c- p>(</c-><c- n>A</c-><c- p>)</c-></code>,
-then we think it reasonable to expect <code class="highlight"><c- n>conj</c-></code> to be defined for <code class="highlight"><c- n>A</c-></code>'s value type.
-Users of custom number types can supply a trivial definition of <code class="highlight"><c- n>conj</c-></code>,
-even if the number type itself does not provide one.</p>
-   <p>In general, we avoid defining traits classes or other code machinery
-for reasoning about generic number behavior.
-Detection of <code class="highlight"><c- n>conj</c-></code> doesn’t <em>quite</em> go there,
-but might lead users and implementers down the path of asking for a "complex number" concept.
-The P1673 way, which we believe is the C++ Standard Algorithms way,
-is for each algorithm to require only what that algorithm needs.</p>
-   <h4 class="heading settled" data-level="11.8.5" id="design-question"><span class="secno">11.8.5. </span><span class="content">Design question</span><a class="self-link" href="#design-question"></a></h4>
-   <p>Please pick one of the following:</p>
-   <ol>
-    <li data-md>
-     <p>(Our proposal) <code class="highlight"><c- n>conjugated</c-></code> and <code class="highlight"><c- n>conjugate_transposed</c-></code> assume that <code class="highlight"><c- k>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c-> <c- n>T</c-> <c- n>b</c-> <c- o>=</c-> <c- n>conj</c-><c- p>(</c-><c- n>a</c-><c- p>);</c-></code> is well formed for any nonarithmetic type <code class="highlight"><c- n>T</c-></code>.</p>
-    <li data-md>
-     <p>(Alternative) <code class="highlight"><c- n>conjugated</c-></code> and <code class="highlight"><c- n>conjugate_transposed</c-></code> do not use <code class="highlight"><c- n>conj</c-></code> if <code class="highlight"><c- k>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c-> <c- n>T</c-> <c- n>b</c-> <c- o>=</c-> <c- n>conj</c-><c- p>(</c-><c- n>a</c-><c- p>);</c-></code> is not well formed for nonarithmetic <code class="highlight"><c- n>T</c-></code>.</p>
-     <ul>
-      <li data-md>
-       <p>Advantage: Assumes that any custom number type is real.</p>
-      <li data-md>
-       <p>Disadvantage: Same (silent errors if <code class="highlight"><c- n>conj</c-></code> is missing or misspelled)</p>
-     </ul>
-   </ol>
+   <h5 class="heading settled" data-level="11.8.4.3" id="effects-of-conjs-real-to-complex-change"><span class="secno">11.8.4.3. </span><span class="content">Effects of <code class="highlight"><c- n>conj</c-></code>'s real-to-complex change</span><a class="self-link" href="#effects-of-conjs-real-to-complex-change"></a></h5>
+   <p>The fact that <code class="highlight"><c- n>conj</c-></code> for arithmetic-type arguments returns <code class="highlight"><c- n>complex</c-></code> may complicate or prevent implementers
+from using an existing optimized BLAS library.
+If the user calls <code class="highlight"><c- n>matrix_product</c-></code> with matrices all of value type <code class="highlight"><c- b>double</c-></code>,
+use of the (mathematically harmless) <code class="highlight"><c- n>conjugate_transposed</c-></code> function
+would make one matrix have value type <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-></code>.
+Implementations could undo this value type change
+for known layouts and accessors,
+but would need to revert to generic code otherwise.</p>
+   <p>For example, suppose that a custom real value type <code class="highlight"><c- n>MyReal</c-></code> has arithmetic operators defined to permit
+all needed mixed-type expressions with <code class="highlight"><c- b>double</c-></code>,
+where <code class="highlight"><c- b>double</c-></code> times <code class="highlight"><c- n>MyReal</c-></code> and <code class="highlight"><c- n>MyReal</c-></code> times <code class="highlight"><c- b>double</c-></code> both "promote" to <code class="highlight"><c- n>MyReal</c-></code>.
+Users may then call <code class="highlight"><c- n>matrix_product</c-><c- p>(</c-><c- n>A</c-><c- p>,</c-> <c- n>B</c-><c- p>,</c-> <c- n>C</c-><c- p>)</c-></code> with <code class="highlight"><c- n>A</c-></code> having value type <code class="highlight"><c- b>double</c-></code>, <code class="highlight"><c- n>B</c-></code> having value type <code class="highlight"><c- n>MyReal</c-></code>,
+and <code class="highlight"><c- n>C</c-></code> having a value type <code class="highlight"><c- n>MyReal</c-></code>.
+However, <code class="highlight"><c- n>matrix_product</c-><c- p>(</c-><c- n>conjugate_transposed</c-><c- p>(</c-><c- n>A</c-><c- p>),</c-> <c- n>B</c-><c- p>,</c-> <c- n>C</c-><c- p>)</c-></code> would not compile,
+due to <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- k>decltype</c-><c- p>(</c-><c- n>declval</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-><c- p>()</c-> <c- o>*</c-> <c- n>declval</c-><c- o>&lt;</c-><c- n>MyReal</c-><c- o>></c-><c- p>())</c-><c- o>></c-></code> not being well formed.</p>
    <h2 class="heading settled" data-level="12" id="future-work"><span class="secno">12. </span><span class="content">Future work</span><a class="self-link" href="#future-work"></a></h2>
    <p>Summary:</p>
    <ol>
@@ -6659,17 +6630,17 @@ At the end of <em>[numerics]</em>, add all the material that follows.</p>
   <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
   <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>);</c->
 
-<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c->
-<c- k>auto</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c-> <c- c1>// &lt;it>exposition only&lt;/it></c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>R</c-><c- o>></c->
+<c- n>std</c-><c- o>::</c-><c- k>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c->
+  <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>std</c-><c- o>::</c-><c- k>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>>&amp;</c-> <c- n>t</c-><c- p>)</c-> <c- c1>// &lt;it>exposition only&lt;/it></c->
 <c- p>{</c->
-    <c- n>using</c-> <c- n>std</c-><c- o>::</c-><c- n>conj</c-><c- p>;</c->
-    <c- k>return</c-> <c- n>conj</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
+  <c- k>return</c-> <c- n>conj</c-><c- p>(</c-><c- n>t</c-><c- p>);</c->
 <c- p>}</c->
 
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>T</c-><c- o>></c-> <c- n>requires</c-> <c- n>is_arithmetic_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c->
 <c- n>T</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-> <c- n>t</c-><c- p>)</c-> <c- c1>// &lt;it>exposition only&lt;/it></c->
 <c- p>{</c->
-    <c- k>return</c-> <c- n>t</c-><c- p>;</c->
+  <c- k>return</c-> <c- n>t</c-><c- p>;</c->
 <c- p>}</c->
 <c- p>}</c->
 </pre>
@@ -7675,6 +7646,18 @@ the implementation of <code class="highlight"><c- n>accessor_conjugate</c-></cod
     <li data-md>
      <p><em>Constraints:</em> The expression <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-><c- n>val</c-><c- p>)</c-></code> is well formed.</p>
    </ul>
+   <p><em>[Note:</em></p>
+   <p>The current constraints on <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-></code>_ imply that <code class="highlight"><c- n>ReferenceValue</c-></code> may only be either <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-></code> for some <code class="highlight"><c- n>R</c-></code>,
+or an arithmetic type.</p>
+   <p>Implementations can provide additional,
+implementation-defined overloads of <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-></code>_ as extensions.</p>
+   <p>In a future, separate paper, we intend to add
+a user-visible customization point, provisionally named <code class="highlight"><c- n>conjugate</c-></code>.
+If this future paper is accepted,
+then we will replace <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-></code>_ in P1673
+with this customization point.
+This will permit use of <code class="highlight"><c- n>conjugated</c-></code> and <code class="highlight"><c- n>conjugate_transposed</c-></code> with arguments of value type other than <code class="highlight"><c- n>complex</c-><c- o>&lt;</c-><c- n>R</c-><c- o>></c-></code> or an arithmetic type.</p>
+   <p>--<em>end note]</em></p>
 <pre class="language-c++ highlight"><c- n>using</c-> <c- n>value_type</c-> <c- o>=</c-> <c- d>/* see below */</c-><c- p>;</c->
 </pre>
    <p><code class="highlight"><c- n>value_type</c-></code> names the type <code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>(</c-><c- n>ReferenceValue</c-><c- p>(</c-><c- n>declval</c-><c- o>&lt;</c-><c- n>Reference</c-><c- o>></c-><c- p>())))</c-></code>.</p>
@@ -8369,9 +8352,9 @@ that is linear in the maximum product of extents of any <code class="highlight">
 </pre>
    <p>This function computes the plane (Givens) rotation represented by the
 two values <code class="highlight"><c- n>c</c-></code> and <code class="highlight"><c- n>s</c-></code> such that the 2x2 system of equations <em>[Note:</em> use of monospaced text in this equation does not indicate C++ code --<em>end note]</em></p>
-<pre class="highlight"><c- p>[</c-><c- n>c</c->                  <c- n>s</c-><c- p>]</c->   <c- p>[</c-><c- n>a</c-><c- p>]</c->   <c- p>[</c-><c- n>r</c-><c- p>]</c->
-<c- p>[</c->                    <c- p>]</c-> <c- o>*</c-> <c- p>[</c-> <c- p>]</c-> <c- o>=</c-> <c- p>[</c-> <c- p>]</c->
-<c- p>[</c-><c- o>-</c-><c- n>conj</c-><c- o>-</c-><c- k>if</c-><c- o>-</c-><c- n>needed</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-> <c- n>c</c-><c- p>]</c->   <c- p>[</c-><c- n>b</c-><c- p>]</c->   <c- p>[</c-><c- mi>0</c-><c- p>]</c->
+<pre class="highlight"><c- p>[</c-><c- n>c</c->        <c- n>s</c-><c- p>]</c->   <c- p>[</c-><c- n>a</c-><c- p>]</c->   <c- p>[</c-><c- n>r</c-><c- p>]</c->
+<c- p>[</c->          <c- p>]</c-> <c- o>*</c-> <c- p>[</c-> <c- p>]</c-> <c- o>=</c-> <c- p>[</c-> <c- p>]</c->
+<c- p>[</c-><c- o>-</c-><c- n>conj</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-> <c- n>c</c-><c- p>]</c->   <c- p>[</c-><c- n>b</c-><c- p>]</c->   <c- p>[</c-><c- mi>0</c-><c- p>]</c->
 </pre>
    <p>holds, where <code class="highlight"><c- n>c</c-></code> is always a real scalar, and <code class="highlight"><c- n>c</c-><c- o>*</c-><c- n>c</c-> <c- o>+</c-> <c- n>abs</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-><c- o>*</c-><c- n>abs</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-></code> equals one.
 That is, <code class="highlight"><c- n>c</c-></code> and <code class="highlight"><c- n>s</c-></code> represent a 2 x 2 matrix, that when multiplied by the
