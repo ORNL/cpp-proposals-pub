@@ -2736,6 +2736,10 @@ for helpful discussions.)</p>
      <p>Revision 9 (electronic), to be submitted 2022-06-15</p>
      <ul>
       <li data-md>
+       <p>Fix <code class="highlight"><c- n>layout_blas_packed</c-></code> <code class="highlight"><c- n>required_span_size</c-><c- p>()</c-></code> and <code class="highlight"><c- k>operator</c-><c- p>()</c-></code>.</p>
+      <li data-md>
+       <p>Make sure all definitions of lower and upper triangle are consistent.</p>
+      <li data-md>
        <p>Address LEWG feedback to defer support for custom complex number types,
 pending support of a separate paper (which has not yet been submitted)
 proposing a <code class="highlight"><c- n>conjugate</c-></code> customization point.</p>
@@ -7183,8 +7187,10 @@ Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
 </pre>
    <ul>
     <li data-md>
-     <p><em>Returns:</em> <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-><c- o>*</c-><c- p>(</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code>.</p>
+     <p><em>Returns:</em> <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> * (<code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> + 1)/2.</p>
    </ul>
+   <p><em>[Note:</em> For example, a 5 x 5 packed matrix
+only stores 15 matrix elements. --<em>end note]</em></p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>IndexType</c-><c- o>></c->
   <c- n>constexpr</c-> <c- n>size_type</c->
     <c- n>operator</c-><c- p>()</c-> <c- p>(</c-><c- n>IndexType</c-> <c- n>i</c-><c- p>,</c-> <c- n>IndexType</c-> <c- n>j</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
@@ -7206,27 +7212,33 @@ Symmetric Packed (SP), Hermitian Packed (HP), and Triangular Packed
        <ul>
         <li data-md>
          <p>if <code class="highlight"><c- n>Triangle</c-></code> is <code class="highlight"><c- n>upper_triangle_t</c-></code>,
-then <code class="highlight"><c- n>i</c-> <c- o>+</c-> <c- n>j</c-><c- p>(</c-><c- n>j</c-><c- o>+</c-><c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code> if <code class="highlight"><c- n>i</c-></code> >= <code class="highlight"><c- n>j</c-></code>,
-else <code class="highlight"><c- n>j</c-> <c- o>+</c-> <c- n>i</c-><c- p>(</c-><c- n>i</c-><c- o>+</c-><c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code>;</p>
+then <code class="highlight"><c- n>i</c-></code> + <code class="highlight"><c- n>j</c-></code> * (<code class="highlight"><c- n>j</c-></code> + 1)/2 if <code class="highlight"><c- n>i</c-></code> ≤ <code class="highlight"><c- n>j</c-></code>,
+else <code class="highlight"><c- n>j</c-></code> + <code class="highlight"><c- n>i</c-></code> * (<code class="highlight"><c- n>i</c-></code> + 1)/2;</p>
         <li data-md>
          <p>else, if <code class="highlight"><c- n>Triangle</c-></code> is <code class="highlight"><c- n>lower_triangle_t</c-></code>,
-then <code class="highlight"><c- n>i</c-> <c- o>+</c-> <c- n>Nj</c-> <c- o>-</c-> <c- n>j</c-><c- p>(</c-><c- n>j</c-><c- o>+</c-><c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code> if <code class="highlight"><c- n>i</c-></code> &lt;= <code class="highlight"><c- n>j</c-></code>,
-else <code class="highlight"><c- n>j</c-> <c- o>+</c-> <c- n>Ni</c-> <c- o>-</c-> <c- n>i</c-><c- p>(</c-><c- n>i</c-><c- o>+</c-><c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code>;</p>
+then <code class="highlight"><c- n>i</c-></code> + <code class="highlight"><c- n>N</c-></code> * <code class="highlight"><c- n>j</c-></code> - <code class="highlight"><c- n>j</c-></code> * (<code class="highlight"><c- n>j</c-></code> + 1)/2 if <code class="highlight"><c- n>i</c-></code> ≥ <code class="highlight"><c- n>j</c-></code>,
+else <code class="highlight"><c- n>j</c-></code> + <code class="highlight"><c- n>N</c-></code> * <code class="highlight"><c- n>i</c-></code> - <code class="highlight"><c- n>i</c-></code> * (<code class="highlight"><c- n>i</c-></code> + 1)/2;</p>
        </ul>
       <li data-md>
        <p>else, if <code class="highlight"><c- n>StorageOrder</c-></code> is <code class="highlight"><c- n>row_major_t</c-></code> and</p>
        <ul>
         <li data-md>
          <p>if <code class="highlight"><c- n>Triangle</c-></code> is <code class="highlight"><c- n>upper_triangle_t</c-></code>,
-then <code class="highlight"><c- n>j</c-> <c- o>+</c-> <c- n>Ni</c-> <c- o>-</c-> <c- n>i</c-><c- p>(</c-><c- n>i</c-><c- o>+</c-><c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code> if <code class="highlight"><c- n>j</c-></code> &lt;= <code class="highlight"><c- n>i</c-></code>,
-else <code class="highlight"><c- n>i</c-> <c- o>+</c-> <c- n>Nj</c-> <c- o>-</c-> <c- n>j</c-><c- p>(</c-><c- n>j</c-><c- o>+</c-><c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code>;</p>
+then <code class="highlight"><c- n>j</c-></code> + <code class="highlight"><c- n>N</c-></code> * <code class="highlight"><c- n>i</c-></code> - <code class="highlight"><c- n>i</c-></code> * (<code class="highlight"><c- n>i</c-></code> + 1)/2 if <code class="highlight"><c- n>i</c-></code> ≤ <code class="highlight"><c- n>j</c-></code>,
+else <code class="highlight"><c- n>i</c-></code> + <code class="highlight"><c- n>N</c-></code> * <code class="highlight"><c- n>j</c-></code> - <code class="highlight"><c- n>j</c-></code> * (<code class="highlight"><c- n>j</c-></code> + 1)/2;</p>
         <li data-md>
          <p>else, if <code class="highlight"><c- n>Triangle</c-></code> is <code class="highlight"><c- n>lower_triangle_t</c-></code>,
-then <code class="highlight"><c- n>j</c-> <c- o>+</c-> <c- n>i</c-><c- p>(</c-><c- n>i</c-><c- o>+</c-><c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code> if <code class="highlight"><c- n>j</c-></code> >= <code class="highlight"><c- n>i</c-></code>,
-else <code class="highlight"><c- n>i</c-> <c- o>+</c-> <c- n>j</c-><c- p>(</c-><c- n>j</c-><c- o>+</c-><c- mi>1</c-><c- p>)</c-><c- o>/</c-><c- mi>2</c-></code>.</p>
+then <code class="highlight"><c- n>j</c-></code> + <code class="highlight"><c- n>i</c-></code> * (<code class="highlight"><c- n>i</c-></code> + 1)/2 if <code class="highlight"><c- n>i</c-></code> ≥ <code class="highlight"><c- n>j</c-></code>,
+else <code class="highlight"><c- n>i</c-></code> + <code class="highlight"><c- n>j</c-></code> * (<code class="highlight"><c- n>j</c-></code> + 1)/2.</p>
        </ul>
      </ul>
    </ul>
+   <p><em>[Note:</em></p>
+   <p>An <code class="highlight"><c- n>mdspan</c-></code> layout mapping must permit access
+for all multidimensional indices in the cross product of the extents,
+so the above definition cannot exclude indices outside the matrix’s triangle.
+Instead, it interprets such indices as if the matrix were symmetric.</p>
+   <p>--<em>end note]</em></p>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_unique</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>

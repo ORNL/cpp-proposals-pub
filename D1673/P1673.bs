@@ -298,6 +298,8 @@ Date: 2022-06-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
+    * Fix `layout_blas_packed` `required_span_size()` and `operator()`.
+
     * Make sure all definitions of lower and upper triangle are consistent.
 
     * Address LEWG feedback to defer support for custom complex number types,
@@ -5155,7 +5157,10 @@ template<class OtherExtents>
 constexpr size_type required_span_size() const noexcept;
 ```
 
-* *Returns:* `extent(0)*(extent(0) - 1)/2`.
+* *Returns:* `extent(0)` * (`extent(0)` + 1)/2.
+
+*[Note:* For example, a 5 x 5 packed matrix
+only stores 15 matrix elements. --*end note]*
 
 ```c++
 template<class IndexType>
@@ -5174,22 +5179,31 @@ template<class IndexType>
     * If `StorageOrder` is `column_major_t` and
 
         * if `Triangle` is `upper_triangle_t`,
-            then `i + j(j+1)/2` if `i` >= `j`,
-            else `j + i(i+1)/2`;
+            then `i` + `j` * (`j` + 1)/2 if `i` ≤ `j`,
+            else `j` + `i` * (`i` + 1)/2;
 
         * else, if `Triangle` is `lower_triangle_t`,
-            then `i + Nj - j(j+1)/2` if `i` <= `j`,
-            else `j + Ni - i(i+1)/2`;
+            then `i` + `N` * `j` - `j` * (`j` + 1)/2 if `i` ≥ `j`,
+            else `j` + `N` * `i` - `i` * (`i` + 1)/2;
 
     * else, if `StorageOrder` is `row_major_t` and
 
         * if `Triangle` is `upper_triangle_t`,
-            then `j + Ni - i(i+1)/2` if `j` <= `i`,
-            else `i + Nj - j(j+1)/2`;
+            then `j` + `N` * `i` - `i` * (`i` + 1)/2 if `i` ≤ `j`,
+            else `i` + `N` * `j` - `j` * (`j` + 1)/2;
 
         * else, if `Triangle` is `lower_triangle_t`,
-            then `j + i(i+1)/2` if `j` >= `i`,
-            else `i + j(j+1)/2`.
+            then `j` + `i` * (`i` + 1)/2 if `i` ≥ `j`,
+            else `i` + `j` * (`j` + 1)/2.
+
+*[Note:*
+
+An `mdspan` layout mapping must permit access
+for all multidimensional indices in the cross product of the extents,
+so the above definition cannot exclude indices outside the matrix's triangle.
+Instead, it interprets such indices as if the matrix were symmetric.
+
+--*end note]*
 
 ```c++
 constexpr bool is_unique() const noexcept;
