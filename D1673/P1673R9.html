@@ -2736,6 +2736,8 @@ for helpful discussions.)</p>
      <p>Revision 9 (electronic), to be submitted 2022-06-15</p>
      <ul>
       <li data-md>
+       <p>Improve <code class="highlight"><c- n>triangular_matrix_matrix_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_solve</c-><c- p>()</c-></code> "mathematical expression of the algorithm" wording.</p>
+      <li data-md>
        <p>Fix <code class="highlight"><c- n>layout_blas_packed</c-></code> <code class="highlight"><c- n>required_span_size</c-><c- p>()</c-></code> and <code class="highlight"><c- k>operator</c-><c- p>()</c-></code>.</p>
       <li data-md>
        <p>Make sure all definitions of lower and upper triangle are consistent.</p>
@@ -11287,7 +11289,7 @@ Reference BLAS does not have a <code class="highlight"><c- n>xTPSM</c-></code> f
       <li data-md>
        <p><code class="highlight"><c- n>inout_matrix_t</c-></code> has unique layout (if applicable);</p>
       <li data-md>
-       <p>if <code class="highlight"><c- n>r</c-><c- p>,</c-><c- n>j</c-></code> is in the domain of <code class="highlight"><c- n>X</c-></code> and <code class="highlight"><c- n>B</c-></code>, then the expression <code class="highlight"><c- n>X</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-><c- n>j</c-><c- p>)</c-> <c- o>=</c-> <c- n>B</c-><c- p>(</c-><c- n>r</c-><c- p>,</c-><c- n>j</c-><c- p>)</c-></code> is well formed (if applicable); and</p>
+       <p>if <code class="highlight"><c- n>r</c-><c- p>,</c-><c- n>j</c-></code> is in the domain of <code class="highlight"><c- n>X</c-></code> and <code class="highlight"><c- n>B</c-></code>, then the expression <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>r</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>r</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> is well formed (if applicable); and</p>
       <li data-md>
        <p>if <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
 and <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> is in the domain of <code class="highlight"><c- n>X</c-></code>,
@@ -11347,13 +11349,13 @@ is linear in <code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c
   <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>);</c->
 </pre>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
-then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>k</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>X</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
+the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
+where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>X</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
-then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>k</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
-then the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>X</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
+the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
+where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>X</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
    <ul>
     <li data-md>
      <p><em>Preconditions:</em> <code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>B</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
@@ -11393,13 +11395,13 @@ such as vectorization, are still possible.
 This is why the <code class="highlight"><c- n>ExecutionPolicy</c-></code> overload exists.</p>
    <p>--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
-then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>k</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>B</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
+the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
+where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>B</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
-then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>k</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
-then the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>B</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
+the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
+where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>B</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
    <ul>
     <li data-md>
      <p><em>Preconditions:</em> <code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>B</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
@@ -11442,13 +11444,24 @@ is linear in <code class="highlight"><c- n>B</c-><c- p>.</c-><c- n>extent</c-><c
   <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>);</c->
 </pre>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
-then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>k</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
+the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code>,
+where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>j</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
-then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>k</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
-then the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
+the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
+where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>j</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+   <p><em>[Note:</em></p>
+   <p>One can derive these mathematical expressions
+from the mathematical expressions of the <code class="highlight"><c- n>triangular_matrix_matrix_left_solve</c-><c- p>()</c-></code> algorithm,
+by swapping the order of indices of each matrix access
+(representing the transpose), swapping <code class="highlight"><c- n>i</c-></code> and <code class="highlight"><c- n>j</c-></code>,
+and swapping the order of product terms in the sum <code class="highlight"><c- n>s</c-></code>.
+This is because <code class="highlight"><c- n>triangular_matrix_matrix_left_solve</c-><c- p>()</c-></code> solves AX = B,
+taking the transpose of both sides does not change the equation,
+and the transpose of a product of two matrices
+is the product of the reversed matrices in transposed order.</p>
+   <p>--<em>end note]</em></p>
    <ul>
     <li data-md>
      <p><em>Preconditions:</em> <code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>B</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>.</p>
@@ -11488,13 +11501,13 @@ such as vectorization, are still possible.
 This is why the <code class="highlight"><c- n>ExecutionPolicy</c-></code> overload exists.</p>
    <p>--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
-then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>k</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
+the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code>,
+where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>j</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
-then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>k</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
-then the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
+the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
+where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>j</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
    <ul>
     <li data-md>
      <p><em>Preconditions:</em> <code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>B</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>.</p>

@@ -298,6 +298,9 @@ Date: 2022-06-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
+    * Improve `triangular_matrix_matrix_{left,right}_solve()`
+        "mathematical expression of the algorithm" wording.
+
     * Fix `layout_blas_packed` `required_span_size()` and `operator()`.
 
     * Make sure all definitions of lower and upper triangle are consistent.
@@ -9845,7 +9848,7 @@ The following requirements apply to all functions in this section.
     * `inout_matrix_t` has unique layout (if applicable);
 
     * if `r,j` is in the domain of `X` and `B`, then the expression
-        `X(r,j) = B(r,j)` is well formed (if applicable); and
+        `X[r,j] = B[r,j]` is well formed (if applicable); and
 
     * if `DiagonalStorage` is `explicit_diagonal_t`,
         and `i,j` is in the domain of `X`,
@@ -9908,20 +9911,20 @@ void triangular_matrix_matrix_left_solve(
 ```
 
 If `DiagonalStorage` is `explicit_diagonal_t`,
-then for `i,k` in the domain of `X`,
+then for `i,j` in the domain of `X`,
 the mathematical expression for the algorithm is
-`X[i,k] = B[i,k] - s / A[i,i]`,
-where `s` is the sum of `A[i,j] * X[j,k]`
-for all `j` not equal to `i`
-in the subset of the domain of `A` specified by `t` and `d`.
+`X[i,j] = (B[i,j] - s) / A[i,i]`,
+where `s` is the sum of `A[i,k] * X[k,j]`
+for all `k` not equal to `i`
+in the subset of the domain of `A` specified by `t`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
-then for `i,k` in the domain of `X`,
-then the mathematical expression for the algorithm is
-`X[i,k] = B[i,k] - s`,
-where `s` is the sum of `A[i,j] * X[j,k]`
-for all `j` not equal to `i`
-in the subset of the domain of `A` specified by `t` and `d`.
+then for `i,j` in the domain of `X`,
+the mathematical expression for the algorithm is
+`X[i,j] = B[i,j] - s`,
+where `s` is the sum of `A[i,k] * X[k,j]`
+for all `k` not equal to `i`
+in the subset of the domain of `A` specified by `t`.
 
 * *Preconditions:* `A.extent(1)` equals `B.extent(0)`.
 
@@ -9970,20 +9973,20 @@ This is why the `ExecutionPolicy` overload exists.
 --*end note]*
 
 If `DiagonalStorage` is `explicit_diagonal_t`,
-then for `i,k` in the domain of `B`,
+then for `i,j` in the domain of `B`,
 the mathematical expression for the algorithm is
-`B[i,k] = B[i,k] - s / A[i,i]`,
-where `s` is the sum of `A[i,j] * B[j,k]`
-for all `j` not equal to `i`
-in the subset of the domain of `A` specified by `t` and `d`.
+`B[i,j] = (B[i,j] - s) / A[i,i]`,
+where `s` is the sum of `A[i,k] * B[k,j]`
+for all `k` not equal to `i`
+in the subset of the domain of `A` specified by `t`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
-then for `i,k` in the domain of `B`,
-then the mathematical expression for the algorithm is
-`B[i,k] = B[i,k] - s`,
-where `s` is the sum of `A[i,j] * B[j,k]`
-for all `j` not equal to `i`
-in the subset of the domain of `A` specified by `t` and `d`.
+then for `i,j` in the domain of `B`,
+the mathematical expression for the algorithm is
+`B[i,j] = B[i,j] - s`,
+where `s` is the sum of `A[i,k] * B[k,j]`
+for all `k` not equal to `i`
+in the subset of the domain of `A` specified by `t`.
 
 * *Preconditions:* `A.extent(1)` equals `B.extent(0)`.
 
@@ -10029,20 +10032,36 @@ void triangular_matrix_matrix_right_solve(
 ```
 
 If `DiagonalStorage` is `explicit_diagonal_t`,
-then for `i,k` in the domain of `X`,
+then for `i,j` in the domain of `X`,
 the mathematical expression for the algorithm is
-`X[i,k] = B[i,k] - s / A[i,i]`,
-where `s` is the sum of `X[i,j] * A[j,k]`
-for all `j` not equal to `i`
-in the subset of the domain of `A` specified by `t` and `d`.
+`X[i,j] = (B[i,j] - s) / A[j,j]`,
+where `s` is the sum of `X[i,k] * A[k,j]`
+for all `k` not equal to `j`
+in the subset of the domain of `A` specified by `t`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
-then for `i,k` in the domain of `X`,
-then the mathematical expression for the algorithm is
-`X[i,k] = B[i,k] - s`,
-where `s` is the sum of `X[i,j] * A[j,k]`
-for all `j` not equal to `i`
-in the subset of the domain of `A` specified by `t` and `d`.
+then for `i,j` in the domain of `X`,
+the mathematical expression for the algorithm is
+`X[i,j] = B[i,j] - s`,
+where `s` is the sum of `X[i,k] * A[k,j]`
+for all `k` not equal to `j`
+in the subset of the domain of `A` specified by `t`.
+
+*[Note:*
+
+One can derive these mathematical expressions
+from the mathematical expressions of the
+`triangular_matrix_matrix_left_solve()` algorithm,
+by swapping the order of indices of each matrix access
+(representing the transpose), swapping `i` and `j`,
+and swapping the order of product terms in the sum `s`.
+This is because
+`triangular_matrix_matrix_left_solve()` solves AX = B,
+taking the transpose of both sides does not change the equation,
+and the transpose of a product of two matrices
+is the product of the reversed matrices in transposed order.
+
+--*end note]*
 
 * *Preconditions:* `A.extent(1)` equals `B.extent(1)`.
 
@@ -10091,20 +10110,20 @@ This is why the `ExecutionPolicy` overload exists.
 --*end note]*
 
 If `DiagonalStorage` is `explicit_diagonal_t`,
-then for `i,k` in the domain of `B`,
+then for `i,j` in the domain of `B`,
 the mathematical expression for the algorithm is
-`B[i,k] = B[i,k] - s / A[i,i]`,
-where `s` is the sum of `B[i,j] * A[j,k]`
-for all `j` not equal to `i`
-in the subset of the domain of `A` specified by `t` and `d`.
+`B[i,j] = (B[i,j] - s) / A[j,j]`,
+where `s` is the sum of `B[i,k] * A[k,j]`
+for all `k` not equal to `j`
+in the subset of the domain of `A` specified by `t`.
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
-then for `i,k` in the domain of `B`,
-then the mathematical expression for the algorithm is
-`B[i,k] = B[i,k] - s`,
-where `s` is the sum of `B[i,j] * A[j,k]`
-for all `j` not equal to `i`
-in the subset of the domain of `A` specified by `t` and `d`.
+then for `i,j` in the domain of `B`,
+the mathematical expression for the algorithm is
+`B[i,j] = B[i,j] - s`,
+where `s` is the sum of `B[i,k] * A[k,j]`
+for all `k` not equal to `j`
+in the subset of the domain of `A` specified by `t`.
 
 * *Preconditions:* `A.extent(1)` equals `B.extent(1)`.
 
