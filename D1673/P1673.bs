@@ -310,7 +310,7 @@ Date: 2022-06-15
 
     * Make sure all definitions of lower and upper triangle are consistent.
 
-    * `layout_transpose` changes:
+    * Changes to `layout_transpose`:
 
         * Incorporate recent changes to P0009.
 
@@ -327,9 +327,15 @@ Date: 2022-06-15
 	    independent of `rank()` equals 2 constraint,
 	    to improve consistency with rest of `layout_transpose` wording.
 
-    * Fix wording of `scaled_scalar` and `conjugated_scalar`
-        to include all the needed overloaded arithmetic operators.
-	Fix `accessor_scaled` and `accessor_conjugate` accordingly.
+    * Changes to `scaled` and `conjugated`:
+
+        * Include and specify all the needed overloaded arithmetic operators
+	    for `scaled_scalar` and `conjugated_scalar`, and
+	    fix `accessor_scaled` and `accessor_conjugate` accordingly.
+
+        * Simplify `scaled` to ensure preservation of order of operations.
+
+        * Add missing `nested_accessor()` to `accessor_scaled`.
 
     * Changes suggested by LEWG review of P1673R8 on 2022/05/24
 
@@ -5487,9 +5493,11 @@ public:
 
   ScalingFactor scaling_factor() const;
 
+  Accessor nested_accessor() const;
+
 private:
   ScalingFactor scaling_factor_; // exposition only
-  Accessor accessor; // exposition only
+  Accessor accessor_; // exposition only
 };
 ```
 
@@ -5503,7 +5511,7 @@ private:
 accessor_scaled(ScalingFactor s, Accessor a);
 ```
 
-* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor` with `a`.
+* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor_` with `a`.
 
 ```c++
 template<class OtherElementType>
@@ -5513,26 +5521,32 @@ accessor_scaled(ScalingFactor s, default_accessor<OtherElementType> a);
 * *Constraints:*
 `is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
 
-* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor` with `a`.
+* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor_` with `a`.
 
 ```c++
 reference access(pointer p, extents<>::size_type i) const noexcept;
 ```
 
-* *Effects:* Equivalent to `return reference(scaling_factor_, accessor.access(p, i));`.
+* *Effects:* Equivalent to `return reference(scaling_factor_, accessor_.access(p, i));`.
 
 ```c++
 offset_policy::pointer
 offset(pointer p, extents<>::size_type i) const noexcept;
 ```
 
-* *Effects:* Equivalent to `return accessor.offset(p, i);`.
+* *Effects:* Equivalent to `return accessor_.offset(p, i);`.
 
 ```c++
 ScalingFactor scaling_factor() const;
 ```
 
 * *Effects:* Equivalent to `return scaling_factor_;`.
+
+```c++
+Accessor nested_accessor() const;
+```
+
+* *Effects:* Equivalent to `return accessor_;`.
 
 ### `scaled` [linalg.scaled.scaled]
 
@@ -5556,7 +5570,7 @@ template<class ScalingFactor,
          class Accessor>
 /* see below */
 scaled(
-  ScalingFactor alpha,
+  ScalingFactor scaling_factor,
   mdspan<ElementType, Extents, Layout, Accessor> x);
 ```
 
@@ -5564,60 +5578,29 @@ Let `R` name the type
 `mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
 where
 
-* `ReturnElementType` is:
+* `ReturnElementType` is
+    `add_const_t<accessor_scaled<ScalingFactor, Accessor>::element_type>`, and
 
-    * if `Accessor` is `default_accessor<ElementType>`,
-        then `add_const_t<accessor_scaled<ScalingFactor, Accessor>::element_type>`;
-
-    * else, `accessor_scaled<ScalingFactor, Accessor>::element_type`;
-
-* `ReturnAccessor` is:
-
-    * if `Accessor` is `accessor_scaled<NestedScalingFactor, NestedAccessor>`
-        for some `NestedScalingFactor` and `NestedAccessor`, then
-        either `accessor_scaled<ProductScalingFactor, NestedAccessor>` or
-        `accessor_scaled<ScalingFactor, Accessor>`,
-        where `ProductScalingFactor` is
-        `decltype(alpha * x.accessor().scaling_factor())`;
-
-    * else, `accessor_scaled<ScalingFactor, Accessor>`.
+* `ReturnAccessor` is `accessor_scaled<ScalingFactor, Accessor>`.
 
 Then:
 
-* *Effects:*
-
-    * If `Accessor` is
-        `accessor_scaled<NestedScalingFactor, NestedAccessor>` and
-        `ReturnAccessor` is
-        `accessor_scaled<ProductScalingFactor, NestedAccessor>`,
-        then equivalent to
-        `return R(x.data(), x.mapping(), ReturnAccessor(product_alpha, x.accessor().nested_accessor()));`,
-        where `product_alpha` equals `alpha * x.accessor().scaling_factor()`;
-
-    * else, equivalent to
-        `return R(x.data(), x.mapping(), ReturnAccessor(alpha, x.accessor()));`.
+* *Effects:* Equivalent to
+    `return R(x.data(), x.mapping(), ReturnAccessor(alpha, x.accessor()));`.
 
 * *Remarks:* The elements of the returned `mdspan` are read only.
 
 *[Note:*
 
-The point of `ReturnAccessor` is to give implementations freedom
-to optimize applying `accessor_scaled` twice in a row.
-However, implementations are not required to optimize arbitrary combinations
-of nested `accessor_scaled` interspersed with other nested accessors.
-
-The point of `ReturnElementType` is that
-`mdspan` does not provide a generic mechanism
-for deducing the const version of `Accessor`
-for use in `accessor_scaled`.
-In general, it may not be correct or efficient to use an `Accessor`
-meant for a nonconst `ElementType`, with `const ElementType`.
-This is because `Accessor::reference` may be a type other than `ElementType&`.
-Thus, we cannot require that the return type have `const ElementType` as its element type,
-since that might not be compatible with the given `Accessor`.
-However, in some cases, like `default_accessor`,
-it is possible to deduce the const version of `Accessor`.
-Regardless, users are not allowed to modify the elements of the returned `mdspan`.
+Nested `scaled` expressions remain nested.
+An expression such as `scaled(alpha, scaled(beta, x))`
+would not be transformed into `scaled(alpha * beta, x)`.
+This is because such transformations would change at least
+the order of operations, and possibly also the result type.
+For example, if `x` is a rank-1 `mdspan` whose `value_type` is `double`,
+and if `sizeof(int)` is 4 and `double` is IEEE 754 binary64,
+then `scaled(1 << 20, scaled(1 << 20, x))` does not overflow `int`,
+but `scaled((1 << 20) * (1 << 20), x)` would overflow `int`.
 
 --*end note]*
 
