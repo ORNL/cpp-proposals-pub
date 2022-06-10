@@ -2738,25 +2738,22 @@ for helpful discussions.)</p>
       <li data-md>
        <p>Improve <code class="highlight"><c- n>triangular_matrix_matrix_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_solve</c-><c- p>()</c-></code> "mathematical expression of the algorithm" wording.</p>
       <li data-md>
-       <p>Fix <code class="highlight"><c- n>layout_blas_packed</c-></code> <code class="highlight"><c- n>required_span_size</c-><c- p>()</c-></code> and <code class="highlight"><c- k>operator</c-><c- p>()</c-></code>.</p>
+       <p><code class="highlight"><c- n>layout_blas_general</c-></code>: incorporate recent changes to P0009.</p>
+      <li data-md>
+       <p><code class="highlight"><c- n>layout_blas_packed</c-></code></p>
+       <ul>
+        <li data-md>
+         <p>Fix <code class="highlight"><c- n>required_span_size</c-><c- p>()</c-></code> and <code class="highlight"><c- k>operator</c-><c- p>()</c-></code> wording</p>
+        <li data-md>
+         <p>Incorporate recent changes to P0009</p>
+       </ul>
       <li data-md>
        <p>Make sure all definitions of lower and upper triangle are consistent.</p>
-      <li data-md>
-       <p>Address LEWG feedback to defer support for custom complex number types,
-pending support of a separate paper (which has not yet been submitted)
-proposing a <code class="highlight"><c- n>conjugate</c-></code> customization point.</p>
-      <li data-md>
-       <p>Fix wording of <code class="highlight"><c- n>layout_blas_packed</c-></code> to incorporate recent changes to P0009.
-(We will need more revisions if P2553 is approved.)</p>
-      <li data-md>
-       <p>Fix wording of <code class="highlight"><c- n>layout_blas_general</c-></code> to incorporate recent changes to P0009.
-(We will need more revisions if P2553 is approved.)</p>
       <li data-md>
        <p><code class="highlight"><c- n>layout_transpose</c-></code> changes:</p>
        <ul>
         <li data-md>
-         <p>Fix wording of <code class="highlight"><c- n>layout_transpose</c-></code> to incorporate recent changes to P0009.
-(We will need more revisions if P2553 is approved.)</p>
+         <p>Incorporate recent changes to P0009.</p>
         <li data-md>
          <p>Make <code class="highlight"><c- n>layout_transpose</c-><c- o>::</c-><c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>nested_mapping_type</c-><c- o>&amp;</c-><c- p>)</c-></code> constructor <code class="highlight"><c- k>explicit</c-></code>, to avoid inadvertent transposition.</p>
         <li data-md>
@@ -2770,21 +2767,32 @@ independent of <code class="highlight"><c- n>rank</c-><c- p>()</c-></code> equal
 to improve consistency with rest of <code class="highlight"><c- n>layout_transpose</c-></code> wording.</p>
        </ul>
       <li data-md>
-       <p>Fix wording of <code class="highlight"><c- n>scaled_scalar</c-></code> and <code class="highlight"><c- n>conjugated_scalar</c-></code> to include all the needed overloaded arithmetic operators.</p>
+       <p>Fix wording of <code class="highlight"><c- n>scaled_scalar</c-></code> and <code class="highlight"><c- n>conjugated_scalar</c-></code> to include all the needed overloaded arithmetic operators.
+Fix <code class="highlight"><c- n>accessor_scaled</c-></code> and <code class="highlight"><c- n>accessor_conjugate</c-></code> accordingly.</p>
       <li data-md>
-       <p>During LEWG review of P1673R8 on 2022/05/24,
-LEWG asked us to add a section to the paper
+       <p>Changes suggested by LEWG review of P1673R8 on 2022/05/24</p>
+       <ul>
+        <li data-md>
+         <p>LEWG asked us to add a section to the paper
 explaining why we don’t define an interface
 for customization of the "back-end" optimized BLAS operations.
-This section already existed, but we rewrote it to improve clarity.
-Please see the section titled
-"We do not require using the BLAS library or any particular <a class="property css" data-link-type="property">back-end</a>."</p>
-      <li data-md>
-       <p>During LEWG review of P1673R8 on 2022/05/24,
-LEWG asked us to add a section to the paper
+This section already existed, but we rewrote it
+to improve clarity.  Please see the section titled
+"We do not require using the BLAS library
+or any particular <a class="property css" data-link-type="property">back-end</a>."</p>
+        <li data-md>
+         <p>LEWG asked us to add a section to the paper
 showing how BLAS 1 and ranges algorithms would coexist.
 We added this section, titled
-"Criteria for including BLAS 1 algorithms; coexistence with ranges."</p>
+"Criteria for including BLAS 1 algorithms;
+coexistence with ranges."</p>
+        <li data-md>
+         <p>Address LEWG feedback to defer support
+for custom complex number types,
+pending support of a separate paper
+(which has not yet been submitted)
+proposing a <code class="highlight"><c- n>conjugate</c-></code> customization point.</p>
+       </ul>
       <li data-md>
        <p>Fix P1674 links to point to R2.</p>
      </ul>
@@ -5289,8 +5297,8 @@ At the end of <em>[numerics]</em>, add all the material that follows.</p>
          <c- n>class</c-> <c- n>Accessor</c-><c- o>></c->
 <c- d>/* see-below */</c->
 <c- n>scaled</c-><c- p>(</c->
-  <c- k>const</c-> <c- n>ScalingFactor</c-><c- o>&amp;</c-> <c- n>s</c-><c- p>,</c->
-  <c- k>const</c-> <c- n>mdspan</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- p>,</c-> <c- n>Extents</c-><c- p>,</c-> <c- n>Layout</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>>&amp;</c-> <c- n>a</c-><c- p>);</c->
+  <c- n>ScalingFactor</c-> <c- n>s</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- p>,</c-> <c- n>Extents</c-><c- p>,</c-> <c- n>Layout</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>></c-> <c- n>a</c-><c- p>);</c->
 
 <c- c1>// [linalg.conj.accessor_conjugate], class template accessor_conjugate</c->
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Accessor</c-><c- o>></c->
@@ -7467,8 +7475,9 @@ and its nested <code class="highlight"><c- n>mdspan</c-></code> accessor’s ref
          <c- n>class</c-> <c- n>Accessor</c-><c- o>></c->
 <c- n>class</c-> <c- n>accessor_scaled</c-> <c- p>{</c->
 <c- n>public</c-><c- o>:</c->
-  <c- n>using</c-> <c- n>reference</c->     <c- o>=</c->
-    <c- n>scaled_scalar</c-><c- o>&lt;</c-><c- n>ScalingFactor</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>reference</c-><c- p>,</c-> <c- n>remove_cv_t</c-><c- o>&lt;</c-><c- n>Accessor</c-><c- o>::</c-><c- n>element_type</c-><c- o>>></c-><c- p>;</c->
+  <c- n>using</c-> <c- n>reference</c->     <c- o>=</c-> <c- n>scaled_scalar</c-><c- o>&lt;</c-><c- n>ScalingFactor</c-><c- p>,</c->
+    <c- n>typename</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>reference</c-><c- p>,</c->
+    <c- n>remove_cv_t</c-><c- o>&lt;</c-><c- n>typename</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>element_type</c-><c- o>>></c-><c- p>;</c->
   <c- n>using</c-> <c- n>element_type</c->  <c- o>=</c-> <c- n>add_const_t</c-><c- o>&lt;</c-><c- n>typename</c-> <c- n>reference</c-><c- o>::</c-><c- n>value_type</c-><c- o>></c-><c- p>;</c->
   <c- n>using</c-> <c- n>pointer</c->       <c- o>=</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>pointer</c-><c- p>;</c->
   <c- n>using</c-> <c- n>offset_policy</c-> <c- o>=</c-> <c- n>accessor_scaled</c-><c- o>&lt;</c-><c- n>ScalingFactor</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>offset_policy</c-><c- o>></c-><c- p>;</c->
@@ -7507,7 +7516,7 @@ and its nested <code class="highlight"><c- n>mdspan</c-></code> accessor’s ref
      <p><em>Effects:</em> Initializes <code class="highlight"><c- n>scaling_factor_</c-></code> with <code class="highlight"><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-></code>, and initializes <code class="highlight"><c- n>accessor</c-></code> with <code class="highlight"><c- n>a</c-></code>.</p>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherElementType</c-><c- o>></c->
-<c- n>accessor_scaled</c-><c- p>(</c-><c- k>const</c-> <c- n>ScalingFactor</c-><c- o>&amp;</c-> <c- n>s</c-><c- p>,</c-> <c- n>default_accessor</c-><c- o>&lt;</c-><c- n>OtherElementType</c-><c- o>></c-> <c- n>a</c-><c- p>);</c->
+<c- n>accessor_scaled</c-><c- p>(</c-><c- n>ScalingFactor</c-> <c- n>s</c-><c- p>,</c-> <c- n>default_accessor</c-><c- o>&lt;</c-><c- n>OtherElementType</c-><c- o>></c-> <c- n>a</c-><c- p>);</c->
 </pre>
    <ul>
     <li data-md>
@@ -7548,8 +7557,8 @@ the mathematical expression for element <code class="highlight"><c- n>i</c-><c- 
          <c- n>class</c-> <c- n>Accessor</c-><c- o>></c->
 <c- d>/* see below */</c->
 <c- n>scaled</c-><c- p>(</c->
-  <c- k>const</c-> <c- n>ScalingFactor</c-><c- o>&amp;</c-> <c- n>alpha</c-><c- p>,</c->
-  <c- k>const</c-> <c- n>mdspan</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- p>,</c-> <c- n>Extents</c-><c- p>,</c-> <c- n>Layout</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>>&amp;</c-> <c- n>x</c-><c- p>);</c->
+  <c- n>ScalingFactor</c-> <c- n>alpha</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- p>,</c-> <c- n>Extents</c-><c- p>,</c-> <c- n>Layout</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>></c-> <c- n>x</c-><c- p>);</c->
 </pre>
    <p>Let <code class="highlight"><c- n>R</c-></code> name the type <code class="highlight"><c- n>mdspan</c-><c- o>&lt;</c-><c- n>ReturnElementType</c-><c- p>,</c-> <c- n>Extents</c-><c- p>,</c-> <c- n>Layout</c-><c- p>,</c-> <c- n>ReturnAccessor</c-><c- o>></c-></code>,
 where</p>
@@ -7744,19 +7753,8 @@ if <code class="highlight"><c- n>remove_cv</c-><c- o>&lt;</c-><c- k>typename</c-
     <li data-md>
      <p>otherwise, <code class="highlight"><c- n>reference</c-><c- o>::</c-><c- n>value_type</c-></code>.</p>
    </ul>
-   <p>Then, <code class="highlight"><c- n>element_type</c-></code> names</p>
-   <ul>
-    <li data-md>
-     <p><code class="highlight"><c- n>add_const_t</c-><c- o>&lt;</c-></code><code class="highlight" data-span-tag="_"><c- n>pre</c-><c- o>-</c-><c- k>const</c-><c- o>-</c-><c- n>element</c-><c- o>-</c-><c- n>type</c-></code><code class="highlight" data-span-tag="_"><c- o>></c-></code>,
-if <code class="highlight"><c- n>Accessor</c-></code> is <code class="highlight"><c- n>default_accessor</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- o>></c-></code>,
-or if <code class="highlight"><c- n>Accessor</c-></code> is <code class="highlight"><c- n>accessor_scaled</c-><c- o>&lt;</c-><c- n>SF</c-><c- p>,</c-> <c- n>default_accessor</c-><c- o>&lt;</c-><c- n>InnerElementType</c-><c- o>></c-><c- p>,</c-> <c- n>RV</c-><c- o>></c-></code> for some <code class="highlight"><c- n>ScalingFactor</c-></code>, <code class="highlight"><c- n>InnerElementType</c-></code>, and RV;</p>
-    <li data-md>
-     <p>otherwise, <code class="highlight" data-span-tag="_"><c- n>pre</c-><c- o>-</c-><c- k>const</c-><c- o>-</c-><c- n>element</c-><c- o>-</c-><c- n>type</c-></code>_.</p>
-   </ul>
-   <p><em>[Note:</em> For general accessors,
-the <code class="highlight"><c- k>const</c-> <c- n>ElementType</c-></code> version of the accessor may not exist.
-Even if it does, <code class="highlight"><c- n>accessor_conjugate</c-></code> has no way to deduce it generically.
---<em>end note]</em></p>
+   <p>Then, <code class="highlight"><c- n>element_type</c-></code> names <code class="highlight"><c- n>add_const_t</c-><c- o>&lt;</c-></code><code class="highlight" data-span-tag="_"><c- n>pre</c-><c- o>-</c-><c- k>const</c-><c- o>-</c-><c- n>element</c-><c- o>-</c-><c- n>type</c-></code><code class="highlight" data-span-tag="_"><c- o>></c-></code>.</p>
+   <p><em>[Note:</em> <code class="highlight"><c- n>accessor_conjugate</c-></code> provides read-only access. --<em>end note]</em></p>
 <pre class="language-c++ highlight"><c- n>using</c-> <c- n>offset_policy</c-> <c- o>=</c-> <c- d>/* see below */</c-><c- p>;</c->
 </pre>
    <p>This names</p>
@@ -7780,7 +7778,7 @@ if <code class="highlight"><c- n>remove_cv_t</c-><c- o>&lt;</c-><c- k>typename</
     <li data-md>
      <p><em>Constraints:</em> <code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>default_accessor</c-><c- o>&lt;</c-><c- n>OtherElementType</c-><c- o>>::</c-><c- n>element_type</c-><c- p>(</c-><c- o>*</c-><c- p>)[],</c-> <c- k>typename</c-> <c- nc>Accessor</c-><c- o>::</c-><c- n>element_type</c-><c- p>(</c-><c- o>*</c-><c- p>)[]</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
     <li data-md>
-     <p><em>Effects:</em> Initializes <code class="highlight"><c- n>scaling_factor_</c-></code> with <code class="highlight"><c- n>s</c-></code>, and initializes <code class="highlight"><c- n>acc</c-></code> with <code class="highlight"><c- n>a</c-></code>.</p>
+     <p><em>Effects:</em> Initializes <code class="highlight"><c- n>acc</c-></code> with <code class="highlight"><c- n>a</c-></code>.</p>
    </ul>
    <p><em>[Note:</em> This constructor exists so that if <code class="highlight"><c- n>conjugated</c-></code> is given an <code class="highlight"><c- n>mdspan</c-></code> with nonconst element type <code class="highlight"><c- n>T</c-></code> and accessor <code class="highlight"><c- n>default_accessor</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code>, <code class="highlight"><c- n>conjugated</c-></code> can then return an <code class="highlight"><c- n>mdspan</c-></code> with <code class="highlight"><c- k>const</c-></code> element type.
 --<em>end note]</em></p>
@@ -7818,9 +7816,18 @@ if <code class="highlight"><c- n>remove_cv_t</c-><c- o>&lt;</c-><c- k>typename</
 where</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>ReturnElementType</c-></code> is <code class="highlight"><c- n>accessor_conjugate</c-><c- o>&lt;</c-><c- n>Accessor</c-><c- o>>::</c-><c- n>element_type</c-></code>;</p>
+     <p><code class="highlight"><c- n>ReturnElementType</c-></code> is</p>
+     <ul>
+      <li data-md>
+       <p>if <code class="highlight"><c- n>Accessor</c-></code> is <code class="highlight"><c- n>accessor_conjugate</c-><c- o>&lt;</c-><c- n>NestedAccessor</c-><c- o>></c-></code> for some <code class="highlight"><c- n>NestedAccessor</c-></code>, then <code class="highlight"><c- k>typename</c-> <c- nc>NestedAccessor</c-><c- o>::</c-><c- n>element_type</c-></code> <em>[Note:</em> conjugation is self-annihilating --<em>end note]</em>;</p>
+      <li data-md>
+       <p>else if <code class="highlight"><c- n>remove_cv_t</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- o>></c-></code> is an arithmetic type,
+then <code class="highlight"><c- n>ElementType</c-></code>;</p>
+      <li data-md>
+       <p>else <code class="highlight"><c- n>accessor_conjugate</c-><c- o>&lt;</c-><c- n>Accessor</c-><c- o>>::</c-><c- n>element_type</c-></code>;</p>
+     </ul>
     <li data-md>
-     <p>and, <code class="highlight"><c- n>ReturnAccessor</c-></code> is:</p>
+     <p>and <code class="highlight"><c- n>ReturnAccessor</c-></code> is:</p>
      <ul>
       <li data-md>
        <p>if <code class="highlight"><c- n>Accessor</c-></code> is <code class="highlight"><c- n>accessor_conjugate</c-><c- o>&lt;</c-><c- n>NestedAccessor</c-><c- o>></c-></code> for some <code class="highlight"><c- n>NestedAccessor</c-></code>, then <code class="highlight"><c- n>NestedAccessor</c-></code> <em>[Note:</em> conjugation is self-annihilating --<em>end note]</em>;</p>
@@ -7836,12 +7843,13 @@ in cases where conjugation is known to be the identity
      <p><em>Effects:</em></p>
      <ul>
       <li data-md>
-       <p>If <code class="highlight"><c- n>Accessor</c-></code> is <code class="highlight"><c- n>accessor_conjugate</c-><c- o>&lt;</c-><c- n>NestedAccessor</c-><c- o>></c-></code> and <code class="highlight"><c- n>ReturnAccessor</c-></code> is <code class="highlight"><c- n>NestedAccessor</c-></code>, then equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>nested_accessor</c-><c- p>());</c-></code>;</p>
+       <p>If <code class="highlight"><c- n>Accessor</c-></code> is <code class="highlight"><c- n>accessor_conjugate</c-><c- o>&lt;</c-><c- n>NestedAccessor</c-><c- o>></c-></code>,
+then equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>nested_accessor</c-><c- p>());</c-></code>;</p>
       <li data-md>
        <p>else if <code class="highlight"><c- n>remove_cv_t</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- o>></c-></code> is an arithmetic type,
 then equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>());</c-></code>;</p>
       <li data-md>
-       <p>else, equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>(),</c-> <c- n>accessor_conjugate</c-><c- o>&lt;</c-><c- n>Accessor</c-><c- o>></c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>()));</c-></code>;</p>
+       <p>else, equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>a</c-><c- p>.</c-><c- n>mapping</c-><c- p>(),</c-> <c- n>ReturnAccessor</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>accessor</c-><c- p>()));</c-></code>;</p>
      </ul>
     <li data-md>
      <p><em>Remarks:</em> The elements of the returned <code class="highlight"><c- n>mdspan</c-></code> are read only.</p>
