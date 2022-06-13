@@ -337,6 +337,12 @@ Date: 2022-06-15
 
         * Add missing `nested_accessor()` to `accessor_scaled`.
 
+        * Add hidden friends `abs`, `real`, and `imag` to common subclass
+            of `scaled_scalar` and `conjugated_scalar`.
+            Add wording to algorithms that use `abs`, `real`, and/or `imag`,
+	    to indicate that these functions are to be found
+	    by unqualified lookup.
+
     * Changes suggested by LEWG review of P1673R8 on 2022/05/24
 
         * LEWG asked us to add a section to the paper
@@ -5400,8 +5406,107 @@ public:
   {
     return lhs / value_type(rhs);
   }
+
+  friend auto abs(const derived_type& x);
+
+  friend auto real(const derived_type& x);
+
+  friend auto imag(const derived_type& x);
 };
 ```
+
+```c++
+friend auto abs(const derived_type& x);
+```
+
+The expression `abs(E)` for subexpression `E` whose type is `derived_type`
+is expression-equivalent to:
+
+    * `value_type(static_cast<const this_type&>(E))`,
+        if `value_type` is an unsigned integer;
+
+    * else, `abs(value_type(static_cast<const this_type&>(E)))`,
+	if that expression is valid,
+	with overload resolution performed in a context
+	that includes the declaration
+        `template<class T> T abs(T) = delete;`.
+	If the function selected by overload resolution
+	does not return the absolute value of its input,
+	the program is ill-formed, no diagnostic required.
+
+*[Note:*
+This function exists because of `vector_norm2` and `vector_abs_sum`.
+
+The unsigned integer special case avoids an ambiguous lookup.
+The other case invokes `abs` via unqualified lookup.
+--*end note]*
+
+```c++
+friend auto real(const derived_type& x);
+```
+
+The expression `real(E)` for subexpression `E` whose type is `derived_type`
+is expression-equivalent to:
+
+    * `value_type(static_cast<const this_type&>(E))`,
+        if `value_type` is an arithmetic type;
+
+    * else, `real(value_type(static_cast<const this_type&>(E)))`,
+	if that expression is valid,
+	with overload resolution performed in a context
+	that includes the declaration
+        `template<class T> T real(T) = delete;`;
+	if the function selected by overload resolution
+	does not return the absolute value of its input,
+	the program is ill-formed, no diagnostic required;
+
+    * else, `value_type(static_cast<const this_type&>(E))`.
+
+*[Note:*
+This function exists because of `vector_abs_sum`.
+
+The arithmetic type special case exists because
+`std::real` returns a different type than its input
+for some arithmetic types.
+All arithmetic types represent a noncomplex number.
+Otherwise, if `real` can be found via unqualified lookup, it is used.
+If not, then `value_type` is assumed to represent a noncomplex number,
+for which the number's real part is the same as the number.
+--*end note]*
+
+```c++
+friend auto imag(const derived_type& x);
+```
+
+The expression `imag(E)` for subexpression `E` whose type is `derived_type`
+is expression-equivalent to:
+
+    * `value_type{}`,
+        if `value_type` is an arithmetic type;
+
+    * else, `imag(value_type(static_cast<const this_type&>(E)))`,
+	if that expression is valid,
+	with overload resolution performed in a context
+	that includes the declaration
+        `template<class T> T imag(T) = delete;`;
+	if the function selected by overload resolution
+	does not return the absolute value of its input,
+	the program is ill-formed, no diagnostic required;
+
+    * else, `value_type{}`.
+
+*[Note:*
+This function exists because of `vector_abs_sum`.
+
+The arithmetic type special case exists because
+`std::imag` returns a different type than its input
+for some arithmetic types.
+All arithmetic types represent a noncomplex number.
+Otherwise, if `imag` can be found via unqualified lookup, it is used.
+If not, then `value_type` is assumed to represent a noncomplex number,
+for which the number's imaginary part is zero
+(which is constructed by value-initializing `value_type`).
+--*end note]*
 
 ### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
 
@@ -6961,6 +7066,8 @@ See *Remarks* below.
         are implementation-defined.
 
 *[Note:*
+The `abs` function is invoked via unqualified lookup.
+
 A suggested implementation of this function for floating-point types `T`
 would use the `scaled_sum_of_squares` result
 from `vector_sum_of_squares(x, {.scaling_factor=1.0, .scaled_sum_of_squares=init})`.
@@ -7031,6 +7138,10 @@ for all `i` in the domain of `v`.
     and if `T` has higher precision than `in_vector_type::element_type`,
     then intermediate terms in the sum use `T`'s precision or greater.
 
+*[Note:*
+The `abs`, `real`, and `imag` functions are invoked via unqualified lookup.
+--*end note]*
+
 ##### Sum of absolute values with default result type
 
 ```c++
@@ -7070,6 +7181,10 @@ extents<>::size_type idx_abs_max(
 * *Effects:* Returns the index (in the domain of `v`) of
     the first element of `v` having largest absolute value.  If `v` has
     zero elements, then returns `numeric_limits<extents<>::size_type>::max()`.
+
+*[Note:*
+The `abs` function is invoked via unqualified lookup.
+--*end note]*
 
 #### Frobenius norm of a matrix [linalg.algs.blas1.matfrobnorm]
 
@@ -7112,6 +7227,10 @@ T matrix_frob_norm(
 
     * any guarantees regarding overflow and underflow of `matrix_frob_norm`
         are implementation-defined.
+
+*[Note:*
+The `abs` function is invoked via unqualified lookup.
+--*end note]*
 
 ##### Frobenius norm with default result type
 
@@ -7186,6 +7305,10 @@ auto matrix_one_norm(
     and the two-parameter overload is equivalent to
     `matrix_one_norm(exec, A, T{});`.
 
+*[Note:*
+The `abs` function is invoked via unqualified lookup.
+--*end note]*
+
 #### Infinity norm of a matrix [linalg.algs.blas1.matinfnorm]
 
 ##### Infinity norm with specified result type
@@ -7220,6 +7343,10 @@ T matrix_inf_norm(
     if `T` is a floating-point type,
     and if `T` has higher precision than `in_matrix_type::element_type`,
     then intermediate terms in each sum use `T`'s precision or greater.
+
+*[Note:*
+The `abs` function is invoked via unqualified lookup.
+--*end note]*
 
 ##### Infinity norm with default result type
 
