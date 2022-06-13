@@ -2208,6 +2208,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#sg6s-response-to-lewgs-r8-feedback"><span class="secno">11.8.6</span> <span class="content">SG6’s response to LEWG’s R8 feedback</span></a>
         <li><a href="#current-solution"><span class="secno">11.8.7</span> <span class="content">Current solution</span></a>
        </ol>
+      <li><a href="#support-for-division-with-noncommutative-multiplication"><span class="secno">11.9</span> <span class="content">Support for division with noncommutative multiplication</span></a>
      </ol>
     <li>
      <a href="#future-work"><span class="secno">12</span> <span class="content">Future work</span></a>
@@ -2791,6 +2792,12 @@ in their wording.)</p>
 otherwise be the identity.
 Make it a function object instead of a function,
 to prevent ADL issues.</p>
+        <li data-md>
+         <p>Algorithms that mathematically need to do division
+can now distinguish left division and right division
+(for the case of noncommutative multiplication),
+by taking an optional <code class="highlight"><c- n>BinaryDivideOp</c-></code> binary function object parameter.
+If none is given, binary <code class="highlight"><c- k>operator</c-><c- o>/</c-></code> is used.</p>
        </ul>
       <li data-md>
        <p>Changes suggested by LEWG review of P1673R8 on 2022/05/24</p>
@@ -5040,6 +5047,74 @@ for interface compatibility with <code class="highlight"><c- n>std</c-><c- o>::<
      <p>It does not depend on a future customization point syntax
 or library convention.</p>
    </ol>
+   <h3 class="heading settled" data-level="11.9" id="support-for-division-with-noncommutative-multiplication"><span class="secno">11.9. </span><span class="content">Support for division with noncommutative multiplication</span><a class="self-link" href="#support-for-division-with-noncommutative-multiplication"></a></h3>
+   <p>An important feature of this proposal is its support for value types
+that have noncommutative multiplication.
+Examples include
+square matrices with a fixed number of rows and columns,
+and quaternions and their generalizations.
+Most of the algorithms in this proposal
+only add or multiply arbitrary value types,
+so preserving the order of multiplication arguments is straightforward.
+The various triangular solve algorithms are an exception,
+because they need to perform divisions as well.</p>
+   <p>If multiplication commutes and if a type has division,
+then the division x ÷ y is just x times (the multiplicative inverse of y),
+assuming that the multiplicative inverse of y exists.
+However, if multiplication does not commute,
+"x times (the multiplicative inverse of y)"
+need not equal
+"(the multiplicative inverse of y) times x."
+The C++ binary <code class="highlight"><c- k>operator</c-><c- o>/</c-></code> does not give callers
+a way to distinguish between these two cases.</p>
+   <p>This suggests four ways to express "ordered division."</p>
+   <ol>
+    <li data-md>
+     <p>Explicitly divide one by the quotient: <code class="highlight"><c- n>x</c-> <c- o>*</c-> <c- p>(</c-><c- mi>1</c-><c- o>/</c-><c- n>y</c-><c- p>)</c-></code>, or <code class="highlight"><c- p>(</c-><c- mi>1</c-><c- o>/</c-><c- n>y</c-><c- p>)</c-> <c- o>*</c-> <c- n>x</c-></code></p>
+    <li data-md>
+     <p>Like (2), but instead of using literal <code class="highlight"><c- mi>1</c-></code>,
+get "one" as a <code class="highlight"><c- n>value_type</c-></code> input to the algorithm: <code class="highlight"><c- n>x</c-> <c- o>*</c-> <c- p>(</c-><c- n>one</c-><c- o>/</c-><c- n>y</c-><c- p>)</c-></code>, or <code class="highlight"><c- p>(</c-><c- n>one</c-><c- o>/</c-><c- n>y</c-><c- p>)</c-> <c- o>*</c-> <c- n>x</c-></code></p>
+    <li data-md>
+     <p><code class="highlight"><c- n>inverse</c-></code> as a unary callable input to the algorithm: <code class="highlight"><c- n>x</c-> <c- o>*</c-> <c- n>inverse</c-><c- p>(</c-><c- n>y</c-><c- p>)</c-></code>, or <code class="highlight"><c- n>inverse</c-><c- p>(</c-><c- n>y</c-><c- p>)</c-> <c- o>*</c-> <c- n>x</c-></code></p>
+    <li data-md>
+     <p><code class="highlight"><c- n>divide</c-></code> as a binary callable input to the algorithm: <code class="highlight"><c- n>divide</c-><c- p>(</c-><c- n>x</c-><c- p>,</c-> <c- n>y</c-><c- p>)</c-></code>, or <code class="highlight"><c- n>divide</c-><c- p>(</c-><c- n>y</c-><c- p>,</c-> <c- n>x</c-><c- p>)</c-></code></p>
+   </ol>
+   <p>Both SG6 small group (in its review of this proposal on 2022/06/09)
+and the authors prefer Way (4), the <code class="highlight"><c- n>divide</c-></code> binary callable input.
+The binary callable would be optional,
+and ordinary binary <code class="highlight"><c- k>operator</c-><c- o>/</c-></code> would be used as the default.
+This would imitate existing Standard Library algorithms like <code class="highlight"><c- n>reduce</c-></code>,
+with its optional <code class="highlight"><c- n>BinaryOp</c-></code> that defaults to addition.
+For mixed-precision computation,
+users would need to avoid <code class="highlight"><c- n>std</c-><c- o>::</c-><c- n>divides</c-></code>,
+as its two parameters and its return type all have the same types.
+However, the obvious <code class="highlight"><c- p>[]</c-> <c- p>(</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>x</c-><c- p>,</c-> <c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>y</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- n>x</c-> <c- o>/</c-> <c- n>y</c-><c- p>;</c-> <c- p>}</c-></code> would work just fine.
+Way (4) also preserves the original rounding behavior
+for types with commutative multiplication.</p>
+   <p>The main disadvantage of the other approaches
+is that they would change rounding behavior for floating-point types.
+They also require two operations —<wbr>computing an inverse, and multiplication —<wbr>rather than one.
+"Ordered division" may actually be the operation users want,
+and the "inverse" might be just a byproduct.
+This is the case for square matrices,
+where users often "compute an inverse"
+only because they want to solve a linear system.
+Each of the other approaches has its own other disadvantages.</p>
+   <ul>
+    <li data-md>
+     <p>Way (1) would assume that an overloaded <code class="highlight"><c- k>operator</c-><c- o>/</c-><c- p>(</c-><c- b>int</c-><c- p>,</c-> <c- n>value_type</c-><c- p>)</c-></code> exists,
+and that the literal <code class="highlight"><c- mi>1</c-></code> behaves like a multiplicative identity.
+In practice, not all custom number types may have defined
+mixed arithmetic with <code class="highlight"><c- b>int</c-></code>.</p>
+    <li data-md>
+     <p>Way (2) would complicate the interface.
+Users might make the mistake of passing in literal <code class="highlight"><c- mi>1</c-></code> (of type <code class="highlight"><c- b>int</c-></code>)
+or <code class="highlight"><c- mf>1.0</c-></code> (of type <code class="highlight"><c- b>double</c-></code>) as the value of one,
+thus leading to Way (1)'s issues.</p>
+    <li data-md>
+     <p>Way (3) would again complicate the interface.
+Users would be tempted to use <code class="highlight"><c- p>[](</c-><c- k>const</c-> <c- k>auto</c-><c- o>&amp;</c-> <c- n>y</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- mi>1</c-> <c- o>/</c-> <c- n>y</c-><c- p>;</c-> <c- p>}</c-></code> as the inverse function, thus leading back to Way (1)'s issues.</p>
+   </ul>
    <h2 class="heading settled" data-level="12" id="future-work"><span class="secno">12. </span><span class="content">Future work</span><a class="self-link" href="#future-work"></a></h2>
    <p>Summary:</p>
    <ol>
@@ -5920,6 +5995,34 @@ At the end of <em>[numerics]</em>, add all the material that follows.</p>
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
          <c- n>class</c-> <c- n>in_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_vector_t</c-> <c- n>b</c-><c- p>,</c->
+  <c- n>out_vector_t</c-> <c- n>x</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_vector_t</c-> <c- n>b</c-><c- p>,</c->
+  <c- n>out_vector_t</c-> <c- n>x</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_vector_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>out_vector_t</c-><c- o>></c->
 <c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
   <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
@@ -5943,6 +6046,30 @@ At the end of <em>[numerics]</em>, add all the material that follows.</p>
 
 <c- c1>// [linalg.algs.blas2.trsv.in-place],</c->
 <c- c1>// Solve a triangular linear system, in place</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_vector_t</c-> <c- n>b</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_vector_t</c-> <c- n>b</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
@@ -6628,6 +6755,59 @@ At the end of <em>[numerics]</em>, add all the material that follows.</p>
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
          <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_matrix_2_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_matrix_2_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>out_matrix_t</c-><c- o>></c->
 <c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
   <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
@@ -6672,6 +6852,59 @@ At the end of <em>[numerics]</em>, add all the material that follows.</p>
 <c- c1>// [linalg.alg.blas3.trsm.right],</c->
 <c- c1>// solve multiple triangular linear systems</c->
 <c- c1>// with triangular matrix on the right</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_matrix_2_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
@@ -8488,6 +8721,9 @@ or a (non-<code class="highlight"><c- k>const</c-></code>) rvalue reference to a
      <p><code class="highlight"><c- n>inout_</c-><c- o>*</c-><c- n>_t</c-></code> and <code class="highlight"><c- n>out_</c-><c- o>*</c-><c- n>_t</c-></code> template parameters may deduce
 a <code class="highlight"><c- k>const</c-></code> lvalue reference to an <code class="highlight"><c- n>mdspan</c-></code>, or
 a (non-<code class="highlight"><c- k>const</c-></code>) rvalue reference to an <code class="highlight"><c- n>mdspan</c-></code>.</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>BinaryDivideOp</c-></code> template parameters
+are a binary function object (<strong>[function.objects]</strong>).</p>
    </ul>
    <h4 class="heading settled" data-level="16.9.2" id="blas-1-functions-linalgalgsblas1"><span class="secno">16.9.2. </span><span class="content">BLAS 1 functions [linalg.algs.blas1]</span><a class="self-link" href="#blas-1-functions-linalgalgsblas1"></a></h4>
    <p><em>[Note:</em></p>
@@ -9767,6 +10003,35 @@ behaves as a two-sided multiplicative identity.</p>
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
          <c- n>class</c-> <c- n>in_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_vector_t</c-> <c- n>b</c-><c- p>,</c->
+  <c- n>out_vector_t</c-> <c- n>x</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_vector_t</c-> <c- n>b</c-><c- p>,</c->
+  <c- n>out_vector_t</c-> <c- n>x</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_vector_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>out_vector_t</c-><c- o>></c->
 <c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
   <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
@@ -9790,8 +10055,14 @@ behaves as a two-sided multiplicative identity.</p>
 </pre>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-></code> in the domain of <code class="highlight"><c- n>x</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>x</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>=</c-> <c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>x</c-><c- p>[</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+the mathematical expression for the algorithm is</p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>x</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>=</c-> <c- n>divide</c-><c- p>(</c-><c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>,</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>])</c-></code> for overloads with a <code class="highlight"><c- n>divide</c-></code> parameter, and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>x</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code> for all other overloads,</p>
+   </ul>
+   <p>where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>x</c-><c- p>[</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-></code> in the domain of <code class="highlight"><c- n>x</c-></code>,
 the mathematical expression for the algorithm is <code class="highlight"><c- n>x</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>=</c-> <c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
@@ -9809,6 +10080,31 @@ triangular linear system Ax=b.</p>
    </ul>
    <h6 class="heading settled" data-level="16.9.3.5.2" id="in-place-triangular-solve-linalgalgsblas2trsvin-place"><span class="secno">16.9.3.5.2. </span><span class="content">In-place triangular solve [linalg.algs.blas2.trsv.in-place]</span><a class="self-link" href="#in-place-triangular-solve-linalgalgsblas2trsvin-place"></a></h6>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_vector_t</c-> <c- n>b</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_vector_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_vector_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_vector_t</c-> <c- n>b</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
          <c- n>class</c-> <c- n>inout_vector_t</c-><c- o>></c->
@@ -9837,8 +10133,14 @@ This is why the <code class="highlight"><c- n>ExecutionPolicy</c-></code> overlo
    <p>--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-></code> in the domain of <code class="highlight"><c- n>x</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>=</c-> <c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>b</c-><c- p>[</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
+the mathematical expression for the algorithm is</p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>=</c-> <c- n>divide</c-><c- p>(</c-><c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>,</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>])</c-></code> for overloads with a <code class="highlight"><c- n>divide</c-></code> parameter, and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code> for all other overloads,</p>
+   </ul>
+   <p>where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>*</c-> <c- n>b</c-><c- p>[</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>j</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code> and <code class="highlight"><c- n>d</c-></code>.</p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-></code> in the domain of <code class="highlight"><c- n>x</c-></code>,
 the mathematical expression for the algorithm is <code class="highlight"><c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>=</c-> <c- n>b</c-><c- p>[</c-><c- n>i</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
@@ -11491,6 +11793,35 @@ is linear in <code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
          <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_matrix_2_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_matrix_2_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>out_matrix_t</c-><c- o>></c->
 <c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
   <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
@@ -11514,8 +11845,21 @@ is linear in <code class="highlight"><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c
 </pre>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>X</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+the mathematical expression for the algorithm is</p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>divide</c-><c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>,</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>])</c-></code> for overloads with a <code class="highlight"><c- n>divide</c-></code> parameter, and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code> for all other overloads,</p>
+   </ul>
+   <p>where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>X</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+   <p><em>[Note:</em> Since the triangular matrix is on the left,
+the desired <code class="highlight"><c- n>divide</c-></code> implementation
+in the case of noncommutative multiplication
+would be mathematically equivalent to
+the product of (the inverse of the second argument)
+and the first argument, in that order.
+--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
 the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
@@ -11530,6 +11874,31 @@ where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="hig
    </ul>
    <p>In-place left solve of multiple triangular systems</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
          <c- n>class</c-> <c- n>inout_matrix_t</c-><c- o>></c->
@@ -11560,8 +11929,21 @@ This is why the <code class="highlight"><c- n>ExecutionPolicy</c-></code> overlo
    <p>--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>B</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+the mathematical expression for the algorithm is</p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>divide</c-><c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>,</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>])</c-></code> for overloads with a <code class="highlight"><c- n>divide</c-></code> parameter, and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>i</c-><c- p>]</c-></code> for all other overloads,</p>
+   </ul>
+   <p>where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>A</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>B</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>i</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+   <p><em>[Note:</em> Since the triangular matrix is on the left,
+the desired <code class="highlight"><c- n>divide</c-></code> implementation
+in the case of noncommutative multiplication
+would be mathematically equivalent to
+the product of (the inverse of the second argument)
+and the first argument, in that order.
+--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
 the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
@@ -11583,6 +11965,35 @@ is linear in <code class="highlight"><c- n>B</c-><c- p>.</c-><c- n>extent</c-><c
    </ul>
    <p>Not-in-place right solve of multiple triangular systems</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_matrix_2_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>out_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>in_matrix_2_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_t</c-> <c- n>X</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
          <c- n>class</c-> <c- n>in_matrix_2_t</c-><c- p>,</c->
@@ -11609,8 +12020,22 @@ is linear in <code class="highlight"><c- n>B</c-><c- p>.</c-><c- n>extent</c-><c
 </pre>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>j</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+the mathematical expression for the algorithm is</p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>divide</c-><c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>,</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>j</c-><c- p>])</c-></code> for overloads with a <code class="highlight"><c- n>divide</c-></code> parameter, and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all other overloads,</p>
+   </ul>
+   <p>where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>j</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+   <p><em>[Note:</em> Since the triangular matrix is on the right,
+the desired <code class="highlight"><c- n>divide</c-></code> implementation
+in the case of noncommutative multiplication
+would be mathematically equivalent to
+the product of the first argument, and
+(the inverse of the second argument),
+in that order.
+--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>X</c-></code>,
 the mathematical expression for the algorithm is <code class="highlight"><c- n>X</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,
@@ -11638,6 +12063,31 @@ is the product of the reversed matrices in transposed order.</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>BinaryDivideOp</c-><c- o>></c->
+<c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
+  <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
+  <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
+  <c- n>Triangle</c-> <c- n>t</c-><c- p>,</c->
+  <c- n>DiagonalStorage</c-> <c- n>d</c-><c- p>,</c->
+  <c- n>inout_matrix_t</c-> <c- n>B</c-><c- p>,</c->
+  <c- n>BinaryDivideOp</c-> <c- n>divide</c-><c- p>);</c->  
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_1_t</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
+         <c- n>class</c-> <c- n>DiagonalStorage</c-><c- p>,</c->
          <c- n>class</c-> <c- n>inout_matrix_t</c-><c- o>></c->
 <c- b>void</c-> <c- n>triangular_matrix_matrix_right_solve</c-><c- p>(</c->
   <c- n>in_matrix_1_t</c-> <c- n>A</c-><c- p>,</c->
@@ -11666,8 +12116,22 @@ This is why the <code class="highlight"><c- n>ExecutionPolicy</c-></code> overlo
    <p>--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>explicit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
-the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code>,
-where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>j</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+the mathematical expression for the algorithm is</p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>divide</c-><c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>,</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>j</c-><c- p>])</c-></code> for overloads with a <code class="highlight"><c- n>divide</c-></code> parameter, and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- p>(</c-><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-><c- p>)</c-> <c- o>/</c-> <c- n>A</c-><c- p>[</c-><c- n>j</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all other overloads,</p>
+   </ul>
+   <p>where <code class="highlight"><c- n>s</c-></code> is the sum of <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>]</c-> <c- o>*</c-> <c- n>A</c-><c- p>[</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-></code> for all <code class="highlight"><c- n>k</c-></code> not equal to <code class="highlight"><c- n>j</c-></code> in the subset of the domain of <code class="highlight"><c- n>A</c-></code> specified by <code class="highlight"><c- n>t</c-></code>.</p>
+   <p><em>[Note:</em> Since the triangular matrix is on the right,
+the desired <code class="highlight"><c- n>divide</c-></code> implementation
+in the case of noncommutative multiplication
+would be mathematically equivalent to
+the product of the first argument, and
+(the inverse of the second argument),
+in that order.
+--<em>end note]</em></p>
    <p>If <code class="highlight"><c- n>DiagonalStorage</c-></code> is <code class="highlight"><c- n>implicit_unit_diagonal_t</c-></code>,
 then for <code class="highlight"><c- n>i</c-><c- p>,</c-><c- n>j</c-></code> in the domain of <code class="highlight"><c- n>B</c-></code>,
 the mathematical expression for the algorithm is <code class="highlight"><c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>B</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>-</c-> <c- n>s</c-></code>,

@@ -353,6 +353,13 @@ Date: 2022-06-15
 	    Make it a function object instead of a function,
 	    to prevent ADL issues.
 
+        * Algorithms that mathematically need to do division
+	    can now distinguish left division and right division
+	    (for the case of noncommutative multiplication),
+	    by taking an optional `BinaryDivideOp`
+	    binary function object parameter.
+	    If none is given, binary `operator/` is used.
+
     * Changes suggested by LEWG review of P1673R8 on 2022/05/24
 
         * LEWG asked us to add a section to the paper
@@ -2913,6 +2920,85 @@ This approach has the following advantages.
 4. It does not depend on a future customization point syntax
     or library convention.
 
+## Support for division with noncommutative multiplication
+
+An important feature of this proposal is its support for value types
+that have noncommutative multiplication.
+Examples include
+square matrices with a fixed number of rows and columns,
+and quaternions and their generalizations.
+Most of the algorithms in this proposal
+only add or multiply arbitrary value types,
+so preserving the order of multiplication arguments is straightforward.
+The various triangular solve algorithms are an exception,
+because they need to perform divisions as well.
+
+If multiplication commutes and if a type has division,
+then the division x ÷ y is just x times (the multiplicative inverse of y),
+assuming that the multiplicative inverse of y exists.
+However, if multiplication does not commute,
+"x times (the multiplicative inverse of y)"
+need not equal
+"(the multiplicative inverse of y) times x."
+The C++ binary `operator/` does not give callers
+a way to distinguish between these two cases.
+
+This suggests four ways to express "ordered division."
+
+1. Explicitly divide one by the quotient:
+    `x * (1/y)`, or `(1/y) * x`
+
+2. Like (2), but instead of using literal `1`,
+    get "one" as a `value_type` input to the algorithm:
+    `x * (one/y)`, or `(one/y) * x`
+
+3. `inverse` as a unary callable input to the algorithm:
+    `x * inverse(y)`, or `inverse(y) * x`
+
+4. `divide` as a binary callable input to the algorithm:
+    `divide(x, y)`, or `divide(y, x)`
+
+Both SG6 small group (in its review of this proposal on 2022/06/09)
+and the authors prefer Way (4), the `divide` binary callable input.
+The binary callable would be optional,
+and ordinary binary `operator/` would be used as the default.
+This would imitate existing Standard Library algorithms like `reduce`,
+with its optional `BinaryOp` that defaults to addition.
+For mixed-precision computation,
+users would need to avoid `std::divides`,
+as its two parameters and its return type all have the same types.
+However, the obvious
+`[] (const auto& x, const auto& y) { return x / y; }`
+would work just fine.
+Way (4) also preserves the original rounding behavior
+for types with commutative multiplication.
+
+The main disadvantage of the other approaches
+is that they would change rounding behavior for floating-point types.
+They also require two operations --
+computing an inverse, and multiplication --
+rather than one.
+"Ordered division" may actually be the operation users want,
+and the "inverse" might be just a byproduct.
+This is the case for square matrices,
+where users often "compute an inverse"
+only because they want to solve a linear system.
+Each of the other approaches has its own other disadvantages.
+
+* Way (1) would assume that an overloaded `operator/(int, value_type)` exists,
+    and that the literal `1` behaves like a multiplicative identity.
+    In practice, not all custom number types may have defined
+    mixed arithmetic with `int`.
+
+* Way (2) would complicate the interface.
+    Users might make the mistake of passing in literal `1` (of type `int`)
+    or `1.0` (of type `double`) as the value of one,
+    thus leading to Way (1)'s issues.
+
+* Way (3) would again complicate the interface.
+    Users would be tempted to use `[](const auto& y) { return 1 / y; }`
+    as the inverse function, thus leading back to Way (1)'s issues.
+
 # Future work
 
 Summary:
@@ -3839,6 +3925,34 @@ template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
          class in_vector_t,
+         class out_vector_t,
+         class BinaryDivideOp>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t,
+         class BinaryDivideOp>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x,
+  BinaryDivideOp divide);
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
          class out_vector_t>
 void triangular_matrix_vector_solve(
   in_matrix_t A,
@@ -3862,6 +3976,30 @@ void triangular_matrix_vector_solve(
 
 // [linalg.algs.blas2.trsv.in-place],
 // Solve a triangular linear system, in place
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t,
+         class BinaryDivideOp>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t,
+         class BinaryDivideOp>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b,
+  BinaryDivideOp divide);
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -4547,6 +4685,59 @@ template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
          class in_matrix_2_t,
+         class out_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X,
+  BinaryDivideOp divide);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B,
+  BinaryDivideOp divide);
+
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
          class out_matrix_t>
 void triangular_matrix_matrix_left_solve(
   in_matrix_1_t A,
@@ -4591,6 +4782,59 @@ void triangular_matrix_matrix_left_solve(
 // [linalg.alg.blas3.trsm.right],
 // solve multiple triangular linear systems
 // with triangular matrix on the right
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_t B,
+  out_matrix_t X,
+  BinaryDivideOp divide);
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B,
+  BinaryDivideOp divide);
+
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
@@ -6609,6 +6853,9 @@ or other things as appropriate.
     a `const` lvalue reference to an `mdspan`, or
     a (non-`const`) rvalue reference to an `mdspan`.
 
+* `BinaryDivideOp` template parameters
+    are a binary function object (**[function.objects]**).
+
 ### BLAS 1 functions [linalg.algs.blas1]
 
 *[Note:*
@@ -8089,6 +8336,35 @@ template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
          class in_vector_t,
+         class out_vector_t,
+         class BinaryDivideOp>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
+         class out_vector_t,
+         class BinaryDivideOp>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_vector_t b,
+  out_vector_t x,
+  BinaryDivideOp divide);
+
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_vector_t,
          class out_vector_t>
 void triangular_matrix_vector_solve(
   in_matrix_t A,
@@ -8114,7 +8390,12 @@ void triangular_matrix_vector_solve(
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i` in the domain of `x`,
 the mathematical expression for the algorithm is
-`x[i] = b[i] - s / A[i,i]`,
+
+* `x[i] = divide(b[i] - s, A[i,i])`
+    for overloads with a `divide` parameter, and
+
+* `x[i] = (b[i] - s) / A[i,i]` for all other overloads,
+
 where `s` is the sum of `A[i,j] * x[j]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
@@ -8140,6 +8421,31 @@ in the subset of the domain of `A` specified by `t` and `d`.
 ##### In-place triangular solve [linalg.algs.blas2.trsv.in-place]
 
 ```c++
+template<class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t,
+         class BinaryDivideOp>
+void triangular_matrix_vector_solve(
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_vector_t,
+         class BinaryDivideOp>
+void triangular_matrix_vector_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_vector_t b,
+  BinaryDivideOp divide);
+
 template<class in_matrix_t,
          class Triangle,
          class DiagonalStorage,
@@ -8174,7 +8480,12 @@ This is why the `ExecutionPolicy` overload exists.
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i` in the domain of `x`,
 the mathematical expression for the algorithm is
-`b[i] = b[i] - s / A[i,i]`,
+
+* `b[i] = divide(b[i] - s, A[i,i])`
+    for overloads with a `divide` parameter, and
+
+* `b[i] = (b[i] - s) / A[i,i]` for all other overloads,
+
 where `s` is the sum of `A[i,j] * b[j]`
 for all `j` not equal to `i`
 in the subset of the domain of `A` specified by `t` and `d`.
@@ -10078,6 +10389,35 @@ template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
          class in_matrix_2_t,
+         class out_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X,
+  BinaryDivideOp divide);
+
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
          class out_matrix_t>
 void triangular_matrix_matrix_left_solve(
   in_matrix_1_t A,
@@ -10103,10 +10443,24 @@ void triangular_matrix_matrix_left_solve(
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i,j` in the domain of `X`,
 the mathematical expression for the algorithm is
-`X[i,j] = (B[i,j] - s) / A[i,i]`,
+
+* `X[i,j] = divide(B[i,j] - s, A[i,i])`
+    for overloads with a `divide` parameter, and
+
+* `X[i,j] = (B[i,j] - s) / A[i,i]` for all other overloads,
+
 where `s` is the sum of `A[i,k] * X[k,j]`
 for all `k` not equal to `i`
 in the subset of the domain of `A` specified by `t`.
+
+*[Note:*
+Since the triangular matrix is on the left,
+the desired `divide` implementation
+in the case of noncommutative multiplication
+would be mathematically equivalent to
+the product of (the inverse of the second argument)
+and the first argument, in that order.
+--*end note]*
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i,j` in the domain of `X`,
@@ -10128,6 +10482,31 @@ in the subset of the domain of `A` specified by `t`.
 In-place left solve of multiple triangular systems
 
 ```c++
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_left_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_left_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B,
+  BinaryDivideOp divide);
+
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
@@ -10165,10 +10544,24 @@ This is why the `ExecutionPolicy` overload exists.
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i,j` in the domain of `B`,
 the mathematical expression for the algorithm is
-`B[i,j] = (B[i,j] - s) / A[i,i]`,
+
+* `B[i,j] = divide(B[i,j] - s, A[i,i])`
+    for overloads with a `divide` parameter, and
+
+* `B[i,j] = (B[i,j] - s) / A[i,i]` for all other overloads,
+
 where `s` is the sum of `A[i,k] * B[k,j]`
 for all `k` not equal to `i`
 in the subset of the domain of `A` specified by `t`.
+
+*[Note:*
+Since the triangular matrix is on the left,
+the desired `divide` implementation
+in the case of noncommutative multiplication
+would be mathematically equivalent to
+the product of (the inverse of the second argument)
+and the first argument, in that order.
+--*end note]*
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i,j` in the domain of `B`,
@@ -10199,6 +10592,35 @@ template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
          class in_matrix_2_t,
+         class out_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
+         class out_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  in_matrix_2_t B,
+  out_matrix_t X,
+  BinaryDivideOp divide);
+
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class in_matrix_2_t,
          class out_matrix_t>
 void triangular_matrix_matrix_right_solve(
   in_matrix_1_t A,
@@ -10224,10 +10646,25 @@ void triangular_matrix_matrix_right_solve(
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i,j` in the domain of `X`,
 the mathematical expression for the algorithm is
-`X[i,j] = (B[i,j] - s) / A[j,j]`,
+
+* `X[i,j] = divide(B[i,j] - s, A[j,j])`
+    for overloads with a `divide` parameter, and
+
+* `X[i,j] = (B[i,j] - s) / A[j,j]` for all other overloads,
+
 where `s` is the sum of `X[i,k] * A[k,j]`
 for all `k` not equal to `j`
 in the subset of the domain of `A` specified by `t`.
+
+*[Note:*
+Since the triangular matrix is on the right,
+the desired `divide` implementation
+in the case of noncommutative multiplication
+would be mathematically equivalent to
+the product of the first argument, and
+(the inverse of the second argument),
+in that order.
+--*end note]*
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i,j` in the domain of `X`,
@@ -10268,6 +10705,31 @@ In-place right solve of multiple triangular systems
 template<class in_matrix_1_t,
          class Triangle,
          class DiagonalStorage,
+         class inout_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_right_solve(
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B,
+  BinaryDivideOp divide);
+template<class ExecutionPolicy,
+         class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
+         class inout_matrix_t,
+         class BinaryDivideOp>
+void triangular_matrix_matrix_right_solve(
+  ExecutionPolicy&& exec,
+  in_matrix_1_t A,
+  Triangle t,
+  DiagonalStorage d,
+  inout_matrix_t B,
+  BinaryDivideOp divide);  
+
+template<class in_matrix_1_t,
+         class Triangle,
+         class DiagonalStorage,
          class inout_matrix_t>
 void triangular_matrix_matrix_right_solve(
   in_matrix_1_t A,
@@ -10302,10 +10764,25 @@ This is why the `ExecutionPolicy` overload exists.
 If `DiagonalStorage` is `explicit_diagonal_t`,
 then for `i,j` in the domain of `B`,
 the mathematical expression for the algorithm is
-`B[i,j] = (B[i,j] - s) / A[j,j]`,
+
+* `B[i,j] = divide(B[i,j] - s, A[j,j])`
+   for overloads with a `divide` parameter, and
+
+* `B[i,j] = (B[i,j] - s) / A[j,j]` for all other overloads,
+
 where `s` is the sum of `B[i,k] * A[k,j]`
 for all `k` not equal to `j`
 in the subset of the domain of `A` specified by `t`.
+
+*[Note:*
+Since the triangular matrix is on the right,
+the desired `divide` implementation
+in the case of noncommutative multiplication
+would be mathematically equivalent to
+the product of the first argument, and
+(the inverse of the second argument),
+in that order.
+--*end note]*
 
 If `DiagonalStorage` is `implicit_unit_diagonal_t`,
 then for `i,j` in the domain of `B`,
