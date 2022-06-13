@@ -337,11 +337,21 @@ Date: 2022-06-15
 
         * Add missing `nested_accessor()` to `accessor_scaled`.
 
-        * Add hidden friends `abs`, `real`, and `imag` to common subclass
-            of `scaled_scalar` and `conjugated_scalar`.
+        * Add hidden friends `abs`, `real`, `imag`, and `conj`
+	    to common subclass of `scaled_scalar` and `conjugated_scalar`.
             Add wording to algorithms that use `abs`, `real`, and/or `imag`,
 	    to indicate that these functions are to be found
 	    by unqualified lookup.
+	    (Algorithms that use conjugation already use _`conj-if-needed`_
+	    in their wording.)
+
+    * Changes suggested by SG6 small group review on 2022/06/09
+
+        * Make existing exposition-only function `conj-if-needed`
+	    use `conj` if it can find it via unqualified (ADL-only) lookup,
+	    otherwise be the identity.
+	    Make it a function object instead of a function,
+	    to prevent ADL issues.
 
     * Changes suggested by LEWG review of P1673R8 on 2022/05/24
 
@@ -360,10 +370,8 @@ Date: 2022-06-15
             coexistence with ranges."
 
         * Address LEWG feedback to defer support
-	    for custom complex number types,
-            pending support of a separate paper
-	    (which has not yet been submitted)
-            proposing a `conjugate` customization point.
+	    for custom complex number types
+	    (but see above SG6 small group response).
 
     * Fix P1674 links to point to R2.
 
@@ -2704,66 +2712,7 @@ However, there are two issues with `conj`.
 2. P1673 users have good reasons to define their own complex number types,
     but users cannot overload `conj` for these types.
 
-### LEWG feedback on R8 solution
-
-In R8 of this paper,
-we proposed an exposition-only function _`conj-if-needed`_.
-For arithmetic types, it would be the identity function.
-This would fix Issue (1).
-For all other types, it would call `conj`
-through argument-dependent lookup (ADL),
-just like how `iter_swap` calls `swap`.
-This would fix Issue (2).
-However, it would force users who define custom _real_ number types
-to define a trivial `conj` (in their own namespace) for their type.
-The alternative would be to make _`conj-if-needed`_ the identity
-if it could not find `conj` via ADL lookup.
-However, that would cause silently incorrect results
-for users who define a custom complex number type,
-but forget or misspell `conj`.
-
-When reviewing R8, LEWG expressed a preference for a different solution.
-
-1. Temporarily change P1673 to permit
-    use of `conjugated` and `conjugate_transposed`
-    only for value types that are either `complex` or arithmetic types.
-    Add a Note that reminds readers to look out for Steps (2) and (3) below.
-
-2. Write a separate paper which introduces
-    a user-visible customization point,
-    provisionally named `conjugate`.
-    The paper could use any of various proposed
-    library-only customization point mechanisms,
-    such as the customization point objects used by ranges
-    or `tag_invoke`
-    (see <a href="https://wg21.link/p1895r0">P1895R0</a>,
-    with the expectation that LEWG and perhaps also EWG
-    (see e.g., <a href="https://wg21.link/P2547">P2547</a>)
-    may express a preference for a different mechanism.
-
-3. If LEWG accepts the `conjugate` customization point,
-    then change P1673 again to use `conjugate`
-    (thus replacing R8's _`conj-if-needed`_).
-    This would thus reintroduce support for custom complex numbers.
-
-### Current solution
-
-We have adopted this suggestion in our proposal's current version,
-with a slight modification: In Step (1),
-implementations may permit use of
-`conjugated` and `conjugate_transposed`
-for a set of implementation-defined value types,
-as well as for `complex` and arithmetic types.
-This will let vendors support their complex number types.
-Users of library-provided custom complex number types
-that are meant to be interchangeable with `std::complex`,
-like `Kokkos::complex` or `thrust::complex`,
-have the already common remedy of aliasing their type
-to the corresponding `std::complex` type.
-
-### Background
-
-#### Why users define their own complex number types
+### Why users define their own complex number types
 
 1. `complex<R>` only permits `R` = `float`, `double`, and `long double`.
 
@@ -2815,7 +2764,7 @@ One of the authors wrote `Kokkos::complex` circa 2014
 to make it possible to build and run Trilinos' linear solvers
 with complex numbers on NVIDIA graphics processing units (GPUs).
 
-#### Why users want to "conjugate" matrices of real numbers
+### Why users want to "conjugate" matrices of real numbers
 
 It's possible to describe many linear algebra algorithms
 in a way that works for both complex and real numbers,
@@ -2841,7 +2790,7 @@ For example, a matrix whose off-diagonal elements are all `3 + 4i` is symmetric,
 but not Hermitian.  Complex symmetric matrices are useful in practice,
 for example when modeling damped vibrations (Craven 1969).
 
-#### Effects of `conj`'s real-to-complex change
+### Effects of `conj`'s real-to-complex change
 
 The fact that `conj` for arithmetic-type arguments returns `complex`
 may complicate or prevent implementers
@@ -2866,6 +2815,103 @@ However, `matrix_product(conjugate_transposed(A), B, C)`
 would not compile,
 due to `complex<decltype(declval<double>() * declval<MyReal>())>`
 not being well formed.
+
+### LEWG feedback on R8 solution
+
+In R8 of this paper,
+we proposed an exposition-only function _`conj-if-needed`_.
+For arithmetic types, it would be the identity function.
+This would fix Issue (1).
+For all other types, it would call `conj`
+through argument-dependent lookup (ADL),
+just like how `iter_swap` calls `swap`.
+This would fix Issue (2).
+However, it would force users who define custom _real_ number types
+to define a trivial `conj` (in their own namespace) for their type.
+The alternative would be to make _`conj-if-needed`_ the identity
+if it could not find `conj` via ADL lookup.
+However, that would cause silently incorrect results
+for users who define a custom complex number type,
+but forget or misspell `conj`.
+
+When reviewing R8, LEWG expressed a preference for a different solution.
+
+1. Temporarily change P1673 to permit
+    use of `conjugated` and `conjugate_transposed`
+    only for value types that are either `complex` or arithmetic types.
+    Add a Note that reminds readers to look out for Steps (2) and (3) below.
+
+2. Write a separate paper which introduces
+    a user-visible customization point,
+    provisionally named `conjugate`.
+    The paper could use any of various proposed
+    library-only customization point mechanisms,
+    such as the customization point objects used by ranges
+    or `tag_invoke`
+    (see <a href="https://wg21.link/p1895r0">P1895R0</a>,
+    with the expectation that LEWG and perhaps also EWG
+    (see e.g., <a href="https://wg21.link/P2547">P2547</a>)
+    may express a preference for a different mechanism.
+
+3. If LEWG accepts the `conjugate` customization point,
+    then change P1673 again to use `conjugate`
+    (thus replacing R8's _`conj-if-needed`_).
+    This would thus reintroduce support for custom complex numbers.
+
+### SG6's response to LEWG's R8 feedback
+
+SG6 small group (there was no quorum) reviewed P1673 on 2022/06/09,
+after LEWG's R8 review on 2022/05/24.
+SG6 small group expressed the following:
+
+* Being able to write `conjugated(A)` or `conjugate_transposed(A)`
+    for a matrix or vector `A` of user-defined types
+    is reasonably integral to the proposal.
+    We generically oppose deferring it based on the hope
+    that we'll be able to specify it in a nicer way in the future,
+    with some new customization point syntax.
+
+* A simple, teachable rule: Do ADL-ONLY lookup
+    (preventing finding `std::conj` for primitive types)
+    for `conj` (as with ranges); if you find something you use it,
+    and if you don't, you do nothing (conjugation is the identity).
+    ("Primitives aren't that special.")
+    Benefit is that custom real types work out of the box.
+
+* The alternative: specify that if users choose to use
+    `conjugated` or `conjugate_transposed` with a user-defined type,
+    then they MUST supply the `conj` ADL-findable thing, else ill-formed.
+    This is a safety mechanism that may not have been considered previously by LEWG.
+    (Make primitives special, to regain safety.
+    The cost is that custom real types need to have a `conj` ADL-findable,
+    if users use `conjugated` or `conjugate_transposed`.)
+
+### Current solution
+
+We have adopted SG6 small group's recommendation,
+with a slight wording modification to make it obvious
+that the conjugate of an arithmetic type
+returns the same type as its input.
+
+We propose an exposition-only function object _`conj-if-needed`_.
+For arithmetic types, it would behave as the identity function.
+If it can call `conj` through ADL-only (unqualified) lookup,
+it does so.  Otherwise, it again would behave as the identity function.
+
+This approach has the following advantages.
+
+1. Most custom number types, noncomplex or complex,
+    will work "out of the box."
+    Custom complex number types would likely
+    already have an ADL-findable `conj` defined,
+    for interface compatibility with `std::complex`.
+
+2. Conjugation will preserve the type of its argument.
+
+3. It uses existing C++ idioms and interfaces for complex numbers.
+
+4. It does not depend on a future customization point syntax
+    or library convention.
 
 # Future work
 
@@ -3217,7 +3263,19 @@ template<class Triangle,
          class StorageOrder>
 class layout_blas_packed;
 
+// [linalg.scaled.conj], exposition-only function object <it>conj-if-needed</it>
+
+/* see-below */ <it>conj-if-needed</it>;
+
+// [linalg.scaled.base], exposition-only function and class templates
+
+class proxy_reference_base; // <it>exposition only</it>
+
+template<class Reference, class Value, class Derived>
+class proxy_reference; // <it>exposition only</it>
+
 // [linalg.scaled.accessor_scaled], class template accessor_scaled
+
 template<class ScalingFactor,
          class Accessor>
 class accessor_scaled;
@@ -4577,19 +4635,6 @@ void triangular_matrix_matrix_right_solve(
   Triangle t,
   DiagonalStorage d,
   inout_matrix_t B);
-
-template<class R>
-std::complex<R>
-  <it>conj-if-needed</it>(const std::complex<R>& t) // <it>exposition only</it>
-{
-  return conj(t);
-}
-
-template<class T> requires is_arithmetic_v<T>
-T <it>conj-if-needed</it>(const T& t) // <it>exposition only</it>
-{
-  return t;
-}
 }
 ```
 
@@ -5301,6 +5346,31 @@ run-time value(s) of the relevant BLAS function arguments (e.g.,
 
 --*end note]*
 
+### Exposition-only function object _`conj-if-needed`_ [linalg.scaled.conj]
+
+The name `_conj-if-needed_` denotes an exposition-only function object.
+The expression _`conj-if-needed`_`(E)` for subexpression `E`
+is expression-equivalent to:
+
+    * `E`, if `T` is an arithmetic type;
+
+    * else, `conj(E)`, if that expression is valid
+        with overload resolution performed in a context
+	that includes the declaration
+	`template<class T> T conj(const T&) = delete;`
+	and does not include a declaration of
+	`linalg::impl::`_`conj_if_needed`_;
+
+    * else, `E`.
+
+*[Note:*
+The special case for arithmetic types
+preserves the type of its argument, unlike `std::conj`.
+The `conj(E)` case invokes `conj` via unqualified lookup.
+The `E` case presumes that a type without a `conj` function is noncomplex,
+so that the conjugate is the identity.
+--*end note]*
+
 ### Exposition-only class templates `proxy_reference_base` and `proxy_reference` [linalg.scaled.base]
 
 The exposition-only class `proxy_reference_base` is a tag
@@ -5317,7 +5387,7 @@ is part of the implementation of
 class proxy_reference_base {}; // exposition only
 
 template<class Reference, class Value, class Derived>
-class proxy_reference : proxy_reference_base { // exposition only
+class proxy_reference : public proxy_reference_base { // exposition only
 private:
   using this_type = proxy_reference<Reference, Value, Derived>;
   
@@ -5412,6 +5482,8 @@ public:
   friend auto real(const derived_type& x);
 
   friend auto imag(const derived_type& x);
+
+  friend auto conj(const derived_type& x);
 };
 ```
 
@@ -5507,6 +5579,12 @@ If not, then `value_type` is assumed to represent a noncomplex number,
 for which the number's imaginary part is zero
 (which is constructed by value-initializing `value_type`).
 --*end note]*
+
+```c++
+friend auto conj(const derived_type& x);
+```
+
+* *Effects:* Equivalent to `return `_`conj-if-needed`_`(x);`.
 
 ### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
 
