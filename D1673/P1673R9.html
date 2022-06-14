@@ -2735,24 +2735,17 @@ for helpful discussions.)</p>
      <p>Revision 9 (electronic), to be submitted 2022-06-15</p>
      <ul>
       <li data-md>
+       <p>Apply to-be-submitted P0009R17 changes (see P2553 in particular)
+to all layouts, accessors, and examples in this proposal.</p>
+      <li data-md>
        <p>Improve <code class="highlight"><c- n>triangular_matrix_matrix_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_solve</c-><c- p>()</c-></code> "mathematical expression of the algorithm" wording.</p>
       <li data-md>
-       <p><code class="highlight"><c- n>layout_blas_general</c-></code>: incorporate recent changes to P0009.</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>layout_blas_packed</c-></code></p>
-       <ul>
-        <li data-md>
-         <p>Fix <code class="highlight"><c- n>required_span_size</c-><c- p>()</c-></code> and <code class="highlight"><c- k>operator</c-><c- p>()</c-></code> wording</p>
-        <li data-md>
-         <p>Incorporate recent changes to P0009</p>
-       </ul>
+       <p><code class="highlight"><c- n>layout_blas_packed</c-></code>: Fix <code class="highlight"><c- n>required_span_size</c-><c- p>()</c-></code> and <code class="highlight"><c- k>operator</c-><c- p>()</c-></code> wording</p>
       <li data-md>
        <p>Make sure all definitions of lower and upper triangle are consistent.</p>
       <li data-md>
        <p>Changes to <code class="highlight"><c- n>layout_transpose</c-></code>:</p>
        <ul>
-        <li data-md>
-         <p>Incorporate recent changes to P0009.</p>
         <li data-md>
          <p>Make <code class="highlight"><c- n>layout_transpose</c-><c- o>::</c-><c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>nested_mapping_type</c-><c- o>&amp;</c-><c- p>)</c-></code> constructor <code class="highlight"><c- k>explicit</c-></code>, to avoid inadvertent transposition.</p>
         <li data-md>
@@ -2930,7 +2923,7 @@ and to mix compile-time and run-time dimensions arbitrarily.</p>
 
 <c- n>mdspan</c-> <c- nf>A</c-><c- p>(</c-><c- n>A_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>N</c-><c- p>,</c-> <c- n>M</c-><c- p>);</c->
 <c- n>mdspan</c-> <c- nf>x</c-><c- p>(</c-><c- n>x_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>M</c-><c- p>);</c->
-<c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>N</c-><c- o>>></c-> <c- n>y</c-><c- p>(</c-><c- n>y_vec</c-><c- p>.</c-><c- n>data</c-><c- p>());</c->
+<c- n>mdspan</c-> <c- nf>y</c-><c- p>(</c-><c- n>y_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>N</c-><c- p>);</c->
 
 <c- k>for</c-><c- p>(</c-><c- b>int</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
   <c- k>for</c-><c- p>(</c-><c- b>int</c-> <c- n>j</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>j</c-> <c- o>&lt;</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> <c- o>++</c-><c- n>j</c-><c- p>)</c-> <c- p>{</c->
@@ -2953,16 +2946,19 @@ and to mix compile-time and run-time dimensions arbitrarily.</p>
 </pre>
    <p>This example illustrates the ability to perform mixed-precision computations,
 and the ability to compute on subviews of a matrix or vector
-by using <code class="highlight"><c- n>submdspan</c-></code>.</p>
+by using <code class="highlight"><c- n>submdspan</c-></code>.  (<code class="highlight"><c- n>submdspan</c-></code> was separated from the rest of P0009
+as a way to avoid delaying the hopeful adoption of P0009 for C++23.
+However, the P0009 authors plan to pursue <code class="highlight"><c- n>submdspan</c-></code> as a follow-on proposal as soon as possible.
+The reference implementation of <code class="highlight"><c- n>mdspan</c-></code> includes <code class="highlight"><c- n>submdspan</c-></code>.)</p>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>size_t</c-> <c- n>M</c-> <c- o>=</c-> <c- mi>40</c-><c- p>;</c->
 
 <c- n>std</c-><c- o>::</c-><c- n>vector</c-><c- o>&lt;</c-><c- b>float</c-><c- o>></c-> <c- n>A_vec</c-><c- p>(</c-><c- n>M</c-><c- o>*</c-><c- mi>8</c-><c- o>*</c-><c- mi>4</c-><c- p>);</c->
 <c- n>std</c-><c- o>::</c-><c- n>vector</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-> <c- n>x_vec</c-><c- p>(</c-><c- n>M</c-><c- o>*</c-><c- mi>4</c-><c- p>);</c->
 <c- n>std</c-><c- o>::</c-><c- n>vector</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-> <c- n>y_vec</c-><c- p>(</c-><c- n>M</c-><c- o>*</c-><c- mi>8</c-><c- p>);</c->
 
-<c- n>mdspan</c-><c- o>&lt;</c-><c- b>float</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- p>,</c-> <c- mi>8</c-><c- p>,</c-> <c- mi>4</c-><c- o>>></c-> <c- n>A</c-><c- p>(</c-><c- n>A_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>M</c-><c- p>);</c->
-<c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- mi>4</c-><c- p>,</c-> <c- n>dynamic_extent</c-><c- o>>></c-> <c- n>x</c-><c- p>(</c-><c- n>x_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>M</c-><c- p>);</c->
-<c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- p>,</c-> <c- mi>8</c-><c- o>>></c-> <c- n>y</c-><c- p>(</c-><c- n>y_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>M</c-><c- p>);</c->
+<c- n>mdspan</c-><c- o>&lt;</c-><c- b>float</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>dynamic_extent</c-><c- p>,</c-> <c- mi>8</c-><c- p>,</c-> <c- mi>4</c-><c- o>>></c-> <c- n>A</c-><c- p>(</c-><c- n>A_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>M</c-><c- p>);</c->
+<c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>4</c-><c- p>,</c-> <c- n>dynamic_extent</c-><c- o>>></c-> <c- n>x</c-><c- p>(</c-><c- n>x_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>M</c-><c- p>);</c->
+<c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>dynamic_extent</c-><c- p>,</c-> <c- mi>8</c-><c- o>>></c-> <c- n>y</c-><c- p>(</c-><c- n>y_vec</c-><c- p>.</c-><c- n>data</c-><c- p>(),</c-> <c- n>M</c-><c- p>);</c->
 
 <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>m</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>m</c-> <c- o>&lt;</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c-> <c- o>++</c-><c- n>m</c-><c- p>)</c-> <c- p>{</c->
   <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
@@ -3034,6 +3030,10 @@ and add custom layouts and accessors.</p>
    <p>Section <a href="#wording"><span class="secno">16</span></a> is where readers will find the normative wording we propose.</p>
    <p>Finally, Section <a href="#examples"><span class="secno">17</span></a> gives some more elaborate examples of linear algebra algorithms that use our proposal.
 The examples show how <code class="highlight"><c- n>mdspan</c-></code>'s features let users easily describe "submatrices" with <code class="highlight"><c- n>submdspan</c-></code>.
+(<code class="highlight"><c- n>submdspan</c-></code> was separated from the rest of P0009
+as a way to avoid delaying the hopeful adoption of P0009 for C++23.
+However, the P0009 authors plan to pursue <code class="highlight"><c- n>submdspan</c-></code> as a follow-on proposal as soon as possible.
+The reference implementation of <code class="highlight"><c- n>mdspan</c-></code> includes <code class="highlight"><c- n>submdspan</c-></code>.)
 This integrates naturally with "block" factorizations of matrices.
 The resulting notation is concise, yet still computes in place,
 without unnecessary copies of any part of the matrix.</p>
@@ -3490,10 +3490,10 @@ with a few lines of C++ that use ranges algorithms.
 For example, here is a parallel implementation of <code class="highlight"><c- n>idx_abs_max</c-></code>,
 omitting constraints on template parameters for simplicity.
 (Here is a <a href="https://godbolt.org/z/7eW9ExsKM">Compiler Explorer link</a> to a working example.)</p>
-<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Element</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>Extent</c-><c- p>,</c->
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Element</c-><c- p>,</c-> <c- n>class</c-> <c- n>Extents</c-><c- p>,</c->
   <c- n>class</c-> <c- n>Layout</c-><c- p>,</c-> <c- n>class</c-> <c- n>Accessor</c-><c- o>></c->
-<c- n>std</c-><c- o>::</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>idx_abs_max</c-><c- p>(</c->
-  <c- n>std</c-><c- o>::</c-><c- n>mdspan</c-><c- o>&lt;</c-><c- n>Element</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- n>extents</c-><c- o>&lt;</c-><c- n>Extent</c-><c- o>></c-><c- p>,</c-> <c- n>Layout</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>></c-> <c- n>x</c-><c- p>)</c->
+<c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-> <c- n>idx_abs_max</c-><c- p>(</c->
+  <c- n>std</c-><c- o>::</c-><c- n>mdspan</c-><c- o>&lt;</c-><c- n>Element</c-><c- p>,</c-> <c- n>Extents</c-><c- p>,</c-> <c- n>Layout</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>></c-> <c- n>x</c-><c- p>)</c->
 <c- p>{</c->
   <c- k>auto</c-> <c- n>theRange</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>views</c-><c- o>::</c-><c- n>iota</c-><c- p>(</c-><c- b>size_t</c-><c- p>(</c-><c- mi>0</c-><c- p>),</c-> <c- n>x</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>))</c-> <c- o>|</c->
     <c- n>std</c-><c- o>::</c-><c- n>views</c-><c- o>::</c-><c- n>transform</c-><c- p>([</c-><c- o>=</c-><c- p>]</c-> <c- p>(</c-><c- k>auto</c-> <c- n>k</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>abs</c-><c- p>(</c-><c- n>x</c-><c- p>[</c-><c- n>k</c-><c- p>]);</c-> <c- p>});</c->
@@ -3501,7 +3501,7 @@ omitting constraints on template parameters for simplicity.
     <c- n>std</c-><c- o>::</c-><c- n>max_element</c-><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>execution</c-><c- o>::</c-><c- n>par_unseq</c-><c- p>,</c-> <c- n>theRange</c-><c- p>.</c-><c- n>begin</c-><c- p>(),</c-> <c- n>theRange</c-><c- p>.</c-><c- n>end</c-><c- p>());</c->
   <c- k>auto</c-> <c- n>indexOfMax</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>ranges</c-><c- o>::</c-><c- n>distance</c-><c- p>(</c-><c- n>theRange</c-><c- p>.</c-><c- n>begin</c-><c- p>(),</c-> <c- n>iterOfMax</c-><c- p>);</c->
   <c- c1>// In GCC 12.1, the return type is __int128.</c->
-  <c- k>return</c-> <c- n>static_cast</c-><c- o>&lt;</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-><c- o>></c-><c- p>(</c-><c- n>indexOfMax</c-><c- p>);</c->
+  <c- k>return</c-> <c- n>static_cast</c-><c- o>&lt;</c-><c- n>typename</c-> <c- n>Extents</c-><c- o>::</c-><c- n>size_type</c-><c- o>></c-><c- p>(</c-><c- n>indexOfMax</c-><c- p>);</c->
 <c- p>}</c->
 </pre>
    <p>Even though the algorithms in the third category
@@ -5282,7 +5282,7 @@ O. Schwartz, <a href="https://doi.org/10.1017/S0962492914000038">"Communication 
 H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
 J. Michopoulos, and N. Liber,
 "<code class="highlight"><c- n>mdspan</c-></code>," <a href="https://wg21.link/p0009r16">P0009R16</a>,
-Mar. 2022.</p>
+Mar. 2022.  The authors anticipate release of R17 in the next mailing.</p>
     <li data-md>
      <p>G. Davidson, M. Hoemmen, D. S. Hollman, B. Steagall, and C. Trott, <a href="https://wg21.link/p1891r0">P1891R0</a>, Oct. 2019.</p>
     <li data-md>
@@ -5385,8 +5385,8 @@ Wellesley - Cambridge Press, 2016, ISBN 978-0-9802327-7-6, x+574 pages.</p>
    <blockquote>
     <p>Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 The � character is used to denote a placeholder section number which the editor shall determine.
-First, apply all wording from P0009R16.
-(This proposal is a "rebase" atop the changes proposed by P0009R16.)
+First, apply all wording from P0009R17.
+(This proposal is a "rebase" atop the changes proposed by P0009R17.)
 At the end of Table � ("Numerics library summary") in <em>[numerics.general]</em>, add the following: [linalg], Linear algebra, <code class="highlight"><c- o>&lt;</c-><c- n>linalg</c-><c- o>></c-></code>.
 At the end of <em>[numerics]</em>, add all the material that follows.</p>
    </blockquote>
@@ -5703,10 +5703,10 @@ At the end of <em>[numerics]</em>, add all the material that follows.</p>
 <c- c1>// [linalg.algs.blas1.iamax],</c->
 <c- c1>// index of maximum absolute value of vector elements</c->
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_vector_t</c-><c- o>></c->
-<c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>idx_abs_max</c-><c- p>(</c-><c- n>in_vector_t</c-> <c- n>v</c-><c- p>);</c->
+<c- n>typename</c-> <c- n>in_vector_t</c-><c- o>::</c-><c- n>extents_type</c-> <c- n>idx_abs_max</c-><c- p>(</c-><c- n>in_vector_t</c-> <c- n>v</c-><c- p>);</c->
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
          <c- n>class</c-> <c- n>in_vector_t</c-><c- o>></c->
-<c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>idx_abs_max</c-><c- p>(</c->
+<c- n>typename</c-> <c- n>in_vector_t</c-><c- o>::</c-><c- n>extents_type</c-> <c- n>idx_abs_max</c-><c- p>(</c->
   <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
   <c- n>in_vector_t</c-> <c- n>v</c-><c- p>);</c->
 
@@ -7583,21 +7583,21 @@ element of <code class="highlight"><c- n>x</c-></code>.</p>
    <p>[<em>Example:</em></p>
 <pre class="language-c++ highlight"><c- c1>// z = alpha * x + y</c->
 <c- b>void</c-> <c- nf>z_equals_alpha_times_x_plus_y</c-><c- p>(</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>></c-> <c- n>z</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>dextents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>1</c-><c- o>>></c-> <c- n>z</c-><c- p>,</c->
   <c- k>const</c-> <c- b>double</c-> <c- n>alpha</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>></c-> <c- n>x</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>></c-> <c- n>y</c-><c- p>)</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>dextents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>1</c-><c- o>>></c-> <c- n>x</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>dextents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>1</c-><c- o>>></c-> <c- n>y</c-><c- p>)</c->
 <c- p>{</c->
   <c- n>add</c-><c- p>(</c-><c- n>scaled</c-><c- p>(</c-><c- n>alpha</c-><c- p>,</c-> <c- n>x</c-><c- p>),</c-> <c- n>y</c-><c- p>,</c-> <c- n>y</c-><c- p>);</c->
 <c- p>}</c->
 
 <c- c1>// w = alpha * x + beta * y</c->
 <c- b>void</c-> <c- nf>w_equals_alpha_times_x_plus_beta_times_y</c-><c- p>(</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>></c-> <c- n>w</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>dextents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>1</c-><c- o>>></c-> <c- n>w</c-><c- p>,</c->
   <c- k>const</c-> <c- b>double</c-> <c- n>alpha</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>></c-> <c- n>x</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>dextents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>1</c-><c- o>>></c-> <c- n>x</c-><c- p>,</c->
   <c- k>const</c-> <c- b>double</c-> <c- n>beta</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>></c-> <c- n>y</c-><c- p>)</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>dextents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>1</c-><c- o>>></c-> <c- n>y</c-><c- p>)</c->
 <c- p>{</c->
   <c- n>add</c-><c- p>(</c-><c- n>scaled</c-><c- p>(</c-><c- n>alpha</c-><c- p>,</c-> <c- n>x</c-><c- p>),</c-> <c- n>scaled</c-><c- p>(</c-><c- n>beta</c-><c- p>,</c-> <c- n>y</c-><c- p>),</c-> <c- n>w</c-><c- p>);</c->
 <c- p>}</c->
@@ -7885,10 +7885,9 @@ and its nested <code class="highlight"><c- n>mdspan</c-></code> accessor’s ref
   <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherElementType</c-><c- o>></c->
   <c- n>accessor_scaled</c-><c- p>(</c-><c- n>ScalingFactor</c-> <c- n>s</c-><c- p>,</c-> <c- n>default_accessor</c-><c- o>&lt;</c-><c- n>OtherElementType</c-><c- o>></c-> <c- n>a</c-><c- p>);</c->
 
-  <c- n>reference</c-> <c- nf>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+  <c- n>reference</c-> <c- nf>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 
-  <c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c->
-  <c- nf>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+  <c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c-> <c- nf>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 
   <c- n>ScalingFactor</c-> <c- nf>scaling_factor</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
 
@@ -7924,14 +7923,14 @@ and its nested <code class="highlight"><c- n>mdspan</c-></code> accessor’s ref
     <li data-md>
      <p><em>Effects:</em> Initializes <code class="highlight"><c- n>scaling_factor_</c-></code> with <code class="highlight"><c- n>move</c-><c- p>(</c-><c- n>s</c-><c- p>)</c-></code>, and initializes <code class="highlight"><c- n>accessor_</c-></code> with <code class="highlight"><c- n>a</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>reference</c-> <c- nf>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+<pre class="language-c++ highlight"><c- n>reference</c-> <c- nf>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>
     <li data-md>
      <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>reference</c-><c- p>(</c-><c- n>scaling_factor_</c-><c- p>,</c-> <c- n>accessor_</c-><c- p>.</c-><c- n>access</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>));</c-></code>.</p>
    </ul>
 <pre class="language-c++ highlight"><c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c->
-<c- nf>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+<c- nf>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <ul>
     <li data-md>
@@ -7992,7 +7991,7 @@ then <code class="highlight"><c- n>scaled</c-><c- p>(</c-><c- mi>1</c-> <c- o>&l
 but <code class="highlight"><c- n>scaled</c-><c- p>((</c-><c- mi>1</c-> <c- o>&lt;&lt;</c-> <c- mi>20</c-><c- p>)</c-> <c- o>*</c-> <c- p>(</c-><c- mi>1</c-> <c- o>&lt;&lt;</c-> <c- mi>20</c-><c- p>),</c-> <c- n>x</c-><c- p>)</c-></code> would overflow <code class="highlight"><c- b>int</c-></code>.</p>
    <p>--<em>end note]</em></p>
    <p>[<em>Example:</em></p>
-<pre class="language-c++ highlight"><c- b>void</c-> <c- nf>test_scaled</c-><c- p>(</c-><c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- mi>10</c-><c- o>>></c-> <c- n>x</c-><c- p>)</c->
+<pre class="language-c++ highlight"><c- b>void</c-> <c- nf>test_scaled</c-><c- p>(</c-><c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>int</c-><c- p>,</c-> <c- mi>10</c-><c- o>>></c-> <c- n>x</c-><c- p>)</c->
 <c- p>{</c->
   <c- k>auto</c-> <c- n>x_scaled</c-> <c- o>=</c-> <c- n>scaled</c-><c- p>(</c-><c- mf>5.0</c-><c- p>,</c-> <c- n>x</c-><c- p>);</c->
   <c- k>for</c-><c- p>(</c-><c- b>int</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>x</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
@@ -8093,11 +8092,11 @@ This will permit use of <code class="highlight"><c- n>conjugated</c-></code> and
   <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherElementType</c-><c- o>></c->
   <c- n>accessor_conjugate</c-><c- p>(</c-><c- n>default_accessor</c-><c- o>&lt;</c-><c- n>OtherElementType</c-><c- o>></c-> <c- n>a</c-><c- p>);</c->
 
-  <c- n>reference</c-> <c- nf>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
+  <c- n>reference</c-> <c- nf>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
     <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>reference</c-><c- p>(</c-><c- n>acc</c-><c- p>.</c-><c- n>access</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>))));</c->
 
   <c- n>typename</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c->
-  <c- n>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
+  <c- n>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
     <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>acc</c-><c- p>.</c-><c- n>offset</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>)));</c->
 
   <c- n>Accessor</c-> <c- nf>nested_accessor</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
@@ -8160,7 +8159,7 @@ if <code class="highlight"><c- n>remove_cv_t</c-><c- o>&lt;</c-><c- k>typename</
    </ul>
    <p><em>[Note:</em> This constructor exists so that if <code class="highlight"><c- n>conjugated</c-></code> is given an <code class="highlight"><c- n>mdspan</c-></code> with nonconst element type <code class="highlight"><c- n>T</c-></code> and accessor <code class="highlight"><c- n>default_accessor</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code>, <code class="highlight"><c- n>conjugated</c-></code> can then return an <code class="highlight"><c- n>mdspan</c-></code> with <code class="highlight"><c- k>const</c-></code> element type.
 --<em>end note]</em></p>
-<pre class="language-c++ highlight"><c- n>reference</c-> <c- nf>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
+<pre class="language-c++ highlight"><c- n>reference</c-> <c- nf>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
   <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>reference</c-><c- p>(</c-><c- n>acc</c-><c- p>.</c-><c- n>access</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>))));</c->
 </pre>
    <ul>
@@ -8168,7 +8167,7 @@ if <code class="highlight"><c- n>remove_cv_t</c-><c- o>&lt;</c-><c- k>typename</
      <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>reference</c-><c- p>(</c-><c- n>acc</c-><c- p>.</c-><c- n>access</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>));</c-></code>.</p>
    </ul>
 <pre class="language-c++ highlight"><c- n>typename</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c->
-<c- n>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
+<c- n>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
   <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>acc</c-><c- p>.</c-><c- n>offset</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>)));</c->
 </pre>
    <ul>
@@ -8234,7 +8233,7 @@ then equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(
    </ul>
    <p>[<em>Example:</em></p>
 <pre class="language-c++ highlight"><c- b>void</c-> <c- nf>test_conjugated_complex</c-><c- p>(</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- k>complex</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- mi>10</c-><c- o>>></c-> <c- n>a</c-><c- p>)</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- k>complex</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>int</c-><c- p>,</c-> <c- mi>10</c-><c- o>>></c-> <c- n>a</c-><c- p>)</c->
 <c- p>{</c->
   <c- k>auto</c-> <c- n>a_conj</c-> <c- o>=</c-> <c- n>conjugated</c-><c- p>(</c-><c- n>a</c-><c- p>);</c->
   <c- k>for</c-><c- p>(</c-><c- b>int</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>a</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
@@ -8247,7 +8246,7 @@ then equivalent to <code class="highlight"><c- k>return</c-> <c- n>R</c-><c- p>(
 <c- p>}</c->
 
 <c- b>void</c-> <c- nf>test_conjugated_real</c-><c- p>(</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- mi>10</c-><c- o>>></c-> <c- n>a</c-><c- p>)</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>int</c-><c- p>,</c-> <c- mi>10</c-><c- o>>></c-> <c- n>a</c-><c- p>)</c->
 <c- p>{</c->
   <c- k>auto</c-> <c- n>a_conj</c-> <c- o>=</c-> <c- n>conjugated</c-><c- p>(</c-><c- n>a</c-><c- p>);</c->
   <c- k>for</c-><c- p>(</c-><c- b>int</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>a</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
@@ -8580,7 +8579,7 @@ where <code class="highlight"><c- n>ReturnMapping</c-></code> names the type <co
      <p><em>Remarks:</em> The elements of the returned <code class="highlight"><c- n>mdspan</c-></code> are read only.</p>
    </ul>
    <p>[<em>Example:</em></p>
-<pre class="language-c++ highlight"><c- b>void</c-> <c- nf>test_transposed</c-><c- p>(</c-><c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- mi>3</c-><c- p>,</c-> <c- mi>4</c-><c- o>>></c-> <c- n>a</c-><c- p>)</c->
+<pre class="language-c++ highlight"><c- b>void</c-> <c- nf>test_transposed</c-><c- p>(</c-><c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>3</c-><c- p>,</c-> <c- mi>4</c-><c- o>>></c-> <c- n>a</c-><c- p>)</c->
 <c- p>{</c->
   <c- k>const</c-> <c- k>auto</c-> <c- n>num_rows</c-> <c- o>=</c-> <c- n>a</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c->
   <c- k>const</c-> <c- k>auto</c-> <c- n>num_cols</c-> <c- o>=</c-> <c- n>a</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c->
@@ -8591,8 +8590,8 @@ where <code class="highlight"><c- n>ReturnMapping</c-></code> names the type <co
   <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>==</c-> <c- n>a_t</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>));</c->
   <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-> <c- o>==</c-> <c- n>a_t</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>));</c->
 
-  <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>row</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>row</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>row</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>col</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>col</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>col</c-><c- p>)</c-> <c- p>{</c->
+  <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>row</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>row</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>row</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>col</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>col</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>col</c-><c- p>)</c-> <c- p>{</c->
       <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>[</c-><c- n>row</c-><c- p>,</c-> <c- n>col</c-><c- p>]</c-> <c- o>==</c-> <c- n>a_t</c-><c- p>[</c-><c- n>col</c-><c- p>,</c-> <c- n>row</c-><c- p>]);</c->
     <c- p>}</c->
   <c- p>}</c->
@@ -8603,8 +8602,8 @@ where <code class="highlight"><c- n>ReturnMapping</c-></code> names the type <co
   <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>==</c-> <c- n>a_t_t</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>));</c->
   <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-> <c- o>==</c-> <c- n>a_t_t</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>));</c->
 
-  <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>row</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>row</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>row</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>col</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>col</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>col</c-><c- p>)</c-> <c- p>{</c->
+  <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>row</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>row</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>row</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>col</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>col</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>col</c-><c- p>)</c-> <c- p>{</c->
       <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>[</c-><c- n>row</c-><c- p>,</c-> <c- n>col</c-><c- p>]</c-> <c- o>==</c-> <c- n>a_t_t</c-><c- p>[</c-><c- n>row</c-><c- p>,</c-> <c- n>col</c-><c- p>]);</c->
     <c- p>}</c->
   <c- p>}</c->
@@ -8630,7 +8629,7 @@ view of an object.  This combines the effects of <code class="highlight"><c- n>t
    </ul>
    <p>[<em>Example:</em></p>
 <pre class="language-c++ highlight"><c- b>void</c-> <c- nf>test_conjugate_transposed</c-><c- p>(</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- k>complex</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- mi>3</c-><c- p>,</c-> <c- mi>4</c-><c- o>>></c-> <c- n>a</c-><c- p>)</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- k>complex</c-><c- o>&lt;</c-><c- b>double</c-><c- o>></c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- mi>3</c-><c- p>,</c-> <c- mi>4</c-><c- o>>></c-> <c- n>a</c-><c- p>)</c->
 <c- p>{</c->
   <c- k>const</c-> <c- k>auto</c-> <c- n>num_rows</c-> <c- o>=</c-> <c- n>a</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c->
   <c- k>const</c-> <c- k>auto</c-> <c- n>num_cols</c-> <c- o>=</c-> <c- n>a</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c->
@@ -8641,8 +8640,8 @@ view of an object.  This combines the effects of <code class="highlight"><c- n>t
   <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>==</c-> <c- n>a_ct</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>));</c->
   <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-> <c- o>==</c-> <c- n>a_ct</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>));</c->
 
-  <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>row</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>row</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>row</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>col</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>col</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>col</c-><c- p>)</c-> <c- p>{</c->
+  <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>row</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>row</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>row</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>col</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>col</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>col</c-><c- p>)</c-> <c- p>{</c->
       <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>[</c-><c- n>row</c-><c- p>,</c-> <c- n>col</c-><c- p>]</c-> <c- o>==</c-> <c- n>conj</c-><c- p>(</c-><c- n>a_ct</c-><c- p>[</c-><c- n>col</c-><c- p>,</c-> <c- n>row</c-><c- p>]));</c->
     <c- p>}</c->
   <c- p>}</c->
@@ -8653,8 +8652,8 @@ view of an object.  This combines the effects of <code class="highlight"><c- n>t
   <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>==</c-> <c- n>a_ct_ct</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>));</c->
   <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-> <c- o>==</c-> <c- n>a_ct_ct</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>));</c->
 
-  <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>row</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>row</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>row</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>col</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>col</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>col</c-><c- p>)</c-> <c- p>{</c->
+  <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>row</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>row</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>row</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>col</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>col</c-> <c- o>&lt;</c-> <c- n>num_rows</c-><c- p>;</c-> <c- o>++</c-><c- n>col</c-><c- p>)</c-> <c- p>{</c->
       <c- n>assert</c-><c- p>(</c-><c- n>a</c-><c- p>[</c-><c- n>row</c-><c- p>,</c-> <c- n>col</c-><c- p>]</c-> <c- o>==</c-> <c- n>a_ct_ct</c-><c- p>[</c-><c- n>row</c-><c- p>,</c-> <c- n>col</c-><c- p>]);</c->
       <c- n>assert</c-><c- p>(</c-><c- n>conj</c-><c- p>(</c-><c- n>a_ct</c-><c- p>[</c-><c- n>col</c-><c- p>,</c-> <c- n>row</c-><c- p>])</c-> <c- o>==</c-> <c- n>a_ct_ct</c-><c- p>[</c-><c- n>row</c-><c- p>,</c-> <c- n>col</c-><c- p>]);</c->
     <c- p>}</c->
@@ -9254,11 +9253,11 @@ and the two-parameter overload is equivalent to <code class="highlight"><c- n>ve
    </ul>
    <h5 class="heading settled" data-level="16.9.2.10" id="index-of-maximum-absolute-value-of-vector-elements-linalgalgsblas1iamax"><span class="secno">16.9.2.10. </span><span class="content">Index of maximum absolute value of vector elements [linalg.algs.blas1.iamax]</span><a class="self-link" href="#index-of-maximum-absolute-value-of-vector-elements-linalgalgsblas1iamax"></a></h5>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_vector_t</c-><c- o>></c->
-<c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>idx_abs_max</c-><c- p>(</c-><c- n>in_vector_t</c-> <c- n>v</c-><c- p>);</c->
+<c- n>typename</c-> <c- n>in_vector_t</c-><c- o>::</c-><c- n>size_type</c-> <c- n>idx_abs_max</c-><c- p>(</c-><c- n>in_vector_t</c-> <c- n>v</c-><c- p>);</c->
 
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ExecutionPolicy</c-><c- p>,</c->
          <c- n>class</c-> <c- n>in_vector_t</c-><c- o>></c->
-<c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>idx_abs_max</c-><c- p>(</c->
+<c- n>typename</c-> <c- n>in_vector_t</c-><c- o>::</c-><c- n>size_type</c->	<c- n>idx_abs_max</c-><c- p>(</c->
   <c- n>ExecutionPolicy</c-><c- o>&amp;&amp;</c-> <c- n>exec</c-><c- p>,</c->
   <c- n>in_vector_t</c-> <c- n>v</c-><c- p>);</c->
 </pre>
@@ -9272,7 +9271,7 @@ then, <code class="highlight"><c- n>abs_value_type</c-></code> shall be <em>Cpp1
     <li data-md>
      <p><em>Effects:</em> Returns the index (in the domain of <code class="highlight"><c- n>v</c-></code>) of
 the first element of <code class="highlight"><c- n>v</c-></code> having largest absolute value.  If <code class="highlight"><c- n>v</c-></code> has
-zero elements, then returns <code class="highlight"><c- n>numeric_limits</c-><c- o>&lt;</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-><c- o>>::</c-><c- n>max</c-><c- p>()</c-></code>.</p>
+zero elements, then returns <code class="highlight"><c- n>numeric_limits</c-><c- o>&lt;</c-><c- k>typename</c-> <c- nc>in_vector_t</c-><c- o>::</c-><c- n>size_type</c-><c- o>>::</c-><c- n>max</c-><c- p>()</c-></code>.</p>
    </ul>
    <p><em>[Note:</em> The <code class="highlight"><c- n>abs</c-></code> function is invoked via unqualified lookup.
 --<em>end note]</em></p>
@@ -9499,32 +9498,32 @@ the mathematical expression for the algorithm is <code class="highlight"><c- n>y
      <p><em>Effects:</em> Assigns to the elements of <code class="highlight"><c- n>y</c-></code> the product of the matrix <code class="highlight"><c- n>A</c-></code> with the vector <code class="highlight"><c- n>x</c-></code>.</p>
    </ul>
    <p>[<em>Example:</em></p>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>num_rows</c-> <c- o>=</c-> <c- mi>5</c-><c- p>;</c->
-<c- n>constexpr</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>num_cols</c-> <c- o>=</c-> <c- mi>6</c-><c- p>;</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>size_t</c-> <c- n>num_rows</c-> <c- o>=</c-> <c- mi>5</c-><c- p>;</c->
+<c- n>constexpr</c-> <c- b>size_t</c-> <c- n>num_cols</c-> <c- o>=</c-> <c- mi>6</c-><c- p>;</c->
 
 <c- c1>// y = 3.0 * A * x</c->
 <c- b>void</c-> <c- nf>scaled_matvec_1</c-><c- p>(</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_rows</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>A</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_cols</c-><c- o>>></c-> <c- n>x</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_rows</c-><c- o>>></c-> <c- n>y</c-><c- p>)</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_rows</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>A</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>x</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_rows</c-><c- o>>></c-> <c- n>y</c-><c- p>)</c->
 <c- p>{</c->
   <c- n>matrix_vector_product</c-><c- p>(</c-><c- n>scaled</c-><c- p>(</c-><c- mf>3.0</c-><c- p>,</c-> <c- n>A</c-><c- p>),</c-> <c- n>x</c-><c- p>,</c-> <c- n>y</c-><c- p>);</c->
 <c- p>}</c->
 
 <c- c1>// y = 3.0 * A * x + 2.0 * y</c->
 <c- b>void</c-> <c- nf>scaled_matvec_2</c-><c- p>(</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_rows</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>A</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_cols</c-><c- o>>></c-> <c- n>x</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_rows</c-><c- o>>></c-> <c- n>y</c-><c- p>)</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_rows</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>A</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>x</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_rows</c-><c- o>>></c-> <c- n>y</c-><c- p>)</c->
 <c- p>{</c->
   <c- n>matrix_vector_product</c-><c- p>(</c-><c- n>scaled</c-><c- p>(</c-><c- mf>3.0</c-><c- p>,</c-> <c- n>A</c-><c- p>),</c-> <c- n>x</c-><c- p>,</c->
                         <c- n>scaled</c-><c- p>(</c-><c- mf>2.0</c-><c- p>,</c-> <c- n>y</c-><c- p>),</c-> <c- n>y</c-><c- p>);</c->
 <c- p>}</c->
 
 <c- c1>// z = 7.0 times the transpose of A, times y</c->
-<c- b>void</c-> <c- nf>scaled_matvec_2</c-><c- p>(</c-><c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_rows</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>A</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_rows</c-><c- o>>></c-> <c- n>y</c-><c- p>,</c->
-  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>num_cols</c-><c- o>>></c-> <c- n>z</c-><c- p>)</c->
+<c- b>void</c-> <c- nf>scaled_matvec_2</c-><c- p>(</c-><c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_rows</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>A</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_rows</c-><c- o>>></c-> <c- n>y</c-><c- p>,</c->
+  <c- n>mdspan</c-><c- o>&lt;</c-><c- b>double</c-><c- p>,</c-> <c- n>extents</c-><c- o>&lt;</c-><c- b>size_t</c-><c- p>,</c-> <c- n>num_cols</c-><c- o>>></c-> <c- n>z</c-><c- p>)</c->
 <c- p>{</c->
   <c- n>matrix_vector_product</c-><c- p>(</c-><c- n>scaled</c-><c- p>(</c-><c- mf>7.0</c-><c- p>,</c-> <c- n>transposed</c-><c- p>(</c-><c- n>A</c-><c- p>)),</c-> <c- n>y</c-><c- p>,</c-> <c- n>z</c-><c- p>);</c->
 <c- p>}</c->
@@ -12169,21 +12168,26 @@ if row/column k has a zero or NaN (not a number) diagonal entry.</p>
   <c- k>return</c-> <c- p>{}</c->
 <c- p>}</c->
 
+<c- c1>// Returns nullopt if no bad pivots,</c->
+<c- c1>// else the index of the first bad pivot.</c->
+<c- c1>// A "bad" pivot is zero or NaN.</c->
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>Triangle</c-><c- o>></c->
-<c- b>int</c-> <c- n>cholesky_factor</c-><c- p>(</c-><c- n>inout_matrix_t</c-> <c- n>A</c-><c- p>,</c-> <c- n>Triangle</c-> <c- n>t</c-><c- p>)</c->
+<c- n>optional</c-><c- o>&lt;</c-><c- n>typename</c-> <c- n>inout_matrix_t</c-><c- o>::</c-><c- n>size_type</c-><c- o>></c->
+<c- n>cholesky_factor</c-><c- p>(</c-><c- n>inout_matrix_t</c-> <c- n>A</c-><c- p>,</c-> <c- n>Triangle</c-> <c- n>t</c-><c- p>)</c->
 <c- p>{</c->
-  <c- n>using</c-> <c- n>element_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>inout_matrix_t</c-><c- o>::</c-><c- n>element_type</c-><c- p>;</c->
-  <c- n>constexpr</c-> <c- n>element_type</c-> <c- n>ZERO</c-> <c- p>{};</c->
-  <c- n>constexpr</c-> <c- n>element_type</c-> <c- n>ONE</c-> <c- p>(</c-><c- mf>1.0</c-><c- p>);</c->
-  <c- k>const</c-> <c- k>auto</c-> <c- n>n</c-> <c- o>=</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c->
+  <c- n>using</c-> <c- n>value_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>inout_matrix_t</c-><c- o>::</c-><c- n>value_type</c-><c- p>;</c->
+  <c- n>using</c-> <c- n>size_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>inout_matrix_t</c-><c- o>::</c-><c- n>size_type</c-><c- p>;</c->
+  <c- n>constexpr</c-> <c- n>value_type</c-> <c- n>ZERO</c-> <c- p>{};</c->
+  <c- n>constexpr</c-> <c- n>value_type</c-> <c- n>ONE</c-> <c- p>(</c-><c- mf>1.0</c-><c- p>);</c->
+  <c- k>const</c-> <c- n>size_type</c-> <c- n>n</c-> <c- o>=</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c->
 
   <c- k>if</c-> <c- p>(</c-><c- n>n</c-> <c- o>==</c-> <c- mi>0</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>return</c-> <c- mi>0</c-><c- p>;</c->
+    <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>nullopt</c-><c- p>;</c->
   <c- p>}</c->
   <c- k>else</c-> <c- k>if</c-> <c- p>(</c-><c- n>n</c-> <c- o>==</c-> <c- mi>1</c-><c- p>)</c-> <c- p>{</c->
     <c- k>if</c-> <c- p>(</c-><c- n>A</c-><c- p>[</c-><c- mi>0</c-><c- p>,</c-><c- mi>0</c-><c- p>]</c-> <c- o>&lt;=</c-> <c- n>ZERO</c-> <c- o>||</c-> <c- n>isnan</c-><c- p>(</c-><c- n>A</c-><c- p>[</c-><c- mi>0</c-><c- p>,</c-><c- mi>0</c-><c- p>]))</c-> <c- p>{</c->
-      <c- k>return</c-> <c- mi>1</c-><c- p>;</c->
+      <c- k>return</c-> <c- p>{</c-><c- n>size_type</c-><c- p>(</c-><c- mi>1</c-><c- p>)};</c->
     <c- p>}</c->
     <c- n>A</c-><c- p>[</c-><c- mi>0</c-><c- p>,</c-><c- mi>0</c-><c- p>]</c-> <c- o>=</c-> <c- n>sqrt</c-><c- p>(</c-><c- n>A</c-><c- p>[</c-><c- mi>0</c-><c- p>,</c-><c- mi>0</c-><c- p>]);</c->
   <c- p>}</c->
@@ -12191,14 +12195,14 @@ if row/column k has a zero or NaN (not a number) diagonal entry.</p>
     <c- c1>// Partition A into [A11, A12,</c->
     <c- c1>//                   A21, A22],</c->
     <c- c1>// where A21 is the transpose of A12.</c->
-    <c- k>const</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>n1</c-> <c- o>=</c-> <c- n>n</c-> <c- o>/</c-> <c- mi>2</c-><c- p>;</c->
-    <c- k>const</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>n2</c-> <c- o>=</c-> <c- n>n</c-> <c- o>-</c-> <c- n>n1</c-><c- p>;</c->
+    <c- k>const</c-> <c- n>size_type</c-> <c- n>n1</c-> <c- o>=</c-> <c- n>n</c-> <c- o>/</c-> <c- mi>2</c-><c- p>;</c->
+    <c- k>const</c-> <c- n>size_type</c-> <c- n>n2</c-> <c- o>=</c-> <c- n>n</c-> <c- o>-</c-> <c- n>n1</c-><c- p>;</c->
     <c- k>auto</c-> <c- n>A11</c-> <c- o>=</c-> <c- n>submdspan</c-><c- p>(</c-><c- n>A</c-><c- p>,</c-> <c- n>pair</c-><c- p>{</c-><c- mi>0</c-><c- p>,</c-> <c- n>n1</c-><c- p>},</c-> <c- n>pair</c-><c- p>{</c-><c- mi>0</c-><c- p>,</c-> <c- n>n1</c-><c- p>});</c->
     <c- k>auto</c-> <c- n>A22</c-> <c- o>=</c-> <c- n>submdspan</c-><c- p>(</c-><c- n>A</c-><c- p>,</c-> <c- n>pair</c-><c- p>{</c-><c- n>n1</c-><c- p>,</c-> <c- n>n</c-><c- p>},</c-> <c- n>pair</c-><c- p>{</c-><c- n>n1</c-><c- p>,</c-> <c- n>n</c-><c- p>});</c->
 
     <c- c1>// Factor A11</c->
-    <c- k>const</c-> <c- b>int</c-> <c- n>info1</c-> <c- o>=</c-> <c- n>cholesky_factor</c-><c- p>(</c-><c- n>A11</c-><c- p>,</c-> <c- n>t</c-><c- p>);</c->
-    <c- k>if</c-> <c- p>(</c-><c- n>info1</c-> <c- o>!=</c-> <c- mi>0</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>const</c-> <c- k>auto</c-> <c- n>info1</c-> <c- o>=</c-> <c- n>cholesky_factor</c-><c- p>(</c-><c- n>A11</c-><c- p>,</c-> <c- n>t</c-><c- p>);</c->
+    <c- k>if</c-> <c- p>(</c-><c- n>info1</c-><c- p>.</c-><c- n>has_value</c-><c- p>())</c-> <c- p>{</c->
       <c- k>return</c-> <c- n>info1</c-><c- p>;</c->
     <c- p>}</c->
 
@@ -12233,17 +12237,19 @@ if row/column k has a zero or NaN (not a number) diagonal entry.</p>
     <c- p>}</c->
 
     <c- c1>// Factor A22</c->
-    <c- k>const</c-> <c- b>int</c-> <c- n>info2</c-> <c- o>=</c-> <c- n>cholesky_factor</c-><c- p>(</c-><c- n>A22</c-><c- p>,</c-> <c- n>t</c-><c- p>);</c->
-    <c- k>if</c-> <c- p>(</c-><c- n>info2</c-> <c- o>!=</c-> <c- mi>0</c-><c- p>)</c-> <c- p>{</c->
-      <c- k>return</c-> <c- n>info2</c-> <c- o>+</c-> <c- n>n1</c-><c- p>;</c->
+    <c- k>const</c-> <c- k>auto</c-> <c- n>info2</c-> <c- o>=</c-> <c- n>cholesky_factor</c-><c- p>(</c-><c- n>A22</c-><c- p>,</c-> <c- n>t</c-><c- p>);</c->
+    <c- k>if</c-> <c- p>(</c-><c- n>info2</c-><c- p>.</c-><c- n>has_value</c-><c- p>())</c-> <c- p>{</c->
+      <c- k>return</c-> <c- p>{</c-><c- n>info2</c-><c- p>.</c-><c- n>value</c-><c- p>()</c-> <c- o>+</c-> <c- n>n1</c-><c- p>};</c->
     <c- p>}</c->
   <c- p>}</c->
+
+  <c- k>return</c-> <c- n>nullopt</c-><c- p>;</c->
 <c- p>}</c->
 </pre>
    <h3 class="heading settled" data-level="17.2" id="solve-linear-system-using-cholesky-factorization"><span class="secno">17.2. </span><span class="content">Solve linear system using Cholesky factorization</span><a class="self-link" href="#solve-linear-system-using-cholesky-factorization"></a></h3>
    <p>This example shows how to solve a symmetric positive definite linear
 system Ax=b, using the Cholesky factorization computed in the previous
-example in-place in the matrix <code class="highlight"><c- n>A</c-></code>.  The example assumes that <code class="highlight"><c- n>cholesky_factor</c-><c- p>(</c-><c- n>A</c-><c- p>,</c-> <c- n>t</c-><c- p>)</c-></code> returned 0, indicating no zero or NaN pivots.</p>
+example in-place in the matrix <code class="highlight"><c- n>A</c-></code>.  The example assumes that <code class="highlight"><c- n>cholesky_factor</c-><c- p>(</c-><c- n>A</c-><c- p>,</c-> <c- n>t</c-><c- p>)</c-></code> returned <code class="highlight"><c- n>nullopt</c-></code>, indicating no zero or NaN pivots.</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>in_matrix_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>Triangle</c-><c- p>,</c->
          <c- n>class</c-> <c- n>in_vector_t</c-><c- p>,</c->
@@ -12285,19 +12291,22 @@ means that the matrix has many more rows than columns.</p>
 <pre class="language-c++ highlight"><c- c1>// Compute QR factorization A = Q R, with A storing Q.</c->
 <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>inout_matrix_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>out_matrix_t</c-><c- o>></c->
-<c- b>int</c-> <c- n>cholesky_tsqr_one_step</c-><c- p>(</c->
+<c- n>optional</c-><c- o>&lt;</c-><c- n>typename</c-> <c- n>inout_matrix_t</c-><c- o>::</c-><c- n>size_type</c-><c- o>></c->
+<c- n>cholesky_tsqr_one_step</c-><c- p>(</c->
   <c- n>inout_matrix_t</c-> <c- n>A</c-><c- p>,</c-> <c- c1>// A on input, Q on output</c->
   <c- n>out_matrix_t</c-> <c- n>R</c-><c- p>)</c->
 <c- p>{</c->
+  <c- n>using</c-> <c- n>size_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>inout_matrix_t</c-><c- o>::</c-><c- n>size_type</c-><c- p>;</c->
+
   <c- c1>// One might use cache size, sizeof(element_type), and A.extent(1)</c->
   <c- c1>// to pick the number of rows per block.  For now, we just pick</c->
   <c- c1>// some constant.</c->
-  <c- n>constexpr</c-> <c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>max_num_rows_per_block</c-> <c- o>=</c-> <c- mi>500</c-><c- p>;</c->
+  <c- n>constexpr</c-> <c- n>size_type</c-> <c- n>max_num_rows_per_block</c-> <c- o>=</c-> <c- mi>500</c-><c- p>;</c->
 
   <c- n>using</c-> <c- n>R_element_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>out_matrix_t</c-><c- o>::</c-><c- n>element_type</c-><c- p>;</c->
   <c- n>constexpr</c-> <c- n>R_element_type</c-> <c- n>ZERO</c-> <c- p>{};</c->
-  <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>j</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>j</c-> <c- o>&lt;</c-> <c- n>R</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> <c- o>++</c-><c- n>j</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>for</c-><c- p>(</c-><c- n>extents</c-><c- o>&lt;>::</c-><c- n>size_type</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>R</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
+  <c- k>for</c-><c- p>(</c-><c- n>size_type</c-> <c- n>j</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>j</c-> <c- o>&lt;</c-> <c- n>R</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> <c- o>++</c-><c- n>j</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>for</c-><c- p>(</c-><c- n>size_type</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>R</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
       <c- n>R</c-><c- p>[</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>]</c-> <c- o>=</c-> <c- n>ZERO</c-><c- p>;</c->
     <c- p>}</c->
   <c- p>}</c->
@@ -12307,7 +12316,7 @@ means that the matrix has many more rows than columns.</p>
   <c- k>auto</c-> <c- n>rest_num_rows</c-> <c- o>=</c-> <c- n>num_rows</c-><c- p>;</c->
   <c- k>auto</c-> <c- n>A_rest</c-> <c- o>=</c-> <c- n>A</c-><c- p>;</c->
   <c- k>while</c-><c- p>(</c-><c- n>A_rest</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>></c-> <c- mi>0</c-><c- p>)</c-> <c- p>{</c->
-    <c- k>const</c-> <c- n>ptrdiff</c-> <c- n>num_rows_per_block</c-> <c- o>=</c->
+    <c- k>const</c-> <c- n>size_type</c-> <c- n>num_rows_per_block</c-> <c- o>=</c->
       <c- n>min</c-><c- p>(</c-><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>),</c-> <c- n>max_num_rows_per_block</c-><c- p>);</c->
     <c- k>auto</c-> <c- n>A_cur</c-> <c- o>=</c-> <c- n>submdspan</c-><c- p>(</c-><c- n>A_rest</c-><c- p>,</c-> <c- n>pair</c-><c- p>{</c-><c- mi>0</c-><c- p>,</c-> <c- n>num_rows_per_block</c-><c- p>},</c-> <c- n>full_extent</c-><c- p>);</c->
     <c- n>A_rest</c-> <c- o>=</c-> <c- n>submdspan</c-><c- p>(</c-><c- n>A_rest</c-><c- p>,</c->
@@ -12321,13 +12330,13 @@ means that the matrix has many more rows than columns.</p>
                                    <c- n>R</c-><c- p>,</c-> <c- n>upper_triangle</c-><c- p>);</c->
   <c- p>}</c->
 
-  <c- k>const</c-> <c- b>int</c-> <c- n>info</c-> <c- o>=</c-> <c- n>cholesky_factor</c-><c- p>(</c-><c- n>R</c-><c- p>,</c-> <c- n>upper_triangle</c-><c- p>);</c->
-  <c- k>if</c-><c- p>(</c-><c- n>info</c-> <c- o>!=</c-> <c- mi>0</c-><c- p>)</c-> <c- p>{</c->
+  <c- k>const</c-> <c- k>auto</c-> <c- n>info</c-> <c- o>=</c-> <c- n>cholesky_factor</c-><c- p>(</c-><c- n>R</c-><c- p>,</c-> <c- n>upper_triangle</c-><c- p>);</c->
+  <c- k>if</c-><c- p>(</c-><c- n>info</c-><c- p>.</c-><c- n>has_value</c-><c- p>())</c-> <c- p>{</c->
     <c- k>return</c-> <c- n>info</c-><c- p>;</c->
   <c- p>}</c->
   <c- n>using</c-> <c- n>std</c-><c- o>::</c-><c- n>linalg</c-><c- o>::</c-><c- n>triangular_matrix_matrix_left_solve</c-><c- p>;</c->
   <c- n>triangular_matrix_matrix_left_solve</c-><c- p>(</c-><c- n>R</c-><c- p>,</c-> <c- n>upper_triangle</c-><c- p>,</c-> <c- n>A</c-><c- p>);</c->
-  <c- k>return</c-> <c- n>info</c-><c- p>;</c->
+  <c- k>return</c-> <c- n>nullopt</c-><c- p>;</c->
 <c- p>}</c->
 
 <c- c1>// Compute QR factorization A = Q R.  Use R_tmp as temporary R factor</c->
@@ -12336,7 +12345,8 @@ means that the matrix has many more rows than columns.</p>
          <c- n>class</c-> <c- n>out_matrix_1_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>out_matrix_2_t</c-><c- p>,</c->
          <c- n>class</c-> <c- n>out_matrix_3_t</c-><c- o>></c->
-<c- b>int</c-> <c- n>cholesky_tsqr</c-><c- p>(</c->
+<c- n>optional</c-><c- o>&lt;</c-><c- n>typename</c-> <c- n>out_matrix_1_t</c-><c- o>::</c-><c- n>size_type</c-><c- o>></c->
+<c- n>cholesky_tsqr</c-><c- p>(</c->
   <c- n>in_matrix_t</c-> <c- n>A</c-><c- p>,</c->
   <c- n>out_matrix_1_t</c-> <c- n>Q</c-><c- p>,</c->
   <c- n>out_matrix_2_t</c-> <c- n>R_tmp</c-><c- p>,</c->
@@ -12349,20 +12359,20 @@ means that the matrix has many more rows than columns.</p>
   <c- n>assert</c-><c- p>(</c-><c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-> <c- o>==</c-> <c- n>Q</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>));</c->
 
   <c- n>copy</c-><c- p>(</c-><c- n>A</c-><c- p>,</c-> <c- n>Q</c-><c- p>);</c->
-  <c- k>const</c-> <c- b>int</c-> <c- n>info1</c-> <c- o>=</c-> <c- n>cholesky_tsqr_one_step</c-><c- p>(</c-><c- n>Q</c-><c- p>,</c-> <c- n>R</c-><c- p>);</c->
-  <c- k>if</c-><c- p>(</c-><c- n>info1</c-> <c- o>!=</c-> <c- mi>0</c-><c- p>)</c-> <c- p>{</c->
+  <c- k>const</c-> <c- k>auto</c-> <c- n>info1</c-> <c- o>=</c-> <c- n>cholesky_tsqr_one_step</c-><c- p>(</c-><c- n>Q</c-><c- p>,</c-> <c- n>R</c-><c- p>);</c->
+  <c- k>if</c-><c- p>(</c-><c- n>info1</c-><c- p>.</c-><c- n>has_value</c-><c- p>())</c-> <c- p>{</c->
     <c- k>return</c-> <c- n>info1</c-><c- p>;</c->
   <c- p>}</c->
   <c- c1>// Use one step of iterative refinement to improve accuracy.</c->
-  <c- k>const</c-> <c- b>int</c-> <c- n>info2</c-> <c- o>=</c-> <c- n>cholesky_tsqr_one_step</c-><c- p>(</c-><c- n>Q</c-><c- p>,</c-> <c- n>R_tmp</c-><c- p>);</c->
-  <c- k>if</c-><c- p>(</c-><c- n>info2</c-> <c- o>!=</c-> <c- mi>0</c-><c- p>)</c-> <c- p>{</c->
+  <c- k>const</c-> <c- k>auto</c-> <c- n>info2</c-> <c- o>=</c-> <c- n>cholesky_tsqr_one_step</c-><c- p>(</c-><c- n>Q</c-><c- p>,</c-> <c- n>R_tmp</c-><c- p>);</c->
+  <c- k>if</c-><c- p>(</c-><c- n>info2</c-><c- p>.</c-><c- n>has_value</c-><c- p>())</c-> <c- p>{</c->
     <c- k>return</c-> <c- n>info2</c-><c- p>;</c->
   <c- p>}</c->
   <c- c1>// R = R_tmp * R</c->
   <c- n>using</c-> <c- n>std</c-><c- o>::</c-><c- n>linalg</c-><c- o>::</c-><c- n>triangular_matrix_left_product</c-><c- p>;</c->
   <c- n>triangular_matrix_left_product</c-><c- p>(</c-><c- n>R_tmp</c-><c- p>,</c-> <c- n>upper_triangle</c-><c- p>,</c->
                                  <c- n>explicit_diagonal</c-><c- p>,</c-> <c- n>R</c-><c- p>);</c->
-  <c- k>return</c-> <c- mi>0</c-><c- p>;</c->
+  <c- k>return</c-> <c- n>nullopt</c-><c- p>;</c->
 <c- p>}</c->
 </pre>
   </main>

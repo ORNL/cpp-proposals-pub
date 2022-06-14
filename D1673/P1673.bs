@@ -298,21 +298,17 @@ Date: 2022-06-15
 
 * Revision 9 (electronic), to be submitted 2022-06-15
 
+    * Apply to-be-submitted P0009R17 changes (see P2553 in particular)
+        to all layouts, accessors, and examples in this proposal.
+
     * Improve `triangular_matrix_matrix_{left,right}_solve()`
         "mathematical expression of the algorithm" wording.
 
-    * `layout_blas_general`: incorporate recent changes to P0009.
-
-    * `layout_blas_packed`
-
-        * Fix `required_span_size()` and `operator()` wording
-        * Incorporate recent changes to P0009
+    * `layout_blas_packed`: Fix `required_span_size()` and `operator()` wording
 
     * Make sure all definitions of lower and upper triangle are consistent.
 
     * Changes to `layout_transpose`:
-
-        * Incorporate recent changes to P0009.
 
         * Make `layout_transpose::mapping(const nested_mapping_type&)` constructor
             `explicit`, to avoid inadvertent transposition.
@@ -484,7 +480,7 @@ std::array<double, N> y_vec(N);
 
 mdspan A(A_vec.data(), N, M);
 mdspan x(x_vec.data(), M);
-mdspan<double, extents<N>> y(y_vec.data());
+mdspan y(y_vec.data(), N);
 
 for(int i = 0; i < A.extent(0); ++i) {
   for(int j = 0; j < A.extent(1); ++j) {
@@ -508,7 +504,11 @@ linalg::matrix_vector_product(std::execution::par,
 
 This example illustrates the ability to perform mixed-precision computations,
 and the ability to compute on subviews of a matrix or vector
-by using `submdspan`.
+by using `submdspan`.  (`submdspan` was separated from the rest of P0009
+as a way to avoid delaying the hopeful adoption of P0009 for C++23.
+However, the P0009 authors plan to pursue `submdspan`
+as a follow-on proposal as soon as possible.
+The reference implementation of `mdspan` includes `submdspan`.)
 
 ```c++
 constexpr size_t M = 40;
@@ -517,9 +517,9 @@ std::vector<float> A_vec(M*8*4);
 std::vector<double> x_vec(M*4);
 std::vector<double> y_vec(M*8);
 
-mdspan<float, extents<dynamic_extent, 8, 4>> A(A_vec.data(), M);
-mdspan<double, extents<4, dynamic_extent>> x(x_vec.data(), M);
-mdspan<double, extents<dynamic_extent, 8>> y(y_vec.data(), M);
+mdspan<float, extents<size_t, dynamic_extent, 8, 4>> A(A_vec.data(), M);
+mdspan<double, extents<size_t, 4, dynamic_extent>> x(x_vec.data(), M);
+mdspan<double, extents<size_t, dynamic_extent, 8>> y(y_vec.data(), M);
 
 for(size_t m = 0; m < A.extent(0); ++m) {
   for(size_t i = 0; i < A.extent(1); ++i) {
@@ -614,6 +614,11 @@ is where readers will find the normative wording we propose.
 Finally, Section <a href="#examples"><span class="secno">17</span></a>
 gives some more elaborate examples of linear algebra algorithms that use our proposal.
 The examples show how `mdspan`'s features let users easily describe "submatrices" with `submdspan`.
+(`submdspan` was separated from the rest of P0009
+as a way to avoid delaying the hopeful adoption of P0009 for C++23.
+However, the P0009 authors plan to pursue `submdspan`
+as a follow-on proposal as soon as possible.
+The reference implementation of `mdspan` includes `submdspan`.)
 This integrates naturally with "block" factorizations of matrices.
 The resulting notation is concise, yet still computes in place,
 without unnecessary copies of any part of the matrix.
@@ -1149,10 +1154,10 @@ omitting constraints on template parameters for simplicity.
 to a working example.)
 
 ```c++
-template<class Element, std::extents<>::size_type Extent,
+template<class Element, class Extents,
   class Layout, class Accessor>
-std::extents<>::size_type idx_abs_max(
-  std::mdspan<Element, std::extents<Extent>, Layout, Accessor> x)
+typename Extents::size_type idx_abs_max(
+  std::mdspan<Element, Extents, Layout, Accessor> x)
 {
   auto theRange = std::views::iota(size_t(0), x.extent(0)) |
     std::views::transform([=] (auto k) { return std::abs(x[k]); });
@@ -1160,7 +1165,7 @@ std::extents<>::size_type idx_abs_max(
     std::max_element(std::execution::par_unseq, theRange.begin(), theRange.end());
   auto indexOfMax = std::ranges::distance(theRange.begin(), iterOfMax);
   // In GCC 12.1, the return type is __int128.
-  return static_cast<extents<>::size_type>(indexOfMax);
+  return static_cast<typename Extents::size_type>(indexOfMax);
 }
 ```
 
@@ -3188,7 +3193,7 @@ on constraints wording.
     H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A. Iliopoulos,
     J. Michopoulos, and N. Liber,
     "`mdspan`," <a href="https://wg21.link/p0009r16">P0009R16</a>,
-    Mar. 2022.
+    Mar. 2022.  The authors anticipate release of R17 in the next mailing.
 
 * G. Davidson, M. Hoemmen, D. S. Hollman, B. Steagall, and C. Trott,
     <a href="https://wg21.link/p1891r0">P1891R0</a>, Oct. 2019.
@@ -3313,8 +3318,8 @@ on constraints wording.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R16.
-> (This proposal is a "rebase" atop the changes proposed by P0009R16.)
+> First, apply all wording from P0009R17.
+> (This proposal is a "rebase" atop the changes proposed by P0009R17.)
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -3633,10 +3638,10 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
 // [linalg.algs.blas1.iamax],
 // index of maximum absolute value of vector elements
 template<class in_vector_t>
-extents<>::size_type idx_abs_max(in_vector_t v);
+typename in_vector_t::extents_type idx_abs_max(in_vector_t v);
 template<class ExecutionPolicy,
          class in_vector_t>
-extents<>::size_type idx_abs_max(
+typename in_vector_t::extents_type idx_abs_max(
   ExecutionPolicy&& exec,
   in_vector_t v);
 
@@ -5559,21 +5564,21 @@ element of `x`.
 ```c++
 // z = alpha * x + y
 void z_equals_alpha_times_x_plus_y(
-  mdspan<double, extents<dynamic_extent>> z,
+  mdspan<double, dextents<size_t, 1>> z,
   const double alpha,
-  mdspan<double, extents<dynamic_extent>> x,
-  mdspan<double, extents<dynamic_extent>> y)
+  mdspan<double, dextents<size_t, 1>> x,
+  mdspan<double, dextents<size_t, 1>> y)
 {
   add(scaled(alpha, x), y, y);
 }
 
 // w = alpha * x + beta * y
 void w_equals_alpha_times_x_plus_beta_times_y(
-  mdspan<double, extents<dynamic_extent>> w,
+  mdspan<double, dextents<size_t, 1>> w,
   const double alpha,
-  mdspan<double, extents<dynamic_extent>> x,
+  mdspan<double, dextents<size_t, 1>> x,
   const double beta,
-  mdspan<double, extents<dynamic_extent>> y)
+  mdspan<double, dextents<size_t, 1>> y)
 {
   add(scaled(alpha, x), scaled(beta, y), w);
 }
@@ -5913,10 +5918,9 @@ public:
   template<class OtherElementType>
   accessor_scaled(ScalingFactor s, default_accessor<OtherElementType> a);
 
-  reference access(pointer p, extents<>::size_type i) const noexcept;
+  reference access(pointer p, size_t i) const noexcept;
 
-  offset_policy::pointer
-  offset(pointer p, extents<>::size_type i) const noexcept;
+  offset_policy::pointer offset(pointer p, size_t i) const noexcept;
 
   ScalingFactor scaling_factor() const;
 
@@ -5951,14 +5955,14 @@ accessor_scaled(ScalingFactor s, default_accessor<OtherElementType> a);
 * *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor_` with `a`.
 
 ```c++
-reference access(pointer p, extents<>::size_type i) const noexcept;
+reference access(pointer p, size_t i) const noexcept;
 ```
 
 * *Effects:* Equivalent to `return reference(scaling_factor_, accessor_.access(p, i));`.
 
 ```c++
 offset_policy::pointer
-offset(pointer p, extents<>::size_type i) const noexcept;
+offset(pointer p, size_t i) const noexcept;
 ```
 
 * *Effects:* Equivalent to `return accessor_.offset(p, i);`.
@@ -6033,7 +6037,7 @@ but `scaled((1 << 20) * (1 << 20), x)` would overflow `int`.
 
 [*Example:*
 ```c++
-void test_scaled(mdspan<double, extents<10>> x)
+void test_scaled(mdspan<double, extents<int, 10>> x)
 {
   auto x_scaled = scaled(5.0, x);
   for(int i = 0; i < x.extent(0); ++i) {
@@ -6158,11 +6162,11 @@ public:
   template<class OtherElementType>
   accessor_conjugate(default_accessor<OtherElementType> a);
 
-  reference access(pointer p, extents<>::size_type i) const
+  reference access(pointer p, size_t i) const
     noexcept(noexcept(reference(acc.access(p, i))));
 
   typename offset_policy::pointer
-  offset(pointer p, extents<>::size_type i) const
+  offset(pointer p, size_t i) const
     noexcept(noexcept(acc.offset(p, i)));
 
   Accessor nested_accessor() const;
@@ -6233,7 +6237,7 @@ with nonconst element type `T` and accessor `default_accessor<T>`,
 --*end note]*
 
 ```c++
-reference access(pointer p, extents<>::size_type i) const
+reference access(pointer p, size_t i) const
   noexcept(noexcept(reference(acc.access(p, i))));
 ```
 
@@ -6241,7 +6245,7 @@ reference access(pointer p, extents<>::size_type i) const
 
 ```c++
 typename offset_policy::pointer
-offset(pointer p, extents<>::size_type i) const
+offset(pointer p, size_t i) const
   noexcept(noexcept(acc.offset(p, i)));
 ```
 
@@ -6312,7 +6316,7 @@ where
 [*Example:*
 ```c++
 void test_conjugated_complex(
-  mdspan<complex<double>, extents<10>> a)
+  mdspan<complex<double>, extents<int, 10>> a)
 {
   auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
@@ -6325,7 +6329,7 @@ void test_conjugated_complex(
 }
 
 void test_conjugated_real(
-  mdspan<double, extents<10>> a)
+  mdspan<double, extents<int, 10>> a)
 {
   auto a_conj = conjugated(a);
   for(int i = 0; i < a.extent(0); ++i) {
@@ -6694,7 +6698,7 @@ return R(a.data(), a.mapping().nested_mapping(), a.accessor());
 
 [*Example:*
 ```c++
-void test_transposed(mdspan<double, extents<3, 4>> a)
+void test_transposed(mdspan<double, extents<size_t, 3, 4>> a)
 {
   const auto num_rows = a.extent(0);
   const auto num_cols = a.extent(1);
@@ -6705,8 +6709,8 @@ void test_transposed(mdspan<double, extents<3, 4>> a)
   assert(a.stride(0) == a_t.stride(1));
   assert(a.stride(1) == a_t.stride(0));
 
-  for(extents<>::size_type row = 0; row < num_rows; ++row) {
-    for(extents<>::size_type col = 0; col < num_rows; ++col) {
+  for(size_t row = 0; row < num_rows; ++row) {
+    for(size_t col = 0; col < num_rows; ++col) {
       assert(a[row, col] == a_t[col, row]);
     }
   }
@@ -6717,8 +6721,8 @@ void test_transposed(mdspan<double, extents<3, 4>> a)
   assert(a.stride(0) == a_t_t.stride(0));
   assert(a.stride(1) == a_t_t.stride(1));
 
-  for(extents<>::size_type row = 0; row < num_rows; ++row) {
-    for(extents<>::size_type col = 0; col < num_rows; ++col) {
+  for(size_t row = 0; row < num_rows; ++row) {
+    for(size_t col = 0; col < num_rows; ++col) {
       assert(a[row, col] == a_t_t[row, col]);
     }
   }
@@ -6750,7 +6754,7 @@ conjugate_transposed(
 [*Example:*
 ```c++
 void test_conjugate_transposed(
-  mdspan<complex<double>, extents<3, 4>> a)
+  mdspan<complex<double>, extents<size_t, 3, 4>> a)
 {
   const auto num_rows = a.extent(0);
   const auto num_cols = a.extent(1);
@@ -6761,8 +6765,8 @@ void test_conjugate_transposed(
   assert(a.stride(0) == a_ct.stride(1));
   assert(a.stride(1) == a_ct.stride(0));
 
-  for(extents<>::size_type row = 0; row < num_rows; ++row) {
-    for(extents<>::size_type col = 0; col < num_rows; ++col) {
+  for(size_t row = 0; row < num_rows; ++row) {
+    for(size_t col = 0; col < num_rows; ++col) {
       assert(a[row, col] == conj(a_ct[col, row]));
     }
   }
@@ -6773,8 +6777,8 @@ void test_conjugate_transposed(
   assert(a.stride(0) == a_ct_ct.stride(0));
   assert(a.stride(1) == a_ct_ct.stride(1));
 
-  for(extents<>::size_type row = 0; row < num_rows; ++row) {
-    for(extents<>::size_type col = 0; col < num_rows; ++col) {
+  for(size_t row = 0; row < num_rows; ++row) {
+    for(size_t col = 0; col < num_rows; ++col) {
       assert(a[row, col] == a_ct_ct[row, col]);
       assert(conj(a_ct[col, row]) == a_ct_ct[row, col]);
     }
@@ -7487,11 +7491,11 @@ auto vector_abs_sum(ExecutionPolicy&& exec,
 
 ```c++
 template<class in_vector_t>
-extents<>::size_type idx_abs_max(in_vector_t v);
+typename in_vector_t::size_type idx_abs_max(in_vector_t v);
 
 template<class ExecutionPolicy,
          class in_vector_t>
-extents<>::size_type idx_abs_max(
+typename in_vector_t::size_type	idx_abs_max(
   ExecutionPolicy&& exec,
   in_vector_t v);
 ```
@@ -7505,7 +7509,8 @@ extents<>::size_type idx_abs_max(
 
 * *Effects:* Returns the index (in the domain of `v`) of
     the first element of `v` having largest absolute value.  If `v` has
-    zero elements, then returns `numeric_limits<extents<>::size_type>::max()`.
+    zero elements, then returns
+    `numeric_limits<typename in_vector_t::size_type>::max()`.
 
 *[Note:*
 The `abs` function is invoked via unqualified lookup.
@@ -7764,32 +7769,32 @@ for all `j` such that `i,j` is in the domain of `A`.
 
 [*Example:*
 ```c++
-constexpr extents<>::size_type num_rows = 5;
-constexpr extents<>::size_type num_cols = 6;
+constexpr size_t num_rows = 5;
+constexpr size_t num_cols = 6;
 
 // y = 3.0 * A * x
 void scaled_matvec_1(
-  mdspan<double, extents<num_rows, num_cols>> A,
-  mdspan<double, extents<num_cols>> x,
-  mdspan<double, extents<num_rows>> y)
+  mdspan<double, extents<size_t, num_rows, num_cols>> A,
+  mdspan<double, extents<size_t, num_cols>> x,
+  mdspan<double, extents<size_t, num_rows>> y)
 {
   matrix_vector_product(scaled(3.0, A), x, y);
 }
 
 // y = 3.0 * A * x + 2.0 * y
 void scaled_matvec_2(
-  mdspan<double, extents<num_rows, num_cols>> A,
-  mdspan<double, extents<num_cols>> x,
-  mdspan<double, extents<num_rows>> y)
+  mdspan<double, extents<size_t, num_rows, num_cols>> A,
+  mdspan<double, extents<size_t, num_cols>> x,
+  mdspan<double, extents<size_t, num_rows>> y)
 {
   matrix_vector_product(scaled(3.0, A), x,
                         scaled(2.0, y), y);
 }
 
 // z = 7.0 times the transpose of A, times y
-void scaled_matvec_2(mdspan<double, extents<num_rows, num_cols>> A,
-  mdspan<double, extents<num_rows>> y,
-  mdspan<double, extents<num_cols>> z)
+void scaled_matvec_2(mdspan<double, extents<size_t, num_rows, num_cols>> A,
+  mdspan<double, extents<size_t, num_rows>> y,
+  mdspan<double, extents<size_t, num_cols>> z)
 {
   matrix_vector_product(scaled(7.0, transposed(A)), y, z);
 }
@@ -10829,21 +10834,26 @@ upper_triangular_t opposite_triangle(lower_triangular_t) {
   return {}
 }
 
+// Returns nullopt if no bad pivots,
+// else the index of the first bad pivot.
+// A "bad" pivot is zero or NaN.
 template<class inout_matrix_t,
          class Triangle>
-int cholesky_factor(inout_matrix_t A, Triangle t)
+optional<typename inout_matrix_t::size_type>
+cholesky_factor(inout_matrix_t A, Triangle t)
 {
-  using element_type = typename inout_matrix_t::element_type;
-  constexpr element_type ZERO {};
-  constexpr element_type ONE (1.0);
-  const auto n = A.extent(0);
+  using value_type = typename inout_matrix_t::value_type;
+  using size_type = typename inout_matrix_t::size_type;
+  constexpr value_type ZERO {};
+  constexpr value_type ONE (1.0);
+  const size_type n = A.extent(0);
 
   if (n == 0) {
-    return 0;
+    return std::nullopt;
   }
   else if (n == 1) {
     if (A[0,0] <= ZERO || isnan(A[0,0])) {
-      return 1;
+      return {size_type(1)};
     }
     A[0,0] = sqrt(A[0,0]);
   }
@@ -10851,14 +10861,14 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     // Partition A into [A11, A12,
     //                   A21, A22],
     // where A21 is the transpose of A12.
-    const extents<>::size_type n1 = n / 2;
-    const extents<>::size_type n2 = n - n1;
+    const size_type n1 = n / 2;
+    const size_type n2 = n - n1;
     auto A11 = submdspan(A, pair{0, n1}, pair{0, n1});
     auto A22 = submdspan(A, pair{n1, n}, pair{n1, n});
 
     // Factor A11
-    const int info1 = cholesky_factor(A11, t);
-    if (info1 != 0) {
+    const auto info1 = cholesky_factor(A11, t);
+    if (info1.has_value()) {
       return info1;
     }
 
@@ -10893,11 +10903,13 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
     }
 
     // Factor A22
-    const int info2 = cholesky_factor(A22, t);
-    if (info2 != 0) {
-      return info2 + n1;
+    const auto info2 = cholesky_factor(A22, t);
+    if (info2.has_value()) {
+      return {info2.value() + n1};
     }
   }
+
+  return nullopt;
 }
 ```
 
@@ -10906,7 +10918,7 @@ int cholesky_factor(inout_matrix_t A, Triangle t)
 This example shows how to solve a symmetric positive definite linear
 system Ax=b, using the Cholesky factorization computed in the previous
 example in-place in the matrix `A`.  The example assumes that
-`cholesky_factor(A, t)` returned 0, indicating no zero or NaN pivots.
+`cholesky_factor(A, t)` returned `nullopt`, indicating no zero or NaN pivots.
 
 ```c++
 template<class in_matrix_t,
@@ -10954,19 +10966,22 @@ means that the matrix has many more rows than columns.
 // Compute QR factorization A = Q R, with A storing Q.
 template<class inout_matrix_t,
          class out_matrix_t>
-int cholesky_tsqr_one_step(
+optional<typename inout_matrix_t::size_type>
+cholesky_tsqr_one_step(
   inout_matrix_t A, // A on input, Q on output
   out_matrix_t R)
 {
+  using size_type = typename inout_matrix_t::size_type;
+
   // One might use cache size, sizeof(element_type), and A.extent(1)
   // to pick the number of rows per block.  For now, we just pick
   // some constant.
-  constexpr extents<>::size_type max_num_rows_per_block = 500;
+  constexpr size_type max_num_rows_per_block = 500;
 
   using R_element_type = typename out_matrix_t::element_type;
   constexpr R_element_type ZERO {};
-  for(extents<>::size_type j = 0; j < R.extent(1); ++j) {
-    for(extents<>::size_type i = 0; i < R.extent(0); ++i) {
+  for(size_type j = 0; j < R.extent(1); ++j) {
+    for(size_type i = 0; i < R.extent(0); ++i) {
       R[i,j] = ZERO;
     }
   }
@@ -10976,7 +10991,7 @@ int cholesky_tsqr_one_step(
   auto rest_num_rows = num_rows;
   auto A_rest = A;
   while(A_rest.extent(0) > 0) {
-    const ptrdiff num_rows_per_block =
+    const size_type num_rows_per_block =
       min(A.extent(0), max_num_rows_per_block);
     auto A_cur = submdspan(A_rest, pair{0, num_rows_per_block}, full_extent);
     A_rest = submdspan(A_rest,
@@ -10990,13 +11005,13 @@ int cholesky_tsqr_one_step(
                                    R, upper_triangle);
   }
 
-  const int info = cholesky_factor(R, upper_triangle);
-  if(info != 0) {
+  const auto info = cholesky_factor(R, upper_triangle);
+  if(info.has_value()) {
     return info;
   }
   using std::linalg::triangular_matrix_matrix_left_solve;
   triangular_matrix_matrix_left_solve(R, upper_triangle, A);
-  return info;
+  return nullopt;
 }
 
 // Compute QR factorization A = Q R.  Use R_tmp as temporary R factor
@@ -11005,7 +11020,8 @@ template<class in_matrix_t,
          class out_matrix_1_t,
          class out_matrix_2_t,
          class out_matrix_3_t>
-int cholesky_tsqr(
+optional<typename out_matrix_1_t::size_type>
+cholesky_tsqr(
   in_matrix_t A,
   out_matrix_1_t Q,
   out_matrix_2_t R_tmp,
@@ -11018,19 +11034,19 @@ int cholesky_tsqr(
   assert(A.extent(1) == Q.extent(1));
 
   copy(A, Q);
-  const int info1 = cholesky_tsqr_one_step(Q, R);
-  if(info1 != 0) {
+  const auto info1 = cholesky_tsqr_one_step(Q, R);
+  if(info1.has_value()) {
     return info1;
   }
   // Use one step of iterative refinement to improve accuracy.
-  const int info2 = cholesky_tsqr_one_step(Q, R_tmp);
-  if(info2 != 0) {
+  const auto info2 = cholesky_tsqr_one_step(Q, R_tmp);
+  if(info2.has_value()) {
     return info2;
   }
   // R = R_tmp * R
   using std::linalg::triangular_matrix_left_product;
   triangular_matrix_left_product(R_tmp, upper_triangle,
                                  explicit_diagonal, R);
-  return 0;
+  return nullopt;
 }
 ```
