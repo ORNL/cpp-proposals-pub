@@ -1,0 +1,3007 @@
+---
+title: "`MDSPAN`"
+document: D0009r17
+date: today
+audience: LEWG
+author:
+  - name: Christian Trott 
+    email: <crtrott@sandia.gov>
+  - name: D.S. Hollman 
+    email: <me@dsh.fyi>
+  - name: Damien Lebrun-Grandie 
+    email: <lebrungrandt@ornl.gov>
+  - name: Mark Hoemmen 
+    email: <mark.hoemmen@gmail.com>
+  - name: Daniel Sunderland 
+    email: <dansunderland@gmail.com>
+  - name: H. Carter Edwards 
+    email: <hedwards@nvidia.com>
+  - name: Bryce Adelstein Lelbach 
+    email: <brycelelbach@gmail.com>
+  - name: Mauro Bianco 
+    email: <mbianco@cscs.ch>
+  - name: Ben Sander 
+    email: <ben.sander@amd.com>
+  - name: Athanasios Iliopoulos
+    affiliation: Computational Multiphysics System Lab., US Naval Research Laboratory, Washington, DC
+  - name: John Michopoulos 
+    affiliation: Computational Multiphysics System Lab., US Naval Research Laboratory, Washington, DC
+  - name: Nevin Liber
+    email: <nliber@anl.gov>
+toc: true
+---
+
+Special thanks to Tomasz Kaminski for invaluable help in preparing this paper for wording review.
+
+\pagebreak
+
+# Revision History
+
+#### Changes from R17
+
+- significant wording updates based on LWG feedback 
+- `submdspan` was moved into its own paper, allowing mdspan to go forward even if there is not enough time to review `submdspan`
+- Move wording change in paragraph 1 of [mdspan.extents.comp] from P2553 to P0009
+- Per LWG small group request, change [mdspan.layout.reqmts] to account for `extents::size_type` possibly being negative (these changes could also go in P2553, but they are harmless to leave in P0009); this means that the layout mapping requirements will not permit negative strides for any strided layout in general, not just `layout_stride`
+
+## P0009r17: 2022-04 Mailing
+
+#### Changes from R16
+
+- significant wording updates based on LWG feedback 
+- fixed precondition violation in submdspan when dealing with some types size 0 multi dim index spaces
+  - e.g. `submdspan(a,typle{a.extent(0),a.extent(0)})`
+  - thanks to sarah el kazdadi (<sarah.elkazdadi@gmail.com>) for pointing out this UB behavior
+
+## P0009r16: 2022-03 Mailing
+
+#### Changes from R15
+
+- significant wording updates based on LWG feedback 
+
+## P0009r15: 2022-02 Mailing
+
+#### Changes from R14
+- `mdspan::rank[_dynamic]` returns `size_t`
+- fix comparison operator for `layout_stride` to take strides into account.
+- fix `layout_stride` mapping `required_span_size`
+- Consistently use "`<`_expr_`>` is `true`" instead of "`<`*expr*`>` is true".
+- In the layout mappings' `operator()` *Effects* clauses, use only `index_sequence`and fix syntax error in `stride(P())`.
+- Replace various unary folds with binary to handle `extents<>`.
+- Consistently use `Extents::rank()` in layout mapping wording.
+- Typo in `mdspan::mapping_type`: `template mapping_type` should be `template mapping`.
+- `mdspan`'s `array` constructor calls `Extents`'s `array` constructor.
+- Clarify the value of `static_stride` for `submdspan`'s result.
+
+- Significant editorial changes based on LWG small-group review
+
+## P0009r14: 2021-11 Mailing
+
+#### LEWG Review 11/01/2021
+- ACTION: Maybe a default constructible accessor should imply default constructible spans.  Default constructible spans are important in many cases.
+  - done
+- ACTION: Make extents conditionally explicit when converting from dynamic to static extents.
+  - done
+- ACTION: Make layout and mdspan converting constructors conditionally explicit based upon the underlying types
+  - done
+- ACTION: constructing extents from std::array needs a deduction guide?
+  - not done: you can't do this since you can't use alias and you can't return a parameter pack
+- QUESTION: Extents parameter pack ctor needs to be explicit?  Deduction guide needs to be explicit?
+  - we made that change
+- QUESTION: submdspan constructor can take tuple<size_t, size_t> and get pair<size_t, size_t> for free (could add specific type for submdspan, so long as it can be converted from pair and tuple).
+  - we changed submdspan to take things convertible to `tuple<size_t, size_t>`
+- ACTION: needs feature test macro
+  - done
+- QUESTION: Can get rid of mdspan ctor takes pointer + array?  Can construct extent from array.  Disagreement on authors on this one.
+  - not done: would remove ctad from array
+- ACTION: Explore modifying the requirements on which extents need to be provided when constructing an mdspan or extents object.
+  - done
+  - Authors decided to enable construction from both dynamic extents only, and all extents (for both integer packs and arrays)
+  - Why from dynamic extents only:
+    - no redundant information
+    - precondition free constructor
+    - enables fully static extents mdspan construction from ptr only
+  - Why from all extents:
+    - no confusion what extent a given argument is associated with
+    - enables easier writing of certain types of generic code e.g.:
+      ```c++
+      template<class mds1_t, class mds2_t>
+      auto alloc_gemm_result(mds1_t mdspan1, mds2_t mdspan2) {
+         using return_t = mdspan<double,
+           Extents< mds1_t::extents_type::static_extent<0>,
+                    mds2_t::extents_type::static_extent<1>>;
+         double* ptr = new double[mdspan1.extent(0)*mdspan2.extent(1)];
+         return return_t(ptr, mdspan1.extent(0), mdspan2.extent(1));
+       }
+       ```
+
+#### Changes from R13
+
+- changes to harmonize with `std::span`
+  - made `extents` converting constructor conditionally explicit, for cases where dynamic extents are turned into static extents
+  - made convertibility of `default_accessor` depend on convertibility of `element_type(*)[]` instead of `pointer` to prevent derived class to base class assignment
+  - remove converting assignment operators throughout
+- made layout mapping converting constructors conditionally explicit, depending on `extents` being not implicitly convertible
+- made `mdspan` converting constructor conditionally explicit, for cases where any of the exposition only members or the template
+parameters are only explicitly convertible
+- Improve submdspan wording
+  - the wording defines more clearly how the submdspan is constructed, not just through ensures
+- made layout wording style consistent
+- don't require default constructibility from accessors and mappings (still require it for pointer though)
+- fixed layout_stride conversion construction
+- made deduction guide from integers for extents/mdspan explicit
+- tweaked constraints on mdspan to not include element type and the full extents 
+  - left pointer, since mdspan converts those in its converting constructor
+  - also left some specific constraints regarding extents to prevent custom layouts from
+    changing rank or assigning different sized static extents
+- add feature test macro
+- accept `tuple` instead of `pair` for subslice arguments in `submdspan`.
+- remove `mdspan::unique_size`
+- fix `layout_stride` constructor to be flexible with integral types of strides array
+- make `extents` and `mdspan` constructors accept either `rank_dynamic` or `rank` integer arguments (or an `array` of that size)
+- remove mdspan trivially default constructible clause: it never is because we value initialize pointer inline
+- remove *nonowning* word from mdspan description: there is not really a reason to have it. Would allow `shared_ptr` as `pointer`
+- allow conversion for 1D `layout_left` to `layout_right` and vice versa
+- allow implicit conversion for rank-0 `layout_left`, `layout_right`, and `layout_stride` to each other
+
+## P0009r13: 2021-10 Mailing
+
+LEWG reviewed P0009r12 together with P2299r3 on 2021-06-08.
+
+<b>LEWG Poll</b> Approve the direction of P2299R3 and merge it into P0009.
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 12 </td>
+<td> 6 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+Attendance: 25; Number of authors: 1 [presumably for P2299, as P0009 coauthors were also attending]; Author's Position: SF.
+
+- Incorporated changes proposed by P2299r3
+  - Added `dextents` alias
+  - Removed `mdspan` alias and renamed `basic_mdspan` to `mdspan`
+    (which is now a class type, not an alias).
+    This undoes a change introduced in P0009r6.
+    P2299r3 explains the rationale.
+    Existing code using the `mdspan` alias will need to change
+    by replacing the list of extents template arguments with a single `extents` type.
+  - Added `mdspan` deduction guides
+  - As needed for deduction guides, added `layout_type` alias
+    to layout mapping requirements and to `layout_left`, `layout_right`, and `layout_stride`
+- Adapted new LWG wording guidelines by replacing "Expects" with "Preconditions"
+- Minor formatting corrections
+- Added design discussion as requested by LEWG
+- Remove unconditional `noexcept` from `mdspan`
+- Fix layout `required_span_size` for rank-0 mdspan
+- Fix `layout_stride::required_span_size` for mdspans with at least one extent being zero
+- Use `operator[]` in `mdspan` for multidimensional array access,
+  and add explanation to Discussion section
+- Remove reference to `span` in the `mdspan` wording,
+  since `mdspan` does not necessarily require a backing `span`
+  (because `pointer` need not be `ElementType*`)
+- added conversion constructor for strided and unique layouts to `layout_stride`
+- added constructor for `mdspan` from `pointer` and `extents`
+- added requirement for layout policy mapping to be nothrow move constructible and assignable
+- added requirement for accessor policy to be nothrow move constructible and assignable
+- added requirement for accessor policy pointer to be nothrow move constructible and assignable
+- remove throws nothing clauses from mdspan and submdspan.
+
+## P0009r12: post 2021-05 Mailing
+- Fixed definition of `static_extent`
+- Added converting constructor for `default_accessor` (when the pointers to
+  elements are convertible) for things like `default_accessor<double>` to `default_accessor<const double>`
+- Changed [mdspan.accessor.basic] to [mdspan.accessor.default], to correspond with the name change
+  in P0009r11
+- Minor formatting corrections
+
+## P0009r11: 2021-05 Mailing
+
+- Ask LEWG to poll on targeting P0009 for C++23
+- Change all the sizes from `ptrdiff_t` to `size_t` and `index_type` to `size_type`,
+  for consistency with `span` and the rest of the standard library`
+- Renamed `IndexType` to `SizeType` or `SizeTypes` (depending if it is a single
+  type or a parameter pack)
+- Changed comparisons to hidden friends
+- Explicitly mention which types are trivially copyable or empty.  This is important as
+  a major intended use case for this is heterogeneous computing.
+  A trivially copyable is heavily used as a proxy for types which can be copied between a host (such as a CPU)
+  and a device (such as a GPU) or between two devices by just copying the bytes which make up the object
+  representation of the type.
+  If they are not trivially copyable, heterogeneous computing would not be able to use these types as vocabulary types.
+- State the conditions that make `basic_mdspan` trivially default constructible
+- In `layout_*` types, made `operator()` and `stride()` constexpr
+- In `layout_stride`, made assignment operators and `required_span_size()` constexpr
+  to match the other `layout_*` types
+- Renamed `subspan` to `submdspan`, as this only applies to `mdspan`
+- Made `submdspan()` constexpr
+- Tweak the wording of `is_strided`
+- Renamed `all_type` to `full_extent_t` and `all` to `full_extent`
+- Renamed `accessor_basic` to `default_accessor`
+- Removed accessor policy `decay(p)` member function as it was an artifact 
+  from an earlier version of this proposal when `basic_mdspan` had a `span()`
+  member function that returned a `std::span`
+- Removed `span()` from [mdspan.basic.members] description as `.span()` was removed
+  from an earlier version of this proposal
+
+## P0009r10: Pre 2020-02-Prague Mailing
+
+- Switched to  mpark/wg21 pandoc format
+- Add general description of span and mdspan
+- Removed `mdspan_subspan` expo only type; use `basic_mdspan<`*see below*`>` instead
+- Fixed typos in accessor table
+- Made editorial changes to wording based on San Diego feedback
+- Updated operational semantics subsection heading based on new style guidelines
+
+
+## P0009r9: Pre 2019-02-Kona Mailing
+
+- Wording fixes based on guidance: [LWG small group at 2018-11-SanDiego](http://wiki.edg.com/bin/view/Wg21sandiego2018/SanDiego2018P0009)
+
+## P0009r8: Pre 2018-11-SanDiego Mailing
+
+- Refinement based upon updated [prototype](https://github.com/ORNL/cpp-proposals-pub/blob/master/P0009/prototype) / reference implementation
+
+## P0009r7: Post 2018-06-Rapperswil Mailing
+
+- wording reworked based on guidance: [LWG review at 2018-06-Rapperswil](http://wiki.edg.com/bin/view/Wg21rapperswil2018/LWGSatAM)
+- usage of `span` requires reference to C++20 working draft
+- namespace for library TS `std::experimental::fundamentals_v3`
+
+## P0009r6 : Pre 2018-06-Rapperswil Mailing
+
+P0009r5 was not taken up at 2018-03-Jacksonville meeting. Related [LEWG
+review of P0900 at 2018-03-Jacksonville
+meeting](http://wiki.edg.com/bin/view/Wg21jacksonville2018/P0900)
+
+<b>LEWG Poll</b> We want the ability to customize the access to elements
+of span (ability to restrict, etc):
+
+```c++
+span<T, N, Accessor=...>
+```
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1 </td>
+<td> 1 </td>
+<td> 1 </td>
+<td> 2 </td>
+<td> 8 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG Poll</b> We want the customization of `basic_mdspan` to be two
+concepts `Mapper` and `Accessor` (akin to `Allocator` design).
+
+```c++
+basic_mdspan<T, Extents, Mapper, Accessor>
+mdspan<T, N...>
+```
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 3 </td>
+<td> 4 </td>
+<td> 5 </td>
+<td> 1 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG Poll</b>: We want the customization of `basic_mdspan` to be an
+arbitrary (and potentially user-extensible) list of properties.
+
+```c++
+basic_mdspan<T, Extents, Properties...>
+```
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1 </td>
+<td> 2 </td>
+<td> 2 </td>
+<td> 6 </td>
+<td> 2 </td>
+</tr>
+</tbody>
+</table>
+
+<b>Changes from P0009r5 due to related LEWG reviews</b>:
+
+-   Replaced variadic property list with *extents*, *layout mapping*,
+    and *accessor* properties.
+-   Incorporated [P0454r1](https://wg21.link/P0454r1).
+    -   Added accessor policy concept.
+    -   Renamed `mdspan` to `basic_mdspan`.
+    -   Added a `mdspan` alias to `basic_mdspan`.
+
+## P0009r5 : Pre 2018-03-Jacksonville Mailing
+
+[LEWG review of P0009r4 at 2017-11-Albuquerque
+meeting](http://wiki.edg.com/bin/view/Wg21albuquerque/P0009)
+
+<b>LEWG Poll</b>: We should be able to index with `span<int type[N]>` (in
+addition to array).
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 2 </td>
+<td>11</td>
+<td> 1 </td>
+<td> 1 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+Against comment - there is not a proven needs for this feature.
+
+<b>LEWG Poll</b>: We should be able to index with 1d `mdspan`.
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 0 </td>
+<td> 8 </td>
+<td> 7 </td>
+<td> 0 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG Poll</b>: We should put the requirement on "rank() <= N" back to
+"rank()==N".
+
+*Unanimous consent*
+
+<b>LEWG Poll</b>: With the editorial changes from small group, plus the
+above polls, forward this to LWG for Fundamentals v3.
+
+*Unanimous consent*
+
+<b>Changes from P0009r4</b>:
+
+-   Removed nullptr constructor.
+-   Added constexpr to indexing operator.
+-   Indexing operator requires that `rank()==sizeof...(indices)`.
+-   Fixed typos in examples and moved them to appendix.
+-   Converted note on how extentions to access properties may cause
+    reference to be a proxy type to an "see below" to make it
+    normative.
+
+## P0009r4 : Pre 2017-11-Albuquerque Mailing
+
+[LEWG review at 2017-03-Kona meeting](http://wiki.edg.com/bin/view/Wg21kona2017/P0009)
+
+[LEWG review of P0546r1 at 2017-03-Kona meeting](http://wiki.edg.com/bin/view/Wg21kona2017/P0546)
+
+<b>LEWG Poll</b>: Should we have a single template that covers both single
+and multi-dimensional spans?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 1 </td>
+<td> 6 </td>
+<td> 2 </td>
+<td> 6 </td>
+<td> 3 </td>
+</tr>
+</tbody>
+</table>
+
+<b>Changes from P0009r3</b>:
+
+-   Align with P0122r5 span [proposal](https://wg21.link/P0122r5).
+-   Rename to `mdspan`, multidimensional span, to align with `span`.
+-   Move preferred array extents mechanism to appendix.
+-   Expose codomain as a `span`.
+-   Add layout mapping concept.
+
+## P0009r3 : Post 2016-06-Oulu Mailing
+
+[LEWG review at 2016-06-Oulu](http://wiki.edg.com/bin/view/Wg21oulu/P0009)
+
+LEWG did not like the name `array_ref`, and suggested the following
+alternatives: - `sci_span` - `numeric_span` - `multidimensional_span` -
+`multidim_span` - `mdspan` - `md_span` - `vla_span` - `multispan` -
+`multi_span`
+
+<b>LEWG Poll</b>: Are member `begin()`/`end()` still good?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td> 2 </td>
+<td> 4 </td>
+<td> 3 </td>
+<td> 1 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG Poll</b>: Want this proposal to provide range-producing functions
+outside `array_ref`?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 0 </td>
+<td> 1 </td>
+<td> 3 </td>
+<td> 2 </td>
+<td> 3 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG Poll</b>: Want a separate proposal to explore iteration design
+space?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 9 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+<b>Changes from P0009r2</b>:
+
+-   Removed iterator support; a future paper will be written on the
+    subject.
+-   Noted difference between multidimensional array versus language's
+    array-of-array-of-array...
+-   Clearly describe requirements for the embedded type aliases
+    (`element_type`, `reference`, etc).
+-   Expanded description of how the variadic properties list would
+    work.
+-   Stopped allowing `array_ref<T[N]>` in addition to
+    `array_ref<extents<N>>`.
+-   Clarified domain, codomain, and domain -> codomain mapping
+    specifications.
+-   Consistently use *extent* and *extents* for the multidimensional
+    index space.
+
+## P0009r2 : Pre 2016-06-Oulu Mailing
+
+[LEWG review at 2016-02-Jacksonville](http://wiki.edg.com/bin/view/Wg21jacksonville/P0009).
+
+<b>Changes from P0009r1</b>:
+
+-   Adding details for extensibility of layout mapping.
+-   Move motivation, examples, and relaxed incomplete array type
+    proposal to separate papers.
+    -   [P0331: Motivation and Examples for Polymorphic
+        Multidimensional Array](https://wg21.link/P0331).
+    -   [P0332: Relaxed Incomplete Multidimensional Array Type
+        Declaration](https://wg21.link/P0332).
+
+## P0009r1 : Pre 2016-02-Jacksonville Mailing
+
+[LEWG review at 2015-10-Kona](http://wiki.edg.com/bin/view/Wg21kona2015/P0009).
+
+<b>LEWG Poll</b>: What should this feature be called?
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>#</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>view</code></td>
+<td> 5 </td>
+</tr>
+<tr>
+<td><code>span</code></td>
+<td> 9 </td>
+</tr>
+<tr>
+<td><code>array_ref</code></td>
+<td> 6 </td>
+</tr>
+<tr>
+<td><code>slice</code></td>
+<td> 6 </td>
+</tr>
+<tr>
+<td><code>array_view</code></td>
+<td> 6 </td>
+</tr>
+<tr>
+<td><code>ref</code></td>
+<td> 0 </td>
+</tr>
+<tr>
+<td><code>array_span</code></td>
+<td> 7 </td>
+</tr>
+<tr>
+<td><code>basic_span</code></td>
+<td> 1 </td>
+</tr>
+<tr>
+<td><code>object_span</code></td>
+<td> 3 </td>
+</tr>
+<tr>
+<td><code>field</code></td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG Poll</b>: Do we want 0-length static extents?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 3 </td>
+<td> 4 </td>
+<td> 2 </td>
+<td> 3 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG POLL</b>: Do we want the language to support syntaxes like
+`X[3][][][5]`?
+
+<table>
+<thead>
+<tr>
+<th>Syntax</th>
+<th>#</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>view&lt;int[3][0][][5], property1&gt;</code></td>
+<td>12</td>
+</tr>
+<tr>
+<td><code>view&lt;int, dimension&lt;3, 0, dynamic_extent, 5&gt;, property1&gt;</code></td>
+<td> 4 </td>
+</tr>
+<tr>
+<td><code>view&lt;int[3][0][dynamic_extent][5], property1&gt;</code></td>
+<td> 5 </td>
+</tr>
+<tr>
+<td><code>view&lt;int, 3, 0, dynamic_extent, 5, property1&gt;</code></td>
+<td> 4 </td>
+</tr>
+<tr>
+<td><code>view&lt;int, 3, 0, dynamic_extent, 5, properties&lt;property1&gt;&gt;</code></td>
+<td> 2 </td>
+</tr>
+<tr>
+<td><code>view&lt;arr&lt;int, 3, 0, dynamic_extent, 5&gt;, property1&gt;</code></td>
+<td> 4 </td>
+</tr>
+<tr>
+<td><code>view&lt;int[3][0][][5], properties&lt;property1&gt;&gt;</code></td>
+<td> 9 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG POLL</b>: Do we want the variadic property list in template args
+(either raw or in `properties<>`)? Note there is no precedence for this
+in the library.
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 3 </td>
+<td> 6 </td>
+<td> 3 </td>
+<td> 0 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG POLL</b>: Do we want the per-view bounds-checking knob?
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 3 </td>
+<td> 4 </td>
+<td> 1 </td>
+<td> 2 </td>
+<td> 1 </td>
+</tr>
+</tbody>
+</table>
+
+<b>Changes from P0009r0</b>:
+
+-   Renamed `view` to `array_ref`.
+-   How are users allowed to add properties? Needs elaboration in
+    paper.
+-   `view<int[][][]>::layout` should be named.
+-   Rename `is_regular` (possibly to `is_affine`) to avoid overloading
+    the term with the `Regular` concept.
+-   Make static span(), operator(), constructor, etc variadic.
+-   Demonstrate the need for improper access in the paper.
+-   In `operator()`, take integral types by value.
+
+## P0009r0 : Pre 2015-10-Kona Mailing
+
+Original non-owning multidimensional array reference (`view`) paper with
+motivation, specification, and examples.
+
+## Related Activity
+
+Related [LEWG review of P0546r1 at 2017-11-Albuquerque meeting](http://wiki.edg.com/bin/view/Wg21albuquerque/P0546)
+
+<b>LEWG Poll</b>: `span` should specify the dynamic extent as the element
+type of the first template parameter rather than the (current) second
+template parameter
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> 5 </td>
+<td> 3 </td>
+<td> 2 </td>
+<td> 2 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+<b>LEWG Poll</b>: `span` should support the addition of access properties
+variadic template parameters
+
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>10</td>
+<td> 1 </td>
+<td> 5 </td>
+<td> 0 </td>
+</tr>
+</tbody>
+</table>
+
+Authors agreed to bring a separate paper
+([[P0900r0]]) discussing how the variadic
+properties will work.
+
+# Description
+
+## What we propose to add
+
+This paper proposes adding to the C++ Standard Library
+a multidimensional array view, `mdspan`,
+along with classes, class templates, and constants
+for describing and creating multidimensional array views.
+It also proposes adding the `submdspan` function that "slices"
+(returns an `mdspan` that views a subset of) an existing `mdspan`.
+
+The `mdspan` class template can represent arbitrary mixes
+of compile-time or run-time extents.
+Its element type can be any complete object type
+that is neither an abstract class type nor an array type.
+It has two customization opportunities for users:
+the *layout mapping* and the *accessor*.
+The layout mapping specifies the formula, and properties of the formula,
+for mapping a multidimensional index to an element of the array.
+The accessor governs how elements are read and written.
+
+## Definitions
+
+A *multidimensional array view* views a multidimensional array,
+just as a `span` views a one-dimensional `array` or `vector`.
+
+A *multidimensional array* of *rank* <math>R</math>
+maps from a tuple of <math>R</math> indices to a single offset index.
+Each of the <math>R</math> indices in the tuple
+is in a bounded range whose inclusive lower bound is zero,
+and whose nonnegative exclusive upper bound is that index's *extent*.
+The array thus has <math>R</math> extents.
+The offset index ranges over a subset of a bounded contiguous index range
+whose lower bound is zero,
+and whose upper bound is the product of the <math>R</math> extents.
+
+More formally, a multidimensional array of rank <math>R</math>
+maps from its *domain*, a multidimensional index space of rank <math>R</math>,
+to its *codomain*, a set of objects accessible from a contiguous range of integer indices.
+A *multidimensional index space* of rank <math>R</math>
+is the Cartesian product
+<math>[0, N<sub>0</sub>) &#10799; [0, N<sub>1</sub>) &#10799; ... &#10799; [0, N<sub>R-1</sub>)</math>
+of half-open integer intervals,
+where the <math>N<sub>k</sub></math> for <math>k = 0</math>, ..., <math>R-1</math>
+are the array's extents.
+A *multidimensional index*
+is a element of a multidimensional index space.
+
+## Why do we need multidimensional arrays?
+
+Multidimensional arrays are fundamental concepts in many fields,
+including graphics, mathematics, statistics, engineering, and the sciences.
+Many programming languages thus come with multidimensional array data structures
+either as a core language feature,
+or as a tightly integrated standard library.
+Example languages include
+Ada, ANSI Common Lisp, APL, C#, Fortran, Julia, Matlab, Mathematica,
+Pascal, Python (via NumPy), and Visual Basic.
+The original version of the Fortran language for the IBM 704
+featured arrays with one, two, or three extents (Backus 1956, pp. 10-11).
+
+Multidimensional arrays have long been useful
+for representing large amounts of data,
+describing points in physical space,
+or expressing approximations of functions.
+They are a natural way to represent mathematical objects like matrices and tensors.
+This makes multidimensional arrays a critical data structure for many computations
+at the heart of modern machine learning.
+In fact, one of the predominant machine learning frameworks
+is called [TensorFlow](https://www.tensorflow.org/).
+
+## Why are existing C++ data structures not enough?
+
+C++ currently has the following approaches
+that could be used to represent multidimensional arrays:
+
+1. "native" arrays where all the extents are compile-time constants,
+  like `int[3][4][5]`;
+
+2. pointer-of-pointers(-of-pointers...), like `int***`,
+  set up as a data structure to view multidimensional data;
+
+3. arrays-of-arrays(-of-arrays...) data structures,
+  like `vector<vector<array<int, N>>>`; or
+
+4. `gslice`, which selects a subset of indices of a `valarray`
+  and can be used to impose a multidimensional array layout
+  on the `valarray`, in a way analogous to `layout_stride`.
+
+If a multidimensional array has any extents
+that are not known at compile time, Approach (1) does not work.
+
+Approach (2) does not suffice as a stand-alone data structure,
+because a pointer-of-pointers does not carry along
+the array's run-time extents.
+Users thus end up building some subset of `mdspan`'s functionality
+to represent a multidimensional array view.
+Every run-time extent other than the rightmost
+requires a separate memory allocation for an array of pointers.
+A pointer-of-pointers also loses information
+about any dimensions known at compile time.
+Users cannot arbitrarily mix compile-time and run-time extents.
+
+Approach (3) can mix `vector` and `array` to represent extents
+known at run time resp. compile time.
+However, any use of `vector` at any position other than the outermost
+results in the data structure no longer having
+a contiguous memory allocation (or a subset thereof) for the elements.
+This makes the data structure incompatible with many libraries
+that expect a subset of a contiguous allocation.
+Also, every run-time extent other than the rightmost
+requires a separate memory allocation for an array of arrays.
+In addition, each element access requires reading
+multiple memory locations ("pointer chasing").
+Finally, the inlining depth for an element access
+is proportional to the array's rank.
+
+Approach (4) is meant for addressing many elements of a `valarray` all at once.
+Even though `valarray` itself is a one-dimensional array,
+one can use `gslice` to make the `valarray` represent multidimensional data.
+Giving a `gslice` to `valarray::operator[]` returns something that references
+a subset of elements of the original `valarray`.
+However, the result (a `gslice_array` in the nonconst case,
+some type that might be an expression template in the const case)
+is not guaranteed to have an `operator[]`.
+Thus, it's not a view, whereas our proposed `submdspan` function
+always takes and returns a view.
+In the const case, the result might even be a (deep) copy of the input.
+Finally, `gslice` offers no efficient way to address a single element.
+The `gslice` constructor takes strides and lengths as `valarray`s
+and is meant for array-based computation.
+Accessing a single element requires accessing
+the memory of three `valarray`s.
+
+## Mixing compile-time and run-time extents
+
+The fundamental reason to allow expressing extents at compile time is performance.
+Knowing an extent at compile time enables many compiler optimizations,
+such as unrolling and precomputing of offsets.
+These can significantly improve the generated code.
+Not storing extents at run time
+may help conserve registers and stack space.
+
+In many fields, some extents are naturally known at compile time.
+For many physics and engineering algorithms,
+some extents are dictated by fundamental properties of the physical world
+or the discretization scheme.
+For example, the position of a particle in space
+requires a rank-3 array, since physical space has three dimensions.
+At the same time, other extents are only known at run time,
+such as the number of particles in a simulation.
+A natural data structure for storing a list of particles
+would thus be a rank-2 array,
+where the one run-time extent is the number of particles
+and the one compile-time extent is three.
+In graphics, some of the most fundamental objects are square matrices
+with 2, 3, or 4 rows and columns.
+The number of matrices with which one would like to compute
+might only be known at run time.
+This would make a rank-3 array with two compile-time extents
+a natural data structure for the matrices.
+
+## Why custom memory layouts?
+
+Our `mdspan` class template permits custom layouts.
+Our proposal comes with three memory layouts:
+
+* `layout_right`: C or C++ style, row major,
+  where the rightmost index gives stride-1 access to the underlying memory;
+
+* `layout_left`: Fortran or Matlab style, column major,
+  where the leftmost index gives stride-1 access to the underlying memory;
+
+* `layout_stride`: a generalization of the two layouts above,
+  which stores a separate stride (possibly not one) for each extent.
+
+"Custom" layouts besides these could include space-filling curves or "tiled" layouts.
+
+An important reason we allow different layouts is language interoperability.
+For example, C++ and Fortran have different "native" layouts.
+Python's NumPy arrays have a configurable layout,
+to provide compatibility with both languages.
+
+Control of the layout can also be used to write code
+that performs well on different computer architectures
+when only changing a template argument.
+Consider the following implementation of a parallel dense matrix-vector product.
+
+
+
+```c++
+using layout = /* see-below */;
+
+std::mdspan<double, std::extents<N, M>, layout> A = ...;
+std::mdspan<double, std::extents<N>> y = ...;
+std::mdspan<double, std::extents<M>> x = ...;
+
+std::ranges::iota_view range{0, N};
+
+std::for_each(std::execution::par_unseq, 
+  std::ranges::begin(range), std::ranges::end(range),
+  [=](int i) {
+     double sum = 0.0;
+     for(int j = 0; j < M; ++j) {
+       sum += A[i, j] * x[j];
+     }
+     y[i] = sum;
+  });
+
+```
+
+On conventional CPU architectures,
+this code performs well with `layout = layout_right`,
+the native C++ row-major layout.
+However, when offloading the `for_each` to NVIDIA GPUs
+(which NVIDIA's `nvc++` compiler can do),
+`layout = layout_left` (Fortran's column-major layout) performs much better,
+since it enables coalesced data access on the matrix `A`.
+
+However, it is not enough to have just C++ and Fortran memory mappings.
+For instance, one way to compute tensor products is to decompose them
+into many matrix-matrix multiplications.
+The resulting decomposition may involve matrices with non-unit strides in both extents.
+This means that they have neither a row-major nor a column-major layout.
+
+More complex layouts can improve performance significantly for some algorithms.
+For instance, tiling (a "matrix of small matrices" layout)
+can improve data locality for many computations
+relevant to linear algebra and the discretization of partial differential equations.
+Tiled layouts can also improve vectorization.
+For example, Intel's Math Kernel Library introduced the Vectorized Compact Routines.
+These provide "batched" matrix operations that increase available parallelism
+by operating on many matrices at once.
+The Vectorized Compact Routines accept matrices in an "interleaved" layout
+that optimizes vectorized memory access.
+
+Another design goal for our custom layouts is to permit nonunique layouts.
+A *nonunique* layout lets multiple index tuples refer to the same element.
+This can save memory for data structures that have natural symmetry.
+For example, if `A` is a symmetric matrix,
+then `A[i, j]` and `A[j, i]` refer to the same element,
+so the element can and should only be stored once.
+
+## Why custom accessors?
+
+Custom accessors can provide information to the compiler,
+or permit the injection of special ways of doing data access.
+Most hardware today has more ways to access data than simple reads and writes.
+For example, some instructions affect caching behavior,
+by making loads and/or stores nontemporal (not cached at some level)
+or even noncoherent.
+Other instructions implement atomic access.
+This is why several of us proposed `atomic_ref`,
+as the heart of an "atomic accessor" for `mdspan`.
+C's `restrict` qualifier conveys whether an array is assumed
+never to alias another array in some context.
+The `volatile` keyword is yet another qualifier
+which limits compiler optimizations around data access.
+Custom `mdspan` accessors can apply `restrict`
+(if the C++ implementation supports this extension)
+or `volatile` to array accesses.
+
+Custom accessors also address concerns relating to heterogeneous memory.
+Standard C++ does not have the idea of
+"memory spaces that normal code cannot access,"
+but many extensions to C++ do have this idea.
+For example, a custom accessor could convey accessibility by CPU or GPU threads,
+so that the compiler would prevent users from accessing GPU memory
+while running on the CPU, or vice versa.
+Multiple memory spaces occur in programming models other than for GPUs.
+For example, "partitioned global address space" models
+have a "global shared memory" that requires special operations to access.
+C++ libraries like [Kokkos](https://github.com/kokkos/kokkos)
+expose access to such memory using an analog of a custom accessor.
+Other accessors could expose an array interface
+to a persistent storage device that is not directly byte addressable.
+We do not propose such accessors here,
+but this is a customization point third-party libraries could directly use,
+and is available for any future extensions of the C++ standard
+for supporting heterogeneous memory.
+
+For a discussion of the idea of accessors and several examples,
+please see (Keryell and Falcou 2016).
+
+## Subspan Support
+
+A critical feature of this proposal is `submdspan`,
+the subspan or "slicing" function
+that returns a view of a subset of an existing `mdspan`.
+The result may have any rank up to and including the rank of the input.
+All of the aforementioned languages with multidimensional array support
+provide subspan capabilities.
+Subspans are important because they enable code reuse.
+For example, the inner loop in the dense matrix-vector product described above
+actually represents a *dot product* -- an inner product of two vectors.
+If one already has a function for such an inner product,
+then a natural implementation would simply reuse that function.
+The LAPACK linear algebra library depends on subspan reuse
+for the performance of its one-sided "blocked" matrix factorizations
+(Cholesky, LU, and QR).
+These factorizations reuse textbook non-blocked algorithms
+by calling them on groups of contiguous columns at a time.
+This lets LAPACK spend as much time in dense matrix-matrix multiply
+(or algorithms with analogous performance) as possible.
+
+However, due to possible time constraints, it was decided in May 2022 to 
+move `submdspan` to its own paper. This would potentially allow mdspan to land
+C++23 even if there is not enough time to finish wording review on `submdspan`.
+
+## Why propose a multidimensional array view before a container?
+
+Factoring views from containers generally makes sense.
+For example, one often sees functions that take `vector` by reference
+when they only need to access the `vector`'s elements or call `.size()` on it.
+This is one reason for `span`.
+Some of us have proposed a multidimensional array container,
+`mdarray` [P1684](wg21.link/p1684),
+but we have focused on `mdspan` because we consider views more fundamental.
+
+Many fields that compute with multidimensional arrays
+rely heavily on shared-memory parallel programming,
+where multiple processing units (threads, vector units, etc.)
+access different elements of the same array in parallel.
+Memory allocation and deallocation are "synchronization points"
+for parallel processing units, and thus hinder parallelization.
+This makes just *viewing* a multidimensional array,
+rather than managing its ownership,
+the most fundamental way for parallel computations
+to express how they access an array.
+
+It is often necessary to view previously allocated memory as a multidimensional array.
+An important special case is when C++ code is calling or being called
+from another programming language, such as C, Fortran, or Python.
+This use case matters enough to Python that its C API
+defines a [Buffer Protocol](https://docs.python.org/3/c-api/buffer.html)
+for viewing multidimensional arrays across languages.
+Language interoperability is key to the success
+of the various Python-based data analysis frameworks
+built up around NumPy.
+
+## Use multiple-parameter operator[] for array access
+
+We welcome multiple-parameter `operator[]`
+as the preferred multidimensional array access operator.
+[P1161R3](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1161r3.html),
+now part of C++20, prepared the way for this
+by deprecating comma expressions inside `operator[]` invocations.
+[P2128R6](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p2128r6.pdf),
+which proposed changing `operator[]` to accept multiple parameters,
+was approved at the October 2021 WG21 Plenary meeting.
+Please refer to P2128 for an extensive discussion.
+
+Many existing libraries use the function call `operator()`
+for multidimensional array access,
+with `operator[]` available for rank-1 (single-dimensional) `mdspan`.
+P2128 gives examples.
+It's straightforward to adapt these libraries to transition to `mdspan`.
+For example, a subclass or wrapper of `mdspan` can provide an `operator()`
+that simply forwards to `mdspan::operator[]`.
+The subclass or wrapper can then deprecate `operator()`
+to help developers find and change all the code that uses it.
+
+## Reference Implementation
+
+A reference implementation of this proposal under BSD license is available at:
+[mdspan](https://github.com/kokkos/mdspan).
+This implementation is also available on godbolt for experimentation:
+[godbolt](https://godbolt.org/z/ehErvsTce).
+
+## References
+
+* J. W. Backus et al.
+  "Programmer's Reference Manual: Fortran Automatic Coding System for the IBM 704."
+  Applied Science Division and Programming Research Department,
+  International Business Machines Corporation, Oct. 15, 1956.
+  [Available online](https://archive.computerhistory.org/resources/text/Fortran/102649787.05.01.acc.pdf)
+  (last accessed Oct. 10, 2021).
+
+* D. Hollman, C. Trott, M. Hoemmen, and D. Sunderland.
+  "`mdarray`: An Owning Multidimensional Array Analog of `mdspan`."
+  P1684r0, May 28, 2019.
+  [Available online](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1684r0.pdf)
+  (last accessed Oct. 10, 2021).
+
+* R. Keryell and J. Falcou.
+  "Accessors: A C++ standard library class to qualify data accesses."
+  P0367r0, May 29, 2016.
+  [Available online](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0367r0.pdf)
+  (last accessed Oct. 10, 2021).
+
+Editing Notes
+=============
+
+The proposed changes are relative to the working draft of the standard
+as of [N4842](http://wg21.link/n4842).
+
+The � character is used to denote a placeholder section number, table number,
+or paragraph number which the editor shall determine.
+
+Add the header `<mdspan>` to the "C++ library headers" table in <b>[headers]</b>
+in a place that respects the table's current alphabetic order.
+
+Add the header `<mdspan>` to the "Containers library summary" table in
+<b>[containers.general]</b> below the listing for `<span>`.
+
+<!--
+
+ /$$      /$$                           /$$ /$$
+| $$  /$ | $$                          | $$|__/
+| $$ /$$$| $$  /$$$$$$   /$$$$$$   /$$$$$$$ /$$ /$$$$$$$   /$$$$$$
+| $$/$$ $$ $$ /$$__  $$ /$$__  $$ /$$__  $$| $$| $$__  $$ /$$__  $$
+| $$$$_  $$$$| $$  \ $$| $$  \__/| $$  | $$| $$| $$  \ $$| $$  \ $$
+| $$$/ \  $$$| $$  | $$| $$      | $$  | $$| $$| $$  | $$| $$  | $$
+| $$/   \  $$|  $$$$$$/| $$      |  $$$$$$$| $$| $$  | $$|  $$$$$$$
+|__/     \__/ \______/ |__/       \_______/|__/|__/  |__/ \____  $$
+                                                          /$$  \ $$
+                                                         |  $$$$$$/
+                                                          \______/
+-->
+
+# Wording
+
+> _The � character is used to denote a placeholder subclause number which the editor
+shall determine._
+
+>  _In <b>[version.syn]</b>, add:_
+
+```c++
+#define __cpp_lib_mdspan YYYYMML // also in <mdspan>
+```
+
+[1]{.pnum} Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
+
+>  _Make the following changes to 24.7.1 <b>[views.general]</b>_,
+
+[2]{.pnum} The header `<span>` defines the view span. 
+[The header `<mdspan>` defines the class template `mdspan`
+and other facilities for interacting with these multidimensional views.]{.add}
+
+---
+
+>  _Add the following subclauses to the end of the <b>[views]</b> subclause
+(after `span`):_
+
+<!--
+ .d8888b.                                               d8b
+d88P  Y88b                                              Y8P
+Y88b.
+ "Y888b.   888  888 88888b.   .d88b.  88888b.  .d8888b  888 .d8888b
+    "Y88b. 888  888 888 "88b d88""88b 888 "88b 88K      888 88K
+      "888 888  888 888  888 888  888 888  888 "Y8888b. 888 "Y8888b.
+Y88b  d88P Y88b 888 888  888 Y88..88P 888 d88P      X88 888      X88
+ "Y8888P"   "Y88888 888  888  "Y88P"  88888P"   88888P' 888  88888P'
+                888                   888
+           Y8b d88P                   888
+            "Y88P"                    888
+-->
+
+<br/>
+<b>24.7.� Header `<mdspan>` synopsis [mdspan.syn]</b>
+
+```c++
+namespace std {
+  // [mdspan.extents], class template extents
+  template<size_t... Extents>
+    class extents;
+
+  template<size_t Rank>
+    using dextents = @_see below_@;
+
+  // [mdspan.layout], Layout mapping policies
+  struct layout_left;
+  struct layout_right;
+  struct layout_stride;
+
+  // [mdspan.accessor.default]
+  template<class ElementType>
+    class default_accessor;
+
+  // [mdspan.mdspan], class template mdspan
+  template<class ElementType, class Extents, class LayoutPolicy = layout_right,
+           class AccessorPolicy = default_accessor<ElementType>>
+    class mdspan;
+}
+```
+
+<b>24.7.� Overview [mdspan.terms]</b>
+
+[1]{.pnum} A _multidimensional index space_ is a Cartesian product of integer intervals.
+Each interval can be represented by a half-open range $[L_i, U_i)$, where $L_i$ and $U_i$ are the lower and upper bounds of the $i^{th}$ dimension.
+The _rank_ of a multidimensional index space is the number of intervals it represents.
+The _size of a multidimensional index space_ is the product of $U_i-L_i$ for each dimension $i$ if its rank is greater than $0$, and $1$ otherwise.
+
+[2]{.pnum} A pack of integers `idx` is a _multidimensional index_ in a multidimensional index space $S$ (or representation thereof) if both of following are true:
+
+  * [2.1]{.pnum} `sizeof...(idx)` is equal to rank of S, and
+
+  * [2.2]{.pnum} For all $i$ in the range $[0,$rank$)$, the $i^{th}$ value of `idx` is an integer in the interval $[L_i, U_i)$ of $S$.
+
+[3]{.pnum} An integer $r$ is a _rank index_ of an index space $S$ if $r$ is in the range $[0,$ rank $)$.
+
+<!--
+                  888                     888
+                  888                     888
+                  888                     888
+ .d88b.  888  888 888888 .d88b.  88888b.  888888 .d8888b
+d8P  Y8b `Y8bd8P' 888   d8P  Y8b 888 "88b 888    88K
+88888888   X88K   888   88888888 888  888 888    "Y8888b.
+Y8b.     .d8""8b. Y88b. Y8b.     888  888 Y88b.       X88
+ "Y8888  888  888  "Y888 "Y8888  888  888  "Y888  88888P'
+
+
+-->
+
+<b>24.7.� Class template `extents` [mdspan.extents]</b>
+
+<b>24.7.�.1 Overview [mdspan.extents.overview]</b>
+
+
+[1]{.pnum} The class template `extents` represents a multidimensional index space
+of rank equal to `sizeof...(Extents)`. In subclause 24.7, `extents` will be used synonymously with multidimensional index space.
+
+```c++
+namespace std {
+
+template<size_t... Extents>
+class extents {
+public:
+  using size_type = size_t;
+  using rank_type = size_t;
+
+  // [mdspan.extents.obs], Observers of the multidimensional index space
+  static constexpr rank_type rank() noexcept { return sizeof...(Extents); }
+  static constexpr rank_type rank_dynamic() noexcept { return @_dynamic-index_@(rank()); }
+  static constexpr size_type static_extent(rank_type) noexcept;
+  constexpr size_type extent(rank_type) const noexcept;
+
+
+  // [mdspan.extents.ctor], Constructors
+  constexpr extents() noexcept = default;
+
+  template<size_t... OtherExtents>
+    explicit(@_see below_@)
+    constexpr extents(const extents<OtherExtents...>&) noexcept;
+  template<class... SizeTypes>
+    explicit constexpr extents(SizeTypes...) noexcept;
+  template<class SizeType, size_t N>
+    explicit(N != rank_dynamic())
+    constexpr extents(span<SizeType, N>) noexcept;
+  template<class SizeType, size_t N>
+    explicit(N != rank_dynamic())
+    constexpr extents(const array<SizeType, N>&) noexcept;
+
+  // [mdspan.extents.cmp], extents comparison operators
+  template<size_t... OtherExtents>
+    friend constexpr bool operator==(const extents&, const extents<OtherExtents...>&) noexcept;
+
+  // [mdspan.extents.helpers], exposition only helpers
+  constexpr size_t @_fwd-prod-of-extents_@(rank_type) const noexcept; // @_exposition only_@
+  constexpr size_t @_rev-prod-of-extents_@(rank_type) const noexcept; // @_exposition only_@
+
+private:
+  static constexpr rank_type @_dynamic-index_@(rank_type) noexcept; // @_exposition only_@
+  static constexpr rank_type @_dynamic-index-inv_@(rank_type) noexcept; // @_exposition only_@
+
+  array<size_type, rank_dynamic()> @_dynamic-extents_@{}; // @_exposition only_@
+};
+
+template <class... Integrals>
+explicit extents(Integrals...)
+  -> @_see below_@;
+
+}
+```
+
+
+
+[2]{.pnum} Each specialization of `extents` models `regular` and is trivially copyable.
+
+[3]{.pnum} Let $E_r$ be the $r^{th}$ element of `Extents`.
+           $E_r$ is a _dynamic extent_ if it is equal to `dynamic_extent`, otherwise $E_r$ is a static extent.
+           Let $D_r$ be the value of _`dynamic-extents`_`[`_`dynamic-index`_`(`_r_`)]` if $E_r$ is a dynamic extent, otherwise $E_r$.
+
+[4]{.pnum} The $r^{th}$ interval of the multidimensional index space represented by an `extents` object is $[0, D_r)$.
+
+<b>24.7.�.2 Exposition-only helpers [mdspan.extents.helpers]</b>
+
+```c++
+static constexpr rank_type @_dynamic-index_@(rank_type i) noexcept; // @_exposition only_@
+```
+
+[1]{.pnum} *Precondition:* `i <= rank()` is `true`. 
+
+[2]{.pnum} *Returns:* Number of $E_r$ with $r<i$ for which $E_r$ is a dynamic extent.
+
+```c++
+static constexpr rank_type @_dynamic-index-inv_@(rank_type i) noexcept; // @_exposition only_@
+```
+
+[3]{.pnum} *Precondition:* `i < rank_dynamic()` is `true`.
+
+[4]{.pnum} *Returns:* Minimum value of $r$ such that _`dynamic-index`_`(`$r$`+1) == i+1` is `true`.
+
+```c++
+constexpr size_t @_fwd-prod-of-extents_@(rank_type i) const noexcept; // @_exposition only_@
+```
+
+[5]{.pnum} *Precondition:* `i <= rank()` is `true`.
+
+[6]{.pnum} *Returns:* If `i > 0` is `true`, the product of `extent(`$k$`)` for all $k$ in the range $[0,$ `i` $)$, otherwise `1`.
+
+
+```c++
+constexpr size_t @_rev-prod-of-extents_@(rank_type i) const noexcept; // @_exposition only_@
+```
+[7]{.pnum} *Precondition:* `i < rank()` is `true`.
+
+[8]{.pnum} *Returns:* If `i+1 < rank()` is `true`, the product of `extent(`$k$`)` for all $k$ in the range $[$ `i+1` $,$ `e.rank()` $)$, otherwise `1`.
+
+
+<b>24.7.�.3 Constructors [mdspan.extents.ctor]</b>
+
+```c++
+template<size_t... OtherExtents>
+  explicit((((Extents!=dynamic_extent) && (OtherExtents==dynamic_extent)) || ... ))
+  constexpr extents(const extents<OtherExtents...>& other) noexcept;
+```
+
+[1]{.pnum} *Constraints:*
+    
+   * [1.1]{.pnum} `sizeof...(OtherExtents) == rank()` is `true`.
+   
+   * [1.2]{.pnum} `((OtherExtents == dynamic_extent || Extents == dynamic_extent || OtherExtents == Extents) && ...)` is `true`.
+
+[2]{.pnum} *Preconditions:* `other.extent(`$r$`)` equals $E_r$ for each $r$ for which $E_r$ is a static extent.
+
+[3]{.pnum} *Postconditions:* `*this == other` is `true`.
+
+
+```c++
+template<class... SizeTypes>
+  explicit constexpr extents(SizeTypes... exts) noexcept;
+```
+
+[4]{.pnum} *Constraints:*
+    
+   * [4.1]{.pnum} `(is_convertible_v<SizeTypes, size_type> && ...)` is `true`, and
+
+   * [4.2]{.pnum} `(is_nothrow_constructible_v<size_type, SizeTypes> && ...)` is `true`, and
+
+   * [4.3]{.pnum} `sizeof...(SizeTypes) == rank_dynamic() || sizeof...(SizeTypes) == rank()` is `true`.
+        <i>[Note:</i> One can construct `extents` from just dynamic extents, which
+        are all the values getting stored, or from all the extents with a precondition. <i>— end note]</i>
+
+[5]{.pnum} Let `exts_arr` be `array<size_type, sizeof...(SizeTypes)>{static_cast<size_type>(std::move(exts))...}`
+
+[6]{.pnum} *Preconditions:* If `sizeof...(SizeTypes) != rank_dynamic()` is `true`,
+           `exts_arr[r]` equals $E_r$
+           for each $r$ for which $E_r$ is a static extent.
+
+[7]{.pnum} *Postconditions:* `*this == extents(exts_arr)` is `true`.
+
+```c++
+template<class SizeType, size_t N>
+  explicit(N != rank_dynamic())
+  constexpr extents(span<SizeType, N> exts) noexcept;
+template<class SizeType, size_t N>
+  explicit(N != rank_dynamic())
+  constexpr extents(const array<SizeType, N>& exts) noexcept;
+```
+
+[8]{.pnum} *Constraints:*
+
+   * [8.1]{.pnum} `is_convertible_v<const SizeType&, size_type>` is `true`, and
+
+   * [8.2]{.pnum} `is_nothrow_constructible_v<size_type, const SizeType&>` is `true`, and
+
+   * [8.3]{.pnum} `N==rank_dynamic() || N==rank()` is `true`.
+
+[9]{.pnum} *Preconditions:* If `N != rank_dynamic()` is `true`,
+            `exts[r]` equals $E_r$
+            for each $r$ for which $E_r$ is a static extent.
+
+[10]{.pnum} *Effects:*
+
+  * [10.1]{.pnum} If `N` equals `dynamic_rank()`,
+                  for all $d$ in the range $[0,$ `rank_dynamic()`$)$, direct-non-list-initializes _`dynamic-extent`_`[`$d$`]`
+                  with `as_const(exts[`$d$`])`.
+
+  * [10.2]{.pnum} Otherwise, for all $d$ in the range $[0,$ `rank_dynamic()`$)$, direct-non-list-initializes _`dynamic-extent`_`[`$d$`]`
+                  with `as_const(exts[`_`dynamic-index-inv`_`(`$d$`)])`.
+
+```c++
+template <class... Integrals>
+explicit extents(Integrals...) -> @_see below_@;
+```
+[11]{.pnum} *Constraints:* `(is_convertible_v<Integrals, size_type> && ...)` is `true`.
+
+[12]{.pnum} *Remarks:* The deduced type is `dextents<sizeof...(Integrals)>`.
+
+<br/>
+
+<b>24.7.�.4 Observers of the multidimensional index space [mdspan.extents.obs]</b>
+
+```c++
+static constexpr size_type static_extent(rank_type i) const noexcept;
+```
+
+[1]{.pnum} *Preconditions:* `i < rank()` is `true`.
+
+[2]{.pnum} *Returns:* $E_i$.
+
+```c++
+constexpr size_type extent(rank_type i) const noexcept;
+```
+
+[3]{.pnum} *Preconditions:* `i < rank()` is `true`.
+
+[4]{.pnum} *Returns:* $D_i$.
+
+<br/>
+<b>24.7.�.5 Comparison operators [mdspan.extents.cmp]</b>
+
+
+```c++
+template<size_t... OtherExtents>
+  friend constexpr bool operator==(const extents& lhs, 
+                                   const extents<OtherExtents...>& rhs) noexcept;
+```
+
+[1]{.pnum} *Returns:* `true` if `lhs.rank()` equals `rhs.rank()` and if `lhs.extents(r)` equals `rhs.extents(r)` for every rank index `r` of `rhs`, otherwise `false`.
+
+
+<br/>
+<b>24.7.�.6 Template alias `dextents` [mdspan.extents.dextents]</b>
+
+```c++
+template <size_t Rank>
+  using dextents = @_see below_@;
+```
+
+[1]{.pnum} *Result:*  A type `E` that is a specialization of `extents` such that 
+`E::rank() == Rank && E::rank() == E::rank_dynamic()`  is `true`.
+
+
+
+<!--
+888                                     888                                                  d8b
+888                                     888                                                  Y8P
+888                                     888
+888  8888b.  888  888  .d88b.  888  888 888888      88888b.d88b.   8888b.  88888b.  88888b.  888 88888b.   .d88b.
+888     "88b 888  888 d88""88b 888  888 888         888 "888 "88b     "88b 888 "88b 888 "88b 888 888 "88b d88P"88b
+888 .d888888 888  888 888  888 888  888 888         888  888  888 .d888888 888  888 888  888 888 888  888 888  888
+888 888  888 Y88b 888 Y88..88P Y88b 888 Y88b.       888  888  888 888  888 888 d88P 888 d88P 888 888  888 Y88b 888
+888 "Y888888  "Y88888  "Y88P"   "Y88888  "Y888      888  888  888 "Y888888 88888P"  88888P"  888 888  888  "Y88888
+                  888                                                      888      888                        888
+             Y8b d88P                                                      888      888                   Y8b d88P
+              "Y88P"                                                       888      888                    "Y88P"
+-->
+
+<br/>
+<br/>
+<b>24.7.� Layout mapping [mdspan.layout]</b>
+
+<b>24.7.�.1 General [mdspan.layout.general]</b>
+
+[1]{.pnum} In subclause 24.7.�.2 and subclause 24.7.�.3
+
+   * [1.1]{.pnum} `M` denotes a layout mapping class.
+
+   * [1.2]{.pnum} `m` denotes a (possibly const) value of type `M`.
+
+   * [1.3]{.pnum} `i` and `j` are packs of (possibly const) integers which are multidimensional indices in `m.extents()` ([mdspan.terms]).
+     <i>[Note:</i> The type of each element in multidimensional indices can be a different integer type. <i>— end note]</i>
+
+   * [1.4]{.pnum} `r` is a (possibly const) rank index of `typename M::extents_type`.
+
+   * [1.5]{.pnum} $d_r$ is a pack of (possibly const) integers for which `sizeof...(`$d_r$`) == M::extents_type::rank()` is `true`,
+                 the $r$-th element is equal to `1`, and all other elements are equal to `0`.
+
+[2]{.pnum} In subclauses from [mdspan.layout.reqmts] to [mdspan.layoutstride] let _`is-mapping-of`_ be the variable template defined as follows
+
+  ```c++
+  template<class Layout, class Mapping>
+  constexpr bool @_is-mapping-of_@ = 
+    is_same_v<typename Layout::template mapping<typename Mapping::extents_type>, Mapping>;
+  ```
+
+<b>24.7.�.2 Requirements [mdspan.layout.reqmts]</b>
+
+[1]{.pnum} A type `M` meets the *layout mapping* requirements if: 
+
+   * [1.1]{.pnum} `M` models `copyable`, and `equality_comparable`,
+   
+   * [1.2]{.pnum} `is_nothrow_move_constructible_v<M>` is `true`,
+
+   * [1.3]{.pnum} `is_nothrow_move_assignable_v<M>` is `true`,
+
+   * [1.4]{.pnum} `is_nothrow_swappable_v<M>` is `true`, and 
+
+   * [1.5]{.pnum} the following types and expressions are well-formed and have the specified semantics.
+
+```c++
+typename M::extents_type
+```
+[2]{.pnum} *Result:* A type which is a specialization of `extents`.
+
+```c++
+typename M::size_type
+```
+[3]{.pnum} *Result:* `typename M::extents_type::size_type`.
+
+```c++
+typename M::rank_type
+```
+[4]{.pnum} *Result:* `typename M::extents_type::rank_type`.
+
+```c++
+typename M::layout_type
+```
+[5]{.pnum} *Result:* A type `MP` which meets the layout mapping policy requirements ([mdspan.layoutpolicy.reqmts]) and for which 
+                     _`is-mapping-of`_`<MP, M>` is `true`.
+
+```c++
+m.extents()
+```
+[6]{.pnum} *Result:* `const typename M::extents_type&`
+
+```c++
+m(i...)
+```
+[7]{.pnum} *Result:* `typename M::size_type`
+
+[8]{.pnum} *Returns:* A nonnegative integer less than `numeric_limits<typename M::size_type>::max()`.
+
+```c++
+m(i...) == m(static_cast<typename M::size_type>(i)...)
+```
+
+[9]{.pnum} *Result:* `bool`
+
+[10]{.pnum} *Value:* `true`
+
+```c++
+m.required_span_size()
+```
+[11]{.pnum} *Result:* `typename M::size_type`
+
+[12]{.pnum} *Returns:* If the size of the multidimensional index space `m.extents()` is $0$, then `0`,
+      else `1` plus the maximum value of `m(i...)` for all `i`.
+
+```c++
+m.is_unique()
+```
+[13]{.pnum} *Result:* `bool`
+
+[14]{.pnum} *Returns:* `true` only if for every `i` and `j` where `(i != j || ...)` is `true`, `m(i...) != m(j...)` is `true`.
+     <i>[Note:</i> A mapping may return `false` even if the condition is met.
+                   For certain layouts it may not be feasible to determine efficiently whether the layout is unique.<i>— end note]</i>
+
+```c++
+m.is_contiguous()
+```
+[15]{.pnum} *Result:* `bool`
+
+[16]{.pnum} *Returns:* `true` only if for all $k$ in the range $[0,$ `m.required_span_size()` $)$ there exists an `i` such that `m(i...)` equals $k$.
+     <i>[Note:</i> A mapping may return `false` even if the condition is met.
+                   For certain layouts it may not be feasible to determine efficiently whether the layout is contiguous.<i>— end note]</i>
+
+```c++
+m.is_strided()
+```
+[17]{.pnum} *Result:* `bool`
+
+[18]{.pnum} *Returns:* `true` only if for every rank index $r$ of `m.extents()` there exists a nonnegative integer $s_r$
+       such that, for all `i` where `(i+`$d_r$`)` is a multidimensional index in `m.extents()` ([mdspan.terms]),
+       `m((i+`$d_r$`)...) - m(i...)` equals $s_r$.
+     <i>[Note:</i> This implies that for a strided layout `m(`$i_0, ..., i_k$`) = m(`$0, ..., 0$`)` $+ i_0*s_0 + ... + i_k*s_k$. <i>— end note]</i>
+     <i>[Note:</i> A mapping may return `false` even if the condition is met.
+                   For certain layouts it may not be feasible to determine efficiently whether the layout is strided.<i>— end note]</i>
+
+```c++
+m.stride(r)
+```
+[19]{.pnum} *Preconditions:* `m.is_strided()` is `true`.
+
+[20]{.pnum} *Result:* `typename M::size_type`
+
+[21]{.pnum} *Returns:* $s_r$ (a nonnegative integer) as defined in `m.is_strided()` above.
+
+```c++
+M::is_always_unique()
+```
+[22]{.pnum} *Result:* A constant expression ([expr.const]) of type `bool`.
+
+[23]{.pnum} *Returns:* `true` only if `m.is_unique()` is `true` for all possible objects `m` of type `M`.
+     <i>[Note:</i> A mapping may return `false` even if the above condition is met.
+                   For certain layout mappings it may not be feasible to determine whether every instance is unique.<i>— end note]</i>
+
+```c++
+M::is_always_contiguous()
+```
+[24]{.pnum} *Result:* A constant expression ([expr.const]) of type `bool`.
+
+[25]{.pnum} *Returns:* `true` only if `m.is_contiguous()` is `true` for all possible objects `m` of type `M`.
+     <i>[Note:</i> A mapping may return `false` even if the above condition is met.
+                   For certain layout mappings it may not be feasible to determine whether every instance is contiguous.<i>— end note]</i>
+
+```c++
+M::is_always_strided()
+```
+[26]{.pnum} *Result:* A constant expression ([expr.const]) of type `bool`.
+
+[27]{.pnum} *Returns:* `true` only if `m.is_strided()` is `true` for all possible objects `m` of type `M`.
+     <i>[Note:</i> A mapping may return `false` even if the above condition is met.
+                   For certain layout mappings it may not be feasible to determine whether every instance is strided.<i>— end note]</i>
+
+
+<b>24.7.�.3 Layout mapping policy requirements [mdspan.layoutpolicy.reqmts]</b>
+
+[1]{.pnum} A type `MP` meets the *layout mapping policy* requirements if for a type `E` that is a specialization of `extents`, 
+`MP::mapping<E>` is valid and denotes a type `X` that meets the layout mapping requirements ([mdspan.layout.reqmts]), 
+and for which the *qualified-id* `X::layout_type` is valid and denotes the type `MP` and the *qualified-id* `X::extents_type` denotes `E`.
+
+
+<b>24.7.�.4 Layout mapping policies [mdspan.layoutpolicy.overview]</b>
+
+```c++
+namespace std {
+
+struct layout_left {
+  template<class Extents>
+    class mapping;
+};
+struct layout_right {
+  template<class Extents>
+    class mapping;
+};
+struct layout_stride {
+  template<class Extents>
+    class mapping;
+};
+
+}
+```
+
+[1]{.pnum} Each of `layout_left`, `layout_right`, and `layout_stride` meets the layout mapping policy requirements and is a trivial type.
+
+<!--
+
+
+  #                   #       #       ##  #
+  #   ## # # ### # # ###      #  ###  #  ###
+  #  # # ### # # # #  #       #  ##  ###  #
+  ## ###   # ### ###  ##      ## ###  #   ##
+         ###             ###         ##
+
+-->
+
+<br/>
+<b>24.7.�.5 Class template `layout_left::mapping` [mdspan.layoutleft]</b>
+
+
+<br/>
+<b>24.7.�.5.1 Overview [mdspan.layoutleft.overview]</b>
+
+[1]{.pnum} `layout_left` provides a layout mapping where the leftmost extent has stride 1, and strides increase left-to-right as the product of extents.
+
+```c++
+namespace std {
+
+template<class Extents>
+class layout_left::mapping {
+  public:
+    using extents_type = Extents;
+    using size_type = typename extents_type::size_type;
+    using rank_type = typename extents_type::rank_type;
+    using layout_type = layout_left;
+
+    // [mdspan.layoutleft.ctor], Constructors
+    constexpr mapping() noexcept = default;
+    constexpr mapping(const mapping&) noexcept = default;
+    constexpr mapping(const extents_type&) noexcept;
+    template<class OtherExtents>
+      explicit(!is_convertible_v<OtherExtents, extents_type>)
+      constexpr mapping(const mapping<OtherExtents>&) noexcept;
+    template<class OtherExtents>
+      explicit(@_see below_@)
+      constexpr mapping(const layout_right::mapping<OtherExtents>&) noexcept;
+    template<class OtherExtents>
+      explicit(extents_type::rank() > 0)
+      constexpr mapping(const layout_stride::mapping<OtherExtents>&);
+
+    constexpr mapping& operator=(const mapping&) noexcept = default;
+
+    // [mdspan.layoutleft.obs], Observers
+    constexpr const extents_type& extents() const noexcept { return @_extents\__@; }
+
+    constexpr size_type required_span_size() const noexcept;
+
+    template<class... Indices>
+      constexpr size_type operator()(Indices...) const noexcept; 
+
+    static constexpr bool is_always_unique() noexcept { return true; }
+    static constexpr bool is_always_contiguous() noexcept { return true; }
+    static constexpr bool is_always_strided() noexcept { return true; }
+
+    static constexpr bool is_unique() noexcept { return true; }
+    static constexpr bool is_contiguous() noexcept { return true; }
+    static constexpr bool is_strided() noexcept { return true; }
+
+    constexpr size_type stride(rank_type) const noexcept;
+
+    template<class OtherExtents>
+      friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+
+  private:
+    extents_type @_extents\__@{}; // @_exposition only_@
+};
+
+}
+```
+
+[2]{.pnum} If `Extents` is not a specialization of `extents`, then the program is ill-formed.
+
+[3]{.pnum} `layout_left::mapping<E>` is a trivially copyable type that models `regular` for each `E`.
+
+<b>24.7.�.5.2 Constructors [mdspan.layoutleft.ctor]</b>
+
+```c++
+constexpr mapping(const extents_type& e) noexcept;
+```
+
+[1]{.pnum} *Preconditions:* The size of the multidimensional index space `e` is a representable value of type `size_type` ([basic.fundamental]).
+
+[2]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `e`.
+
+```c++
+template<class OtherExtents>
+  explicit(!is_convertible_v<OtherExtents, extents_type>)
+  constexpr mapping(const mapping<OtherExtents>& other) noexcept;
+```
+
+[3]{.pnum} *Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
+
+[4]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
+
+```c++
+template<class OtherExents>
+  explicit(!is_convertible_v<OtherExtents, extents_type>)
+  constexpr mapping(const layout_right::mapping<OtherExtents>& other) noexcept;
+```
+
+[5]{.pnum} *Constraints:* 
+
+   * [5.1]{.pnum} `extents_type::rank() <= 1` is `true`, and
+ 
+   * [5.2]{.pnum} `is_constructible_v<extents_type, OtherExtents>` is `true`.
+
+[6]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
+
+```c++
+template<class OtherExtents>
+  explicit(extents_type::rank() > 0)
+  constexpr mapping(const layout_stride::mapping<OtherExtents>& other);
+```
+
+[7]{.pnum} *Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
+
+[8]{.pnum} *Preconditions:* If `extents_type::rank() > 0` is `true`, then for all $r$ in the range $[0,$ `extents_type::rank()`$)$, `other.stride(`$r$`)` equals
+                  `extents().`_`fwd-prod-of-extents`_`(`$r$`)`.
+
+[9]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
+
+<b>24.7.�.5.3 Observers [mdspan.layoutleft.obs]</b>
+
+```c++
+constexpr size_type required_span_size() const noexcept;
+```
+
+[1]{.pnum} *Returns:* `extents().`_`fwd-prod-of-extents`_`(extents_type::rank())`.
+
+
+```c++
+template<class... Indices> 
+  constexpr size_type operator()(Indices... i) const noexcept;
+```
+
+[2]{.pnum} *Constraints:*
+    
+   * [2.1]{.pnum} `sizeof...(Indices) == extents_type::rank()` is `true`,
+    
+   * [2.2]{.pnum} `(is_convertible_v<Indices, size_type> && ...)` is `true`, and
+    
+   * [2.3]{.pnum} `(is_nothrow_constructible_v<size_type, Indices> && ...)` is `true`.
+
+[3]{.pnum} *Preconditions:* `static_cast<size_type>(i)` is a multidimensional index in $extents\_$ ([mdspan.terms]). 
+
+[4]{.pnum} *Effects:* Let `P` be a parameter pack such that
+            `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.
+            <br/> Equivalent to: `return ((static_cast<size_type>(i)*stride(P)) + ... + 0);`
+
+```c++
+constexpr size_type stride(rank_type i) const;
+```
+
+[5]{.pnum} *Constraints:* `extents_type::rank() > 0` is `true`.
+
+[6]{.pnum} *Preconditions:* `i < extents_type::rank()` is `true`.
+
+[7]{.pnum} *Returns:*  `extents().`_`fwd-prod-of-extents`_`(i)`.
+
+```c++
+template<class OtherExtents>
+  friend constexpr bool operator==(const mapping& x, const mapping<OtherExtents>& y) noexcept;
+```
+
+[8]{.pnum} *Constraints:* `extents_type::rank() == OtherExtents::rank()` is `true`.
+
+[9]{.pnum} *Effects:* Equivalent to: `return x.extents() == y.extents();`
+
+
+
+<!--
+
+ #                   #           #      #    #
+ #   ## # # ### # # ###     ###     ### ### ###
+ #  # # ### # # # #  #      #    #  # # # #  #
+ ## ###   # ### ###  ##     #    ##  ## # #  ##
+        ###             ###         ###
+-->
+
+<br/>
+<b>24.7.�.6 Class template `layout_right::mapping` [mdspan.layoutright]</b>
+
+<br/>
+<b>24.7.�.6.1 Overview [mdspan.layoutright.overview]</b>
+
+[1]{.pnum} `layout_right` provides a layout mapping where the rightmost extent is stride 1, and strides increase right-to-left as the product of extents.
+
+```c++
+namespace std {
+
+template<class Extents>
+class layout_right::mapping {
+  public:
+    using extents_type = Extents;
+    using size_type = typename extents_type::size_type;
+    using rank_type = typename extents_type::rank_type;
+    using layout_type = layout_right;
+
+    // [mdspan.layoutright.ctor], Constructors
+    constexpr mapping() noexcept = default;
+    constexpr mapping(const mapping&) noexcept = default;
+    constexpr mapping(const extents_type&) noexcept;
+    template<class OtherExtents>
+      explicit(!is_convertible_v<OtherExtents, extents_type>)
+      constexpr mapping(const mapping<OtherExtents>&) noexcept;
+    template<class OtherExtents>
+      explicit(@_see below_@)
+      constexpr mapping(const layout_left::mapping<OtherExtents>&) noexcept;
+    template<class OtherExtents>
+      explicit(extents_type::rank() > 0)
+      constexpr mapping(const layout_stride::mapping<OtherExtents>&) noexcept;
+
+    constexpr mapping& operator=(const mapping&) noexcept = default;
+
+    // [mdspan.layoutright.obs], Observers
+    constexpr const extents_type& extents() const noexcept { return @_extents\__@; }
+
+    constexpr size_type required_span_size() const noexcept;
+
+    template<class... Indices>
+      constexpr size_type operator()(Indices...) const noexcept;
+
+    static constexpr bool is_always_unique() noexcept { return true; }
+    static constexpr bool is_always_contiguous() noexcept { return true; }
+    static constexpr bool is_always_strided() noexcept { return true; }
+
+    static constexpr bool is_unique() noexcept { return true; }
+    static constexpr bool is_contiguous() noexcept { return true; }
+    static constexpr bool is_strided() noexcept { return true; }
+
+    constexpr size_type stride(rank_type) const noexcept;
+
+    template<class OtherExtents>
+      friend constexpr bool operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+
+  private:
+    extents_type @_extents\__@{}; // @_exposition only_@
+};
+}
+```
+
+[2]{.pnum} If `Extents` is not a specialization of `extents`, then the program is ill-formed.
+
+[3]{.pnum} `layout_right::mapping<E>` is a trivially copyable type that models `regular` for each `E`.
+
+
+<b>24.7.�.6.2 Constructors [mdspan.layoutright.ctor]</b>
+
+
+```c++
+constexpr mapping(const extents_type& e) noexcept;
+```
+
+[1]{.pnum} *Preconditions:* The size of the multidimensional index space `e` is a representable value of type `size_type` ([basic.fundamental]).
+
+[2]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `e`.
+
+
+```c++
+template<class OtherExtents>
+  explicit(!is_convertible_v<OtherExtents, extents_type>)
+  constexpr mapping(const mapping<OtherExtents>& other) noexcept;
+```
+
+[3]{.pnum} *Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
+
+[4]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
+
+```c++
+template<class OtherExtents>
+  explicit(!is_convertible_v<OtherExtents, extents_type>)
+  constexpr mapping(const layout_left::mapping<OtherExtents>& other) noexcept;
+```
+
+[5]{.pnum} *Constraints:*
+
+   * [5.1]{.pnum} `extents_type::rank() <= 1` is `true`, and
+
+   * [5.2]{.pnum} `is_constructible_v<extents_type, OtherExtents>` is `true`.
+
+[6]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
+
+```c++
+template<class OtherExtents>
+  explicit(extents_type::rank() > 0)
+  constexpr mapping(const layout_stride::mapping<OtherExtents>& other) noexcept;
+```
+
+[7]{.pnum} *Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
+
+[8]{.pnum} *Preconditions:* If `extents_type::rank() > 0` is `true`, then for all $r$ in the range $[0,$ `extents_type::rank()`$)$, `other.stride(`$r$`)` equals `extents().`_`rev-prod-of-extents`_`(`$r$`)`.
+
+[9]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
+
+<b>24.7.�.6.3 Observers [mdspan.layoutright.obs]</b>
+
+```c++
+size_type required_span_size() const noexcept;
+```
+
+[1]{.pnum} *Returns:* `extents().`_`fwd-prod-of-extents`_`(extents_type::rank())` 
+
+```c++
+template<class... Indices> 
+  constexpr size_type operator()(Indices... i) const noexcept;
+```
+
+[2]{.pnum} *Constraints:*
+    
+   * [2.1]{.pnum} `sizeof...(Indices) == extents_type::rank()` is `true`, and
+    
+   * [2.2]{.pnum} `(is_convertible_v<Indices, size_type> && ...)` is `true`.
+
+   * [2.3]{.pnum} `(is_nothrow_constructible_v<size_type, Indices> && ...)` is `true`.
+
+[3]{.pnum} *Preconditions:* `static_cast<size_type>(i)` is a multidimensional index in $extents\_$ ([mdspan.terms]).
+
+[4]{.pnum} *Effects:* Let `P` be a parameter pack such that
+            `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.
+            <br/> Equivalent to: `return ((static_cast<size_type>(i)*stride(P)) + ... + 0);`
+
+```c++
+constexpr size_type stride(rank_type i) const noexcept;
+```
+
+[5]{.pnum} *Constraints:* `extents_type::rank() > 0` is `true`.
+
+[6]{.pnum} *Preconditions:* `i < extents_type::rank()` is `true`.
+
+[7]{.pnum} *Returns:*  `extents().`_`rev-prod-of-extents`_`(i)`
+
+```c++
+template<class OtherExtents>
+  friend constexpr bool operator==(const mapping& x, const mapping<OtherExtents>& y) noexcept;
+```
+
+[8]{.pnum} *Constraints:* `extents_type::rank() == OtherExtents::rank()` is `true`.
+
+[9]{.pnum} *Effects:* Equivalent to: `return x.extents() == y.extents();`
+
+
+<!--
+layout_stride
+
+ /$$                                           /$$                      /$$               /$$       /$$
+| $$                                          | $$                     | $$              |__/      | $$
+| $$  /$$$$$$  /$$   /$$  /$$$$$$  /$$   /$$ /$$$$$$         /$$$$$$$ /$$$$$$    /$$$$$$  /$$  /$$$$$$$  /$$$$$$
+| $$ |____  $$| $$  | $$ /$$__  $$| $$  | $$|_  $$_/        /$$_____/|_  $$_/   /$$__  $$| $$ /$$__  $$ /$$__  $$
+| $$  /$$$$$$$| $$  | $$| $$  \ $$| $$  | $$  | $$         |  $$$$$$   | $$    | $$  \__/| $$| $$  | $$| $$$$$$$$
+| $$ /$$__  $$| $$  | $$| $$  | $$| $$  | $$  | $$ /$$      \____  $$  | $$ /$$| $$      | $$| $$  | $$| $$_____/
+| $$|  $$$$$$$|  $$$$$$$|  $$$$$$/|  $$$$$$/  |  $$$$/      /$$$$$$$/  |  $$$$/| $$      | $$|  $$$$$$$|  $$$$$$$
+|__/ \_______/ \____  $$ \______/  \______/    \___//$$$$$$|_______/    \___/  |__/      |__/ \_______/ \_______/
+               /$$  | $$                           |______/
+              |  $$$$$$/
+               \______/
+
+-->
+
+<br/>
+<b>24.7.�.7 Class template `layout_stride::mapping` [mdspan.layoutstride]</b>
+
+<br/>
+<b>24.7.�.7.1 Overview [mdspan.layoutstride.overview]</b>
+
+[1]{.pnum} `layout_stride` provides a layout mapping where the strides are user-defined.
+
+```c++
+namespace std {
+
+template<class Extents>
+class layout_stride::mapping {
+  public:
+    using extents_type = Extents;
+    using size_type = typename extents_type::size_type;
+    using rank_type = typename extents_type::rank_type;
+    using layout_type = layout_stride;
+
+  private:
+    static constexpr rank_type @_rank\__@ = extents_type::rank(); // exposition only
+
+  public:
+    // [mdspan.layoutstride.ctor], Constructors
+    constexpr mapping() noexcept = default;
+    constexpr mapping(const mapping&) noexcept = default;
+    template<class SizeType>
+    constexpr mapping(const extents_type&,
+                      span<SizeType, @_rank\__@>) noexcept;
+    template<class SizeType>
+    constexpr mapping(const extents_type&,
+                      const array<SizeType, @_rank\__@>&) noexcept;
+
+    template<class StridedLayoutMapping>
+      explicit(@_see below_@)
+      constexpr mapping(const StridedLayoutMapping&) noexcept;
+
+    constexpr mapping& operator=(const mapping&) noexcept = default;
+
+    // [mdspan.layoutstride.obs], Observers
+    constexpr const extents_type& extents() const noexcept { return @_extents\__@; }
+    constexpr span<const size_type, @_rank\__@> strides() const noexcept
+    { return @_strides\__@; }
+
+    constexpr size_type required_span_size() const noexcept;
+
+    template<class... Indices>
+      constexpr size_type operator()(Indices...) const noexcept ;
+
+    static constexpr bool is_always_unique() noexcept { return true; }
+    static constexpr bool is_always_contiguous() noexcept { return false; }
+    static constexpr bool is_always_strided() noexcept { return true; }
+
+    static constexpr bool is_unique() noexcept { return true; }
+    constexpr bool is_contiguous() const noexcept;
+    static constexpr bool is_strided() noexcept { return true; }
+
+    constexpr size_type stride(rank_type i) const noexcept { return @_strides\__@[i]; }
+
+    template<class OtherMapping>
+      friend constexpr bool operator==(const mapping&, const OtherMapping&) noexcept;
+
+  private:
+    extents_type @_extents\__@{}; // @_exposition only_@
+    array<size_type, @_rank\__@> @_strides\__@{}; // @_exposition only_@
+};
+}
+```
+
+[2]{.pnum} If `Extents` is not a specialization of `extents`, then the program is ill-formed.
+
+[3]{.pnum} `layout_stride::mapping<E>` is a trivially copyable type that models `regular` for each `E`.
+
+
+<b>24.7.�.7.2 Exposition-only helpers  [mdspan.layoutstride.expo]</b>
+
+[1]{.pnum} Let _`REQUIRED-SPAN-SIZE`_`(e, strides)` be:
+
+   * [1.1]{.pnum} $1$, if `e.rank() == 0` is `true`, otherwise
+
+   * [1.2]{.pnum} $0$, if the size of the multidimensional index space `e` is $0$, otherwise
+
+   * [1.3]{.pnum} $1$ plus the sum of products of `(e.extent(`$r$`) - 1)` and `(strides[`$r$`])` for all $r$ in the range $[0,$ `e.rank()` $)$.
+
+[2]{.pnum} Let _`OFFSET`_`(m)` be:
+
+   * [2.1]{.pnum} `m()`, if `e.rank() == 0` is `true`, otherwise
+   
+   * [2.2]{.pnum} $0$, if the size of the multidimensional index space `e` is $0$, otherwise
+
+   * [2.3]{.pnum} `m(z...)` for a pack of integers `z` that is a multidimensional index into `m.extents()` and each element of `z` equals `0`.
+
+[3]{.pnum} Let _`is-extents`_ be the exposition only variable template:
+
+```c++
+template<class T> constexpr bool @_is-extents_@ = false;
+
+template<size_t ... args> constexpr bool @_is-extents_@<extents<args...>> = true;
+```
+
+[4]{.pnum} Let _`layout-mapping-alike`_ be the exposition-only concept defined as follows:
+
+```c++
+template<class M>
+concept @_layout-mapping-alike_@ = requires {
+  requires @_is-extents_@<typename M::extents_type>;
+  { M::is_always_strided() } -> same_as<bool>;
+  { M::is_always_contiguous() } -> same_as<bool>;
+  { M::is_always_unique() } -> same_as<bool>;
+  bool_constant<M::is_always_strided()>::value;
+  bool_constant<M::is_always_contiguous()>::value;
+  bool_constant<M::is_always_unique()>::value;
+};
+```
+<i>[Note:</i> This concept checks that the functions `M::is_always_strided()`, `M::is_always_contiguous()`, and `M::is_always_unique()` exist, are constant expressions, and have a return type of `bool`. <i>- end note]</i>
+
+<b>24.7.�.7.3 Constructors [mdspan.layoutstride.ctor]</b>
+
+```c++
+template<class SizeType>
+constexpr mapping(const extents_type& e, span<SizeType, @_rank\__@> s) noexcept;
+template<class SizeType>
+constexpr mapping(const extents_type& e, const array<SizeType, @_rank\__@>& s) noexcept;
+```
+
+[1]{.pnum} *Constraints:*
+
+   * [1.1]{.pnum} `is_convertible_v<const SizeType&, size_type>` is `true`,
+
+   * [1.2]{.pnum} `is_nothrow_constructible_v<size_type, const SizeType&>` is `true`.
+
+[2]{.pnum} *Preconditions:*
+
+   * [2.1]{.pnum}`s[`$i$`] > 0` is `true` for all $i$ in the range $[0,$ _`rank_`_ $)$.
+
+   * [2.2]{.pnum} _`REQUIRED-SPAN-SIZE`_`(e, s)` is a representable value of type `size_type` ([basic.fundamental]).
+
+   * [2.3]{.pnum} If _`rank_`_ is greater than 0, then there exists a permutation $P$ of 
+     the integers in the range  $[0,$ _`rank_`_$)$,
+     such that `s[` $p_i$ `] >= s[` $p_{i-1}$ `] * e.extent(` $p_{i-1}$ `)` is `true`
+     for all $i$ in the range $[1,$ _`rank_`_ $)$, where $p_i$ is the $i^{th}$ element of $P$. 
+     <i>[Note:</i> For `layout_stride`, this condition is necessary and sufficient for `is_unique()` to be `true`. <i>— end note]</i>
+
+[3]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `e`, and for all $d$ in the range 
+                      $[0,$ _`rank_`_$)$, direct-non-list-initializes _`strides_`_`[`$d$`]` with `as_const(s[`$d$`])`.
+
+```c++
+template<class StridedLayoutMapping>
+  explicit(@_see below_@)
+  constexpr mapping(const StridedLayoutMapping& other) noexcept;
+```
+
+[4]{.pnum} *Constraints:*
+
+   * [4.1]{.pnum} _`layout-mapping-alike`_`<StridedLayoutMapping>` is satisfied.
+
+   * [4.2]{.pnum} `is_constructible_v<extents_type, typename StridedLayoutMapping::extents_type>` is `true`.
+
+   * [4.3]{.pnum} `StridedLayoutMapping::is_always_unique()` is `true`.
+
+   * [4.4]{.pnum} `StridedLayoutMapping::is_always_strided()` is `true`.
+
+[5]{.pnum} *Preconditions:*
+
+   * [5.1]{.pnum} `StridedLayoutMapping` meets the layout mapping requirements, 
+
+   * [5.2]{.pnum} `other.stride(r) > 0` is `true` for all rank index `r` of `extents()`,
+
+   * [5.3]{.pnum} `other.required_span_size()` is a representable value of type `size_type` ([basic.fundamental]), and
+
+   * [5.4]{.pnum} _`OFFSET`_`(other) == 0` is `true`.
+
+<!-- TODO static cast other.stride(d) -->
+
+[6]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`, and for all $d$ in the range 
+                      $[0,$ _`rank_`_$)$, direct-non-list-initializes _`strides_`_`[`$d$`]` with `other.stride(`$d$`)`.
+
+[7]{.pnum} *Remarks:* The expression inside `explicit` is equivalent to:
+
+```c++
+   !(is_convertible_v<typename StridedLayoutMapping::extents_type, extents_type> && (
+     @_is-mapping-of_@<layout_left, LayoutStrideMapping> || 
+     @_is-mapping-of_@<layout_right, LayoutStrideMapping> || 
+     @_is-mapping-of_@<layout_stride, LayoutStrideMapping>))
+```
+
+<b>24.7.�.7.4 Observers [mdspan.layoutstride.obs]</b>
+
+```c++
+constexpr size_type required_span_size() const noexcept;
+```
+
+[1]{.pnum} *Returns:* _`REQUIRED-SPAN-SIZE`_`(extents(), `_`strides_`_`)`.
+
+```c++
+template<class... Indices>
+  constexpr size_type operator()(Indices... i) const noexcept;
+```
+
+[2]{.pnum} *Constraints:*
+
+   * [2.1]{.pnum} `sizeof...(Indices) == `_`rank_`_ is `true`, and
+
+   * [2.2]{.pnum} `(is_convertible_v<Indices, size_type> && ...)` is `true`.
+
+   * [2.3]{.pnum} `(is_nothrow_constructible_v<size_type, Indices> && ...)` is `true`.
+
+[3]{.pnum} *Preconditions:* `static_cast<size_type>(i)` is a multidimensional index in $extents\_$ ([mdspan.terms]).
+
+[4]{.pnum} *Effects:* Let `P` be a parameter pack such that
+            `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.
+            <br/> Equivalent to: `return ((static_cast<size_type>(i)*stride(P)) + ... + 0);`
+
+```c++
+constexpr bool is_contiguous() const noexcept;
+```
+
+[5]{.pnum}*Returns:*
+
+   * [5.1]{.pnum} `true` if _`rank_`_ is 0.
+
+   * [5.2]{.pnum} Otherwise, `true` if there is a permutation $P$ of 
+     the integers in the range $[0,$ _`rank_`_$)$, such that
+     `stride(` $p_0$ `)` equals `1`, and `stride(` $p_i$ `)` equals
+     `stride(` $p_{i-1}$ `) * extents().extent(` $p_{i-1}$ `)`
+     for $i$ in the range $[1,$ _`rank_`_ $)$, where $p_i$ is the $i^{th}$ element of $P$.
+
+   * [5.3]{.pnum} Otherwise, `false`.
+
+
+```c++
+template<class OtherMapping>
+  friend constexpr bool operator==(const mapping& x, const OtherMapping& y) noexcept;
+```
+
+[6]{.pnum} *Constraints:* 
+
+   * [6.1]{.pnum} _`layout-mapping-alike`_`<OtherMapping>` is satisfied.
+
+   * [6.2]{.pnum} _`rank_`_ ` == OtherMapping::extents_type::rank()` is `true`.
+
+   * [6.3]{.pnum} `OtherMapping::is_always_strided()` is `true`.
+
+[7]{.pnum} *Preconditions:* `OtherMapping` meets layout mapping requirements.
+
+[8]{.pnum} *Returns:* `true` if `x.extents() == y.extents()` is `true`, _`OFFSET`_`(y) == 0` is `true`, and 
+                       each of `x.stride(`$r$`) == y.stride(`$r$`)` is `true` for $r$ in the range of $[0,$ `x.extents.rank()` $)$.
+                       Otherwise, `false`.
+
+
+
+<!--
+
+
+ 8888b.   .d8888b .d8888b .d88b.  .d8888b  .d8888b   .d88b.  888d888
+    "88b d88P"   d88P"   d8P  Y8b 88K      88K      d88""88b 888P"
+.d888888 888     888     88888888 "Y8888b. "Y8888b. 888  888 888
+888  888 Y88b.   Y88b.   Y8b.          X88      X88 Y88..88P 888
+"Y888888  "Y8888P "Y8888P "Y8888   88888P'  88888P'  "Y88P"  888
+
+
+
+-->
+
+<br/>
+<b>24.7.� Accessor Policy [mdspan.accessor]</b>
+
+<br/>
+<b>24.7.�.1 General [mdspan.accessor.general]</b>
+
+[1]{.pnum} An *accessor policy* defines types and operations by which a reference to a single object is created from an abstract data handle to a number of such objects and an index.
+
+[2]{.pnum} A range of indices $[0, N)$ is an *accessible range* of a given data handle and an accessor, if for each `i` in the range the accessor policy's `access` function produces a valid reference to an object.
+
+
+[3]{.pnum} In subclause 24.7.�.2,
+
+   * [3.1]{.pnum} `A` denotes an accessor policy.
+
+   * [3.2]{.pnum} `a` denotes a value of type `A` or `const A`.
+
+   * [3.3]{.pnum} `p` denotes a value of type `A::pointer` or `const A::pointer`. <i>[Note:</i> The type `A::pointer` need not be dereferenceable. <i>- end note]</i>
+
+   * [3.4]{.pnum} `n`, `i` and `j` each denote values of type `size_t`.
+
+<br/>
+<b>24.7.�.2 Requirements [mdspan.accessor.reqmts]</b>
+
+
+[1]{.pnum} A type `A` meets the accessor policy requirements if
+
+   * [1.1]{.pnum} `A` models `copyable`,
+
+   * [1.2]{.pnum} `is_nothrow_move_constructible_v<A>` is `true`,
+
+   * [1.3]{.pnum} `is_nothrow_move_assignable_v<A>` is `true`,
+   
+   * [1.4]{.pnum} `is_nothrow_swappable_v<A>` is `true`, and 
+
+   * [1.5]{.pnum} the following types and expressions are well-formed and have the specified semantics.
+
+```c++
+typename A::element_type
+```
+[2]{.pnum} *Result:* A complete object type that is not an abstract class type.
+
+```c++
+typename A::pointer
+```
+[3]{.pnum} *Result:* A type that models `copyable`, and for which `is_nothrow_move_constructible_v<A::pointer>` is `true`, `is_nothrow_move_assignable_v<A::pointer>` is `true`, and `is_nothrow_swappable_v<A::pointer>` is `true`.
+
+[4]{.pnum} <i>[Note:</i> The type of `pointer` need not be `element_type*`. <i>— end note]</i>
+
+```c++
+typename A::reference
+```
+[5]{.pnum} *Result:* A type that models `common_reference_with<A::reference&&, A::element_type&>`.
+
+[6]{.pnum} <i>[Note:</i> The type of `reference` need not be `element_type&`. <i>— end note]</i>
+
+```c++
+typename A::offset_policy
+```
+[7]{.pnum} *Result:* A type `OP` such that:
+
+   * [7.1]{.pnum} `OP` meets the accessor policy requirements.
+
+   * [7.2]{.pnum} `constructible_from<OP, const A&>` is modeled.
+
+   * [7.3]{.pnum} `is_same_v<typename OP::element_type, typename A::element_type>` is `true`
+
+```c++
+a.access(p, i)
+```
+[8]{.pnum} *Result:* `A::reference`
+
+[9]{.pnum} *Remarks:* The expression is equality preserving.
+
+[10]{.pnum} <i>[Note:</i> Concrete accessor policies can impose preconditions for their `access` function. However, they might not.
+For example, an accessor where `p` is `span<A::element_type,dynamic_extent>` and `access(p,i)` returns `p[i % p.size()]` does not need to impose a precondition on `i`. 
+<i>- end note]</i>
+
+```c++
+a.offset(p, i)
+```
+[11]{.pnum} *Result:* `A::offset_policy::pointer`
+
+[12]{.pnum} *Returns:* `q` such that for `b` being `A::offset_policy(a)`, and any integer `n` for which $[$`0`, `n`$)$ is an accessible range of `p` and `a`:
+
+   * [12.1]{.pnum} $[$`0`, `n-i`$)$ is an accessible range of `q` and `b`, and
+
+   * [12.2]{.pnum} `b.access(q, j)` provides access to the same element as `a.access(p, i + j)`, for every `j` in the range $[$`0`, `n-i`$)$.
+
+[13]{.pnum} *Remarks:* The expression is equality preserving.
+
+
+<!--
+
+                                    #            #
+ ## ### ### ###  ##  ## ### ###     ###  ##  ##     ###
+# # #   #   ##   #   #  # # #       # # # #  #   #  #
+### ### ### ### ##  ##  ### #       ### ### ##   ## ###
+                                ###
+-->
+
+<br/>
+<b>24.7.�.3 Class template `default_accessor` [mdspan.accessor.default]</b>
+
+<b>24.7.�.3.1 Overview [mdspan.accessor.default.overview]</b>
+```c++
+namespace std {
+template<class ElementType>
+  struct default_accessor {
+    using offset_policy = default_accessor;
+    using element_type = ElementType;
+    using reference = ElementType&;
+    using pointer = ElementType*;
+
+    constexpr default_accessor() noexcept = default;
+
+    template<class OtherElementType>
+    constexpr default_accessor(default_accessor<OtherElementType>) noexcept {}
+
+    constexpr reference access(pointer p, size_t i) const noexcept;
+
+    constexpr pointer offset(pointer p, size_t i) const noexcept;
+  };
+}
+```
+
+[1]{.pnum} `default_accessor` meets the accessor policy requirements. 
+
+[2]{.pnum} `ElementType` is required to be a complete object type that is neither an abstract class type nor an array type. <!-- mfh 20 Jan 2019: This imitates [span.overview] para 4 wording, with an additional restriction -->
+
+[3]{.pnum} Each specialization of `default_accessor` is a trivially copyable type that models `semiregular`.
+
+[4]{.pnum} $[$`0`, `n`$)$ is an accessible range for an object `p` of type `pointer` and an object of type `default_accessor` if and only if $[$`p`, `p+n`$)$ is a valid range.
+
+<b>24.7.�.3.2 Members [mdspan.accessor.default.members]</b>
+
+```c++
+template<class OtherElementType>
+constexpr default_accessor(default_accessor<OtherElementType>) noexcept {}
+```
+
+[1]{.pnum} *Constraints:* `is_convertible_v<OtherElementType(*)[], element_type(*)[]>` is `true`.
+
+```c++
+constexpr reference access(pointer p, size_t i) const noexcept;
+```
+
+[2]{.pnum} *Effects:* equivalent to `return p[i];`
+
+```c++
+constexpr pointer offset(pointer p, size_t i) const noexcept;
+```
+
+[3]{.pnum} *Effects:* equivalent to ` return p + i;`.
+
+<!--
+                   888
+                   888
+                   888
+88888b.d88b.   .d88888 .d8888b  88888b.   8888b.  88888b.
+888 "888 "88b d88" 888 88K      888 "88b     "88b 888 "88b
+888  888  888 888  888 "Y8888b. 888  888 .d888888 888  888
+888  888  888 Y88b 888      X88 888 d88P 888  888 888  888
+888  888  888  "Y88888  88888P' 88888P"  "Y888888 888  888
+                                888
+                                888
+-->
+
+<b>24.7.� Class template `mdspan` [mdspan.mdspan]</b>
+
+<br/>
+<b>24.7.�.1 Overview [mdspan.mdspan.overview]</b>
+
+[1]{.pnum} `mdspan` is a view of a multidimensional array of elements. 
+
+```c++
+namespace std {
+
+template<class ElementType, class Extents, class LayoutPolicy, class AccessorPolicy>
+class mdspan {
+public:
+  using extents_type = Extents;
+  using layout_type = LayoutPolicy;
+  using accessor_type = AccessorPolicy;
+  using mapping_type = typename layout_type::template mapping<extents_type>;
+  using element_type = ElementType;
+  using value_type = remove_cv_t<element_type>;
+  using size_type = typename extents_type::size_type ;
+  using rank_type = typename extents_type::rank_type ;
+  using pointer = typename accessor_type::pointer;
+  using reference = typename accessor_type::reference;
+
+  static constexpr rank_type rank() { return extents_type::rank(); }
+  static constexpr rank_type rank_dynamic() { return extents_type::rank_dynamic(); }
+  static constexpr size_type static_extent(rank_type r) { return extents_type::static_extent(r); }
+  constexpr size_type extent(rank_type r) const { return extents().extent(r); }
+
+  // [mdspan.mdspan.ctor], mdspan Constructors
+  constexpr mdspan();
+  constexpr mdspan(const mdspan& rhs) = default;
+  constexpr mdspan(mdspan&& rhs) = default;
+
+  template<class... SizeTypes>
+    explicit constexpr mdspan(pointer ptr, SizeTypes... exts);
+  template<class SizeType, size_t N>
+    explicit(N != rank_dynamic())
+    constexpr mdspan(pointer p, span<SizeType, N> exts);
+  template<class SizeType, size_t N>
+    explicit(N != rank_dynamic())
+    constexpr mdspan(pointer p, const array<SizeType, N>& exts);
+  constexpr mdspan(pointer p, const extents_type& ext);
+  constexpr mdspan(pointer p, const mapping_type& m);
+  constexpr mdspan(pointer p, const mapping_type& m, const accessor_type& a);
+
+  template<class OtherElementType, class OtherExtents, 
+           class OtherLayoutPolicy, class OtherAccessorPolicy>
+    explicit(@_see below_@)
+    constexpr mdspan(
+      const mdspan<OtherElementType, OtherExtents, 
+                   OtherLayoutPolicy, OtherAccessorPolicy>& other);
+
+  constexpr mdspan& operator=(const mdspan& rhs) = default;
+  constexpr mdspan& operator=(mdspan&& rhs) = default;
+
+  // [mdspan.mdspan.members], mdspan members
+  template<class... SizeTypes>
+    constexpr reference operator[](SizeTypes... indices) const;
+  template<class SizeType>
+    constexpr reference operator[](span<SizeType, rank()> indices) const;
+  template<class SizeType>
+    constexpr reference operator[](const array<SizeType, rank()>& indices) const;
+
+  constexpr size_type size() const;
+
+  friend constexpr void swap(mdspan& x, mdspan& y) noexcept;
+
+  constexpr const extents_type& extents() const { return @_map\__@.extents(); }
+  constexpr const pointer& data() const { return @_ptr\__@; }
+  constexpr const mapping_type& mapping() const { return @_map\__@; }
+  constexpr const accessor_type& accessor() const { return @_acc\__@; }
+
+  static constexpr bool is_always_unique() {
+    return mapping_type::is_always_unique();
+  }
+  static constexpr bool is_always_contiguous() {
+    return mapping_type::is_always_contiguous();
+  }
+  static constexpr bool is_always_strided() {
+    return mapping_type::is_always_strided();
+  }
+
+  constexpr bool is_unique() const {
+    return @_map\__@.is_unique();
+  }
+  constexpr bool is_contiguous() const {
+    return @_map\__@.is_contiguous();
+  }
+  constexpr bool is_strided() const {
+    return @_map\__@.is_strided();
+  }
+  constexpr size_type stride(rank_type r) const {
+    return @_map\__@.stride(r);
+  }
+
+private:
+  accessor_type @_acc\__@; // @_exposition only_@
+  mapping_type @_map\__@; // @_exposition only_@
+  pointer @_ptr\__@; // @_exposition only_@
+};
+
+template <class ElementType, class... Integrals>
+explicit mdspan(ElementType*, Integrals...)
+  requires((is_convertible_v<Integrals, size_type> && ...))
+  -> mdspan<ElementType, dextents<sizeof...(Integrals)>>;
+
+template <class ElementType, class SizeType, size_t N>
+mdspan(ElementType*, span<SizeType, N>)
+  -> mdspan<ElementType, dextents<N>>;
+
+template <class ElementType, class SizeType, size_t N>
+mdspan(ElementType*, const array<SizeType, N>&)
+  -> mdspan<ElementType, dextents<N>>;
+
+template <class ElementType, class MappingType>
+mdspan(ElementType*, const MappingType&)
+  -> mdspan<ElementType, typename MappingType::extents_type,
+            typename MappingType::layout_type>;
+
+template <class ElementType, class MappingType, class AccessorType>
+mdspan(ElementType*, const MappingType&, const AccessorType&)
+  -> mdspan<ElementType, typename MappingType::extents_type, 
+            typename MappingType::layout_type, AccessorType>;
+
+}
+```
+
+[2]{.pnum} *Mandates:*
+
+   * [2.1]{.pnum} `ElementType` is a a complete object type that is neither an abstract class type nor an array type,
+
+   * [2.2]{.pnum} `Extents` is a specialization of `extents`, and
+
+   * [2.3]{.pnum} `is_same_v<ElementType, typename AccessorPolicy::element_type>` is `true`.
+
+[3]{.pnum}
+
+   * [3.1]{.pnum} `LayoutPolicy` shall meet the layout mapping policy requirements [mdspan.layoutpolicy.reqmts], and
+
+   * [3.2]{.pnum} `AccessorPolicy` shall meet the accessor policy requirements [mdspan.accessor.reqmts].
+
+[4]{.pnum} Each specialization `MDS` of `mdspan` models `copyable` and
+
+   * [4.1]{.pnum} `is_nothrow_move_constructible_v<MDS>` is `true`,
+
+   * [4.2]{.pnum} `is_nothrow_move_assignable_v<MDS>` is `true`, and
+   
+   * [4.3]{.pnum} `is_nothrow_swappable_v<MDS>` is `true`.
+
+[5]{.pnum} A specialization of `mdspan` is a trivially copyable type if its `accessor_type`, `mapping_type`, and `pointer` are
+           trivially copyable types.
+
+<!--
+
+ ##              #               #
+#   ### ##   ## ### ### # # ### ### ### ###  ##
+#   # # # #  #   #  #   # # #    #  # # #    #
+#   ### # # ##   ## #   ### ###  ## ### #   ##
+ ##
+
+-->
+
+<b>24.7.�.2 Constructors  [mdspan.mdspan.ctor]</b>
+
+```c++
+constexpr mdspan();
+```
+
+[1]{.pnum} *Constraints:*
+
+   * [1.1]{.pnum} `rank_dynamic() > 0` is `true`.
+
+   * [1.2]{.pnum} `is_default_constructible_v<pointer>` is `true`.
+
+   * [1.3]{.pnum} `is_default_constructible_v<mapping_type>` is `true`.
+
+   * [1.4]{.pnum} `is_default_constructible_v<accessor_type>` is `true`.
+
+[2]{.pnum} *Precondition:* $[$`0`, _`map_`_`.required_span_size()`$)$ is an accessible range of _`ptr_`_ and _`acc_`_ for the values of _`map_`_ and _`acc_`_ after the invocation of this constructor.
+
+[3]{.pnum} *Effects:* Value-initializes _`ptr_`_, _`map_`_, and _`acc_`_.
+
+```c++
+template<class... SizeTypes>
+  explicit constexpr mdspan(pointer p, SizeTypes... exts);
+```
+
+[4]{.pnum} *Constraints:*
+
+   * [4.1]{.pnum} `(is_convertible_v<SizeTypes, size_type> && ...)` is `true`,
+
+   * [4.2]{.pnum} `(is_nothrow_constructible<size_type, SizeTypes> && ...)` is `true`,
+
+   * [4.3]{.pnum} `(sizeof...(SizeTypes) == rank()) || (sizeof...(SizeTypes) == rank_dynamic())` is `true`,
+
+   * [4.4]{.pnum} `is_constructible_v<mapping_type, extents_type>` is `true`, and
+
+   * [4.5]{.pnum} `is_default_constructible_v<accessor_type>` is `true`.
+
+[5]{.pnum} *Precondition:* $[$`0`, _`map_`_`.required_span_size()`$)$ is an accessible range of `p` and _`acc_`_ for the values of _`map_`_ and _`acc_`_ after the invocation of this constructor.
+
+[6]{.pnum} *Effects:*
+
+   * [6.1]{.pnum} Direct-non-list-initializes _`ptr_`_ with `std::move(p)`, and
+
+   * [6.2]{.pnum} Direct-non-list-initializes _`map_`_ with `extents_type(static_cast<size_type>(std::move(exts))...)`.
+
+   * [6.3]{.pnum} Value-initializes _`acc_`_.
+
+```c++
+template<class SizeType, size_t N>
+  explicit(N != rank_dynamic())
+  constexpr mdspan(pointer p, span<SizeType, N> exts);
+template<class SizeType, size_t N>
+  explicit(N != rank_dynamic())
+  constexpr mdspan(pointer p, const array<SizeType, N>& exts);
+```
+
+[7]{.pnum} *Constraints:*
+
+   * [7.1]{.pnum} `is_convertible_v<const SizeType&, size_type>` is `true`,
+
+   * [7.2]{.pnum} `(is_nothrow_constructible<size_type, const SizeTypes&> && ...)` is `true`,
+
+   * [7.3]{.pnum} `(N == rank()) || (N == rank_dynamic())` is `true`,
+
+   * [7.4]{.pnum} `is_constructible_v<mapping_type, extents_type>` is `true`, and
+
+   * [7.5]{.pnum} `is_default_constructible_v<accessor_type>` is `true`.
+
+[8]{.pnum} *Precondition:* $[$`0`, _`map_`_`.required_span_size()`$)$ is an accessible range of `p` and _`acc_`_ for the values of _`map_`_ and _`acc_`_ after the invocation of this constructor.
+
+[9]{.pnum} *Effects:*
+
+   * [9.1]{.pnum} Direct-non-list-initializes _`ptr_`_ with `std::move(p)`, and
+
+   * [9.2]{.pnum} Direct-non-list-initializes _`map_`_ with `extents_type(exts)`.
+
+   * [9.3]{.pnum} Value-initializes _`acc_`_.
+
+```c++
+constexpr mdspan(pointer p, const extents_type& ext);
+```
+
+[10]{.pnum} *Constraints:*
+
+   * [10.1]{.pnum} `is_constructible_v<mapping_type, const extents_type&>` is `true`, and
+
+   * [10.2]{.pnum} `is_default_constructible_v<accessor_type>` is `true`.
+
+[11]{.pnum} *Precondition:* $[$`0`, _`map_`_`.required_span_size()`$)$ is an accessible range of `p` and _`acc_`_ for the values of _`map_`_ and _`acc_`_ after the invocation of this constructor. 
+
+[12]{.pnum} *Effects:*
+
+   * [12.1]{.pnum} Direct-non-list-initializes _`ptr_`_ with `std::move(p)`, and
+
+   * [12.2]{.pnum} Direct-non-list-initializes _`map_`_ with `ext`.
+
+   * [12.3]{.pnum} Value-initializes _`acc_`_.
+
+```c++
+constexpr mdspan(pointer p, const mapping_type& m);
+```
+
+[13]{.pnum} *Constraints:* `is_default_constructible_v<accessor_type>` is `true`.
+
+[14]{.pnum} *Precondition:* $[$`0`, `m.required_span_size()`$)$ is an accessible range of `p` and _`acc_`_ for value of _`acc_`_ after the invocation of this constructor.
+
+[15]{.pnum} *Effects:*
+
+   * [15.1]{.pnum} Direct-non-list-initializes _`ptr_`_ with `std::move(p)`, and
+
+   * [15.2]{.pnum} Direct-non-list-initializes _`map_`_ with `m`.
+
+```c++
+constexpr mdspan(pointer p, const mapping_type& m, const accessor_type& a);
+```
+
+[16]{.pnum} *Precondition:* $[$`0`, `m.required_span_size()`$)$ is an accessible range of `p` and `a`.
+
+[17]{.pnum}*Effects:*
+
+   * [17.1]{.pnum} Direct-non-list-initializes _`ptr_`_ with `std::move(p)`,
+
+   * [17.2]{.pnum} Direct-non-list-initializes _`map_`_ with `m`, and
+
+   * [17.3]{.pnum} Direct-non-list-initializes _`acc_`_ with `a`.
+
+```c++
+template<class OtherElementType, class OtherExtents,
+         class OtherLayoutPolicy, class OtherAccessor>
+  explicit(@_see below_@)
+  constexpr mdspan(const mdspan<OtherElementType, OtherExtents, 
+                                OtherLayoutPolicy, OtherAccessor>& other);
+```
+
+[18]{.pnum} *Constraints:*
+
+   * [18.1]{.pnum} `is_constructible_v<mapping_type, const OtherLayoutPolicy::template mapping<OtherExtents>&>` is `true`;
+
+   * [18.2]{.pnum} `is_constructible_v<accessor_type, const OtherAccessor&>` is `true`; and
+
+[19]{.pnum} *Mandates:* 
+
+   * [19.1]{.pnum} `is_constructible_v<pointer, const OtherAccessor::pointer&>` is `true`;
+
+   * [19.2]{.pnum} `is_constructible_v<extents_type, OtherExtents>` is `true`.
+
+[20]{.pnum} *Preconditions:* 
+
+   * [20.1]{.pnum} For each rank index `r` of `extents_type`, `static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)` is `true`.
+
+   * [20.2]{.pnum} $[$`0`, _`map_`_`.required_span_size()`$)$ is an accessible range of _`ptr_`_ and _`acc_`_ for values of _`ptr_`_, _`map_`_, and _`acc_`_ after the invocation of this constructor.
+
+[21]{.pnum} *Effects:*
+
+   * [21.1]{.pnum} Direct-non-list-initializes _`ptr_`_ with `other.`_`ptr_`_,
+
+   * [21.2]{.pnum} Direct-non-list-initializes _`map_`_ with `other.`_`map_`_, and
+
+   * [21.3]{.pnum} Direct-non-list-initializes _`acc_`_ with `other.`_`acc_`_.
+
+[22]{.pnum} *Remarks:* The expression inside `explicit` is:
+```c++
+  !is_convertible_v<const OtherLayoutPolicy::template mapping<OtherExtents>&, mapping_type> ||
+  !is_convertible_v<const OtherAccessor&, accessor_type>
+```
+
+<!--
+
+  #              #                           #
+### ### ###  ##     ##      ###  ## ### ###     ##  ###
+# # # # ### # #  #  # #     ### # # # # # #  #  # # # #
+### ### # # ###  ## # #     # # ### ### ###  ## # #  ##
+                                    #   #           ###
+-->
+
+<br/>
+<b>24.7.�.3 Members [mdspan.mdspan.members]</b>
+
+```c++
+template<class... SizeTypes>
+  constexpr reference operator[](SizeTypes... indices) const;
+```
+
+[1]{.pnum} *Constraints:*
+
+   * [1.1]{.pnum} `(is_convertible_v<SizeTypes, size_type> && ...)` is `true`,
+
+   * [1.2]{.pnum} `(is_nothrow_constructible_v<size_type, SizeTypes> && ...)` is `true`, and
+
+   * [1.3]{.pnum} `sizeof...(SizeTypes) == rank()` is `true`.
+
+[2]{.pnum} Let `I` be `static_cast<size_type>(std::move(indices))`.
+
+[3]{.pnum} *Preconditions:*  `I` is a multidimensional index in `extents()`.
+                  <i>[Note:</i> This implies that _`map_`_`(I...) < `_`map_`_`.required_span_size()` is `true`.<i>— end note]</i>; 
+
+[4]{.pnum} *Effects:* Equivalent to: `return ` _`acc_`_`.access(`_`ptr_`_`, `_`map_`_`(I...));`
+
+
+```c++
+template<class SizeType>
+  constexpr reference operator[](span<SizeType, rank()> indices) const;
+template<class SizeType>
+  constexpr reference operator[](const array<SizeType, rank()>& indices) const;
+```
+
+[5]{.pnum} *Constraints:*
+
+   * [5.1]{.pnum} `is_convertible_v<const SizeType&, size_type>` is `true`, and
+   
+   * [5.2]{.pnum} `is_nothrow_constructible_v<size_type, const SizeType&>` is `true`.
+
+[6]{.pnum} *Effects:* Let `P` be a parameter pack such that
+            `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
+            <br/> Equivalent to: `return operator[](static_cast<size_type>(as_const(indices[P]))...);`
+
+```c++
+constexpr size_type size() const;
+```
+
+[7]{.pnum} *Precondition:* The size of the multidimensional index space `extents()` is a representable value of type `size_type` ([basic.fundamental]).
+
+[8]{.pnum} *Returns:* `extents().`_`fwd-prod-of-extents`_`(rank())`.
+
+```c++
+friend constexpr void swap(mdspan& x, mdspan& y) noexcept;
+```
+
+[9]{.pnum} *Effects:* Equivalent to:
+
+```c++
+swap(x.@_ptr\__@, y.@_ptr\__@);
+swap(x.@_map\__@, y.@_map\__@);
+swap(x.@_acc\__@, y.@_acc\__@);
+```
+
+Implementation
+============
+
+There is an mdspan implementation available at [https://github.com/kokkos/mdspan/](https://github.com/kokkos/mdspan/).
+
+
+Related Work
+============
+
+The original version of this paper,
+[N4355](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4355.pdf),
+predates the "P" naming for papers.
+
+<b>Related papers:</b>
+
+-   <b>P0122</b> : span: bounds-safe views for sequences of objects The
+    `mdspan` codomain concept of *span* is well-aligned with this paper.
+-   <b>P0367</b> : Accessors: The P0367 Accessors proposal includes
+    polymorphic mechanisms for accessing the memory an object or span of
+    objects. The `AccessorPolicy` extension point in this proposal is
+    intended to include such memory access properties.
+-   <b>P0331</b> : Motivation and Examples for Multidimensional Array
+-   <b>P0332</b> : Relaxed Incomplete Multidimensional Array Type
+    Declaration
+-   <b>P0454</b> : Wording for a Minimal `mdspan` Included proposed
+    modification of `span` to better align `span` with `mdspan`.
+-   <b>P0546</b> : Preparing `span` for the future Proposed modification of
+    `span`
+-   <b>P0856</b> : Restrict access property for `mdspan` and `span`
+-   <b>P0860</b> : atomic access policy for `mdspan`
+-   <b>P0900</b> : An Ontology of Properties for `mdspan`
+-   <b>P2128</b> : Multidimensional subscript operator
+-   <b>P2299</b> : `mdspan` and CTAD
