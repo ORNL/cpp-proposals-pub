@@ -41,8 +41,8 @@ Special thanks to Tomasz Kaminski for invaluable help in preparing this paper fo
 
 - significant wording updates based on LWG feedback 
 - `submdspan` was moved into its own paper, allowing mdspan to go forward even if there is not enough time to review `submdspan`
-- Merge P2553 (SizeType as a template parameter for `extents`).
-- Merge P2554 and fix merge conflict with P2553
+- Move wording change in paragraph 1 of [mdspan.extents.comp] from P2553 to P0009
+- Per LWG small group request, change [mdspan.layout.reqmts] to account for `extents::size_type` possibly being negative (these changes could also go in P2553, but they are harmless to leave in P0009); this means that the layout mapping requirements will not permit negative strides for any strided layout in general, not just `layout_stride`
 
 ## P0009r17: 2022-04 Mailing
 
@@ -1294,10 +1294,10 @@ Y88b  d88P Y88b 888 888  888 Y88..88P 888 d88P      X88 888      X88
 ```c++
 namespace std {
   // [mdspan.extents], class template extents
-  template<class SizeType, size_t... Extents>
+  template<size_t... Extents>
     class extents;
 
-  template<class SizeType, size_t Rank>
+  template<size_t Rank>
     using dextents = @_see below_@;
 
   // [mdspan.layout], Layout mapping policies
@@ -1355,25 +1355,25 @@ of rank equal to `sizeof...(Extents)`. In subclause 24.7, `extents` will be used
 ```c++
 namespace std {
 
-template<class SizeType, size_t... Extents>
+template<size_t... Extents>
 class extents {
 public:
-  using size_type = SizeType;
+  using size_type = size_t;
   using rank_type = size_t;
 
   // [mdspan.extents.obs], Observers of the multidimensional index space
   static constexpr rank_type rank() noexcept { return sizeof...(Extents); }
   static constexpr rank_type rank_dynamic() noexcept { return @_dynamic-index_@(rank()); }
-  static constexpr size_t static_extent(rank_type) noexcept;
+  static constexpr size_type static_extent(rank_type) noexcept;
   constexpr size_type extent(rank_type) const noexcept;
 
 
   // [mdspan.extents.ctor], Constructors
   constexpr extents() noexcept = default;
 
-  template<class OtherSizeType, size_t... OtherExtents>
+  template<size_t... OtherExtents>
     explicit(@_see below_@)
-    constexpr extents(const extents<OtherSizeType, OtherExtents...>&) noexcept;
+    constexpr extents(const extents<OtherExtents...>&) noexcept;
   template<class... SizeTypes>
     explicit constexpr extents(SizeTypes...) noexcept;
   template<class SizeType, size_t N>
@@ -1384,8 +1384,8 @@ public:
     constexpr extents(const array<SizeType, N>&) noexcept;
 
   // [mdspan.extents.cmp], extents comparison operators
-  template<class OtherSizeType, size_t... OtherExtents>
-    friend constexpr bool operator==(const extents&, const extents<OtherSizeType, OtherExtents...>&) noexcept;
+  template<size_t... OtherExtents>
+    friend constexpr bool operator==(const extents&, const extents<OtherExtents...>&) noexcept;
 
   // [mdspan.extents.helpers], exposition only helpers
   constexpr size_t @_fwd-prod-of-extents_@(rank_type) const noexcept; // @_exposition only_@
@@ -1405,11 +1405,7 @@ explicit extents(Integrals...)
 }
 ```
 
-[2]{.pnum} *Mandates:*
 
-   * [2.1]{.pnum} `SizeType` is an integral type other than `bool`, and
-
-   * [2.2]{.pnum} each element of `Extents` is either equal to `dynamic_extent`, or is a representable value of type `SizeType`.
 
 [2]{.pnum} Each specialization of `extents` models `regular` and is trivially copyable.
 
@@ -1457,9 +1453,9 @@ constexpr size_t @_rev-prod-of-extents_@(rank_type i) const noexcept; // @_expos
 <b>24.7.�.3 Constructors [mdspan.extents.ctor]</b>
 
 ```c++
-template<class OtherSizeType, size_t... OtherExtents>
-  explicit(@_see below_@)
-  constexpr extents(const extents<OtherSizeType, OtherExtents...>& other) noexcept;
+template<size_t... OtherExtents>
+  explicit((((Extents!=dynamic_extent) && (OtherExtents==dynamic_extent)) || ... ))
+  constexpr extents(const extents<OtherExtents...>& other) noexcept;
 ```
 
 [1]{.pnum} *Constraints:*
@@ -1468,24 +1464,10 @@ template<class OtherSizeType, size_t... OtherExtents>
    
    * [1.2]{.pnum} `((OtherExtents == dynamic_extent || Extents == dynamic_extent || OtherExtents == Extents) && ...)` is `true`.
 
-[2]{.pnum} *Preconditions:* 
-
-   * [2.1]{.pnum} `other.extent(`$r$`)` equals $E_r$ for each $r$ for which $E_r$ is a static extent, and
-
-   * [2.2]{.pnum} either
-
-        - `sizeof...(OtherExtents)` is zero, or
-
-        - `other.extent(r)` is a representable value of type `size_type` for all rank index `r` of `other`.
+[2]{.pnum} *Preconditions:* `other.extent(`$r$`)` equals $E_r$ for each $r$ for which $E_r$ is a static extent.
 
 [3]{.pnum} *Postconditions:* `*this == other` is `true`.
 
-[4]{.pnum} *Remarks:* The expression inside `explicit` is equivalent to:
-
-   ```c++
-    (((Extents!=dynamic_extent) && (OtherExtents==dynamic_extent)) || ... ) ||
-    (numeric_limits<size_type>::max() < numeric_limits<OtherSizeType>::max())
-   ```
 
 ```c++
 template<class... SizeTypes>
@@ -1504,16 +1486,9 @@ template<class... SizeTypes>
 
 [5]{.pnum} Let `exts_arr` be `array<size_type, sizeof...(SizeTypes)>{static_cast<size_type>(std::move(exts))...}`
 
-[6]{.pnum} *Preconditions:*
-
-   * [6.1]{.pnum} If `sizeof...(SizeTypes) != rank_dynamic()` is `true`, `exts_arr[r]` equals 
-                  $E_r$ for each $r$ for which $E_r$ is a static extent, and
-
-   * [6.2]{.pnum} either
-
-        - `sizeof...(exts) == 0` is `true`, or
-
-        - each element of `exts` is nonnegative and is a representable value of type `size_type`.
+[6]{.pnum} *Preconditions:* If `sizeof...(SizeTypes) != rank_dynamic()` is `true`,
+           `exts_arr[r]` equals $E_r$
+           for each $r$ for which $E_r$ is a static extent.
 
 [7]{.pnum} *Postconditions:* `*this == extents(exts_arr)` is `true`.
 
@@ -1528,24 +1503,15 @@ template<class SizeType, size_t N>
 
 [8]{.pnum} *Constraints:*
 
-   * [8.1]{.pnum} `is_convertible_v<const remove_const_t<SizeType>&, size_type>` is `true`, and
+   * [8.1]{.pnum} `is_convertible_v<const SizeType&, size_type>` is `true`, and
 
-   * [8.2]{.pnum} `is_nothrow_constructible_v<size_type, const remove_const_t<SizeType>&>` is `true`, and
+   * [8.2]{.pnum} `is_nothrow_constructible_v<size_type, const SizeType&>` is `true`, and
 
    * [8.3]{.pnum} `N==rank_dynamic() || N==rank()` is `true`.
 
 [9]{.pnum} *Preconditions:* If `N != rank_dynamic()` is `true`,
             `exts[r]` equals $E_r$
             for each $r$ for which $E_r$ is a static extent.
-[9]{.pnum} *Preconditions*:
-
-   * [9.1]{.pnum} If `N != rank_dynamic()` is `true`, `exts[r]` equals $E_r$ for each $r$ for which $E_r$ is a static extent, and
-
-   * [9.2]{.pnum} either
-
-        - `N` is zero, or
-
-        - `exts[r]` is nonnegative and is a representable value of type `size_type` for all rank index `r`.
 
 [10]{.pnum} *Effects:*
 
@@ -1562,14 +1528,14 @@ explicit extents(Integrals...) -> @_see below_@;
 ```
 [11]{.pnum} *Constraints:* `(is_convertible_v<Integrals, size_type> && ...)` is `true`.
 
-[12]{.pnum} *Remarks:* The deduced type is `dextents<size_t, sizeof...(Integrals)>`.
+[12]{.pnum} *Remarks:* The deduced type is `dextents<sizeof...(Integrals)>`.
 
 <br/>
 
 <b>24.7.�.4 Observers of the multidimensional index space [mdspan.extents.obs]</b>
 
 ```c++
-static constexpr size_t static_extent(rank_type i) const noexcept;
+static constexpr size_type static_extent(rank_type i) const noexcept;
 ```
 
 [1]{.pnum} *Preconditions:* `i < rank()` is `true`.
@@ -1589,9 +1555,9 @@ constexpr size_type extent(rank_type i) const noexcept;
 
 
 ```c++
-template<class OtherSizeType, size_t... OtherExtents>
+template<size_t... OtherExtents>
   friend constexpr bool operator==(const extents& lhs, 
-                                   const extents<OtherSizeType, OtherExtents...>& rhs) noexcept;
+                                   const extents<OtherExtents...>& rhs) noexcept;
 ```
 
 [1]{.pnum} *Returns:* `true` if `lhs.rank()` equals `rhs.rank()` and if `lhs.extents(r)` equals `rhs.extents(r)` for every rank index `r` of `rhs`, otherwise `false`.
@@ -1601,12 +1567,12 @@ template<class OtherSizeType, size_t... OtherExtents>
 <b>24.7.�.6 Template alias `dextents` [mdspan.extents.dextents]</b>
 
 ```c++
-template <class SizeType, size_t Rank>
+template <size_t Rank>
   using dextents = @_see below_@;
 ```
 
 [1]{.pnum} *Result:*  A type `E` that is a specialization of `extents` such that 
-`E::rank() == Rank && E::rank() == E::rank_dynamic()`  is `true`, and `E::size_type` denotes `SizeType`.
+`E::rank() == Rank && E::rank() == E::rank_dynamic()`  is `true`.
 
 
 
@@ -1738,7 +1704,7 @@ m.is_strided()
 ```
 [17]{.pnum} *Result:* `bool`
 
-[18]{.pnum} *Returns:* `true` only if for every rank index $r$ of `m.extents()` there exists an integer $s_r$
+[18]{.pnum} *Returns:* `true` only if for every rank index $r$ of `m.extents()` there exists a nonnegative integer $s_r$
        such that, for all `i` where `(i+`$d_r$`)` is a multidimensional index in `m.extents()` ([mdspan.terms]),
        `m((i+`$d_r$`)...) - m(i...)` equals $s_r$.
      <i>[Note:</i> This implies that for a strided layout `m(`$i_0, ..., i_k$`) = m(`$0, ..., 0$`)` $+ i_0*s_0 + ... + i_k*s_k$. <i>— end note]</i>
@@ -1752,7 +1718,7 @@ m.stride(r)
 
 [20]{.pnum} *Result:* `typename M::size_type`
 
-[21]{.pnum} *Returns:* $s_r$ as defined in `m.is_strided()` above.
+[21]{.pnum} *Returns:* $s_r$ (a nonnegative integer) as defined in `m.is_strided()` above.
 
 ```c++
 M::is_always_unique()
@@ -1909,8 +1875,6 @@ template<class OtherExtents>
 
 [3]{.pnum} *Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[3]{.pnum} *Preconditions*: `other.required_span_size()` is a representable value of type `size_type` ([basic.fundamental]).
-
 [4]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
 
 ```c++
@@ -1925,8 +1889,6 @@ template<class OtherExents>
  
    * [5.2]{.pnum} `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[3]{.pnum} *Preconditions*: `other.required_span_size()` is a representable value of type `size_type` ([basic.fundamental]).
-
 [6]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
 
 ```c++
@@ -1937,12 +1899,8 @@ template<class OtherExtents>
 
 [7]{.pnum} *Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[8]{.pnum} *Preconditions:*
-
-   * [8.1]{.pnum} If `extents_type::rank() > 0` is `true`, then for all $r$ in the range $[0,$ `extents_type::rank()`$)$, `other.stride(`$r$`)` equals
-                  `extents().`_`fwd-prod-of-extents`_`(`$r$`)`, and
-
-   * [8.2]{.pnum} `other.required_span_size()` is a representable value of type `size_type` ([basic.fundamental]).
+[8]{.pnum} *Preconditions:* If `extents_type::rank() > 0` is `true`, then for all $r$ in the range $[0,$ `extents_type::rank()`$)$, `other.stride(`$r$`)` equals
+                  `extents().`_`fwd-prod-of-extents`_`(`$r$`)`.
 
 [9]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
 
@@ -2091,8 +2049,6 @@ template<class OtherExtents>
 
 [3]{.pnum} *Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[3]{.pnum} *Preconditions*: `other.required_span_size()` is a representable value of type `size_type` ([basic.fundamental]).
-
 [4]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
 
 ```c++
@@ -2107,8 +2063,6 @@ template<class OtherExtents>
 
    * [5.2]{.pnum} `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[3]{.pnum} *Preconditions*: `other.required_span_size()` is a representable value of type `size_type` ([basic.fundamental]).
-
 [6]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
 
 ```c++
@@ -2119,11 +2073,7 @@ template<class OtherExtents>
 
 [7]{.pnum} *Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[8]{.pnum} *Preconditions:*
-
-   * [8.1]{.pnum} If `extents_type::rank() > 0` is `true`, then for all $r$ in the range $[0,$ `extents_type::rank()`$)$, `other.stride(`$r$`)` equals `extents().`_`rev-prod-of-extents`_`(`$r$`)`.
-
-   * [8.2]{.pnum} `other.required_span_size()` is a representable value of type `size_type` ([basic.fundamental]).
+[8]{.pnum} *Preconditions:* If `extents_type::rank() > 0` is `true`, then for all $r$ in the range $[0,$ `extents_type::rank()`$)$, `other.stride(`$r$`)` equals `extents().`_`rev-prod-of-extents`_`(`$r$`)`.
 
 [9]{.pnum} *Effects:* Direct-non-list-initializes $extents\_$ with `other.extents()`.
 
@@ -2318,9 +2268,9 @@ constexpr mapping(const extents_type& e, const array<SizeType, @_rank\__@>& s) n
 
 [1]{.pnum} *Constraints:*
 
-   * [1.1]{.pnum} `is_convertible_v<const remove_const_t<SizeType>&, size_type>` is `true`,
+   * [1.1]{.pnum} `is_convertible_v<const SizeType&, size_type>` is `true`,
 
-   * [1.2]{.pnum} `is_nothrow_constructible_v<size_type, const remove_const_t<SizeType>&>` is `true`.
+   * [1.2]{.pnum} `is_nothrow_constructible_v<size_type, const SizeType&>` is `true`.
 
 [2]{.pnum} *Preconditions:*
 
@@ -2649,7 +2599,7 @@ public:
 
   static constexpr rank_type rank() { return extents_type::rank(); }
   static constexpr rank_type rank_dynamic() { return extents_type::rank_dynamic(); }
-  static constexpr size_t static_extent(rank_type r) { return extents_type::static_extent(r); }
+  static constexpr size_type static_extent(rank_type r) { return extents_type::static_extent(r); }
   constexpr size_type extent(rank_type r) const { return extents().extent(r); }
 
   // [mdspan.mdspan.ctor], mdspan Constructors
@@ -2687,7 +2637,7 @@ public:
   template<class SizeType>
     constexpr reference operator[](const array<SizeType, rank()>& indices) const;
 
-  constexpr size_t size() const;
+  constexpr size_type size() const;
 
   friend constexpr void swap(mdspan& x, mdspan& y) noexcept;
 
@@ -2725,28 +2675,18 @@ private:
   pointer @_ptr\__@; // @_exposition only_@
 };
 
-template <class CArray>
-requires(is_array_v<CArray> && rank_v<CArray>==1)
-mdspan(CArray&)
-  -> mdspan<remove_all_extents_t<CArray>, extents<size_t, extent_v<CArray, 0>>>
-
-template <class Pointer>
-requires(!is_array_v<Pointer> && is_pointer_v<Pointer>)
-mdspan(Pointer&)
-  -> mdspan<remove_pointer_t<Pointer>, extents<size_t>>>
-
 template <class ElementType, class... Integrals>
-requires((is_convertible_v<Integrals, size_t> && ...) && sizeof...(Integrals) > 0)
 explicit mdspan(ElementType*, Integrals...)
-  -> mdspan<ElementType, dextents<size_t, sizeof...(Integrals)>>;
+  requires((is_convertible_v<Integrals, size_type> && ...))
+  -> mdspan<ElementType, dextents<sizeof...(Integrals)>>;
 
 template <class ElementType, class SizeType, size_t N>
 mdspan(ElementType*, span<SizeType, N>)
-  -> mdspan<ElementType, dextents<size_t, N>>;
+  -> mdspan<ElementType, dextents<N>>;
 
 template <class ElementType, class SizeType, size_t N>
 mdspan(ElementType*, const array<SizeType, N>&)
-  -> mdspan<ElementType, dextents<size_t, N>>;
+  -> mdspan<ElementType, dextents<N>>;
 
 template <class ElementType, class MappingType>
 mdspan(ElementType*, const MappingType&)
@@ -2854,9 +2794,9 @@ template<class SizeType, size_t N>
 
 [7]{.pnum} *Constraints:*
 
-   * [7.1]{.pnum} `is_convertible_v<const remove_const_t<SizeType>&, size_type>` is `true`,
+   * [7.1]{.pnum} `is_convertible_v<const SizeType&, size_type>` is `true`,
 
-   * [7.2]{.pnum} `(is_nothrow_constructible<size_type, const remove_const_t<SizeTypes>&> && ...)` is `true`,
+   * [7.2]{.pnum} `(is_nothrow_constructible<size_type, const SizeTypes&> && ...)` is `true`,
 
    * [7.3]{.pnum} `(N == rank()) || (N == rank_dynamic())` is `true`,
 
@@ -3004,9 +2944,9 @@ template<class SizeType>
 
 [5]{.pnum} *Constraints:*
 
-   * [5.1]{.pnum} `is_convertible_v<const remove_const_t<SizeType>&, size_type>` is `true`, and
+   * [5.1]{.pnum} `is_convertible_v<const SizeType&, size_type>` is `true`, and
    
-   * [5.2]{.pnum} `is_nothrow_constructible_v<size_type, const remove_const_t<SizeType>&>` is `true`.
+   * [5.2]{.pnum} `is_nothrow_constructible_v<size_type, const SizeType&>` is `true`.
 
 [6]{.pnum} *Effects:* Let `P` be a parameter pack such that
             `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
