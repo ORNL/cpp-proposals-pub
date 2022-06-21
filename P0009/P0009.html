@@ -2313,10 +2313,10 @@ element of <code>Extents</code> is either equal to
 <code>dynamic_extent</code>, or is representable as a value of type
 <code>SizeType</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 Each specialization of <code>extents</code> models <code>regular</code>
 and is trivially copyable.</p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 Let <span class="math inline"><em>E</em><sub><em>r</em></sub></span> be
 the <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span>
 element of <code>Extents</code>. <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a
@@ -2327,7 +2327,7 @@ of
 <em><code>dynamic-extents</code></em><code>[</code><em><code>dynamic-index</code></em><code>(</code><em>r</em><code>)]</code>
 if <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a
 dynamic extent, otherwise <span class="math inline"><em>E</em><sub><em>r</em></sub></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 The <span class="math inline"><em>r</em><sup><em>t</em><em>h</em></sup></span>
 interval of the multidimensional index space represented by an
 <code>extents</code> object is <span class="math inline">[0, <em>D</em><sub><em>r</em></sub>)</span>.</p>
@@ -2401,7 +2401,7 @@ equivalent to:</p>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a> <span class="op">(</span>numeric_limits<span class="op">&lt;</span>size_type<span class="op">&gt;::</span>max<span class="op">()</span> <span class="op">&lt;</span> numeric_limits<span class="op">&lt;</span>OtherSizeType<span class="op">&gt;::</span>max<span class="op">())</span></span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> OtherSizeTypes<span class="op">&gt;</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> <span class="kw">constexpr</span> extents<span class="op">(</span>OtherSizeTypes<span class="op">...</span> exts<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
@@ -2417,18 +2417,18 @@ is <code>true</code>. <i>[Note:</i> One can construct
 getting stored, or from all the extents with a precondition. <i>— end
 note]</i></p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 Let <code>exts_arr</code> be
 <code>array&lt;size_type, sizeof...(OtherSizeTypes)&gt;{static_cast&lt;size_type&gt;(std::move(exts))...}</code></p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span> If
 <code>sizeof...(OtherSizeTypes) != rank_dynamic()</code> is
 <code>true</code>, <code>exts_arr[r]</code> equals <span class="math inline"><em>E</em><sub><em>r</em></sub></span> for each
 <span class="math inline"><em>r</em></span> for which <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a static
 extent, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
 either</p>
 <ul>
 <li><p><code>sizeof...(exts) == 0</code> is <code>true</code>,
@@ -2437,7 +2437,7 @@ or</p></li>
 representable as a value of type <code>size_type</code>.</p></li>
 </ul></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Postconditions:</em> <code>*this == extents(exts_arr)</code> is
 <code>true</code>.</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherSizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
@@ -2446,28 +2446,28 @@ representable as a value of type <code>size_type</code>.</p></li>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherSizeType, <span class="dt">size_t</span> N<span class="op">&gt;</span></span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(</span>N <span class="op">!=</span> rank_dynamic<span class="op">())</span></span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> extents<span class="op">(</span><span class="kw">const</span> array<span class="op">&lt;</span>OtherSizeType, N<span class="op">&gt;&amp;</span> exts<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
 <code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
 <code>is_nothrow_constructible_v&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt;</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
 <code>N==rank_dynamic() || N==rank()</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Preconditions</em>:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(10.1)</a></span> If
 <code>N != rank_dynamic()</code> is <code>true</code>,
 <code>exts[r]</code> equals <span class="math inline"><em>E</em><sub><em>r</em></sub></span> for each
 <span class="math inline"><em>r</em></span> for which <span class="math inline"><em>E</em><sub><em>r</em></sub></span> is a static
 extent, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span>
 either</p>
 <ul>
 <li><p><code>N</code> is zero, or</p></li>
@@ -2476,14 +2476,14 @@ value of type <code>size_type</code> for all rank index
 <code>r</code>.</p></li>
 </ul></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(11.1)</a></span> If
 <code>N</code> equals <code>dynamic_rank()</code>, for all <span class="math inline"><em>d</em></span> in the range <span class="math inline">[0,</span> <code>rank_dynamic()</code><span class="math inline">)</span>, direct-non-list-initializes
 <em><code>dynamic-extent</code></em><code>[</code><span class="math inline"><em>d</em></span><code>]</code> with
 <code>as_const(exts[</code><span class="math inline"><em>d</em></span><code>])</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(11.2)</a></span>
 Otherwise, for all <span class="math inline"><em>d</em></span> in the
 range <span class="math inline">[0,</span>
 <code>rank_dynamic()</code><span class="math inline">)</span>,
@@ -2493,11 +2493,11 @@ direct-non-list-initializes
 </ul>
 <div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Integrals<span class="op">&gt;</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span> extents<span class="op">(</span>Integrals<span class="op">...)</span> <span class="op">-&gt;</span> <em>see below</em>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Constraints:</em>
 <code>(is_convertible_v&lt;Integrals, size_t&gt; &amp;&amp; ...)</code>
 is <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Remarks:</em> The deduced type is
 <code>dextents&lt;size_t, sizeof...(Integrals)&gt;</code>.</p>
 <p><br /></p>
@@ -2842,52 +2842,52 @@ that models <code>regular</code> for each <code>E</code>.</p>
 <em>Constraints:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Preconditions</em>: <code>other.required_span_size()</code> is
 representable as a value of type <code>size_type</code>
 ([basic.fundamental]).</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>.</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExents<span class="op">&gt;</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(!</span>is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
 <code>extents_type::rank() &lt;= 1</code> is <code>true</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Preconditions</em>: <code>other.required_span_size()</code> is
 representable as a value of type <code>size_type</code>
 ([basic.fundamental]).</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>.</p>
 <div class="sourceCode" id="cb43"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(</span>extents_type<span class="op">::</span>rank<span class="op">()</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Constraints:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(10.1)</a></span> If
 <code>extents_type::rank() &gt; 0</code> is <code>true</code>, then for
 all <span class="math inline"><em>r</em></span> in the range <span class="math inline">[0,</span> <code>extents_type::rank()</code><span class="math inline">)</span>, <code>other.stride(</code><span class="math inline"><em>r</em></span><code>)</code> equals
 <code>extents().</code><em><code>fwd-prod-of-extents</code></em><code>(</code><span class="math inline"><em>r</em></span><code>)</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>size_type</code> ([basic.fundamental]).</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>.</p>
 <p><b>24.7.�.5.3 Observers [mdspan.layoutleft.obs]</b></p>
@@ -3027,52 +3027,52 @@ that models <code>regular</code> for each <code>E</code>.</p>
 <em>Constraints:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Preconditions</em>: <code>other.required_span_size()</code> is
 representable as a value of type <code>size_type</code>
 ([basic.fundamental]).</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>.</p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(!</span>is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
 <span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> layout_left<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
 <code>extents_type::rank() &lt;= 1</code> is <code>true</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Preconditions</em>: <code>other.required_span_size()</code> is
 representable as a value of type <code>size_type</code>
 ([basic.fundamental]).</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>.</p>
 <div class="sourceCode" id="cb52"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(</span>extents_type<span class="op">::</span>rank<span class="op">()</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
 <span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Constraints:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(10.1)</a></span> If
 <code>extents_type::rank() &gt; 0</code> is <code>true</code>, then for
 all <span class="math inline"><em>r</em></span> in the range <span class="math inline">[0,</span> <code>extents_type::rank()</code><span class="math inline">)</span>, <code>other.stride(</code><span class="math inline"><em>r</em></span><code>)</code> equals
 <code>extents().</code><em><code>rev-prod-of-extents</code></em><code>(</code><span class="math inline"><em>r</em></span><code>)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>size_type</code> ([basic.fundamental]).</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>.</p>
 <p><b>24.7.�.6.3 Observers [mdspan.layoutright.obs]</b></p>
