@@ -2093,7 +2093,7 @@ change all the code that uses it.</p>
 <h2 data-number="2.11" id="reference-implementation"><span class="header-section-number">2.11</span> Reference Implementation<a href="#reference-implementation" class="self-link"></a></h2>
 <p>A reference implementation of this proposal under BSD license is
 available at: <a href="https://github.com/kokkos/mdspan">mdspan</a>.
-This implementation is also available on godbolt for experimentation: <a href="https://godbolt.org/z/ehErvsTce">godbolt</a>.</p>
+This implementation is also available on godbolt for experimentation: <a href="https://godbolt.org/z/Mxa7cej1a">godbolt</a>.</p>
 <h2 data-number="2.12" id="references"><span class="header-section-number">2.12</span> References<a href="#references" class="self-link"></a></h2>
 <ul>
 <li><p>J. W. Backus et al. “Programmer’s Reference Manual: Fortran
@@ -3748,9 +3748,9 @@ elements.</p>
 <span id="cb78-98"><a href="#cb78-98" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>remove_all_extents_t<span class="op">&lt;</span>CArray<span class="op">&gt;</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span>, extent_v<span class="op">&lt;</span>CArray, <span class="dv">0</span><span class="op">&gt;&gt;&gt;</span>;</span>
 <span id="cb78-99"><a href="#cb78-99" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb78-100"><a href="#cb78-100" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> Pointer<span class="op">&gt;</span></span>
-<span id="cb78-101"><a href="#cb78-101" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span>is_pointer_v<span class="op">&lt;</span>Pointer<span class="op">&gt;)</span></span>
-<span id="cb78-102"><a href="#cb78-102" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span><span class="kw">const</span> Pointer<span class="op">&amp;)</span></span>
-<span id="cb78-103"><a href="#cb78-103" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>remove_pointer_t<span class="op">&lt;</span>Pointer<span class="op">&gt;</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">&gt;&gt;</span>;</span>
+<span id="cb78-101"><a href="#cb78-101" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span>is_pointer_v<span class="op">&lt;</span>remove_reference_t<span class="op">&lt;</span>Pointer<span class="op">&gt;&gt;)</span></span>
+<span id="cb78-102"><a href="#cb78-102" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>Pointer<span class="op">&amp;&amp;)</span></span>
+<span id="cb78-103"><a href="#cb78-103" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>remove_pointer_t<span class="op">&lt;</span>remove_reference_t<span class="op">&lt;</span>Pointer<span class="op">&gt;&gt;</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">&gt;&gt;</span>;</span>
 <span id="cb78-104"><a href="#cb78-104" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb78-105"><a href="#cb78-105" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span><span class="op">...</span> Integrals<span class="op">&gt;</span></span>
 <span id="cb78-106"><a href="#cb78-106" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">((</span>is_convertible_v<span class="op">&lt;</span>Integrals, <span class="dt">size_t</span><span class="op">&gt;</span> <span class="op">&amp;&amp;</span> <span class="op">...)</span> <span class="op">&amp;&amp;</span> <span class="kw">sizeof</span><span class="op">...(</span>Integrals<span class="op">)</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
