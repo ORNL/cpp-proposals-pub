@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-06-22" />
+  <meta name="dcterms.date" content="2022-06-23" />
   <title>MDSPAN</title>
   <style>
       code{white-space: pre-wrap;}
@@ -424,7 +424,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-06-22</td>
+    <td>2022-06-23</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -2464,10 +2464,10 @@ representable as a value of type <code>size_type</code>.</p></li>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
-<code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
+<code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
-<code>is_nothrow_constructible_v&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt;</code>
+<code>is_nothrow_constructible_v&lt;size_type, const OtherSizeType&amp;&gt;</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
 <code>N==rank_dynamic() || N==rank()</code> is
@@ -2535,8 +2535,8 @@ is <code>true</code>.</p>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> extents<span class="op">&lt;</span>OtherSizeType, OtherExtents<span class="op">...&gt;&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Returns:</em> <code>true</code> if <code>lhs.rank()</code> equals
-<code>rhs.rank()</code> and if <code>lhs.extents(r)</code> equals
-<code>rhs.extents(r)</code> for every rank index <code>r</code> of
+<code>rhs.rank()</code> and if <code>lhs.extent(r)</code> equals
+<code>rhs.extent(r)</code> for every rank index <code>r</code> of
 <code>rhs</code>, otherwise <code>false</code>.</p>
 <p><br /> <b>24.7.�.6 Template alias <code>dextents</code>
 [mdspan.extents.dextents]</b></p>
@@ -3290,10 +3290,10 @@ have a return type of <code>bool</code>. <i>- end note]</i></p>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
+<code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
 is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-<code>is_nothrow_constructible_v&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt;</code>
+<code>is_nothrow_constructible_v&lt;size_type, const OtherSizeType&amp;&gt;</code>
 is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -3900,10 +3900,10 @@ Value-initializes <em><code>acc_</code></em>.</p></li>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
-<code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
+<code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
 is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-<code>(is_nothrow_constructible&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt; &amp;&amp; ...)</code>
+<code>(is_nothrow_constructible&lt;size_type, const OtherSizeType&amp;&gt; &amp;&amp; ...)</code>
 is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
 <code>(N == rank()) || (N == rank_dynamic())</code> is
@@ -4100,10 +4100,10 @@ is <code>true</code>.<i>— end note]</i>;</p>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-<code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
+<code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
-<code>is_nothrow_constructible_v&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt;</code>
+<code>is_nothrow_constructible_v&lt;size_type, const OtherSizeType&amp;&gt;</code>
 is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
