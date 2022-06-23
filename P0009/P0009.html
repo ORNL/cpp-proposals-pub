@@ -3765,17 +3765,21 @@ elements.</p>
 <span id="cb78-115"><a href="#cb78-115" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>OtherSizeType, N<span class="op">&gt;&amp;)</span></span>
 <span id="cb78-116"><a href="#cb78-116" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, N<span class="op">&gt;&gt;</span>;</span>
 <span id="cb78-117"><a href="#cb78-117" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-118"><a href="#cb78-118" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType<span class="op">&gt;</span></span>
-<span id="cb78-119"><a href="#cb78-119" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;)</span></span>
-<span id="cb78-120"><a href="#cb78-120" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type,</span>
-<span id="cb78-121"><a href="#cb78-121" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type<span class="op">&gt;</span>;</span>
-<span id="cb78-122"><a href="#cb78-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-123"><a href="#cb78-123" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType, <span class="kw">class</span> AccessorType<span class="op">&gt;</span></span>
-<span id="cb78-124"><a href="#cb78-124" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;</span>, <span class="kw">const</span> AccessorType<span class="op">&amp;)</span></span>
-<span id="cb78-125"><a href="#cb78-125" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type, </span>
-<span id="cb78-126"><a href="#cb78-126" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type, AccessorType<span class="op">&gt;</span>;</span>
-<span id="cb78-127"><a href="#cb78-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-128"><a href="#cb78-128" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb78-118"><a href="#cb78-118" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span><span class="op">...</span> ExtentsPack<span class="op">&gt;</span></span>
+<span id="cb78-119"><a href="#cb78-119" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> extents<span class="op">&lt;</span>SizeType, ExtentsPack<span class="op">...&gt;&amp;)</span></span>
+<span id="cb78-120"><a href="#cb78-120" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, extents<span class="op">&lt;</span>SizeType, ExtentsPack<span class="op">...&gt;&gt;</span>;</span>
+<span id="cb78-121"><a href="#cb78-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-122"><a href="#cb78-122" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType<span class="op">&gt;</span></span>
+<span id="cb78-123"><a href="#cb78-123" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;)</span></span>
+<span id="cb78-124"><a href="#cb78-124" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type,</span>
+<span id="cb78-125"><a href="#cb78-125" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type<span class="op">&gt;</span>;</span>
+<span id="cb78-126"><a href="#cb78-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-127"><a href="#cb78-127" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType, <span class="kw">class</span> AccessorType<span class="op">&gt;</span></span>
+<span id="cb78-128"><a href="#cb78-128" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;</span>, <span class="kw">const</span> AccessorType<span class="op">&amp;)</span></span>
+<span id="cb78-129"><a href="#cb78-129" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type, </span>
+<span id="cb78-130"><a href="#cb78-130" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type, AccessorType<span class="op">&gt;</span>;</span>
+<span id="cb78-131"><a href="#cb78-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-132"><a href="#cb78-132" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em></p>
 <ul>
