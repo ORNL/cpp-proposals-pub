@@ -1950,9 +1950,9 @@ argument. Consider the following implementation of a parallel dense
 matrix-vector product.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> layout <span class="op">=</span> <span class="co">/* see-below */</span>;</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, std<span class="op">::</span>extents<span class="op">&lt;</span>N, M<span class="op">&gt;</span>, layout<span class="op">&gt;</span> A <span class="op">=</span> <span class="op">...</span>;</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, std<span class="op">::</span>extents<span class="op">&lt;</span>N<span class="op">&gt;&gt;</span> y <span class="op">=</span> <span class="op">...</span>;</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, std<span class="op">::</span>extents<span class="op">&lt;</span>M<span class="op">&gt;&gt;</span> x <span class="op">=</span> <span class="op">...</span>;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, std<span class="op">::</span>extents<span class="op">&lt;</span><span class="dt">int</span>, N, M<span class="op">&gt;</span>, layout<span class="op">&gt;</span> A <span class="op">=</span> <span class="op">...</span>;</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, std<span class="op">::</span>extents<span class="op">&lt;</span><span class="dt">int</span>, N<span class="op">&gt;&gt;</span> y <span class="op">=</span> <span class="op">...</span>;</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, std<span class="op">::</span>extents<span class="op">&lt;</span><span class="dt">int</span>, M<span class="op">&gt;&gt;</span> x <span class="op">=</span> <span class="op">...</span>;</span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>ranges<span class="op">::</span>iota_view range<span class="op">{</span><span class="dv">0</span>, N<span class="op">}</span>;</span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
@@ -2420,7 +2420,7 @@ equivalent to:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
 <code>(is_convertible_v&lt;OtherSizeTypes, size_type&gt; &amp;&amp; ...)</code>
-is <code>true</code>, and</p></li>
+is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 <code>(is_nothrow_constructible_v&lt;size_type, OtherSizeTypes&gt; &amp;&amp; ...)</code>
 is <code>true</code>, and</p></li>
@@ -2465,7 +2465,7 @@ representable as a value of type <code>size_type</code>.</p></li>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
 <code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
-is <code>true</code>, and</p></li>
+is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
 <code>is_nothrow_constructible_v&lt;size_type, const OtherSizeType&amp;&gt;</code>
 is <code>true</code>, and</p></li>
@@ -2600,7 +2600,7 @@ A type <code>M</code> meets the <em>layout mapping</em> requirements
 if:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>M</code> models <code>copyable</code>, and
+<code>M</code> models <code>copyable</code> and
 <code>equality_comparable</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
 <code>is_nothrow_move_constructible_v&lt;M&gt;</code> is
@@ -3258,7 +3258,7 @@ multidimensional index into <code>m.extents()</code> and each element of
 <code>z</code> equals <code>0</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-Let <em><code>is-extents</code></em> be the exposition only variable
+Let <em><code>is-extents</code></em> be the exposition-only variable
 template:</p>
 <div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <em>is-extents</em> <span class="op">=</span> <span class="kw">false</span>;</span>
 <span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -3361,7 +3361,6 @@ type <code>size_type</code> ([basic.fundamental]), and</p></li>
 <em><code>OFFSET</code></em><code>(other) == 0</code> is
 <code>true</code>.</p></li>
 </ul>
-<!-- TODO static cast other.stride(d) -->
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>, and
@@ -3535,13 +3534,13 @@ type.</p>
 <em>Result:</em> A type <code>OP</code> such that:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
-<code>OP</code> meets the accessor policy requirements.</p></li>
+<code>OP</code> meets the accessor policy requirements,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-<code>constructible_from&lt;OP, const A&amp;&gt;</code> is
-modeled.</p></li>
+<code>constructible_from&lt;OP, const A&amp;&gt;</code> is modeled,
+and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
 <code>is_same_v&lt;typename OP::element_type, typename A::element_type&gt;</code>
-is <code>true</code></p></li>
+is <code>true</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb72"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>a<span class="op">.</span>access<span class="op">(</span>p, i<span class="op">)</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
@@ -3567,7 +3566,7 @@ of <code>p</code> and <code>a</code>:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.1)</a></span>
 <span class="math inline">[</span><code>0</code>, <code>n-i</code><span class="math inline">)</span> is an accessible range of <code>q</code>
-and <code>b</code>, and</p></li>
+and <code>b</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span>
 <code>b.access(q, j)</code> provides access to the same element as
 <code>a.access(p, i + j)</code>, for every <code>j</code> in the range
@@ -3887,10 +3886,11 @@ invocation of this constructor.</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
 Direct-non-list-initializes <em><code>ptr_</code></em> with
-<code>std::move(p)</code>, and</p></li>
+<code>std::move(p)</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
 Direct-non-list-initializes <em><code>map_</code></em> with
-<code>extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)</code>.</p></li>
+<code>extents_type(static_cast&lt;size_type&gt;(std::move(exts))...)</code>,
+and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.3)</a></span>
 Value-initializes <em><code>acc_</code></em>.</p></li>
 </ul>
@@ -3930,10 +3930,10 @@ invocation of this constructor.</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
 Direct-non-list-initializes <em><code>ptr_</code></em> with
-<code>std::move(p)</code>, and</p></li>
+<code>std::move(p)</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
 Direct-non-list-initializes <em><code>map_</code></em> with
-<code>extents_type(exts)</code>.</p></li>
+<code>extents_type(exts)</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
 Value-initializes <em><code>acc_</code></em>.</p></li>
 </ul>
@@ -3959,10 +3959,10 @@ invocation of this constructor.</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.1)</a></span>
 Direct-non-list-initializes <em><code>ptr_</code></em> with
-<code>std::move(p)</code>, and</p></li>
+<code>std::move(p)</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span>
 Direct-non-list-initializes <em><code>map_</code></em> with
-<code>ext</code>.</p></li>
+<code>ext</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.3)</a></span>
 Value-initializes <em><code>acc_</code></em>.</p></li>
 </ul>
@@ -4014,17 +4014,17 @@ Direct-non-list-initializes <em><code>acc_</code></em> with
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(18.1)</a></span>
 <code>is_constructible_v&lt;mapping_type, const OtherLayoutPolicy::template mapping&lt;OtherExtents&gt;&amp;&gt;</code>
-is <code>true</code>;</p></li>
+is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(18.2)</a></span>
 <code>is_constructible_v&lt;accessor_type, const OtherAccessor&amp;&gt;</code>
-is <code>true</code>; and</p></li>
+is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">19</a></span>
 <em>Mandates:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(19.1)</a></span>
 <code>is_constructible_v&lt;pointer, const OtherAccessor::pointer&amp;&gt;</code>
-is <code>true</code>;</p></li>
+is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(19.2)</a></span>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p></li>
@@ -4114,7 +4114,7 @@ is <code>true</code>.</p></li>
 <em>Effects:</em> Let <code>P</code> be a parameter pack such that
 <code>is_same_v&lt;make_index_sequence&lt;rank()&gt;, index_sequence&lt;P...&gt;&gt;</code>
 is <code>true</code>. <br /> Equivalent to:
-<code>return operator[](static_cast&lt;size_type&gt;(as_const(indices[P]))...);</code></p>
+<code>return operator[](as_const(indices[P])...);</code></p>
 <div class="sourceCode" id="cb89"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Precondition:</em> The size of the multidimensional index space
