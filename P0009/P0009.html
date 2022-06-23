@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-06-22" />
+  <meta name="dcterms.date" content="2022-06-23" />
   <title>MDSPAN</title>
   <style>
       code{white-space: pre-wrap;}
@@ -424,7 +424,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-06-22</td>
+    <td>2022-06-23</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -2093,7 +2093,7 @@ change all the code that uses it.</p>
 <h2 data-number="2.11" id="reference-implementation"><span class="header-section-number">2.11</span> Reference Implementation<a href="#reference-implementation" class="self-link"></a></h2>
 <p>A reference implementation of this proposal under BSD license is
 available at: <a href="https://github.com/kokkos/mdspan">mdspan</a>.
-This implementation is also available on godbolt for experimentation: <a href="https://godbolt.org/z/ehErvsTce">godbolt</a>.</p>
+This implementation is also available on godbolt for experimentation: <a href="https://godbolt.org/z/Mxa7cej1a">godbolt</a>.</p>
 <h2 data-number="2.12" id="references"><span class="header-section-number">2.12</span> References<a href="#references" class="self-link"></a></h2>
 <ul>
 <li><p>J. W. Backus et al. “Programmer’s Reference Manual: Fortran
@@ -2285,7 +2285,7 @@ multidimensional index space.</p>
 <span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>fwd-prod-of-extents</em><span class="op">(</span>rank_type<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>rev-prod-of-extents</em><span class="op">(</span>rank_type<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherSizeType<span class="op">&gt;</span></span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="kw">auto</span> <em>index-cast</em><span class="op">(</span><span class="kw">const</span> OtherSizeType<span class="op">&amp;)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="kw">auto</span> <em>index-cast</em><span class="op">(</span>OtherSizeType<span class="op">&amp;&amp;)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
 <span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> rank_type <em>dynamic-index</em><span class="op">(</span>rank_type<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span>
@@ -2358,7 +2358,7 @@ product of <code>extent(</code><span class="math inline"><em>k</em></span><code>
 <em>Returns:</em> If <code>i+1 &lt; rank()</code> is <code>true</code>,
 the product of <code>extent(</code><span class="math inline"><em>k</em></span><code>)</code> for all <span class="math inline"><em>k</em></span> in the range <span class="math inline">[</span> <code>i+1</code> <span class="math inline">,</span> <code>e.rank()</code> <span class="math inline">)</span>, otherwise <code>1</code>.</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherSizeType<span class="op">&gt;</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="kw">auto</span> <em>index-cast</em><span class="op">(</span><span class="kw">const</span> OtherSizeType<span class="op">&amp;</span> i<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="kw">auto</span> <em>index-cast</em><span class="op">(</span>OtherSizeType<span class="op">&amp;&amp;</span> i<span class="op">)</span> <span class="kw">noexcept</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -2464,10 +2464,10 @@ representable as a value of type <code>size_type</code>.</p></li>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
-<code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
+<code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
-<code>is_nothrow_constructible_v&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt;</code>
+<code>is_nothrow_constructible_v&lt;size_type, const OtherSizeType&amp;&gt;</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
 <code>N==rank_dynamic() || N==rank()</code> is
@@ -2535,8 +2535,8 @@ is <code>true</code>.</p>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                                   <span class="kw">const</span> extents<span class="op">&lt;</span>OtherSizeType, OtherExtents<span class="op">...&gt;&amp;</span> rhs<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Returns:</em> <code>true</code> if <code>lhs.rank()</code> equals
-<code>rhs.rank()</code> and if <code>lhs.extents(r)</code> equals
-<code>rhs.extents(r)</code> for every rank index <code>r</code> of
+<code>rhs.rank()</code> and if <code>lhs.extent(r)</code> equals
+<code>rhs.extent(r)</code> for every rank index <code>r</code> of
 <code>rhs</code>, otherwise <code>false</code>.</p>
 <p><br /> <b>24.7.�.6 Template alias <code>dextents</code>
 [mdspan.extents.dextents]</b></p>
@@ -3290,10 +3290,10 @@ have a return type of <code>bool</code>. <i>- end note]</i></p>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
+<code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
 is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-<code>is_nothrow_constructible_v&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt;</code>
+<code>is_nothrow_constructible_v&lt;size_type, const OtherSizeType&amp;&gt;</code>
 is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -3748,9 +3748,9 @@ elements.</p>
 <span id="cb78-98"><a href="#cb78-98" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>remove_all_extents_t<span class="op">&lt;</span>CArray<span class="op">&gt;</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span>, extent_v<span class="op">&lt;</span>CArray, <span class="dv">0</span><span class="op">&gt;&gt;&gt;</span>;</span>
 <span id="cb78-99"><a href="#cb78-99" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb78-100"><a href="#cb78-100" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> Pointer<span class="op">&gt;</span></span>
-<span id="cb78-101"><a href="#cb78-101" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span>is_pointer_v<span class="op">&lt;</span>Pointer<span class="op">&gt;)</span></span>
-<span id="cb78-102"><a href="#cb78-102" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span><span class="kw">const</span> Pointer<span class="op">&amp;)</span></span>
-<span id="cb78-103"><a href="#cb78-103" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>remove_pointer_t<span class="op">&lt;</span>Pointer<span class="op">&gt;</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">&gt;&gt;&gt;</span>;</span>
+<span id="cb78-101"><a href="#cb78-101" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span>is_pointer_v<span class="op">&lt;</span>remove_reference_t<span class="op">&lt;</span>Pointer<span class="op">&gt;&gt;)</span></span>
+<span id="cb78-102"><a href="#cb78-102" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>Pointer<span class="op">&amp;&amp;)</span></span>
+<span id="cb78-103"><a href="#cb78-103" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>remove_pointer_t<span class="op">&lt;</span>remove_reference_t<span class="op">&lt;</span>Pointer<span class="op">&gt;&gt;</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span><span class="op">&gt;&gt;</span>;</span>
 <span id="cb78-104"><a href="#cb78-104" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb78-105"><a href="#cb78-105" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span><span class="op">...</span> Integrals<span class="op">&gt;</span></span>
 <span id="cb78-106"><a href="#cb78-106" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">((</span>is_convertible_v<span class="op">&lt;</span>Integrals, <span class="dt">size_t</span><span class="op">&gt;</span> <span class="op">&amp;&amp;</span> <span class="op">...)</span> <span class="op">&amp;&amp;</span> <span class="kw">sizeof</span><span class="op">...(</span>Integrals<span class="op">)</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
@@ -3765,17 +3765,21 @@ elements.</p>
 <span id="cb78-115"><a href="#cb78-115" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> array<span class="op">&lt;</span>OtherSizeType, N<span class="op">&gt;&amp;)</span></span>
 <span id="cb78-116"><a href="#cb78-116" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, N<span class="op">&gt;&gt;</span>;</span>
 <span id="cb78-117"><a href="#cb78-117" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-118"><a href="#cb78-118" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType<span class="op">&gt;</span></span>
-<span id="cb78-119"><a href="#cb78-119" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;)</span></span>
-<span id="cb78-120"><a href="#cb78-120" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type,</span>
-<span id="cb78-121"><a href="#cb78-121" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type<span class="op">&gt;</span>;</span>
-<span id="cb78-122"><a href="#cb78-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-123"><a href="#cb78-123" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType, <span class="kw">class</span> AccessorType<span class="op">&gt;</span></span>
-<span id="cb78-124"><a href="#cb78-124" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;</span>, <span class="kw">const</span> AccessorType<span class="op">&amp;)</span></span>
-<span id="cb78-125"><a href="#cb78-125" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type, </span>
-<span id="cb78-126"><a href="#cb78-126" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type, AccessorType<span class="op">&gt;</span>;</span>
-<span id="cb78-127"><a href="#cb78-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-128"><a href="#cb78-128" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb78-118"><a href="#cb78-118" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> SizeType, <span class="dt">size_t</span><span class="op">...</span> ExtentsPack<span class="op">&gt;</span></span>
+<span id="cb78-119"><a href="#cb78-119" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> extents<span class="op">&lt;</span>SizeType, ExtentsPack<span class="op">...&gt;&amp;)</span></span>
+<span id="cb78-120"><a href="#cb78-120" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, extents<span class="op">&lt;</span>SizeType, ExtentsPack<span class="op">...&gt;&gt;</span>;</span>
+<span id="cb78-121"><a href="#cb78-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-122"><a href="#cb78-122" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> MappingType<span class="op">&gt;</span></span>
+<span id="cb78-123"><a href="#cb78-123" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span>ElementType<span class="op">*</span>, <span class="kw">const</span> MappingType<span class="op">&amp;)</span></span>
+<span id="cb78-124"><a href="#cb78-124" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span>ElementType, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type,</span>
+<span id="cb78-125"><a href="#cb78-125" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type<span class="op">&gt;</span>;</span>
+<span id="cb78-126"><a href="#cb78-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-127"><a href="#cb78-127" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> MappingType, <span class="kw">class</span> AccessorType<span class="op">&gt;</span></span>
+<span id="cb78-128"><a href="#cb78-128" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">(</span><span class="kw">const</span> <span class="kw">typename</span> AccessorType<span class="op">::</span>pointer<span class="op">&amp;</span>, <span class="kw">const</span> MappingType<span class="op">&amp;</span>, <span class="kw">const</span> AccessorType<span class="op">&amp;)</span></span>
+<span id="cb78-129"><a href="#cb78-129" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdspan<span class="op">&lt;</span><span class="kw">typename</span> AccessorType<span class="op">::</span>element_type, <span class="kw">typename</span> MappingType<span class="op">::</span>extents_type, </span>
+<span id="cb78-130"><a href="#cb78-130" aria-hidden="true" tabindex="-1"></a>            <span class="kw">typename</span> MappingType<span class="op">::</span>layout_type, AccessorType<span class="op">&gt;</span>;</span>
+<span id="cb78-131"><a href="#cb78-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-132"><a href="#cb78-132" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em></p>
 <ul>
@@ -3900,10 +3904,10 @@ Value-initializes <em><code>acc_</code></em>.</p></li>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
-<code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
+<code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
 is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-<code>(is_nothrow_constructible&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt; &amp;&amp; ...)</code>
+<code>(is_nothrow_constructible&lt;size_type, const OtherSizeType&amp;&gt; &amp;&amp; ...)</code>
 is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
 <code>(N == rank()) || (N == rank_dynamic())</code> is
@@ -4100,10 +4104,10 @@ is <code>true</code>.<i>— end note]</i>;</p>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-<code>is_convertible_v&lt;const remove_const_t&lt;OtherSizeType&gt;&amp;, size_type&gt;</code>
+<code>is_convertible_v&lt;const OtherSizeType&amp;, size_type&gt;</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
-<code>is_nothrow_constructible_v&lt;size_type, const remove_const_t&lt;OtherSizeType&gt;&amp;&gt;</code>
+<code>is_nothrow_constructible_v&lt;size_type, const OtherSizeType&amp;&gt;</code>
 is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
