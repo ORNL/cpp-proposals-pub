@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-06-23" />
+  <meta name="dcterms.date" content="2022-06-30" />
   <title>MDSPAN</title>
   <style>
       code{white-space: pre-wrap;}
@@ -424,7 +424,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-06-23</td>
+    <td>2022-06-30</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -2640,7 +2640,7 @@ policy requirements ([mdspan.layoutpolicy.reqmts]) and for which
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Returns:</em> A nonnegative integer less than
 <code>numeric_limits&lt;typename M::size_type&gt;::max()</code> and less
-than <code>numeric_limits&lt;size_t&gt;::max()</code>.</p>
+than or equal to <code>numeric_limits&lt;size_t&gt;::max()</code>.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>m<span class="op">(</span>i<span class="op">...)</span> <span class="op">==</span> m<span class="op">(</span><span class="kw">static_cast</span><span class="op">&lt;</span><span class="kw">typename</span> M<span class="op">::</span>size_type<span class="op">&gt;(</span>i<span class="op">)...)</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Result:</em> <code>bool</code></p>
@@ -3792,30 +3792,27 @@ and</p></li>
 <code>is_same_v&lt;ElementType, typename AccessorPolicy::element_type&gt;</code>
 is <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <code>LayoutPolicy</code> shall meet the layout mapping policy
-requirements [mdspan.layoutpolicy.reqmts], and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-<code>AccessorPolicy</code> shall meet the accessor policy requirements
-[mdspan.accessor.reqmts].</p></li>
-</ul>
+requirements [mdspan.layoutpolicy.reqmts], and</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<code>AccessorPolicy</code> shall meet the accessor policy requirements
+[mdspan.accessor.reqmts].</p>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 Each specialization <code>MDS</code> of <code>mdspan</code> models
 <code>copyable</code> and</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
 <code>is_nothrow_move_constructible_v&lt;MDS&gt;</code> is
 <code>true</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 <code>is_nothrow_move_assignable_v&lt;MDS&gt;</code> is
 <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
 <code>is_nothrow_swappable_v&lt;MDS&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 A specialization of <code>mdspan</code> is a trivially copyable type if
 its <code>accessor_type</code>, <code>mapping_type</code>, and
 <code>pointer</code> are trivially copyable types.</p>
@@ -3986,6 +3983,8 @@ Direct-non-list-initializes <em><code>ptr_</code></em> with
 <li><p><span class="marginalizedparent"><a class="marginalized">(15.2)</a></span>
 Direct-non-list-initializes <em><code>map_</code></em> with
 <code>m</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(15.3)</a></span>
+Value-initializes <em><code>acc_</code></em>.</p></li>
 </ul>
 <div class="sourceCode" id="cb84"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdspan<span class="op">(</span>pointer p, <span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> accessor_type<span class="op">&amp;</span> a<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
