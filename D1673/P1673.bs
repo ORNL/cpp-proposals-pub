@@ -378,6 +378,12 @@ Date: 2022-06-15
 
     * Fix P1674 links to point to R2.
 
+* Revision 10 (electronic), to be submitted soon
+
+    * Revise `scaled` and `conjugated` wording.
+
+    * Make all matrix view functions `constexpr`.
+
 # Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -3378,9 +3384,9 @@ template<class ScalingFactor,
          class Layout,
          class Accessor>
 /* see-below */
-scaled(
-  ScalingFactor s,
-  mdspan<ElementType, Extents, Layout, Accessor> a);
+constexpr scaled(
+  ScalingFactor scaling_factor,
+  const mdspan<ElementType, Extents, Layout, Accessor>& x);
 
 // [linalg.conj.accessor_conjugate], class template accessor_conjugate
 template<class Accessor>
@@ -3391,8 +3397,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-conjugated(
+constexpr auto conjugated(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.transp.layout_transpose], class template layout_transpose
@@ -3404,8 +3409,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-transposed(
+constexpr auto transposed(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.conj_transp],
@@ -3414,8 +3418,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-conjugate_transposed(
+constexpr auto conjugate_transposed(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.algs.blas1.givens.lartg], compute Givens rotation
@@ -5313,6 +5316,8 @@ template<class IndexType>
     operator() (IndexType i, IndexType j) const noexcept;
 ```
 
+<!-- TODO (mfh 2022/07/06) Align wording with current P0009. -->
+
 * *Preconditions:*
 
     * 0 ≤ `i` < `extent(0)`, and
@@ -5449,6 +5454,8 @@ public:
 constexpr mapping(const extents_type& e) noexcept;
 ```
 
+<!-- TODO (mfh 2022/07/06) Align wording with current P0009. -->
+
 * *Preconditions:* `e.extent(0)` equals `e.extent(1)`.
 
 * *Effects:* Direct-non-list-initializes `extents_` with `e`.
@@ -5479,6 +5486,8 @@ template<class IndexType>
   constexpr size_type
     operator() (IndexType i, IndexType j) const noexcept;
 ```
+
+<!-- TODO (mfh 2022/07/06) Align wording with current P0009. -->
 
 * *Preconditions:*
 
@@ -5647,97 +5656,99 @@ public:
   using value_type = Value;
   using derived_type = Derived;
 
-  explicit proxy_reference(Reference reference) : reference_(reference) {}
+  constexpr explicit proxy_reference(Reference reference) : reference_(reference) {}
 
-  operator value_type() const {
+  constexpr operator value_type() const {
     return static_cast<const Derived&>(*this).to_value(reference_);
   }
 
-  friend auto operator-(const derived_type& cs)
+  constexpr friend auto operator-(const derived_type& cs)
   {
     return -value_type(cs);
   }
 
   template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator+ (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator+ (derived_type lhs, Rhs rhs)
   {
     using rhs_value_type = typename Rhs::value_type; // exposition only
     return value_type(lhs) + rhs_value_type(rhs);
   }
   template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator+ (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator+ (derived_type lhs, Rhs rhs)
   {
     return value_type(lhs) + rhs;
   }
   template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
-  friend auto operator+ (Lhs lhs, derived_type rhs)
+  constexpr friend auto operator+ (Lhs lhs, derived_type rhs)
   {
     return lhs + value_type(rhs);
   }
 
   template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator- (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator- (derived_type lhs, Rhs rhs)
   {
     using rhs_value_type = typename Rhs::value_type; // exposition only
     return value_type(lhs) - rhs_value_type(rhs);
   }
   template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator- (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator- (derived_type lhs, Rhs rhs)
   {
     return value_type(lhs) - rhs;
   }
   template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
-  friend auto operator- (Lhs lhs, derived_type rhs)
+  constexpr friend auto operator- (Lhs lhs, derived_type rhs)
   {
     return lhs - value_type(rhs);
   }
 
   template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator* (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator* (derived_type lhs, Rhs rhs)
   {
     using rhs_value_type = typename Rhs::value_type; // exposition only
     return value_type(lhs) * rhs_value_type(rhs);
   }
   template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator* (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator* (derived_type lhs, Rhs rhs)
   {
     return value_type(lhs) * rhs;
   }
   template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
-  friend auto operator* (Lhs lhs, derived_type rhs)
+  constexpr friend auto operator* (Lhs lhs, derived_type rhs)
   {
     return lhs * value_type(rhs);
   }
 
   template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator/ (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator/ (derived_type lhs, Rhs rhs)
   {
     using rhs_value_type = typename Rhs::value_type; // exposition only
     return value_type(lhs) / rhs_value_type(rhs);
   }
   template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator/ (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator/ (derived_type lhs, Rhs rhs)
   {
     return value_type(lhs) / rhs;
   }
   template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
-  friend auto operator/ (Lhs lhs, derived_type rhs)
+  constexpr friend auto operator/ (Lhs lhs, derived_type rhs)
   {
     return lhs / value_type(rhs);
   }
 
-  friend auto abs(const derived_type& x);
+  constexpr friend auto abs(const derived_type& x);
 
-  friend auto real(const derived_type& x);
+  constexpr friend auto real(const derived_type& x);
 
-  friend auto imag(const derived_type& x);
+  constexpr friend auto imag(const derived_type& x);
 
-  friend auto conj(const derived_type& x);
+  constexpr friend auto conj(const derived_type& x);
+
+  <!-- TODO (mfh 2022/07/06) Do we need sqrt here? -->
 };
 ```
 
 ```c++
-friend auto abs(const derived_type& x);
+constexpr friend auto abs(const derived_type& x);
 ```
 
 The expression `abs(E)` for subexpression `E` whose type is `derived_type`
@@ -5755,6 +5766,8 @@ is expression-equivalent to:
 	does not return the absolute value of its input,
 	the program is ill-formed, no diagnostic required.
 
+<!-- TODO (mfh 2022/07/06) this lookup language will go into front matter. -->
+
 *[Note:*
 This function exists because of `vector_norm2` and `vector_abs_sum`.
 
@@ -5763,7 +5776,7 @@ The other case invokes `abs` via unqualified lookup.
 --*end note]*
 
 ```c++
-friend auto real(const derived_type& x);
+constexpr friend auto real(const derived_type& x);
 ```
 
 The expression `real(E)` for subexpression `E` whose type is `derived_type`
@@ -5796,7 +5809,7 @@ for which the number's real part is the same as the number.
 --*end note]*
 
 ```c++
-friend auto imag(const derived_type& x);
+constexpr friend auto imag(const derived_type& x);
 ```
 
 The expression `imag(E)` for subexpression `E` whose type is `derived_type`
@@ -5830,26 +5843,28 @@ for which the number's imaginary part is zero
 --*end note]*
 
 ```c++
-friend auto conj(const derived_type& x);
+constexpr friend auto conj(const derived_type& x);
 ```
 
 * *Effects:* Equivalent to `return `_`conj-if-needed`_`(x);`.
 
-### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
-
-The class template `accessor_scaled` is an `mdspan` accessor
-policy whose reference type represents the product of a fixed value
-(the "scaling factor") and its nested `mdspan` accessor's
-reference.  It is part of the implementation of `scaled`.
+### Exposition-only class template `scaled_scalar`
 
 The exposition-only class template `scaled_scalar` represents a
 read-only value, which is the product of a fixed value (the "scaling
 factor") and the value of a reference to an element of a
 `mdspan`.  *[Note:* The value is read only to avoid confusion
 with the definition of "assigning to a scaled scalar."  --*end note]*
-`scaled_scalar` is part of the implementation of `scaled_accessor`.
+`scaled_scalar` is part of the implementation of `accessor_scaled`
+**[linalg.scaled.accessor_scaled]**.
 
 ```c++
+template<class ScalingFactor, class ReferenceValue>
+concept <it>scalable</it> = // exposition only
+requires {
+  { declval<ScalingFactor>() * declval<ReferenceValue>() };
+};
+
 template<class ScalingFactor, class Reference, class ReferenceValue>
 class scaled_scalar : // exposition only
   public proxy_reference<Reference, ReferenceValue,
@@ -5858,11 +5873,12 @@ class scaled_scalar : // exposition only
 private:
   ScalingFactor scaling_factor_;
 
+  using my_type = scaled_scalar<ScalingFactor, Reference, ReferenceValue>; // exposition only
   using base_type = proxy_reference<Reference, ReferenceValue, my_type>; // exposition only
 public:
-  explicit scaled_scalar(ScalingFactor scaling_factor, Reference reference);
+  explicit scaled_scalar(const ScalingFactor& scaling_factor, const Reference& reference);
 
-  using value_type = decltype(scaling_factor_ * ReferenceValue(std::declval<Reference>()));
+  using value_type = decltype(scaling_factor_ * ReferenceValue(declval<Reference>()));
   value_type to_value(Reference reference) const;
 };
 ```
@@ -5878,28 +5894,43 @@ It also makes fewer requirements of the reference type.
 
 --*end note]*
 
-* *Preconditions:* `ScalingFactor` and `Reference` shall be *Cpp17CopyConstructible*.
+*Mandates:*
 
-* *Constraints:* The expression `scaling_factor_ * ReferenceValue(reference)` is well formed.
+    * _`scalable`_`<ScalingFactor, ReferenceValue>`, and
+
+    * `value_type` is a complete object type that is neither an abstract class type nor an array type.
+
+`ScalingFactor` models `semiregular`.
+
+`Reference` models `copy_constructible`.
 
 ```c++
-explicit scaled_scalar(ScalingFactor scaling_factor, Reference reference);
+explicit scaled_scalar(const ScalingFactor& scaling_factor, const Reference& reference);
 ```
 
-* *Effects:* Initializes `base_type` with `reference`,
-    and initializes `scaling_factor_` with `move(scaling_factor)`.
+*Effects:*
+
+    * Direct non-list-initializes `static_cast<base_type&>(*this)` with `reference`, and
+
+    * direct non-list-initializes `scaling_factor_` with `scaling_factor`.
 
 ```c++
 value_type to_value(Reference reference) const;
 ```
 
-* *Preconditions:* This function may be invoked arbitrarily many times.
-
-* *Effects:* Equivalent to `return scaling_factor_ * ReferenceValue(reference);`.
+*Effects:* Equivalent to `return scaling_factor_ * ReferenceValue(reference);`.
 
 The class template `accessor_scaled` is an `mdspan` accessor
 policy whose reference type represents the product of a scaling factor
 and its nested `mdspan` accessor's reference.
+
+### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
+
+The class template `accessor_scaled` is an `mdspan` accessor
+policy whose reference type represents the product of a fixed value
+(the "scaling factor") and its nested `mdspan` accessor's
+reference.  It is part of the implementation of `scaled`
+**[linalg.scaled.scaled]**.
 
 ```c++
 template<class ScalingFactor,
@@ -5908,23 +5939,20 @@ class accessor_scaled {
 public:
   using reference     = scaled_scalar<ScalingFactor,
     typename Accessor::reference,
-    remove_cv_t<typename Accessor::element_type>>;
+    typename Accessor::element_type>;
   using element_type  = add_const_t<typename reference::value_type>;
   using pointer       = Accessor::pointer;
   using offset_policy = accessor_scaled<ScalingFactor, Accessor::offset_policy>;
 
-  accessor_scaled(ScalingFactor s, Accessor a);
+  constexpr accessor_scaled(const ScalingFactor& s, const Accessor& a);
 
-  template<class OtherElementType>
-  accessor_scaled(ScalingFactor s, default_accessor<OtherElementType> a);
+  constexpr reference access(pointer p, size_t i) const noexcept;
 
-  reference access(pointer p, size_t i) const noexcept;
+  constexpr offset_policy::pointer offset(pointer p, size_t i) const noexcept;
 
-  offset_policy::pointer offset(pointer p, size_t i) const noexcept;
+  constexpr ScalingFactor scaling_factor() const;
 
-  ScalingFactor scaling_factor() const;
-
-  Accessor nested_accessor() const;
+  constexpr Accessor nested_accessor() const;
 
 private:
   ScalingFactor scaling_factor_; // exposition only
@@ -5932,52 +5960,46 @@ private:
 };
 ```
 
-* *Preconditions:*
+*Mandates:*: `is_copy_constructible_v<typename Accessor::reference>` is `true`.
 
-    * `ScalingFactor` and `Accessor` shall be *Cpp17CopyConstructible*.
+`ScalingFactor` models `semiregular`.
 
-    * `Accessor` shall meet the `mdspan` accessor policy requirements.
+`Accessor` meets the accessor policy requirements **[mdspan.accessor.reqmts]**.
 
 ```c++
-accessor_scaled(ScalingFactor s, Accessor a);
+constexpr accessor_scaled(const ScalingFactor& s, const Accessor& a);
 ```
 
-* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor_` with `a`.
+*Effects:*
+
+    * Direct non-list-initializes `scaling_factor_` with `s`, and
+
+    * direct non-list-initializes `accessor_` with `a`.
 
 ```c++
-template<class OtherElementType>
-accessor_scaled(ScalingFactor s, default_accessor<OtherElementType> a);
+constexpr reference access(pointer p, size_t i) const noexcept;
 ```
 
-* *Constraints:*
-`is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
-
-* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor_` with `a`.
+*Effects:* Equivalent to `return reference(scaling_factor_, accessor_.access(p, i));`.
 
 ```c++
-reference access(pointer p, size_t i) const noexcept;
-```
-
-* *Effects:* Equivalent to `return reference(scaling_factor_, accessor_.access(p, i));`.
-
-```c++
-offset_policy::pointer
+constexpr offset_policy::pointer
 offset(pointer p, size_t i) const noexcept;
 ```
 
-* *Effects:* Equivalent to `return accessor_.offset(p, i);`.
+*Effects:* Equivalent to `return accessor_.offset(p, i);`.
 
 ```c++
-ScalingFactor scaling_factor() const;
+constexpr ScalingFactor scaling_factor() const;
 ```
 
-* *Effects:* Equivalent to `return scaling_factor_;`.
+*Effects:* Equivalent to `return scaling_factor_;`.
 
 ```c++
-Accessor nested_accessor() const;
+constexpr Accessor nested_accessor() const;
 ```
 
-* *Effects:* Equivalent to `return accessor_;`.
+*Effects:* Equivalent to `return accessor_;`.
 
 ### `scaled` [linalg.scaled.scaled]
 
@@ -5986,9 +6008,6 @@ The `scaled` function takes a scaling factor `alpha` and an `mdspan`
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
 
-For `i...` in the domain of `x`,
-the mathematical expression for element `i...` of `scaled(alpha, x)`
-is `alpha * x[i...]`.
 *[Note:*
 Terms in this product will not be reordered.
 --*end note]*
@@ -5999,29 +6018,15 @@ template<class ScalingFactor,
          class Extents,
          class Layout,
          class Accessor>
-/* see below */
-scaled(
+constexpr auto scaled(
   ScalingFactor scaling_factor,
-  mdspan<ElementType, Extents, Layout, Accessor> x);
+  const mdspan<ElementType, Extents, Layout, Accessor>& x);
 ```
-
-Let `R` name the type
-`mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
-where
-
-* `ReturnElementType` is
-    `add_const_t<accessor_scaled<ScalingFactor, Accessor>::element_type>`, and
-
-* `ReturnAccessor` is `accessor_scaled<ScalingFactor, Accessor>`.
-
-Then:
-
-* *Effects:* Equivalent to
-    `return R(x.data(), x.mapping(), ReturnAccessor(alpha, x.accessor()));`.
-
-* *Remarks:* The elements of the returned `mdspan` are read only.
+*Effects:* Equivalent to
+    `return mdspan{x.data(), x.mapping(), accessor_scaled{alpha, x.accessor()}};`.
 
 *[Note:*
+The elements of the returned `mdspan` are read only.
 
 Nested `scaled` expressions remain nested.
 An expression such as `scaled(alpha, scaled(beta, x))`
@@ -6032,7 +6037,6 @@ For example, if `x` is a rank-1 `mdspan` whose `value_type` is `double`,
 and if `sizeof(int)` is 4 and `double` is IEEE 754 binary64,
 then `scaled(1 << 20, scaled(1 << 20, x))` does not overflow `int`,
 but `scaled((1 << 20) * (1 << 20), x)` would overflow `int`.
-
 --*end note]*
 
 [*Example:*
@@ -6065,20 +6069,23 @@ BLAS function.
 
 --*end note]*
 
-### Class template `accessor_conjugate` [linalg.conj.accessor_conjugate]
-
-The class template `accessor_conjugate` is an `mdspan` accessor
-policy whose reference type represents the complex conjugate of its
-nested `mdspan` accessor's reference.
+### Exposition-only class template `conjugated_scalar`
 
 The exposition-only class template `conjugated_scalar` represents a
 read-only value, which is the complex conjugate of the value of a
 reference to an element of an `mdspan`.  *[Note:* The value is
 read only to avoid confusion with the definition of "assigning to the
 conjugate of a scalar."  --*end note]* `conjugated_scalar` is part of
-the implementation of `accessor_conjugate`.
+the implementation of `accessor_conjugate`
+**[linalg.conj.accessor_conjugate]**.
 
 ```c++
+template<class ReferenceValue>
+concept <it>conjugatable</it> = // exposition only
+requires {
+  { <it>conj-if-needed</it>(declval<ReferenceValue>()) } -> same_as<ReferenceValue>;
+};
+
 template<class Reference, class ReferenceValue>
 class conjugated_scalar : // exposition only
   public proxy_reference<Reference, ReferenceValue, conjugated_scalar<Reference, ReferenceValue>>
@@ -6088,68 +6095,50 @@ private:
   using base_type = proxy_reference<Reference, ReferenceValue, my_type>; // exposition only
 
 public:
-  explicit conjugated_scalar(Reference reference);
+  constexpr explicit conjugated_scalar(Reference reference);
 
-  // NOTE (mfh 2022/06/03) Consider moving this to proxy_reference,
-  // since it's duplicated in all the proxy reference "base" types.
-  // Doing so isn't easy, because this class is an incomplete type
-  // inside proxy_reference at the time when we need it to deduce this
-  // type.
   using value_type = /* see below */;
-  static auto to_value(Reference reference);
+  constexpr static auto to_value(Reference reference);
 };
 ```
 
-* *Preconditions:* `Reference` shall be *Cpp17CopyConstructible*.
+*Mandates:* _`conjugatable`_`<ReferenceValue>`.
 
-* *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed.
-
-*[Note:*
-
-The current constraints on _`conj-if-needed`_ imply that
-`ReferenceValue` may only be either `complex<R>` for some `R`,
-or an arithmetic type.
-
-Implementations can provide additional,
-implementation-defined overloads of _`conj-if-needed`_ as extensions.
-
-In a future, separate paper, we intend to add
-a user-visible customization point, provisionally named `conjugate`.
-If this future paper is accepted,
-then we will replace _`conj-if-needed`_ in P1673
-with this customization point.
-This will permit use of `conjugated` and `conjugate_transposed`
-with arguments of value type other than
-`complex<R>` or an arithmetic type.
-
---*end note]*
-
+`Reference` models `copy_constructible`.
 
 ```c++
 using value_type = /* see below */;
 ```
 
-`value_type` names the type `decltype(<it>conj-if-needed</it>(ReferenceValue(declval<Reference>())))`.
+`value_type` names the type `decltype(`_`conj-if-needed`_`(ReferenceValue(declval<Reference>())))`.
 
 ```c++
-explicit conjugated_scalar(Reference reference);
+constexpr explicit conjugated_scalar(Reference reference);
 ```
 
 * *Effects:* Initializes `base_type` with `reference`.
 
 ```c++
-static auto to_value(Reference value_type);
+constexpr static auto to_value(Reference value_type);
 ```
 
 * *Preconditions:* This function may be invoked arbitrarily many times.
 
 * *Effects:* Equivalent to `return `_`conj-if-needed`_`(ReferenceValue(reference));`.
 
+### Class template `accessor_conjugate` [linalg.conj.accessor_conjugate]
+
+The class template `accessor_conjugate` is an `mdspan` accessor
+policy whose reference type represents the complex conjugate of its
+nested `mdspan` accessor's reference.
+It is part of the implementation of `conjugated`
+**[linalg.conj.conjugated]**.
+
 ```c++
 template<class Accessor>
 class accessor_conjugate {
 private:
-  Accessor acc; // exposition only
+  Accessor acc_; // exposition only
 
 public:
   using reference     = /* see below */;
@@ -6157,25 +6146,20 @@ public:
   using pointer       = typename Accessor::pointer;
   using offset_policy = /* see below */;
 
-  accessor_conjugate(Accessor a);
+  constexpr accessor_conjugate(Accessor a);
 
-  template<class OtherElementType>
-  accessor_conjugate(default_accessor<OtherElementType> a);
+  constexpr reference access(pointer p, size_t i) const
+    noexcept(noexcept(reference(acc_.access(p, i))));
 
-  reference access(pointer p, size_t i) const
-    noexcept(noexcept(reference(acc.access(p, i))));
+  constexpr typename offset_policy::pointer
+    offset(pointer p, size_t i) const
+      noexcept(noexcept(acc_.offset(p, i)));
 
-  typename offset_policy::pointer
-  offset(pointer p, size_t i) const
-    noexcept(noexcept(acc.offset(p, i)));
-
-  Accessor nested_accessor() const;
+  constexpr Accessor nested_accessor() const;
 };
 ```
 
-* *Preconditions:*
-
-    * `Accessor` shall meet the `mdspan` accessor policy requirements **[mdspan.accessor.reqmts]**.
+`Accessor` meets the `mdspan` accessor policy requirements **[mdspan.accessor.reqmts]**.
 
 ```c++
 using reference = /* see below */;
@@ -6215,47 +6199,31 @@ This names
 * otherwise, `accessor_conjugate<typename Accessor::offset_policy>`.
 
 ```c++
-accessor_conjugate(Accessor a);
+constexpr accessor_conjugate(Accessor a);
 ```
 
-* *Effects:* Initializes `acc` with `a`.
+* *Effects:* Direct non-list-initializes `acc_` with `a`.
 
 ```c++
-template<class OtherElementType>
-accessor_conjugate(default_accessor<OtherElementType> a);
+constexpr reference access(pointer p, size_t i) const
+  noexcept(noexcept(reference(acc_.access(p, i))));
 ```
 
-* *Constraints:*
-`is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
-
-* *Effects:* Initializes `acc` with `a`.
-
-*[Note:*
-This constructor exists so that if `conjugated` is given an `mdspan`
-with nonconst element type `T` and accessor `default_accessor<T>`,
-`conjugated` can then return an `mdspan` with `const` element type.
---*end note]*
+* *Effects:* Equivalent to `return reference(acc_.access(p, i));`.
 
 ```c++
-reference access(pointer p, size_t i) const
-  noexcept(noexcept(reference(acc.access(p, i))));
+constexpr typename offset_policy::pointer
+  offset(pointer p, size_t i) const
+    noexcept(noexcept(acc_.offset(p, i)));
 ```
 
-* *Effects:* Equivalent to `return reference(acc.access(p, i));`.
+* *Effects:* Equivalent to `return acc_.offset(p, i);`.
 
 ```c++
-typename offset_policy::pointer
-offset(pointer p, size_t i) const
-  noexcept(noexcept(acc.offset(p, i)));
+constexpr Accessor nested_accessor() const;
 ```
 
-* *Effects:* Equivalent to `return acc.offset(p, i);`.
-
-```c++
-Accessor nested_accessor() const;
-```
-
-* *Effects:* Equivalent to `return acc;`.
+* *Effects:* Equivalent to `return acc_;`.
 
 ### `conjugated` [linalg.conj.conjugated]
 
@@ -6264,8 +6232,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-conjugated(
+constexpr auto conjugated(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
@@ -6277,7 +6244,7 @@ where
 
     * if `Accessor` is `accessor_conjugate<NestedAccessor>`
         for some `NestedAccessor`, then
-	`typename NestedAccessor::element_type` *[Note:*
+        `typename NestedAccessor::element_type` *[Note:*
         conjugation is self-annihilating --*end note]*;
 
     * else if `remove_cv_t<ElementType>` is an arithmetic type,
@@ -6298,7 +6265,7 @@ where
 
     * else `accessor_conjugate<Accessor>`.
 
-* *Effects:*
+*Effects:*
 
     * If `Accessor` is `accessor_conjugate<NestedAccessor>`,
         then equivalent to
@@ -6311,7 +6278,9 @@ where
     * else, equivalent to
         `return R(a.data(), a.mapping(), ReturnAccessor(a.accessor()));`;
 
-* *Remarks:* The elements of the returned `mdspan` are read only.
+*[Note:*
+The elements of the returned `mdspan` are read only.
+--*end note]*;
 
 [*Example:*
 ```c++
@@ -6353,16 +6322,6 @@ The `transposed` function takes an `mdspan`
 representing a matrix, and returns a new read-only `mdspan`
 representing the transpose of the input matrix.
 
-*[Note:*
-
-An implementation could dispatch to a function in the BLAS library, by
-noticing that the first argument has a `layout_transpose` `Layout`
-type, and/or an `accessor_conjugate` (see below) `Accessor` type.  It
-could use this information to extract the appropriate run-time
-value(s) of the relevant `TRANS*` BLAS function arguments.
-
---*end note]*
-
 ### `layout_transpose` [linalg.transp.layout_transpose]
 
 `layout_transpose` is an `mdspan` layout mapping policy that
@@ -6394,7 +6353,7 @@ For `InputExtents` a specialization of `extents`,
 
 ```c++
 template<class InputExtents>
-transpose_extents_t<InputExtents>
+constexpr transpose_extents_t<InputExtents>
 transpose_extents(const InputExtents& in); // exposition only
 ```
 
@@ -6437,7 +6396,7 @@ public:
       constexpr size_type operator()(Indices... indices) const
         noexcept(noexcept(nested_mapping_(indices...)));
 
-    nested_mapping_type nested_mapping() const;
+    constexpr nested_mapping_type nested_mapping() const;
 
     static constexpr bool is_always_unique();
     static constexpr bool is_always_contiguous();
@@ -6496,7 +6455,7 @@ template<class... Indices>
     reversing the last two elements of `indices`.
 
 ```c++
-nested_mapping_type nested_mapping() const;
+constexpr nested_mapping_type nested_mapping() const;
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_;`.
@@ -6585,8 +6544,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-transposed(
+constexpr auto transposed(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
@@ -6741,15 +6699,11 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-conjugate_transposed(
+constexpr auto conjugate_transposed(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
-* *Effects:* Equivalent to
-    `return conjugated(transposed(a));`.
-
-* *Remarks:* The elements of the returned `mdspan` are read only.
+* *Effects:* Equivalent to `return conjugated(transposed(a));`.
 
 [*Example:*
 ```c++
