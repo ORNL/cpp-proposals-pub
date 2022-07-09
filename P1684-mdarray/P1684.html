@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-03-21" />
+  <meta name="dcterms.date" content="2022-07-08" />
   <title>mdarray: An Owning Multidimensional Array Analog of mdspan</title>
   <style>
       code{white-space: pre-wrap;}
@@ -421,11 +421,11 @@ Owning Multidimensional Array Analog of <code>mdspan</code></h1>
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>P1684D2</td>
+    <td>P1684R3</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-03-21</td>
+    <td>2022-07-08</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -509,6 +509,12 @@ References<span></span></a></li>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
 <h2 data-number="1.1" id="p1684r3"><span class="header-section-number">1.1</span> P1684R3:<a href="#p1684r3" class="self-link"></a></h2>
 <h4 data-number="1.1.0.1" id="changes-from-r2"><span class="header-section-number">1.1.0.1</span> Changes from R2<a href="#changes-from-r2" class="self-link"></a></h4>
+<ul>
+<li>bring in line with P0009 and follow up papers P2554, P2553, P2599
+and P2406</li>
+<li>add new container requirements: <em>size constructible
+containers</em> (bikeshedding needed)</li>
+</ul>
 <h2 data-number="1.2" id="p1684r2-to-submit-to-2022-04-mailing"><span class="header-section-number">1.2</span> P1684r2: To submit to 2022-04
 Mailing<a href="#p1684r2-to-submit-to-2022-04-mailing" class="self-link"></a></h2>
 <h4 data-number="1.2.0.1" id="changes-from-r1"><span class="header-section-number">1.2.0.1</span> Changes from R1<a href="#changes-from-r1" class="self-link"></a></h4>
@@ -1172,15 +1178,15 @@ not end up accessing all elements in its own container. But in that case
 it is not clear why having unused elements at the end should be
 different from having unused elements somewhere in the range.</p>
 <h1 data-number="4" id="wording"><span class="header-section-number">4</span> Wording<a href="#wording" class="self-link"></a></h1>
-<p><b> Size constructible container
-[container.requirements.sizeconstr]</b></p>
+<p>Insert the following into [container.requirements]</p>
+<p><b>24.2.2.3 Size constructible container
+[container.sizeconstr.reqmts]</b></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-A <em>size constructible container</em> is a container which if it is
+A <em>size constructible container</em> is a container, which if it is
 constructible from an integral argument, an
-<code>initializer_list</code>, or a range, and an optional allocator,
-will have a size after construction is equal to the integral argument,
-the size of the <code>initializer_list</code> or the size of the
-range.</p>
+<code>initializer_list</code>, or a range, will have a size after
+construction that is equal to the integral argument, the size of the
+<code>initializer_list</code> or the size of the range.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 In subclause …</p>
 <ul>
@@ -1209,10 +1215,9 @@ and</p></li>
 A type <code>C</code> meets the size constructible container
 requirements if</p>
 <ul>
-<li><p><code>C</code> meets the contiguous container requirements,
-and</p></li>
-<li><p>for those containers for which the following types and
-expressions are well-formed, the expressions have the specified
+<li><p><code>C</code> meets the container requirements, and</p></li>
+<li><p>and for those types <code>C</code> for which the following types
+and expressions are well-formed, the expressions have the specified
 semantics</p></li>
 </ul>
 <div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>  C<span class="op">(</span>n<span class="op">)</span></span></code></pre></div>
@@ -1247,13 +1252,14 @@ is <code>true</code></p>
 <code>C(from_range, r).size() == ranges::distance(r)</code> is
 <code>true</code></p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>  C<span class="op">(</span>from_range, r, a<span class="op">)</span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Postcondition:</em>
 <code>C(from_range, r, a).size() == ranges::distance(r)</code> is
 <code>true</code></p>
+<p>Insert the following after section 24.6.6</p>
 <p><b>24.6.� Class template <code>mdarray</code> [mdarray]</b></p>
-<p><br /> <b>24.6.�.1 <code>mdarray</code> overview
-[mdarray.overview]</b></p>
+<p><br /></p>
+<p><b>24.6.�.1 <code>mdarray</code> overview [mdarray.overview]</b></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <code>mdarray</code> is a multidimensional array of elements.</p>
 <div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
@@ -1414,8 +1420,8 @@ is <code>true</code></p>
 <span id="cb28-156"><a href="#cb28-156" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="op">{</span></span>
 <span id="cb28-157"><a href="#cb28-157" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_unique<span class="op">()</span>;</span>
 <span id="cb28-158"><a href="#cb28-158" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb28-159"><a href="#cb28-159" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_contiguous<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb28-160"><a href="#cb28-160" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_contiguous<span class="op">()</span>;</span>
+<span id="cb28-159"><a href="#cb28-159" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb28-160"><a href="#cb28-160" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_exhaustive<span class="op">()</span>;</span>
 <span id="cb28-161"><a href="#cb28-161" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb28-162"><a href="#cb28-162" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="op">{</span></span>
 <span id="cb28-163"><a href="#cb28-163" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mapping_type<span class="op">::</span>is_always_strided<span class="op">()</span>;</span>
@@ -1424,8 +1430,8 @@ is <code>true</code></p>
 <span id="cb28-166"><a href="#cb28-166" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
 <span id="cb28-167"><a href="#cb28-167" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_unique<span class="op">()</span>;</span>
 <span id="cb28-168"><a href="#cb28-168" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb28-169"><a href="#cb28-169" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_contiguous<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb28-170"><a href="#cb28-170" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_contiguous<span class="op">()</span>;</span>
+<span id="cb28-169"><a href="#cb28-169" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb28-170"><a href="#cb28-170" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_exhaustive<span class="op">()</span>;</span>
 <span id="cb28-171"><a href="#cb28-171" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb28-172"><a href="#cb28-172" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
 <span id="cb28-173"><a href="#cb28-173" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>map_</em><span class="op">.</span>is_strided<span class="op">()</span>;</span>
@@ -1456,7 +1462,7 @@ and</p></li>
 requirements [mdspan.layoutpolicy.reqmts], and</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <code>Container</code> shall meet the requirements of size constructible
-container.</p>
+container and contiguous container.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 Each specialization <code>MDA</code> of <code>mdarray</code> models
 <code>copyable</code> and</p>
