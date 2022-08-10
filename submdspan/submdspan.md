@@ -36,7 +36,7 @@ This paper restores `submdspan`.  It also expands on the original proposal by
 * adding the ability to specify slices as compile-time values.
 
 Creating subspans is an integral capability of many, if not all programming languages
-with multi-dimensional arrays.  These include Fortran, Matlab, Python, and Python's NumPy extesnion.
+with multi-dimensional arrays.  These include Fortran, Matlab, Python, and Python's NumPy extension.
 
 Subspans are important because they enable code reuse.
 For example, the inner loop in a dense matrix-vector product
