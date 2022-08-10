@@ -78,7 +78,7 @@ void zero_surface(mdspan<T,E,L,A> a) {
 ## Design of `submdspan`
 
 As previously proposed in an earlier revision of P0009, `submdspan` is designed as a free function,
-which takes an `mdspan` `x` as an argument and a slice specifier for each dimension of the `mdspan`.
+which takes a `mdspan` `x` as an argument and a slice specifier for each dimension of the `mdspan`.
 The slice specifiers describe which elements of the range $[0,$`x.extent(0)`$)$ are part of the
 multidimensional index space of the returned `mdspan`.
 
@@ -87,7 +87,7 @@ This leads to the following fundamental signature:
 ```c++
 template<class T, class E, class L, class A,
          class ... SliceArgs)
-auto submdspan(mdspan<T,E,L,A> a, SliceArgs ... args);
+auto submdspan(mdspan<T,E,L,A> x, SliceArgs ... args);
 ```
 
 Where `E.rank()` must be equal to `sizeof...(SliceArgs)`.
