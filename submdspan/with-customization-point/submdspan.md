@@ -1,6 +1,6 @@
 
 ---
-title: "`C-Array Interoperability of MDSpan`"
+title: "`Submdspan`"
 document: PXXXX
 date: today
 audience: LEWG
@@ -16,7 +16,7 @@ toc: true
 
 
 # Revision History
-## Initial Version 2022-02 Mailing
+## Initial Version 2022-08 Mailing
 
 
 # Description
@@ -273,32 +273,32 @@ namespace std {
 
   template<class E, class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
-      const layout_left::mapping<E>& map, 
+      const layout_left::mapping<E>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class E, class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
-      const layout_right::mapping<E>& map, 
+      const layout_right::mapping<E>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class E, class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
-      const layout_stride::mapping<E>& map, 
+      const layout_stride::mapping<E>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class E, class... SliceSpecifiers>
     constexpr size_t submdspan_offset(
-      const layout_left::mapping<E>& map, 
+      const layout_left::mapping<E>& src, 
       SliceSpecifiers ... slices);
 
   template<class E, class... SliceSpecifiers>
     constexpr size_t submdspan_offset(
-      const layout_right::mapping<E>& map, 
+      const layout_right::mapping<E>& src, 
       SliceSpecifiers ... slices);
 
   template<class E, class... SliceSpecifiers>
     constexpr size_t submdspan_offset(
-      const layout_stride::mapping<E>& map, 
+      const layout_stride::mapping<E>& src, 
       SliceSpecifiers ... slices);
 
   // [mdspan.submdspan], submdspan creation
@@ -324,16 +324,29 @@ template<class T>
 struct @_is-strided-index-range_@: false_type {};
 
 template<class OffsetType, class ExtentType, class StrideType>
-struct @_is-strided-index-range_@<strided_index_range<OffsetType, ExtentType, StrideTYpe>>: true_type {];
+struct @_is-strided-index-range_@<strided_index_range<OffsetType, ExtentType, StrideType>>: true_type {];
 ```
+
+[1]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument
+
+  * [1.1]{.pnum} let `rank` be the number of elements in `slices`,
+
+  * [1.1]{.pnum} let $s_k$ be the $k$-th element of `slices`,
+  
+  * [1.1]{.pnum} let $S_k$ be the type of the $s_k$, and
+
+  * [1.1]{.pnum} let  _`map-rank`_ be an `array<size_t, rank>` such that for each `k` in the range of $[0,$ `rank`$)$ _`map-rank`_`[k]` equals:
+
+    * `dynamic_extent` if `is_convertible_v<`$S_k$`, size_t>` is `true`, or else
+
+    * the number of $S_j$ with $j < k$ such that `is_convertible_v<`$S_j$`, size_t>` is `false`.
+
+
 
 ```c++
 template<class ... SliceSpecifiers>
 size_t @_first_@_(size_t i, SliceSpecifiers... slices);
 ```
-
-[1]{.pnum} Let $s_i$ be the $i$-th element of `slices`, and
-           let $S_i$ be the type of the $i$-th element of `slices`.
 
 [2]{.pnum} *Returns:*
 
@@ -351,30 +364,27 @@ template<class Extents, class ... SliceSpecifiers>
 size_t @_last_@_(size_t i, Extents& ext, SliceSpecifiers... slices);
 ```
 
-[3]{.pnum} Let $s_i$ be the $i$-th element of `slices`, and
-           let $S_i$ be the type of the $i$-th element of `slices`.
+[3]{.pnum} *Returns:*
 
-[4]{.pnum} *Returns:*
+   * [3.1]{.pnum} if `is_convertible_v<`$S_r$`, size_t>` is `true`, $s_r$ + 1,
 
-   * [4.1]{.pnum} if `is_convertible_v<`$S_r$`, size_t>` is `true`, $s_r$ + 1,
-
-   * [4.2]{.pnum} otherwise, if `is_convertible_v<`$S_r$`, tuple<size_t, size_t>>` is `true`,
+   * [3.2]{.pnum} otherwise, if `is_convertible_v<`$S_r$`, tuple<size_t, size_t>>` is `true`,
                   `get<1>(t)`, where `t` is the result of converting $s_r$ to `tuple<size_t, size_t>`;
 
-   * [4.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_r$`>::value` is `true`, $s_r$`.offset() + ` $s_r$`.extent()`;
+   * [3.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_r$`>::value` is `true`, $s_r$`.offset() + ` $s_r$`.extent()`;
 
-   * [4.4]{.pnum} otherwise, `ext.extent(r)`.
+   * [3.4]{.pnum} otherwise, `ext.extent(r)`.
 
 ```c++
 template<class IndexType, int N, class ... SliceSpecifiers>
 array<IndexType, sizeof...(SliceSpecifiers)> @_src-indicies_@(const array<IndexType, N>& idxs, SliceSpecifiers ... slices);
 ```
 
-[5]{.pnum} *Returns:* an `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that `src_idx[k]` equals 
+[4]{.pnum} *Returns:* an `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that `src_idx[k]` equals 
 
-  * [5.1]{.pnum} _`first_`_`(k, slices...)` for each `k`, where _`map-rank`_`[k]` equals `dynamic_extent`, otherwise
+  * [4.1]{.pnum} _`first_`_`(k, slices...)` for each `k`, where _`map-rank`_`[k]` equals `dynamic_extent`, otherwise
 
-  * [5.2]{.pnum} _`first_`_`(k, slices...) + idx[`_`map-rank`_`[k]]`.
+  * [4.2]{.pnum} _`first_`_`(k, slices...) + idx[`_`map-rank`_`[k]]`.
 
 
 <b>24.7.�.3 `strided_index_range` [mdspan.submdspan.strided_index_range]</b>
@@ -413,13 +423,13 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
    * [1.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-   * [1.2]{.pnum} For each rank index `k` of `map.extents()`,
+   * [1.2]{.pnum} For each rank index `k` of `src.extents()`,
   `is_convertible_v<`$S_k$`, size_t> || is_convertible_v<`$S_k$`, tuple<size_t, size_t>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`, 
 
-[2]{.pnum} *Mandates:* For each rank index `k` of `map.extents()` only one of the following is `true`:
+[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()` only one of the following is `true`:
   `is_convertible_v<`$S_k$`, size_t>`, `is_convertible_v<`$S_k$`, tuple<size_t, size_t>>`, `is_convertible_v<`$S_k$`, full_extent_t>`, _`is-strided-index-range`_`<`$S_k$`>::value`.
 
-[3]{.pnum} *Preconditions:* For each rank index `r` of `map.extents()`,
+[3]{.pnum} *Preconditions:* For each rank index `r` of `src.extents()`,
      `0 <= `_`first_`_`(r, slices...) && `_`first_`_`(r, slices...) <= `_`last_`_`(r, src_exts, slices...) && `_`last_`_`(r, src_exts, slices...) <= src_exts.extent(r)` is `true`.
 
 [4]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
@@ -443,17 +453,17 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 ```c++
   template<class Extents, class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
-      const layout_left::mapping<Extents>& map, 
+      const layout_left::mapping<Extents>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class Extents, class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
-      const layout_right::mapping<Extents>& map, 
+      const layout_right::mapping<Extents>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class Extents, class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
-      const layout_stride::mapping<Extents>& map, 
+      const layout_stride::mapping<Extents>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 ```
 
@@ -461,26 +471,26 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
    * [1.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-   * [1.2]{.pnum} For each rank index `k` of `map.extents()`,
+   * [1.2]{.pnum} For each rank index `k` of `src.extents()`,
   `is_convertible_v<`$S_k$`, size_t> || is_convertible_v<`$S_k$`, tuple<size_t, size_t>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`, 
 
-[2]{.pnum} *Mandates:* For each rank index `k` of `map.extents()` only one of the following is `true`:
+[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()` only one of the following is `true`:
   `is_convertible_v<`$S_k$`, size_t>`, `is_convertible_v<`$S_k$`, tuple<size_t, size_t>>`, `is_convertible_v<`$S_k$`, full_extent_t>`, _`is-strided-index-range`_`<`$S_k$`>::value`.
 
-[3]{.pnum} *Preconditions:* For each rank index `r` of `map.extents()`,
-     `0 <= `_`first_`_`(r, slices...) && `_`first_`_`(r, slices...) <= `_`last_`_`(r, map.extents(), slices...) && `_`last_`_`(r, map.extents(), slices...) <= map.extent(r)` is `true`.
+[3]{.pnum} *Preconditions:* For each rank index `r` of `src.extents()`,
+     `0 <= `_`first_`_`(r, slices...) && `_`first_`_`(r, slices...) <= `_`last_`_`(r, src.extents(), slices...) && `_`last_`_`(r, src.extents(), slices...) <= src.extent(r)` is `true`.
 
-[4]{.pnum} Let `sub_ext` be the result of `submdspan_extents(map.extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
+[4]{.pnum} Let `sub_ext` be the result of `submdspan_extents(src.extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-[5]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that `sub_strides[`_`map-rank`_`[k]] == map.stride(k)` is `true` for each rank index `k` of `map.extents()` for which _`map-rank`_`[k]` is not `dynamic_extent`. 
+[5]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that `sub_strides[`_`map-rank`_`[k]] == src.stride(k)` is `true` for each rank index `k` of `src.extents()` for which _`map-rank`_`[k]` is not `dynamic_extent`. 
 
 [6]{.pnum} *Returns:*
 
-   * [6.1]{.pnum} `layout_left::mapping(sub_ext)`, if `decltype(map)::layout_type` is `layout_left` and 
+   * [6.1]{.pnum} `layout_left::mapping(sub_ext)`, if `decltype(src)::layout_type` is `layout_left` and 
                   for each `k` in the range $[0,$ `SubExtents::rank()-1`$)$ $S_k$ is `full_extent_t`, 
                   and for `k` equal `SubExtents::rank()-1` `is_convertible_v<`$S_k$`, tuple<size_t, size_t>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`, otherwise
 
-   * [6.2]{.pnum} `layout_right::mapping(sub_ext)`, if `decltype(map)::layout_type` is `layout_right` and 
+   * [6.2]{.pnum} `layout_right::mapping(sub_ext)`, if `decltype(src)::layout_type` is `layout_right` and 
                   for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents.rank()`$)$ $S_k$ is `full_extent_t`, 
                   and for `k` equal `Extents::rank()-SubExtents::rank()` `is_convertible_v<`$S_k$`, tuple<size_t, size_t>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`, otherwise
 
@@ -491,17 +501,17 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 ```c++
   template<class Extents, class... SliceSpecifiers>
     constexpr size_t submdspan_offset(
-      const layout_left::mapping<Extents>& map, 
+      const layout_left::mapping<Extents>& src, 
       SliceSpecifiers ... slices);
 
   template<class Extents, class... SliceSpecifiers>
     constexpr size_t submdspan_mapping(
-      const layout_right::mapping<Extents>& map, 
+      const layout_right::mapping<Extents>& src, 
       SliceSpecifiers ... slices);
 
   template<class Extents, class... SliceSpecifiers>
     constexpr size_t submdspan_mapping(
-      const layout_stride::mapping<Extents>& map, 
+      const layout_stride::mapping<Extents>& src, 
       SliceSpecifiers ... slices);
 ```
 
@@ -509,14 +519,14 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
    * [1.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-   * [1.2]{.pnum} For each rank index `k` of `map.extents()`,
+   * [1.2]{.pnum} For each rank index `k` of `src.extents()`,
   `is_convertible_v<`$S_k$`, size_t> || is_convertible_v<`$S_k$`, tuple<size_t, size_t>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`, 
 
-[2]{.pnum} *Mandates:* For each rank index `k` of `map.extents()` only one of the following is `true`:
+[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()` only one of the following is `true`:
   `is_convertible_v<`$S_k$`, size_t>`, `is_convertible_v<`$S_k$`, tuple<size_t, size_t>>`, `is_convertible_v<`$S_k$`, full_extent_t>`, _`is-strided-index-range`_`<`$S_k$`>::value`.
 
-[3]{.pnum} *Preconditions:* For each rank index `r` of `map.extents()`,
-     `0 <= `_`first_`_`(r, slices...) && `_`first_`_`(r, slices...) <= `_`last_`_`(r, map.extents(), slices...) && `_`last_`_`(r, map.extents(), slices...) <= map.extent(r)` is `true`.
+[3]{.pnum} *Preconditions:* For each rank index `r` of `src.extents()`,
+     `0 <= `_`first_`_`(r, slices...) && `_`first_`_`(r, slices...) <= `_`last_`_`(r, src.extents(), slices...) && `_`last_`_`(r, src.extents(), slices...) <= src.extent(r)` is `true`.
 
 [4]{.pnum} *Effects:* Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
 Equivalent to: `return map(`_`first_`_`[P]...);`
@@ -546,7 +556,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
    
    * [1.4]{.pnum} `submdspan_mapping(src.mapping(), slices...)` is well formed.
 
-[2]{.pnum} *Mandates:* For each rank index `k` of `map.extents()` only one of the following is `true`:
+[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()` only one of the following is `true`:
   `is_convertible_v<`$S_k$`, size_t>`, `is_convertible_v<`$S_k$`, tuple<size_t, size_t>>`, `is_convertible_v<`$S_k$`, full_extent_t>`, _`is-strided-index-range`_`<`$S_k$`>::value`.
 
 [3]{.pnum} *Preconditions:* Let `sub_map` be the result of `submdspan_mapping(src.mapping(), slices...)`, than
@@ -561,7 +571,8 @@ template<class ElementType, class Extents, class LayoutPolicy,
    * [3.4]{.pnum} for each integer pack `I` which is a multi dimensional index in `sub_map.extents()`, 
      `sub_map(I...) + submdspan_offset(src.mapping(), slices...) == src.mapping()(`_`src-indicies`_`(array{I...}, slices ...))` is `true`.
 
-[4]{.pnum} Effects: Equivalent to 
+[4]{.pnum} *Effects:* Equivalent to 
+
 ```c++
   size_t offset = submdspan_offset(src.mapping(), args...);
   auto sub_map = submdspan_mapping(src.mapping(), args...);
@@ -569,6 +580,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
                 sub_map,
                 AccessPolicy::offset_policy(src.accessor()));
 ```
+
  
 <!---
 [5]{.pnum} *Remarks:*
