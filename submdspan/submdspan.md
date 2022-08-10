@@ -29,12 +29,14 @@ This function was considered critical for the overall functionality of `mdspan`.
 However, due to review time constraints it was removed from P0009 in order for
 `mdspan` to be included in C++23. 
 
-This paper will add the `submdspan` functionality again, and expand on the original
-proposal by also defining customization points so that `submdspan` can work with
-user defined layout policies.
+This paper restores `submdspan`.  It also expands on the original proposal by
+
+* defining customization points so that `submdspan` can work
+    with user-defined layout policies, and
+* adding the ability to specify slices as compile-time values.
 
 Creating subspans is an integral capability of many, if not all programming languages
-with  multi-dimensional arrays, including Fortran, matlab, python and its numpy extension.
+with multi-dimensional arrays.  These include Fortran, Matlab, Python, and Python's NumPy extension.
 
 Subspans are important because they enable code reuse.
 For example, the inner loop in a dense matrix-vector product
@@ -49,13 +51,16 @@ by calling them on groups of contiguous columns at a time.
 This lets LAPACK spend as much time in dense matrix-matrix multiply
 (or algorithms with analogous performance) as possible.
 
-The following code demonstrates the reuse function setting each element of a rank-2 `mdspan` to zero,
-for zeroing out the surface of a three dimensional grid represented as a rank-3 `mdspan`:
+The following code demonstrates this code reuse feature of subspans.
+Given a rank-3 `mdspan` representing a three-dimensional grid
+of regularly spaced points in a rectangular prism,
+it sets all elements on the surface of the 3-dimensional shape to zero.
+It does so by reusing a function `zero_2d`.
 
 ```c++
 // zero out all elements in an mdspan
 template<class T, class E, class L, class A>
-void zero(mdspan<T,E,L,A> a) {
+void zero_2d(mdspan<T,E,L,A> a) {
   static_assert(a.rank() == 2);
   for(int i=0; i<a.extent(0); i++)
     for(int j=0; j<a.extent(1); j++)
@@ -66,19 +71,21 @@ void zero(mdspan<T,E,L,A> a) {
 template<class T, class E, class L, class A>
 void zero_surface(mdspan<T,E,L,A> a) {
   static_assert(a.rank() == 3);
-  zero(submdspan(a, 0, full_extent, full_extent));
-  zero(submdspan(a, full_extent, 0, full_extent));
-  zero(submdspan(a, full_extent, full_extent, 0));
-  zero(submdspan(a, a.extent(0)-1, full_extent, full_extent));
-  zero(submdspan(a, full_extent, a.extent(1)-1, full_extent));
-  zero(submdspan(a, full_extent, full_extent, a.extent(2)-1));
+  zero_2d(submdspan(a, 0, full_extent, full_extent));
+  zero_2d(submdspan(a, full_extent, 0, full_extent));
+  zero_2d(submdspan(a, full_extent, full_extent, 0));
+  zero_2d(submdspan(a, a.extent(0)-1, full_extent, full_extent));
+  zero_2d(submdspan(a, full_extent, a.extent(1)-1, full_extent));
+  zero_2d(submdspan(a, full_extent, full_extent, a.extent(2)-1));
 }
 ```
 
 ## Design of `submdspan`
 
-As previously proposed in an earlier revision of P0009, `submdspan` is designed as a free function,
-which takes a `mdspan` `x` as an argument and a slice specifier for each dimension of the `mdspan`.
+As previously proposed in an earlier revision of P0009, `submdspan` is a free function.
+Its first parameter is an `mdspan` `x`,
+and the remaining `x.rank()` parameters are slice specifiers,
+one for each dimension of `x`.
 The slice specifiers describe which elements of the range $[0,$`x.extent(0)`$)$ are part of the
 multidimensional index space of the returned `mdspan`.
 
@@ -90,27 +97,43 @@ template<class T, class E, class L, class A,
 auto submdspan(mdspan<T,E,L,A> x, SliceArgs ... args);
 ```
 
-Where `E.rank()` must be equal to `sizeof...(SliceArgs)`.
+where `E.rank()` must be equal to `sizeof...(SliceArgs)`.
 
 
 ### Slice Specifiers
 
-In P0009 we proposed originally three types of slice specifiers:
+In P0009 we originally proposed three kinds of slice specifiers.
 
-* an integral: for each integral slice specifier the rank of the resulting `mdspan` is one less
-than the original one. The resulting multi-dimensional index space contains only elements of the
-original index space, where the particular index matches this slice specifier.
-* anything convertible to a `tuple<mdspan::index_type, mdspan::index_type>`: The resulting multi-dimensional index space
-covers the begin to end subrange of elements in the original index space described by the `tuple` two values.
-* `full_extent_t`: a tag class, indicating that the full range of indicies in that dimension is part of the subspan.
+* A single integral value.  For each integral slice specifier given to `submdspan`,
+    the rank of the resulting `mdspan` is one less than the rank of the input `mdspan`.
+    The resulting multi-dimensional index space contains only elements of the
+    original index space, where the particular index matches this slice specifier.
+* Anything convertible to a `tuple<mdspan::index_type, mdspan::index_type>`. The resulting multi-dimensional index space
+covers the begin-to-end subrange of elements in the original index space described by the `tuple`'s two values.
+* An instance of the tag class `full_extent_t`.
+    This includes the full range of indices in that extent in the returned subspan.
 
-In addition we are proposing here a slice specifier called `strided_index_range` for taking a strided range in a dimension.
-In contrast to the previous `tuple` slice specifier, this new type is taking three values describing the start index and the length
-of the subrange as well as a stride within that subrange.
-The choice of using a length here, instead of a last value is done in order to provide for a mechanism to get a compile time
-extent subspan starting at a runtime offset.
+We propose here an additional kind of slice specifier,
+the type `strided_index_range` for taking a strided range in an extent.
+This type takes three values:
 
-Some simple examples for rank-1 `mdspan`:
+* the start index,
+* the length of the subrange (*not* the end index),
+* and a stride within that subrange.
+
+This type uses the length instead of the end index,
+so that the returned subspan can have a compile-time extent value,
+even if it starts at a run-time offset value.
+We use a struct with named fields instead of a `tuple`,
+in order to avoid confusion with the order of the three values.
+
+We also propose that any integral value
+(on its own, in a `tuple`, or in `strided_index_range`)
+can be specified as an `integral_constant`.
+This ensures that the value can be baked into the return *type* of `submdspan`.
+For example, layout mappings could be entirely compile time. 
+
+Here are some simple examples for rank-1 `mdspan`.
 
 ```c++
 int* ptr = ...;
@@ -142,7 +165,7 @@ assert(a_sub4(0) == a(0));
 assert(a_sub4.extent(0) == a.extent(0));
 ```
 
-In multi-dimensional use-cases these specifiers can be matched and mixed:
+In multi-dimensional use-cases these specifiers can be matched and mixed.
 
 ```c++
 int* ptr = ...;
@@ -168,20 +191,20 @@ assert(&a_sub(1,5,7) == &a(1, 3, 2+5*2, 4, 3+7));
 
 In order to create the new `mdspan` from an existing `mdspan` `src`, we need three things:
 
-* the new mapping `sub_map`
+* the new mapping `sub_map`,
 
-* the new accessor `sub_acc`
+* the new accessor `sub_acc`, and
 
-* and the new data handle `sub_handle`
+* the new data handle `sub_handle`.
 
-Computing the new data handle is done via an *offset* and the originals accessors `offset` function,
+Computing the new data handle is done via an *offset* and the original accessor's `offset` function,
 while the new accessor is constructed from the old accessor.
 
 That leaves the construction of the new mapping and the calculation of the *offset* handed to the `offset` function.
 Both of those operations depend only on the old mapping and the slice specifiers.
 
-In order to support taking submdspan's from sources with custom layout policies, we need to introduce two customization
-points for computing the mapping and the offset. Both take as input the original mapping, and the slice specifiers:
+In order to support calling `submdspan` on `mdspan` with custom layout policies, we need to introduce two customization
+points for computing the mapping and the offset. Both take as input the original mapping, and the slice specifiers.
 
 ```c++
 template<class Mapping, class ... SliceArgs>
@@ -191,7 +214,7 @@ template<class Mapping, class ... SliceArgs>
 size_t submdspan_offset(const Mapping&, SliceArgs...);
 ```
 
-With these components we can sketch out the implementation of submdspan:
+With these components we can sketch out the implementation of `submdspan`.
 
 ```c++
 template<class T, class E, class L, class A,
@@ -206,28 +229,30 @@ auto submdspan(const mdspan<T,E,L,A>& src, SliceArgs ... args) {
 }
 ```
 
-To support custom layouts, `std::submdspan` calls `submdspan_offset` and `submdspan_mapping` using argument dependent lookup.
+To support custom layouts, `std::submdspan` calls `submdspan_offset` and `submdspan_mapping` using argument-dependent lookup.
 
-However, it may not be generally possible to create a `submdspan` for all possible slice specifier combinations for each possible
-mapping. Thus we do NOT propose to add these customization points to the layout policy requirements. 
+However, not all layout mappings may support efficient slicing for all possible slice specifier combinations.
+Thus, we do *not* propose to add these customization points to the layout policy requirements. 
 
 ### Making sure submdspan behavior meets expectations
 
-A submdspan - independent of layout mapping policy - should meet certain expectations:
+The slice specifiers of `submdspan` completely determine two properties of its result:
 
-* the `extents` of the submdspan are independent of the actual layout mapping policy, i.e. they are fully defined by the slice specifiers
+1. the `extents` of the result, and
+2. what elements of the input of `submdspan` are also represented in the result.
 
-* which element in a submdspan corresponds to which element in the original span, is independent of the layout mapping policy.
+Both of these things are independent of the layout mapping policy.
 
-Since the above approach orthogonalizes handling of accessors and mappings completely, both of these conditions can be completely
-defined via the multi dimensional index spaces, independent of what it means to refer to the same `element` in the presence of
-proxy references and data handles which are not actual pointers.
-
-That will let us define pre-conditions for submdspan which define the required behavior of any user provided `submdspan_mapping`
+The approach we described above orthogonalizes handling of accessors and mappings.
+Thus, we can define both of the above properties via the multidimensional index spaces,
+regardless of what it means to "refer to the same element."
+(For example, accessors may use proxy references and data handle types other than C++ pointers.
+This makes it hard to define what "same element" means.)
+That will let us define pre-conditions for `submdspan` which specify the required behavior of any user-provided `submdspan_mapping`
 and `submdspan_offset` function.
 
 One function which can help with that, and additionally is needed to implement `submdspan_mapping` and `submdspan_offset` for
-the layouts the standard provides, is a function to compute the sub spans `extents`.
+the layouts the standard provides, is a function to compute the submdspan's `extents`.
 We will propose this function as a public function in the standard:
 
 ```c++
@@ -235,17 +260,17 @@ template<class IndexType, class ... Extents, class ... SliceArgs>
 auto submdspan_extents(const extents<IndexType, Extents...>, SliceArgs ...);
 ```
 
-The resulting `extents` object must have certain properties for logical correctness:
+The resulting `extents` object must have certain properties for logical correctness.
 
-* the rank of the sub-extents is the rank of the original `extents` minus the number of pure integral arguments in `SliceArgs`.
+* The rank of the sub-extents is the rank of the original `extents` minus the number of pure integral arguments in `SliceArgs`.
 
-* the extent of each remaining dimension is well defined by the `SliceArgs` or is the original extent if the `SliceArgs` is `full_extent_t`.
+* The extent of each remaining dimension is well defined by the `SliceArgs`.  It is the original extent if all the `SliceArgs` are `full_extent_t`.
 
-In addition there are certain *nice-to-haves*, which one could leave as *quality of implementation* concerns, but which we also require:
+For performance and preservation of compile-time knowledge, we also require the following.
 
-* preserve static extent when using `full_extent_t`
+* Any `full_extent_t` argument corresponding to a static extent, preserves that static extent.
 
-* generate a static extent when possible: i.e. a tuple of `integral_constant` arguments is used as a slice specifier.
+* Generate a static extent when possible.  For example, providing a `tuple` of `integral_constant` as a slice specifier ensures that the corresponding extent is static.
 
 # Wording
 
