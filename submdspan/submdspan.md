@@ -64,7 +64,7 @@ void zero_2d(mdspan<T,E,L,A> a) {
   static_assert(a.rank() == 2);
   for(int i=0; i<a.extent(0); i++)
     for(int j=0; j<a.extent(1); j++)
-      a(i,j) = 0;
+      a[i,j] = 0;
 }
 
 // zero out just the surface
@@ -102,6 +102,8 @@ where `E.rank()` must be equal to `sizeof...(SliceArgs)`.
 
 ### Slice Specifiers
 
+#### P0009's slice specifiers
+
 In P0009 we originally proposed three kinds of slice specifiers.
 
 * A single integral value.  For each integral slice specifier given to `submdspan`,
@@ -112,6 +114,8 @@ In P0009 we originally proposed three kinds of slice specifiers.
 covers the begin-to-end subrange of elements in the original index space described by the `tuple`'s two values.
 * An instance of the tag class `full_extent_t`.
     This includes the full range of indices in that extent in the returned subspan.
+
+#### Strided index range slice specifier
 
 We propose here an additional kind of slice specifier,
 the type `strided_index_range` for taking a strided range in an extent.
@@ -127,11 +131,95 @@ even if it starts at a run-time offset value.
 We use a struct with named fields instead of a `tuple`,
 in order to avoid confusion with the order of the three values.
 
+##### Template argument deduction
+
+We really want template argument deduction to work for `strided_index_range`.
+Languages like Fortran, Matlab, and Python
+have a concise notation for creating the equivalent kind of slice inline.
+It would be unfortunate if users had to write
+
+```c++
+auto y = submdspan(x, strided_index_range<int, int, int>{0, 10, 3});
+```
+
+instead of
+
+```c++
+auto y = submdspan(x, strided_index_range{0, 10, 3});
+```
+
+Not having template argument deduction would make it particularly unpleasant
+to mix compile-time and run-time values.  For example, to express the offset and extent as compile-time values and the stride as a run-time value without template argument deduction, users would need to write
+
+```c++
+auto y = submdspan(x, strided_index_range<integral_constant<size_t, 0>, integral_constant<size_t, 10>, 3>{{}, {}, 3});
+```
+
+Template argument deduction would permit a consistently value-oriented style.
+
+```c++
+auto y = submdspan(x, strided_index_range{integral_constant<size_t, 0>{}, integral_constant<size_t, 10>{}, 3});
+```
+
+This case of compile-time offset and extent and run-time stride
+would permit optimizations like
+
+* preserving the input mdspan's accessor type (e.g., for aligned access) when the offset is zero; and
+
+* ensuring that the `submdspan` result has a static extent.
+
+##### Designated initializers
+
+We would *also* like to permit use of designated initializers with `strided_index_range`.
+This would let users choose a more verbose, self-documenting style.
+It would also avoid any confusion about the order of arguments.
+
+```c++
+auto y = submdspan(x, strided_index_range{.offset=0, .extent=10, .stride=3});
+```
+
+Designated initializers only work for aggregate types.
+This has implications for template argument deduction.
+Template argument deduction for aggregates is a C++20 feature.
+However, few compilers support it currently.
+GCC added full support in version 11, MSVC in 19.27, and EDG eccp in 6.3,
+according to the [cppreference.com compiler support table](https://en.cppreference.com/w/cpp/compiler_support).
+For example, Clang 14.0.0 supports designated initializers,
+and *non*-aggregate (class) template argument deduction,
+but it does not currently compile either of the following.
+
+```c++
+auto a = strided_index_range{.offset=0, .extent=10, .stride=3};
+auto b = strided_index_range<int, int, int>{.offset=0, .extent=10, .stride=3});
+```
+
+Implementers may want to make mdspan available
+for users of earlier C++ versions.
+The result need not comply fully with the specification,
+but should be as usable and forward-compatible as possible.
+Implementers can back-port `strided_index_range`
+by adding the following two constructors.
+
+```c++
+strided_index_range() = default;
+strided_index_range(OffsetType offset_, ExtentType extent_, StrideType stride_)
+  : offset(offset_), extent_(extent), stride(stride_)
+{}
+```
+
+These constructors make `strided_index_range` no longer an aggregate,
+but restore (class) template argument deduction.
+They also preserve the struct's properties
+of being a structural type (usable as a non-type template parameter)
+and trivially copyable (for compatibility with other programming languages).
+
+#### Compile-time integral values in slices
+
 We also propose that any integral value
 (on its own, in a `tuple`, or in `strided_index_range`)
 can be specified as an `integral_constant`.
 This ensures that the value can be baked into the return *type* of `submdspan`.
-For example, layout mappings could be entirely compile time. 
+For example, layout mappings could be entirely compile time.
 
 Here are some simple examples for rank-1 `mdspan`.
 
@@ -405,7 +493,7 @@ template<class IndexType, int N, class ... SliceSpecifiers>
 array<IndexType, sizeof...(SliceSpecifiers)> @_src-indicies_@(const array<IndexType, N>& idxs, SliceSpecifiers ... slices);
 ```
 
-[4]{.pnum} *Returns:* an `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that `src_idx[k]` equals 
+[4]{.pnum} *Returns:* an `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that `src_idx[k]` equals
 
   * [4.1]{.pnum} _`first_`_`(k, slices...)` for each `k`, where _`map-rank`_`[k]` equals `dynamic_extent`, otherwise
 
