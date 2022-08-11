@@ -278,7 +278,7 @@ For performance and preservation of compile-time knowledge, we also require the 
 ```c++
 ```
 
-## Replace subsection 22.7.X [mdspan.submdspan] with the following
+## Add subsection 22.7.X [mdspan.submdspan] with the following
 
 <b>24.7.� submdspan [mdspan.submdspan]</b>
 
@@ -289,7 +289,7 @@ For performance and preservation of compile-time knowledge, we also require the 
 
 ```c++
 namespace std {
-  template<class BeginType, class LengthType, class StrideType>
+  template<class OffsetType, class LengthType, class StrideType>
     class strided_index_range;
 
   template<class IndexType, class... Extents, class... SliceSpecifiers>
@@ -380,7 +380,7 @@ size_t @_first_@_(size_t i, SliceSpecifiers... slices);
    * [2.2]{.pnum} otherwise, if `is_convertible_v<`$S_r$`, tuple<size_t, size_t>>` is `true`,
                   `get<0>(t)`, where `t` is the result of converting $s_r$ to `tuple<size_t, size_t>`;
 
-   * [2.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_r$`>::value` is `true`, $s_r$`.offset()`;
+   * [2.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_r$`>::value` is `true`, $s_r$`.offset`;
 
    * [2.4]{.pnum} otherwise, `0`.
 
@@ -396,7 +396,7 @@ size_t @_last_@_(size_t i, Extents& ext, SliceSpecifiers... slices);
    * [3.2]{.pnum} otherwise, if `is_convertible_v<`$S_r$`, tuple<size_t, size_t>>` is `true`,
                   `get<1>(t)`, where `t` is the result of converting $s_r$ to `tuple<size_t, size_t>`;
 
-   * [3.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_r$`>::value` is `true`, $s_r$`.offset() + ` $s_r$`.extent()`;
+   * [3.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_r$`>::value` is `true`, $s_r$`.offset + ` $s_r$`.extent`;
 
    * [3.4]{.pnum} otherwise, `ext.extent(r)`.
 
@@ -467,7 +467,11 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
        * `dynamic_extent`.
 
-[5]{.pnum} *Returns:* a value of type `SubExtents` `ext` such that `ext.extent(`_`map-rank`_`[k])` equals _`last_`_`(k, src_exts, slices...) - `_`first_`_`(k, slices...)` for each `k` for which _`map-rank`_`[k] != dynamic_extent` is `true`.
+[5]{.pnum} *Returns:* a value of type `SubExtents` `ext` such that for each `k` for which _`map-rank`_`[k] != dynamic_extent` is `true`:
+
+  * `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent / `$s_k$`.stride` if $S_k$ is a specialization of `strided_index_range`, otherwise
+
+  * `ext.extent(`_`map-rank`_`[k])` equals _`last_`_`(k, src_exts, slices...) - `_`first_`_`(k, slices...)`.
 
 <b>24.7.�.3 layout specializations [mdspan.submdspan.mapping]</b>
 
