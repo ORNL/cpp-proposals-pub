@@ -417,25 +417,21 @@ array<IndexType, sizeof...(SliceSpecifiers)> @_src-indicies_@(const array<IndexT
 ```c++
 template<class OffsetType, class ExtentType, class StrideType>
 struct strided_index_range {
-
-  strided_index_range(OffsetType offset, ExtentType extent, StrideType stride):
-    _@_offset_@(offset), _@_extent_@(extent), _@_stride_@(stride) {}
-
-  constexpr OffsetType offset() { return _@_offset_@; }
-  constexpr ExtentType extent() { return _@_extent_@; }
-  constexpr StrideType stride() { return _@_stride_@; }
-
   using offset_type = OffsetType;
   using extent_type = ExtentType;
   using stride_type = StrideType;
 
-private:
-  OffsetType _@_offset_@; // exposition only
-  ExtentType _@_extent_@; // exposition only
-  StrideType _@_stride_@; // exposition only
+  OffsetType offset;
+  ExtentType extent;
+  StrideType stride;
 };
 ```
 
+[1]{.pnum} `strided_index_range` is an aggregate type.
+
+[2]{.pnum} *Mandates:*
+
+  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or are specializations of `integral_constant` that are not a specializaiton of  `bool_constant`.
 
 <b>24.7.�.3 sub extents function [mdspan.submdspan.extents]</b>
 
