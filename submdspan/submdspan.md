@@ -86,7 +86,7 @@ As previously proposed in an earlier revision of P0009, `submdspan` is a free fu
 Its first parameter is an `mdspan` `x`,
 and the remaining `x.rank()` parameters are slice specifiers,
 one for each dimension of `x`.
-The slice specifiers describe which elements of the range $[0,$`x.extent(0)`$)$ are part of the
+The slice specifiers describe which elements of the range $[0,$`x.extent(d)`$)$ are part of the
 multidimensional index space of the returned `mdspan`.
 
 This leads to the following fundamental signature:
@@ -208,10 +208,10 @@ points for computing the mapping and the offset. Both take as input the original
 
 ```c++
 template<class Mapping, class ... SliceArgs>
-auto submdspan_mapping(const Mapping&, SliceArgs...);
+auto submdspan_mapping(const Mapping&, SliceArgs...) { /* ... */ }
 
 template<class Mapping, class ... SliceArgs>
-size_t submdspan_offset(const Mapping&, SliceArgs...);
+size_t submdspan_offset(const Mapping&, SliceArgs...) { /* ... */ }
 ```
 
 With these components we can sketch out the implementation of `submdspan`.
