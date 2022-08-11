@@ -10,7 +10,7 @@ author:
   - name: Damien Lebrun-Grandie 
     email: <lebrungrandt@ornl.gov>
   - name: Mark Hoemmen 
-    email: <mhoemmen@stellarscience.com>
+    email: <mhoemmen@nvidia.com>
 toc: true
 ---
 
