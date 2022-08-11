@@ -431,7 +431,7 @@ struct strided_index_range {
 
 [2]{.pnum} *Mandates:*
 
-  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or are specializations of `integral_constant` that are not a specializaiton of  `bool_constant`.
+  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or are specializations of `integral_constant` that are not a specialization of  `bool_constant`.
 
 <b>24.7.�.3 sub extents function [mdspan.submdspan.extents]</b>
 
