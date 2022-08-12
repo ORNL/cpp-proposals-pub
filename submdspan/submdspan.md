@@ -36,7 +36,7 @@ This paper restores `submdspan`.  It also expands on the original proposal by
 * adding the ability to specify slices as compile-time values.
 
 Creating subspans is an integral capability of many, if not all programming languages
-with multi-dimensional arrays.  These include Fortran, Matlab, Python, and Python's NumPy extension.
+with multidimensional arrays.  These include Fortran, Matlab, Python, and Python's NumPy extension.
 
 Subspans are important because they enable code reuse.
 For example, the inner loop in a dense matrix-vector product
@@ -110,9 +110,9 @@ In P0009 we originally proposed three kinds of slice specifiers.
 
 * A single integral value.  For each integral slice specifier given to `submdspan`,
     the rank of the resulting `mdspan` is one less than the rank of the input `mdspan`.
-    The resulting multi-dimensional index space contains only elements of the
+    The resulting multidimensional index space contains only elements of the
     original index space, where the particular index matches this slice specifier.
-* Anything convertible to a `tuple<mdspan::index_type, mdspan::index_type>`. The resulting multi-dimensional index space
+* Anything convertible to a `tuple<mdspan::index_type, mdspan::index_type>`. The resulting multidimensional index space
 covers the begin-to-end subrange of elements in the original index space described by the `tuple`'s two values.
 * An instance of the tag class `full_extent_t`.
     This includes the full range of indices in that extent in the returned subspan.
@@ -255,7 +255,7 @@ assert(a_sub4(0) == a(0));
 assert(a_sub4.extent(0) == a.extent(0));
 ```
 
-In multi-dimensional use cases these specifiers can be mixed and matched.
+In multidimensional use cases these specifiers can be mixed and matched.
 
 ```c++
 int* ptr = ...;
@@ -457,6 +457,14 @@ struct strided_index_range {
 
   * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or are specializations of `integral_constant` that are not a specialization of  `bool_constant`.
 
+<i>[Example:</i>
+
+`strided_index_range{.offset=1, .extent=10, .stride=3}` indicates the indices 1, 4, 7, and 10.
+Indices are selected from the half-open interval [1, 1 + 10).
+
+<i>-- end note]</i>
+
+
 
 <b>24.7.�.3 Exposition-only helpers [mdspan.submdspan.helpers]</b>
 
@@ -474,7 +482,7 @@ struct @_is-strided-index-range_@<strided_index_range<OffsetType, ExtentType, St
 
   * [1.1]{.pnum} let $s_k$ be the $k$-th element of `slices`;
   
-  * [1.1]{.pnum} let $S_k$ be the type of the $s_k$; and
+  * [1.1]{.pnum} let $S_k$ be the type of $s_k$; and
 
   * [1.1]{.pnum} let  _`map-rank`_ be an `array<size_t, rank>` such that for each `k` in the range of $[0,$ `rank`$)$, _`map-rank`_`[k]` equals:
 
@@ -486,35 +494,35 @@ struct @_is-strided-index-range_@<strided_index_range<OffsetType, ExtentType, St
 
 ```c++
 template<class ... SliceSpecifiers>
-size_t @_first_@_(size_t i, SliceSpecifiers... slices);
+size_t @_first_@_(size_t k, SliceSpecifiers... slices);
 ```
 
 [2]{.pnum} *Returns:*
 
-   * [2.1]{.pnum} if `is_convertible_v<`$S_r$`, size_t>` is `true`, $s_r$;
+   * [2.1]{.pnum} if `is_convertible_v<`$S_k$`, size_t>` is `true`, $s_k$;
 
-   * [2.2]{.pnum} otherwise, if `is_convertible_v<`$S_r$`, tuple<size_t, size_t>>` is `true`,
-                  `get<0>(t)`, where `t` is the result of converting $s_r$ to `tuple<size_t, size_t>`;
+   * [2.2]{.pnum} otherwise, if `is_convertible_v<`$S_k$`, tuple<size_t, size_t>>` is `true`,
+                  `get<0>(t)`, where `t` is the result of converting $s_k$ to `tuple<size_t, size_t>`;
 
-   * [2.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_r$`>::value` is `true`, $s_r$`.offset`;
+   * [2.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_k$`>::value` is `true`, $s_k$`.offset`;
 
    * [2.4]{.pnum} otherwise, `0`.
 
 ```c++
 template<class Extents, class ... SliceSpecifiers>
-size_t @_last_@_(size_t i, Extents& ext, SliceSpecifiers... slices);
+size_t @_last_@_(size_t k, const Extents& ext, SliceSpecifiers... slices);
 ```
 
 [3]{.pnum} *Returns:*
 
-   * [3.1]{.pnum} if `is_convertible_v<`$S_r$`, size_t>` is `true`, $s_r$ + 1;
+   * [3.1]{.pnum} if `is_convertible_v<`$S_k$`, size_t>` is `true`, $s_k$ + 1;
 
-   * [3.2]{.pnum} otherwise, if `is_convertible_v<`$S_r$`, tuple<size_t, size_t>>` is `true`,
-                  `get<1>(t)`, where `t` is the result of converting $s_r$ to `tuple<size_t, size_t>`;
+   * [3.2]{.pnum} otherwise, if `is_convertible_v<`$S_k$`, tuple<size_t, size_t>>` is `true`,
+                  `get<1>(t)`, where `t` is the result of converting $s_k$ to `tuple<size_t, size_t>`;
 
-   * [3.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_r$`>::value` is `true`, $s_r$`.offset + ` $s_r$`.extent`;
+   * [3.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_k$`>::value` is `true`, $s_k$`.offset + ` $s_k$`.extent`;
 
-   * [3.4]{.pnum} otherwise, `ext.extent(r)`.
+   * [3.4]{.pnum} otherwise, `ext.extent(k)`.
 
 ```c++
 template<class IndexType, int N, class ... SliceSpecifiers>
