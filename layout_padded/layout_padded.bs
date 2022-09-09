@@ -1,0 +1,567 @@
+<pre class='metadata'>
+Title: Padded mdspan layouts
+Shortname: DXXXX
+Status: iso/D
+Level: 0
+Group: WG21
+URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/layout_padded/layout_padded.bs
+Editor: Mark Hoemmen, NVIDIA, mhoemmen@nvidia.com
+Abstract: We propose two new mdspan layouts, layout_left_padded and layout_right_padded.  These are strided layouts where the leftmost resp. rightmost extent is always stride 1, but the next stride to the right resp. left can be larger than the leftmost resp. rightmost extent.  The new layouts can represent this "padding stride" as either a compile-time or a run-time value.  We also propose adding submdspan (P2630) support for these layouts, and changing P2630 so that submdspan of a layout_left resp. layout_right mdspan produces a layout_left_padded resp. layout_right_padded mdspan whenever possible.
+Markup Shorthands: markdown yes
+Date: 2022-09-09
+</pre>
+
+# Authors and contributors
+
+## Authors
+
+* Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)
+* Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
+* Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratory)
+
+# Revision history
+
+* Revision 0 submitted 2022-09-15
+
+# Proposed changes and justification
+
+## Summary of proposed changes
+
+We propose two new mdspan layouts,
+`layout_left_padded` and `layout_right_padded`.
+`layout_left_padded` is like `layout_left`,
+except that if the rank is two or more,
+then the *leftmost* extent may be padded
+(so that `stride(1)` could be greater than `extent(0)`).
+Similarly, `layout_right_padded` is like `layout_right`,
+except that if the rank is two or more,
+then the *rightmost* extent may be padded
+(so that `stride(rank() - 2)` could be greater than `extent(rank() - 1)`).
+
+We also propose changing `submdspan`
+of a `layout_left` resp. `layout_right` mdspan
+to return `layout_left_padded` resp. `layout_right_padded`
+instead of `layout_stride`, when the slice arguments permit it.
+
+## Two new mdspan layouts
+
+The two new mdspan layouts `layout_left_padded` and `layout_right_padded`
+are strided, unique layouts.
+If the rank is zero or one,
+then the layouts behave exactly like `layout_left` resp. `layout_right`.
+If the rank is two or more,
+then the layouts implement a special case of `layout_stride`
+where only one stride may differ from its corresponding extent.
+We call that stride the *padding stride*.
+The padding stride of `layout_left_padded` is `stride(1)`,
+and the padding stride of `layout_right_padded` is `stride(rank() - 2)`.
+
+### Optimizations over `layout_stride`
+
+The two new layouts offer the following optimizations over `layout_stride`.
+
+1. They guarantee at compile time
+    that one extent always has stride-1 access.
+    While `layout_stride`'s member functions are all `constexpr`,
+    its mapping constructor takes the strides as a `std::array`
+    with `rank()` size.
+
+2. They do not need to store any strides
+    if the padding stride is known at compile time.
+    Even if the padding stride is a run-time value,
+    these layouts only need to store the one stride value (as `index_type`).
+    The `layout_stride::mapping` class must store all `rank()` stride values.
+
+### New layouts unify two use cases
+
+The proposed layouts unify two different use cases:
+
+1. overaligned access to the beginning
+    of each contiguous segment of elements, and
+
+2. representing exactly the data layout assumed by
+    the General (GE) matrix type in the BLAS' C binding.
+
+Regarding (1), an appropriate choice of padding
+can ensure any desired overalignment
+of the beginning of each contiguous segment of elements in an mdspan,
+as long as the entire memory allocation has the same overalignment.
+This is useful for hardware features that require
+or perform better with overaligned access,
+such as SIMD (Single Instruction Multiple Data) instructions.
+
+Regarding (2), the padding stride is the same as
+BLAS' "leading dimension" of the matrix (`LDA`) argument.
+Unlike `layout_left` and `layout_right`,
+any subview of a contiguous subset of rows and columns
+of a rank-2 `layout_left_padded` or `layout_right_padded` mdspan
+preserves the layout.
+For example, if `A` is a rank-2 mdspan
+whose layout is `layout_left_padded<padding_stride>`,
+then `submdspan(A, tuple{r1, r2}, tuple{c1, c2})`
+also has layout `layout_left_padded<padding_stride>`
+with the same padding stride as before.
+The BLAS and algorithms that use it
+(such as the blocked algorithms in LAPACK)
+depend on this ability to operate on contiguous submatrices
+with the same layout as their parent.
+For this reason, we can replace the `layout_blas_general` layout in
+<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p1673r9.html">P1673R9</a>
+with `layout_left_padded` and `layout_right_padded`.
+Making most effective use of the new layouts in code that uses P1673
+calls for integrating them with `submdspan`.
+This is why we propose the following changes as well.
+
+## Integration with `submdspan`
+
+We propose changing `submdspan`
+(<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2630r0.html">see P2630</a>)
+of a `layout_left` resp. `layout_right` mdspan
+to return `layout_left_padded` resp. `layout_right_padded`
+instead of `layout_stride`, if the slice arguments permit it.
+Taking the `submdspan` of a `layout_left_padded` resp. `layout_right_padded` mdspan
+will preserve the layout, again if the slice arguments permit it. 
+
+The phrase "if the slice arguments permit it" means the following.
+
+### `layout_left_padded` and `layout_left` cases
+
+In what follows, let `left_submatrix` be the following function,
+
+```c++
+template<class Elt, class Extents, class Layout, class Accessor, class S0, class S1>
+requires(
+  is_convertible_v<S0,
+    tuple<typename Extents::index_type, typename Extents::index_type>> &&
+  is_convertible_v<S1,
+    tuple<typename Extents::index_type, typename Extents::index_type>>
+)
+auto left_submatrix(mdspan<Elt, Extents, Layout, Accessor> X, S0 s0, S1 s1)
+{
+  auto full_extents = []<size_t ... Indices>(index_sequence<Indices...>) {
+      return tuple{ (Indices, full_extent)... };
+    }(make_index_sequence<X.rank() - 2>());
+  return apply( [&](full_extent_t ... fe) {
+      return submdspan(X, s0, s1, fe...);
+    }, full_extents );
+}
+```
+
+let `index_type` be an integral type,
+let `s0` be an object of a type `S0` such that
+`is_convertible_v<S0, tuple<index_type, index_type>>` is `true`,
+and let `s1` be an object of a type `S1` such that
+`is_convertible_v<S1, tuple<index_type, index_type>>` is `true`.
+
+Let `X` be an `mdspan` with rank at least two
+with `decltype(X)::index_type` naming the same type as `index_type`,
+whose layout is `layout_left_padded<padding_stride_X>`
+for some `constexpr size_t padding_stride_X`.
+Let `X_sub` be the object returned from `left_submatrix(X, s0, s1)`.
+Then, `X_sub` is an `mdspan` of rank `X.rank()`
+with layout `layout_left_padded<padding_stride_X>`,
+and `X_sub.stride(1)` equals `X.stride(1)`.
+
+Let `Z` be an `mdspan` with rank at least two
+with `decltype(Z)::index_type` naming the same type as `index_type`,
+whose layout is `layout_left`.
+Let `Z_sub` be the object returned from `left_submatrix(Z, s0, s1)`.
+Then, `Z_sub` is an `mdspan` of rank `Z.rank()`
+with layout `layout_left_padded<padding_stride_Z>`,
+where `padding_stride_Z` is
+
+* `srm1_val1 - srm1_val0`, if `srm1` is convertible to
+    `tuple<integral_constant<decltype(W)::index_type, srm1_val0>, integral_constant<decltype(W)::index_type, srm1_val1>>`
+    with `srm1_val1` greater than to equal to `srm1_val0`; else,
+
+* `dynamic_rank`.
+
+Also, `Z_sub.stride(1)` equals `Z.stride(1)`.
+
+### `layout_right_padded` and `layout_right` cases
+
+In what follows, let `right_submatrix` be the following function,
+
+```c++
+template<class Elt, class Extents, class Layout, class Accessor, class Srm2, class Srm1>
+requires(
+  is_convertible_v<Srm2,
+    tuple<typename Extents::index_type, typename Extents::index_type>> &&
+  is_convertible_v<Srm1,
+    tuple<typename Extents::index_type, typename Extents::index_type>>
+)
+auto left_submatrix(mdspan<Elt, Extents, Layout, Accessor> X, Srm2 srm2, Srm1 srm1)
+{
+  auto full_extents = []<size_t ... Indices>(index_sequence<Indices...>) {
+      return tuple{ (Indices, full_extent)... };
+    }(make_index_sequence<X.rank() - 2>());
+  return apply( [&](full_extent_t ... fe) {
+      return submdspan(X, fe..., srm2, srm1);
+    }, full_extents );
+}
+```
+
+let `srm2` ("s of rank minus 2") be an object of a type `Srm2` such that
+`is_convertible_v<S0, tuple<index_type_X, index_type_X>>` is `true`,
+and let `srm1` ("s of rank minus 1") be an object of a type `Srm1` such that
+`is_convertible_v<S1, tuple<index_type_X, index_type_X>>` is `true`.
+
+
+Similarly, let `Y` be an `mdspan` with rank at least two whose layout is `layout_right_padded<padding_stride_Y>` for some `constexpr size_t padding_stride_Y`.
+Let `index_type_Y` name the type `decltype(Y)::index_type`.
+Let `srm2` ("S of rank minus 2") be an object of a type `Srm2` such that
+`is_convertible_v<Srm2, tuple<index_type_Y, index_type_Y>>` is `true`,
+and let `srm1` ("S of rank minus 1") be an object of a type `Srm1` such that
+`is_convertible_v<Srm1, tuple<index_type_Y, index_type_Y>>` is `true`.
+In the following code fragment,
+
+```c++
+auto full_extents = []<size_t ... Indices>(index_sequence<Indices...>) {
+    return tuple{ (Indices, full_extent)... };
+  }(make_index_sequence<Y.rank() - 2>());
+
+auto Y_sub = apply( [&](full_extent_t ... fe) {
+    return submdspan(Y, fe..., srm2, srm1);
+  }, full_extents );
+```
+
+`Y_sub` is an `mdspan` of rank `Y.rank()`
+with layout `layout_left_padded<padding_stride>`,
+and `Y_sub.stride(1)` equals `Y.stride(1)`.
+
+Let `Z` be an `mdspan` with rank at least two whose layout is `layout_left`.
+Let `index_type_Z` name the type `decltype(Z)::index_type`.
+Let `s0` be an object of a type `S0` such that
+`is_convertible_v<S0, tuple<index_type_Z, index_type_Z>>` is `true`,
+and let `s1` be an object of a type `S1` such that
+`is_convertible_v<S1, tuple<index_type_Z, index_type_Z>>` is `true`.
+In the following code fragment,
+
+```c++
+auto full_extents = []<size_t ... Indices>(index_sequence<Indices...>) {
+    return tuple{ (Indices, full_extent)... };
+  }(make_index_sequence<Z.rank() - 2>());
+
+auto Z_sub = apply( [&](full_extent_t ... fe) {
+    return submdspan(Z, s0, s1, fe...);
+  }, full_extents );
+```
+
+`Z_sub` is an `mdspan` of rank `Z.rank()`
+with layout `layout_left_padded<padding_stride_Z>`,
+where `padding_stride_Z` is `s0_val1 - s0_val0`
+if `s0` is convertible to `tuple<integral_constant<index_type_Z, s0_val0>, integral_constant<index_type_Z, s0_val1>>`
+with `s0_val1` greater than to equal to `s0_val0`.
+Also, `Z_sub.stride(1)` equals `Z.stride(1)`.
+
+Similarly, let `W` be an `mdspan` with rank at least two whose layout is `layout_right`.
+Let `index_type_W` name the type `decltype(W)::index_type`.
+Let `srm2` ("S of rank minus 2") be an object of a type `Srm2` such that
+`is_convertible_v<Srm2, tuple<index_type_W, index_type_W>>` is `true`,
+and let `srm1` ("S of rank minus 1") be an object of a type `Srm1` such that
+`is_convertible_v<Srm1, tuple<index_type_W, index_type_W>>` is `true`.
+In the following code fragment,
+
+```c++
+auto full_extents = []<size_t ... Indices>(index_sequence<Indices...>) {
+    return tuple{ (Indices, full_extent)... };
+  }(make_index_sequence<W.rank() - 2>());
+
+auto W_sub = apply( [&](full_extent_t ... fe) {
+    return submdspan(W, fe..., srm2, srm1);
+  }, full_extents );
+```
+
+`W_sub` is an `mdspan` of rank `W.rank()`
+with layout `layout_left_padded<padding_stride_W>`,
+where `padding_stride_W` is `srm1_val1 - srm1_val0`
+if `srm1` is convertible to `tuple<integral_constant<index_type_W, srm1_val0>, integral_constant<index_type_W, srm1_val1>>`
+with `srm1_val1` greater than to equal to `srm1_val0`.
+Also, `W_sub.stride(1)` equals `W.stride(1)`.
+
+Preservation of these layouts under `submdspan`
+is an important feature for our proposal
+<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p1673r9.html">P1673R9</a>,
+because it means that for existing BLAS and LAPACK use cases,
+we do not need to check whether `stride(0)` or `stride(rank() - 1)` is one
+before calling into an optimized C or Fortran BLAS.
+
+## Alternatives
+
+
+
+# Wording
+
+> Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
+> The � character is used to denote a placeholder section number which the editor shall determine.
+> First, apply all wording from P2630R0.
+> (This proposal is a "rebase" atop the changes proposed by P2630R0.)
+> In Section � *[mdspan.syn]*, after `struct layout_stride;`, add the following:
+
+```c++
+template<size_t padding_stride = dynamic_extent>
+struct layout_left_padded;
+template<size_t padding_stride = dynamic_extent>
+struct layout_right_padded;
+```
+
+> After the end of Section Section � *[mdspan.layout.stride]*, add the following:
+
+## Class template `layout_left_padded::mapping` [mdspan.layout.left_padded]
+
+`layout_left_padded` provides a layout mapping that behaves like `layout_left::mapping`,
+except that the *padding stride* `stride(1)` (if the rank is greater than one)
+is user defined and need not equal `extent(0)`.
+The `padding_stride` template parameter of `layout_left_padded`,
+if not equal to `dynamic_extent`, determines the padding stride.
+
+```c++
+template<size_t padding_stride = dynamic_extent>
+struct layout_left_padded {
+  template<class Extents>
+  class mapping {
+  public:
+    using extents_type = Extents;
+    using index_type = typename extents_type::index_type;
+    using size_type = typename extents_type::size_type;
+    using rank_type = typename extents_type::rank_type;
+    using layout_type = layout_left_padded<padding>;
+
+    constexpr mapping(const extents_type& ext);
+
+    template<class Size>
+    constexpr mapping(const extents_type& ext, Size padding_value);
+
+    constexpr mapping(const extents_type& ext,
+      const extents<index_type, padding_stride>& padding_extents);
+
+    constexpr mapping(const mapping&) noexcept = default;
+    mapping& operator=(const mapping&) noexcept = default;
+
+    constexpr extents_type extents() const noexcept;
+
+    constexpr std::array<index_type, extents_type::rank()>
+    strides() const noexcept;
+
+    constexpr index_type required_span_size() const noexcept;
+
+    template<class... Indices>
+    constexpr size_t operator()(Indices... idxs) const noexcept;
+
+    static constexpr bool is_always_unique() noexcept { return true; }
+    static constexpr bool is_always_exhaustive() noexcept;
+    static constexpr bool is_always_strided() noexcept { return true; }
+
+    static constexpr bool is_unique() noexcept { return true; }
+    constexpr bool is_exhaustive() const noexcept;
+    static constexpr bool is_strided() noexcept { return true; }
+
+    constexpr index_type stride(rank_type r) const noexcept;
+  };
+};
+```
+
+```c++
+constexpr mapping(const extents_type& ext);
+```
+
+*Constraints:* `padding_stride != dynamic_extent` is `true`.
+
+```c++
+template<std::convertible_to<size_t> Size>
+constexpr mapping(const extents_type& ext, Size padding_value = 0);
+```
+
+*Constraints:*
+
+* `padding == dynamic_extent` is `true`,
+
+* `is_convertible_v<Size, index_type>` is `true`, and
+
+* `is_nothrow_constructible_v<index_type, Size>` is `true`.
+
+```c++
+template<class... Indices>
+constexpr size_t operator()(Indices... idxs) const noexcept;
+```
+
+*Constraints:*
+
+* `sizeof...(Indices) == Extents::rank()` is `true`,
+
+* `(std::is_convertible_v<Indices, index_type> && ...)` is `true`, and
+
+* `(std::is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
+
+*Preconditions:* `extents_type::`_`index-cast`_`(i)` is a multidimensional index in `extents_` ([mdspan.overview]).
+
+*Effects:* Let P be a parameter pack such that `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.  Equivalent to: `return ((static_cast<index_type>(i) * stride(P)) + ... + 0);`.
+
+## Class template `layout_right_padded::mapping` [mdspan.layout.right_padded]
+
+`layout_right_padded` provides a layout mapping that behaves like `layout_right::mapping`,
+except that the *padding stride* `stride(rank() - 2)` (if the rank is greater than one)
+is user defined and need not equal `extent(rank() - 1)`.
+The `padding_stride` template parameter of `layout_right_padded`,
+if not equal to `dynamic_extent`, determines the padding stride.
+
+```c++
+template<size_t padding_stride = dynamic_extent>
+class layout_right_general {
+public:
+  template<class Extents>
+  struct mapping {
+  public:
+    using extents_type = Extents;
+    using size_type = typename extents_type::size_type;
+    using layout_type = layout_blas_general<StorageOrder>;
+
+  private:
+    extents_type extents_{}; // exposition only
+    size_type stride_{}; // exposition only
+
+  public:
+    constexpr mapping(const extents_type& e, size_type s) noexcept;
+
+    template<class OtherExtents>
+      explicit(! is_convertible_v<OtherExtents, extents_type>)
+        constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+
+    constexpr extents_type extents() const noexcept { return extents_; }
+
+    constexpr size_type required_span_size() const noexcept;
+
+    template<class IndexType>
+      constexpr size_type
+        operator() (IndexType i, IndexType j) const noexcept;
+
+    static constexpr bool is_always_unique() { return true; }
+    static constexpr bool is_always_contiguous() { return true; }
+    static constexpr bool is_always_strided() { return true; }
+
+    constexpr bool is_unique() const noexcept { return true; }
+    constexpr bool is_contiguous() const noexcept;
+    constexpr bool is_strided() const noexcept { return true; }
+
+    constexpr size_type stride(size_t r) const noexcept;
+
+    template<class OtherExtents>
+      friend constexpr bool
+        operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
+  };
+};
+```
+
+* *Constraints:*
+
+    * `StorageOrder` is either `column_major_t` or `row_major_t`.
+
+    * `Extents` is a specialization of `extents`.
+
+    * `Extents::rank()` equals 2.
+
+```c++
+constexpr mapping(const extents_type& e, size_type s) noexcept;
+```
+
+* *Preconditions:*
+
+    * If `StorageOrder` is `column_major_t`,
+        then `s` is greater than or equal to `e.extent(0)`.
+
+    * Otherwise, if `StorageOrder` is `row_major_t`,
+        then `s` is greater than or equal to `e.extent(1)`.
+
+* *Effects:* Initializes `extents_` with `e`, and initializes `stride_` with `s`.
+
+## Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]
+
+> At the top of Section � [mdspan.submdspan.mapping] ("Layout specializations of submdspan_mapping"), before paragraph 1, add the following to the end of the synopsis of specializations.
+
+```c++
+  template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
+    constexpr auto submdspan_mapping(
+      const layout_left_padded<padding_stride>::template mapping<Extents>& src, 
+      SliceSpecifiers ... slices) -> see below;
+
+  template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
+    constexpr auto submdspan_mapping(
+      const layout_right_padded<padding_stride>::template mapping<Extents>& src, 
+      SliceSpecifiers ... slices) -> see below;
+```
+
+> In paragraph 7 (the "Returns" clause) of Section � [mdspan.submdspan.mapping] ("Layout specializations of submdspan_mapping"), replace (7.3) (the `layout_stride` fall-back return type) with the following.
+
+(7.3) Else, if
+
+* `decltype(src)::layout_type` is `layout_left`;
+
+* `Extents::rank()` is at least 2;
+
+* all the Sk except for S0 and S1 are `full_extent_t`;
+
+* `is_convertible_v<` S0 `, tuple<index_type, index_type>>`; and
+
+* `is_convertible_v<` S1 `, tuple<index_type, index_type>>`;
+
+then, 
+
+* if `Extents::static_extent(0)` equals `dynamic_extent`, then `layout_left_padded<dynamic_extent>::template mapping(sub_ext, src.extent(0))`;
+
+* else, `layout_left_padded<Extents::static_extent(0)>::template mapping(sub_ext)`.
+
+(7.4) Else, if
+
+* `decltype(src)::layout_type` is `layout_right`;
+
+* `Extents::rank()` is at least 2;
+
+* all the Sk except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
+
+* `is_convertible_v<` $S_{r-2}$ `, tuple<index_type, index_type>>`; and
+
+* `is_convertible_v<` $S_{r-1}$ `, tuple<index_type, index_type>>`;
+
+then, 
+
+* if `Extents::static_extent(r - 1)` equals `dynamic_extent`, then `layout_right_padded<dynamic_extent>::template mapping(sub_ext, src.extent(r - 1))`;
+
+* else, `layout_right_padded<Extents::static_extent(r - 1)>::template mapping(sub_ext)`.
+
+(7.5) Else, if 
+
+* `decltype(src)::layout_type` is `layout_left_padded<padding_stride>` for some `size_t padding_stride`;
+
+* `Extents::rank()` is at least 2;
+
+* all the Sk except for S0 and S1 are `full_extent_t`;
+
+* `is_convertible_v<` S0 `, tuple<index_type, index_type>>`; and
+
+* `is_convertible_v<` S1 `, tuple<index_type, index_type>>`;
+
+then, 
+
+* if `padding_stride` equals `dynamic_extent`, then `layout_left_padded<dynamic_extent>::template mapping(sub_ext, src.stride(1))`;
+
+* else, `layout_left_padded<padding_stride>::template mapping(sub_ext)`.
+
+(7.6) Else, if 
+
+* `decltype(src)::layout_type` is `layout_right_padded<padding_stride>` for some `size_t padding_stride`;
+
+* `Extents::rank()` is at least 2;
+
+* all the Sk except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
+
+* `is_convertible_v<` $S_{r-2}$ `, tuple<index_type, index_type>>`; and
+
+* `is_convertible_v<` $S_{r-1}$ `, tuple<index_type, index_type>>`;
+
+then, 
+
+* if `padding_stride` equals `dynamic_extent`, then `layout_right_padded<dynamic_extent>::template mapping(sub_ext, src.stride(r-2))`;
+
+* else, `layout_right_padded<padding_stride>::template mapping(sub_ext)`.
+
+(7.7) Otherwise, `layout_stride::mapping(sub_ext, sub_strides)`;
