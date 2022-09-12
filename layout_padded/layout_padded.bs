@@ -418,6 +418,17 @@ struct layout_left_padded {
     using rank_type = typename extents_type::rank_type;
     using layout_type = layout_left_padded<padding>;
 
+  private:
+    using inner_extents_type = /* see-below */; // exposition only
+    using unpadded_extents_type =
+      extents<index_type, Extents::static_extent(0)>; // exposition only
+    using inner_mapping_type =
+      layout_left::template mapping<inner_extents_type>; // exposition only
+
+    inner_mapping_type inner_mapping_; // exposition only
+    unpadded_extents_type unpadded_extent_; // exposition only
+
+  public:
     constexpr mapping(const extents_type& ext);
 
     template<class Size>
@@ -453,10 +464,25 @@ struct layout_left_padded {
 ```
 
 ```c++
+using inner_extents_type = /* see-below */; // exposition only
+```
+
+If `extents_type::rank()` equals zero or one,
+then `inner_extents_type` names the type `extents_type`.
+Otherwise, `inner_extents_type` names the type
+`extents<index_type, padding_stride, extents_type::static_extent(1), extents_type::static_extent(2),` ...`, extents_type::static_extent(extents_type::rank() - 1)`.
+
+```c++
 constexpr mapping(const extents_type& ext);
 ```
 
 *Constraints:* `padding_stride != dynamic_extent` is `true`.
+
+*Effects:*
+
+* Initializes `inner_mapping_` with `padding_stride`, `ext.extent(1)`, `ext.extent(2)`, ..., `ext.extent(ext.rank()-1)`, and
+
+* Initializes `unpadded_extent_` with `ext.extent(0)`.
 
 ```c++
 template<std::convertible_to<size_t> Size>
@@ -470,6 +496,31 @@ constexpr mapping(const extents_type& ext, Size padding_value = 0);
 * `is_convertible_v<Size, index_type>` is `true`, and
 
 * `is_nothrow_constructible_v<index_type, Size>` is `true`.
+
+*Effects:*
+
+* Initializes `inner_mapping_` with `padding_value`, `ext.extent(1)`, `ext.extent(2)`, ..., `ext.extent(ext.rank()-1)`, and
+
+* Initializes `unpadded_extent_` with `ext.extent(0)`.
+
+```c++
+constexpr extents_type extents() const noexcept;
+```
+
+*Effects:* Equivalent to `return extents_type(unpadded_extent_.extent(0)`, `inner_mapping_.extent(1)`, ..., `inner_mapping_.extent(extents_type::rank() - 1));`.
+
+```c++
+constexpr std::array<index_type, extents_type::rank()>
+  strides() const noexcept;
+```
+
+*Effects:* Equivalent to `return inner_mapping_.strides();`.
+
+```c++
+constexpr index_type required_span_size() const noexcept;
+```
+
+*Effects:* Equivalent to `return inner_mapping_.required_span_size();`.
 
 ```c++
 template<class... Indices>
@@ -487,6 +538,33 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 *Preconditions:* `extents_type::`_`index-cast`_`(i)` is a multidimensional index in `extents_` ([mdspan.overview]).
 
 *Effects:* Let P be a parameter pack such that `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.  Equivalent to: `return ((static_cast<index_type>(i) * stride(P)) + ... + 0);`.
+
+```c++
+static constexpr bool is_always_exhaustive() noexcept;
+```
+
+*Returns:*
+
+* If `extents_type::rank()` equals zero, `true`;
+
+* else, `extents_type::static_extent(0) != stdex::dynamic_extent &&
+	 extents_type::static_extent(0) == unpadded_extents_type::static_extent(0)`.
+
+```c++
+constexpr bool is_exhaustive() const noexcept;
+```
+
+*Returns:*
+
+* If `extents_type::rank()` equals zero, `true`;
+
+* else, `inner_mapping_.extent(0) == unpadded_extent_.extent(0)`.
+
+```c++
+constexpr index_type stride(rank_type r) const noexcept;
+```
+
+*Effects:* Equivalent to `return inner_mapping_.stride(r);`.
 
 ## Class template `layout_right_padded::mapping` [mdspan.layout.right_padded]
 
