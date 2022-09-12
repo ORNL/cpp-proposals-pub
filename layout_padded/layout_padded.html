@@ -2125,7 +2125,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#layout_left_padded-and-layout_left-cases"><span class="secno">3.3.1</span> <span class="content"><code class="highlight"><c- n>layout_left_padded</c-></code> and <code class="highlight"><c- n>layout_left</c-></code> cases</span></a>
         <li><a href="#layout_right_padded-and-layout_right-cases"><span class="secno">3.3.2</span> <span class="content"><code class="highlight"><c- n>layout_right_padded</c-></code> and <code class="highlight"><c- n>layout_right</c-></code> cases</span></a>
        </ol>
-      <li><a href="#alternatives"><span class="secno">3.4</span> <span class="content">Alternatives</span></a>
+      <li><a href="#before-and-after"><span class="secno">3.4</span> <span class="content">Before and after</span></a>
      </ol>
     <li>
      <a href="#wording"><span class="secno">4</span> <span class="content">Wording</span></a>
@@ -2342,7 +2342,112 @@ Also, <code class="highlight"><c- n>W_sub</c-><c- p>.</c-><c- n>stride</c-><c- p
 because it means that for existing BLAS and LAPACK use cases,
 we do not need to check whether <code class="highlight"><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> or <code class="highlight"><c- n>stride</c-><c- p>(</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is one
 before calling into an optimized C or Fortran BLAS.</p>
-   <h3 class="heading settled" data-level="3.4" id="alternatives"><span class="secno">3.4. </span><span class="content">Alternatives</span><a class="self-link" href="#alternatives"></a></h3>
+   <h3 class="heading settled" data-level="3.4" id="before-and-after"><span class="secno">3.4. </span><span class="content">Before and after</span><a class="self-link" href="#before-and-after"></a></h3>
+   <p>We show examples before and after this proposal of functions
+that compute the matrix-matrix product <code class="highlight"><c- n>C</c-> <c- o>+=</c-> <c- n>A</c-> <c- o>*</c-> <c- n>B</c-></code>.</p>
+   <p>Common code:</p>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Layout</c-><c- o>></c->
+<c- n>using</c-> <c- n>out_matrix_view</c-> <c- o>=</c-> <c- n>mdspan</c-><c- o>&lt;</c-><c- b>float</c-><c- p>,</c-> <c- n>dextents</c-><c- o>&lt;</c-><c- b>int</c-><c- p>,</c-> <c- mi>2</c-><c- o>></c-><c- p>,</c-> <c- n>Layout</c-><c- o>></c-><c- p>;</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Layout</c-><c- o>></c->
+<c- n>using</c-> <c- n>in_matrix_view</c-> <c- o>=</c-> <c- n>mdspan</c-><c- o>&lt;</c-><c- k>const</c-> <c- b>float</c-><c- p>,</c-> <c- n>dextents</c-><c- o>&lt;</c-><c- b>int</c-><c- p>,</c-> <c- mi>2</c-><c- o>></c-><c- p>,</c-> <c- n>Layout</c-><c- o>></c-><c- p>;</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Layout</c-><c- o>></c->
+<c- b>void</c-> <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>in_matrix_view</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>></c-> <c- n>A</c-><c- p>,</c->
+  <c- n>in_matrix_view</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>></c-> <c- n>B</c-><c- p>,</c-> <c- n>out_matrix_view</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>></c-> <c- n>C</c-><c- p>)</c->
+<c- p>{</c->
+  <c- c1>// This proposal changes the returned mdspans' layout.</c->
+  <c- k>auto</c-> <c- p>[</c-><c- n>C00</c-><c- p>,</c-> <c- n>C01</c-><c- p>,</c->
+        <c- n>C10</c-><c- p>,</c-> <c- n>C11</c-><c- p>]</c-> <c- o>=</c-> <c- n>partition</c-><c- p>(</c-><c- n>C</c-><c- p>);</c->  
+  <c- k>auto</c-> <c- p>[</c-><c- n>A00</c-><c- p>,</c-> <c- n>A01</c-><c- p>,</c->
+        <c- n>A10</c-><c- p>,</c-> <c- n>A11</c-><c- p>]</c-> <c- o>=</c-> <c- n>partition</c-><c- p>(</c-><c- n>A</c-><c- p>);</c->  
+  <c- k>auto</c-> <c- p>[</c-><c- n>B00</c-><c- p>,</c-> <c- n>B01</c-><c- p>,</c->
+        <c- n>B10</c-><c- p>,</c-> <c- n>B11</c-><c- p>]</c-> <c- o>=</c-> <c- n>partition</c-><c- p>(</c-><c- n>B</c-><c- p>);</c->
+  <c- k>if</c-><c- p>(</c-><c- n>C00</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>||</c-> <c- n>C00</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-> <c- o>></c-> <c- n>dont_recurse</c-><c- p>)</c-> <c- p>{</c->
+    <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>A00</c-><c- p>,</c-> <c- n>B00</c-><c- p>,</c-> <c- n>C00</c-><c- p>);</c->
+    <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>A01</c-><c- p>,</c-> <c- n>B10</c-><c- p>,</c-> <c- n>C00</c-><c- p>);</c->
+    <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>A10</c-><c- p>,</c-> <c- n>B00</c-><c- p>,</c-> <c- n>C10</c-><c- p>);</c->
+    <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>A11</c-><c- p>,</c-> <c- n>B10</c-><c- p>,</c-> <c- n>C10</c-><c- p>);</c->
+    <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>A00</c-><c- p>,</c-> <c- n>B01</c-><c- p>,</c-> <c- n>C01</c-><c- p>);</c->
+    <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>A01</c-><c- p>,</c-> <c- n>B11</c-><c- p>,</c-> <c- n>C01</c-><c- p>);</c->
+    <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>A10</c-><c- p>,</c-> <c- n>B01</c-><c- p>,</c-> <c- n>C11</c-><c- p>);</c->
+    <c- n>recursive_matrix_product</c-><c- p>(</c-><c- n>A11</c-><c- p>,</c-> <c- n>B11</c-><c- p>,</c-> <c- n>C11</c-><c- p>);</c->
+  <c- p>}</c-> <c- k>else</c-> <c- p>{</c->
+    <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>A00</c-><c- p>,</c-> <c- n>B00</c-><c- p>,</c-> <c- n>C00</c-><c- p>);</c->
+    <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>A01</c-><c- p>,</c-> <c- n>B10</c-><c- p>,</c-> <c- n>C00</c-><c- p>);</c->
+    <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>A10</c-><c- p>,</c-> <c- n>B00</c-><c- p>,</c-> <c- n>C10</c-><c- p>);</c->
+    <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>A11</c-><c- p>,</c-> <c- n>B10</c-><c- p>,</c-> <c- n>C10</c-><c- p>);</c->
+    <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>A00</c-><c- p>,</c-> <c- n>B01</c-><c- p>,</c-> <c- n>C01</c-><c- p>);</c->
+    <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>A01</c-><c- p>,</c-> <c- n>B11</c-><c- p>,</c-> <c- n>C01</c-><c- p>);</c->
+    <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>A10</c-><c- p>,</c-> <c- n>B01</c-><c- p>,</c-> <c- n>C11</c-><c- p>);</c->
+    <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>A11</c-><c- p>,</c-> <c- n>B11</c-><c- p>,</c-> <c- n>C11</c-><c- p>);</c->
+  <c- p>}</c->
+<c- p>}</c->
+</pre>
+   <p>Before:</p>
+<pre class="language-c++ highlight"><c- c1>// Slow generic implementation</c->
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Layout</c-><c- o>></c->
+<c- b>void</c-> <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>in_matrix_view</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>></c-> <c- n>A</c-><c- p>,</c->
+  <c- n>in_matrix_view</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>></c-> <c- n>B</c-><c- p>,</c-> <c- n>out_matrix_view</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>></c-> <c- n>C</c-><c- p>)</c->
+<c- p>{</c->
+  <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>j</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>j</c-> <c- o>&lt;</c-> <c- n>C</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> <c- o>++</c-><c- n>j</c-><c- p>)</c-> <c- p>{</c->
+    <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>i</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>i</c-> <c- o>&lt;</c-> <c- n>C</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c-> <c- o>++</c-><c- n>i</c-><c- p>)</c-> <c- p>{</c->
+      <c- n>typename</c-> <c- n>out_matrix_view</c-><c- o>&lt;</c-><c- n>Layout</c-><c- o>>::</c-><c- n>value_type</c-> <c- n>C_ij</c-><c- p>{};</c->
+      <c- k>for</c-><c- p>(</c-><c- b>size_t</c-> <c- n>k</c-> <c- o>=</c-> <c- mi>0</c-><c- p>;</c-> <c- n>k</c-> <c- o>&lt;</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> <c- o>++</c-><c- n>k</c-><c- p>)</c-> <c- p>{</c->
+        <c- n>C_ij</c-> <c- o>+=</c-> <c- n>A</c-><c- p>(</c-><c- n>i</c-><c- p>,</c-><c- n>k</c-><c- p>)</c-> <c- o>*</c-> <c- n>B</c-><c- p>(</c-><c- n>k</c-><c- p>,</c-><c- n>j</c-><c- p>);</c->
+      <c- p>}</c->
+      <c- n>C</c-><c- p>(</c-><c- n>i</c-><c- p>,</c-><c- n>j</c-><c- p>)</c-> <c- o>+=</c-> <c- n>C_ij</c-><c- p>;</c->
+    <c- p>}</c->
+  <c- p>}</c->
+<c- p>}</c->
+
+<c- c1>// recursive_matrix_product never gets to use this,</c->
+<c- c1>// because the base case matrices are always layout_stride.</c->
+<c- b>void</c-> <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>in_matrix_view</c-><c- o>&lt;</c-><c- n>layout_left</c-><c- o>></c-> <c- n>A</c-><c- p>,</c->
+  <c- n>in_matrix_view</c-><c- o>&lt;</c-><c- n>layout_left</c-><c- o>></c-> <c- n>B</c-><c- p>,</c-> <c- n>out_matrix_view</c-><c- o>&lt;</c-><c- n>layout_left</c-><c- o>></c-> <c- n>C</c-><c- p>)</c->
+<c- p>{</c->
+  <c- k>const</c-> <c- b>float</c-><c- o>*</c-> <c- n>A_ptr</c-> <c- o>=</c-> <c- n>A</c-><c- p>.</c-><c- n>data_handle</c-><c- p>();</c->
+  <c- k>const</c-> <c- b>float</c-><c- o>*</c-> <c- n>B_ptr</c-> <c- o>=</c-> <c- n>B</c-><c- p>.</c-><c- n>data_handle</c-><c- p>();</c->
+  <c- b>float</c-><c- o>*</c-> <c- n>C_ptr</c-> <c- o>=</c-> <c- n>C</c-><c- p>.</c-><c- n>data_handle</c-><c- p>();</c->
+  <c- b>float</c-> <c- n>alpha</c-> <c- o>=</c-> <c- mf>1.0f</c-><c- p>;</c->
+  <c- b>float</c-> <c- n>beta</c-> <c- o>=</c-> <c- mf>1.0f</c-><c- p>;</c-> <c- c1>// C += A * B</c->
+  <c- b>int</c-> <c- n>C_nrows</c-> <c- o>=</c-> <c- n>C</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c->
+  <c- b>int</c-> <c- n>C_ncols</c-> <c- o>=</c-> <c- n>C</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c->
+  <c- b>int</c-> <c- n>A_ncols</c-> <c- o>=</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> 
+  <c- c1>// BLAS can handle LDC >= C.extent(0),</c->
+  <c- c1>// but layout_left can only represent LDC == C.extent(0).</c->
+  <c- b>int</c-> <c- n>LDA</c-> <c- o>=</c-> <c- n>A</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> 
+  <c- b>int</c-> <c- n>LDB</c-> <c- o>=</c-> <c- n>B</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c->
+  <c- b>int</c-> <c- n>LDC</c-> <c- o>=</c-> <c- n>C</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c->
+  <c- n>SGEMM_</c-><c- p>(</c-><c- s>"N"</c-><c- p>,</c-> <c- s>"N"</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>C_nrows</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>C_ncols</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>A_ncols</c-><c- p>,</c->
+         <c- o>&amp;</c-><c- n>alpha</c-><c- p>,</c-> <c- n>A_ptr</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>LDA</c-><c- p>,</c-> <c- n>B_ptr</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>LDB</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>beta</c-><c- p>,</c-> <c- n>C_ptr</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>LDC</c-><c- p>);</c->
+<c- p>}</c->
+</pre>
+   <p>After this proposal, we don’t need the slow generic implementation,
+since the C and Fortran BLAS both support
+the data layout represented by <code class="highlight"><c- n>layout_left_padded</c-></code> directly.</p>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- n>p</c-><c- o>></c->
+<c- b>void</c-> <c- n>base_case_matrix_product</c-><c- p>(</c-><c- n>in_matrix_view</c-><c- o>&lt;</c-><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>p</c-><c- o>>></c-> <c- n>A</c-><c- p>,</c->
+  <c- n>in_matrix_view</c-><c- o>&lt;</c-><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>p</c-><c- o>>></c-> <c- n>B</c-><c- p>,</c->
+  <c- n>out_matrix_view</c-><c- o>&lt;</c-><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>p</c-><c- o>>></c-> <c- n>C</c-><c- p>)</c->
+<c- p>{</c->
+  <c- k>const</c-> <c- b>float</c-><c- o>*</c-> <c- n>A_ptr</c-> <c- o>=</c-> <c- n>A</c-><c- p>.</c-><c- n>data_handle</c-><c- p>();</c->
+  <c- k>const</c-> <c- b>float</c-><c- o>*</c-> <c- n>B_ptr</c-> <c- o>=</c-> <c- n>B</c-><c- p>.</c-><c- n>data_handle</c-><c- p>();</c->
+  <c- b>float</c-><c- o>*</c-> <c- n>C_ptr</c-> <c- o>=</c-> <c- n>C</c-><c- p>.</c-><c- n>data_handle</c-><c- p>();</c->
+  <c- b>float</c-> <c- n>alpha</c-> <c- o>=</c-> <c- mf>1.0f</c-><c- p>;</c->
+  <c- b>float</c-> <c- n>beta</c-> <c- o>=</c-> <c- mf>1.0f</c-><c- p>;</c-> <c- c1>// C += A * B</c->
+  <c- b>int</c-> <c- n>C_nrows</c-> <c- o>=</c-> <c- n>C</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>);</c->
+  <c- b>int</c-> <c- n>C_ncols</c-> <c- o>=</c-> <c- n>C</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c->
+  <c- b>int</c-> <c- n>A_ncols</c-> <c- o>=</c-> <c- n>A</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> 
+  <c- c1>// BLAS can handle LDC >= C.extent(0),</c->
+  <c- c1>// but layout_left can only represent LDC == C.extent(0).</c->
+  <c- b>int</c-> <c- n>LDA</c-> <c- o>=</c-> <c- n>A</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c-> 
+  <c- b>int</c-> <c- n>LDB</c-> <c- o>=</c-> <c- n>B</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c->
+  <c- b>int</c-> <c- n>LDC</c-> <c- o>=</c-> <c- n>C</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>);</c->
+  <c- n>SGEMM_</c-><c- p>(</c-><c- s>"N"</c-><c- p>,</c-> <c- s>"N"</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>C_nrows</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>C_ncols</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>A_ncols</c-><c- p>,</c->
+         <c- o>&amp;</c-><c- n>alpha</c-><c- p>,</c-> <c- n>A_ptr</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>LDA</c-><c- p>,</c-> <c- n>B_ptr</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>LDB</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>beta</c-><c- p>,</c-> <c- n>C_ptr</c-><c- p>,</c-> <c- o>&amp;</c-><c- n>LDC</c-><c- p>);</c->
+<c- p>}</c->
+</pre>
    <h2 class="heading settled" data-level="4" id="wording"><span class="secno">4. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
    <blockquote>
     <p>Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
