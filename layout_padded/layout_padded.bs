@@ -804,7 +804,7 @@ constexpr index_type stride(rank_type r) const noexcept;
 
 ## Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]
 
-> At the top of Section � [mdspan.submdspan.mapping] ("Layout specializations of submdspan_mapping"), before paragraph 1, add the following to the end of the synopsis of specializations.
+> At the top of Section � [mdspan.submdspan.mapping] ("Layout specializations of `submdspan_mapping`"), before paragraph 1, add the following to the end of the synopsis of specializations.
 
 ```c++
   template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
@@ -893,3 +893,20 @@ then,
 * else, `layout_right_padded<padding_stride>::template mapping(sub_ext)`.
 
 (7.7) Otherwise, `layout_stride::mapping(sub_ext, sub_strides)`;
+
+## Layout specializations of `submdspan_offset` [mdspan.submdspan.offset]
+
+> At the top of Section � [mdspan.submdspan.offset] ("Layout specializations of `submdspan_offset`"), before paragraph 1, add the following to the end of the synopsis of specializations.  Note that all the specializations of `submdspan_offset` share the same definition wording.
+
+```c++
+  template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
+    constexpr size_t submdspan_offset(
+      const layout_left_padded<padding_stride>::template mapping<Extents>& src, 
+      SliceSpecifiers ... slices);
+
+  template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
+    constexpr size_t submdspan_offset(
+      const layout_right_padded<padding_stride>::template mapping<Extents>& src, 
+      SliceSpecifiers ... slices);
+```
+
