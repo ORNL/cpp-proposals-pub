@@ -2818,13 +2818,13 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
     <li data-md>
      <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_left</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is at least 2;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than or equal to 2;</p>
     <li data-md>
-     <p>all the Sk except for S0 and S1 are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
+     <p>all the $S_k$ except for $S_0$ and $S_1$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> S0 <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>; and</p>
+     <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> $S_0$ <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>; and</p>
     <li data-md>
-     <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> S1 <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>;</p>
+     <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> $S_1$ <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>;</p>
    </ul>
    <p>then,</p>
    <ul>
@@ -2838,9 +2838,9 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
     <li data-md>
      <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_right</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is at least 2;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than or equal to 2;</p>
     <li data-md>
-     <p>all the Sk except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
+     <p>all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
     <li data-md>
      <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> $S_{r-2}$ <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>; and</p>
     <li data-md>
@@ -2858,13 +2858,23 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
     <li data-md>
      <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>></c-></code> for some <code class="highlight"><c- b>size_t</c-> <c- n>padding_stride</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is at least 2;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals 0 or 1; and</p>
     <li data-md>
-     <p>all the Sk except for S0 and S1 are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
+     <p>if <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals 1, then $S_0$ is <code class="highlight"><c- n>full_extent_t</c-></code> or <code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> $S_0$ <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code> is <code class="highlight">true</code>;</p>
+   </ul>
+   <p>then, <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>>::</c-><c- k>template</c-> <c- n>mapping</c-><c- p>(</c-><c- n>sub_ext</c-><c- p>)</c-></code>.</p>
+   <p>(7.6) Else, if</p>
+   <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> S0 <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>; and</p>
+     <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>></c-></code> for some <code class="highlight"><c- b>size_t</c-> <c- n>padding_stride</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> S1 <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than or equal to 2;</p>
+    <li data-md>
+     <p>all the $S_k$ except for $S_0$ and $S_1$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> $S_0$ <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>; and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> $S_1$ <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>;</p>
    </ul>
    <p>then,</p>
    <ul>
@@ -2873,14 +2883,24 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
     <li data-md>
      <p>else, <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>>::</c-><c- k>template</c-> <c- n>mapping</c-><c- p>(</c-><c- n>sub_ext</c-><c- p>)</c-></code>.</p>
    </ul>
-   <p>(7.6) Else, if</p>
+   <p>(7.7) Else, if</p>
    <ul>
     <li data-md>
      <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>></c-></code> for some <code class="highlight"><c- b>size_t</c-> <c- n>padding_stride</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is at least 2;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals 0 or 1; and</p>
     <li data-md>
-     <p>all the Sk except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
+     <p>if <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals 1, then $S_0$ is <code class="highlight"><c- n>full_extent_t</c-></code> or <code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> $S_0$ <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code> is <code class="highlight">true</code>;</p>
+   </ul>
+   <p>then, <code class="highlight"><c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>>::</c-><c- k>template</c-> <c- n>mapping</c-><c- p>(</c-><c- n>sub_ext</c-><c- p>)</c-></code>.</p>
+   <p>(7.8) Else, if</p>
+   <ul>
+    <li data-md>
+     <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>></c-></code> for some <code class="highlight"><c- b>size_t</c-> <c- n>padding_stride</c-></code>;</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than or equal to 2;</p>
+    <li data-md>
+     <p>all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
     <li data-md>
      <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-></code> $S_{r-2}$ <code class="highlight"><c- p>,</c-> <c- n>tuple</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>index_type</c-><c- o>>></c-></code>; and</p>
     <li data-md>
@@ -2893,10 +2913,10 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
     <li data-md>
      <p>else, <code class="highlight"><c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>>::</c-><c- k>template</c-> <c- n>mapping</c-><c- p>(</c-><c- n>sub_ext</c-><c- p>)</c-></code>.</p>
    </ul>
-   <p>(7.7) Otherwise, <code class="highlight"><c- n>layout_stride</c-><c- o>::</c-><c- n>mapping</c-><c- p>(</c-><c- n>sub_ext</c-><c- p>,</c-> <c- n>sub_strides</c-><c- p>)</c-></code>;</p>
+   <p>(7.9) Otherwise, <code class="highlight"><c- n>layout_stride</c-><c- o>::</c-><c- n>mapping</c-><c- p>(</c-><c- n>sub_ext</c-><c- p>,</c-> <c- n>sub_strides</c-><c- p>)</c-></code>;</p>
    <h3 class="heading settled" data-level="4.4" id="layout-specializations-of-submdspan_offset-mdspansubmdspanoffset"><span class="secno">4.4. </span><span class="content">Layout specializations of <code class="highlight"><c- n>submdspan_offset</c-></code> [mdspan.submdspan.offset]</span><a class="self-link" href="#layout-specializations-of-submdspan_offset-mdspansubmdspanoffset"></a></h3>
    <blockquote>
-    <p>At the top of Section � [mdspan.submdspan.offset] ("Layout specializations of <code class="highlight"><c- n>submdspan_offset</c-></code>"), before paragraph 1, add the following to the end of the synopsis of specializations.  Note that all the specializations of <code class="highlight"><c- n>submdspan_offset</c-></code> share the same definition wording.</p>
+    <p>At the top of Section � [mdspan.submdspan.offset] ("Layout specializations of <code class="highlight"><c- n>submdspan_offset</c-></code>"), before paragraph 1, add the following to the end of the synopsis of specializations.  (Note that all the specializations of <code class="highlight"><c- n>submdspan_offset</c-></code> share the same wording.)</p>
    </blockquote>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Extents</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>padding_stride</c-><c- p>,</c-> <c- n>class</c-><c- p>...</c-> <c- n>SliceSpecifiers</c-><c- o>></c->
   <c- n>constexpr</c-> <c- b>size_t</c-> <c- n>submdspan_offset</c-><c- p>(</c->

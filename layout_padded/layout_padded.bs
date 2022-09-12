@@ -824,13 +824,13 @@ constexpr index_type stride(rank_type r) const noexcept;
 
 * `decltype(src)::layout_type` is `layout_left`;
 
-* `Extents::rank()` is at least 2;
+* `Extents::rank()` is greater than or equal to 2;
 
-* all the Sk except for S0 and S1 are `full_extent_t`;
+* all the $S_k$ except for $S_0$ and $S_1$ are `full_extent_t`;
 
-* `is_convertible_v<` S0 `, tuple<index_type, index_type>>`; and
+* `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>`; and
 
-* `is_convertible_v<` S1 `, tuple<index_type, index_type>>`;
+* `is_convertible_v<` $S_1$ `, tuple<index_type, index_type>>`;
 
 then, 
 
@@ -842,9 +842,9 @@ then,
 
 * `decltype(src)::layout_type` is `layout_right`;
 
-* `Extents::rank()` is at least 2;
+* `Extents::rank()` is greater than or equal to 2;
 
-* all the Sk except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
+* all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
 
 * `is_convertible_v<` $S_{r-2}$ `, tuple<index_type, index_type>>`; and
 
@@ -860,13 +860,23 @@ then,
 
 * `decltype(src)::layout_type` is `layout_left_padded<padding_stride>` for some `size_t padding_stride`;
 
-* `Extents::rank()` is at least 2;
+* `Extents::rank()` equals 0 or 1; and
 
-* all the Sk except for S0 and S1 are `full_extent_t`;
+* if `Extents::rank()` equals 1, then $S_0$ is `full_extent_t` or `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>` is `true`;
 
-* `is_convertible_v<` S0 `, tuple<index_type, index_type>>`; and
+then, `layout_left_padded<padding_stride>::template mapping(sub_ext)`.
 
-* `is_convertible_v<` S1 `, tuple<index_type, index_type>>`;
+(7.6) Else, if 
+
+* `decltype(src)::layout_type` is `layout_left_padded<padding_stride>` for some `size_t padding_stride`;
+
+* `Extents::rank()` is greater than or equal to 2;
+
+* all the $S_k$ except for $S_0$ and $S_1$ are `full_extent_t`;
+
+* `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>`; and
+
+* `is_convertible_v<` $S_1$ `, tuple<index_type, index_type>>`;
 
 then, 
 
@@ -874,13 +884,23 @@ then,
 
 * else, `layout_left_padded<padding_stride>::template mapping(sub_ext)`.
 
-(7.6) Else, if 
+(7.7) Else, if 
 
 * `decltype(src)::layout_type` is `layout_right_padded<padding_stride>` for some `size_t padding_stride`;
 
-* `Extents::rank()` is at least 2;
+* `Extents::rank()` equals 0 or 1; and
 
-* all the Sk except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
+* if `Extents::rank()` equals 1, then $S_0$ is `full_extent_t` or `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>` is `true`;
+
+then, `layout_right_padded<padding_stride>::template mapping(sub_ext)`.
+
+(7.8) Else, if 
+
+* `decltype(src)::layout_type` is `layout_right_padded<padding_stride>` for some `size_t padding_stride`;
+
+* `Extents::rank()` is greater than or equal to 2;
+
+* all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
 
 * `is_convertible_v<` $S_{r-2}$ `, tuple<index_type, index_type>>`; and
 
@@ -892,11 +912,11 @@ then,
 
 * else, `layout_right_padded<padding_stride>::template mapping(sub_ext)`.
 
-(7.7) Otherwise, `layout_stride::mapping(sub_ext, sub_strides)`;
+(7.9) Otherwise, `layout_stride::mapping(sub_ext, sub_strides)`;
 
 ## Layout specializations of `submdspan_offset` [mdspan.submdspan.offset]
 
-> At the top of Section � [mdspan.submdspan.offset] ("Layout specializations of `submdspan_offset`"), before paragraph 1, add the following to the end of the synopsis of specializations.  Note that all the specializations of `submdspan_offset` share the same definition wording.
+> At the top of Section � [mdspan.submdspan.offset] ("Layout specializations of `submdspan_offset`"), before paragraph 1, add the following to the end of the synopsis of specializations.  (Note that all the specializations of `submdspan_offset` share the same wording.)
 
 ```c++
   template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
