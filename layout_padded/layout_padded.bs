@@ -420,8 +420,7 @@ struct layout_left_padded {
 
   private:
     using inner_extents_type = /* see-below */; // exposition only
-    using unpadded_extents_type =
-      extents<index_type, Extents::static_extent(0)>; // exposition only
+    using unpadded_extents_type = /* see-below */; // exposition only
     using inner_mapping_type =
       layout_left::template mapping<inner_extents_type>; // exposition only
 
@@ -469,8 +468,19 @@ using inner_extents_type = /* see-below */; // exposition only
 
 If `extents_type::rank()` equals zero or one,
 then `inner_extents_type` names the type `extents_type`.
-Otherwise, `inner_extents_type` names the type
-`extents<index_type, padding_stride, extents_type::static_extent(1), extents_type::static_extent(2),` ...`, extents_type::static_extent(extents_type::rank() - 1)`.
+Otherwise, let P be the parameter pack
+`size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
+Then, `inner_extents_type` names the type
+`extents<index_type, padding_stride, extents_type::static_extent(P)...>`.
+
+```c++
+using unpadded_extents_type = /* see-below */; // exposition only
+```
+
+If `extents_type::rank()` equals zero,
+then `unpadded_extents_type` names the type `extents<index_type>`.
+Otherwise, `unpadded_extents_type` names the type
+`extents<index_type, Extents::static_extent(0)>`.
 
 ```c++
 constexpr mapping(const extents_type& ext);
@@ -480,9 +490,9 @@ constexpr mapping(const extents_type& ext);
 
 *Effects:*
 
-* Initializes `inner_mapping_` with `padding_stride`, `ext.extent(1)`, `ext.extent(2)`, ..., `ext.extent(ext.rank()-1)`, and
+* Initializes `inner_mapping_` with `padding_stride`, `ext.extent(P)...` where P is the parameter pack `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`; and
 
-* Initializes `unpadded_extent_` with `ext.extent(0)`.
+* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else, initializes `unpadded_extent_` with `ext.extent(0)`.
 
 ```c++
 template<std::convertible_to<size_t> Size>
@@ -499,15 +509,19 @@ constexpr mapping(const extents_type& ext, Size padding_value = 0);
 
 *Effects:*
 
-* Initializes `inner_mapping_` with `padding_value`, `ext.extent(1)`, `ext.extent(2)`, ..., `ext.extent(ext.rank()-1)`, and
+* Initializes `inner_mapping_` with `padding_value`, `ext.extent(P)...` where P is the parameter pack `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`; and
 
-* Initializes `unpadded_extent_` with `ext.extent(0)`.
+* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else, initializes `unpadded_extent_` with `ext.extent(0)`.
 
 ```c++
 constexpr extents_type extents() const noexcept;
 ```
 
-*Effects:* Equivalent to `return extents_type(unpadded_extent_.extent(0)`, `inner_mapping_.extent(1)`, ..., `inner_mapping_.extent(extents_type::rank() - 1));`.
+*Effects:* 
+
+* If `extents_type::rank()` is zero, equivalent to `return extents_type{};`.
+
+* Otherwise, equivalent to `return extents_type(unpadded_extent_.extent(0)`, `inner_mapping_.extent(1)`, ..., `inner_mapping_.extent(extents_type::rank() - 1));`.
 
 ```c++
 constexpr std::array<index_type, extents_type::rank()>

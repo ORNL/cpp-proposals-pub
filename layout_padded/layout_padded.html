@@ -2459,7 +2459,17 @@ if not equal to <code class="highlight"><c- n>dynamic_extent</c-></code>, determ
     <c- n>using</c-> <c- n>rank_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>rank_type</c-><c- p>;</c->
     <c- n>using</c-> <c- n>layout_type</c-> <c- o>=</c-> <c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>padding</c-><c- o>></c-><c- p>;</c->
 
-    <c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
+  <c- n>private</c-><c- o>:</c->
+    <c- n>using</c-> <c- n>inner_extents_type</c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- n>using</c-> <c- n>unpadded_extents_type</c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- n>using</c-> <c- n>inner_mapping_type</c-> <c- o>=</c->
+      <c- n>layout_left</c-><c- o>::</c-><c- n>template</c-> <c- n>mapping</c-><c- o>&lt;</c-><c- n>inner_extents_type</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
+
+    <c- n>inner_mapping_type</c-> <c- n>inner_mapping_</c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- n>unpadded_extents_type</c-> <c- n>unpadded_extent_</c-><c- p>;</c-> <c- c1>// exposition only</c->
+
+  <c- n>public</c-><c- o>:</c->
+    <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
 
     <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Size</c-><c- o>></c->
     <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-><c- p>);</c->
@@ -2492,9 +2502,27 @@ if not equal to <code class="highlight"><c- n>dynamic_extent</c-></code>, determ
   <c- p>};</c->
 <c- p>};</c->
 </pre>
+<pre class="language-c++ highlight"><c- n>using</c-> <c- n>inner_extents_type</c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
+</pre>
+   <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals zero or one,
+then <code class="highlight"><c- n>inner_extents_type</c-></code> names the type <code class="highlight"><c- n>extents_type</c-></code>.
+Otherwise, let P be the parameter pack <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>, <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>2</c-><c- p>)</c-></code>, ..., <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-></code>.
+Then, <code class="highlight"><c- n>inner_extents_type</c-></code> names the type <code class="highlight"><c- n>extents</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>padding_stride</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>P</c-><c- p>)...</c-><c- o>></c-></code>.</p>
+<pre class="language-c++ highlight"><c- n>using</c-> <c- n>unpadded_extents_type</c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
+</pre>
+   <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals zero,
+then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the type <code class="highlight"><c- n>extents</c-><c- o>&lt;</c-><c- n>index_type</c-><c- o>></c-></code>.
+Otherwise, <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the type <code class="highlight"><c- n>extents</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-><c- o>></c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
 </pre>
    <p><em>Constraints:</em> <code class="highlight"><c- n>padding_stride</c-> <c- o>!=</c-> <c- n>dynamic_extent</c-></code> is <code class="highlight">true</code>.</p>
+   <p><em>Effects:</em></p>
+   <ul>
+    <li data-md>
+     <p>Initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>padding_stride</c-></code>, <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P</c-><c- p>)...</c-></code> where P is the parameter pack <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>, <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>2</c-><c- p>)</c-></code>, ..., <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-></code>; and</p>
+    <li data-md>
+     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>; else, initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+   </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>std</c-><c- o>::</c-><c- n>convertible_to</c-><c- o>&lt;</c-><c- b>size_t</c-><c- o>></c-> <c- n>Size</c-><c- o>></c->
 <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-> <c- o>=</c-> <c- mi>0</c-><c- p>);</c->
 </pre>
@@ -2507,6 +2535,29 @@ if not equal to <code class="highlight"><c- n>dynamic_extent</c-></code>, determ
     <li data-md>
      <p><code class="highlight"><c- n>is_nothrow_constructible_v</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Size</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
    </ul>
+   <p><em>Effects:</em></p>
+   <ul>
+    <li data-md>
+     <p>Initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>padding_value</c-></code>, <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P</c-><c- p>)...</c-></code> where P is the parameter pack <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>, <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>2</c-><c- p>)</c-></code>, ..., <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-></code>; and</p>
+    <li data-md>
+     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>; else, initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>extents_type</c-> <c- n>extents</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <p><em>Effects:</em></p>
+   <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, equivalent to <code class="highlight"><c- k>return</c-> <c- n>extents_type</c-><c- p>{};</c-></code>.</p>
+    <li data-md>
+     <p>Otherwise, equivalent to <code class="highlight"><c- k>return</c-> <c- n>extents_type</c-><c- p>(</c-><c- n>unpadded_extent_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>, <code class="highlight"><c- n>inner_mapping_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>, ..., <code class="highlight"><c- n>inner_mapping_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>));</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>std</c-><c- o>::</c-><c- n>array</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-><c- o>></c->
+  <c- n>strides</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>inner_mapping_</c-><c- p>.</c-><c- n>strides</c-><c- p>();</c-></code>.</p>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>index_type</c-> <c- n>required_span_size</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>inner_mapping_</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>();</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-><c- p>...</c-> <c- n>Indices</c-><c- o>></c->
 <c- n>constexpr</c-> <c- b>size_t</c-> <c- n>operator</c-><c- p>()(</c-><c- n>Indices</c-><c- p>...</c-> <c- n>idxs</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
@@ -2521,6 +2572,27 @@ if not equal to <code class="highlight"><c- n>dynamic_extent</c-></code>, determ
    </ul>
    <p><em>Preconditions:</em> <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code><code class="highlight" data-span-tag="_"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents_</c-></code> ([mdspan.overview]).</p>
    <p><em>Effects:</em> Let P be a parameter pack such that <code class="highlight"><c- n>is_same_v</c-><c- o>&lt;</c-><c- n>index_sequence_for</c-><c- o>&lt;</c-><c- n>Indices</c-><c- p>...</c-><c- o>></c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>P</c-><c- p>...</c-><c- o>>></c-></code> is <code class="highlight">true</code>.  Equivalent to: <code class="highlight"><c- k>return</c-> <c- p>((</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- n>index_type</c-><c- o>></c-><c- p>(</c-><c- n>i</c-><c- p>)</c-> <c- o>*</c-> <c- n>stride</c-><c- p>(</c-><c- n>P</c-><c- p>))</c-> <c- o>+</c-> <c- p>...</c-> <c- o>+</c-> <c- mi>0</c-><c- p>);</c-></code>.</p>
+<pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_exhaustive</c-><c- p>()</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <p><em>Returns:</em></p>
+   <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals zero, <code class="highlight">true</code>;</p>
+    <li data-md>
+     <p>else, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>!=</c-> <c- n>stdex</c-><c- o>::</c-><c- n>dynamic_extent</c-> <c- o>&amp;&amp;</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>==</c-> <c- n>unpadded_extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_exhaustive</c-><c- p>()</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <p><em>Returns:</em></p>
+   <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals zero, <code class="highlight">true</code>;</p>
+    <li data-md>
+     <p>else, <code class="highlight"><c- n>inner_mapping_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>==</c-> <c- n>unpadded_extent_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+   </ul>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>index_type</c-> <c- n>stride</c-><c- p>(</c-><c- n>rank_type</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+</pre>
+   <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>inner_mapping_</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>r</c-><c- p>);</c-></code>.</p>
    <h3 class="heading settled" data-level="4.2" id="class-template-layout_right_paddedmapping-mdspanlayoutright_padded"><span class="secno">4.2. </span><span class="content">Class template <code class="highlight"><c- n>layout_right_padded</c-><c- o>::</c-><c- n>mapping</c-></code> [mdspan.layout.right_padded]</span><a class="self-link" href="#class-template-layout_right_paddedmapping-mdspanlayoutright_padded"></a></h3>
    <p><code class="highlight"><c- n>layout_right_padded</c-></code> provides a layout mapping that behaves like <code class="highlight"><c- n>layout_right</c-><c- o>::</c-><c- n>mapping</c-></code>,
 except that the <em>padding stride</em> <code class="highlight"><c- n>stride</c-><c- p>(</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> (if the rank is greater than one)
