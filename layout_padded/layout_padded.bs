@@ -396,7 +396,7 @@ template<size_t padding_stride = dynamic_extent>
 struct layout_right_padded;
 ```
 
-> After the end of Section Section � *[mdspan.layout.stride]*, add the following:
+> After the end of Section � *[mdspan.layout.stride]*, add the following:
 
 ## Class template `layout_left_padded::mapping` [mdspan.layout.left_padded]
 
@@ -435,6 +435,10 @@ struct layout_left_padded {
 
     constexpr mapping(const extents_type& ext,
       const extents<index_type, padding_stride>& padding_extents);
+
+    template<size_t other_padding_stride, class OtherExtents>
+      constexpr explicit( /* see below */ )
+        mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>&);
 
     constexpr mapping(const mapping&) noexcept = default;
     mapping& operator=(const mapping&) noexcept = default;
@@ -530,6 +534,32 @@ constexpr mapping(const extents_type& ext,
 * If `extents_type::rank()` is zero or one, initializes `inner_mapping_` with `ext`, else initializes `inner_mapping_` with `padding_extents.extent(0), ext.extent(P_left)...`; and
 
 * if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else, initializes `unpadded_extent_` with `ext.extent(0)`.
+
+```c++
+template<size_t other_padding_stride, class OtherExtents>
+  constexpr explicit( /* see below */ )
+    mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>& other);
+```
+
+*Constraints:*
+
+* `is_constructible_v<extents_type, OtherExtents>` is `true`; and
+
+* `padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride` is `true`.
+
+*Preconditions:*
+
+* If `extents_type::rank() > 1` is `true` and `padding_stride` does not equal `dynamic_extent`, then `other.stride(1)` equals `padding_stride`; and
+
+* `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+
+*Effects:* 
+
+* If `extents_type::rank()` is zero or one, initializes `inner_mapping_` with `other.extents()`, else initializes `inner_mapping_` with `other.stride(1), other.extents().extent(P_left)...`; and
+
+* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else, initializes `unpadded_extent_` with `other.extents().extent(0)`.
+
+*Remarks:* The expression inside `explicit` is equivalent to: `extents_type::rank() > 0 && (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)`.
 
 ```c++
 constexpr extents_type extents() const noexcept;
@@ -638,6 +668,10 @@ public:
     constexpr mapping(const extents_type& ext,
       const extents<index_type, padding_stride>& padding_extents);
 
+    template<size_t other_padding_stride, class OtherExtents>
+      constexpr explicit( /* see below */ )
+        mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>& other);
+
     constexpr mapping(const mapping&) noexcept = default;
     mapping& operator=(const mapping&) noexcept = default;
 
@@ -732,6 +766,32 @@ constexpr mapping(const extents_type& ext,
 * If `extents_type::rank()` is zero or one, initializes `inner_mapping_` with `ext`, else initializes `inner_mapping_` with `ext.extent(P_right)..., padding_extents.extent(extents_type::rank() - 1)`; and
 
 * if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else, initializes `unpadded_extent_` with `ext.extent(extents_type::rank() - 1)`.
+
+```c++
+template<size_t other_padding_stride, class OtherExtents>
+  constexpr explicit( /* see below */ )
+    mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>& other);
+```
+
+*Constraints:*
+
+* `is_constructible_v<extents_type, OtherExtents>` is `true`; and
+
+* `padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride` is `true`.
+
+*Preconditions:*
+
+* If `extents_type::rank() > 1` is `true` and `padding_stride` does not equal `dynamic_extent`, then `other.stride(extents_type::rank() - 2)` equals `padding_stride`; and
+
+* `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+
+*Effects:* 
+
+* If `extents_type::rank()` is zero or one, initializes `inner_mapping_` with `other.extents()`, else initializes `inner_mapping_` with `other.extents().extent(P_right)..., other.stride(extents_type::rank() - 2)`; and
+
+* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else, initializes `unpadded_extent_` with `other.extents().extent(extents_type::rank() - 1)`.
+
+*Remarks:* The expression inside `explicit` is equivalent to: `extents_type::rank() > 0 && (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)`.
 
 ```c++
 constexpr extents_type extents() const noexcept;
