@@ -396,6 +396,66 @@ template<size_t padding_stride = dynamic_extent>
 struct layout_right_padded;
 ```
 
+> In Section � *[mdspan.layout.left.overview]* ("Overview"), add the following constructor to the `layout_left_padded::mapping` class declaration, between the constructor converting from `layout_right::mapping<OtherExtents>` and the constructor converting from `layout_stride::mapping<OtherExtents>`:
+
+```c++
+template<size_t other_padding_stride, class OtherExtents>
+  constexpr explicit(!is_convertible_v<OtherExtents, extents_type>)
+    mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
+```
+
+> In Section � *[mdspan.layout.left.cons]* ("Constructors"), add the following between the constructor converting from `layout_right::mapping<OtherExtents>` and the constructor converting from `layout_stride::mapping<OtherExtents>`:
+
+```c++
+template<size_t other_padding_stride, class OtherExtents>
+  constexpr explicit(!is_convertible_v<OtherExtents, extents_type>)
+    mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
+```
+
+*Constraints:*
+
+* `is_constructible_v<extents_type, OtherExtents>` is `true`, and
+
+* if `Extents::static_extent(0)` does not equal `dynamic_extent`, `other_padding_stride` does not equal `dynamic_extent`, and `Extents::rank()` is greater than or equal to two, then `other_padding_stride == Extents::static_extent(0)` is `true`.
+
+*Preconditions:*
+
+* If `extents_type::rank() > 0` is `true`, then for all $r$ in the range [0, `extents_type::rank()`), `other.stride(` $r$ `)` equals `extents().`_`fwd-prod-of-extents`_`(` $r$ `)`, and
+
+* `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+
+*Effects:* Direct-non-list-initializes `extents_` with `other.extents()`.
+
+> In Section � *[mdspan.layout.right.overview]* ("Overview"), add the following constructor to the `layout_right_padded::mapping` class declaration, between the constructor converting from `layout_left::mapping<OtherExtents>` and the constructor converting from `layout_stride::mapping<OtherExtents>`:
+
+```c++
+template<size_t other_padding_stride, class OtherExtents>
+  constexpr explicit(!is_convertible_v<OtherExtents, extents_type>)
+    mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
+```
+
+> In Section � *[mdspan.layout.right.cons]* ("Constructors"), add the following between the constructor converting from `layout_left::mapping<OtherExtents>` and the constructor converting from `layout_stride::mapping<OtherExtents>`:
+
+```c++
+template<size_t other_padding_stride, class OtherExtents>
+  constexpr explicit(!is_convertible_v<OtherExtents, extents_type>)
+    mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
+```
+
+*Constraints:*
+
+* `is_constructible_v<extents_type, OtherExtents>` is `true`, and
+
+* if `Extents::static_extent(0)` does not equal `dynamic_extent`, `other_padding_stride` does not equal `dynamic_extent`, and `Extents::rank()` is greater than or equal to two, then `other_padding_stride == Extents::static_extent(Extents::rank() - 1)` is `true`.
+
+*Preconditions:*
+
+* If `extents_type::rank() > 0` is `true`, then for all $r$ in the range [0, `extents_type::rank()`), `other.stride(` $r$ `)` equals `extents().`_`rev-prod-of-extents`_`(` $r$ `)`, and
+
+* `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+
+*Effects:* Direct-non-list-initializes `extents_` with `other.extents()`.
+
 > After the end of Section � *[mdspan.layout.stride]*, add the following:
 
 ## Class template `layout_left_padded::mapping` [mdspan.layout.left_padded]
