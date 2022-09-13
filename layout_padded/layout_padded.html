@@ -2129,6 +2129,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        <a href="#examples"><span class="secno">3.4</span> <span class="content">Examples</span></a>
        <ol class="toc">
         <li><a href="#directly-call-c-blas-without-checks"><span class="secno">3.4.1</span> <span class="content">Directly call C BLAS without checks</span></a>
+        <li><a href="#overaligned-access"><span class="secno">3.4.2</span> <span class="content">Overaligned access</span></a>
        </ol>
       <li><a href="#alternatives"><span class="secno">3.5</span> <span class="content">Alternatives</span></a>
       <li><a href="#implementation"><span class="secno">3.6</span> <span class="content">Implementation</span></a>
@@ -2479,6 +2480,97 @@ if users never exercise it.</p>
     <c- n>A</c-><c- p>.</c-><c- n>data_handle</c-><c- p>(),</c-> <c- n>A</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>),</c-> <c- n>B</c-><c- p>.</c-><c- n>data_handle</c-><c- p>(),</c-> <c- n>B</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>),</c->
     <c- mf>1.0f</c-><c- p>,</c-> <c- n>C</c-><c- p>.</c-><c- n>data_handle</c-><c- p>(),</c-> <c- n>C</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>));</c->
 <c- p>}</c->
+</pre>
+   <h4 class="heading settled" data-level="3.4.2" id="overaligned-access"><span class="secno">3.4.2. </span><span class="content">Overaligned access</span><a class="self-link" href="#overaligned-access"></a></h4>
+   <p>By combining these new layouts with an accessor
+that ensures overaligned access,
+we can create an mdspan for which the beginning
+of every contiguous segment of elements
+is overaligned by some given factor.
+This can enable use of hardware features 
+that require overaligned memory access.</p>
+   <p>The following <code class="highlight"><c- n>aligned_accessor</c-></code> class template
+(which this proposal does <em>not</em> propose to add to the C++ Standard Library)
+uses the C++ Standard Library function <code class="highlight"><c- n>assume_aligned</c-></code> to decorate pointer access.</p>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ElementType</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>byte_alignment</c-><c- o>></c->
+<c- k>struct</c-> <c- nc>aligned_accessor</c-> <c- p>{</c->
+  <c- c1>// Even if a pointer p is aligned, p + i might not be.</c->
+  <c- n>using</c-> <c- n>offset_policy</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>default_accessor</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- o>></c-><c- p>;</c->
+
+  <c- n>using</c-> <c- n>element_type</c-> <c- o>=</c-> <c- n>ElementType</c-><c- p>;</c->
+  <c- n>using</c-> <c- n>reference</c-> <c- o>=</c-> <c- n>ElementType</c-><c- o>&amp;</c-><c- p>;</c->
+  <c- c1>// Some implementations might have an easier time optimizing</c->
+  <c- c1>// if this class applies an attribute to the pointer type.</c->
+  <c- c1>// Examples of attributes include</c->
+  <c- c1>// __declspec(align_value(byte_alignment))</c->
+  <c- c1>// and</c->
+  <c- c1>// __attribute__((align_value(byte_alignment))).</c->
+  <c- n>using</c-> <c- n>data_handle_type</c-> <c- o>=</c-> <c- n>ElementType</c-><c- o>*</c-><c- p>;</c->
+
+  <c- n>constexpr</c-> <c- nf>aligned_accessor</c-><c- p>()</c-> <c- n>noexcept</c-> <c- o>=</c-> <c- k>default</c-><c- p>;</c->
+
+  <c- c1>// A feature of default_accessor that permits</c->
+  <c- c1>// conversion from nonconst to const.</c->
+  <c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherElementType</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>other_byte_alignment</c-><c- o>></c->
+  <c- n>requires</c-> <c- p>(</c->
+    <c- n>std</c-><c- o>::</c-><c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>OtherElementType</c-><c- p>(</c-><c- o>*</c-><c- p>)[],</c-> <c- n>element_type</c-><c- p>(</c-><c- o>*</c-><c- p>)[]</c-><c- o>></c-> <c- o>&amp;&amp;</c->
+    <c- n>other_byte_alignment</c-> <c- o>==</c-> <c- n>byte_alignment</c-><c- p>)</c->
+  <c- n>constexpr</c-> <c- n>aligned_accessor</c-><c- p>(</c->
+    <c- n>aligned_accessor</c-><c- o>&lt;</c-><c- n>OtherElementType</c-><c- p>,</c-> <c- n>other_byte_alignment</c-><c- o>></c-><c- p>)</c-> <c- n>noexcept</c->
+  <c- p>{}</c->
+
+  <c- n>constexpr</c-> <c- n>reference</c->
+  <c- n>access</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-> <c- p>{</c->
+    <c- k>return</c-> <c- n>std</c-><c- o>::</c-><c- n>assume_aligned</c-><c- o>&lt;</c-> <c- n>byte_alignment</c-> <c- o>></c-><c- p>(</c-><c- n>p</c-><c- p>)[</c-><c- n>i</c-><c- p>];</c->
+  <c- p>}</c->
+
+  <c- n>constexpr</c-> <c- n>typename</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>data_handle_type</c->
+  <c- n>offset</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-> <c- p>{</c->
+    <c- k>return</c-> <c- n>p</c-> <c- o>+</c-> <c- n>i</c-><c- p>;</c->
+  <c- p>}</c->
+<c- p>};</c->
+</pre>
+   <p>We include some helper functions for making overaligned array allocations.</p>
+<pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ElementType</c-><c- o>></c->
+<c- k>struct</c-> <c- nc>delete_raw</c-> <c- p>{</c->
+  <c- b>void</c-> <c- nf>operator</c-><c- p>()(</c-><c- n>ElementType</c-><c- o>*</c-> <c- n>p</c-><c- p>)</c-> <c- k>const</c-> <c- p>{</c->
+    <c- k>if</c-> <c- p>(</c-><c- n>p</c-> <c- o>!=</c-> <c- n>nullptr</c-><c- p>)</c-> <c- p>{</c-> <c- n>std</c-><c- o>::</c-><c- n>free</c-><c- p>(</c-><c- n>p</c-><c- p>);</c-> <c- p>}</c->
+  <c- p>}</c->
+<c- p>};</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ElementType</c-><c- o>></c->
+<c- n>using</c-> <c- n>allocation_t</c-> <c- o>=</c->
+  <c- n>std</c-><c- o>::</c-><c- n>unique_ptr</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- p>[],</c-> <c- n>delete_raw</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- o>>></c-><c- p>;</c->
+
+<c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ElementType</c-><c- p>,</c-> <c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>byte_alignment</c-><c- o>></c->
+<c- n>allocation_t</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- o>></c->
+<c- n>allocate_raw</c-><c- p>(</c-><c- k>const</c-> <c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>num_elements</c-><c- p>)</c->
+<c- p>{</c->
+  <c- k>const</c-> <c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>num_bytes</c-> <c- o>=</c-> <c- n>num_elements</c-> <c- o>*</c-> <c- k>sizeof</c-><c- p>(</c-><c- n>ElementType</c-><c- p>);</c->
+  <c- b>void</c-><c- o>*</c-> <c- n>ptr</c-> <c- o>=</c-> <c- n>std</c-><c- o>::</c-><c- n>aligned_alloc</c-><c- p>(</c-><c- n>byte_alignment</c-><c- p>,</c-> <c- n>num_bytes</c-><c- p>);</c->
+  <c- k>return</c-> <c- p>{</c-><c- n>ptr</c-><c- p>,</c-> <c- n>delete_raw</c-><c- o>&lt;</c-><c- n>ElementType</c-><c- o>></c-><c- p>{}};</c->
+<c- p>}</c->
+</pre>
+   <p>Now we can show our example.
+This 15 x 17 matrix of <code class="highlight"><c- b>float</c-></code> will have extra padding so that
+every column is aligned to <code class="highlight"><c- mi>8</c-> <c- o>*</c-> <c- k>sizeof</c-><c- p>(</c-><c- b>float</c-><c- p>)</c-></code> bytes.
+We can use the layout mapping to determine
+the required storage size (including padding).
+Users can then prove at compile time
+that they can use special hardware features
+that require overaligned access
+and/or assume that the padding element
+at the end of each column is accessible memory.</p>
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>element_alignment</c-> <c- o>=</c-> <c- mi>8</c-><c- p>;</c->
+<c- n>constexpr</c-> <c- n>std</c-><c- o>::</c-><c- b>size_t</c-> <c- n>byte_alignment</c-> <c- o>=</c-> <c- n>element_alignment</c-> <c- o>*</c-> <c- k>sizeof</c-><c- p>(</c-><c- b>float</c-><c- p>);</c->
+
+<c- n>using</c-> <c- n>layout_type</c-> <c- o>=</c-> <c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>element_alignment</c-><c- o>></c-><c- p>;</c->
+<c- n>layout_type</c-><c- o>::</c-><c- n>mapping</c-> <c- n>mapping</c-><c- p>{</c-><c- n>dextents</c-><c- o>&lt;</c-><c- b>int</c-><c- p>,</c-> <c- mi>2</c-><c- o>></c-><c- p>{</c-><c- mi>15</c-><c- p>,</c-> <c- mi>17</c-><c- p>}};</c->
+<c- k>auto</c-> <c- n>allocation</c-> <c- o>=</c->
+  <c- n>allocate_raw</c-><c- o>&lt;</c-><c- b>float</c-><c- p>,</c-> <c- n>byte_alignment</c-><c- o>></c-><c- p>(</c-><c- n>mapping</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>());</c->
+
+<c- n>using</c-> <c- n>accessor_type</c-> <c- o>=</c-> <c- n>aligned_accessor</c-><c- o>&lt;</c-><c- b>float</c-><c- p>,</c-> <c- n>byte_alignment</c-><c- o>></c-><c- p>;</c->
+<c- n>mdspan</c-> <c- n>m</c-><c- p>{</c-><c- n>allocation</c-><c- p>.</c-><c- n>get</c-><c- p>(),</c-> <c- n>mapping</c-><c- p>,</c-> <c- n>accessor_type</c-><c- p>{}};</c->
 </pre>
    <h3 class="heading settled" data-level="3.5" id="alternatives"><span class="secno">3.5. </span><span class="content">Alternatives</span><a class="self-link" href="#alternatives"></a></h3>
    <p>We considered a variant of <code class="highlight"><c- n>layout_stride</c-></code> that could encode
