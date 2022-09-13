@@ -2132,6 +2132,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        </ol>
       <li><a href="#alternatives"><span class="secno">3.5</span> <span class="content">Alternatives</span></a>
       <li><a href="#implementation"><span class="secno">3.6</span> <span class="content">Implementation</span></a>
+      <li><a href="#desired-ship-vehicle"><span class="secno">3.7</span> <span class="content">Desired ship vehicle</span></a>
      </ol>
     <li>
      <a href="#wording"><span class="secno">4</span> <span class="content">Wording</span></a>
@@ -2153,6 +2154,10 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
      <p>Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)</p>
     <li data-md>
      <p>Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratory)</p>
+    <li data-md>
+     <p>Malte Förster (mfoerster@nvidia.com) (NVIDIA)</p>
+    <li data-md>
+     <p>Jiaming Yuan (jiamingy@nvidia.com) (NVIDIA)</p>
    </ul>
    <h2 class="heading settled" data-level="2" id="revision-history"><span class="secno">2. </span><span class="content">Revision history</span><a class="self-link" href="#revision-history"></a></h2>
    <ul>
@@ -2161,14 +2166,17 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    </ul>
    <h2 class="heading settled" data-level="3" id="proposed-changes-and-justification"><span class="secno">3. </span><span class="content">Proposed changes and justification</span><a class="self-link" href="#proposed-changes-and-justification"></a></h2>
    <h3 class="heading settled" data-level="3.1" id="summary-of-proposed-changes"><span class="secno">3.1. </span><span class="content">Summary of proposed changes</span><a class="self-link" href="#summary-of-proposed-changes"></a></h3>
-   <p>We propose two new mdspan layouts, <code class="highlight"><c- n>layout_left_padded</c-></code> and <code class="highlight"><c- n>layout_right_padded</c-></code>. <code class="highlight"><c- n>layout_left_padded</c-></code> is like <code class="highlight"><c- n>layout_left</c-></code>,
-except that if the rank is two or more,
-then the <em>leftmost</em> extent may be padded
-(so that <code class="highlight"><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> could be greater than <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>).
-Similarly, <code class="highlight"><c- n>layout_right_padded</c-></code> is like <code class="highlight"><c- n>layout_right</c-></code>,
-except that if the rank is two or more,
-then the <em>rightmost</em> extent may be padded
-(so that <code class="highlight"><c- n>stride</c-><c- p>(</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> could be greater than <code class="highlight"><c- n>extent</c-><c- p>(</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>).</p>
+   <p>We propose two new mdspan layouts, <code class="highlight"><c- n>layout_left_padded</c-></code> and <code class="highlight"><c- n>layout_right_padded</c-></code>.
+These layouts support two use cases:</p>
+   <ol>
+    <li data-md>
+     <p>array layouts that are contiguous in one dimension,
+as supported by commonly used libraries
+like the BLAS and LAPACK; and</p>
+    <li data-md>
+     <p>"padded" storage for overaligned access
+of the start of every contiguous segment of the array.</p>
+   </ol>
    <p>We also propose changing <code class="highlight"><c- n>submdspan</c-></code> of a <code class="highlight"><c- n>layout_left</c-></code> resp. <code class="highlight"><c- n>layout_right</c-></code> mdspan
 to return <code class="highlight"><c- n>layout_left_padded</c-></code> resp. <code class="highlight"><c- n>layout_right_padded</c-></code> instead of <code class="highlight"><c- n>layout_stride</c-></code>, when the slice arguments permit it.</p>
    <h3 class="heading settled" data-level="3.2" id="two-new-mdspan-layouts"><span class="secno">3.2. </span><span class="content">Two new mdspan layouts</span><a class="self-link" href="#two-new-mdspan-layouts"></a></h3>
@@ -2481,6 +2489,8 @@ However, the benefit of this approach goes down a lot as the rank increases,
 especially if any stride has a run-time value.</p>
    <h3 class="heading settled" data-level="3.6" id="implementation"><span class="secno">3.6. </span><span class="content">Implementation</span><a class="self-link" href="#implementation"></a></h3>
    <p>Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a> in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a> implements this proposal.</p>
+   <h3 class="heading settled" data-level="3.7" id="desired-ship-vehicle"><span class="secno">3.7. </span><span class="content">Desired ship vehicle</span><a class="self-link" href="#desired-ship-vehicle"></a></h3>
+   <p>C++26 / IS.</p>
    <h2 class="heading settled" data-level="4" id="wording"><span class="secno">4. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
    <blockquote>
     <p>Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.

@@ -18,6 +18,8 @@ Date: 2022-09-09
 * Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 * Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratory)
+* Malte Förster (mfoerster@nvidia.com) (NVIDIA)
+* Jiaming Yuan (jiamingy@nvidia.com) (NVIDIA)
 
 # Revision history
 
@@ -29,14 +31,14 @@ Date: 2022-09-09
 
 We propose two new mdspan layouts,
 `layout_left_padded` and `layout_right_padded`.
-`layout_left_padded` is like `layout_left`,
-except that if the rank is two or more,
-then the *leftmost* extent may be padded
-(so that `stride(1)` could be greater than `extent(0)`).
-Similarly, `layout_right_padded` is like `layout_right`,
-except that if the rank is two or more,
-then the *rightmost* extent may be padded
-(so that `stride(rank() - 2)` could be greater than `extent(rank() - 1)`).
+These layouts support two use cases:
+
+1. array layouts that are contiguous in one dimension,
+    as supported by commonly used libraries
+    like the BLAS and LAPACK; and
+
+2. "padded" storage for overaligned access
+    of the start of every contiguous segment of the array.
 
 We also propose changing `submdspan`
 of a `layout_left` resp. `layout_right` mdspan
@@ -447,6 +449,10 @@ especially if any stride has a run-time value.
 Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a>
 in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a>
 implements this proposal.
+
+## Desired ship vehicle
+
+C++26 / IS.
 
 # Wording
 
