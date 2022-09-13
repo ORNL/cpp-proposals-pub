@@ -628,11 +628,9 @@ using unpadded_extents_type = /* see-below */; // exposition only
 constexpr mapping(const extents_type& ext);
 ```
 
-*Constraints:* `padding_stride != dynamic_extent` is `true`.
-
 *Effects:*
 
-* If `extents_type::rank()` is zero or one, initializes `inner_mapping_` with `ext`, else initializes `inner_mapping_` with `padding_stride, ext.extent(P_left)...`; and
+* If `extents_type::rank()` is zero or one, initializes `inner_mapping_` with `ext`, else if `padding_stride` is `dynamic_extent`, initializes `inner_mapping_` with `ext.extent(0), ext.extent(P_left)...`, else initializes `inner_mapping_` with `padding_stride, ext.extent(P_left)...`; and
 
 * if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else, initializes `unpadded_extent_` with `ext.extent(0)`.
 
@@ -889,11 +887,9 @@ using unpadded_extents_type = /* see-below */; // exposition only
 constexpr mapping(const extents_type& ext);
 ```
 
-*Constraints:* `padding_stride != dynamic_extent` is `true`.
-
 *Effects:*
 
-* If `extents_type::rank()` is zero or one, initializes `inner_mapping_` with `ext`, else initializes `inner_mapping_` with `ext.extent(P_right)..., padding_stride`; and
+* If `extents_type::rank()` is zero or one, initializes `inner_mapping_` with `ext`, else if `padding_stride` is `dynamic_extent`, initializes `inner_mapping` with `ext.extent(P_right)..., ext.extent(extents_type::rank() - 1)`, else initializes `inner_mapping_` with `ext.extent(P_right)..., padding_stride`; and
 
 * if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else, initializes `unpadded_extent_` with `ext.extent(extents_type::rank() - 1)`.
 

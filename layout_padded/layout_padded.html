@@ -2651,11 +2651,10 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
 </pre>
-   <p><em>Constraints:</em> <code class="highlight"><c- n>padding_stride</c-> <c- o>!=</c-> <c- n>dynamic_extent</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero or one, initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>ext</c-></code>, else initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>padding_stride</c-><c- p>,</c-> <c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_left</c-><c- p>)...</c-></code>; and</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero or one, initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>ext</c-></code>, else if <code class="highlight"><c- n>padding_stride</c-></code> is <code class="highlight"><c- n>dynamic_extent</c-></code>, initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>),</c-> <c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_left</c-><c- p>)...</c-></code>, else initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>padding_stride</c-><c- p>,</c-> <c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_left</c-><c- p>)...</c-></code>; and</p>
     <li data-md>
      <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>; else, initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
    </ul>
@@ -2884,11 +2883,10 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
 </pre>
-   <p><em>Constraints:</em> <code class="highlight"><c- n>padding_stride</c-> <c- o>!=</c-> <c- n>dynamic_extent</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero or one, initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>ext</c-></code>, else initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-> <c- n>padding_stride</c-></code>; and</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero or one, initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>ext</c-></code>, else if <code class="highlight"><c- n>padding_stride</c-></code> is <code class="highlight"><c- n>dynamic_extent</c-></code>, initializes <code class="highlight"><c- n>inner_mapping</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-> <c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>, else initializes <code class="highlight"><c- n>inner_mapping_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-> <c- n>padding_stride</c-></code>; and</p>
     <li data-md>
      <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>; else, initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
    </ul>
