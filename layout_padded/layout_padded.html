@@ -2571,6 +2571,10 @@ at the end of each column is accessible memory.</p>
 
 <c- n>using</c-> <c- n>accessor_type</c-> <c- o>=</c-> <c- n>aligned_accessor</c-><c- o>&lt;</c-><c- b>float</c-><c- p>,</c-> <c- n>byte_alignment</c-><c- o>></c-><c- p>;</c->
 <c- n>mdspan</c-> <c- n>m</c-><c- p>{</c-><c- n>allocation</c-><c- p>.</c-><c- n>get</c-><c- p>(),</c-> <c- n>mapping</c-><c- p>,</c-> <c- n>accessor_type</c-><c- p>{}};</c->
+
+<c- c1>// m_sub has the same layout as m,</c->
+<c- c1>// and each column of m_sub has the same overalignment.</c->
+<c- k>auto</c-> <c- n>m_sub</c-> <c- o>=</c-> <c- n>submdspan</c-><c- p>(</c-><c- n>m</c-><c- p>,</c-> <c- n>tuple</c-><c- p>{</c-><c- mi>0</c-><c- p>,</c-> <c- mi>11</c-><c- p>},</c-> <c- n>tuple</c-><c- p>{</c-><c- mi>1</c-><c- p>,</c-> <c- mi>13</c-><c- p>});</c-> 
 </pre>
    <h3 class="heading settled" data-level="3.5" id="alternatives"><span class="secno">3.5. </span><span class="content">Alternatives</span><a class="self-link" href="#alternatives"></a></h3>
    <p>We considered a variant of <code class="highlight"><c- n>layout_stride</c-></code> that could encode

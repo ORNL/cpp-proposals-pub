@@ -536,6 +536,10 @@ auto allocation =
 
 using accessor_type = aligned_accessor<float, byte_alignment>;
 mdspan m{allocation.get(), mapping, accessor_type{}};
+
+// m_sub has the same layout as m,
+// and each column of m_sub has the same overalignment.
+auto m_sub = submdspan(m, tuple{0, 11}, tuple{1, 13}); 
 ```
 
 ## Alternatives
