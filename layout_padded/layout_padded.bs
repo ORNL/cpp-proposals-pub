@@ -433,6 +433,21 @@ void base_case_matrix_product(in_matrix_view<layout_left_padded<p>> A,
 }
 ```
 
+## Alternatives
+
+We considered a variant of `layout_stride` that could encode
+any combination of compile-time or run-time strides in the layout type.
+This could, for example, use the same mechanism that `extents` uses.
+(The reference implementation calls this mechanism a "partially static array.")
+However, the benefit of this approach goes down a lot as the rank increases,
+especially if any stride has a run-time value.
+
+## Implementation
+
+Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a>
+in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a>
+implements this proposal.
+
 # Wording
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.

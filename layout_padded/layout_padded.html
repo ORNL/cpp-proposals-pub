@@ -2130,6 +2130,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
        <ol class="toc">
         <li><a href="#directly-call-c-blas-without-checks"><span class="secno">3.4.1</span> <span class="content">Directly call C BLAS without checks</span></a>
        </ol>
+      <li><a href="#alternatives"><span class="secno">3.5</span> <span class="content">Alternatives</span></a>
+      <li><a href="#implementation"><span class="secno">3.6</span> <span class="content">Implementation</span></a>
      </ol>
     <li>
      <a href="#wording"><span class="secno">4</span> <span class="content">Wording</span></a>
@@ -2470,6 +2472,15 @@ if users never exercise it.</p>
     <c- mf>1.0f</c-><c- p>,</c-> <c- n>C</c-><c- p>.</c-><c- n>data_handle</c-><c- p>(),</c-> <c- n>C</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>));</c->
 <c- p>}</c->
 </pre>
+   <h3 class="heading settled" data-level="3.5" id="alternatives"><span class="secno">3.5. </span><span class="content">Alternatives</span><a class="self-link" href="#alternatives"></a></h3>
+   <p>We considered a variant of <code class="highlight"><c- n>layout_stride</c-></code> that could encode
+any combination of compile-time or run-time strides in the layout type.
+This could, for example, use the same mechanism that <code class="highlight"><c- n>extents</c-></code> uses.
+(The reference implementation calls this mechanism a "partially static array.")
+However, the benefit of this approach goes down a lot as the rank increases,
+especially if any stride has a run-time value.</p>
+   <h3 class="heading settled" data-level="3.6" id="implementation"><span class="secno">3.6. </span><span class="content">Implementation</span><a class="self-link" href="#implementation"></a></h3>
+   <p>Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a> in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a> implements this proposal.</p>
    <h2 class="heading settled" data-level="4" id="wording"><span class="secno">4. </span><span class="content">Wording</span><a class="self-link" href="#wording"></a></h2>
    <blockquote>
     <p>Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
