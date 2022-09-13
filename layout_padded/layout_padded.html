@@ -2659,17 +2659,17 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
      <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>; else, initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Size</c-><c- o>></c->
-<c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-> <c- o>=</c-> <c- mi>0</c-><c- p>);</c->
+<c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-><c- p>);</c->
 </pre>
    <p><em>Constraints:</em></p>
    <ul>
-    <li data-md>
-     <p><code class="highlight"><c- n>padding</c-> <c- o>==</c-> <c- n>dynamic_extent</c-></code> is <code class="highlight">true</code>,</p>
     <li data-md>
      <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>Size</c-><c- p>,</c-> <c- n>index_type</c-><c- o>></c-></code> is <code class="highlight">true</code>, and</p>
     <li data-md>
      <p><code class="highlight"><c- n>is_nothrow_constructible_v</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Size</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
    </ul>
+   <p><em>Precondition:</em> If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then the result of converting <code class="highlight"><c- n>padding_value</c-></code> to <code class="highlight"><c- n>index_type</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>.</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -2891,17 +2891,17 @@ then <code class="highlight"><c- n>unpadded_extents_type</c-></code> names the t
      <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>; else, initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Size</c-><c- o>></c->
-<c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-> <c- o>=</c-> <c- mi>0</c-><c- p>);</c->
+<c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-><c- p>);</c->
 </pre>
    <p><em>Constraints:</em></p>
    <ul>
-    <li data-md>
-     <p><code class="highlight"><c- n>padding</c-> <c- o>==</c-> <c- n>dynamic_extent</c-></code> is <code class="highlight">true</code>,</p>
     <li data-md>
      <p><code class="highlight"><c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>Size</c-><c- p>,</c-> <c- n>index_type</c-><c- o>></c-></code> is <code class="highlight">true</code>, and</p>
     <li data-md>
      <p><code class="highlight"><c- n>is_nothrow_constructible_v</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Size</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
    </ul>
+   <p><em>Precondition:</em> If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then the result of converting <code class="highlight"><c- n>padding_value</c-></code> to <code class="highlight"><c- n>index_type</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>.</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>

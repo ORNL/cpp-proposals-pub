@@ -636,16 +636,17 @@ constexpr mapping(const extents_type& ext);
 
 ```c++
 template<class Size>
-constexpr mapping(const extents_type& ext, Size padding_value = 0);
+constexpr mapping(const extents_type& ext, Size padding_value);
 ```
 
 *Constraints:*
 
-* `padding == dynamic_extent` is `true`,
-
 * `is_convertible_v<Size, index_type>` is `true`, and
 
 * `is_nothrow_constructible_v<index_type, Size>` is `true`.
+
+*Precondition:* If `padding_stride` does not equal `dynamic_extent`,
+then the result of converting `padding_value` to `index_type` equals `padding_stride`.
 
 *Effects:*
 
@@ -895,16 +896,17 @@ constexpr mapping(const extents_type& ext);
 
 ```c++
 template<class Size>
-constexpr mapping(const extents_type& ext, Size padding_value = 0);
+constexpr mapping(const extents_type& ext, Size padding_value);
 ```
 
 *Constraints:*
 
-* `padding == dynamic_extent` is `true`,
-
 * `is_convertible_v<Size, index_type>` is `true`, and
 
 * `is_nothrow_constructible_v<index_type, Size>` is `true`.
+
+*Precondition:* If `padding_stride` does not equal `dynamic_extent`,
+then the result of converting `padding_value` to `index_type` equals `padding_stride`.
 
 *Effects:*
 
