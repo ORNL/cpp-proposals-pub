@@ -286,10 +286,27 @@ because it means that for existing BLAS and LAPACK use cases,
 we do not need to check whether `stride(0)` or `stride(rank() - 1)` is one
 before calling into an optimized C or Fortran BLAS.
 
-## Before and after
+## Examples
+
+### Directly call C BLAS without checks
 
 We show examples before and after this proposal of functions
-that compute the matrix-matrix product `C += A * B`. 
+that compute the matrix-matrix product `C += A * B`.
+The `recursive_matrix_product` function computes this product recursively,
+by partitioning each of the three matrices into a 2 x 2 block matrix
+using the `partition` function.
+When the `C` matrix is small enough,
+`recursive_matrix_product` stops recursing
+and instead calls a `base_case_matrix_product` function
+with different overloads for different matrix layouts.
+If the matrix layouts support it, `base_case_matrix_product`
+can call the C BLAS function `cblas_sgemm` directly on the `mdspan`s' data.
+This is fast if the C BLAS is optimized.
+Otherwise, `base_case_matrix_product` falls back to a slow generic implementation.
+
+This example is far from ideally optimized,
+but it hints at the kind of optimizations
+that linear algebra computations do in practice.
 
 Common code:
 
@@ -300,18 +317,40 @@ using out_matrix_view = mdspan<float, dextents<int, 2>, Layout>;
 template<class Layout>
 using in_matrix_view = mdspan<const float, dextents<int, 2>, Layout>;
 
+// Before this proposal, if Layout is layout_left or layout_right,
+// the returned mdspan would all be layout_stride.
+// After this proposal, the returned mdspan would be
+// layout_left_padded resp. layout_right_padded.
+template<class ElementType, class Layout>
+auto partition(mdspan<ElementType, dextents<int, 2>, Layout> A)
+{
+  auto M = A.extent(0);
+  auto N = A.extent(1);
+  auto A00 = submdspan(A, tuple{0, M / 2}, tuple{0, N / 2});
+  auto A01 = submdspan(A, tuple{0, M / 2}, tuple{N / 2, N});
+  auto A10 = submdspan(A, tuple{M / 2, M}, tuple{0, N / 2});
+  auto A11 = submdspan(A, tuple{M / 2, M}, tuple{N / 2, N});
+  return tuple{
+    A00, A01,
+    A10, A11
+  };
+}
+
 template<class Layout>
 void recursive_matrix_product(in_matrix_view<Layout> A,
   in_matrix_view<Layout> B, out_matrix_view<Layout> C)
 {
-  // This proposal changes the returned mdspans' layout.
-  auto [C00, C01,
-        C10, C11] = partition(C);  
-  auto [A00, A01,
-        A10, A11] = partition(A);  
-  auto [B00, B01,
-        B10, B11] = partition(B);
-  if(C00.extent(0) || C00.extent(1) > dont_recurse) {
+  // Some hardware-dependent constant
+  constexpr int recursion_threshold = 16;
+  if(std::max(C.extent(0) || C.extent(1)) <= recursion_threshold) {
+    base_case_matrix_product(A, B, C);
+  } else {
+    auto [C00, C01,
+          C10, C11] = partition(C);  
+    auto [A00, A01,
+          A10, A11] = partition(A);  
+    auto [B00, B01,
+          B10, B11] = partition(B);
     recursive_matrix_product(A00, B00, C00);
     recursive_matrix_product(A01, B10, C00);
     recursive_matrix_product(A10, B00, C10);
@@ -320,22 +359,9 @@ void recursive_matrix_product(in_matrix_view<Layout> A,
     recursive_matrix_product(A01, B11, C01);
     recursive_matrix_product(A10, B01, C11);
     recursive_matrix_product(A11, B11, C11);
-  } else {
-    base_case_matrix_product(A00, B00, C00);
-    base_case_matrix_product(A01, B10, C00);
-    base_case_matrix_product(A10, B00, C10);
-    base_case_matrix_product(A11, B10, C10);
-    base_case_matrix_product(A00, B01, C01);
-    base_case_matrix_product(A01, B11, C01);
-    base_case_matrix_product(A10, B01, C11);
-    base_case_matrix_product(A11, B11, C11);
   }
 }
-```
 
-Before:
-
-```c++
 // Slow generic implementation
 template<class Layout>
 void base_case_matrix_product(in_matrix_view<Layout> A,
@@ -351,9 +377,12 @@ void base_case_matrix_product(in_matrix_view<Layout> A,
     }
   }
 }
+```
 
-// recursive_matrix_product never gets to use this,
-// because the base case matrices are always layout_stride.
+A user might interpret `layout_left` as "column major,"
+and therefore "the natural layout to pass into the BLAS."
+
+```c++
 void base_case_matrix_product(in_matrix_view<layout_left> A,
   in_matrix_view<layout_left> B, out_matrix_view<layout_left> C)
 {
@@ -364,9 +393,32 @@ void base_case_matrix_product(in_matrix_view<layout_left> A,
 }
 ```
 
-After this proposal, we don't need the slow generic implementation,
-since the C and Fortran BLAS both support
-the data layout represented by `layout_left_padded` directly.
+However, `recursive_matrix_product` never gets to use
+the `layout_left` overload of `base_case_matrix_product`,
+because the base case matrices are always `layout_stride`.
+
+On discovering this, the author of these functions
+might be tempted to write a custom layout for "BLAS-compatible" matrices.
+However, the `submdspan` proposal
+<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2630r0.html">P2630R0</a>
+currently forces `partition` to return four `layout_stride` mdspan
+if given a `layout_left` (or `layout_right`) input mdspan.
+This would, in turn, force users of `recursive_matrix_product`
+to commit to a custom layout, if they want to use the BLAS.
+
+Alternately, the author of these functions could specialize
+`base_case_matrix_product` for `layout_stride`, and check whether
+`A.stride(0)`, `B.stride(0)`, and `C.stride(0)` are all equal to one
+before calling `cblas_sgemm`.
+However, that would force extra run-time checks for a use case
+that most users might never encounter,
+because most users are starting with `layout_left` matrices
+or contiguous submatrices thereof.
+
+After our proposal, the author can specialize `base_case_matrix_product`
+for exactly the layout supported by the BLAS.
+They could even get rid of the fall-back implementation
+if users never exercise it.
 
 ```c++
 template<size_t p>
