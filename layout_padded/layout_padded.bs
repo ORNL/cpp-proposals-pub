@@ -669,12 +669,12 @@ struct layout_left_padded {
 
   private:
     using inner_extents_type = /* see-below */; // exposition only
-    using unpadded_extents_type = /* see-below */; // exposition only
+    using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
     using inner_mapping_type =
       layout_left::template mapping<inner_extents_type>; // exposition only
 
     inner_mapping_type inner_mapping_; // exposition only
-    unpadded_extents_type unpadded_extent_; // exposition only
+    <it>unpadded-extent-type</it> unpadded_extent_; // exposition only
 
   public:
     constexpr mapping(const extents_type& ext);
@@ -737,13 +737,13 @@ using inner_extents_type = /* see-below */; // exposition only
     `extents<index_type, padding_stride, extents_type::static_extent(P_left)...>`.
 
 ```c++
-using unpadded_extents_type = /* see-below */; // exposition only
+using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
 ```
 
 * If `extents_type::rank()` equals zero,
-    then `unpadded_extents_type` names the type `extents<index_type>`.
+    then <it>`unpadded-extent-type`</it> names the type `extents<index_type>`.
 
-* Otherwise, `unpadded_extents_type` names the type
+* Otherwise, <it>`unpadded-extent-type`</it> names the type
     `extents<index_type, extents_type::static_extent(0)>`.
 
 ```c++
@@ -887,8 +887,8 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 * If `extents_type::rank()` equals zero, `true`;
 
-* else, `extents_type::static_extent(0) != stdex::dynamic_extent &&
-	 extents_type::static_extent(0) == unpadded_extents_type::static_extent(0)`.
+* else, `extents_type::static_extent(0) != stdex::dynamic_extent` is `true`, and
+	 `extents_type::static_extent(0) == `<it>`unpadded-extent-type`</it>`::static_extent(0)` is `true`.
 
 ```c++
 constexpr bool is_exhaustive() const noexcept;
@@ -929,12 +929,12 @@ public:
 
   private:
     using inner_extents_type = /* see-below */; // exposition only
-    using unpadded_extents_type = /* see-below */; // exposition only
+    using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
     using inner_mapping_type =
       layout_left::template mapping<inner_extents_type>; // exposition only
 
     inner_mapping_type inner_mapping_; // exposition only
-    unpadded_extents_type unpadded_extent_; // exposition only
+    <it>unpadded-extent-type</it> unpadded_extent_; // exposition only
 
   public:
     constexpr mapping(const extents_type& ext);
@@ -997,13 +997,13 @@ using inner_extents_type = /* see-below */; // exposition only
     `extents<index_type, extents_type::static_extent(P_right)..., padding_stride>`.
 
 ```c++
-using unpadded_extents_type = /* see-below */; // exposition only
+using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
 ```
 
 * If `extents_type::rank()` equals zero,
-    then `unpadded_extents_type` names the type `extents<index_type>`.
+    then <it>`unpadded-extent-type`</it> names the type `extents<index_type>`.
 
-* Otherwise, `unpadded_extents_type` names the type
+* Otherwise, <it>`unpadded-extent-type`</it> names the type
     `extents<index_type, extents_type::static_extent(Extents::rank() - 1)>`.
 
 ```c++
@@ -1147,8 +1147,8 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 * If `extents_type::rank()` equals zero, `true`;
 
-* else, `extents_type::static_extent(extents_type::rank() - 1) != stdex::dynamic_extent &&
-	 extents_type::static_extent(extents_type::rank() - 1) == unpadded_extents_type::static_extent(extents_type::rank() - 1)`.
+* else, `extents_type::static_extent(extents_type::rank() - 1) != stdex::dynamic_extent` is `true`, and
+    `extents_type::static_extent(extents_type::rank() - 1) == `<it>`unpadded-extent-type`</it>`::static_extent(extents_type::rank() - 1)` is `true`.
 
 ```c++
 constexpr bool is_exhaustive() const noexcept;
