@@ -713,10 +713,10 @@ struct layout_left_padded {
     using layout_type = layout_left_padded<padding>;
 
   private:
-    using inner_extents_type = /* see-below */; // exposition only
+    using <it>inner-extents-type</it> = /* see-below */; // exposition only
     using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
     using inner_mapping_type =
-      layout_left::template mapping<inner_extents_type>; // exposition only
+      layout_left::template mapping<<it>inner-extents-type</it>>; // exposition only
 
     inner_mapping_type inner_mapping_; // exposition only
     <it>unpadded-extent-type</it> unpadded_extent_; // exposition only
@@ -772,13 +772,13 @@ size `extents_type::rank()` parameter pack of `size_t`:
 * else, the parameter pack `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
 
 ```c++
-using inner_extents_type = /* see-below */; // exposition only
+using <it>inner-extents-type</it> = /* see-below */; // exposition only
 ```
 
 * If `extents_type::rank()` equals zero or one,
-    then `inner_extents_type` names the type `extents_type`.
+    then <it>`inner-extents-type`</it> names the type `extents_type`.
 
-* Otherwise, `inner_extents_type` names the type
+* Otherwise, <it>`inner-extents-type`</it> names the type
     `extents<index_type, padding_stride, extents_type::static_extent(P_left)...>`.
 
 ```c++
@@ -973,10 +973,10 @@ public:
     using layout_type = layout_right_padded<padding>;
 
   private:
-    using inner_extents_type = /* see-below */; // exposition only
+    using <it>inner-extents-type</it> = /* see-below */; // exposition only
     using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
     using inner_mapping_type =
-      layout_left::template mapping<inner_extents_type>; // exposition only
+      layout_left::template mapping<<it>inner-extents-type</it>>; // exposition only
 
     inner_mapping_type inner_mapping_; // exposition only
     <it>unpadded-extent-type</it> unpadded_extent_; // exposition only
@@ -1032,13 +1032,13 @@ size `extents_type::rank()` parameter pack of `size_t`:
 * else, the parameter pack `size_t(0)`, `size_t(1)`, ..., `extents_type::rank() - 2`.
 
 ```c++
-using inner_extents_type = /* see-below */; // exposition only
+using <it>inner-extents-type</it> = /* see-below */; // exposition only
 ```
 
 * If `extents_type::rank()` equals zero or one,
-    then `inner_extents_type` names the type `extents_type`.
+    then <it>`inner-extents-type`</it> names the type `extents_type`.
 
-* Otherwise, `inner_extents_type` names the type
+* Otherwise, <it>`inner-extents-type`</it> names the type
     `extents<index_type, extents_type::static_extent(P_right)..., padding_stride>`.
 
 ```c++
