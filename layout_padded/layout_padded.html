@@ -2787,6 +2787,9 @@ size <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c->
     <li data-md>
      <p>else, the parameter pack <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>, <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>2</c-><c- p>)</c-></code>, ..., <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-></code>.</p>
    </ul>
+   <p><em>Mandates:</em> If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code> and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,
+then either <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+or <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is less than or equal to <code class="highlight"><c- n>padding_stride</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>using</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>extents</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
 </pre>
    <ul>
@@ -2823,6 +2826,9 @@ then
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
 </pre>
+   <p><em>Precondition:</em> If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,
+and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is less than or equal to <code class="highlight"><c- n>padding_stride</c-></code>.</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -2860,8 +2866,16 @@ else, direct-non-list-initializes
     <li data-md>
      <p><code class="highlight"><c- n>is_nothrow_constructible_v</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Size</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
    </ul>
-   <p><em>Precondition:</em> If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+   <p><em>Preconditions:</em></p>
+   <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
 then the result of converting <code class="highlight"><c- n>padding_value</c-></code> to <code class="highlight"><c- n>index_type</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>.</p>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one
+and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is less than or equal to <code class="highlight"><c- n>padding_value</c-></code>.</p>
+   </ul>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -2889,6 +2903,9 @@ else, direct-non-list-initializes
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c->
   <c- k>const</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>padding_stride</c-><c- o>>&amp;</c-> <c- n>padding_extents</c-><c- p>);</c->
 </pre>
+   <p><em>Precondition:</em> If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+    and <code class="highlight"><c- n>padding_stride</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+    then <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is less than or equal to <code class="highlight"><c- n>padding_extents</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -2927,9 +2944,11 @@ else, direct-non-list-initializes
    <p><em>Preconditions:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>; and</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>; and</p>
     <li data-md>
-     <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+     <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable
+as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
    </ul>
    <p><em>Effects:</em></p>
    <ul>
@@ -2967,7 +2986,8 @@ else, direct-non-list-initializes
     <li data-md>
      <p><code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
    </ul>
-   <p><em>Precondition:</em> <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+   <p><em>Precondition:</em> <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable
+as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -3031,8 +3051,17 @@ either the constraints or the precondititions. <i>— end note]</i></p>
     <li data-md>
      <p><code class="highlight"><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>is_nothrow_constructible</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Indices</c-><c- o>></c-> <c- o>&amp;&amp;</c-> <c- p>...)</c-></code> is <code class="highlight">true</code>.</p>
    </ul>
-   <p><em>Preconditions:</em> <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code><code class="highlight" data-span-tag="_"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents</c-><c- p>()</c-></code> ([mdspan.overview]).</p>
-   <p><em>Effects:</em> Let P be a parameter pack such that <code class="highlight"><c- n>is_same_v</c-><c- o>&lt;</c-><c- n>index_sequence_for</c-><c- o>&lt;</c-><c- n>Indices</c-><c- p>...</c-><c- o>></c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>P</c-><c- p>...</c-><c- o>>></c-></code> is <code class="highlight">true</code>.  Equivalent to: <code class="highlight"><c- k>return</c-> <c- p>((</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- n>index_type</c-><c- o>></c-><c- p>(</c-><c- n>i</c-><c- p>)</c-> <c- o>*</c-> <c- n>stride</c-><c- p>(</c-><c- n>P</c-><c- p>))</c-> <c- o>+</c-> <c- p>...</c-> <c- o>+</c-> <c- mi>0</c-><c- p>);</c-></code>.</p>
+   <p>
+    <em>Precondition:</em> <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code>
+    <it><code class="highlight"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code></it>
+    <code class="highlight"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents</c-><c- p>()</c-></code> ([mdspan.overview]).
+   </p>
+   <p><em>Effects:</em> Let P be a parameter pack such that <code class="highlight"><c- n>is_same_v</c-><c- o>&lt;</c-><c- n>index_sequence_for</c-><c- o>&lt;</c-><c- n>Indices</c-><c- p>...</c-><c- o>></c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>P</c-><c- p>...</c-><c- o>>></c-></code> is <code class="highlight">true</code>.
+Equivalent to: <code class="highlight"><c- k>return</c-> <c- p>((</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- n>index_type</c-><c- o>></c-><c- p>(</c-><c- n>i</c-><c- p>)</c-> <c- o>*</c-> <c- n>stride</c-><c- p>(</c-><c- n>P</c-><c- p>))</c-> <c- o>+</c-> <c- p>...</c-> <c- o>+</c-> <c- mi>0</c-><c- p>);</c-></code>.</p>
+   <p><i>[Note:</i> Effects are also equivalent to</p>
+   <it><code class="highlight"><c- k>return</c-> <c- n>inner</c-><c- o>-</c-><c- n>mapping_</c-></code></it>
+   <code class="highlight"><c- p>(</c-><c- n>idxs</c-><c- p>...);</c-></code>,
+but only after the Precondition has been applied. <i>— end note]</i> 
 <pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_exhaustive</c-><c- p>()</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <p><em>Returns:</em></p>
@@ -3144,6 +3173,9 @@ size <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c->
     <li data-md>
      <p>else, the parameter pack <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>, <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>, ..., <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-></code>.</p>
    </ul>
+   <p><em>Mandates:</em> If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code> and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,
+then either <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+or <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is less than or equal to <code class="highlight"><c- n>padding_stride</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>using</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>extents</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
 </pre>
    <ul>
@@ -3180,6 +3212,9 @@ then
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
 </pre>
+   <p><em>Precondition:</em> If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,
+and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is less than or equal to <code class="highlight"><c- n>padding_stride</c-></code>.</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -3217,8 +3252,16 @@ else, direct-non-list-initializes
     <li data-md>
      <p><code class="highlight"><c- n>is_nothrow_constructible_v</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Size</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
    </ul>
-   <p><em>Precondition:</em> If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+   <p><em>Preconditions:</em></p>
+   <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
 then the result of converting <code class="highlight"><c- n>padding_value</c-></code> to <code class="highlight"><c- n>index_type</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>.</p>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one
+and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is less than or equal to <code class="highlight"><c- n>padding_value</c-></code>.</p>
+   </ul>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -3246,6 +3289,9 @@ else, direct-non-list-initializes
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c->
   <c- k>const</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>padding_stride</c-><c- o>>&amp;</c-> <c- n>padding_extents</c-><c- p>);</c->
 </pre>
+   <p><em>Precondition:</em> If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+    and <code class="highlight"><c- n>padding_stride</c-></code> equals <code class="highlight"><c- n>dynamic_extent</c-></code>,
+    then <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is less than or equal to <code class="highlight"><c- n>padding_extents</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -3284,9 +3330,11 @@ direct-non-list-initializes
    <p><em>Preconditions:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>; and</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>; and</p>
     <li data-md>
-     <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+     <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable
+as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
    </ul>
    <p><em>Effects:</em></p>
    <ul>
@@ -3324,7 +3372,8 @@ else, direct-non-list-initializes
     <li data-md>
      <p><code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
    </ul>
-   <p><em>Preconditions:</em> <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+   <p><em>Preconditions:</em> <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable
+as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -3388,8 +3437,13 @@ either the constraints or the precondititions. <i>— end note]</i></p>
     <li data-md>
      <p><code class="highlight"><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>is_nothrow_constructible</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Indices</c-><c- o>></c-> <c- o>&amp;&amp;</c-> <c- p>...)</c-></code> is <code class="highlight">true</code>.</p>
    </ul>
-   <p><em>Preconditions:</em> <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code><code class="highlight" data-span-tag="_"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents</c-><c- p>()</c-></code> ([mdspan.overview]).</p>
-   <p><em>Effects:</em> Let <code class="highlight"><c- n>P</c-></code> be a parameter pack such that <code class="highlight"><c- n>is_same_v</c-><c- o>&lt;</c-><c- n>index_sequence_for</c-><c- o>&lt;</c-><c- n>Indices</c-><c- p>...</c-><c- o>></c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>P</c-><c- p>...</c-><c- o>>></c-></code> is <code class="highlight">true</code>.  Equivalent to: <code class="highlight"><c- k>return</c-> <c- p>((</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- n>index_type</c-><c- o>></c-><c- p>(</c-><c- n>i</c-><c- p>)</c-> <c- o>*</c-> <c- n>stride</c-><c- p>(</c-><c- n>P</c-><c- p>))</c-> <c- o>+</c-> <c- p>...</c-> <c- o>+</c-> <c- mi>0</c-><c- p>);</c-></code>.</p>
+   <p><em>Precondition:</em> <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code><code class="highlight" data-span-tag="_"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents</c-><c- p>()</c-></code> ([mdspan.overview]).</p>
+   <p><em>Effects:</em> Let <code class="highlight"><c- n>P</c-></code> be a parameter pack such that <code class="highlight"><c- n>is_same_v</c-><c- o>&lt;</c-><c- n>index_sequence_for</c-><c- o>&lt;</c-><c- n>Indices</c-><c- p>...</c-><c- o>></c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>P</c-><c- p>...</c-><c- o>>></c-></code> is <code class="highlight">true</code>.
+Equivalent to: <code class="highlight"><c- k>return</c-> <c- p>((</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- n>index_type</c-><c- o>></c-><c- p>(</c-><c- n>i</c-><c- p>)</c-> <c- o>*</c-> <c- n>stride</c-><c- p>(</c-><c- n>P</c-><c- p>))</c-> <c- o>+</c-> <c- p>...</c-> <c- o>+</c-> <c- mi>0</c-><c- p>);</c-></code>.</p>
+   <p><i>[Note:</i> Effects are also equivalent to</p>
+   <it><code class="highlight"><c- k>return</c-> <c- n>inner</c-><c- o>-</c-><c- n>mapping_</c-></code></it>
+   <code class="highlight"><c- p>(</c-><c- n>idxs</c-><c- p>...);</c-></code>,
+but only after the Precondition has been applied. <i>— end note]</i> 
 <pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>bool</c-> <c- n>is_always_exhaustive</c-><c- p>()</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <p><em>Returns:</em></p>

@@ -773,8 +773,10 @@ size `extents_type::rank()` parameter pack of `size_t`:
 
 *Mandates:* If `padding_stride` does not equal `dynamic_extent`
 and `extents_type::rank()` is greater than one,
-then either `extents_type::static_extent(1)` equals `dynamic_extent`,
-or `extents_type::static_extent(1)` is less than or equal to `padding_stride`.
+then either `extents_type::static_extent(0)`
+equals `dynamic_extent`,
+or `extents_type::static_extent(0)`
+is less than or equal to `padding_stride`.
 
 ```c++
 using <it>inner-extents-type</it> = /* see-below */; // exposition only
@@ -799,6 +801,12 @@ using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
 ```c++
 constexpr mapping(const extents_type& ext);
 ```
+
+*Precondition:* If `padding_stride` does not equal `dynamic_extent`,
+`extents_type::rank()` is greater than one,
+and `extents_type::static_extent(0)` equals `dynamic_extent`,
+then `ext.extent(0)`
+is less than or equal to `padding_stride`.
 
 *Effects:*
 
@@ -825,8 +833,17 @@ constexpr mapping(const extents_type& ext, Size padding_value);
 
 * `is_nothrow_constructible_v<index_type, Size>` is `true`.
 
-*Precondition:* If `padding_stride` does not equal `dynamic_extent`,
-then the result of converting `padding_value` to `index_type` equals `padding_stride`.
+*Preconditions:*
+
+* If `padding_stride` does not equal `dynamic_extent`,
+    then the result of converting `padding_value` to `index_type`
+    equals `padding_stride`.
+
+* If `extents_type::rank()` is greater than one
+    and `extents_type::static_extent(0)`
+    equals `dynamic_extent`,
+    then `ext.extent(0)`
+    is less than or equal to `padding_value`.
 
 *Effects:*
 
@@ -843,6 +860,14 @@ then the result of converting `padding_value` to `index_type` equals `padding_st
 constexpr mapping(const extents_type& ext,
   const extents<index_type, padding_stride>& padding_extents);
 ```
+
+*Precondition:* If `extents_type::rank()` is greater than one,
+    `extents_type::static_extent(0)`
+    equals `dynamic_extent`,
+    and `padding_stride` equals `dynamic_extent`,
+    then `ext.extent(0)`
+    is less than or equal to
+    `padding_extents.extent(0)`.
 
 *Effects:*
 
@@ -869,9 +894,12 @@ template<size_t other_padding_stride, class OtherExtents>
 
 *Preconditions:*
 
-* If `extents_type::rank() > 1` is `true` and `padding_stride` does not equal `dynamic_extent`, then `other.stride(1)` equals `padding_stride`; and
+* If `extents_type::rank() > 1` is `true`
+    and `padding_stride` does not equal `dynamic_extent`,
+    then `other.stride(1)` equals `padding_stride`; and
 
-* `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+* `other.required_span_size()` is representable
+    as a value of type `index_type` (*[basic.fundamental]*).
 
 *Effects:* 
 
@@ -900,7 +928,8 @@ template<size_t other_padding_stride, class OtherExtents>
 
 * `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-*Precondition:* `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+*Precondition:* `other.required_span_size()` is representable
+as a value of type `index_type` (*[basic.fundamental]*).
 
 *Effects:* 
 
@@ -950,9 +979,18 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 
 * `(std::is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
 
-*Preconditions:* `extents_type::`_`index-cast`_`(i)` is a multidimensional index in `extents()` ([mdspan.overview]).
+*Precondition:* `extents_type::`<it>`index-cast`</it>`(i)`
+is a multidimensional index in `extents()` ([mdspan.overview]).
 
-*Effects:* Let P be a parameter pack such that `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.  Equivalent to: `return ((static_cast<index_type>(i) * stride(P)) + ... + 0);`.
+*Effects:* Let P be a parameter pack such that
+`is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.
+Equivalent to: `return ((static_cast<index_type>(i) * stride(P)) + ... + 0);`.
+
+<i>[Note:</i>
+Effects are also equivalent to
+<it>`return inner-mapping_`</it>`(idxs...);`,
+but only after the Precondition has been applied.
+<i>— end note]</i>
 
 ```c++
 static constexpr bool is_always_exhaustive() noexcept;
@@ -1062,8 +1100,10 @@ size `extents_type::rank()` parameter pack of `size_t`:
 
 *Mandates:* If `padding_stride` does not equal `dynamic_extent`
 and `extents_type::rank()` is greater than one,
-then either `extents_type::static_extent(extents_type::rank() - 2)` equals `dynamic_extent`,
-or `extents_type::static_extent(extents_type::rank() - 2)` is less than or equal to `padding_stride`.
+then either `extents_type::static_extent(extents_type::rank() - 1)`
+equals `dynamic_extent`,
+or `extents_type::static_extent(extents_type::rank() - 1)`
+is less than or equal to `padding_stride`.
 
 ```c++
 using <it>inner-extents-type</it> = /* see-below */; // exposition only
@@ -1088,6 +1128,12 @@ using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
 ```c++
 constexpr mapping(const extents_type& ext);
 ```
+
+*Precondition:* If `padding_stride` does not equal `dynamic_extent`,
+`extents_type::rank()` is greater than one,
+and `extents_type::static_extent(0)` equals `dynamic_extent`,
+then `ext.extent(extents_type::rank() - 1)`
+is less than or equal to `padding_stride`.
 
 *Effects:*
 
@@ -1115,8 +1161,17 @@ constexpr mapping(const extents_type& ext, Size padding_value);
 
 * `is_nothrow_constructible_v<index_type, Size>` is `true`.
 
-*Precondition:* If `padding_stride` does not equal `dynamic_extent`,
-then the result of converting `padding_value` to `index_type` equals `padding_stride`.
+*Preconditions:*
+
+* If `padding_stride` does not equal `dynamic_extent`,
+    then the result of converting `padding_value` to `index_type`
+    equals `padding_stride`.
+
+* If `extents_type::rank()` is greater than one
+    and `extents_type::static_extent(extents_type::rank() - 1)`
+    equals `dynamic_extent`,
+    then `ext.extent(extents_type::rank() - 1)`
+    is less than or equal to `padding_value`.
 
 *Effects:*
 
@@ -1134,6 +1189,14 @@ then the result of converting `padding_value` to `index_type` equals `padding_st
 constexpr mapping(const extents_type& ext,
   const extents<index_type, padding_stride>& padding_extents);
 ```
+
+*Precondition:* If `extents_type::rank()` is greater than one,
+    `extents_type::static_extent(extents_type::rank() - 1)`
+    equals `dynamic_extent`,
+    and `padding_stride` equals `dynamic_extent`,
+    then `ext.extent(extents_type::rank() - 1)`
+    is less than or equal to
+    `padding_extents.extent(extents_type::rank() - 1)`.
 
 *Effects:*
 
@@ -1161,9 +1224,12 @@ template<size_t other_padding_stride, class OtherExtents>
 
 *Preconditions:*
 
-* If `extents_type::rank() > 1` is `true` and `padding_stride` does not equal `dynamic_extent`, then `other.stride(extents_type::rank() - 2)` equals `padding_stride`; and
+* If `extents_type::rank() > 1` is `true`
+    and `padding_stride` does not equal `dynamic_extent`,
+    then `other.stride(extents_type::rank() - 2)` equals `padding_stride`; and
 
-* `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+* `other.required_span_size()` is representable
+    as a value of type `index_type` (*[basic.fundamental]*).
 
 *Effects:* 
 
@@ -1192,7 +1258,8 @@ template<class OtherExtents>
 
 * `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-*Preconditions:* `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+*Preconditions:* `other.required_span_size()` is representable
+as a value of type `index_type` (*[basic.fundamental]*).
 
 *Effects:* 
 
@@ -1243,9 +1310,18 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 
 * `(std::is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
 
-*Preconditions:* `extents_type::`_`index-cast`_`(i)` is a multidimensional index in `extents()` ([mdspan.overview]).
+*Precondition:* `extents_type::`_`index-cast`_`(i)`
+is a multidimensional index in `extents()` ([mdspan.overview]).
 
-*Effects:* Let `P` be a parameter pack such that `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.  Equivalent to: `return ((static_cast<index_type>(i) * stride(P)) + ... + 0);`.
+*Effects:* Let `P` be a parameter pack such that
+`is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.
+Equivalent to: `return ((static_cast<index_type>(i) * stride(P)) + ... + 0);`.
+
+<i>[Note:</i>
+Effects are also equivalent to
+<it>`return inner-mapping_`</it>`(idxs...);`,
+but only after the Precondition has been applied.
+<i>— end note]</i>
 
 ```c++
 static constexpr bool is_always_exhaustive() noexcept;
