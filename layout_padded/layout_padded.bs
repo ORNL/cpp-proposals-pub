@@ -771,6 +771,11 @@ size `extents_type::rank()` parameter pack of `size_t`:
 
 * else, the parameter pack `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
 
+*Mandates:* If `padding_stride` does not equal `dynamic_extent`
+and `extents_type::rank()` is greater than one,
+then either `extents_type::static_extent(1)` equals `dynamic_extent`,
+or `extents_type::static_extent(1)` is less than or equal to `padding_stride`.
+
 ```c++
 using <it>inner-extents-type</it> = /* see-below */; // exposition only
 ```
@@ -1054,6 +1059,11 @@ size `extents_type::rank()` parameter pack of `size_t`:
 * If `extents_type::rank()` equals zero or one, then the empty parameter pack;
 
 * else, the parameter pack `size_t(0)`, `size_t(1)`, ..., `extents_type::rank() - 2`.
+
+*Mandates:* If `padding_stride` does not equal `dynamic_extent`
+and `extents_type::rank()` is greater than one,
+then either `extents_type::static_extent(extents_type::rank() - 2)` equals `dynamic_extent`,
+or `extents_type::static_extent(extents_type::rank() - 2)` is less than or equal to `padding_stride`.
 
 ```c++
 using <it>inner-extents-type</it> = /* see-below */; // exposition only
