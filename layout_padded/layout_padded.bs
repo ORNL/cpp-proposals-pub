@@ -715,10 +715,10 @@ struct layout_left_padded {
   private:
     using <it>inner-extents-type</it> = /* see-below */; // exposition only
     using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
-    using inner_mapping_type =
+    using <it>inner-mapping-type</it> =
       layout_left::template mapping<<it>inner-extents-type</it>>; // exposition only
 
-    inner_mapping_type inner_mapping_; // exposition only
+    <it>inner-mapping-type</it> inner_mapping_; // exposition only
     <it>unpadded-extent-type</it> unpadded_extent_; // exposition only
 
   public:
@@ -961,8 +961,7 @@ if not equal to `dynamic_extent`, determines the padding stride.
 
 ```c++
 template<size_t padding_stride = dynamic_extent>
-class layout_right_padded {
-public:
+struct layout_right_padded {
   template<class Extents>
   struct mapping {
   public:
@@ -975,10 +974,10 @@ public:
   private:
     using <it>inner-extents-type</it> = /* see-below */; // exposition only
     using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
-    using inner_mapping_type =
-      layout_left::template mapping<<it>inner-extents-type</it>>; // exposition only
+    using <it>inner-mapping-type</it> =
+      layout_right::template mapping<<it>inner-extents-type</it>>; // exposition only
 
-    inner_mapping_type inner_mapping_; // exposition only
+    <it>inner-mapping-type</it> inner_mapping_; // exposition only
     <it>unpadded-extent-type</it> unpadded_extent_; // exposition only
 
   public:
