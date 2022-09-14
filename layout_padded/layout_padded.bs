@@ -548,8 +548,53 @@ We considered a variant of `layout_stride` that could encode
 any combination of compile-time or run-time strides in the layout type.
 This could, for example, use the same mechanism that `extents` uses.
 (The reference implementation calls this mechanism a "partially static array.")
-However, the benefit of this approach goes down a lot as the rank increases,
-especially if any stride has a run-time value.
+However, we rejected this approach as overly complex for our design goals.
+
+First, the goal of `layout_{left,right}_padded` isn't to insist even harder
+that the compiler bake constants into `mapping::operator()` evaluation.
+The goal is to communicate compile-time information to _users_.
+The most benefit comes not just from knowing the padding stride at compile time,
+but also from knowing that one dimension always uses stride-one (contiguous) storage.
+Putting these two pieces of information together
+lets users apply compiler annotations like `assume_aligned`,
+as in the above `aligned_accessor` example.
+Knowing that one dimension always uses contiguous storage
+also tells users that they can pass the mdspan's data
+directly into C or Fortran libraries like the BLAS or LAPACK.
+Users can benefit from this even if the padding stride is a run-time value.
+
+Second, the `constexpr` annotations in the existing layout mappings
+mean that users might be evaluating `layout_stride::mapping::operator()`
+fully at compile time.  The reference mdspan implementation has
+<a href="https://github.com/kokkos/mdspan/tree/stable/compilation_tests">several tests</a>
+that demonstrate this by using the result of a layout mapping evaluation
+in a context where it needs to be known at compile time.
+
+Third, the performance benefit of storing _some_ strides
+as compile-time constants goes down as the rank increases,
+because most of the strides would end up depending on run-time values anyway.
+Strided mdspan generally come from a subview
+of an existing `layout_left` or `layout_right` mdspan.
+In that case, the representation of the strides
+that preserves the most compile-time information
+would be just the original mdspan's `extents_type` object.
+(Compare to the exposition-only `inner_mapping_`
+which we use in the wording for `layout_{left,right}_padded`.)
+Computing each stride would then call for a forward (for `layout_left`)
+or reverse (for `layout_right`) product of the original mdspan's extents.
+As a result, any stride to the right resp. left of a run-time extent
+would end up depending on that run-time extent anyway.
+The larger the rank, the more strides get "touched" by run-time information.
+
+Fourth, a strided mdspan that can represent layouts as general as `layout_stride`,
+but has entirely compile-time extents _and_ strides,
+could be useful for supporting features of a specific computer architecture.
+However, these hardware features would probably have limitations
+that would prevent them from supporting general strided layouts anyway.
+For example, they might require strides to be a power of two,
+or they might be limited to specific ranges of extents or strides.
+These limitations would call for custom implementation-specific layouts,
+not something as general as a "compile-time `layout_stride`."
 
 ## Implementation
 

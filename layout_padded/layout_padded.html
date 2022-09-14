@@ -2581,8 +2581,45 @@ at the end of each column is accessible memory.</p>
 any combination of compile-time or run-time strides in the layout type.
 This could, for example, use the same mechanism that <code class="highlight"><c- n>extents</c-></code> uses.
 (The reference implementation calls this mechanism a "partially static array.")
-However, the benefit of this approach goes down a lot as the rank increases,
-especially if any stride has a run-time value.</p>
+However, we rejected this approach as overly complex for our design goals.</p>
+   <p>First, the goal of <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_padded</c-></code> isn’t to insist even harder
+that the compiler bake constants into <code class="highlight"><c- n>mapping</c-><c- o>::</c-><c- k>operator</c-><c- p>()</c-></code> evaluation.
+The goal is to communicate compile-time information to _users_.
+The most benefit comes not just from knowing the padding stride at compile time,
+but also from knowing that one dimension always uses stride-one (contiguous) storage.
+Putting these two pieces of information together
+lets users apply compiler annotations like <code class="highlight"><c- n>assume_aligned</c-></code>,
+as in the above <code class="highlight"><c- n>aligned_accessor</c-></code> example.
+Knowing that one dimension always uses contiguous storage
+also tells users that they can pass the mdspan’s data
+directly into C or Fortran libraries like the BLAS or LAPACK.
+Users can benefit from this even if the padding stride is a run-time value.</p>
+   <p>Second, the <code class="highlight"><c- k>constexpr</c-></code> annotations in the existing layout mappings
+mean that users might be evaluating <code class="highlight"><c- n>layout_stride</c-><c- o>::</c-><c- n>mapping</c-><c- o>::</c-><c- k>operator</c-><c- p>()</c-></code> fully at compile time.  The reference mdspan implementation has <a href="https://github.com/kokkos/mdspan/tree/stable/compilation_tests">several tests</a> that demonstrate this by using the result of a layout mapping evaluation
+in a context where it needs to be known at compile time.</p>
+   <p>Third, the performance benefit of storing _some_ strides
+as compile-time constants goes down as the rank increases,
+because most of the strides would end up depending on run-time values anyway.
+Strided mdspan generally come from a subview
+of an existing <code class="highlight"><c- n>layout_left</c-></code> or <code class="highlight"><c- n>layout_right</c-></code> mdspan.
+In that case, the representation of the strides
+that preserves the most compile-time information
+would be just the original mdspan’s <code class="highlight"><c- n>extents_type</c-></code> object.
+(Compare to the exposition-only <code class="highlight"><c- n>inner_mapping_</c-></code> which we use in the wording for <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_padded</c-></code>.)
+Computing each stride would then call for a forward (for <code class="highlight"><c- n>layout_left</c-></code>)
+or reverse (for <code class="highlight"><c- n>layout_right</c-></code>) product of the original mdspan’s extents.
+As a result, any stride to the right resp. left of a run-time extent
+would end up depending on that run-time extent anyway.
+The larger the rank, the more strides get "touched" by run-time information.</p>
+   <p>Fourth, a strided mdspan that can represent layouts as general as <code class="highlight"><c- n>layout_stride</c-></code>,
+but has entirely compile-time extents _and_ strides,
+could be useful for supporting features of a specific computer architecture.
+However, these hardware features would probably have limitations
+that would prevent them from supporting general strided layouts anyway.
+For example, they might require strides to be a power of two,
+or they might be limited to specific ranges of extents or strides.
+These limitations would call for custom implementation-specific layouts,
+not something as general as a "compile-time <code class="highlight"><c- n>layout_stride</c-></code>."</p>
    <h3 class="heading settled" data-level="3.6" id="implementation"><span class="secno">3.6. </span><span class="content">Implementation</span><a class="self-link" href="#implementation"></a></h3>
    <p>Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a> in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a> implements this proposal.</p>
    <h3 class="heading settled" data-level="3.7" id="desired-ship-vehicle"><span class="secno">3.7. </span><span class="content">Desired ship vehicle</span><a class="self-link" href="#desired-ship-vehicle"></a></h3>
