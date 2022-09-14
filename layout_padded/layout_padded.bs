@@ -719,7 +719,7 @@ struct layout_left_padded {
       layout_left::template mapping<<it>inner-extents-type</it>>; // exposition only
 
     <it>inner-mapping-type</it> <it>inner-mapping_</it>; // exposition only
-    <it>unpadded-extent-type</it> unpadded_extent_; // exposition only
+    <it>unpadded-extent-type</it> <it>unpadded-extent_</it>; // exposition only
 
   public:
     constexpr mapping(const extents_type& ext);
@@ -806,8 +806,8 @@ constexpr mapping(const extents_type& ext);
 
     * `padding_stride, ext.extent(P_left)...`; and 
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, direct-non-list-initializes `unpadded_extent_` with `ext.extent(0)`.
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, direct-non-list-initializes <it>`unpadded-extent_`</it> with `ext.extent(0)`.
 
 ```c++
 template<class Size>
@@ -831,8 +831,8 @@ then the result of converting `padding_value` to `index_type` equals `padding_st
     
     * `padding_value, ext.extent(P_left)...`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, direct-non-list-initializes `unpadded_extent_` with `ext.extent(0)`.
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, direct-non-list-initializes <it>`unpadded-extent_`</it> with `ext.extent(0)`.
 
 ```c++
 constexpr mapping(const extents_type& ext,
@@ -847,8 +847,8 @@ constexpr mapping(const extents_type& ext,
     
     * `padding_extents.extent(0), ext.extent(P_left)...`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, direct-non-list-initializes `unpadded_extent_` with `ext.extent(0)`.
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, direct-non-list-initializes <it>`unpadded-extent_`</it> with `ext.extent(0)`.
 
 ```c++
 template<size_t other_padding_stride, class OtherExtents>
@@ -876,8 +876,8 @@ template<size_t other_padding_stride, class OtherExtents>
     
     * `other.stride(1), other.extents().extent(P_left)...`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, direct-non-list-initializes `unpadded_extent_` with
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, direct-non-list-initializes <it>`unpadded-extent_`</it> with
     `other.extents().extent(0)`.
 
 *Remarks:* The expression inside `explicit` is equivalent to:
@@ -901,8 +901,8 @@ template<size_t other_padding_stride, class OtherExtents>
 
 * Direct-non-list-initializes <it>`inner-mapping_`</it> with `other.extents()`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, direct-non-list-initializes `unpadded_extent_` with `other.extents().extent(0)`.
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, direct-non-list-initializes <it>`unpadded-extent_`</it> with `other.extents().extent(0)`.
 
 <i>[Note:</i> Neither mapping uses the padding stride
 in the rank-0 or rank-1 case, so the padding stride does not affect
@@ -917,7 +917,7 @@ constexpr extents_type extents() const noexcept;
 * If `extents_type::rank()` is zero, equivalent to `return extents_type{};`.
 
 * Otherwise, equivalent to
-    `return extents_type(unpadded_extent_.extent(0), `<it>`inner-mapping_`</it>`.extent(P_left)...);`.
+    `return extents_type(`<it>`unpadded-extent_`</it>`.extent(0), `<it>`inner-mapping_`</it>`.extent(P_left)...);`.
 
 ```c++
 constexpr std::array<index_type, extents_type::rank()>
@@ -968,7 +968,7 @@ constexpr bool is_exhaustive() const noexcept;
 
 * If `extents_type::rank()` equals zero, `true`;
 
-* else, <it>`inner-mapping_`</it>`.extent(0) == unpadded_extent_.extent(0)`.
+* else, <it>`inner-mapping_`</it>`.extent(0) == `<it>`unpadded-extent_`</it>`.extent(0)`.
 
 ```c++
 constexpr index_type stride(rank_type r) const noexcept;
@@ -1003,7 +1003,7 @@ struct layout_right_padded {
       layout_right::template mapping<<it>inner-extents-type</it>>; // exposition only
 
     <it>inner-mapping-type</it> <it>inner-mapping_</it>; // exposition only
-    <it>unpadded-extent-type</it> unpadded_extent_; // exposition only
+    <it>unpadded-extent-type</it> <it>unpadded-extent_</it>; // exposition only
 
   public:
     constexpr mapping(const extents_type& ext);
@@ -1090,8 +1090,8 @@ constexpr mapping(const extents_type& ext);
 
     * `ext.extent(P_right)..., padding_stride`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, direct-non-list-initializes `unpadded_extent_` with
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, direct-non-list-initializes <it>`unpadded-extent_`</it> with
     `ext.extent(extents_type::rank() - 1)`.
 
 ```c++
@@ -1116,8 +1116,8 @@ then the result of converting `padding_value` to `index_type` equals `padding_st
     
     * `ext.extent(P_right)..., padding_value`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, direct-non-list-initializes `unpadded_extent_` with
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, direct-non-list-initializes <it>`unpadded-extent_`</it> with
     `ext.extent(extents_type::rank() - 1)`.
 
 ```c++
@@ -1133,8 +1133,8 @@ constexpr mapping(const extents_type& ext,
 
     * `ext.extent(P_right)..., padding_extents.extent(extents_type::rank() - 1)`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`; else,
-    direct-non-list-initializes `unpadded_extent_` with
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>; else,
+    direct-non-list-initializes <it>`unpadded-extent_`</it> with
     `ext.extent(extents_type::rank() - 1)`.
 
 ```c++
@@ -1163,8 +1163,8 @@ template<size_t other_padding_stride, class OtherExtents>
     
     * `other.extents().extent(P_right)..., other.stride(extents_type::rank() - 2)`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, direct-non-list-initializes `unpadded_extent_` with
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, direct-non-list-initializes <it>`unpadded-extent_`</it> with
     `other.extents().extent(extents_type::rank() - 1)`.
 
 *Remarks:* The expression inside `explicit` is equivalent to:
@@ -1188,8 +1188,8 @@ template<class OtherExtents>
 
 * Direct-non-list-initializes <it>`inner-mapping_`</it> with `other.extents()`; and
 
-* if `extents_type::rank()` is zero, value-initializes `unpadded_extent_`;
-    else, initializes `unpadded_extent_` with
+* if `extents_type::rank()` is zero, value-initializes <it>`unpadded-extent_`</it>;
+    else, initializes <it>`unpadded-extent_`</it> with
     `other.extents().extent(0)`.
 
 <i>[Note:</i> Neither mapping uses the padding stride
@@ -1205,7 +1205,7 @@ constexpr extents_type extents() const noexcept;
 * If `extents_type::rank()` is zero, equivalent to `return extents_type{};`.
 
 * Otherwise, equivalent to
-    `return extents_type(`<it>`inner-mapping_`</it>`.extent(P_right)..., unpadded_extent_.extent(extents_type::rank() - 1));`.
+    `return extents_type(`<it>`inner-mapping_`</it>`.extent(P_right)..., `<it>`unpadded-extent_`</it>`.extent(extents_type::rank() - 1));`.
 
 ```c++
 constexpr std::array<index_type, extents_type::rank()>
@@ -1256,7 +1256,7 @@ constexpr bool is_exhaustive() const noexcept;
 
 * If `extents_type::rank()` equals zero, `true`;
 
-* else, <it>`inner-mapping_`</it>`.extent(extents_type::rank() - 1) == unpadded_extent_.extent(extents_type::rank() - 1)`.
+* else, <it>`inner-mapping_`</it>`.extent(extents_type::rank() - 1) == `<it>`unpadded-extent_`</it>`.extent(extents_type::rank() - 1)`.
 
 ```c++
 constexpr index_type stride(rank_type r) const noexcept;

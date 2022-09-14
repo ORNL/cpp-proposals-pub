@@ -2735,7 +2735,7 @@ if not equal to <code class="highlight"><c- n>dynamic_extent</c-></code>, determ
       <c- n>layout_left</c-><c- o>::</c-><c- n>template</c-> <c- n>mapping</c-><c- o>&lt;&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>extents</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 
     <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>mapping</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>mapping_</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>unpadded</c-><c- o>-</c-><c- n>extent</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- n>unpadded_extent_</c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>unpadded</c-><c- o>-</c-><c- n>extent</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 
   <c- n>public</c-><c- o>:</c->
     <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
@@ -2841,8 +2841,14 @@ if <code class="highlight"><c- n>padding_stride</c-></code> is <code class="high
        <p><code class="highlight"><c- n>padding_stride</c-><c- p>,</c-> <c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_left</c-><c- p>)...</c-></code>; and</p>
      </ul>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
+     </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Size</c-><c- o>></c->
 <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-><c- p>);</c->
@@ -2871,8 +2877,14 @@ then the result of converting <code class="highlight"><c- n>padding_value</c-></
        <p><code class="highlight"><c- n>padding_value</c-><c- p>,</c-> <c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_left</c-><c- p>)...</c-></code>; and</p>
      </ul>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
+     </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c->
   <c- k>const</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>padding_stride</c-><c- o>>&amp;</c-> <c- n>padding_extents</c-><c- p>);</c->
@@ -2892,8 +2904,14 @@ else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_
        <p><code class="highlight"><c- n>padding_extents</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>),</c-> <c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_left</c-><c- p>)...</c-></code>; and</p>
      </ul>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
+     </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- n>other_padding_stride</c-><c- p>,</c-> <c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
   <c- n>constexpr</c-> <c- n>explicit</c-><c- p>(</c-> <c- d>/* see below */</c-> <c- p>)</c->
@@ -2928,8 +2946,14 @@ else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_
        <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>),</c-> <c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- n>P_left</c-><c- p>)...</c-></code>; and</p>
      </ul>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
+     </p>
    </ul>
    <p><em>Remarks:</em> The expression inside <code class="highlight"><c- k>explicit</c-></code> is equivalent to: <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>0</c-> <c- o>&amp;&amp;</c-> <c- p>(</c-><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-><c- p>)</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- n>other_padding_stride</c-><c- p>,</c-> <c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
@@ -2953,8 +2977,14 @@ else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_
        with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>()</c-></code>; and
      </p>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
+     </p>
    </ul>
    <p><i>[Note:</i> Neither mapping uses the padding stride
 in the rank-0 or rank-1 case, so the padding stride does not affect
@@ -2967,7 +2997,9 @@ either the constraints or the precondititions. <i>— end note]</i></p>
      <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, equivalent to <code class="highlight"><c- k>return</c-> <c- n>extents_type</c-><c- p>{};</c-></code>.</p>
     <li data-md>
      <p>
-      Otherwise, equivalent to <code class="highlight"><c- k>return</c-> <c- n>extents_type</c-><c- p>(</c-><c- n>unpadded_extent_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>),</c-></code>
+      Otherwise, equivalent to <code class="highlight"><c- k>return</c-> <c- n>extents_type</c-><c- p>(</c-></code>
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>),</c-></code>
       <it><code class="highlight"><c- n>inner</c-><c- o>-</c-><c- n>mapping_</c-></code></it>
       <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_left</c-><c- p>)...);</c-></code>.
      </p>
@@ -3024,7 +3056,9 @@ either the constraints or the precondititions. <i>— end note]</i></p>
      <p>
       else, 
       <it><code class="highlight"><c- n>inner</c-><c- o>-</c-><c- n>mapping_</c-></code></it>
-      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>==</c-> <c- n>unpadded_extent_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
+      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-> <c- o>==</c-></code>
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
      </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>index_type</c-> <c- n>stride</c-><c- p>(</c-><c- n>rank_type</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
@@ -3058,7 +3092,7 @@ if not equal to <code class="highlight"><c- n>dynamic_extent</c-></code>, determ
       <c- n>layout_right</c-><c- o>::</c-><c- n>template</c-> <c- n>mapping</c-><c- o>&lt;&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>extents</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 
     <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>mapping</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>mapping_</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
-    <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>unpadded</c-><c- o>-</c-><c- n>extent</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- n>unpadded_extent_</c-><c- p>;</c-> <c- c1>// exposition only</c->
+    <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>unpadded</c-><c- o>-</c-><c- n>extent</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-><c- p>;</c-> <c- c1>// exposition only</c->
 
   <c- n>public</c-><c- o>:</c->
     <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
@@ -3164,8 +3198,14 @@ if <code class="highlight"><c- n>padding_stride</c-></code> is <code class="high
        <p><code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-> <c- n>padding_stride</c-></code>; and</p>
      </ul>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.
+     </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>Size</c-><c- o>></c->
 <c- n>constexpr</c-> <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-><c- p>);</c->
@@ -3194,8 +3234,14 @@ then the result of converting <code class="highlight"><c- n>padding_value</c-></
        <p><code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-> <c- n>padding_value</c-></code>; and</p>
      </ul>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.
+     </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c->
   <c- k>const</c-> <c- n>extents</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>padding_stride</c-><c- o>>&amp;</c-> <c- n>padding_extents</c-><c- p>);</c->
@@ -3215,8 +3261,14 @@ else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_
        <p><code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-> <c- n>padding_extents</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>; and</p>
      </ul>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>; else,
-direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ; else,
+direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.
+     </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- n>other_padding_stride</c-><c- p>,</c-> <c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
   <c- n>constexpr</c-> <c- n>explicit</c-><c- p>(</c-> <c- d>/* see below */</c-> <c- p>)</c->
@@ -3251,8 +3303,14 @@ direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-><
        <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-> <c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code>; and</p>
      </ul>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, direct-non-list-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.
+     </p>
    </ul>
    <p><em>Remarks:</em> The expression inside <code class="highlight"><c- k>explicit</c-></code> is equivalent to: <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>0</c-> <c- o>&amp;&amp;</c-> <c- p>(</c-><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-><c- p>)</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
@@ -3276,8 +3334,14 @@ else, direct-non-list-initializes <code class="highlight"><c- n>unpadded_extent_
        with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>()</c-></code>; and
      </p>
     <li data-md>
-     <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes <code class="highlight"><c- n>unpadded_extent_</c-></code>;
-else, initializes <code class="highlight"><c- n>unpadded_extent_</c-></code> with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+     <p>
+      if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is zero, value-initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      ;
+else, initializes 
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+       with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
+     </p>
    </ul>
    <p><i>[Note:</i> Neither mapping uses the padding stride
 in the rank-0 or rank-1 case, so the padding stride does not affect
@@ -3292,7 +3356,9 @@ either the constraints or the precondititions. <i>— end note]</i></p>
      <p>
       Otherwise, equivalent to <code class="highlight"><c- k>return</c-> <c- n>extents_type</c-><c- p>(</c-></code>
       <it><code class="highlight"><c- n>inner</c-><c- o>-</c-><c- n>mapping_</c-></code></it>
-      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-> <c- n>unpadded_extent_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>));</c-></code>.
+      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>P_right</c-><c- p>)...,</c-></code>
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>));</c-></code>.
      </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>std</c-><c- o>::</c-><c- n>array</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-><c- o>></c->
@@ -3347,7 +3413,9 @@ either the constraints or the precondititions. <i>— end note]</i></p>
      <p>
       else, 
       <it><code class="highlight"><c- n>inner</c-><c- o>-</c-><c- n>mapping_</c-></code></it>
-      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-> <c- o>==</c-> <c- n>unpadded_extent_</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.
+      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-> <c- o>==</c-></code>
+      <it><code class="highlight"><c- n>unpadded</c-><c- o>-</c-><c- n>extent_</c-></code></it>
+      <code class="highlight"><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.
      </p>
    </ul>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>index_type</c-> <c- n>stride</c-><c- p>(</c-><c- n>rank_type</c-> <c- n>r</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
