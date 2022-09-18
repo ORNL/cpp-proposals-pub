@@ -23,7 +23,7 @@ Date: 2022-09-14
 
 # Revision history
 
-* Revision 0 submitted 2022-09-15
+* Revision 0 submitted 2022-09-14
 
 # Proposed changes and justification
 
@@ -496,7 +496,7 @@ We include some helper functions for making overaligned array allocations.
 template<class ElementType>
 struct delete_raw {
   void operator()(ElementType* p) const {
-    if (p != nullptr) { std::free(p); }
+    std::free(p);
   }
 };
 
@@ -596,7 +596,7 @@ or they might be limited to specific ranges of extents or strides.
 These limitations would call for custom implementation-specific layouts,
 not something as general as a "compile-time `layout_stride`."
 
-## Implementation
+## Implementation experience
 
 Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a>
 in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a>

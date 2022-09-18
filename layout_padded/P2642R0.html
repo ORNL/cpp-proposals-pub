@@ -2,7 +2,7 @@
  <head>
   <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
   <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-  <title>DXXXXR0: Padded mdspan layouts</title>
+  <title>P2642R0: Padded mdspan layouts</title>
 <style data-fill-with="stylesheet">/******************************************************************************
  *                   Style sheet for the W3C specifications                   *
  *
@@ -2081,8 +2081,8 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
  <body class="h-entry">
   <div class="head">
    <p data-fill-with="logo"></p>
-   <h1 class="p-name no-ref" id="title">DXXXXR0<br>Padded mdspan layouts</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Draft Proposal, <time class="dt-updated" datetime="2022-09-09">2022-09-09</time></span></h2>
+   <h1 class="p-name no-ref" id="title">P2642R0<br>Padded mdspan layouts</h1>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-09-14">2022-09-14</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2132,7 +2132,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#overaligned-access"><span class="secno">3.4.2</span> <span class="content">Overaligned access</span></a>
        </ol>
       <li><a href="#alternatives"><span class="secno">3.5</span> <span class="content">Alternatives</span></a>
-      <li><a href="#implementation"><span class="secno">3.6</span> <span class="content">Implementation</span></a>
+      <li><a href="#implementation-experience"><span class="secno">3.6</span> <span class="content">Implementation experience</span></a>
       <li><a href="#desired-ship-vehicle"><span class="secno">3.7</span> <span class="content">Desired ship vehicle</span></a>
      </ol>
     <li>
@@ -2163,7 +2163,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
    <h2 class="heading settled" data-level="2" id="revision-history"><span class="secno">2. </span><span class="content">Revision history</span><a class="self-link" href="#revision-history"></a></h2>
    <ul>
     <li data-md>
-     <p>Revision 0 submitted 2022-09-15</p>
+     <p>Revision 0 submitted 2022-09-14</p>
    </ul>
    <h2 class="heading settled" data-level="3" id="proposed-changes-and-justification"><span class="secno">3. </span><span class="content">Proposed changes and justification</span><a class="self-link" href="#proposed-changes-and-justification"></a></h2>
    <h3 class="heading settled" data-level="3.1" id="summary-of-proposed-changes"><span class="secno">3.1. </span><span class="content">Summary of proposed changes</span><a class="self-link" href="#summary-of-proposed-changes"></a></h3>
@@ -2534,7 +2534,7 @@ uses the C++ Standard Library function <code class="highlight"><c- n>assume_alig
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- n>class</c-> <c- n>ElementType</c-><c- o>></c->
 <c- k>struct</c-> <c- nc>delete_raw</c-> <c- p>{</c->
   <c- b>void</c-> <c- nf>operator</c-><c- p>()(</c-><c- n>ElementType</c-><c- o>*</c-> <c- n>p</c-><c- p>)</c-> <c- k>const</c-> <c- p>{</c->
-    <c- k>if</c-> <c- p>(</c-><c- n>p</c-> <c- o>!=</c-> <c- n>nullptr</c-><c- p>)</c-> <c- p>{</c-> <c- n>std</c-><c- o>::</c-><c- n>free</c-><c- p>(</c-><c- n>p</c-><c- p>);</c-> <c- p>}</c->
+    <c- n>std</c-><c- o>::</c-><c- n>free</c-><c- p>(</c-><c- n>p</c-><c- p>);</c->
   <c- p>}</c->
 <c- p>};</c->
 
@@ -2624,7 +2624,7 @@ For example, they might require strides to be a power of two,
 or they might be limited to specific ranges of extents or strides.
 These limitations would call for custom implementation-specific layouts,
 not something as general as a "compile-time <code class="highlight"><c- n>layout_stride</c-></code>."</p>
-   <h3 class="heading settled" data-level="3.6" id="implementation"><span class="secno">3.6. </span><span class="content">Implementation</span><a class="self-link" href="#implementation"></a></h3>
+   <h3 class="heading settled" data-level="3.6" id="implementation-experience"><span class="secno">3.6. </span><span class="content">Implementation experience</span><a class="self-link" href="#implementation-experience"></a></h3>
    <p>Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a> in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a> implements this proposal.</p>
    <h3 class="heading settled" data-level="3.7" id="desired-ship-vehicle"><span class="secno">3.7. </span><span class="content">Desired ship vehicle</span><a class="self-link" href="#desired-ship-vehicle"></a></h3>
    <p>C++26 / IS.</p>
