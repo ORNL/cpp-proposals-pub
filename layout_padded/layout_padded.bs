@@ -1,14 +1,14 @@
 <pre class='metadata'>
 Title: Padded mdspan layouts
-Shortname: P2642
-Status: iso/P
-Level: 0
+Shortname: D2642
+Status: iso/D
+Level: 1
 Group: WG21
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/layout_padded/layout_padded.bs
 Editor: Mark Hoemmen, NVIDIA, mhoemmen@nvidia.com
 Abstract: We propose two new mdspan layouts, layout_left_padded and layout_right_padded.  These are strided layouts where the leftmost resp. rightmost extent is always stride 1, but the next stride to the right resp. left can be larger than the leftmost resp. rightmost extent.  The new layouts can represent this "padding stride" as either a compile-time or a run-time value.  We also propose adding submdspan (P2630) support for these layouts, and changing P2630 so that submdspan of a layout_left resp. layout_right mdspan produces a layout_left_padded resp. layout_right_padded mdspan whenever possible.
 Markup Shorthands: markdown yes
-Date: 2022-09-14
+Date: 2022-09-28
 </pre>
 
 # Authors and contributors
@@ -25,6 +25,12 @@ Date: 2022-09-14
 
 * Revision 0 submitted 2022-09-14
 
+* Revision 1 submitted XXXX-XX-XX
+
+    * Fixed typos in Wording
+
+    * Fix formatting in non-Wording, and add links for BLAS and LAPACK
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
@@ -35,7 +41,10 @@ These layouts support two use cases:
 
 1. array layouts that are contiguous in one dimension,
     as supported by commonly used libraries
-    like the BLAS and LAPACK; and
+    like the <a href="https://netlib.org/blas/blast-forum/">BLAS</a>
+    (Basic Linear Algebra Subroutines;
+    see P1417 and P1674 for historical overview and references)
+    and <a href="https://netlib.org/lapack/">LAPACK</a>; and
 
 2. "padded" storage for overaligned access
     of the start of every contiguous segment of the array.
@@ -209,7 +218,9 @@ and let `srm1` ("s of rank minus 1") be an object of a type `Srm1` such that
 `is_convertible_v<S1, tuple<index_type_X, index_type_X>>` is `true`.
 
 
-Similarly, let `Y` be an `mdspan` with rank at least two whose layout is `layout_right_padded<padding_stride_Y>` for some `constexpr size_t padding_stride_Y`.
+Similarly, let `Y` be an `mdspan` with rank at least two
+whose layout is `layout_right_padded<padding_stride_Y>`
+for some `constexpr size_t padding_stride_Y`.
 Let `index_type_Y` name the type `decltype(Y)::index_type`.
 Let `srm2` ("S of rank minus 2") be an object of a type `Srm2` such that
 `is_convertible_v<Srm2, tuple<index_type_Y, index_type_Y>>` is `true`,
@@ -552,7 +563,7 @@ However, we rejected this approach as overly complex for our design goals.
 
 First, the goal of `layout_{left,right}_padded` isn't to insist even harder
 that the compiler bake constants into `mapping::operator()` evaluation.
-The goal is to communicate compile-time information to _users_.
+The goal is to communicate compile-time information to *users*.
 The most benefit comes not just from knowing the padding stride at compile time,
 but also from knowing that one dimension always uses stride-one (contiguous) storage.
 Putting these two pieces of information together
@@ -587,7 +598,7 @@ would end up depending on that run-time extent anyway.
 The larger the rank, the more strides get "touched" by run-time information.
 
 Fourth, a strided mdspan that can represent layouts as general as `layout_stride`,
-but has entirely compile-time extents _and_ strides,
+but has entirely compile-time extents *and* strides,
 could be useful for supporting features of a specific computer architecture.
 However, these hardware features would probably have limitations
 that would prevent them from supporting general strided layouts anyway.
@@ -600,7 +611,9 @@ not something as general as a "compile-time `layout_stride`."
 
 Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a>
 in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a>
-implements this proposal.
+implements most of this proposal.
+Next steps are to add constructors to the existing layout mappings,
+and to add `submdspan` support for the new layouts.
 
 ## Desired ship vehicle
 
@@ -630,7 +643,7 @@ template<size_t padding_stride = dynamic_extent>
 struct layout_right_padded;
 ```
 
-> In Section � *[mdspan.layout.left.overview]* ("Overview"), add the following constructor to the `layout_left_padded::mapping` class declaration, between the constructor converting from `layout_right::mapping<OtherExtents>` and the constructor converting from `layout_stride::mapping<OtherExtents>`:
+> In Section � *[mdspan.layout.left.overview]* ("Overview"), add the following constructor to the `layout_left::mapping` class declaration, between the constructor converting from `layout_right::mapping<OtherExtents>` and the constructor converting from `layout_stride::mapping<OtherExtents>`:
 
 ```c++
 template<size_t other_padding_stride, class OtherExtents>
@@ -710,7 +723,7 @@ struct layout_left_padded {
     using index_type = typename extents_type::index_type;
     using size_type = typename extents_type::size_type;
     using rank_type = typename extents_type::rank_type;
-    using layout_type = layout_left_padded<padding>;
+    using layout_type = layout_left_padded<padding_stride>;
 
   private:
     using <it>inner-extents-type</it> = /* see-below */; // exposition only
@@ -1037,7 +1050,7 @@ struct layout_right_padded {
     using index_type = typename extents_type::index_type;
     using size_type = typename extents_type::size_type;
     using rank_type = typename extents_type::rank_type;
-    using layout_type = layout_right_padded<padding>;
+    using layout_type = layout_right_padded<padding_stride>;
 
   private:
     using <it>inner-extents-type</it> = /* see-below */; // exposition only
@@ -1061,9 +1074,9 @@ struct layout_right_padded {
       constexpr explicit( /* see below */ )
         mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>& other);
 
-    template<class OtherExtents>
+    template<size_t other_padding_stride, class OtherExtents>
       constexpr explicit(not is_convertible_v<OtherExtents, extents_type>)
-        mapping(const layout_left_padded::mapping<OtherExtents>& other) noexcept;
+        mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>& other) noexcept;
 
     constexpr mapping(const mapping&) noexcept = default;
     mapping& operator=(const mapping&) noexcept = default;
@@ -1247,9 +1260,9 @@ template<size_t other_padding_stride, class OtherExtents>
 `extents_type::rank() > 0 && (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)`.
 
 ```c++
-template<class OtherExtents>
+template<size_t other_padding_stride, class OtherExtents>
   constexpr explicit(not is_convertible_v<OtherExtents, extents_type>)
-    mapping(const layout_left_padded::mapping<OtherExtents>& other) noexcept;
+    mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>& other) noexcept;
 ```
 
 *Constraints:*
