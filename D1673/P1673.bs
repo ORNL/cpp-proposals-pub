@@ -384,6 +384,14 @@ Date: 2022-06-15
 
     * Make all matrix view functions `constexpr`.
 
+    * Rebase atop P2642R1 (if it exists by this point).
+        Remove wording saying that we rebase atop P0009R17.
+        (We don't need that any more, because P0009
+        was merged into the current C++ draft.)
+
+    * Replace `layout_blas_general` with the layouts proposed by P2642
+        (`layout_left_padded` and `layout_right_padded`).
+
 # Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -3127,18 +3135,29 @@ policies as described by P0009 have three basic properties:
 P0009 includes three different layouts -- `layout_left`,
 `layout_right`, and `layout_stride` -- all of which are unique and
 strided.  Only `layout_left` and `layout_right` are contiguous.
+P2642 includes `layout_left_padded` and `layout_right_padded`.
+These two layouts represent exactly the data layout assumed by
+the General (GE) matrix type in the BLAS' C and Fortran bindings.
+They have has two advantages:
 
-This proposal includes the following additional layouts:
+1. Unlike `layout_left` and `layout_right`, any "submatrix" (subspan
+    of consecutive rows and consecutive columns) of a matrix with
+    `layout_left_padded` resp. `layout_right_padded` layout 
+    also has `layout_left_padded` resp. `layout_right_padded` layout.
 
-* `layout_blas_general`, a generalization of `layout_left` and
-    `layout_right` that describes the layout used by General (GE) matrix "type"; and
+2. Unlike `layout_stride`, the two layouts always have
+    compile-time unit stride in one of the matrix's two extents.
 
-* `layout_blas_packed`, which describes the layout used by the BLAS' Symmetric
-    Packed (SP), Hermitian Packed (HP), and Triangular Packed (TP)
-    "types."
+BLAS functions call the possibly nonunit stride of the matrix the
+"leading dimension" of that matrix.  For example, a BLAS function
+argument corresponding to the leading dimension of the matrix `A` is
+called `LDA`, for "leading dimension of the matrix A."
 
-These layouts have "tag" template parameters that control their
-properties; see below.
+This proposal introduces a new layout, `layout_blas_packed`.
+This describes the layout used by the BLAS' Symmetric Packed (SP),
+Hermitian Packed (HP), and Triangular Packed (TP) "types."
+The `layout_blas_packed` class has a "tag" template parameter
+that controls its properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
 (SY), Hermitian (HE), and Triangular (TR).
@@ -3324,8 +3343,8 @@ on constraints wording.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R17.
-> (This proposal is a "rebase" atop the changes proposed by P0009R17.)
+> First, apply all wording from P2642R1.
+> (This proposal is a "rebase" atop the changes proposed by P2642R1.)
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -3350,10 +3369,6 @@ struct implicit_unit_diagonal_t;
 inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal;
 struct explicit_diagonal_t;
 inline constexpr explicit_diagonal_t explicit_diagonal;
-
-// [linalg.layouts.general], class template layout_blas_general
-template<class StorageOrder>
-class layout_blas_general;
 
 // [linalg.layouts.packed], class template layout_blas_packed
 template<class Triangle,
@@ -5094,8 +5109,7 @@ inline constexpr row_major_t row_major = { };
 
 `column_major_t` indicates a column-major order, and `row_major_t`
 indicates a row-major order.  The interpretation of each depends on
-the specific layout that uses the tag.  See `layout_blas_general` and
-`layout_blas_packed` below.
+the specific layout that uses the tag.  See `layout_blas_packed` below.
 
 ### Triangle tags [linalg.tags.triangle]
 
@@ -5170,201 +5184,6 @@ The tag `explicit_diagonal_t` indicates that algorithms
 may access the matrix's diagonal entries directly.
 
 ## Layouts for general and packed matrix types [linalg.layouts]
-
-### `layout_blas_general` [linalg.layouts.general]
-
-`layout_blas_general` is an `mdspan` layout mapping policy.  Its
-`StorageOrder` template parameter determines whether the matrix's data
-layout is column major or row major.
-
-`layout_blas_general<column_major_t>` represents a column-major matrix
-layout, where the stride between consecutive rows is always one, and
-the stride between consecutive columns may be greater than or equal to
-the number of rows.  *[Note:* This is a generalization of
-`layout_left`. --*end note]*
-
-`layout_blas_general<row_major_t>` represents a row-major matrix
-layout, where the stride between consecutive rows may be greater than
-or equal to the number of columns, and the stride between consecutive
-columns is always one.  *[Note:* This is a generalization of
-`layout_right`. --*end note]*
-
-*[Note:*
-
-`layout_blas_general` represents exactly the data layout assumed by
-the General (GE) matrix type in the BLAS' C binding.  It has two
-advantages:
-
-1. Unlike `layout_left` and `layout_right`, any "submatrix" (subspan
-    of consecutive rows and consecutive columns) of a matrix with
-    `layout_blas_general<StorageOrder>` layout also has
-    `layout_blas_general<StorageOrder>` layout.
-
-2. Unlike `layout_stride`, it always has compile-time unit stride in
-    one of the matrix's two extents.
-
-BLAS functions call the possibly nonunit stride of the matrix the
-"leading dimension" of that matrix.  For example, a BLAS function
-argument corresponding to the leading dimension of the matrix `A` is
-called `LDA`, for "leading dimension of the matrix A."
-
---*end note]*
-
-```c++
-template<class StorageOrder>
-class layout_blas_general {
-public:
-  template<class Extents>
-  struct mapping {
-  public:
-    using extents_type = Extents;
-    using size_type = typename extents_type::size_type;
-    using layout_type = layout_blas_general<StorageOrder>;
-
-  private:
-    extents_type extents_{}; // exposition only
-    size_type stride_{}; // exposition only
-
-  public:
-    constexpr mapping(const extents_type& e, size_type s) noexcept;
-
-    template<class OtherExtents>
-      explicit(! is_convertible_v<OtherExtents, extents_type>)
-        constexpr mapping(const mapping<OtherExtents>& e) noexcept;
-
-    constexpr extents_type extents() const noexcept { return extents_; }
-
-    constexpr size_type required_span_size() const noexcept;
-
-    template<class IndexType>
-      constexpr size_type
-        operator() (IndexType i, IndexType j) const noexcept;
-
-    static constexpr bool is_always_unique() { return true; }
-    static constexpr bool is_always_contiguous() { return true; }
-    static constexpr bool is_always_strided() { return true; }
-
-    constexpr bool is_unique() const noexcept { return true; }
-    constexpr bool is_contiguous() const noexcept;
-    constexpr bool is_strided() const noexcept { return true; }
-
-    constexpr size_type stride(size_t r) const noexcept;
-
-    template<class OtherExtents>
-      friend constexpr bool
-        operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
-  };
-};
-```
-
-* *Constraints:*
-
-    * `StorageOrder` is either `column_major_t` or `row_major_t`.
-
-    * `Extents` is a specialization of `extents`.
-
-    * `Extents::rank()` equals 2.
-
-```c++
-constexpr mapping(const extents_type& e, size_type s) noexcept;
-```
-
-* *Preconditions:*
-
-    * If `StorageOrder` is `column_major_t`,
-        then `s` is greater than or equal to `e.extent(0)`.
-
-    * Otherwise, if `StorageOrder` is `row_major_t`,
-        then `s` is greater than or equal to `e.extent(1)`.
-
-* *Effects:* Initializes `extents_` with `e`, and initializes `stride_` with `s`.
-
-*[Note:*
-
-The BLAS Standard requires that the stride be one if the corresponding
-matrix dimension is zero.  We do not impose this requirement here,
-because it is specific to the BLAS.  if an implementation dispatches
-to a BLAS function, then the implementation must impose the
-requirement at run time.
-
---*end note]*
-
-```c++
-template<class OtherExtents>
-  explicit(! is_convertible_v<OtherExtents, extents_type>)
-    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
-```
-
-* *Constraints:*
-
-    * `is_constructible_v<extents_type, OtherExtents>` is `true`.
-
-    * `OtherExtents::rank()` equals 2.
-
-* *Effects:* Direct-non-list-initializes `extents_` with `m.extents_`,
-    and initializes `stride_` with `m.stride_`.
-
-```c++
-constexpr size_type required_span_size() const noexcept;
-```
-
-* *Returns:* `stride(0)*stride(1)`.
-
-```c++
-template<class IndexType>
-  constexpr size_type
-    operator() (IndexType i, IndexType j) const noexcept;
-```
-
-<!-- TODO (mfh 2022/07/06) Align wording with current P0009. -->
-
-* *Preconditions:*
-
-    * 0 ≤ `i` < `extent(0)`, and
-
-    * 0 ≤ `j` < `extent(1)`.
-
-* *Returns:*
-
-    * If `StorageOrder` is `column_major_t`, then
-        `i + stride(1)*j`;
-
-    * else, if `StorageOrder` is `row_major_t`, then
-        `stride(0)*i + j`.
-
-```c++
-constexpr bool is_contiguous() const noexcept;
-```
-
-* *Returns:*
-
-    * If `StorageOrder` is `column_major_t`,
-        then `true` if `stride(1)` equals `extent(0)`, else `false`;
-
-    * else, if `StorageOrder` is `row_major_t`,
-        then `true` if `stride(0)` equals `extent(1)`, else `false`.
-
-```c++
-constexpr size_type stride(size_t r) const noexcept;
-```
-
-* *Returns:*
-
-    * If `StorageOrder` is `column_major_t`, `stride_` if `r` equals 1, else 1;
-
-    * else, if `StorageOrder` is `row_major_t`, `stride_` if `r` equals 0, else 1.
-
-```c++
-template<class OtherExtents>
-  friend constexpr bool
-    operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
-```
-
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
-
-* *Returns:* `true` if and only if for 0 ≤ `r` < `rank()`,
-    `m.extent(r)` equals `extent(r)` and
-    `m.stride(r)` equals `stride(r)`.
 
 ### `layout_blas_packed` [linalg.layouts.packed]
 
@@ -6571,11 +6390,11 @@ where
 
     * else if `Layout` is `layout_stride`, then `layout_stride`;
 
-    * else if `Layout` is `layout_blas_general<StorageOrder>`
-        for some `StorageOrder`,
-        then `layout_blas_general<OppositeStorageOrder>`,
-        where `OppositeStorageOrder` names the type
-        `conditional_t<is_same_v<StorageOrder, column_major_t>, row_major_t, column_major_t>`;
+    * else if `Layout` is `layout_left_padded<padding_stride>` for some `padding_stride`,
+      then `layout_right_padded<padding_stride>`;
+
+    * else if `Layout` is `layout_right_padded<padding_stride>` for some `padding_stride`,
+      then `layout_left_padded<padding_stride>`;
 
     * else if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`
         for some `Triangle` and `StorageOrder`,
@@ -6617,15 +6436,24 @@ return R(a.data(),
   a.accessor());
 ```
 
-    * else, if `Layout` is `layout_blas_general<StorageOrder>`
-        for some `StorageOrder`, then equivalent to
-        *[Note:* the ternary expression picks the "nontrivial" stride --*end note]*
+    * else, if `Layout` is `layout_left_padded<padding_stride>`
+        for some `padding_stride`, then equivalent to
 ```c++
 return R(a.data(),
   ReturnMapping(
     transpose_extents(a.mapping().extents()),
-    is_same_v<StorageOrder, column_major_t> ? a.mapping().stride(1) : a.mapping().stride(0)),
-    a.accessor());
+    a.mapping().stride(1)),
+  a.accessor());
+```
+
+    * else, if `Layout` is `layout_right_padded<padding_stride>`
+        for some `padding_stride`, then equivalent to
+```c++
+return R(a.data(),
+  ReturnMapping(
+    transpose_extents(a.mapping().extents()),
+    a.mapping().stride(0)),
+  a.accessor());
 ```
 
     * else, if `Layout` is `layout_stride`, then equivalent to
