@@ -344,10 +344,10 @@ Date: 2022-10-09
     * Changes suggested by SG6 small group review on 2022/06/09
 
         * Make existing exposition-only function `conj-if-needed`
-	    use `conj` if it can find it via unqualified (ADL-only) lookup,
-	    otherwise be the identity.
-	    Make it a function object instead of a function,
-	    to prevent ADL issues.
+	          use `conj` if it can find it via unqualified (ADL-only) lookup,
+	          otherwise be the identity.
+	          Make it a function object instead of a function,
+	          to prevent ADL issues.
 
         * Algorithms that mathematically need to do division
 	    can now distinguish left division and right division
@@ -362,7 +362,7 @@ Date: 2022-10-09
             explaining why we don't define an interface
             for customization of the "back-end" optimized BLAS operations.
             This section already existed, but we rewrote it
-	    to improve clarity.  Please see the section titled
+	          to improve clarity.  Please see the section titled
             "We do not require using the BLAS library
             or any particular 'back-end'."
 
@@ -373,8 +373,8 @@ Date: 2022-10-09
             coexistence with ranges."
 
         * Address LEWG feedback to defer support
-	    for custom complex number types
-	    (but see above SG6 small group response).
+	          for custom complex number types
+	          (but see above SG6 small group response).
 
     * Fix P1674 links to point to R2.
 
@@ -389,8 +389,12 @@ Date: 2022-10-09
         (We don't need that any more, because P0009
         was merged into the current C++ draft.)
 
-    * Replace `layout_blas_general` with the layouts proposed by P2642
+    * Remove `layout_blas_general`, as it has been replaced
+        with the layouts proposed by P2642
         (`layout_left_padded` and `layout_right_padded`).
+
+    * Update `layout_blas_packed` to match mdspan's other layout mappings
+        in the current C++ Standard draft.
 
 # Purpose of this paper
 
@@ -5183,7 +5187,7 @@ The `implicit_unit_diagonal_t` tag indicates two things:
 The tag `explicit_diagonal_t` indicates that algorithms
 may access the matrix's diagonal entries directly.
 
-## Layouts for general and packed matrix types [linalg.layouts]
+## Layouts for packed matrix types [linalg.layouts]
 
 ### `layout_blas_packed` [linalg.layouts.packed]
 
@@ -5222,40 +5226,54 @@ public:
   struct mapping {
   public:
     using extents_type = Extents;
+    using index_type = typename extents_type::index_type;
     using size_type = typename extents_type::size_type;
+    using rank_type = typename extents_type::rank_type;
     using layout_type = layout_blas_packed<Triangle, StorageOrder>;
 
   private:
-    Extents extents_{}; // exposition only
+    Extents <it>extents_</it>{}; // exposition only
 
   public:
+    constexpr mapping() noexcept = default;
+    constexpr mapping(const mapping&) noexcept = default;
     constexpr mapping(const extents_type& e) noexcept;
-
     template<class OtherExtents>
-      explicit(! is_convertible_v<OtherExtents, extents_type>)
-        constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+      constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
+        mapping(const mapping<OtherExtents>& other) noexcept;
 
-    constexpr extents_type extents() const noexcept { return extents_; }
+    constexpr mapping& operator=(const mapping&) noexcept = default;
+
+    constexpr extents_type extents() const noexcept { return <it>extents_</it>; }
 
     constexpr size_type required_span_size() const noexcept;
 
-    template<class IndexType>
-      constexpr size_type
-        operator() (IndexType i, IndexType j) const noexcept;
+    template<class... Indices>
+      constexpr index_type operator() (Indices...) const noexcept;
 
-    static constexpr bool is_always_unique() { return false; }
-    static constexpr bool is_always_contiguous() { return true; }
-    static constexpr bool is_always_strided() { return false; }
+    static constexpr bool is_always_unique() {
+      return extents_type::static_extent(0) != dynamic_extent &&
+        extents_type::static_extent(0) < 2;
+    }
+    static constexpr bool is_always_exhaustive() { return true; }
+    static constexpr bool is_always_strided() {
+      return extents_type::static_extent(0) != dynamic_extent &&
+        extents_type::static_extent(0) < 2;
+    }
 
-    constexpr bool is_unique() const noexcept;
-    constexpr bool is_contiguous() const noexcept;
-    constexpr bool is_strided() const noexcept;
+    constexpr bool is_unique() const noexcept {
+      return extent(0) < 2;
+    }
+    constexpr bool is_exhaustive() const noexcept { return true; }
+    constexpr bool is_strided() const noexcept {
+      return extent(0) < 2;
+    }
+
+    constexpr index_type stride(rank_type) const noexcept;
 
     template<class OtherExtents>
       friend constexpr bool
         operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
-
-    constexpr size_type stride(size_type) const noexcept;
 };
 ```
 
@@ -5273,48 +5291,55 @@ public:
 constexpr mapping(const extents_type& e) noexcept;
 ```
 
-<!-- TODO (mfh 2022/07/06) Align wording with current P0009. -->
+*Preconditions:*
 
-* *Preconditions:* `e.extent(0)` equals `e.extent(1)`.
+    * The size of the multidimensional index space `e` is representable
+        as a value of type `index_type` (**[basic.fundamental]**), and
 
-* *Effects:* Direct-non-list-initializes `extents_` with `e`.
+    * `e.extent(0)` equals `e.extent(1)`.
+
+* *Effects:* Direct-non-list-initializes <it>`extents_`</it> with `e`.
 
 ```c++
 template<class OtherExtents>
   explicit(! is_convertible_v<OtherExtents, extents_type>)
-    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+    constexpr mapping(const mapping<OtherExtents>& other) noexcept;
 ```
 
-* *Constraints:*
+*Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-    * `is_constructible_v<extents_type, OtherExtents>` is `true`.
+*Preconditions:* `other.required_span_size()` is representable as a value
+    of type `index_type` (**[basic.fundamental]**).
 
-* *Effects:* Direct-non-list-initializes `extents_` with `e.extents()`.
+*Effects:* Direct-non-list-initializes <it>`extents_`</it> with `other.extents()`.
 
 ```c++
-constexpr size_type required_span_size() const noexcept;
+constexpr index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* `extent(0)` * (`extent(0)` + 1)/2.
+*Returns:* `extent(0)` * (`extent(0)` + 1)/2.
 
 *[Note:* For example, a 5 x 5 packed matrix
 only stores 15 matrix elements. --*end note]*
 
 ```c++
-template<class IndexType>
-  constexpr size_type
-    operator() (IndexType i, IndexType j) const noexcept;
+template<class ... Indices>
+  constexpr index_type operator() (Indices... k) const noexcept;
 ```
 
-<!-- TODO (mfh 2022/07/06) Align wording with current P0009. -->
+*Constraints*:
 
-* *Preconditions:*
+    * `sizeof...(Indices)` equals `extents_type::rank()`,
 
-    * 0 ≤ `i` < `extent(0)`, and
+    * `(is_convertible_v<Indices, index_Type> && ...)` is `true`, and
 
-    * 0 ≤ `j` < `extent(1)`.
+    * `(is_nothrow_constructible_v<index_type, Indices>)` is `true`.
 
-* *Returns:* Let `N` equal `extent(0)`.  Then:
+*Preconditions:* `extents_type::`<it>`index-cast`</it>`(k)` is
+    a multidimensional index in <it>`extents_`</it> (**[mdspan.overview]**).
+
+*Returns:* Let `N` equal `extent(0)`, let `i` be the zeroth element of `k`,
+    and let `j` be the first element of `k`.  Then:
 
     * If `StorageOrder` is `column_major_t` and
 
@@ -5346,40 +5371,22 @@ Instead, it interprets such indices as if the matrix were symmetric.
 --*end note]*
 
 ```c++
-constexpr bool is_unique() const noexcept;
-```
-
-* *Returns:* `true` if `extent(0)` is less than 2, else `false`.
-
-```c++
-constexpr bool is_contiguous() const noexcept;
-```
-
-* *Returns:* `true`.
-
-```c++
-constexpr bool is_strided() const noexcept;
-```
-
-* *Returns:* `true` if `extent(0)` is less than 2, else `false`.
-
-```c++
 template<class OtherExtents>
   friend constexpr bool
     operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
 ```
 
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+*Constraints:* `OtherExtents::rank()` equals `rank()`.
 
-* *Returns:* `true` if and only if
+*Returns:* `true` if and only if
     for 0 ≤ `r` < `rank()`,
     `m.extent(r)` equals `extent(r)`.
 
 ```c++
-constexpr size_type stride(size_type) const noexcept;
+constexpr index_type stride(rank_type) const noexcept;
 ```
 
-* *Returns:* 1 if `extent(0)` is less than 2, else 0.
+*Returns:* 1 if `extent(0)` is less than 2, else 0.
 
 ## Scaled in-place transformation [linalg.scaled]
 
@@ -5577,13 +5584,13 @@ is expression-equivalent to:
         if `value_type` is an unsigned integer;
 
     * else, `abs(value_type(static_cast<const this_type&>(E)))`,
-	if that expression is valid,
-	with overload resolution performed in a context
-	that includes the declaration
+        if that expression is valid,
+	      with overload resolution performed in a context
+	      that includes the declaration
         `template<class T> T abs(T) = delete;`.
-	If the function selected by overload resolution
-	does not return the absolute value of its input,
-	the program is ill-formed, no diagnostic required.
+	      If the function selected by overload resolution
+	      does not return the absolute value of its input,
+	      the program is ill-formed, no diagnostic required.
 
 <!-- TODO (mfh 2022/07/06) this lookup language will go into front matter. -->
 
@@ -5605,13 +5612,13 @@ is expression-equivalent to:
         if `value_type` is an arithmetic type;
 
     * else, `real(value_type(static_cast<const this_type&>(E)))`,
-	if that expression is valid,
-	with overload resolution performed in a context
-	that includes the declaration
+	      if that expression is valid,
+	      with overload resolution performed in a context
+	      that includes the declaration
         `template<class T> T real(T) = delete;`;
-	if the function selected by overload resolution
-	does not return the absolute value of its input,
-	the program is ill-formed, no diagnostic required;
+	      if the function selected by overload resolution
+	      does not return the absolute value of its input,
+	      the program is ill-formed, no diagnostic required;
 
     * else, `value_type(static_cast<const this_type&>(E))`.
 
@@ -5638,13 +5645,13 @@ is expression-equivalent to:
         if `value_type` is an arithmetic type;
 
     * else, `imag(value_type(static_cast<const this_type&>(E)))`,
-	if that expression is valid,
-	with overload resolution performed in a context
-	that includes the declaration
+	      if that expression is valid,
+	      with overload resolution performed in a context
+	      that includes the declaration
         `template<class T> T imag(T) = delete;`;
-	if the function selected by overload resolution
-	does not return the absolute value of its input,
-	the program is ill-formed, no diagnostic required;
+	      if the function selected by overload resolution
+	      does not return the absolute value of its input,
+	      the program is ill-formed, no diagnostic required;
 
     * else, `value_type{}`.
 
