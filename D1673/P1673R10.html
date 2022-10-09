@@ -2837,6 +2837,8 @@ with the layouts proposed by P2642
       <li data-md>
        <p>Update <code class="highlight"><c- n>layout_blas_packed</c-></code> to match mdspan’s other layout mappings
 in the current C++ Standard draft.</p>
+      <li data-md>
+       <p>Update non-wording to reflect current status of <code class="highlight"><c- n>mdspan</c-></code> (voted into C++ Standard draft) and <code class="highlight"><c- n>submdspan</c-></code> (P2630).</p>
      </ul>
    </ul>
    <h2 class="heading settled" data-level="3" id="purpose-of-this-paper"><span class="secno">3. </span><span class="content">Purpose of this paper</span><a class="self-link" href="#purpose-of-this-paper"></a></h2>
@@ -2847,33 +2849,33 @@ Our proposal implements the following classes of algorithms on arrays that repre
 matrices and vectors:</p>
    <ul>
     <li data-md>
-     <p>Elementwise vector sums</p>
+     <p>elementwise vector sums;</p>
     <li data-md>
-     <p>Multiplying all elements of a vector or matrix by a scalar</p>
+     <p>multiplying all elements of a vector or matrix by a scalar;</p>
     <li data-md>
-     <p>2-norms and 1-norms of vectors</p>
+     <p>2-norms and 1-norms of vectors;</p>
     <li data-md>
-     <p>Vector-vector, matrix-vector, and matrix-matrix products (contractions)</p>
+     <p>vector-vector, matrix-vector, and matrix-matrix products (contractions);</p>
     <li data-md>
-     <p>Low-rank updates of a matrix</p>
+     <p>low-rank updates of a matrix;</p>
     <li data-md>
-     <p>Triangular solves with one or more "right-hand side" vectors</p>
+     <p>triangular solves with one or more "right-hand side" vectors; and</p>
     <li data-md>
-     <p>Generating and applying plane (Givens) rotations</p>
+     <p>generating and applying plane (Givens) rotations.</p>
    </ul>
    <p>Our algorithms work with most of the matrix storage formats that the BLAS
 Standard supports:</p>
    <ul>
     <li data-md>
-     <p>"General" dense matrices, in column-major or row-major format</p>
+     <p>"general" dense matrices, in column-major or row-major format;</p>
     <li data-md>
-     <p>Symmetric or Hermitian (for complex numbers only) dense matrices,
-stored either as general dense matrices, or in a packed format</p>
+     <p>symmetric or Hermitian (for complex numbers only) dense matrices,
+stored either as general dense matrices, or in a packed format; and</p>
     <li data-md>
-     <p>Dense triangular matrices, stored either as general dense matrices
-or in a packed format</p>
+     <p>dense triangular matrices, stored either as general dense matrices
+or in a packed format.</p>
    </ul>
-   <p>Our proposal also has the following distinctive characteristics:</p>
+   <p>Our proposal also has the following distinctive characteristics.</p>
    <ul>
     <li data-md>
      <p>It uses free functions, not arithmetic operator overloading.</p>
@@ -2881,10 +2883,9 @@ or in a packed format</p>
      <p>The interface is designed in the spirit of the C++ Standard Library’s
 algorithms.</p>
     <li data-md>
-     <p>It uses <code class="highlight"><c- n>mdspan</c-></code> (see P0009),
-a multidimensional array view, to represent matrices and vectors.
-In the future,
-it could support other proposals' matrix and vector data structures.</p>
+     <p>It uses <code class="highlight"><c- n>mdspan</c-></code> (P0009 and follow-on papers,
+which have been adopted into the C++23 draft),
+a multidimensional array view, to represent matrices and vectors.</p>
     <li data-md>
      <p>The interface permits optimizations for matrices and vectors with
 small compile-time dimensions; the standard BLAS interface does not.</p>
@@ -2895,9 +2896,8 @@ four element types.</p>
     <li data-md>
      <p>Our operations permit "mixed-precision" computation with matrices
 and vectors that have different element types.  This subsumes most
-functionality of the Mixed-Precision BLAS specification (Chapter 4
-of the <a href="http://www.netlib.org/blas/blast-forum/blas-report.pdf">BLAS
-Standard</a>).</p>
+functionality of the Mixed-Precision BLAS specification,
+comprising Chapter 4 of the <a href="http://www.netlib.org/blas/blast-forum/blas-report.pdf">BLAS Standard</a>.</p>
     <li data-md>
      <p>Like the C++ Standard Library’s algorithms, our operations take an
 optional execution policy argument.  This is a hook to support
@@ -2967,9 +2967,8 @@ and to mix compile-time and run-time dimensions arbitrarily.</p>
 </pre>
    <p>This example illustrates the ability to perform mixed-precision computations,
 and the ability to compute on subviews of a matrix or vector
-by using <code class="highlight"><c- n>submdspan</c-></code>.  (<code class="highlight"><c- n>submdspan</c-></code> was separated from the rest of P0009
+by using <code class="highlight"><c- n>submdspan</c-></code> (P2630).  (<code class="highlight"><c- n>submdspan</c-></code> was separated from the rest of P0009
 as a way to avoid delaying the hopeful adoption of P0009 for C++23.
-However, the P0009 authors plan to pursue <code class="highlight"><c- n>submdspan</c-></code> as a follow-on proposal as soon as possible.
 The reference implementation of <code class="highlight"><c- n>mdspan</c-></code> includes <code class="highlight"><c- n>submdspan</c-></code>.)</p>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- b>size_t</c-> <c- n>M</c-> <c- o>=</c-> <c- mi>40</c-><c- p>;</c->
 
@@ -3050,11 +3049,9 @@ and add custom layouts and accessors.</p>
    <p>Section <a href="#references"><span class="secno">15</span></a> is our bibliography.</p>
    <p>Section <a href="#wording"><span class="secno">16</span></a> is where readers will find the normative wording we propose.</p>
    <p>Finally, Section <a href="#examples"><span class="secno">17</span></a> gives some more elaborate examples of linear algebra algorithms that use our proposal.
-The examples show how <code class="highlight"><c- n>mdspan</c-></code>'s features let users easily describe "submatrices" with <code class="highlight"><c- n>submdspan</c-></code>.
-(<code class="highlight"><c- n>submdspan</c-></code> was separated from the rest of P0009
-as a way to avoid delaying the hopeful adoption of P0009 for C++23.
-However, the P0009 authors plan to pursue <code class="highlight"><c- n>submdspan</c-></code> as a follow-on proposal as soon as possible.
-The reference implementation of <code class="highlight"><c- n>mdspan</c-></code> includes <code class="highlight"><c- n>submdspan</c-></code>.)
+The examples show how <code class="highlight"><c- n>mdspan</c-></code>'s features let users easily describe "submatrices" with <code class="highlight"><c- n>submdspan</c-></code>,
+proposed in P2630 as a follow-on to mdspan.
+(The reference implementation of <code class="highlight"><c- n>mdspan</c-></code> includes <code class="highlight"><c- n>submdspan</c-></code>.)
 This integrates naturally with "block" factorizations of matrices.
 The resulting notation is concise, yet still computes in place,
 without unnecessary copies of any part of the matrix.</p>
@@ -3177,7 +3174,7 @@ The mapping is not always one to one.
    <p>We believe this proposal is complementary to P1385R6,
 a proposal for a C++ Standard linear algebra library
 that introduces matrix and vector classes with overloaded arithmetic operators.
-The P1385 authors and we have expressed together in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf">a joint paper, P1891</a>,
+The P1385 authors and we have expressed together in a joint paper, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf">P1891</a>,
 that P1673 and P1385 "are orthogonal.
 They are not competing papers; ...
 there is no overlap of functionality."</p>
@@ -3255,19 +3252,17 @@ many of its cycles in linear algebra.  For decades, hardware
 vendors, some represented at WG21 meetings, have provided and
 continue to provide features specifically to accelerate linear
 algebra operations.  Some of them even implement specific linear
-algebra operations directly in hardware.  Examples include NVIDIA’s <a href="https://www.nvidia.com/en-us/data-center/tensorcore/">Tensor Cores</a> and Cerebras' <a href="https://www.cerebras.net/product/#chip">Wafer Scale
-Engine</a>.  Several large
-computer system vendors offer optimized linear algebra libraries
-based on or closely resembling the BLAS; these include AMD’s BLIS,
+algebra operations directly in hardware.  Examples include NVIDIA’s <a href="https://www.nvidia.com/en-us/data-center/tensorcore/">Tensor Cores</a> and Cerebras' <a href="https://www.cerebras.net/product/#chip">Wafer Scale Engine</a>.
+Several large computer system vendors offer optimized linear algebra libraries
+based on or closely resembling the BLAS.  These include AMD’s BLIS,
 ARM’s Performance Libraries, Cray’s LibSci, Intel’s Math Kernel
 Library (MKL), IBM’s Engineering and Scientific Subroutine Library
 (ESSL), and NVIDIA’s cuBLAS.</p>
    </ul>
    <p>Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
-algorithms.  (Please refer to a survey one of us coauthored, <a href="https://doi.org/10.1017/S0962492914000038">"Communication lower bounds and optimal algorithms for numerical
-linear algebra."</a>)
-Furthermore, writing the fastest dense matrix-matrix multiply depends
+algorithms.  (Please refer to a survey one of us coauthored, <a href="https://doi.org/10.1017/S0962492914000038"> "Communication lower bounds and optimal algorithms
+for numerical linear algebra."</a> Furthermore, writing the fastest dense matrix-matrix multiply depends
 on details of a specific computer architecture.  This makes such
 operations comparable to <code class="highlight"><c- n>sort</c-></code> in the C++ Standard Library: worth
 standardizing, so that Standard Library implementers can get them
@@ -3321,21 +3316,20 @@ government research laboratories.  The dense linear algebra subset of
 the BLAS codifies forty years of evolving practice, and has existed in
 recognizable form since 1990 (see P1417R0).</p>
    <p>The BLAS interface was specifically designed as the distillation of
-the "computer science" / performance-oriented parts of linear algebra
+the "computer science" or performance-oriented parts of linear algebra
 algorithms.  It cleanly separates operations most critical for
 performance, from operations whose implementation takes expertise in
 mathematics and rounding-error analysis.  This gives vendors
 opportunities to add value, without asking for expertise outside the
 typical required skill set of a Standard Library implementer.</p>
-   <p>Well-established benchmarks such as the <a href="https://www.top500.org/project/linpack/">LINPACK
-benchmark</a> reward computer
-hardware vendors for optimizing their BLAS implementations.  Thus,
-many vendors provide an optimized BLAS library for their computer
+   <p>Well-established benchmarks such as the <a href="https://www.top500.org/project/linpack/">LINPACK benchmark</a>,
+reward computer hardware vendors for optimizing their BLAS implementations.
+Thus, many vendors provide an optimized BLAS library for their computer
 architectures.  Writing fast BLAS-like operations is not trivial, and
 depends on computer architecture.  However, it is a well-understood
 problem whose solutions could be parameterized for a variety of
-computer architectures.  See, for example, <a href="https://doi.org/10.1145/1356052.1356053">Goto and van de Geijn
-2008</a>.  There are optimized
+computer architectures.  See, for example, <a href="https://doi.org/10.1145/1356052.1356053">Goto and van de Geijn 2008</a>.
+There are optimized
 third-party BLAS implementations for common architectures, like <a href="http://math-atlas.sourceforge.net/">ATLAS</a> and <a href="https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2">GotoBLAS</a>.
 A (slow but correct) <a href="http://www.netlib.org/blas/#_reference_blas_version_3_8_0">reference implementation of the BLAS</a> exists and it has a liberal software license for easy reuse.</p>
    <p>We have experience in the exercise of wrapping a C or Fortran BLAS
@@ -3373,7 +3367,7 @@ matters a lot for performance, and calls for a nonintuitive loop reordering.
 An analogy to the current C++ Standard Library is <code class="highlight"><c- n>sort</c-></code>,
 where intuitive algorithms that many humans use are not asymptotically optimal.</p>
    <p>Regarding (2), a good example is copying multidimensional arrays.
-The <a href="github.com/kokkos/kokkos">Kokkos library</a> spends about 2500 lines of code on multidimensional array copy,
+The <a href="https://github.com/kokkos/kokkos">Kokkos library</a> spends about 2500 lines of code on multidimensional array copy,
 yet still relies on system libraries for low-level optimizations.
 An analogy to the current C++ Standard Library is <code class="highlight"><c- n>copy</c-></code> or even <code class="highlight"><c- n>memcpy</c-></code>.</p>
    <p>Regarding (3), accurate floating-point summation is nontrivial.
@@ -3465,7 +3459,7 @@ There, we limit ourselves to the BLAS 1 algorithms in what follows.</p>
 <pre class="language-c++ highlight"><c- k>auto</c-> <c- n>x_range</c-> <c- o>=</c-> <c- n>views</c-><c- o>::</c-><c- n>iota</c-><c- p>(</c-><c- b>size_t</c-><c- p>(</c-><c- mi>0</c-><c- p>),</c-> <c- n>x</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>))</c-> <c- o>|</c->
     <c- n>views</c-><c- o>::</c-><c- n>transform</c-><c- p>([</c-><c- n>x</c-><c- p>]</c-> <c- p>(</c-><c- k>auto</c-> <c- n>k</c-><c- p>)</c-> <c- p>{</c-> <c- k>return</c-> <c- n>x</c-><c- p>[</c-><c- n>k</c-><c- p>];</c-> <c- p>});</c->
 </pre>
-   with specializations possible for <code class="highlight"><c- n>mdspan</c-></code> whose layout mapping’s range
+   <p>with specializations possible for <code class="highlight"><c- n>mdspan</c-></code> whose layout mapping’s range
 is a contiguous or fixed-stride set of offsets.
 However, just because code _could_ be written in a certain way
 doesn’t mean that it _should_ be.
@@ -3473,7 +3467,7 @@ We have ranges even though the language has <code class="highlight"><c- k>for</c
 we don’t need to step in the Turing tar-pit on purpose
 (see Perlis 1982).
 Thus, we will analyze the BLAS 1 algorithms in this proposal
-in the context of the previous section’s four general criteria. 
+in the context of the previous section’s four general criteria.</p>
    <p>Our proposal would add 61 new unique names to the C++ Standard Library.
 Of those, 16 are BLAS 1 algorithms, while 24 are BLAS 2 and 3 algorithms.
 The 16 BLAS 1 algorithms fall into three categories:</p>
@@ -3947,10 +3941,6 @@ necessary to get algorithms that behave as much as reasonable like the
 existing C++ Standard Library algorithms.  Future work or
 collaboration with other proposals could implement a higher-level
 interface.</p>
-   <p>We propose to build the initial interface on top of <code class="highlight"><c- n>mdspan</c-></code>,
-and plan to extend that later with overloads for a new <code class="highlight"><c- n>mdarray</c-></code> variant of <code class="highlight"><c- n>mdspan</c-></code> with container semantics as well as any type
-implementing a <code class="highlight"><c- n>get_mdspan</c-></code> customization point.
-We explain the value of these choices below.</p>
    <p>Please refer to our papers
 "Evolving a Standard C++ Linear Algebra Library from the BLAS" <a href="https://wg21.link/p1674">(P1674)</a> and "Historical lessons for C++ linear algebra library standardization" <a href="https://wg21.link/p1417">(P1417)</a> They will give details and references
 for many of the points that we summarize here.</p>
@@ -4069,7 +4059,7 @@ an efficient "batched" interface in future proposals.</p>
    <p>LEWGI requested in the 2019 Cologne meeting that we explore using a
 concept instead of <code class="highlight"><c- n>mdspan</c-></code> to define the arguments for the
 linear algebra functions.
-This would mean, instead of having our functions take <code class="highlight"><c- n>mdspan</c-></code> parameters,
+This would mean that instead of having our functions take <code class="highlight"><c- n>mdspan</c-></code> parameters,
 they would be generic on one or more suitably constrained multidimensional array types.
 The constraints would form a "multidimensional array concept."</p>
    <p>We investigated this option, and rejected it, for the following reasons.</p>
@@ -4087,10 +4077,10 @@ if the array types just made themselves convertible to <code class="highlight"><
 in the light of <a href="https://wg21.link/p2128r6">P2128R6</a>.</p>
    </ol>
    <p>This proposal refers to almost all of <code class="highlight"><c- n>mdspan</c-></code>'s features,
-including <code class="highlight"><c- n>extents</c-></code>, <code class="highlight"><c- n>layout</c-></code>, and <code class="highlight"><c- n>accessor_policy</c-></code>.
+including <code class="highlight"><c- n>extents</c-></code>, layouts, and accessors.
 We expect implementations to use all of them for optimizations,
 for example to extract the scaling factor from the return value of <code class="highlight"><c- n>scaled</c-></code> in order to call an optimized BLAS library directly.</p>
-   <p>Suppose that a general customization point <code class="highlight"><c- n>get_mdspan</c-></code> existed,
+   <p>Suppose that a general customization point <code class="highlight"><c- n>get_mdspan</c-></code> exists,
 that takes a reference to a multidimensional array type
 and returns an <code class="highlight"><c- n>mdspan</c-></code> that views the array.
 Then, our proposal could support most multidimensional array types.
@@ -4100,12 +4090,12 @@ would exclude multidimensional array types that have a noncontiguous backing sto
 such as a <code class="highlight"><c- n>map</c-></code>.
 If we later wanted to support such types,
 we could always generalize our algorithms later.</p>
-   <p>Finally, any multidimensional array concept would need revision
+   <p>Finally, any existing multidimensional array concept would need revision
 in the light of <a href="https://wg21.link/p2128r6">P2128R6</a>,
-which has been approved at Plenary.
+which has been voted into the C++ Standard draft.
 P2128 lets <code class="highlight"><c- k>operator</c-><c- p>[]</c-></code> take multiple parameters.
-Its authors intend to let <code class="highlight"><c- n>mdspan</c-></code> use <code class="highlight"><c- k>operator</c-><c- p>[]</c-></code> instead of <code class="highlight"><c- k>operator</c-><c- p>()</c-></code>.
-P0009 has adopted this change.</p>
+The version of mdspan which was voted into the C++ Standard draft
+uses <code class="highlight"><c- k>operator</c-><c- p>[]</c-></code> instead of <code class="highlight"><c- k>operator</c-><c- p>()</c-></code> as the array access operator.</p>
    <p>After further discussion at the 2019 Belfast meeting,
 LEWGI accepted our position that having our algorithms take <code class="highlight"><c- n>mdspan</c-></code> instead of template parameters constrained by a multidimensional array concept
 would be fine for now.</p>
@@ -4730,7 +4720,7 @@ and a value-initialized <code class="highlight"><c- n>value_type</c-></code> obj
 Contrast with <strong>[algorithms.parallel.exec]</strong>:
 "Unless otherwise stated,
 implementations may make arbitrary copies of elements of type <code class="highlight"><c- n>T</c-></code>,
-from sequences where <code class="highlight"><c- n>is_</c->­<c- n>trivially_</c->­<c- n>copy_</c->­<c- n>constructible_</c->­<c- n>v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code> and <code class="highlight"><c- n>is_</c->­<c- n>trivially_</c->­<c- n>destructible_</c->­<c- n>v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code> are true."
+from sequences where <code class="highlight"><c- n>is_trivially_copy_constructible_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code> and <code class="highlight"><c- n>is_trivially_destructible_v</c-><c- o>&lt;</c-><c- n>T</c-><c- o>></c-></code> are true."
 We omit the trivially constructible and destructible requirements here
 and permit any <code class="highlight"><c- n>semiregular</c-></code> type.
 Linear algebra algorithms assume mathematical properties
@@ -4789,7 +4779,7 @@ from the type of an expression that indexes into the output <code class="highlig
 Expression templates just mean that we need to use the output <code class="highlight"><c- n>mdspan</c-></code>'s <code class="highlight"><c- n>value_type</c-></code> to construct or value-initialize temporaries,
 rather than trying to deduce the temporaries' type
 from the right-hand side of the expression.</p>
-   <p>The z = y + alpha*x example above shows that some of the algorithms we propose
+   <p>The <code class="highlight"><c- n>z</c-> <c- o>=</c-> <c- n>y</c-> <c- o>+</c-> <c- n>alpha</c-><c- o>*</c-><c- n>x</c-></code> example above shows that some of the algorithms we propose
 have multiple terms in a sum on the right-hand side of the expression
 that defines the algorithm.
 If algorithms have permission to rearrange the order of sums,
@@ -5153,8 +5143,7 @@ take a concrete type <code class="highlight"><c- n>mdspan</c-></code> with templ
 than any type that satisfies a concept.  We think that the template
 parameters of <code class="highlight"><c- n>mdspan</c-></code> fully describe the multidimensional
 equivalent of a multipass iterator, and that "conceptification" of
-multidimensional arrays would unnecessarily delay both this proposal
-and P0009.</p>
+multidimensional arrays would unnecessarily delay this proposal.</p>
    <p>In a future proposal, we may consider generalizing our function’s template
 parameters, to permit any type besides <code class="highlight"><c- n>mdspan</c-></code> that implements
 the <code class="highlight"><c- n>get_mdspan</c-></code> customization point, as long as the return value of <code class="highlight"><c- n>get_mdspan</c-></code> satisfies the current requirements. <code class="highlight"><c- n>get_mdspan</c-></code> would
@@ -5208,9 +5197,9 @@ match; if they do not, the function will use ("broadcast") the same
 input argument for all the output arguments in the batch.</p>
    <h2 class="heading settled" data-level="13" id="data-structures-and-utilities-borrowed-from-other-proposals"><span class="secno">13. </span><span class="content">Data structures and utilities borrowed from other proposals</span><a class="self-link" href="#data-structures-and-utilities-borrowed-from-other-proposals"></a></h2>
    <h3 class="heading settled" data-level="13.1" id="mdspan"><span class="secno">13.1. </span><span class="content"><code class="highlight"><c- n>mdspan</c-></code></span><a class="self-link" href="#mdspan"></a></h3>
-   <p>This proposal depends on P0009,
-which proposes adding multidimensional arrays to the C++ Standard
-Library.  P0009’s main class is <code class="highlight"><c- n>mdspan</c-></code>, which is a "view"
+   <p>This proposal depends on P0009 and follow-on papers
+that were voted into the current C++ Standard draft.
+P0009’s main class is <code class="highlight"><c- n>mdspan</c-></code>, which is a "view"
 (in the sense of <code class="highlight"><c- n>span</c-></code>) of a multidimensional array.  The rank
 (number of dimensions) is fixed at compile time.  Users may specify
 some dimensions at run time and others at compile time; the type of
@@ -5222,7 +5211,7 @@ customization points:</p>
 style), column-major (Fortran style), or strided.  We use a custom <code class="highlight"><c- n>Layout</c-></code> later in this paper to implement a "transpose view" of an
 existing <code class="highlight"><c- n>mdspan</c-></code>.</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Accessor</c-></code> defines the storage handle (i.e., <code class="highlight"><c- n>pointer</c-></code>) stored in
+     <p><code class="highlight"><c- n>Accessor</c-></code> defines the storage handle (<code class="highlight"><c- n>data_handle_type</c-></code>) stored in
 the <code class="highlight"><c- n>mdspan</c-></code>, as well as the reference type returned by its access
 operator.  This is an extension point for modifying how access
 happens, for example by using <code class="highlight"><c- n>atomic_ref</c-></code> to get atomic access to
@@ -5231,19 +5220,8 @@ implement "scaled views" and "conjugated views" of an existing <code class="high
    </ul>
    <h3 class="heading settled" data-level="13.2" id="new-mdspan-layouts-in-this-proposal"><span class="secno">13.2. </span><span class="content">New <code class="highlight"><c- n>mdspan</c-></code> layouts in this proposal</span><a class="self-link" href="#new-mdspan-layouts-in-this-proposal"></a></h3>
    <p>Our proposal uses the layout mapping policy of <code class="highlight"><c- n>mdspan</c-></code> in order
-to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009 have three basic properties:</p>
-   <ul>
-    <li data-md>
-     <p>Unique</p>
-    <li data-md>
-     <p>Contiguous</p>
-    <li data-md>
-     <p>Strided</p>
-   </ul>
-   <p>P0009 includes three different layouts -- <code class="highlight"><c- n>layout_left</c-></code>, <code class="highlight"><c- n>layout_right</c-></code>, and <code class="highlight"><c- n>layout_stride</c-></code> -- all of which are unique and
-strided.  Only <code class="highlight"><c- n>layout_left</c-></code> and <code class="highlight"><c- n>layout_right</c-></code> are contiguous.
-P2642 includes <code class="highlight"><c- n>layout_left_padded</c-></code> and <code class="highlight"><c- n>layout_right_padded</c-></code>.
+to represent different matrix and vector data layouts.
+The current C++ Standard draft includes three layouts: <code class="highlight"><c- n>layout_left</c-></code>, <code class="highlight"><c- n>layout_right</c-></code>, and <code class="highlight"><c- n>layout_stride</c-></code>. <a href="https://wg21.link/p2642">P2642</a> includes <code class="highlight"><c- n>layout_left_padded</c-></code> and <code class="highlight"><c- n>layout_right_padded</c-></code>.
 These two layouts represent exactly the data layout assumed by
 the General (GE) matrix type in the BLAS' C and Fortran bindings.
 They have has two advantages:</p>
@@ -5280,7 +5258,7 @@ different function names.</p>
    <p>The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide <code class="highlight"><c- n>layout_blas_packed</c-></code>.  Note that <code class="highlight"><c- n>layout_blas_packed</c-></code> is
-the first addition to the layouts in P0009 that is neither always
+the first addition to the existing layouts that is neither always
 unique, nor always strided.</p>
    <p>Algorithms cannot be written generically if they permit output
 arguments with nonunique layouts.  Nonunique output arguments require

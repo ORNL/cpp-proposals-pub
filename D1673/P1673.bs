@@ -396,6 +396,9 @@ Date: 2022-10-09
     * Update `layout_blas_packed` to match mdspan's other layout mappings
         in the current C++ Standard draft.
 
+    * Update non-wording to reflect current status of `mdspan`
+        (voted into C++ Standard draft) and `submdspan` (P2630).
+
 # Purpose of this paper
 
 This paper proposes a C++ Standard Library dense linear algebra
@@ -405,34 +408,33 @@ This corresponds to a subset of the
 Our proposal implements the following classes of algorithms on arrays that represent
 matrices and vectors:
 
-* Elementwise vector sums
-* Multiplying all elements of a vector or matrix by a scalar
-* 2-norms and 1-norms of vectors
-* Vector-vector, matrix-vector, and matrix-matrix products (contractions)
-* Low-rank updates of a matrix
-* Triangular solves with one or more "right-hand side" vectors
-* Generating and applying plane (Givens) rotations
+* elementwise vector sums;
+* multiplying all elements of a vector or matrix by a scalar;
+* 2-norms and 1-norms of vectors;
+* vector-vector, matrix-vector, and matrix-matrix products (contractions);
+* low-rank updates of a matrix;
+* triangular solves with one or more "right-hand side" vectors; and
+* generating and applying plane (Givens) rotations.
 
 Our algorithms work with most of the matrix storage formats that the BLAS
 Standard supports:
 
-* "General" dense matrices, in column-major or row-major format
-* Symmetric or Hermitian (for complex numbers only) dense matrices,
-    stored either as general dense matrices, or in a packed format
-* Dense triangular matrices, stored either as general dense matrices
-    or in a packed format
+* "general" dense matrices, in column-major or row-major format;
+* symmetric or Hermitian (for complex numbers only) dense matrices,
+    stored either as general dense matrices, or in a packed format; and
+* dense triangular matrices, stored either as general dense matrices
+    or in a packed format.
 
-Our proposal also has the following distinctive characteristics:
+Our proposal also has the following distinctive characteristics.
 
 * It uses free functions, not arithmetic operator overloading.
 
 * The interface is designed in the spirit of the C++ Standard Library's
     algorithms.
 
-* It uses `mdspan` (see P0009),
+* It uses `mdspan` (P0009 and follow-on papers,
+    which have been adopted into the C++23 draft),
     a multidimensional array view, to represent matrices and vectors.
-    In the future,
-    it could support other proposals' matrix and vector data structures.
 
 * The interface permits optimizations for matrices and vectors with
     small compile-time dimensions; the standard BLAS interface does not.
@@ -443,9 +445,9 @@ Our proposal also has the following distinctive characteristics:
 
 * Our operations permit "mixed-precision" computation with matrices
     and vectors that have different element types.  This subsumes most
-    functionality of the Mixed-Precision BLAS specification (Chapter 4
-    of the [BLAS
-    Standard](http://www.netlib.org/blas/blast-forum/blas-report.pdf)).
+    functionality of the Mixed-Precision BLAS specification,
+    comprising Chapter 4 of the
+    <a href="http://www.netlib.org/blas/blast-forum/blas-report.pdf">BLAS Standard</a>.
 
 * Like the C++ Standard Library's algorithms, our operations take an
     optional execution policy argument.  This is a hook to support
@@ -522,10 +524,8 @@ linalg::matrix_vector_product(std::execution::par,
 
 This example illustrates the ability to perform mixed-precision computations,
 and the ability to compute on subviews of a matrix or vector
-by using `submdspan`.  (`submdspan` was separated from the rest of P0009
+by using `submdspan` (P2630).  (`submdspan` was separated from the rest of P0009
 as a way to avoid delaying the hopeful adoption of P0009 for C++23.
-However, the P0009 authors plan to pursue `submdspan`
-as a follow-on proposal as soon as possible.
 The reference implementation of `mdspan` includes `submdspan`.)
 
 ```c++
@@ -631,12 +631,9 @@ is where readers will find the normative wording we propose.
 
 Finally, Section <a href="#examples"><span class="secno">17</span></a>
 gives some more elaborate examples of linear algebra algorithms that use our proposal.
-The examples show how `mdspan`'s features let users easily describe "submatrices" with `submdspan`.
-(`submdspan` was separated from the rest of P0009
-as a way to avoid delaying the hopeful adoption of P0009 for C++23.
-However, the P0009 authors plan to pursue `submdspan`
-as a follow-on proposal as soon as possible.
-The reference implementation of `mdspan` includes `submdspan`.)
+The examples show how `mdspan`'s features let users easily describe "submatrices" with `submdspan`,
+proposed in P2630 as a follow-on to mdspan.
+(The reference implementation of `mdspan` includes `submdspan`.)
 This integrates naturally with "block" factorizations of matrices.
 The resulting notation is concise, yet still computes in place,
 without unnecessary copies of any part of the matrix.
@@ -798,8 +795,8 @@ The mapping is not always one to one.
 We believe this proposal is complementary to P1385R6,
 a proposal for a C++ Standard linear algebra library
 that introduces matrix and vector classes with overloaded arithmetic operators.
-The P1385 authors and we have expressed together in
-[a joint paper, P1891](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf),
+The P1385 authors and we have expressed together in a joint paper,
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf">P1891</a>,
 that P1673 and P1385 "are orthogonal.
 They are not competing papers; ...
 there is no overlap of functionality."
@@ -881,11 +878,11 @@ in support of adding linear algebra to the C++ Standard Library.
     continue to provide features specifically to accelerate linear
     algebra operations.  Some of them even implement specific linear
     algebra operations directly in hardware.  Examples include NVIDIA's
-    [Tensor Cores](https://www.nvidia.com/en-us/data-center/tensorcore/)
-    and Cerebras' [Wafer Scale
-    Engine](https://www.cerebras.net/product/#chip).  Several large
-    computer system vendors offer optimized linear algebra libraries
-    based on or closely resembling the BLAS; these include AMD's BLIS,
+    <a href="https://www.nvidia.com/en-us/data-center/tensorcore/">Tensor Cores</a>
+    and Cerebras'
+    <a href="https://www.cerebras.net/product/#chip">Wafer Scale Engine</a>.
+    Several large computer system vendors offer optimized linear algebra libraries
+    based on or closely resembling the BLAS.  These include AMD's BLIS,
     ARM's Performance Libraries, Cray's LibSci, Intel's Math Kernel
     Library (MKL), IBM's Engineering and Scientific Subroutine Library
     (ESSL), and NVIDIA's cuBLAS.
@@ -893,8 +890,9 @@ in support of adding linear algebra to the C++ Standard Library.
 Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
 algorithms.  (Please refer to a survey one of us coauthored,
-["Communication lower bounds and optimal algorithms for numerical
-linear algebra."](https://doi.org/10.1017/S0962492914000038))
+<a href="https://doi.org/10.1017/S0962492914000038">
+"Communication lower bounds and optimal algorithms
+for numerical linear algebra."</a>
 Furthermore, writing the fastest dense matrix-matrix multiply depends
 on details of a specific computer architecture.  This makes such
 operations comparable to `sort` in the C++ Standard Library: worth
@@ -948,7 +946,7 @@ as broadly useful, and in many cases significantly more so.
 
 Linear algebra has had a cross-language standard, the Basic Linear
 Algebra Subroutines (BLAS), since 2002.  The Standard came out of a
-[standardization process](http://www.netlib.org/blas/blast-forum/)
+<a href="http://www.netlib.org/blas/blast-forum/">standardization process</a>
 that started in 1995 and held meetings three times a year until 1999.
 Participants in the process came from industry, academia, and
 government research laboratories.  The dense linear algebra subset of
@@ -956,22 +954,23 @@ the BLAS codifies forty years of evolving practice, and has existed in
 recognizable form since 1990 (see P1417R0).
 
 The BLAS interface was specifically designed as the distillation of
-the "computer science" / performance-oriented parts of linear algebra
+the "computer science" or performance-oriented parts of linear algebra
 algorithms.  It cleanly separates operations most critical for
 performance, from operations whose implementation takes expertise in
 mathematics and rounding-error analysis.  This gives vendors
 opportunities to add value, without asking for expertise outside the
 typical required skill set of a Standard Library implementer.
 
-Well-established benchmarks such as the [LINPACK
-benchmark](https://www.top500.org/project/linpack/) reward computer
-hardware vendors for optimizing their BLAS implementations.  Thus,
-many vendors provide an optimized BLAS library for their computer
+Well-established benchmarks such as the
+<a href="https://www.top500.org/project/linpack/">LINPACK benchmark</a>,
+reward computer hardware vendors for optimizing their BLAS implementations.
+Thus, many vendors provide an optimized BLAS library for their computer
 architectures.  Writing fast BLAS-like operations is not trivial, and
 depends on computer architecture.  However, it is a well-understood
 problem whose solutions could be parameterized for a variety of
-computer architectures.  See, for example, [Goto and van de Geijn
-2008](https://doi.org/10.1145/1356052.1356053).  There are optimized
+computer architectures.  See, for example,
+<a href="https://doi.org/10.1145/1356052.1356053">Goto and van de Geijn 2008</a>.
+There are optimized
 third-party BLAS implementations for common architectures, like
 <a href="http://math-atlas.sourceforge.net/">ATLAS</a> and
 <a href="https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2">GotoBLAS</a>.
@@ -1018,7 +1017,7 @@ An analogy to the current C++ Standard Library is `sort`,
 where intuitive algorithms that many humans use are not asymptotically optimal.
 
 Regarding (2), a good example is copying multidimensional arrays.
-The [Kokkos library](github.com/kokkos/kokkos)
+The <a href="https://github.com/kokkos/kokkos">Kokkos library</a>
 spends about 2500 lines of code on multidimensional array copy,
 yet still relies on system libraries for low-level optimizations.
 An analogy to the current C++ Standard Library is `copy` or even `memcpy`.
@@ -1035,7 +1034,9 @@ that always get the same answer, despite rounding error.
 This can help debugging, for example.
 It is possible to make floating-point sums completely independent
 of parallel evaluation order.
-See e.g., the [ReproBLAS](https://bebop.cs.berkeley.edu/reproblas/) effort.
+See e.g., the
+<a href="https://bebop.cs.berkeley.edu/reproblas/">ReproBLAS</a>
+effort.
 Naming these algorithms and providing `ExecutionPolicy` customization hooks
 gives vendors a chance to provide these improvements.
 An analogy to the current C++ Standard Library is `hypot`,
@@ -1116,10 +1117,12 @@ might have a reasonable translation to ranges algorithms.
 There, we limit ourselves to the BLAS 1 algorithms in what follows.
 
 Any rank-1 `mdspan` `x` can be translated into the following range:
+
 ```c++
 auto x_range = views::iota(size_t(0), x.extent(0)) |
     views::transform([x] (auto k) { return x[k]; });
 ```
+
 with specializations possible for `mdspan`
 whose layout mapping's range
 is a contiguous or fixed-stride set of offsets.
@@ -1661,12 +1664,6 @@ existing C++ Standard Library algorithms.  Future work or
 collaboration with other proposals could implement a higher-level
 interface.
 
-We propose to build the initial interface on top of `mdspan`,
-and plan to extend that later with overloads for a new `mdarray`
-variant of `mdspan` with container semantics as well as any type
-implementing a `get_mdspan` customization point.
-We explain the value of these choices below.
-
 Please refer to our papers
 "Evolving a Standard C++ Linear Algebra Library from the BLAS"
 <a href="https://wg21.link/p1674">(P1674)</a>
@@ -1810,7 +1807,7 @@ an efficient "batched" interface in future proposals.
 LEWGI requested in the 2019 Cologne meeting that we explore using a
 concept instead of `mdspan` to define the arguments for the
 linear algebra functions.
-This would mean, instead of having our functions take `mdspan` parameters,
+This would mean that instead of having our functions take `mdspan` parameters,
 they would be generic on one or more suitably constrained multidimensional array types.
 The constraints would form a "multidimensional array concept."
 
@@ -1829,12 +1826,12 @@ We investigated this option, and rejected it, for the following reasons.
     in the light of <a href="https://wg21.link/p2128r6">P2128R6</a>.
 
 This proposal refers to almost all of `mdspan`'s features,
-including `extents`, `layout`, and `accessor_policy`.
+including `extents`, layouts, and accessors.
 We expect implementations to use all of them for optimizations,
 for example to extract the scaling factor from the return value of `scaled`
 in order to call an optimized BLAS library directly.
 
-Suppose that a general customization point `get_mdspan` existed,
+Suppose that a general customization point `get_mdspan` exists,
 that takes a reference to a multidimensional array type
 and returns an `mdspan` that views the array.
 Then, our proposal could support most multidimensional array types.
@@ -1846,12 +1843,12 @@ such as a `map`.
 If we later wanted to support such types,
 we could always generalize our algorithms later.
 
-Finally, any multidimensional array concept would need revision
+Finally, any existing multidimensional array concept would need revision
 in the light of <a href="https://wg21.link/p2128r6">P2128R6</a>,
-which has been approved at Plenary.
+which has been voted into the C++ Standard draft.
 P2128 lets `operator[]` take multiple parameters.
-Its authors intend to let `mdspan` use `operator[]` instead of `operator()`.
-P0009 has adopted this change.
+The version of mdspan which was voted into the C++ Standard draft
+uses `operator[]` instead of `operator()` as the array access operator.
 
 After further discussion at the 2019 Belfast meeting,
 LEWGI accepted our position that having our algorithms take `mdspan`
@@ -2555,8 +2552,8 @@ Assumption (1) implies that the output value type is `semiregular`.
 Contrast with **[algorithms.parallel.exec]**:
 "Unless otherwise stated,
 implementations may make arbitrary copies of elements of type `T`,
-from sequences where `is_­trivially_­copy_­constructible_­v<T>`
-and `is_­trivially_­destructible_­v<T>` are true."
+from sequences where `is_trivially_copy_constructible_v<T>`
+and `is_trivially_destructible_v<T>` are true."
 We omit the trivially constructible and destructible requirements here
 and permit any `semiregular` type.
 Linear algebra algorithms assume mathematical properties
@@ -2625,7 +2622,7 @@ to construct or value-initialize temporaries,
 rather than trying to deduce the temporaries' type
 from the right-hand side of the expression.
 
-The z = y + alpha*x example above shows that some of the algorithms we propose
+The `z = y + alpha*x` example above shows that some of the algorithms we propose
 have multiple terms in a sum on the right-hand side of the expression
 that defines the algorithm.
 If algorithms have permission to rearrange the order of sums,
@@ -3040,8 +3037,7 @@ take a concrete type `mdspan` with template parameters, rather
 than any type that satisfies a concept.  We think that the template
 parameters of `mdspan` fully describe the multidimensional
 equivalent of a multipass iterator, and that "conceptification" of
-multidimensional arrays would unnecessarily delay both this proposal
-and P0009.
+multidimensional arrays would unnecessarily delay this proposal.
 
 In a future proposal, we may consider generalizing our function's template
 parameters, to permit any type besides `mdspan` that implements
@@ -3086,7 +3082,8 @@ Batched interfaces have the following advantages:
 * Hardware vendors currently offer both hardware features and
     optimized software libraries to support batched linear algebra.
 
-* There is an ongoing [interface standardization effort](http://icl.utk.edu/bblas/),
+* There is an ongoing
+    <a href="http://icl.utk.edu/bblas/">interface standardization effort</a>,
     in which we participate.
 
 The `mdspan` data structure makes it easy to represent a batch
@@ -3104,9 +3101,9 @@ input argument for all the output arguments in the batch.
 
 ## `mdspan`
 
-This proposal depends on P0009,
-which proposes adding multidimensional arrays to the C++ Standard
-Library.  P0009's main class is `mdspan`, which is a "view"
+This proposal depends on P0009 and follow-on papers
+that were voted into the current C++ Standard draft.
+P0009's main class is `mdspan`, which is a "view"
 (in the sense of `span`) of a multidimensional array.  The rank
 (number of dimensions) is fixed at compile time.  Users may specify
 some dimensions at run time and others at compile time; the type of
@@ -3118,7 +3115,7 @@ customization points:
     `Layout` later in this paper to implement a "transpose view" of an
     existing `mdspan`.
 
-* `Accessor` defines the storage handle (i.e., `pointer`) stored in
+* `Accessor` defines the storage handle (`data_handle_type`) stored in
     the `mdspan`, as well as the reference type returned by its access
     operator.  This is an extension point for modifying how access
     happens, for example by using `atomic_ref` to get atomic access to
@@ -3129,17 +3126,11 @@ customization points:
 ## New `mdspan` layouts in this proposal
 
 Our proposal uses the layout mapping policy of `mdspan` in order
-to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009 have three basic properties:
-
-* Unique
-* Contiguous
-* Strided
-
-P0009 includes three different layouts -- `layout_left`,
-`layout_right`, and `layout_stride` -- all of which are unique and
-strided.  Only `layout_left` and `layout_right` are contiguous.
-P2642 includes `layout_left_padded` and `layout_right_padded`.
+to represent different matrix and vector data layouts.
+The current C++ Standard draft includes three layouts:
+`layout_left`, `layout_right`, and `layout_stride`.
+<a href="https://wg21.link/p2642">P2642</a>
+includes `layout_left_padded` and `layout_right_padded`.
 These two layouts represent exactly the data layout assumed by
 the General (GE) matrix type in the BLAS' C and Fortran bindings.
 They have has two advantages:
@@ -3179,7 +3170,7 @@ different function names.
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
-the first addition to the layouts in P0009 that is neither always
+the first addition to the existing layouts that is neither always
 unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
