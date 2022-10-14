@@ -71,7 +71,7 @@ void compute_histogram(ExecT exec, float bin_size,
 
 # `atomic_accessor` implementation
 
-The implementaiton of an `atomic_accessor` is straight forward when leveraging `atomic_ref`:
+The implementaiton of an `atomic_accessor` is straightforward when leveraging `atomic_ref`:
 
 ```c++
 template <class ElementType>
