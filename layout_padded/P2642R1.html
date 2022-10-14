@@ -2119,6 +2119,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
         <li><a href="#optimizations-over-layout_stride"><span class="secno">3.2.1</span> <span class="content">Optimizations over <code class="highlight"><c- n>layout_stride</c-></code></span></a>
         <li><a href="#new-layouts-unify-two-use-cases"><span class="secno">3.2.2</span> <span class="content">New layouts unify two use cases</span></a>
         <li><a href="#design-change-from-r0"><span class="secno">3.2.3</span> <span class="content">Design change from R0</span></a>
+        <li><a href="#padding-stride-equality-for-layout-mapping-conversions"><span class="secno">3.2.4</span> <span class="content">Padding stride equality for layout mapping conversions</span></a>
        </ol>
       <li>
        <a href="#integration-with-submdspan"><span class="secno">3.3</span> <span class="content">Integration with <code class="highlight"><c- n>submdspan</c-></code></span></a>
@@ -2177,6 +2178,8 @@ because the latter may not be the actual padding stride.</p>
        <p>Make converting constructors from <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_padded</c-><c- o>::</c-><c- n>mapping</c-></code> to <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- o>::</c-><c- n>mapping</c-></code> use Mandates rather than Constraints to check compile-time stride compatibility.</p>
       <li data-md>
        <p>Mandate that <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_padded</c-><c- o>::</c-><c- n>mapping</c-></code>'s actual padding stride, if known at compile time, be representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (as well as of type <code class="highlight"><c- b>size_t</c-></code>, the previous requirement).</p>
+      <li data-md>
+       <p>Add section explaining why we don’t permit conversion from more aligned to less aligned.</p>
       <li data-md>
        <p>Fixed typos in Wording</p>
       <li data-md>
@@ -2310,6 +2313,43 @@ R0 had no way to express that use case
 with a compile-time input padding stride.
 This is important for hardware features and compiler optimizations
 that require overalignment of multidimensional arrays.</p>
+   <h4 class="heading settled" data-level="3.2.4" id="padding-stride-equality-for-layout-mapping-conversions"><span class="secno">3.2.4. </span><span class="content">Padding stride equality for layout mapping conversions</span><a class="self-link" href="#padding-stride-equality-for-layout-mapping-conversions"></a></h4>
+   <p><code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>Extents</c-><c- o>></c-></code> has a converting constructor from <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>other_padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>></c-></code>.
+Similarly, <code class="highlight"><c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>Extents</c-><c- o>></c-></code> has a converting constructor from <code class="highlight"><c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>other_padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>></c-></code>.
+These constructors require, among other conditions,
+that if <code class="highlight"><c- n>padding_stride</c-></code> and <code class="highlight"><c- n>other_padding_stride</c-></code> do not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>padding_stride</c-></code> equals <code class="highlight"><c- n>other_padding_stride</c-></code>.</p>
+   <p>Users may ask why they can’t convert a more overaligned mapping,
+such as <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>4</c-><c- o>>::</c-><c- n>mapping</c-></code>,
+to a less overaligned mapping, such as <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>2</c-><c- o>>::</c-><c- n>mapping</c-></code>.
+The problem is that this may not be correct for all extents.
+For example, the following code would be incorrect
+if it were well formed (it is not, in this proposal).</p>
+<pre class="language-c++ highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>4</c-><c- o>>::</c-><c- n>mapping</c-> <c- n>m_orig</c-><c- p>{</c-><c- n>extents</c-><c- p>{</c-><c- mi>9</c-><c- p>,</c-> <c- mi>2</c-><c- p>}};</c->
+<c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>2</c-><c- o>>::</c-><c- n>mapping</c-> <c- n>m_new</c-><c- p>(</c-><c- n>m_orig</c-><c- p>);</c->
+</pre>
+   <p>The issue is that <code class="highlight"><c- n>m_orig</c-></code> has an underlying ("physical") layout of <code class="highlight"><c- n>extents</c-><c- p>{</c-><c- mi>12</c-><c- p>,</c-> <c- mi>2</c-><c- p>}</c-></code>,
+but <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>2</c-><c- o>>::</c-><c- n>mapping</c-><c- p>{</c-><c- n>extents</c-><c- p>{</c-><c- mi>9</c-><c- p>,</c-> <c- mi>2</c-><c- p>}}</c-></code> would have an underlying layout of <code class="highlight"><c- n>extents</c-><c- p>{</c-><c- mi>10</c-><c- p>,</c-> <c- mi>2</c-><c- p>}</c-></code>.
+That is, <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>4</c-><c- o>>::</c-><c- n>mapping</c-><c- p>{</c-><c- n>extents</c-><c- p>{</c-><c- mi>9</c-><c- p>,</c-> <c- mi>2</c-><c- p>}}.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> is 12,
+but <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>2</c-><c- o>>::</c-><c- n>mapping</c-><c- p>{</c-><c- n>extents</c-><c- p>{</c-><c- mi>9</c-><c- p>,</c-> <c- mi>2</c-><c- p>}}.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> is 10.</p>
+   <p>In case one is tempted to permit
+assigning dynamic padding stride to static padding stride,
+the following code would also be incorrect
+if it were well formed (it is not, in this proposal).
+Again, <code class="highlight"><c- n>m_orig</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> is 12.</p>
+<pre class="language-c++ highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>::</c-><c- n>mapping</c-> <c- n>m_orig</c-><c- p>{</c-><c- n>extents</c-><c- p>{</c-><c- mi>9</c-><c- p>,</c-> <c- mi>2</c-><c- p>},</c-> <c- mi>4</c-><c- p>};</c->
+<c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>2</c-><c- o>>::</c-><c- n>mapping</c-> <c- n>m_new</c-><c- p>(</c-><c- n>m_orig</c-><c- p>);</c->
+</pre>
+   <p>The following code is well formed in this proposal,
+and it gives <code class="highlight"><c- n>m_new</c-></code> the expected original padding stride of 12.</p>
+<pre class="language-c++ highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>::</c-><c- n>mapping</c-> <c- n>m_orig</c-><c- p>{</c-><c- n>extents</c-><c- p>{</c-><c- mi>9</c-><c- p>,</c-> <c- mi>2</c-><c- p>},</c-> <c- mi>4</c-><c- p>};</c->
+<c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>::</c-><c- n>mapping</c-> <c- n>m_new</c-><c- p>(</c-><c- n>m_orig</c-><c- p>);</c->
+</pre>
+   <p>Similarly, the following code is well formed in this proposal,
+and it gives <code class="highlight"><c- n>m_new</c-></code> the expected original padding stride of 12.</p>
+<pre class="language-c++ highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- mi>4</c-><c- o>>::</c-><c- n>mapping</c-> <c- n>m_orig</c-><c- p>{</c-><c- n>extents</c-><c- p>{</c-><c- mi>9</c-><c- p>,</c-> <c- mi>2</c-><c- p>}};</c->
+<c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>dynamic_extent</c-><c- o>>::</c-><c- n>mapping</c-> <c- n>m_new</c-><c- p>(</c-><c- n>m_orig</c-><c- p>);</c->
+</pre>
    <h3 class="heading settled" data-level="3.3" id="integration-with-submdspan"><span class="secno">3.3. </span><span class="content">Integration with <code class="highlight"><c- n>submdspan</c-></code></span><a class="self-link" href="#integration-with-submdspan"></a></h3>
    <p>We propose changing <code class="highlight"><c- n>submdspan</c-></code> (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p2630r0.html">see P2630</a>)
 of a <code class="highlight"><c- n>layout_left</c-></code> resp. <code class="highlight"><c- n>layout_right</c-></code> mdspan
@@ -3043,18 +3083,18 @@ else, direct-non-list-initializes
   <c- n>constexpr</c-> <c- n>explicit</c-><c- p>(</c-> <c- d>/* see below */</c-> <c- p>)</c->
     <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>other_padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>other</c-><c- p>);</c->
 </pre>
-   <p><em>Constraints:</em></p>
-   <ul>
-    <li data-md>
-     <p><code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>; and</p>
-    <li data-md>
-     <p><code class="highlight"><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>padding_stride</c-> <c- o>==</c-> <c- n>other_padding_stride</c-></code> is <code class="highlight">true</code>.</p>
-   </ul>
+   <p><em>Constraints:</em> <code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
+   <p><em>Mandates:</em> <code class="highlight"><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>padding_stride</c-> <c- o>==</c-> <c- n>other_padding_stride</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Preconditions:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
-then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>; and</p>
+     <p>
+      If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals
+the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code> 
+      <it><code class="highlight"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code></it>
+       <code class="highlight"><c- p>(</c-><c- n>other</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>))</c-></code>; and
+     </p>
     <li data-md>
      <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable
 as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
@@ -3083,7 +3123,7 @@ else, direct-non-list-initializes
        with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.
      </p>
    </ul>
-   <p><em>Remarks:</em> The expression inside <code class="highlight"><c- k>explicit</c-></code> is equivalent to: <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>0</c-> <c- o>&amp;&amp;</c-> <c- p>(</c-><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-><c- p>)</c-></code>.</p>
+   <p><em>Remarks:</em> The expression inside <code class="highlight"><c- k>explicit</c-></code> is equivalent to: <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-> <c- o>&amp;&amp;</c-> <c- p>(</c-><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-><c- p>)</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- n>other_padding_stride</c-><c- p>,</c-> <c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
   <c- n>constexpr</c-> <c- n>explicit</c-><c- p>(</c-><c- n>not</c-> <c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>></c-><c- p>)</c->
     <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>other_padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
@@ -3430,18 +3470,18 @@ else, direct-non-list-initializes
   <c- n>constexpr</c-> <c- n>explicit</c-><c- p>(</c-> <c- d>/* see below */</c-> <c- p>)</c->
     <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>other_padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>other</c-><c- p>);</c->
 </pre>
-   <p><em>Constraints:</em></p>
-   <ul>
-    <li data-md>
-     <p><code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>; and</p>
-    <li data-md>
-     <p><code class="highlight"><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>padding_stride</c-> <c- o>==</c-> <c- n>other_padding_stride</c-></code> is <code class="highlight">true</code>.</p>
-   </ul>
+   <p><em>Constraints:</em> <code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
+   <p><em>Mandates:</em> <code class="highlight"><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>padding_stride</c-> <c- o>==</c-> <c- n>other_padding_stride</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Preconditions:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
-then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>; and</p>
+     <p>
+      If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> equals
+the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code> 
+      <it><code class="highlight"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code></it>
+       <code class="highlight"><c- p>(</c-><c- n>other</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>))</c-></code>; and
+     </p>
     <li data-md>
      <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable
 as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
@@ -3470,7 +3510,7 @@ else, direct-non-list-initializes
        with <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.
      </p>
    </ul>
-   <p><em>Remarks:</em> The expression inside <code class="highlight"><c- k>explicit</c-></code> is equivalent to: <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>0</c-> <c- o>&amp;&amp;</c-> <c- p>(</c-><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-><c- p>)</c-></code>.</p>
+   <p><em>Remarks:</em> The expression inside <code class="highlight"><c- k>explicit</c-></code> is equivalent to: <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-> <c- o>&amp;&amp;</c-> <c- p>(</c-><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-><c- p>)</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>template</c-><c- o>&lt;</c-><c- b>size_t</c-> <c- n>other_padding_stride</c-><c- p>,</c-> <c- n>class</c-> <c- n>OtherExtents</c-><c- o>></c->
   <c- n>constexpr</c-> <c- n>explicit</c-><c- p>(</c-><c- n>not</c-> <c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>></c-><c- p>)</c->
     <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>other_padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>other</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->

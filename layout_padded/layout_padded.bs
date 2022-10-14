@@ -37,6 +37,8 @@ Date: 2022-10-15
 
     * Mandate that `layout_{left,right}_padded::mapping`'s actual padding stride, if known at compile time, be representable as a value of type `index_type` (as well as of type `size_t`, the previous requirement).
 
+    * Add section explaining why we don't permit conversion from more aligned to less aligned.
+
     * Fixed typos in Wording
 
     * Fix formatting in non-Wording, and add links for BLAS and LAPACK
@@ -194,6 +196,64 @@ R0 had no way to express that use case
 with a compile-time input padding stride.
 This is important for hardware features and compiler optimizations
 that require overalignment of multidimensional arrays.
+
+### Padding stride equality for layout mapping conversions
+
+`layout_left_padded<padding_stride>::mapping<Extents>`
+has a converting constructor from
+`layout_left_padded<other_padding_stride>::mapping<OtherExtents>`.
+Similarly, `layout_right_padded<padding_stride>::mapping<Extents>`
+has a converting constructor from
+`layout_right_padded<other_padding_stride>::mapping<OtherExtents>`.
+These constructors require, among other conditions,
+that if `padding_stride` and `other_padding_stride` do not equal `dynamic_extent`,
+then `padding_stride` equals `other_padding_stride`.
+
+Users may ask why they can't convert a more overaligned mapping,
+such as `layout_left_padded<4>::mapping`,
+to a less overaligned mapping, such as `layout_left_padded<2>::mapping`.
+The problem is that this may not be correct for all extents.
+For example, the following code would be incorrect
+if it were well formed (it is not, in this proposal).
+
+```c++
+layout_left_padded<4>::mapping m_orig{extents{9, 2}};
+layout_left_padded<2>::mapping m_new(m_orig);
+```
+
+The issue is that `m_orig` has an underlying ("physical") layout of `extents{12, 2}`,
+but `layout_left_padded<2>::mapping{extents{9, 2}}`
+would have an underlying layout of `extents{10, 2}`.
+That is,
+`layout_left_padded<4>::mapping{extents{9, 2}}.stride(1)` is 12,
+but `layout_left_padded<2>::mapping{extents{9, 2}}.stride(1)` is 10.
+
+In case one is tempted to permit
+assigning dynamic padding stride to static padding stride,
+the following code would also be incorrect
+if it were well formed (it is not, in this proposal).
+Again, `m_orig.stride(1)` is 12.
+
+```c++
+layout_left_padded<dynamic_extent>::mapping m_orig{extents{9, 2}, 4};
+layout_left_padded<2>::mapping m_new(m_orig);
+```
+
+The following code is well formed in this proposal,
+and it gives `m_new` the expected original padding stride of 12.
+
+```c++
+layout_left_padded<dynamic_extent>::mapping m_orig{extents{9, 2}, 4};
+layout_left_padded<dynamic_extent>::mapping m_new(m_orig);
+```
+
+Similarly, the following code is well formed in this proposal,
+and it gives `m_new` the expected original padding stride of 12.
+
+```c++
+layout_left_padded<4>::mapping m_orig{extents{9, 2}};
+layout_left_padded<dynamic_extent>::mapping m_new(m_orig);
+```
 
 ## Integration with `submdspan`
 
@@ -1004,17 +1064,17 @@ template<size_t other_padding_stride, class OtherExtents>
     mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>& other);
 ```
 
-*Constraints:*
+*Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-* `is_constructible_v<extents_type, OtherExtents>` is `true`; and
-
-* `padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride` is `true`.
+*Mandates:* `padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride` is `true`.
 
 *Preconditions:*
 
 * If `extents_type::rank() > 1` is `true`
     and `padding_stride` does not equal `dynamic_extent`,
-    then `other.stride(1)` equals `padding_stride`; and
+    then `other.stride(1)` equals
+    the least multiple of `padding_stride` greater than or equal to
+    `extents_type::` <it>`index-cast`</it> `(other.extent(0))`; and
 
 * `other.required_span_size()` is representable
     as a value of type `index_type` (*[basic.fundamental]*).
@@ -1032,7 +1092,7 @@ template<size_t other_padding_stride, class OtherExtents>
     `other.extents().extent(0)`.
 
 *Remarks:* The expression inside `explicit` is equivalent to:
-`extents_type::rank() > 0 && (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)`.
+`extents_type::rank() > 1 && (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)`.
 
 ```c++
 template<size_t other_padding_stride, class OtherExtents>
@@ -1339,17 +1399,17 @@ template<size_t other_padding_stride, class OtherExtents>
     mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>& other);
 ```
 
-*Constraints:*
+*Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-* `is_constructible_v<extents_type, OtherExtents>` is `true`; and
-
-* `padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride` is `true`.
+*Mandates:* `padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride` is `true`.
 
 *Preconditions:*
 
 * If `extents_type::rank() > 1` is `true`
     and `padding_stride` does not equal `dynamic_extent`,
-    then `other.stride(extents_type::rank() - 2)` equals `padding_stride`; and
+    then `other.stride(extents_type::rank() - 2)` equals
+    the least multiple of `padding_stride` greater than or equal to
+    `extents_type::` <it>`index-cast`</it> `(other.extent(OtherExtents::rank() - 1))`; and
 
 * `other.required_span_size()` is representable
     as a value of type `index_type` (*[basic.fundamental]*).
@@ -1367,7 +1427,7 @@ template<size_t other_padding_stride, class OtherExtents>
     `other.extents().extent(extents_type::rank() - 1)`.
 
 *Remarks:* The expression inside `explicit` is equivalent to:
-`extents_type::rank() > 0 && (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)`.
+`extents_type::rank() > 1 && (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)`.
 
 ```c++
 template<size_t other_padding_stride, class OtherExtents>
