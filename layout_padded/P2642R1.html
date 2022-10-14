@@ -2174,6 +2174,8 @@ if less than the extent to pad.  Remove mapping constructor
 that takes <code class="highlight"><c- n>extents_type</c-></code> and <code class="highlight"><c- n>extents</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>padding_stride</c-><c- o>></c-></code>,
 because the latter may not be the actual padding stride.</p>
       <li data-md>
+       <p>Make converting constructors from <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_padded</c-><c- o>::</c-><c- n>mapping</c-></code> to <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- o>::</c-><c- n>mapping</c-></code> use Mandates rather than Constraints to check compile-time stride compatibility.</p>
+      <li data-md>
        <p>Fixed typos in Wording</p>
       <li data-md>
        <p>Fix formatting in non-Wording, and add links for BLAS and LAPACK</p>
@@ -2738,23 +2740,24 @@ encoding the appropriate year (YYYY) and month (MM).</p>
   <c- n>constexpr</c-> <c- n>explicit</c-><c- p>(</c-><c- n>not</c-> <c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>></c-><c- p>)</c->
     <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>other_padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>other</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
-   <p><em>Constraints:</em></p>
+   <p><em>Constraints:</em> <code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
+   <p><em>Mandates:</em> If</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>; and</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,</p>
     <li data-md>
-     <p>if</p>
-     <ul>
-      <li data-md>
-       <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, and</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>other_padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
-     </ul>
-     <p>then the least multiple of <code class="highlight"><c- n>other_padding_stride</c-></code> greater than or equal to <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>other_padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
+   </ul>
+   <p>then the least multiple of <code class="highlight"><c- n>other_padding_stride</c-></code> greater than or equal to <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code></p>
+   <ul>
+    <li data-md>
+     <p>is representable as a value of type <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>index_type</c-></code>, and</p>
+    <li data-md>
+     <p>equals <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
    </ul>
    <p><em>Preconditions:</em></p>
    <ul>
@@ -2780,23 +2783,24 @@ encoding the appropriate year (YYYY) and month (MM).</p>
   <c- n>constexpr</c-> <c- n>explicit</c-><c- p>(</c-><c- n>not</c-> <c- n>is_convertible_v</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- p>,</c-> <c- n>extents_type</c-><c- o>></c-><c- p>)</c->
     <c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>other_padding_stride</c-><c- o>>::</c-><c- n>mapping</c-><c- o>&lt;</c-><c- n>OtherExtents</c-><c- o>>&amp;</c-> <c- n>other</c-><c- p>)</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
-   <p><em>Constraints:</em></p>
+   <p><em>Constraints:</em> <code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>.</p>
+   <p><em>Mandates:</em> If</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>is_constructible_v</c-><c- o>&lt;</c-><c- n>extents_type</c-><c- p>,</c-> <c- n>OtherExtents</c-><c- o>></c-></code> is <code class="highlight">true</code>, and</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,</p>
     <li data-md>
-     <p>if</p>
-     <ul>
-      <li data-md>
-       <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, and</p>
-      <li data-md>
-       <p><code class="highlight"><c- n>other_padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
-     </ul>
-     <p>then the least multiple of <code class="highlight"><c- n>other_padding_stride</c-></code> greater than or equal to <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> equals <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, and</p>
+    <li data-md>
+     <p><code class="highlight"><c- n>other_padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
+   </ul>
+   <p>then the least multiple of <code class="highlight"><c- n>other_padding_stride</c-></code> greater than or equal to <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code></p>
+   <ul>
+    <li data-md>
+     <p>is representable as a value of type <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>index_type</c-></code>, and</p>
+    <li data-md>
+     <p>equals <code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code>.</p>
    </ul>
    <p><em>Preconditions:</em></p>
    <ul>

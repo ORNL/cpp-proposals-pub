@@ -33,6 +33,8 @@ Date: 2022-10-15
         `extents<index_type, padding_stride>`,
         because the latter may not be the actual padding stride.
 
+    * Make converting constructors from `layout_{left,right}_padded::mapping` to `layout_{left,right}::mapping` use Mandates rather than Constraints to check compile-time stride compatibility.
+
     * Fixed typos in Wording
 
     * Fix formatting in non-Wording, and add links for BLAS and LAPACK
@@ -727,18 +729,23 @@ template<size_t other_padding_stride, class OtherExtents>
     mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>& other) noexcept;
 ```
 
-*Constraints:*
+*Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-* `is_constructible_v<extents_type, OtherExtents>` is `true`; and
+*Mandates:* If
 
-* if
+* `Extents::rank()` is greater than one,
 
-    * `Extents::rank()` is greater than one,
-    * `Extents::static_extent(0)` does not equal `dynamic_extent`,
-    * `OtherExtents::static_extent(0)` does not equal `dynamic_extent`, and
-    * `other_padding_stride` does not equal `dynamic_extent`,
+* `Extents::static_extent(0)` does not equal `dynamic_extent`,
+
+* `OtherExtents::static_extent(0)` does not equal `dynamic_extent`, and
+
+* `other_padding_stride` does not equal `dynamic_extent`,
     
-    then the least multiple of `other_padding_stride` greater than or equal to `OtherExtents::static_extent(0)` equals `Extents::static_extent(0)`.
+then the least multiple of `other_padding_stride` greater than or equal to `OtherExtents::static_extent(0)`
+
+* is representable as a value of type `Extents::index_type`, and
+
+* equals `Extents::static_extent(0)`.
 
 *Preconditions:*
 
@@ -766,18 +773,23 @@ template<size_t other_padding_stride, class OtherExtents>
     mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>& other) noexcept;
 ```
 
-*Constraints:*
+*Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-* `is_constructible_v<extents_type, OtherExtents>` is `true`, and
+*Mandates:* If
 
-* if
+* `Extents::rank()` is greater than one,
 
-    * `Extents::rank()` is greater than one,
-    * `Extents::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`,
-    * `OtherExtents::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`, and
-    * `other_padding_stride` does not equal `dynamic_extent`,
+* `Extents::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`,
+
+* `OtherExtents::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`, and
+
+* `other_padding_stride` does not equal `dynamic_extent`,
     
-    then the least multiple of `other_padding_stride` greater than or equal to `OtherExtents::static_extent(OtherExtents::rank() - 1)` equals `Extents::static_extent(Extents::rank() - 1)`.
+then the least multiple of `other_padding_stride` greater than or equal to `OtherExtents::static_extent(OtherExtents::rank() - 1)`
+
+* is representable as a value of type `Extents::index_type`, and
+
+* equals `Extents::static_extent(Extents::rank() - 1)`.
 
 *Preconditions:*
 
