@@ -1560,7 +1560,7 @@ Possible extra rowspan handling
     blockquote c-[vi] { color: inherit; } /* Name.Variable.Instance */
     blockquote c-[il] { color: inherit; } /* Literal.Number.Integer.Long */
   </style>
-  <meta content="Bikeshed version 11cdbd324, updated Fri Oct 7 18:14:16 2022 -0700" name="generator">
+  <meta content="Bikeshed version b0de3432c, updated Thu Oct 13 09:16:59 2022 -0700" name="generator">
   <link href="https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs" rel="canonical">
   <link href="https://isocpp.org/favicon.ico" rel="icon">
 <style>/* style-autolinks */
@@ -2082,7 +2082,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"></p>
    <h1 class="p-name no-ref" id="title">P1673R10<br>A free function linear algebra interface based on the BLAS</h1>
-   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-10-09">2022-10-09</time></span></h2>
+   <h2 class="no-num no-toc no-ref heading settled" id="profile-and-date"><span class="content">Published Proposal, <time class="dt-updated" datetime="2022-10-15">2022-10-15</time></span></h2>
    <div data-fill-with="spec-metadata">
     <dl>
      <dt>This version:
@@ -2826,7 +2826,7 @@ coexistence with ranges."</p>
       <li data-md>
        <p>Make all matrix view functions <code class="highlight"><c- k>constexpr</c-></code>.</p>
       <li data-md>
-       <p>Rebase atop P2642R1 (if it exists by this point).
+       <p>Rebase atop P2642R1.
 Remove wording saying that we rebase atop P0009R17.
 (We don’t need that any more, because P0009
 was merged into the current C++ draft.)</p>
@@ -2836,6 +2836,9 @@ with the layouts proposed by P2642
 (<code class="highlight"><c- n>layout_left_padded</c-></code> and <code class="highlight"><c- n>layout_right_padded</c-></code>).</p>
       <li data-md>
        <p>Update <code class="highlight"><c- n>layout_blas_packed</c-></code> to match mdspan’s other layout mappings
+in the current C++ Standard draft.</p>
+      <li data-md>
+       <p>Update accessors to match mdspan’s other accessors
 in the current C++ Standard draft.</p>
       <li data-md>
        <p>Update non-wording to reflect current status of <code class="highlight"><c- n>mdspan</c-></code> (voted into C++ Standard draft) and <code class="highlight"><c- n>submdspan</c-></code> (P2630).</p>
@@ -5221,7 +5224,7 @@ implement "scaled views" and "conjugated views" of an existing <code class="high
    <h3 class="heading settled" data-level="13.2" id="new-mdspan-layouts-in-this-proposal"><span class="secno">13.2. </span><span class="content">New <code class="highlight"><c- n>mdspan</c-></code> layouts in this proposal</span><a class="self-link" href="#new-mdspan-layouts-in-this-proposal"></a></h3>
    <p>Our proposal uses the layout mapping policy of <code class="highlight"><c- n>mdspan</c-></code> in order
 to represent different matrix and vector data layouts.
-The current C++ Standard draft includes three layouts: <code class="highlight"><c- n>layout_left</c-></code>, <code class="highlight"><c- n>layout_right</c-></code>, and <code class="highlight"><c- n>layout_stride</c-></code>. <a href="https://wg21.link/p2642">P2642</a> includes <code class="highlight"><c- n>layout_left_padded</c-></code> and <code class="highlight"><c- n>layout_right_padded</c-></code>.
+The current C++ Standard draft includes three layouts: <code class="highlight"><c- n>layout_left</c-></code>, <code class="highlight"><c- n>layout_right</c-></code>, and <code class="highlight"><c- n>layout_stride</c-></code>. <a href="https://isocpp.org/files/papers/P2642R1.html">P2642R1</a> includes <code class="highlight"><c- n>layout_left_padded</c-></code> and <code class="highlight"><c- n>layout_right_padded</c-></code>.
 These two layouts represent exactly the data layout assumed by
 the General (GE) matrix type in the BLAS' C and Fortran bindings.
 They have has two advantages:</p>
@@ -7431,7 +7434,7 @@ The expression <code class="highlight" data-span-tag="_"><c- n>conj</c-><c- o>-<
     <li data-md>
      <p>else, <code class="highlight"><c- n>conj</c-><c- p>(</c-><c- n>E</c-><c- p>)</c-></code>, if that expression is valid
 with overload resolution performed in a context
-that includes the declaration <code class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- n>T</c-> <c- n>conj</c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-><c- p>)</c-> <c- o>=</c-> <c- k>delete</c-><c- p>;</c-></code> and does not include a declaration of <code class="highlight"><c- n>linalg</c-><c- o>::</c-><c- n>impl</c-><c- o>::</c-></code><code class="highlight" data-span-tag="_"><c- n>conj_if_needed</c-></code>_;</p>
+	that includes the declaration <code class="highlight"><c- k>template</c-><c- o>&lt;</c-><c- k>class</c-> <c- nc>T</c-><c- o>></c-> <c- n>T</c-> <c- n>conj</c-><c- p>(</c-><c- k>const</c-> <c- n>T</c-><c- o>&amp;</c-><c- p>)</c-> <c- o>=</c-> <c- k>delete</c-><c- p>;</c-></code> and does not include a declaration of <code class="highlight"><c- n>linalg</c-><c- o>::</c-><c- n>impl</c-><c- o>::</c-></code><code class="highlight" data-span-tag="_"><c- n>conj_if_needed</c-></code>_;</p>
     <li data-md>
      <p>else, <code class="highlight"><c- n>E</c-></code>.</p>
    </ul>
@@ -7696,18 +7699,18 @@ reference.  It is part of the implementation of <code class="highlight"><c- n>sc
          <c- n>class</c-> <c- n>Accessor</c-><c- o>></c->
 <c- n>class</c-> <c- n>accessor_scaled</c-> <c- p>{</c->
 <c- n>public</c-><c- o>:</c->
-  <c- n>using</c-> <c- n>reference</c->     <c- o>=</c-> <c- n>scaled_scalar</c-><c- o>&lt;</c-><c- n>ScalingFactor</c-><c- p>,</c->
+  <c- n>using</c-> <c- n>reference</c-> <c- o>=</c-> <c- n>scaled_scalar</c-><c- o>&lt;</c-><c- n>ScalingFactor</c-><c- p>,</c->
     <c- n>typename</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>reference</c-><c- p>,</c->
     <c- n>typename</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>element_type</c-><c- o>></c-><c- p>;</c->
-  <c- n>using</c-> <c- n>element_type</c->  <c- o>=</c-> <c- n>add_const_t</c-><c- o>&lt;</c-><c- n>typename</c-> <c- n>reference</c-><c- o>::</c-><c- n>value_type</c-><c- o>></c-><c- p>;</c->
-  <c- n>using</c-> <c- n>pointer</c->       <c- o>=</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>pointer</c-><c- p>;</c->
+  <c- n>using</c-> <c- n>element_type</c-> <c- o>=</c-> <c- n>add_const_t</c-><c- o>&lt;</c-><c- n>typename</c-> <c- n>reference</c-><c- o>::</c-><c- n>value_type</c-><c- o>></c-><c- p>;</c->
+  <c- n>using</c-> <c- n>data_handle_type</c-> <c- o>=</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>data_handle_type</c-><c- p>;</c->
   <c- n>using</c-> <c- n>offset_policy</c-> <c- o>=</c-> <c- n>accessor_scaled</c-><c- o>&lt;</c-><c- n>ScalingFactor</c-><c- p>,</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>offset_policy</c-><c- o>></c-><c- p>;</c->
 
   <c- n>constexpr</c-> <c- nf>accessor_scaled</c-><c- p>(</c-><c- k>const</c-> <c- n>ScalingFactor</c-><c- o>&amp;</c-> <c- n>s</c-><c- p>,</c-> <c- k>const</c-> <c- n>Accessor</c-><c- o>&amp;</c-> <c- n>a</c-><c- p>);</c->
 
-  <c- n>constexpr</c-> <c- n>reference</c-> <c- n>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+  <c- n>constexpr</c-> <c- n>reference</c-> <c- n>access</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 
-  <c- n>constexpr</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c-> <c- n>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+  <c- n>constexpr</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>data_handle_type</c-> <c- n>offset</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 
   <c- n>constexpr</c-> <c- n>ScalingFactor</c-> <c- n>scaling_factor</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
 
@@ -7730,11 +7733,11 @@ reference.  It is part of the implementation of <code class="highlight"><c- n>sc
     <li data-md>
      <p>direct non-list-initializes <code class="highlight"><c- n>accessor_</c-></code> with <code class="highlight"><c- n>a</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>reference</c-> <c- n>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>reference</c-> <c- n>access</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>reference</c-><c- p>(</c-><c- n>scaling_factor_</c-><c- p>,</c-> <c- n>accessor_</c-><c- p>.</c-><c- n>access</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>));</c-></code>.</p>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c->
-<c- n>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>data_handle_type</c->
+<c- n>offset</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c-> <c- n>noexcept</c-><c- p>;</c->
 </pre>
    <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>accessor_</c-><c- p>.</c-><c- n>offset</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>);</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>ScalingFactor</c-> <c- n>scaling_factor</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
@@ -7850,16 +7853,16 @@ It is part of the implementation of <code class="highlight"><c- n>conjugated</c-
 <c- n>public</c-><c- o>:</c->
   <c- n>using</c-> <c- n>reference</c->     <c- o>=</c-> <c- d>/* see below */</c-><c- p>;</c->
   <c- n>using</c-> <c- n>element_type</c->  <c- o>=</c-> <c- d>/* see below */</c-><c- p>;</c->
-  <c- n>using</c-> <c- n>pointer</c->       <c- o>=</c-> <c- n>typename</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>pointer</c-><c- p>;</c->
+  <c- n>using</c-> <c- n>data_handle_type</c-> <c- o>=</c-> <c- n>typename</c-> <c- n>Accessor</c-><c- o>::</c-><c- n>data_handle_type</c-><c- p>;</c->
   <c- n>using</c-> <c- n>offset_policy</c-> <c- o>=</c-> <c- d>/* see below */</c-><c- p>;</c->
 
   <c- n>constexpr</c-> <c- nf>accessor_conjugate</c-><c- p>(</c-><c- n>Accessor</c-> <c- n>a</c-><c- p>);</c->
 
-  <c- n>constexpr</c-> <c- n>reference</c-> <c- n>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
+  <c- n>constexpr</c-> <c- n>reference</c-> <c- n>access</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
     <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>reference</c-><c- p>(</c-><c- n>acc_</c-><c- p>.</c-><c- n>access</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>))));</c->
 
-  <c- n>constexpr</c-> <c- n>typename</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c->
-    <c- n>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
+  <c- n>constexpr</c-> <c- n>typename</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>data_handle_type</c->
+    <c- n>offset</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
       <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>acc_</c-><c- p>.</c-><c- n>offset</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>)));</c->
 
   <c- n>constexpr</c-> <c- n>Accessor</c-> <c- n>nested_accessor</c-><c- p>()</c-> <c- k>const</c-><c- p>;</c->
@@ -7904,15 +7907,15 @@ if <code class="highlight"><c- n>remove_cv_t</c-><c- o>&lt;</c-><c- k>typename</
     <li data-md>
      <p><em>Effects:</em> Direct non-list-initializes <code class="highlight"><c- n>acc_</c-></code> with <code class="highlight"><c- n>a</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>reference</c-> <c- n>access</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>reference</c-> <c- n>access</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
   <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>reference</c-><c- p>(</c-><c- n>acc_</c-><c- p>.</c-><c- n>access</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>))));</c->
 </pre>
    <ul>
     <li data-md>
      <p><em>Effects:</em> Equivalent to <code class="highlight"><c- k>return</c-> <c- n>reference</c-><c- p>(</c-><c- n>acc_</c-><c- p>.</c-><c- n>access</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>));</c-></code>.</p>
    </ul>
-<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>typename</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>pointer</c->
-  <c- n>offset</c-><c- p>(</c-><c- n>pointer</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
+<pre class="language-c++ highlight"><c- n>constexpr</c-> <c- n>typename</c-> <c- n>offset_policy</c-><c- o>::</c-><c- n>data_handle_type</c->
+  <c- n>offset</c-><c- p>(</c-><c- n>data_handle_type</c-> <c- n>p</c-><c- p>,</c-> <c- b>size_t</c-> <c- n>i</c-><c- p>)</c-> <c- k>const</c->
     <c- n>noexcept</c-><c- p>(</c-><c- n>noexcept</c-><c- p>(</c-><c- n>acc_</c-><c- p>.</c-><c- n>offset</c-><c- p>(</c-><c- n>p</c-><c- p>,</c-> <c- n>i</c-><c- p>)));</c->
 </pre>
    <ul>

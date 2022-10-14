@@ -8,7 +8,7 @@ URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs
 Editor: Mark Hoemmen, NVIDIA, mhoemmen@nvidia.com
 Abstract: We propose a C++ Standard Library dense linear algebra interface based on the dense Basic Linear Algebra Subroutines (BLAS).  This corresponds to a subset of the BLAS Standard.
 Markup Shorthands: markdown yes
-Date: 2022-10-09
+Date: 2022-10-15
 </pre>
 
 # Authors and contributors
@@ -384,7 +384,7 @@ Date: 2022-10-09
 
     * Make all matrix view functions `constexpr`.
 
-    * Rebase atop P2642R1 (if it exists by this point).
+    * Rebase atop P2642R1.
         Remove wording saying that we rebase atop P0009R17.
         (We don't need that any more, because P0009
         was merged into the current C++ draft.)
@@ -394,6 +394,9 @@ Date: 2022-10-09
         (`layout_left_padded` and `layout_right_padded`).
 
     * Update `layout_blas_packed` to match mdspan's other layout mappings
+        in the current C++ Standard draft.
+
+    * Update accessors to match mdspan's other accessors
         in the current C++ Standard draft.
 
     * Update non-wording to reflect current status of `mdspan`
@@ -3129,7 +3132,7 @@ Our proposal uses the layout mapping policy of `mdspan` in order
 to represent different matrix and vector data layouts.
 The current C++ Standard draft includes three layouts:
 `layout_left`, `layout_right`, and `layout_stride`.
-<a href="https://wg21.link/p2642">P2642</a>
+<a href="https://isocpp.org/files/papers/P2642R1.html">P2642R1</a>
 includes `layout_left_padded` and `layout_right_padded`.
 These two layouts represent exactly the data layout assumed by
 the General (GE) matrix type in the BLAS' C and Fortran bindings.
@@ -5754,18 +5757,18 @@ template<class ScalingFactor,
          class Accessor>
 class accessor_scaled {
 public:
-  using reference     = scaled_scalar<ScalingFactor,
+  using reference = scaled_scalar<ScalingFactor,
     typename Accessor::reference,
     typename Accessor::element_type>;
-  using element_type  = add_const_t<typename reference::value_type>;
-  using pointer       = Accessor::pointer;
+  using element_type = add_const_t<typename reference::value_type>;
+  using data_handle_type = Accessor::data_handle_type;
   using offset_policy = accessor_scaled<ScalingFactor, Accessor::offset_policy>;
 
   constexpr accessor_scaled(const ScalingFactor& s, const Accessor& a);
 
-  constexpr reference access(pointer p, size_t i) const noexcept;
+  constexpr reference access(data_handle_type p, size_t i) const noexcept;
 
-  constexpr offset_policy::pointer offset(pointer p, size_t i) const noexcept;
+  constexpr offset_policy::data_handle_type offset(data_handle_type p, size_t i) const noexcept;
 
   constexpr ScalingFactor scaling_factor() const;
 
@@ -5794,14 +5797,14 @@ constexpr accessor_scaled(const ScalingFactor& s, const Accessor& a);
     * direct non-list-initializes `accessor_` with `a`.
 
 ```c++
-constexpr reference access(pointer p, size_t i) const noexcept;
+constexpr reference access(data_handle_type p, size_t i) const noexcept;
 ```
 
 *Effects:* Equivalent to `return reference(scaling_factor_, accessor_.access(p, i));`.
 
 ```c++
-constexpr offset_policy::pointer
-offset(pointer p, size_t i) const noexcept;
+constexpr offset_policy::data_handle_type
+offset(data_handle_type p, size_t i) const noexcept;
 ```
 
 *Effects:* Equivalent to `return accessor_.offset(p, i);`.
@@ -5960,16 +5963,16 @@ private:
 public:
   using reference     = /* see below */;
   using element_type  = /* see below */;
-  using pointer       = typename Accessor::pointer;
+  using data_handle_type = typename Accessor::data_handle_type;
   using offset_policy = /* see below */;
 
   constexpr accessor_conjugate(Accessor a);
 
-  constexpr reference access(pointer p, size_t i) const
+  constexpr reference access(data_handle_type p, size_t i) const
     noexcept(noexcept(reference(acc_.access(p, i))));
 
-  constexpr typename offset_policy::pointer
-    offset(pointer p, size_t i) const
+  constexpr typename offset_policy::data_handle_type
+    offset(data_handle_type p, size_t i) const
       noexcept(noexcept(acc_.offset(p, i)));
 
   constexpr Accessor nested_accessor() const;
@@ -6022,15 +6025,15 @@ constexpr accessor_conjugate(Accessor a);
 * *Effects:* Direct non-list-initializes `acc_` with `a`.
 
 ```c++
-constexpr reference access(pointer p, size_t i) const
+constexpr reference access(data_handle_type p, size_t i) const
   noexcept(noexcept(reference(acc_.access(p, i))));
 ```
 
 * *Effects:* Equivalent to `return reference(acc_.access(p, i));`.
 
 ```c++
-constexpr typename offset_policy::pointer
-  offset(pointer p, size_t i) const
+constexpr typename offset_policy::data_handle_type
+  offset(data_handle_type p, size_t i) const
     noexcept(noexcept(acc_.offset(p, i)));
 ```
 
