@@ -2,13 +2,13 @@
 Title: A free function linear algebra interface based on the BLAS
 Shortname: P1673
 Status: iso/P
-Level: 9
+Level: 10
 Group: WG21
 URL: https://github.com/ORNL/cpp-proposals-pub/blob/master/D1673/P1673.bs
 Editor: Mark Hoemmen, NVIDIA, mhoemmen@nvidia.com
 Abstract: We propose a C++ Standard Library dense linear algebra interface based on the dense Basic Linear Algebra Subroutines (BLAS).  This corresponds to a subset of the BLAS Standard.
 Markup Shorthands: markdown yes
-Date: 2022-06-15
+Date: 2022-10-09
 </pre>
 
 # Authors and contributors
@@ -344,10 +344,10 @@ Date: 2022-06-15
     * Changes suggested by SG6 small group review on 2022/06/09
 
         * Make existing exposition-only function `conj-if-needed`
-	    use `conj` if it can find it via unqualified (ADL-only) lookup,
-	    otherwise be the identity.
-	    Make it a function object instead of a function,
-	    to prevent ADL issues.
+	          use `conj` if it can find it via unqualified (ADL-only) lookup,
+	          otherwise be the identity.
+	          Make it a function object instead of a function,
+	          to prevent ADL issues.
 
         * Algorithms that mathematically need to do division
 	    can now distinguish left division and right division
@@ -362,7 +362,7 @@ Date: 2022-06-15
             explaining why we don't define an interface
             for customization of the "back-end" optimized BLAS operations.
             This section already existed, but we rewrote it
-	    to improve clarity.  Please see the section titled
+	          to improve clarity.  Please see the section titled
             "We do not require using the BLAS library
             or any particular 'back-end'."
 
@@ -373,10 +373,31 @@ Date: 2022-06-15
             coexistence with ranges."
 
         * Address LEWG feedback to defer support
-	    for custom complex number types
-	    (but see above SG6 small group response).
+	          for custom complex number types
+	          (but see above SG6 small group response).
 
     * Fix P1674 links to point to R2.
+
+* Revision 10 (electronic), to be submitted soon
+
+    * Revise `scaled` and `conjugated` wording.
+
+    * Make all matrix view functions `constexpr`.
+
+    * Rebase atop P2642R1 (if it exists by this point).
+        Remove wording saying that we rebase atop P0009R17.
+        (We don't need that any more, because P0009
+        was merged into the current C++ draft.)
+
+    * Remove `layout_blas_general`, as it has been replaced
+        with the layouts proposed by P2642
+        (`layout_left_padded` and `layout_right_padded`).
+
+    * Update `layout_blas_packed` to match mdspan's other layout mappings
+        in the current C++ Standard draft.
+
+    * Update non-wording to reflect current status of `mdspan`
+        (voted into C++ Standard draft) and `submdspan` (P2630).
 
 # Purpose of this paper
 
@@ -387,34 +408,33 @@ This corresponds to a subset of the
 Our proposal implements the following classes of algorithms on arrays that represent
 matrices and vectors:
 
-* Elementwise vector sums
-* Multiplying all elements of a vector or matrix by a scalar
-* 2-norms and 1-norms of vectors
-* Vector-vector, matrix-vector, and matrix-matrix products (contractions)
-* Low-rank updates of a matrix
-* Triangular solves with one or more "right-hand side" vectors
-* Generating and applying plane (Givens) rotations
+* elementwise vector sums;
+* multiplying all elements of a vector or matrix by a scalar;
+* 2-norms and 1-norms of vectors;
+* vector-vector, matrix-vector, and matrix-matrix products (contractions);
+* low-rank updates of a matrix;
+* triangular solves with one or more "right-hand side" vectors; and
+* generating and applying plane (Givens) rotations.
 
 Our algorithms work with most of the matrix storage formats that the BLAS
 Standard supports:
 
-* "General" dense matrices, in column-major or row-major format
-* Symmetric or Hermitian (for complex numbers only) dense matrices,
-    stored either as general dense matrices, or in a packed format
-* Dense triangular matrices, stored either as general dense matrices
-    or in a packed format
+* "general" dense matrices, in column-major or row-major format;
+* symmetric or Hermitian (for complex numbers only) dense matrices,
+    stored either as general dense matrices, or in a packed format; and
+* dense triangular matrices, stored either as general dense matrices
+    or in a packed format.
 
-Our proposal also has the following distinctive characteristics:
+Our proposal also has the following distinctive characteristics.
 
 * It uses free functions, not arithmetic operator overloading.
 
 * The interface is designed in the spirit of the C++ Standard Library's
     algorithms.
 
-* It uses `mdspan` (see P0009),
+* It uses `mdspan` (P0009 and follow-on papers,
+    which have been adopted into the C++23 draft),
     a multidimensional array view, to represent matrices and vectors.
-    In the future,
-    it could support other proposals' matrix and vector data structures.
 
 * The interface permits optimizations for matrices and vectors with
     small compile-time dimensions; the standard BLAS interface does not.
@@ -425,9 +445,9 @@ Our proposal also has the following distinctive characteristics:
 
 * Our operations permit "mixed-precision" computation with matrices
     and vectors that have different element types.  This subsumes most
-    functionality of the Mixed-Precision BLAS specification (Chapter 4
-    of the [BLAS
-    Standard](http://www.netlib.org/blas/blast-forum/blas-report.pdf)).
+    functionality of the Mixed-Precision BLAS specification,
+    comprising Chapter 4 of the
+    <a href="http://www.netlib.org/blas/blast-forum/blas-report.pdf">BLAS Standard</a>.
 
 * Like the C++ Standard Library's algorithms, our operations take an
     optional execution policy argument.  This is a hook to support
@@ -504,10 +524,8 @@ linalg::matrix_vector_product(std::execution::par,
 
 This example illustrates the ability to perform mixed-precision computations,
 and the ability to compute on subviews of a matrix or vector
-by using `submdspan`.  (`submdspan` was separated from the rest of P0009
+by using `submdspan` (P2630).  (`submdspan` was separated from the rest of P0009
 as a way to avoid delaying the hopeful adoption of P0009 for C++23.
-However, the P0009 authors plan to pursue `submdspan`
-as a follow-on proposal as soon as possible.
 The reference implementation of `mdspan` includes `submdspan`.)
 
 ```c++
@@ -613,12 +631,9 @@ is where readers will find the normative wording we propose.
 
 Finally, Section <a href="#examples"><span class="secno">17</span></a>
 gives some more elaborate examples of linear algebra algorithms that use our proposal.
-The examples show how `mdspan`'s features let users easily describe "submatrices" with `submdspan`.
-(`submdspan` was separated from the rest of P0009
-as a way to avoid delaying the hopeful adoption of P0009 for C++23.
-However, the P0009 authors plan to pursue `submdspan`
-as a follow-on proposal as soon as possible.
-The reference implementation of `mdspan` includes `submdspan`.)
+The examples show how `mdspan`'s features let users easily describe "submatrices" with `submdspan`,
+proposed in P2630 as a follow-on to mdspan.
+(The reference implementation of `mdspan` includes `submdspan`.)
 This integrates naturally with "block" factorizations of matrices.
 The resulting notation is concise, yet still computes in place,
 without unnecessary copies of any part of the matrix.
@@ -780,8 +795,8 @@ The mapping is not always one to one.
 We believe this proposal is complementary to P1385R6,
 a proposal for a C++ Standard linear algebra library
 that introduces matrix and vector classes with overloaded arithmetic operators.
-The P1385 authors and we have expressed together in
-[a joint paper, P1891](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf),
+The P1385 authors and we have expressed together in a joint paper,
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf">P1891</a>,
 that P1673 and P1385 "are orthogonal.
 They are not competing papers; ...
 there is no overlap of functionality."
@@ -863,11 +878,11 @@ in support of adding linear algebra to the C++ Standard Library.
     continue to provide features specifically to accelerate linear
     algebra operations.  Some of them even implement specific linear
     algebra operations directly in hardware.  Examples include NVIDIA's
-    [Tensor Cores](https://www.nvidia.com/en-us/data-center/tensorcore/)
-    and Cerebras' [Wafer Scale
-    Engine](https://www.cerebras.net/product/#chip).  Several large
-    computer system vendors offer optimized linear algebra libraries
-    based on or closely resembling the BLAS; these include AMD's BLIS,
+    <a href="https://www.nvidia.com/en-us/data-center/tensorcore/">Tensor Cores</a>
+    and Cerebras'
+    <a href="https://www.cerebras.net/product/#chip">Wafer Scale Engine</a>.
+    Several large computer system vendors offer optimized linear algebra libraries
+    based on or closely resembling the BLAS.  These include AMD's BLIS,
     ARM's Performance Libraries, Cray's LibSci, Intel's Math Kernel
     Library (MKL), IBM's Engineering and Scientific Subroutine Library
     (ESSL), and NVIDIA's cuBLAS.
@@ -875,8 +890,9 @@ in support of adding linear algebra to the C++ Standard Library.
 Obvious algorithms for some linear algebra operations like dense
 matrix-matrix multiply are asymptotically slower than less-obvious
 algorithms.  (Please refer to a survey one of us coauthored,
-["Communication lower bounds and optimal algorithms for numerical
-linear algebra."](https://doi.org/10.1017/S0962492914000038))
+<a href="https://doi.org/10.1017/S0962492914000038">
+"Communication lower bounds and optimal algorithms
+for numerical linear algebra."</a>
 Furthermore, writing the fastest dense matrix-matrix multiply depends
 on details of a specific computer architecture.  This makes such
 operations comparable to `sort` in the C++ Standard Library: worth
@@ -930,7 +946,7 @@ as broadly useful, and in many cases significantly more so.
 
 Linear algebra has had a cross-language standard, the Basic Linear
 Algebra Subroutines (BLAS), since 2002.  The Standard came out of a
-[standardization process](http://www.netlib.org/blas/blast-forum/)
+<a href="http://www.netlib.org/blas/blast-forum/">standardization process</a>
 that started in 1995 and held meetings three times a year until 1999.
 Participants in the process came from industry, academia, and
 government research laboratories.  The dense linear algebra subset of
@@ -938,22 +954,23 @@ the BLAS codifies forty years of evolving practice, and has existed in
 recognizable form since 1990 (see P1417R0).
 
 The BLAS interface was specifically designed as the distillation of
-the "computer science" / performance-oriented parts of linear algebra
+the "computer science" or performance-oriented parts of linear algebra
 algorithms.  It cleanly separates operations most critical for
 performance, from operations whose implementation takes expertise in
 mathematics and rounding-error analysis.  This gives vendors
 opportunities to add value, without asking for expertise outside the
 typical required skill set of a Standard Library implementer.
 
-Well-established benchmarks such as the [LINPACK
-benchmark](https://www.top500.org/project/linpack/) reward computer
-hardware vendors for optimizing their BLAS implementations.  Thus,
-many vendors provide an optimized BLAS library for their computer
+Well-established benchmarks such as the
+<a href="https://www.top500.org/project/linpack/">LINPACK benchmark</a>,
+reward computer hardware vendors for optimizing their BLAS implementations.
+Thus, many vendors provide an optimized BLAS library for their computer
 architectures.  Writing fast BLAS-like operations is not trivial, and
 depends on computer architecture.  However, it is a well-understood
 problem whose solutions could be parameterized for a variety of
-computer architectures.  See, for example, [Goto and van de Geijn
-2008](https://doi.org/10.1145/1356052.1356053).  There are optimized
+computer architectures.  See, for example,
+<a href="https://doi.org/10.1145/1356052.1356053">Goto and van de Geijn 2008</a>.
+There are optimized
 third-party BLAS implementations for common architectures, like
 <a href="http://math-atlas.sourceforge.net/">ATLAS</a> and
 <a href="https://www.tacc.utexas.edu/research-development/tacc-software/gotoblas2">GotoBLAS</a>.
@@ -1000,7 +1017,7 @@ An analogy to the current C++ Standard Library is `sort`,
 where intuitive algorithms that many humans use are not asymptotically optimal.
 
 Regarding (2), a good example is copying multidimensional arrays.
-The [Kokkos library](github.com/kokkos/kokkos)
+The <a href="https://github.com/kokkos/kokkos">Kokkos library</a>
 spends about 2500 lines of code on multidimensional array copy,
 yet still relies on system libraries for low-level optimizations.
 An analogy to the current C++ Standard Library is `copy` or even `memcpy`.
@@ -1017,7 +1034,9 @@ that always get the same answer, despite rounding error.
 This can help debugging, for example.
 It is possible to make floating-point sums completely independent
 of parallel evaluation order.
-See e.g., the [ReproBLAS](https://bebop.cs.berkeley.edu/reproblas/) effort.
+See e.g., the
+<a href="https://bebop.cs.berkeley.edu/reproblas/">ReproBLAS</a>
+effort.
 Naming these algorithms and providing `ExecutionPolicy` customization hooks
 gives vendors a chance to provide these improvements.
 An analogy to the current C++ Standard Library is `hypot`,
@@ -1098,10 +1117,12 @@ might have a reasonable translation to ranges algorithms.
 There, we limit ourselves to the BLAS 1 algorithms in what follows.
 
 Any rank-1 `mdspan` `x` can be translated into the following range:
+
 ```c++
 auto x_range = views::iota(size_t(0), x.extent(0)) |
     views::transform([x] (auto k) { return x[k]; });
 ```
+
 with specializations possible for `mdspan`
 whose layout mapping's range
 is a contiguous or fixed-stride set of offsets.
@@ -1643,12 +1664,6 @@ existing C++ Standard Library algorithms.  Future work or
 collaboration with other proposals could implement a higher-level
 interface.
 
-We propose to build the initial interface on top of `mdspan`,
-and plan to extend that later with overloads for a new `mdarray`
-variant of `mdspan` with container semantics as well as any type
-implementing a `get_mdspan` customization point.
-We explain the value of these choices below.
-
 Please refer to our papers
 "Evolving a Standard C++ Linear Algebra Library from the BLAS"
 <a href="https://wg21.link/p1674">(P1674)</a>
@@ -1792,7 +1807,7 @@ an efficient "batched" interface in future proposals.
 LEWGI requested in the 2019 Cologne meeting that we explore using a
 concept instead of `mdspan` to define the arguments for the
 linear algebra functions.
-This would mean, instead of having our functions take `mdspan` parameters,
+This would mean that instead of having our functions take `mdspan` parameters,
 they would be generic on one or more suitably constrained multidimensional array types.
 The constraints would form a "multidimensional array concept."
 
@@ -1811,12 +1826,12 @@ We investigated this option, and rejected it, for the following reasons.
     in the light of <a href="https://wg21.link/p2128r6">P2128R6</a>.
 
 This proposal refers to almost all of `mdspan`'s features,
-including `extents`, `layout`, and `accessor_policy`.
+including `extents`, layouts, and accessors.
 We expect implementations to use all of them for optimizations,
 for example to extract the scaling factor from the return value of `scaled`
 in order to call an optimized BLAS library directly.
 
-Suppose that a general customization point `get_mdspan` existed,
+Suppose that a general customization point `get_mdspan` exists,
 that takes a reference to a multidimensional array type
 and returns an `mdspan` that views the array.
 Then, our proposal could support most multidimensional array types.
@@ -1828,12 +1843,12 @@ such as a `map`.
 If we later wanted to support such types,
 we could always generalize our algorithms later.
 
-Finally, any multidimensional array concept would need revision
+Finally, any existing multidimensional array concept would need revision
 in the light of <a href="https://wg21.link/p2128r6">P2128R6</a>,
-which has been approved at Plenary.
+which has been voted into the C++ Standard draft.
 P2128 lets `operator[]` take multiple parameters.
-Its authors intend to let `mdspan` use `operator[]` instead of `operator()`.
-P0009 has adopted this change.
+The version of mdspan which was voted into the C++ Standard draft
+uses `operator[]` instead of `operator()` as the array access operator.
 
 After further discussion at the 2019 Belfast meeting,
 LEWGI accepted our position that having our algorithms take `mdspan`
@@ -2537,8 +2552,8 @@ Assumption (1) implies that the output value type is `semiregular`.
 Contrast with **[algorithms.parallel.exec]**:
 "Unless otherwise stated,
 implementations may make arbitrary copies of elements of type `T`,
-from sequences where `is_­trivially_­copy_­constructible_­v<T>`
-and `is_­trivially_­destructible_­v<T>` are true."
+from sequences where `is_trivially_copy_constructible_v<T>`
+and `is_trivially_destructible_v<T>` are true."
 We omit the trivially constructible and destructible requirements here
 and permit any `semiregular` type.
 Linear algebra algorithms assume mathematical properties
@@ -2607,7 +2622,7 @@ to construct or value-initialize temporaries,
 rather than trying to deduce the temporaries' type
 from the right-hand side of the expression.
 
-The z = y + alpha*x example above shows that some of the algorithms we propose
+The `z = y + alpha*x` example above shows that some of the algorithms we propose
 have multiple terms in a sum on the right-hand side of the expression
 that defines the algorithm.
 If algorithms have permission to rearrange the order of sums,
@@ -3022,8 +3037,7 @@ take a concrete type `mdspan` with template parameters, rather
 than any type that satisfies a concept.  We think that the template
 parameters of `mdspan` fully describe the multidimensional
 equivalent of a multipass iterator, and that "conceptification" of
-multidimensional arrays would unnecessarily delay both this proposal
-and P0009.
+multidimensional arrays would unnecessarily delay this proposal.
 
 In a future proposal, we may consider generalizing our function's template
 parameters, to permit any type besides `mdspan` that implements
@@ -3068,7 +3082,8 @@ Batched interfaces have the following advantages:
 * Hardware vendors currently offer both hardware features and
     optimized software libraries to support batched linear algebra.
 
-* There is an ongoing [interface standardization effort](http://icl.utk.edu/bblas/),
+* There is an ongoing
+    <a href="http://icl.utk.edu/bblas/">interface standardization effort</a>,
     in which we participate.
 
 The `mdspan` data structure makes it easy to represent a batch
@@ -3086,9 +3101,9 @@ input argument for all the output arguments in the batch.
 
 ## `mdspan`
 
-This proposal depends on P0009,
-which proposes adding multidimensional arrays to the C++ Standard
-Library.  P0009's main class is `mdspan`, which is a "view"
+This proposal depends on P0009 and follow-on papers
+that were voted into the current C++ Standard draft.
+P0009's main class is `mdspan`, which is a "view"
 (in the sense of `span`) of a multidimensional array.  The rank
 (number of dimensions) is fixed at compile time.  Users may specify
 some dimensions at run time and others at compile time; the type of
@@ -3100,7 +3115,7 @@ customization points:
     `Layout` later in this paper to implement a "transpose view" of an
     existing `mdspan`.
 
-* `Accessor` defines the storage handle (i.e., `pointer`) stored in
+* `Accessor` defines the storage handle (`data_handle_type`) stored in
     the `mdspan`, as well as the reference type returned by its access
     operator.  This is an extension point for modifying how access
     happens, for example by using `atomic_ref` to get atomic access to
@@ -3111,28 +3126,33 @@ customization points:
 ## New `mdspan` layouts in this proposal
 
 Our proposal uses the layout mapping policy of `mdspan` in order
-to represent different matrix and vector data layouts.  Layout mapping
-policies as described by P0009 have three basic properties:
+to represent different matrix and vector data layouts.
+The current C++ Standard draft includes three layouts:
+`layout_left`, `layout_right`, and `layout_stride`.
+<a href="https://wg21.link/p2642">P2642</a>
+includes `layout_left_padded` and `layout_right_padded`.
+These two layouts represent exactly the data layout assumed by
+the General (GE) matrix type in the BLAS' C and Fortran bindings.
+They have has two advantages:
 
-* Unique
-* Contiguous
-* Strided
+1. Unlike `layout_left` and `layout_right`, any "submatrix" (subspan
+    of consecutive rows and consecutive columns) of a matrix with
+    `layout_left_padded` resp. `layout_right_padded` layout 
+    also has `layout_left_padded` resp. `layout_right_padded` layout.
 
-P0009 includes three different layouts -- `layout_left`,
-`layout_right`, and `layout_stride` -- all of which are unique and
-strided.  Only `layout_left` and `layout_right` are contiguous.
+2. Unlike `layout_stride`, the two layouts always have
+    compile-time unit stride in one of the matrix's two extents.
 
-This proposal includes the following additional layouts:
+BLAS functions call the possibly nonunit stride of the matrix the
+"leading dimension" of that matrix.  For example, a BLAS function
+argument corresponding to the leading dimension of the matrix `A` is
+called `LDA`, for "leading dimension of the matrix A."
 
-* `layout_blas_general`, a generalization of `layout_left` and
-    `layout_right` that describes the layout used by General (GE) matrix "type"; and
-
-* `layout_blas_packed`, which describes the layout used by the BLAS' Symmetric
-    Packed (SP), Hermitian Packed (HP), and Triangular Packed (TP)
-    "types."
-
-These layouts have "tag" template parameters that control their
-properties; see below.
+This proposal introduces a new layout, `layout_blas_packed`.
+This describes the layout used by the BLAS' Symmetric Packed (SP),
+Hermitian Packed (HP), and Triangular Packed (TP) "types."
+The `layout_blas_packed` class has a "tag" template parameter
+that controls its properties; see below.
 
 We do not include layouts for unpacked "types," such as Symmetric
 (SY), Hermitian (HE), and Triangular (TR).
@@ -3150,7 +3170,7 @@ different function names.
 The packed matrix "types" do describe actual arrangements of matrix
 elements in memory that are not the same as in General.  This is why
 we provide `layout_blas_packed`.  Note that `layout_blas_packed` is
-the first addition to the layouts in P0009 that is neither always
+the first addition to the existing layouts that is neither always
 unique, nor always strided.
 
 Algorithms cannot be written generically if they permit output
@@ -3318,8 +3338,8 @@ on constraints wording.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P0009R17.
-> (This proposal is a "rebase" atop the changes proposed by P0009R17.)
+> First, apply all wording from P2642R1.
+> (This proposal is a "rebase" atop the changes proposed by P2642R1.)
 > At the end of Table � ("Numerics library summary") in *[numerics.general]*, add the following: [linalg], Linear algebra, `<linalg>`.
 > At the end of *[numerics]*, add all the material that follows.
 
@@ -3344,10 +3364,6 @@ struct implicit_unit_diagonal_t;
 inline constexpr implicit_unit_diagonal_t implicit_unit_diagonal;
 struct explicit_diagonal_t;
 inline constexpr explicit_diagonal_t explicit_diagonal;
-
-// [linalg.layouts.general], class template layout_blas_general
-template<class StorageOrder>
-class layout_blas_general;
 
 // [linalg.layouts.packed], class template layout_blas_packed
 template<class Triangle,
@@ -3378,9 +3394,9 @@ template<class ScalingFactor,
          class Layout,
          class Accessor>
 /* see-below */
-scaled(
-  ScalingFactor s,
-  mdspan<ElementType, Extents, Layout, Accessor> a);
+constexpr scaled(
+  ScalingFactor scaling_factor,
+  const mdspan<ElementType, Extents, Layout, Accessor>& x);
 
 // [linalg.conj.accessor_conjugate], class template accessor_conjugate
 template<class Accessor>
@@ -3391,8 +3407,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-conjugated(
+constexpr auto conjugated(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.transp.layout_transpose], class template layout_transpose
@@ -3404,8 +3419,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-transposed(
+constexpr auto transposed(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.conj_transp],
@@ -3414,8 +3428,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-conjugate_transposed(
+constexpr auto conjugate_transposed(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 
 // [linalg.algs.blas1.givens.lartg], compute Givens rotation
@@ -5091,8 +5104,7 @@ inline constexpr row_major_t row_major = { };
 
 `column_major_t` indicates a column-major order, and `row_major_t`
 indicates a row-major order.  The interpretation of each depends on
-the specific layout that uses the tag.  See `layout_blas_general` and
-`layout_blas_packed` below.
+the specific layout that uses the tag.  See `layout_blas_packed` below.
 
 ### Triangle tags [linalg.tags.triangle]
 
@@ -5166,200 +5178,7 @@ The `implicit_unit_diagonal_t` tag indicates two things:
 The tag `explicit_diagonal_t` indicates that algorithms
 may access the matrix's diagonal entries directly.
 
-## Layouts for general and packed matrix types [linalg.layouts]
-
-### `layout_blas_general` [linalg.layouts.general]
-
-`layout_blas_general` is an `mdspan` layout mapping policy.  Its
-`StorageOrder` template parameter determines whether the matrix's data
-layout is column major or row major.
-
-`layout_blas_general<column_major_t>` represents a column-major matrix
-layout, where the stride between consecutive rows is always one, and
-the stride between consecutive columns may be greater than or equal to
-the number of rows.  *[Note:* This is a generalization of
-`layout_left`. --*end note]*
-
-`layout_blas_general<row_major_t>` represents a row-major matrix
-layout, where the stride between consecutive rows may be greater than
-or equal to the number of columns, and the stride between consecutive
-columns is always one.  *[Note:* This is a generalization of
-`layout_right`. --*end note]*
-
-*[Note:*
-
-`layout_blas_general` represents exactly the data layout assumed by
-the General (GE) matrix type in the BLAS' C binding.  It has two
-advantages:
-
-1. Unlike `layout_left` and `layout_right`, any "submatrix" (subspan
-    of consecutive rows and consecutive columns) of a matrix with
-    `layout_blas_general<StorageOrder>` layout also has
-    `layout_blas_general<StorageOrder>` layout.
-
-2. Unlike `layout_stride`, it always has compile-time unit stride in
-    one of the matrix's two extents.
-
-BLAS functions call the possibly nonunit stride of the matrix the
-"leading dimension" of that matrix.  For example, a BLAS function
-argument corresponding to the leading dimension of the matrix `A` is
-called `LDA`, for "leading dimension of the matrix A."
-
---*end note]*
-
-```c++
-template<class StorageOrder>
-class layout_blas_general {
-public:
-  template<class Extents>
-  struct mapping {
-  public:
-    using extents_type = Extents;
-    using size_type = typename extents_type::size_type;
-    using layout_type = layout_blas_general<StorageOrder>;
-
-  private:
-    extents_type extents_{}; // exposition only
-    size_type stride_{}; // exposition only
-
-  public:
-    constexpr mapping(const extents_type& e, size_type s) noexcept;
-
-    template<class OtherExtents>
-      explicit(! is_convertible_v<OtherExtents, extents_type>)
-        constexpr mapping(const mapping<OtherExtents>& e) noexcept;
-
-    constexpr extents_type extents() const noexcept { return extents_; }
-
-    constexpr size_type required_span_size() const noexcept;
-
-    template<class IndexType>
-      constexpr size_type
-        operator() (IndexType i, IndexType j) const noexcept;
-
-    static constexpr bool is_always_unique() { return true; }
-    static constexpr bool is_always_contiguous() { return true; }
-    static constexpr bool is_always_strided() { return true; }
-
-    constexpr bool is_unique() const noexcept { return true; }
-    constexpr bool is_contiguous() const noexcept;
-    constexpr bool is_strided() const noexcept { return true; }
-
-    constexpr size_type stride(size_t r) const noexcept;
-
-    template<class OtherExtents>
-      friend constexpr bool
-        operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
-  };
-};
-```
-
-* *Constraints:*
-
-    * `StorageOrder` is either `column_major_t` or `row_major_t`.
-
-    * `Extents` is a specialization of `extents`.
-
-    * `Extents::rank()` equals 2.
-
-```c++
-constexpr mapping(const extents_type& e, size_type s) noexcept;
-```
-
-* *Preconditions:*
-
-    * If `StorageOrder` is `column_major_t`,
-        then `s` is greater than or equal to `e.extent(0)`.
-
-    * Otherwise, if `StorageOrder` is `row_major_t`,
-        then `s` is greater than or equal to `e.extent(1)`.
-
-* *Effects:* Initializes `extents_` with `e`, and initializes `stride_` with `s`.
-
-*[Note:*
-
-The BLAS Standard requires that the stride be one if the corresponding
-matrix dimension is zero.  We do not impose this requirement here,
-because it is specific to the BLAS.  if an implementation dispatches
-to a BLAS function, then the implementation must impose the
-requirement at run time.
-
---*end note]*
-
-```c++
-template<class OtherExtents>
-  explicit(! is_convertible_v<OtherExtents, extents_type>)
-    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
-```
-
-* *Constraints:*
-
-    * `is_constructible_v<extents_type, OtherExtents>` is `true`.
-
-    * `OtherExtents::rank()` equals 2.
-
-* *Effects:* Direct-non-list-initializes `extents_` with `m.extents_`,
-    and initializes `stride_` with `m.stride_`.
-
-```c++
-constexpr size_type required_span_size() const noexcept;
-```
-
-* *Returns:* `stride(0)*stride(1)`.
-
-```c++
-template<class IndexType>
-  constexpr size_type
-    operator() (IndexType i, IndexType j) const noexcept;
-```
-
-* *Preconditions:*
-
-    * 0 ≤ `i` < `extent(0)`, and
-
-    * 0 ≤ `j` < `extent(1)`.
-
-* *Returns:*
-
-    * If `StorageOrder` is `column_major_t`, then
-        `i + stride(1)*j`;
-
-    * else, if `StorageOrder` is `row_major_t`, then
-        `stride(0)*i + j`.
-
-```c++
-constexpr bool is_contiguous() const noexcept;
-```
-
-* *Returns:*
-
-    * If `StorageOrder` is `column_major_t`,
-        then `true` if `stride(1)` equals `extent(0)`, else `false`;
-
-    * else, if `StorageOrder` is `row_major_t`,
-        then `true` if `stride(0)` equals `extent(1)`, else `false`.
-
-```c++
-constexpr size_type stride(size_t r) const noexcept;
-```
-
-* *Returns:*
-
-    * If `StorageOrder` is `column_major_t`, `stride_` if `r` equals 1, else 1;
-
-    * else, if `StorageOrder` is `row_major_t`, `stride_` if `r` equals 0, else 1.
-
-```c++
-template<class OtherExtents>
-  friend constexpr bool
-    operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
-```
-
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
-
-* *Returns:* `true` if and only if for 0 ≤ `r` < `rank()`,
-    `m.extent(r)` equals `extent(r)` and
-    `m.stride(r)` equals `stride(r)`.
+## Layouts for packed matrix types [linalg.layouts]
 
 ### `layout_blas_packed` [linalg.layouts.packed]
 
@@ -5398,40 +5217,54 @@ public:
   struct mapping {
   public:
     using extents_type = Extents;
+    using index_type = typename extents_type::index_type;
     using size_type = typename extents_type::size_type;
+    using rank_type = typename extents_type::rank_type;
     using layout_type = layout_blas_packed<Triangle, StorageOrder>;
 
   private:
-    Extents extents_{}; // exposition only
+    Extents <it>extents_</it>{}; // exposition only
 
   public:
+    constexpr mapping() noexcept = default;
+    constexpr mapping(const mapping&) noexcept = default;
     constexpr mapping(const extents_type& e) noexcept;
-
     template<class OtherExtents>
-      explicit(! is_convertible_v<OtherExtents, extents_type>)
-        constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+      constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
+        mapping(const mapping<OtherExtents>& other) noexcept;
 
-    constexpr extents_type extents() const noexcept { return extents_; }
+    constexpr mapping& operator=(const mapping&) noexcept = default;
+
+    constexpr extents_type extents() const noexcept { return <it>extents_</it>; }
 
     constexpr size_type required_span_size() const noexcept;
 
-    template<class IndexType>
-      constexpr size_type
-        operator() (IndexType i, IndexType j) const noexcept;
+    template<class... Indices>
+      constexpr index_type operator() (Indices...) const noexcept;
 
-    static constexpr bool is_always_unique() { return false; }
-    static constexpr bool is_always_contiguous() { return true; }
-    static constexpr bool is_always_strided() { return false; }
+    static constexpr bool is_always_unique() {
+      return extents_type::static_extent(0) != dynamic_extent &&
+        extents_type::static_extent(0) < 2;
+    }
+    static constexpr bool is_always_exhaustive() { return true; }
+    static constexpr bool is_always_strided() {
+      return extents_type::static_extent(0) != dynamic_extent &&
+        extents_type::static_extent(0) < 2;
+    }
 
-    constexpr bool is_unique() const noexcept;
-    constexpr bool is_contiguous() const noexcept;
-    constexpr bool is_strided() const noexcept;
+    constexpr bool is_unique() const noexcept {
+      return extent(0) < 2;
+    }
+    constexpr bool is_exhaustive() const noexcept { return true; }
+    constexpr bool is_strided() const noexcept {
+      return extent(0) < 2;
+    }
+
+    constexpr index_type stride(rank_type) const noexcept;
 
     template<class OtherExtents>
       friend constexpr bool
         operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
-
-    constexpr size_type stride(size_type) const noexcept;
 };
 ```
 
@@ -5449,44 +5282,55 @@ public:
 constexpr mapping(const extents_type& e) noexcept;
 ```
 
-* *Preconditions:* `e.extent(0)` equals `e.extent(1)`.
+*Preconditions:*
 
-* *Effects:* Direct-non-list-initializes `extents_` with `e`.
+    * The size of the multidimensional index space `e` is representable
+        as a value of type `index_type` (**[basic.fundamental]**), and
+
+    * `e.extent(0)` equals `e.extent(1)`.
+
+* *Effects:* Direct-non-list-initializes <it>`extents_`</it> with `e`.
 
 ```c++
 template<class OtherExtents>
   explicit(! is_convertible_v<OtherExtents, extents_type>)
-    constexpr mapping(const mapping<OtherExtents>& e) noexcept;
+    constexpr mapping(const mapping<OtherExtents>& other) noexcept;
 ```
 
-* *Constraints:*
+*Constraints:* `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-    * `is_constructible_v<extents_type, OtherExtents>` is `true`.
+*Preconditions:* `other.required_span_size()` is representable as a value
+    of type `index_type` (**[basic.fundamental]**).
 
-* *Effects:* Direct-non-list-initializes `extents_` with `e.extents()`.
+*Effects:* Direct-non-list-initializes <it>`extents_`</it> with `other.extents()`.
 
 ```c++
-constexpr size_type required_span_size() const noexcept;
+constexpr index_type required_span_size() const noexcept;
 ```
 
-* *Returns:* `extent(0)` * (`extent(0)` + 1)/2.
+*Returns:* `extent(0)` * (`extent(0)` + 1)/2.
 
 *[Note:* For example, a 5 x 5 packed matrix
 only stores 15 matrix elements. --*end note]*
 
 ```c++
-template<class IndexType>
-  constexpr size_type
-    operator() (IndexType i, IndexType j) const noexcept;
+template<class ... Indices>
+  constexpr index_type operator() (Indices... k) const noexcept;
 ```
 
-* *Preconditions:*
+*Constraints*:
 
-    * 0 ≤ `i` < `extent(0)`, and
+    * `sizeof...(Indices)` equals `extents_type::rank()`,
 
-    * 0 ≤ `j` < `extent(1)`.
+    * `(is_convertible_v<Indices, index_Type> && ...)` is `true`, and
 
-* *Returns:* Let `N` equal `extent(0)`.  Then:
+    * `(is_nothrow_constructible_v<index_type, Indices>)` is `true`.
+
+*Preconditions:* `extents_type::`<it>`index-cast`</it>`(k)` is
+    a multidimensional index in <it>`extents_`</it> (**[mdspan.overview]**).
+
+*Returns:* Let `N` equal `extent(0)`, let `i` be the zeroth element of `k`,
+    and let `j` be the first element of `k`.  Then:
 
     * If `StorageOrder` is `column_major_t` and
 
@@ -5518,40 +5362,22 @@ Instead, it interprets such indices as if the matrix were symmetric.
 --*end note]*
 
 ```c++
-constexpr bool is_unique() const noexcept;
-```
-
-* *Returns:* `true` if `extent(0)` is less than 2, else `false`.
-
-```c++
-constexpr bool is_contiguous() const noexcept;
-```
-
-* *Returns:* `true`.
-
-```c++
-constexpr bool is_strided() const noexcept;
-```
-
-* *Returns:* `true` if `extent(0)` is less than 2, else `false`.
-
-```c++
 template<class OtherExtents>
   friend constexpr bool
     operator==(const mapping&, const mapping<OtherExtents>&) noexcept;
 ```
 
-* *Constraints:* `OtherExtents::rank()` equals `rank()`.
+*Constraints:* `OtherExtents::rank()` equals `rank()`.
 
-* *Returns:* `true` if and only if
+*Returns:* `true` if and only if
     for 0 ≤ `r` < `rank()`,
     `m.extent(r)` equals `extent(r)`.
 
 ```c++
-constexpr size_type stride(size_type) const noexcept;
+constexpr index_type stride(rank_type) const noexcept;
 ```
 
-* *Returns:* 1 if `extent(0)` is less than 2, else 0.
+*Returns:* 1 if `extent(0)` is less than 2, else 0.
 
 ## Scaled in-place transformation [linalg.scaled]
 
@@ -5647,97 +5473,99 @@ public:
   using value_type = Value;
   using derived_type = Derived;
 
-  explicit proxy_reference(Reference reference) : reference_(reference) {}
+  constexpr explicit proxy_reference(Reference reference) : reference_(reference) {}
 
-  operator value_type() const {
+  constexpr operator value_type() const {
     return static_cast<const Derived&>(*this).to_value(reference_);
   }
 
-  friend auto operator-(const derived_type& cs)
+  constexpr friend auto operator-(const derived_type& cs)
   {
     return -value_type(cs);
   }
 
   template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator+ (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator+ (derived_type lhs, Rhs rhs)
   {
     using rhs_value_type = typename Rhs::value_type; // exposition only
     return value_type(lhs) + rhs_value_type(rhs);
   }
   template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator+ (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator+ (derived_type lhs, Rhs rhs)
   {
     return value_type(lhs) + rhs;
   }
   template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
-  friend auto operator+ (Lhs lhs, derived_type rhs)
+  constexpr friend auto operator+ (Lhs lhs, derived_type rhs)
   {
     return lhs + value_type(rhs);
   }
 
   template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator- (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator- (derived_type lhs, Rhs rhs)
   {
     using rhs_value_type = typename Rhs::value_type; // exposition only
     return value_type(lhs) - rhs_value_type(rhs);
   }
   template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator- (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator- (derived_type lhs, Rhs rhs)
   {
     return value_type(lhs) - rhs;
   }
   template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
-  friend auto operator- (Lhs lhs, derived_type rhs)
+  constexpr friend auto operator- (Lhs lhs, derived_type rhs)
   {
     return lhs - value_type(rhs);
   }
 
   template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator* (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator* (derived_type lhs, Rhs rhs)
   {
     using rhs_value_type = typename Rhs::value_type; // exposition only
     return value_type(lhs) * rhs_value_type(rhs);
   }
   template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator* (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator* (derived_type lhs, Rhs rhs)
   {
     return value_type(lhs) * rhs;
   }
   template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
-  friend auto operator* (Lhs lhs, derived_type rhs)
+  constexpr friend auto operator* (Lhs lhs, derived_type rhs)
   {
     return lhs * value_type(rhs);
   }
 
   template<class Rhs, enable_if_t<is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator/ (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator/ (derived_type lhs, Rhs rhs)
   {
     using rhs_value_type = typename Rhs::value_type; // exposition only
     return value_type(lhs) / rhs_value_type(rhs);
   }
   template<class Rhs, enable_if_t<! is_base_of_v<proxy_reference_base, Rhs>, bool> = true>
-  friend auto operator/ (derived_type lhs, Rhs rhs)
+  constexpr friend auto operator/ (derived_type lhs, Rhs rhs)
   {
     return value_type(lhs) / rhs;
   }
   template<class Lhs, enable_if_t<! is_base_of_v<proxy_reference_base, Lhs>, bool> = true>
-  friend auto operator/ (Lhs lhs, derived_type rhs)
+  constexpr friend auto operator/ (Lhs lhs, derived_type rhs)
   {
     return lhs / value_type(rhs);
   }
 
-  friend auto abs(const derived_type& x);
+  constexpr friend auto abs(const derived_type& x);
 
-  friend auto real(const derived_type& x);
+  constexpr friend auto real(const derived_type& x);
 
-  friend auto imag(const derived_type& x);
+  constexpr friend auto imag(const derived_type& x);
 
-  friend auto conj(const derived_type& x);
+  constexpr friend auto conj(const derived_type& x);
+
+  <!-- TODO (mfh 2022/07/06) Do we need sqrt here? -->
 };
 ```
 
 ```c++
-friend auto abs(const derived_type& x);
+constexpr friend auto abs(const derived_type& x);
 ```
 
 The expression `abs(E)` for subexpression `E` whose type is `derived_type`
@@ -5747,13 +5575,15 @@ is expression-equivalent to:
         if `value_type` is an unsigned integer;
 
     * else, `abs(value_type(static_cast<const this_type&>(E)))`,
-	if that expression is valid,
-	with overload resolution performed in a context
-	that includes the declaration
+        if that expression is valid,
+	      with overload resolution performed in a context
+	      that includes the declaration
         `template<class T> T abs(T) = delete;`.
-	If the function selected by overload resolution
-	does not return the absolute value of its input,
-	the program is ill-formed, no diagnostic required.
+	      If the function selected by overload resolution
+	      does not return the absolute value of its input,
+	      the program is ill-formed, no diagnostic required.
+
+<!-- TODO (mfh 2022/07/06) this lookup language will go into front matter. -->
 
 *[Note:*
 This function exists because of `vector_norm2` and `vector_abs_sum`.
@@ -5763,7 +5593,7 @@ The other case invokes `abs` via unqualified lookup.
 --*end note]*
 
 ```c++
-friend auto real(const derived_type& x);
+constexpr friend auto real(const derived_type& x);
 ```
 
 The expression `real(E)` for subexpression `E` whose type is `derived_type`
@@ -5773,13 +5603,13 @@ is expression-equivalent to:
         if `value_type` is an arithmetic type;
 
     * else, `real(value_type(static_cast<const this_type&>(E)))`,
-	if that expression is valid,
-	with overload resolution performed in a context
-	that includes the declaration
+	      if that expression is valid,
+	      with overload resolution performed in a context
+	      that includes the declaration
         `template<class T> T real(T) = delete;`;
-	if the function selected by overload resolution
-	does not return the absolute value of its input,
-	the program is ill-formed, no diagnostic required;
+	      if the function selected by overload resolution
+	      does not return the absolute value of its input,
+	      the program is ill-formed, no diagnostic required;
 
     * else, `value_type(static_cast<const this_type&>(E))`.
 
@@ -5796,7 +5626,7 @@ for which the number's real part is the same as the number.
 --*end note]*
 
 ```c++
-friend auto imag(const derived_type& x);
+constexpr friend auto imag(const derived_type& x);
 ```
 
 The expression `imag(E)` for subexpression `E` whose type is `derived_type`
@@ -5806,13 +5636,13 @@ is expression-equivalent to:
         if `value_type` is an arithmetic type;
 
     * else, `imag(value_type(static_cast<const this_type&>(E)))`,
-	if that expression is valid,
-	with overload resolution performed in a context
-	that includes the declaration
+	      if that expression is valid,
+	      with overload resolution performed in a context
+	      that includes the declaration
         `template<class T> T imag(T) = delete;`;
-	if the function selected by overload resolution
-	does not return the absolute value of its input,
-	the program is ill-formed, no diagnostic required;
+	      if the function selected by overload resolution
+	      does not return the absolute value of its input,
+	      the program is ill-formed, no diagnostic required;
 
     * else, `value_type{}`.
 
@@ -5830,26 +5660,28 @@ for which the number's imaginary part is zero
 --*end note]*
 
 ```c++
-friend auto conj(const derived_type& x);
+constexpr friend auto conj(const derived_type& x);
 ```
 
 * *Effects:* Equivalent to `return `_`conj-if-needed`_`(x);`.
 
-### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
-
-The class template `accessor_scaled` is an `mdspan` accessor
-policy whose reference type represents the product of a fixed value
-(the "scaling factor") and its nested `mdspan` accessor's
-reference.  It is part of the implementation of `scaled`.
+### Exposition-only class template `scaled_scalar`
 
 The exposition-only class template `scaled_scalar` represents a
 read-only value, which is the product of a fixed value (the "scaling
 factor") and the value of a reference to an element of a
 `mdspan`.  *[Note:* The value is read only to avoid confusion
 with the definition of "assigning to a scaled scalar."  --*end note]*
-`scaled_scalar` is part of the implementation of `scaled_accessor`.
+`scaled_scalar` is part of the implementation of `accessor_scaled`
+**[linalg.scaled.accessor_scaled]**.
 
 ```c++
+template<class ScalingFactor, class ReferenceValue>
+concept <it>scalable</it> = // exposition only
+requires {
+  { declval<ScalingFactor>() * declval<ReferenceValue>() };
+};
+
 template<class ScalingFactor, class Reference, class ReferenceValue>
 class scaled_scalar : // exposition only
   public proxy_reference<Reference, ReferenceValue,
@@ -5858,11 +5690,12 @@ class scaled_scalar : // exposition only
 private:
   ScalingFactor scaling_factor_;
 
+  using my_type = scaled_scalar<ScalingFactor, Reference, ReferenceValue>; // exposition only
   using base_type = proxy_reference<Reference, ReferenceValue, my_type>; // exposition only
 public:
-  explicit scaled_scalar(ScalingFactor scaling_factor, Reference reference);
+  explicit scaled_scalar(const ScalingFactor& scaling_factor, const Reference& reference);
 
-  using value_type = decltype(scaling_factor_ * ReferenceValue(std::declval<Reference>()));
+  using value_type = decltype(scaling_factor_ * ReferenceValue(declval<Reference>()));
   value_type to_value(Reference reference) const;
 };
 ```
@@ -5878,28 +5711,43 @@ It also makes fewer requirements of the reference type.
 
 --*end note]*
 
-* *Preconditions:* `ScalingFactor` and `Reference` shall be *Cpp17CopyConstructible*.
+*Mandates:*
 
-* *Constraints:* The expression `scaling_factor_ * ReferenceValue(reference)` is well formed.
+    * _`scalable`_`<ScalingFactor, ReferenceValue>`, and
+
+    * `value_type` is a complete object type that is neither an abstract class type nor an array type.
+
+`ScalingFactor` models `semiregular`.
+
+`Reference` models `copy_constructible`.
 
 ```c++
-explicit scaled_scalar(ScalingFactor scaling_factor, Reference reference);
+explicit scaled_scalar(const ScalingFactor& scaling_factor, const Reference& reference);
 ```
 
-* *Effects:* Initializes `base_type` with `reference`,
-    and initializes `scaling_factor_` with `move(scaling_factor)`.
+*Effects:*
+
+    * Direct non-list-initializes `static_cast<base_type&>(*this)` with `reference`, and
+
+    * direct non-list-initializes `scaling_factor_` with `scaling_factor`.
 
 ```c++
 value_type to_value(Reference reference) const;
 ```
 
-* *Preconditions:* This function may be invoked arbitrarily many times.
-
-* *Effects:* Equivalent to `return scaling_factor_ * ReferenceValue(reference);`.
+*Effects:* Equivalent to `return scaling_factor_ * ReferenceValue(reference);`.
 
 The class template `accessor_scaled` is an `mdspan` accessor
 policy whose reference type represents the product of a scaling factor
 and its nested `mdspan` accessor's reference.
+
+### Class template `accessor_scaled` [linalg.scaled.accessor_scaled]
+
+The class template `accessor_scaled` is an `mdspan` accessor
+policy whose reference type represents the product of a fixed value
+(the "scaling factor") and its nested `mdspan` accessor's
+reference.  It is part of the implementation of `scaled`
+**[linalg.scaled.scaled]**.
 
 ```c++
 template<class ScalingFactor,
@@ -5908,23 +5756,20 @@ class accessor_scaled {
 public:
   using reference     = scaled_scalar<ScalingFactor,
     typename Accessor::reference,
-    remove_cv_t<typename Accessor::element_type>>;
+    typename Accessor::element_type>;
   using element_type  = add_const_t<typename reference::value_type>;
   using pointer       = Accessor::pointer;
   using offset_policy = accessor_scaled<ScalingFactor, Accessor::offset_policy>;
 
-  accessor_scaled(ScalingFactor s, Accessor a);
+  constexpr accessor_scaled(const ScalingFactor& s, const Accessor& a);
 
-  template<class OtherElementType>
-  accessor_scaled(ScalingFactor s, default_accessor<OtherElementType> a);
+  constexpr reference access(pointer p, size_t i) const noexcept;
 
-  reference access(pointer p, size_t i) const noexcept;
+  constexpr offset_policy::pointer offset(pointer p, size_t i) const noexcept;
 
-  offset_policy::pointer offset(pointer p, size_t i) const noexcept;
+  constexpr ScalingFactor scaling_factor() const;
 
-  ScalingFactor scaling_factor() const;
-
-  Accessor nested_accessor() const;
+  constexpr Accessor nested_accessor() const;
 
 private:
   ScalingFactor scaling_factor_; // exposition only
@@ -5932,52 +5777,46 @@ private:
 };
 ```
 
-* *Preconditions:*
+*Mandates:*: `is_copy_constructible_v<typename Accessor::reference>` is `true`.
 
-    * `ScalingFactor` and `Accessor` shall be *Cpp17CopyConstructible*.
+`ScalingFactor` models `semiregular`.
 
-    * `Accessor` shall meet the `mdspan` accessor policy requirements.
+`Accessor` meets the accessor policy requirements **[mdspan.accessor.reqmts]**.
 
 ```c++
-accessor_scaled(ScalingFactor s, Accessor a);
+constexpr accessor_scaled(const ScalingFactor& s, const Accessor& a);
 ```
 
-* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor_` with `a`.
+*Effects:*
+
+    * Direct non-list-initializes `scaling_factor_` with `s`, and
+
+    * direct non-list-initializes `accessor_` with `a`.
 
 ```c++
-template<class OtherElementType>
-accessor_scaled(ScalingFactor s, default_accessor<OtherElementType> a);
+constexpr reference access(pointer p, size_t i) const noexcept;
 ```
 
-* *Constraints:*
-`is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
-
-* *Effects:* Initializes `scaling_factor_` with `move(s)`, and initializes `accessor_` with `a`.
+*Effects:* Equivalent to `return reference(scaling_factor_, accessor_.access(p, i));`.
 
 ```c++
-reference access(pointer p, size_t i) const noexcept;
-```
-
-* *Effects:* Equivalent to `return reference(scaling_factor_, accessor_.access(p, i));`.
-
-```c++
-offset_policy::pointer
+constexpr offset_policy::pointer
 offset(pointer p, size_t i) const noexcept;
 ```
 
-* *Effects:* Equivalent to `return accessor_.offset(p, i);`.
+*Effects:* Equivalent to `return accessor_.offset(p, i);`.
 
 ```c++
-ScalingFactor scaling_factor() const;
+constexpr ScalingFactor scaling_factor() const;
 ```
 
-* *Effects:* Equivalent to `return scaling_factor_;`.
+*Effects:* Equivalent to `return scaling_factor_;`.
 
 ```c++
-Accessor nested_accessor() const;
+constexpr Accessor nested_accessor() const;
 ```
 
-* *Effects:* Equivalent to `return accessor_;`.
+*Effects:* Equivalent to `return accessor_;`.
 
 ### `scaled` [linalg.scaled.scaled]
 
@@ -5986,9 +5825,6 @@ The `scaled` function takes a scaling factor `alpha` and an `mdspan`
 as `x`, that represents the elementwise product of `alpha` with each
 element of `x`.
 
-For `i...` in the domain of `x`,
-the mathematical expression for element `i...` of `scaled(alpha, x)`
-is `alpha * x[i...]`.
 *[Note:*
 Terms in this product will not be reordered.
 --*end note]*
@@ -5999,29 +5835,15 @@ template<class ScalingFactor,
          class Extents,
          class Layout,
          class Accessor>
-/* see below */
-scaled(
+constexpr auto scaled(
   ScalingFactor scaling_factor,
-  mdspan<ElementType, Extents, Layout, Accessor> x);
+  const mdspan<ElementType, Extents, Layout, Accessor>& x);
 ```
-
-Let `R` name the type
-`mdspan<ReturnElementType, Extents, Layout, ReturnAccessor>`,
-where
-
-* `ReturnElementType` is
-    `add_const_t<accessor_scaled<ScalingFactor, Accessor>::element_type>`, and
-
-* `ReturnAccessor` is `accessor_scaled<ScalingFactor, Accessor>`.
-
-Then:
-
-* *Effects:* Equivalent to
-    `return R(x.data(), x.mapping(), ReturnAccessor(alpha, x.accessor()));`.
-
-* *Remarks:* The elements of the returned `mdspan` are read only.
+*Effects:* Equivalent to
+    `return mdspan{x.data(), x.mapping(), accessor_scaled{alpha, x.accessor()}};`.
 
 *[Note:*
+The elements of the returned `mdspan` are read only.
 
 Nested `scaled` expressions remain nested.
 An expression such as `scaled(alpha, scaled(beta, x))`
@@ -6032,7 +5854,6 @@ For example, if `x` is a rank-1 `mdspan` whose `value_type` is `double`,
 and if `sizeof(int)` is 4 and `double` is IEEE 754 binary64,
 then `scaled(1 << 20, scaled(1 << 20, x))` does not overflow `int`,
 but `scaled((1 << 20) * (1 << 20), x)` would overflow `int`.
-
 --*end note]*
 
 [*Example:*
@@ -6065,20 +5886,23 @@ BLAS function.
 
 --*end note]*
 
-### Class template `accessor_conjugate` [linalg.conj.accessor_conjugate]
-
-The class template `accessor_conjugate` is an `mdspan` accessor
-policy whose reference type represents the complex conjugate of its
-nested `mdspan` accessor's reference.
+### Exposition-only class template `conjugated_scalar`
 
 The exposition-only class template `conjugated_scalar` represents a
 read-only value, which is the complex conjugate of the value of a
 reference to an element of an `mdspan`.  *[Note:* The value is
 read only to avoid confusion with the definition of "assigning to the
 conjugate of a scalar."  --*end note]* `conjugated_scalar` is part of
-the implementation of `accessor_conjugate`.
+the implementation of `accessor_conjugate`
+**[linalg.conj.accessor_conjugate]**.
 
 ```c++
+template<class ReferenceValue>
+concept <it>conjugatable</it> = // exposition only
+requires {
+  { <it>conj-if-needed</it>(declval<ReferenceValue>()) } -> same_as<ReferenceValue>;
+};
+
 template<class Reference, class ReferenceValue>
 class conjugated_scalar : // exposition only
   public proxy_reference<Reference, ReferenceValue, conjugated_scalar<Reference, ReferenceValue>>
@@ -6088,68 +5912,50 @@ private:
   using base_type = proxy_reference<Reference, ReferenceValue, my_type>; // exposition only
 
 public:
-  explicit conjugated_scalar(Reference reference);
+  constexpr explicit conjugated_scalar(Reference reference);
 
-  // NOTE (mfh 2022/06/03) Consider moving this to proxy_reference,
-  // since it's duplicated in all the proxy reference "base" types.
-  // Doing so isn't easy, because this class is an incomplete type
-  // inside proxy_reference at the time when we need it to deduce this
-  // type.
   using value_type = /* see below */;
-  static auto to_value(Reference reference);
+  constexpr static auto to_value(Reference reference);
 };
 ```
 
-* *Preconditions:* `Reference` shall be *Cpp17CopyConstructible*.
+*Mandates:* _`conjugatable`_`<ReferenceValue>`.
 
-* *Constraints:* The expression _`conj-if-needed`_`(val)` is well formed.
-
-*[Note:*
-
-The current constraints on _`conj-if-needed`_ imply that
-`ReferenceValue` may only be either `complex<R>` for some `R`,
-or an arithmetic type.
-
-Implementations can provide additional,
-implementation-defined overloads of _`conj-if-needed`_ as extensions.
-
-In a future, separate paper, we intend to add
-a user-visible customization point, provisionally named `conjugate`.
-If this future paper is accepted,
-then we will replace _`conj-if-needed`_ in P1673
-with this customization point.
-This will permit use of `conjugated` and `conjugate_transposed`
-with arguments of value type other than
-`complex<R>` or an arithmetic type.
-
---*end note]*
-
+`Reference` models `copy_constructible`.
 
 ```c++
 using value_type = /* see below */;
 ```
 
-`value_type` names the type `decltype(<it>conj-if-needed</it>(ReferenceValue(declval<Reference>())))`.
+`value_type` names the type `decltype(`_`conj-if-needed`_`(ReferenceValue(declval<Reference>())))`.
 
 ```c++
-explicit conjugated_scalar(Reference reference);
+constexpr explicit conjugated_scalar(Reference reference);
 ```
 
 * *Effects:* Initializes `base_type` with `reference`.
 
 ```c++
-static auto to_value(Reference value_type);
+constexpr static auto to_value(Reference value_type);
 ```
 
 * *Preconditions:* This function may be invoked arbitrarily many times.
 
 * *Effects:* Equivalent to `return `_`conj-if-needed`_`(ReferenceValue(reference));`.
 
+### Class template `accessor_conjugate` [linalg.conj.accessor_conjugate]
+
+The class template `accessor_conjugate` is an `mdspan` accessor
+policy whose reference type represents the complex conjugate of its
+nested `mdspan` accessor's reference.
+It is part of the implementation of `conjugated`
+**[linalg.conj.conjugated]**.
+
 ```c++
 template<class Accessor>
 class accessor_conjugate {
 private:
-  Accessor acc; // exposition only
+  Accessor acc_; // exposition only
 
 public:
   using reference     = /* see below */;
@@ -6157,25 +5963,20 @@ public:
   using pointer       = typename Accessor::pointer;
   using offset_policy = /* see below */;
 
-  accessor_conjugate(Accessor a);
+  constexpr accessor_conjugate(Accessor a);
 
-  template<class OtherElementType>
-  accessor_conjugate(default_accessor<OtherElementType> a);
+  constexpr reference access(pointer p, size_t i) const
+    noexcept(noexcept(reference(acc_.access(p, i))));
 
-  reference access(pointer p, size_t i) const
-    noexcept(noexcept(reference(acc.access(p, i))));
+  constexpr typename offset_policy::pointer
+    offset(pointer p, size_t i) const
+      noexcept(noexcept(acc_.offset(p, i)));
 
-  typename offset_policy::pointer
-  offset(pointer p, size_t i) const
-    noexcept(noexcept(acc.offset(p, i)));
-
-  Accessor nested_accessor() const;
+  constexpr Accessor nested_accessor() const;
 };
 ```
 
-* *Preconditions:*
-
-    * `Accessor` shall meet the `mdspan` accessor policy requirements **[mdspan.accessor.reqmts]**.
+`Accessor` meets the `mdspan` accessor policy requirements **[mdspan.accessor.reqmts]**.
 
 ```c++
 using reference = /* see below */;
@@ -6215,47 +6016,31 @@ This names
 * otherwise, `accessor_conjugate<typename Accessor::offset_policy>`.
 
 ```c++
-accessor_conjugate(Accessor a);
+constexpr accessor_conjugate(Accessor a);
 ```
 
-* *Effects:* Initializes `acc` with `a`.
+* *Effects:* Direct non-list-initializes `acc_` with `a`.
 
 ```c++
-template<class OtherElementType>
-accessor_conjugate(default_accessor<OtherElementType> a);
+constexpr reference access(pointer p, size_t i) const
+  noexcept(noexcept(reference(acc_.access(p, i))));
 ```
 
-* *Constraints:*
-`is_convertible_v<typename default_accessor<OtherElementType>::element_type(*)[], typename Accessor::element_type(*)[]>` is `true`.
-
-* *Effects:* Initializes `acc` with `a`.
-
-*[Note:*
-This constructor exists so that if `conjugated` is given an `mdspan`
-with nonconst element type `T` and accessor `default_accessor<T>`,
-`conjugated` can then return an `mdspan` with `const` element type.
---*end note]*
+* *Effects:* Equivalent to `return reference(acc_.access(p, i));`.
 
 ```c++
-reference access(pointer p, size_t i) const
-  noexcept(noexcept(reference(acc.access(p, i))));
+constexpr typename offset_policy::pointer
+  offset(pointer p, size_t i) const
+    noexcept(noexcept(acc_.offset(p, i)));
 ```
 
-* *Effects:* Equivalent to `return reference(acc.access(p, i));`.
+* *Effects:* Equivalent to `return acc_.offset(p, i);`.
 
 ```c++
-typename offset_policy::pointer
-offset(pointer p, size_t i) const
-  noexcept(noexcept(acc.offset(p, i)));
+constexpr Accessor nested_accessor() const;
 ```
 
-* *Effects:* Equivalent to `return acc.offset(p, i);`.
-
-```c++
-Accessor nested_accessor() const;
-```
-
-* *Effects:* Equivalent to `return acc;`.
+* *Effects:* Equivalent to `return acc_;`.
 
 ### `conjugated` [linalg.conj.conjugated]
 
@@ -6264,8 +6049,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-conjugated(
+constexpr auto conjugated(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
@@ -6277,7 +6061,7 @@ where
 
     * if `Accessor` is `accessor_conjugate<NestedAccessor>`
         for some `NestedAccessor`, then
-	`typename NestedAccessor::element_type` *[Note:*
+        `typename NestedAccessor::element_type` *[Note:*
         conjugation is self-annihilating --*end note]*;
 
     * else if `remove_cv_t<ElementType>` is an arithmetic type,
@@ -6298,7 +6082,7 @@ where
 
     * else `accessor_conjugate<Accessor>`.
 
-* *Effects:*
+*Effects:*
 
     * If `Accessor` is `accessor_conjugate<NestedAccessor>`,
         then equivalent to
@@ -6311,7 +6095,9 @@ where
     * else, equivalent to
         `return R(a.data(), a.mapping(), ReturnAccessor(a.accessor()));`;
 
-* *Remarks:* The elements of the returned `mdspan` are read only.
+*[Note:*
+The elements of the returned `mdspan` are read only.
+--*end note]*;
 
 [*Example:*
 ```c++
@@ -6353,16 +6139,6 @@ The `transposed` function takes an `mdspan`
 representing a matrix, and returns a new read-only `mdspan`
 representing the transpose of the input matrix.
 
-*[Note:*
-
-An implementation could dispatch to a function in the BLAS library, by
-noticing that the first argument has a `layout_transpose` `Layout`
-type, and/or an `accessor_conjugate` (see below) `Accessor` type.  It
-could use this information to extract the appropriate run-time
-value(s) of the relevant `TRANS*` BLAS function arguments.
-
---*end note]*
-
 ### `layout_transpose` [linalg.transp.layout_transpose]
 
 `layout_transpose` is an `mdspan` layout mapping policy that
@@ -6394,7 +6170,7 @@ For `InputExtents` a specialization of `extents`,
 
 ```c++
 template<class InputExtents>
-transpose_extents_t<InputExtents>
+constexpr transpose_extents_t<InputExtents>
 transpose_extents(const InputExtents& in); // exposition only
 ```
 
@@ -6437,7 +6213,7 @@ public:
       constexpr size_type operator()(Indices... indices) const
         noexcept(noexcept(nested_mapping_(indices...)));
 
-    nested_mapping_type nested_mapping() const;
+    constexpr nested_mapping_type nested_mapping() const;
 
     static constexpr bool is_always_unique();
     static constexpr bool is_always_contiguous();
@@ -6496,7 +6272,7 @@ template<class... Indices>
     reversing the last two elements of `indices`.
 
 ```c++
-nested_mapping_type nested_mapping() const;
+constexpr nested_mapping_type nested_mapping() const;
 ```
 
 * *Effects:* Equivalent to `return nested_mapping_;`.
@@ -6585,8 +6361,7 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-transposed(
+constexpr auto transposed(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
@@ -6613,11 +6388,11 @@ where
 
     * else if `Layout` is `layout_stride`, then `layout_stride`;
 
-    * else if `Layout` is `layout_blas_general<StorageOrder>`
-        for some `StorageOrder`,
-        then `layout_blas_general<OppositeStorageOrder>`,
-        where `OppositeStorageOrder` names the type
-        `conditional_t<is_same_v<StorageOrder, column_major_t>, row_major_t, column_major_t>`;
+    * else if `Layout` is `layout_left_padded<padding_stride>` for some `padding_stride`,
+      then `layout_right_padded<padding_stride>`;
+
+    * else if `Layout` is `layout_right_padded<padding_stride>` for some `padding_stride`,
+      then `layout_left_padded<padding_stride>`;
 
     * else if `Layout` is `layout_blas_packed<Triangle, StorageOrder>`
         for some `Triangle` and `StorageOrder`,
@@ -6659,15 +6434,24 @@ return R(a.data(),
   a.accessor());
 ```
 
-    * else, if `Layout` is `layout_blas_general<StorageOrder>`
-        for some `StorageOrder`, then equivalent to
-        *[Note:* the ternary expression picks the "nontrivial" stride --*end note]*
+    * else, if `Layout` is `layout_left_padded<padding_stride>`
+        for some `padding_stride`, then equivalent to
 ```c++
 return R(a.data(),
   ReturnMapping(
     transpose_extents(a.mapping().extents()),
-    is_same_v<StorageOrder, column_major_t> ? a.mapping().stride(1) : a.mapping().stride(0)),
-    a.accessor());
+    a.mapping().stride(1)),
+  a.accessor());
+```
+
+    * else, if `Layout` is `layout_right_padded<padding_stride>`
+        for some `padding_stride`, then equivalent to
+```c++
+return R(a.data(),
+  ReturnMapping(
+    transpose_extents(a.mapping().extents()),
+    a.mapping().stride(0)),
+  a.accessor());
 ```
 
     * else, if `Layout` is `layout_stride`, then equivalent to
@@ -6741,15 +6525,11 @@ template<class ElementType,
          class Extents,
          class Layout,
          class Accessor>
-/* see-below */
-conjugate_transposed(
+constexpr auto conjugate_transposed(
   mdspan<ElementType, Extents, Layout, Accessor> a);
 ```
 
-* *Effects:* Equivalent to
-    `return conjugated(transposed(a));`.
-
-* *Remarks:* The elements of the returned `mdspan` are read only.
+* *Effects:* Equivalent to `return conjugated(transposed(a));`.
 
 [*Example:*
 ```c++
