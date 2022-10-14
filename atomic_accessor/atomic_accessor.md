@@ -24,10 +24,10 @@ toc: true
 # Rational
 
 This proposal adds an `atomic_accessor` to the C++ standard, to be used with `mdspan`.
-When accessing data through an `mdspan` with an `atomic_accessor` all operations are performed atomicly, by using `atomic_ref` as the `reference_type`.
-`atomic_accessor` was one of the rationals provided in P0009 for `mdspan`s *accessor policy* template parameter.
+When accessing data through an `mdspan` with an `atomic_accessor` all operations are performed atomically, by using `atomic_ref` as the `reference_type`.
+`atomic_accessor` was part of the rational provided in P0009 for `mdspan`s *accessor policy* template parameter.
 
-One of the primary usecases of adding this accessor is the ability to write algorithms with somewhat generic `mdspan` outputs,
+One of the primary use case for this accessor is the ability to write algorithms with somewhat generic `mdspan` outputs,
 which can be called in sequential and parallel contexts.
 When called in parallel contexts users would simply pass an `mdspan` with an `atomic_accessor` - the algorithm implementation itself
 could be agnostic to the calling context.
@@ -45,9 +45,9 @@ auto add_atomic_accessor_if_needed(
         return m;
     }
 
-template<class ExecT, class T, class Extents, class LayoutPolicy>
+template<class ExecutionPolicy, class T, class Extents, class LayoutPolicy>
 auto add_atomic_accessor_if_needed(
-    ExecT,
+    ExecutionPolicy,
     mdspan<T, Extents, LayoutPolicy> m) {
         return mdspan(m.data_handle(), m.mapping(), atomic_accessor<T>());
     }
