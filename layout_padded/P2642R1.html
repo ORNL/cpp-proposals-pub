@@ -2176,6 +2176,8 @@ because the latter may not be the actual padding stride.</p>
       <li data-md>
        <p>Make converting constructors from <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_padded</c-><c- o>::</c-><c- n>mapping</c-></code> to <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- o>::</c-><c- n>mapping</c-></code> use Mandates rather than Constraints to check compile-time stride compatibility.</p>
       <li data-md>
+       <p>Mandate that <code class="highlight"><c- n>layout_</c-><c- p>{</c-><c- n>left</c-><c- p>,</c-><c- n>right</c-><c- p>}</c-><c- n>_padded</c-><c- o>::</c-><c- n>mapping</c-></code>'s actual padding stride, if known at compile time, be representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (as well as of type <code class="highlight"><c- b>size_t</c-></code>, the previous requirement).</p>
+      <li data-md>
        <p>Fixed typos in Wording</p>
       <li data-md>
        <p>Fix formatting in non-Wording, and add links for BLAS and LAPACK</p>
@@ -2893,8 +2895,7 @@ size <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c->
     <li data-md>
      <p>else, the parameter pack <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>, <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>2</c-><c- p>)</c-></code>, ..., <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-></code>.</p>
    </ul>
-   <p><em>Mandates:</em></p>
-   <p>If</p>
+   <p><em>Mandates:</em> If</p>
    <ul>
     <li data-md>
      <p><code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,</p>
@@ -2903,19 +2904,25 @@ size <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c->
     <li data-md>
      <p><code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
    </ul>
-   <p>then the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- b>size_t</c-></code>.</p>
+   <p>then the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- b>size_t</c-></code>,
+and is representable as a value of type <code class="highlight"><c- n>index_type</c-></code>.</p>
 <pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>size_t</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>actual</c-><c- o>-</c-><c- n>padding</c-><c- o>-</c-><c- n>stride</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
 </pre>
-   <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals zero or one, then <code class="highlight"><c- n>padding_stride</c-></code>.</p>
-   <p>Else, if</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code> and</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals zero or one, then <code class="highlight"><c- n>padding_stride</c-></code>.</p>
     <li data-md>
-     <p><code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
+     <p>Else, if</p>
+     <ul>
+      <li data-md>
+       <p><code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code> and</p>
+      <li data-md>
+       <p><code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
+     </ul>
+     <p>then the <code class="highlight"><c- b>size_t</c-></code> value which is the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+    <li data-md>
+     <p>Otherwise, <code class="highlight"><c- n>dynamic_extent</c-></code>.</p>
    </ul>
-   <p>then the <code class="highlight"><c- b>size_t</c-></code> value which is the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
-   <p>Otherwise, <code class="highlight"><c- n>dynamic_extent</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>using</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>extents</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
 </pre>
    <ul>
@@ -3271,8 +3278,7 @@ size <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c->
     <li data-md>
      <p>else, the parameter pack <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>, <code class="highlight"><c- b>size_t</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code>, ..., <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-></code>.</p>
    </ul>
-   <p><em>Mandates:</em></p>
-   <p>If</p>
+   <p><em>Mandates:</em> If</p>
    <ul>
     <li data-md>
      <p><code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,</p>
@@ -3281,19 +3287,25 @@ size <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c->
     <li data-md>
      <p><code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
    </ul>
-   <p>then the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- b>size_t</c-></code>.</p>
+   <p>then the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- b>size_t</c-></code>,
+and is representable as a value of type <code class="highlight"><c- n>index_type</c-></code>.</p>
 <pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>size_t</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>actual</c-><c- o>-</c-><c- n>padding</c-><c- o>-</c-><c- n>stride</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
 </pre>
-   <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals zero or one, then <code class="highlight"><c- n>padding_stride</c-></code>.</p>
-   <p>Else, if</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code> and</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> equals zero or one, then <code class="highlight"><c- n>padding_stride</c-></code>.</p>
     <li data-md>
-     <p><code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
+     <p>Else, if</p>
+     <ul>
+      <li data-md>
+       <p><code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code> and</p>
+      <li data-md>
+       <p><code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
+     </ul>
+     <p>then the <code class="highlight"><c- b>size_t</c-></code> value which is the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
+    <li data-md>
+     <p>Otherwise, <code class="highlight"><c- n>dynamic_extent</c-></code>.</p>
    </ul>
-   <p>then the <code class="highlight"><c- b>size_t</c-></code> value which is the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code>.</p>
-   <p>Otherwise, <code class="highlight"><c- n>dynamic_extent</c-></code>.</p>
 <pre class="language-c++ highlight"><c- n>using</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>inner</c-><c- o>-</c-><c- n>extents</c-><c- o>-</c-><c- n>type</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
 </pre>
    <ul>

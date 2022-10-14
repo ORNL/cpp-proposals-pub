@@ -35,6 +35,8 @@ Date: 2022-10-15
 
     * Make converting constructors from `layout_{left,right}_padded::mapping` to `layout_{left,right}::mapping` use Mandates rather than Constraints to check compile-time stride compatibility.
 
+    * Mandate that `layout_{left,right}_padded::mapping`'s actual padding stride, if known at compile time, be representable as a value of type `index_type` (as well as of type `size_t`, the previous requirement).
+
     * Fixed typos in Wording
 
     * Fix formatting in non-Wording, and add links for BLAS and LAPACK
@@ -885,9 +887,7 @@ size `extents_type::rank()` parameter pack of `size_t`:
 
 * else, the parameter pack `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
 
-*Mandates:*
-
-If
+*Mandates:* If
 
 * `extents_type::rank()` is greater than one,
 
@@ -898,24 +898,25 @@ If
 then the least multiple of `padding_stride`
 that is greater than or equal to
 `extents_type::static_extent(0)`
-is representable as a value of type `size_t`.
+is representable as a value of type `size_t`,
+and is representable as a value of type `index_type`.
 
 ```c++
 static constexpr size_t <it>actual-padding-stride</it> = /* see-below */; // exposition only
 ```
 
-If `extents_type::rank()` equals zero or one, then `padding_stride`.
+* If `extents_type::rank()` equals zero or one, then `padding_stride`.
 
-Else, if
+* Else, if
 
-* `padding_stride` does not equal `dynamic_extent` and
+    * `padding_stride` does not equal `dynamic_extent` and
 
-* `extents_type::static_extent(0)` does not equal `dynamic_extent`,
+    * `extents_type::static_extent(0)` does not equal `dynamic_extent`,
 
-then the `size_t` value which is the least multiple of `padding_stride`
-that is greater than or equal to `extents_type::static_extent(0)`.
+    then the `size_t` value which is the least multiple of `padding_stride`
+    that is greater than or equal to `extents_type::static_extent(0)`.
 
-Otherwise, `dynamic_extent`.
+* Otherwise, `dynamic_extent`.
 
 ```c++
 using <it>inner-extents-type</it> = /* see-below */; // exposition only
@@ -1217,9 +1218,7 @@ size `extents_type::rank()` parameter pack of `size_t`:
 
 * else, the parameter pack `size_t(0)`, `size_t(1)`, ..., `extents_type::rank() - 2`.
 
-*Mandates:*
-
-If
+*Mandates:* If
 
 * `extents_type::rank()` is greater than one,
 
@@ -1230,24 +1229,25 @@ If
 then the least multiple of `padding_stride`
 that is greater than or equal to
 `extents_type::static_extent(extents_type::rank() - 1)`
-is representable as a value of type `size_t`.
+is representable as a value of type `size_t`,
+and is representable as a value of type `index_type`.
 
 ```c++
 static constexpr size_t <it>actual-padding-stride</it> = /* see-below */; // exposition only
 ```
 
-If `extents_type::rank()` equals zero or one, then `padding_stride`.
+* If `extents_type::rank()` equals zero or one, then `padding_stride`.
 
-Else, if
+* Else, if
 
-* `padding_stride` does not equal `dynamic_extent` and
+    * `padding_stride` does not equal `dynamic_extent` and
 
-* `extents_type::static_extent(0)` does not equal `dynamic_extent`,
+    * `extents_type::static_extent(0)` does not equal `dynamic_extent`,
 
-then the `size_t` value which is the least multiple of `padding_stride`
-that is greater than or equal to `extents_type::static_extent(0)`.
+    then the `size_t` value which is the least multiple of `padding_stride`
+    that is greater than or equal to `extents_type::static_extent(0)`.
 
-Otherwise, `dynamic_extent`.
+* Otherwise, `dynamic_extent`.
 
 ```c++
 using <it>inner-extents-type</it> = /* see-below */; // exposition only
