@@ -1,15 +1,15 @@
 ---
 title: "`atomic_accessor`"
-document: P2553R1
+document: PXXXX
 date: today
-audience: LEWG
+audience: LEWGI and SG1
 author:
   - name: Christian Trott 
     email: <crtrott@sandia.gov>
   - name: Damien Lebrun-Grandie 
     email: <lebrungrandt@ornl.gov>
   - name: Mark Hoemmen 
-    email: <mhoemmen@stellarscience.com>
+    email: <mhoemmen@nvidia.com>
   - name: Daniel Sunderland
     email: <dansunderland@gmail.com>
 toc: true
@@ -69,6 +69,8 @@ void compute_histogram(ExecT exec, float bin_size,
 }
 ```
 
+The above example is available on godbolt: https://godbolt.org/z/jY17Yoje1 .
+
 # `atomic_accessor` implementation
 
 The implementaiton of an `atomic_accessor` is straightforward when leveraging `atomic_ref`:
@@ -108,7 +110,7 @@ struct atomic_accessor {
 };
 ```
 
-Compared to `default_accessor` we simply make the `reference` an `atomic_ref<element_type`.
+Compared to `default_accessor` we simply make the `reference` an `atomic_ref<element_type>`.
 We also add a conversion from `default_accessor` which would allow simple conversion of `mdspans` from non-atomic to atomic:
 
 ```c++
@@ -126,28 +128,48 @@ atomic_array_t atomic_a = a;
 
 # Open Question: relaxed atomic operations
 
-In the majority of use cases for doing atomic accesses on multi-dimensional arrays,
-those atomics are used to deal with potential write conflicts due to concurrent
-updates.
-
-The most common of these updates are simple sum accumulations, such as the previously demonstrated use case.
+In the majority of use cases for using atomic accesses on multi-dimensional arrays,
+those atomics are used to deal with simple accumulations in the presence of concurrent updates.
 
 The previous example demonstrates how it is possible to write generic algorithms which can be used in concurrent and non-concurrent situations.
 
-However: in most of these cases relaxed atomics are all that is needed, while sequentially consistent atomics do hurt performance in comparison.
-The issue is that the simple operators (such as `operator+=`) of `atomic_ref` are doing sequentially consistent operations.
+However: in most of these cases relaxed atomics are all that is needed.
+Using sequentially consistent atomics instead comes with a significant performance penalty on architectures with more relaxed memory semantics than X86.
+However: the simple operators (such as `operator+=`) of `atomic_ref` are doing sequentially consistent operations.
 
 On the `atomic_accessor` side this could be accounted for with an additional template argument taking the `memory_order`.
 
 That leaves the question of the reference type for such a `memory_order` aware accessor, with three options coming immediately to mind:
 
 1. add a template parameter to `atomic_ref` which defaults to `memory_order_seq_cst`.
-2. add a new class `relaxed_atomic_ref` which has the same implementation as `atomic_ref` with the difference that the default `memory_order` of its functions is `memory_order_relaxed`.
-3. have `relaxed_atomic_ref` as an exposition only class.
+2. add a new class `relaxed_atomic_ref` which has the same implementation as `atomic_ref` with the difference that the default `memory_order` of its update functions (e.g. `fetch_add`) is `memory_order_relaxed`.
+3. have `relaxed_atomic_ref` as an exposition only class for `atomic_accessor`
 
-While we believe that option 1. would be preferable we recognize that it is a breaking change.
+While we believe that option 1. would be preferable we recognize that it is a breaking change, and thus unlikely to be acceptable to the committee.
+Thus we would like to champion option 2, with the possible implication that we should introduce both `atomic_accessor` and `relaxed_atomic_accessor` to correspond to the two classes.
+
+A natural question arises regarding other memory orders.
+We do not believe that there are many use cases requiring anything other than relaxed or sequentially consistent atomic operations on multidimensional arrays.
+It is unlikely that multidimensional arrays will be widely used to implement complicated synchronization mechanism.
+
+
 
 # Wording
 
 Wording will we provided after an initial review, and initial guidance on how to deal with the desire for easy relaxed atomic operations.
 
+# Acknowledgements
+
+Sandia National Laboratories is a multimission laboratory managed and operated by National Technology and
+Engineering Solutions of Sandia, LLC., a wholly owned subsidiary of Honeywell International, Inc., for the U.S. Department of Energy’s National Nuclear Security Administration under Grant DE-NA-0003525. 
+
+This manuscript has been authored by UTBattelle, LLC, under Grant DE-AC05-00OR22725 with the
+U.S. Department of Energy (DOE). 
+
+This work was supported
+by Exascale Computing Project 17-SC-20-SC, a joint project of
+the U.S. Department of Energy’s Office of Science and
+National Nuclear Security Administration, responsible for
+delivering a capable exascale ecosystem, including software,
+applications, and hardware technology, to support the
+nation’s exascale computing imperative.
