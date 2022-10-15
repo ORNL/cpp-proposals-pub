@@ -1,7 +1,7 @@
 
 ---
 title: "`Submdspan`"
-document: PXXXX
+document: P2630
 date: today
 audience: LEWG
 author:
@@ -16,6 +16,13 @@ toc: true
 
 
 # Revision History
+
+## Revision 1: Mailing 2022-10
+
+- updated rational for introducing `strided_index_range`
+- merged `submdspan_mapping` and `submdspan_offset` into a single customization point `submdspan_mapping` returing a `pair` of the new mapping and the offset.
+- update wording for argument dependent lookup.
+
 ## Initial Version 2022-08 Mailing
 
 
@@ -119,19 +126,73 @@ covers the begin-to-end subrange of elements in the original index space describ
 
 #### Strided index range slice specifier
 
-We propose here an additional kind of slice specifier,
-the type `strided_index_range` for taking a strided range in an extent.
-This type takes three values:
+In other languages which provide multi dimensional arrays with slicing, often a third type of slice specifier exists.
+This slicing modes takes generally a step or stride parameter in addition to a begin and end value.
 
-* the start index,
-* the length of the subrange (*not* the end index),
-* and a stride within that subrange.
+For example obtaining a sub-slice starting at the 5th element and taking every 3rd element up to the 12 can be achieved as:
 
-This type uses the length instead of the end index,
-so that the returned subspan can have a compile-time extent value,
-even if it starts at a run-time offset value.
+* Matlab: `A(start:step:end)`
+* numpy: `A[start:end:step]`
+* Fortran: `A[start:end:step]`
+
+However, we propose a slightly different design.
+Instead of providing begin, end and a step size, we propose to specify begin, extent and a step size.
+
+This approach has one fundamental advantage: one can combine a runtime start value with a compile time extent,
+and thus directly generate a static extent for the sub-mdspan.
+
+We propose an aggregate type `strided_index_range` to express this slice specification.
+
 We use a struct with named fields instead of a `tuple`,
 in order to avoid confusion with the order of the three values.
+
+##### `extent` vs `step` choice
+
+As stated above, we propose specifiying the extent because it makes taking a submdspan with static extent
+at a runtime offset easier.
+
+One situation where this is would be used is in certain linear algebra algorithms,
+where one steps through a matrix and obtains submatrices of a specified, compile time known, size.
+
+However, remember the layout and accessor types of a sub mdspan, depend on the input `mdspan` and the slice specifiers.
+Thus for a generic `mdspan`, even if one knows the `extents` of the resulting `mdspan` the actual type is somewhat cumbersome to determine.
+
+```c++
+// With start:end:step syntax
+template<class T, class E, class L, class A>
+void foo(mdspan<T,E,L,A> A) {
+  using slice_spec_t = pair<int,int>;
+  using subm_t = 
+    decltype(submdspan(declval<slcie_spec_t>(), declval<slice_spec_t>()));
+  using static_subm_t = mdspan<T, extents<typename subm_t::index_type, 4, 4>,
+                               typename subm_t::layout_type,
+                               typename subm_t::accessor_type>;
+
+  for(int i=0; i<A.extent(0); i)
+    for(int j=0; j<A.extent(1); j++) {
+      static_subm_t subm = submdspan(A, slice_spec_t(i,i+4), slice_spec_t(j,j+4));
+      // ...
+  }
+}
+
+// With the proposed type:
+
+template<class T, class E, class L, class A>
+void foo(mdspan<T,E,L,A> A) {
+  using slice_spec_t = 
+    strided_index_range<int, integral_constant<int,4>, integral_constant<int,1>>;
+
+  for(int i=0; i<A.extent(0); i)
+    for(int j=0; j<A.extent(1); j++) {
+      auto subm = submdspan(A, slice_spec_t{i}, slice_spec_t{j});
+      // ...
+  }
+}
+```
+
+Furthermore, even if one accepts the more complex specification of `subm` it likely that the first variant would require more instructions,
+since compile time information about extents is not available during the `submdspan` call.
+
 
 ##### Template argument deduction
 
@@ -304,25 +365,29 @@ template<class Mapping, class ... SliceArgs>
 size_t submdspan_offset(const Mapping&, SliceArgs...) { /* ... */ }
 ```
 
+Since both of these function may require computing similar information,
+one should actually fold `submdspan_offset` into `submdspan_mapping` and make
+that single customization point return a `pair` of the submapping and offset.
+
+
 With these components we can sketch out the implementation of `submdspan`.
 
 ```c++
 template<class T, class E, class L, class A,
          class ... SliceArgs)
 auto submdspan(const mdspan<T,E,L,A>& src, SliceArgs ... args) {
-  size_t sub_offset = submdspan_offset(src.mapping(), args...);
-  auto sub_map = submdspan_mapping(src.mapping(), args...);
+  auto sub_map_offset = submdspan_mapping(src.mapping(), args...);
   typename A::offset_policy sub_acc(src.accessor());
   typename A::offset_policy::data_handle_type 
     sub_handle = src.accessor().offset(src.data_handle(), sub_offset);
-  return mdspan(sub_handle, sub_map, sub_acc);
+  return mdspan(sub_handle, sub_map_offset.first, sub_map_offset.second);
 }
 ```
 
-To support custom layouts, `std::submdspan` calls `submdspan_offset` and `submdspan_mapping` using argument-dependent lookup.
+To support custom layouts, `std::submdspan` calls `submdspan_mapping` using argument-dependent lookup.
 
 However, not all layout mappings may support efficient slicing for all possible slice specifier combinations.
-Thus, we do *not* propose to add these customization points to the layout policy requirements. 
+Thus, we do *not* propose to add this customization point to the layout policy requirements. 
 
 ### Making sure submdspan behavior meets expectations
 
@@ -338,10 +403,9 @@ Thus, we can define both of the above properties via the multidimensional index 
 regardless of what it means to "refer to the same element."
 (For example, accessors may use proxy references and data handle types other than C++ pointers.
 This makes it hard to define what "same element" means.)
-That will let us define pre-conditions for `submdspan` which specify the required behavior of any user-provided `submdspan_mapping`
-and `submdspan_offset` function.
+That will let us define pre-conditions for `submdspan` which specify the required behavior of any user-provided `submdspan_mapping` function.
 
-One function which can help with that, and additionally is needed to implement `submdspan_mapping` and `submdspan_offset` for
+One function which can help with that, and additionally is needed to implement `submdspan_mapping` for
 the layouts the standard provides, is a function to compute the submdspan's `extents`.
 We will propose this function as a public function in the standard:
 
@@ -365,8 +429,6 @@ For performance and preservation of compile-time knowledge, we also require the 
 # Wording
 
 
-```c++
-```
 
 ## Add subsection 22.7.X [mdspan.submdspan] with the following
 
@@ -401,21 +463,6 @@ namespace std {
       const layout_stride::mapping<E>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 
-  template<class E, class... SliceSpecifiers>
-    constexpr size_t submdspan_offset(
-      const layout_left::mapping<E>& src, 
-      SliceSpecifiers ... slices);
-
-  template<class E, class... SliceSpecifiers>
-    constexpr size_t submdspan_offset(
-      const layout_right::mapping<E>& src, 
-      SliceSpecifiers ... slices);
-
-  template<class E, class... SliceSpecifiers>
-    constexpr size_t submdspan_offset(
-      const layout_stride::mapping<E>& src, 
-      SliceSpecifiers ... slices);
-
   // [mdspan.submdspan], submdspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
@@ -430,7 +477,8 @@ namespace std {
    and the corresponding value(s) of the arguments of `submdspan` after `src`
    determine the subset of `src` that the `mdspan` returned by `submdspan` views.
 
-[3]{.pnum} Each `submdspan` overload specified in this subclause calls `submdspan_mapping` and `submdspan_offset` unqualified, so as to enable argument dependent lookup ([basic.lookup.argdep]).
+[3]{.pnum} Invocations of `submdspan_mapping` shown in subclause ([mdspan.submdspan]) select a function call via overload resolution
+on a candidate set that includes the lookup set found by argument dependent lookup ([basic.lookup.argdep]).
 
 [4]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument:
 
@@ -662,9 +710,13 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
 [6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that `sub_strides[`_`map-rank`_`[k]] == src.stride(k)` is `true` for each rank index `k` of `src.extents()` for which _`map-rank`_`[k]` is not `dynamic_extent`. 
 
-[7]{.pnum} *Returns:*
+[7]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
 
-   * [7.1]{.pnum} `layout_left::mapping(sub_ext)`, if
+[8]{.pnum} Let `offset` be a value of type `size_t` equal to `map(`_`first`_`_<index_type>(P, slices...)...)`.
+
+[9]{.pnum} *Returns:*
+
+   * [9.1]{.pnum} `pair(layout_left::mapping(sub_ext), offset)`, if
 
       * `decltype(src)::layout_type` is `layout_left`; and
 
@@ -672,7 +724,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
       * for `k` equal to `SubExtents::rank()-1`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`; otherwise
 
-   * [7.2]{.pnum} `layout_right::mapping(sub_ext)`, if
+   * [9.2]{.pnum} `pair(layout_right::mapping(sub_ext), offset)`, if
 
       *  `decltype(src)::layout_type` is `layout_right`; and
 
@@ -680,66 +732,10 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`; otherwise
 
-   * [7.3]{.pnum} `layout_stride::mapping(sub_ext, sub_strides)`.
-
-<b>24.7.�.6 Layout specializations of `submdspan_offset` [mdspan.submdspan.offset]</b>
-
-```c++
-  template<class Extents, class... SliceSpecifiers>
-    constexpr size_t submdspan_offset(
-      const layout_left::mapping<Extents>& src, 
-      SliceSpecifiers ... slices);
-
-  template<class Extents, class... SliceSpecifiers>
-    constexpr size_t submdspan_mapping(
-      const layout_right::mapping<Extents>& src, 
-      SliceSpecifiers ... slices);
-
-  template<class Extents, class... SliceSpecifiers>
-    constexpr size_t submdspan_mapping(
-      const layout_stride::mapping<Extents>& src, 
-      SliceSpecifiers ... slices);
-```
-
-[1]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
-
-[2]{.pnum} *Constraints:*
-
-   * [2.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
-
-   * [2.2]{.pnum} For each rank index `k` of `src.extents()`, *at least* one of the following is `true`:
-
-      * `is_convertible_v<`$S_k$`, index_type>`,
-
-      * `is_convertible_v<`$S_k$`, tuple<index_type, index_type>>`,
-
-      * `is_convertible_v<`$S_k$`, full_extent_t>`, or
-
-      * _`is-strided-index-range`_`<`$S_k$`>::value`.
-
-[3]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
-
-   * [3.1]{.pnum} `is_convertible_v<`$S_k$`, index_type>`,
-
-   * [3.2]{.pnum} `is_convertible_v<`$S_k$`, tuple<index_type, index_type>>`,
-
-   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
-
-   * [3.4]{.pnum} _`is-strided-index-range`_`<`$S_k$`>::value`.
-
-[4]{.pnum} *Preconditions:* For each rank index `r` of `src.extents()`, *all* of the following are `true`:
-
-   * [4.1]{.pnum} `0 <= `_`first`_`_<index_type>(r, slices...)`,
-
-   * [4.2]{.pnum} _`first`_`_<index_type>(r, slices...) <= `_`last_`_`(r, src.extents(), slices...)`, and
-
-   * [4.3]{.pnum} _`last_`_`(r, src.extents(), slices...) <= src.extent(r)`.
-
-[5]{.pnum} *Effects:* Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
-Equivalent to: `return map(`_`first`_`_<index_type>(P, slices...)...);`
+   * [9.3]{.pnum} `pair(layout_stride::mapping(sub_ext, sub_strides), offset)`.
 
 
-<b>24.7.�.7 `submdspan` function [mdspan.submdspan.submdspan]</b>
+<b>24.7.�.6 `submdspan` function [mdspan.submdspan.submdspan]</b>
 
 ```c++
 // [mdspan.submdspan], submdspan creation
@@ -766,9 +762,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
       * _`is-strided-index-range`_`<`$S_k$`>::value`.
 
-   * [2.3]{.pnum} `submdspan_offset(src.mapping(), slices...)` is well formed, and
-   
-   * [2.4]{.pnum} `submdspan_mapping(src.mapping(), slices...)` is well formed.
+   * [2.3]{.pnum} `submdspan_mapping(src.mapping(), slices...)` is well formed.
 
 [3]{.pnum} *Mandates:* 
 
@@ -785,7 +779,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
      * _`is-strided-index-range`_`<`$S_k$`>::value`.
 
 
-[4]{.pnum} *Preconditions:* Let `sub_map` be the result of `submdspan_mapping(src.mapping(), slices...)`.  Then:
+[4]{.pnum} *Preconditions:* Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.  Then:
 
    * [4.1]{.pnum} For each rank index `r` of `src.extents()`, *all* of the following are `true`:
 
@@ -795,18 +789,17 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
       * _`last_`_`(r, src.extents(), slices...) <= src.extent(r)`;
 
-   * [4.2]{.pnum} `sub_map.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
+   * [4.2]{.pnum} `sub_map_offset.first.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
 
-   * [4.3]{.pnum} for each integer pack `I` which is a multidimensional index in `sub_map.extents()`,
-     `sub_map(I...) + submdspan_offset(src.mapping(), slices...) == src.mapping()(`_`src-indices`_`(array{I...}, slices ...))` is `true`.
+   * [4.3]{.pnum} for each integer pack `I` which is a multidimensional index in `sub_map_offset.first.extents()`,
+     `sub_map_offset.first(I...) + sub_map_offset.second == src.mapping()(`_`src-indices`_`(array{I...}, slices ...))` is `true`.
 
 [5]{.pnum} *Effects:* Equivalent to
 
 ```c++
-  size_t offset = submdspan_offset(src.mapping(), args...);
-  auto sub_map = submdspan_mapping(src.mapping(), args...);
-  return mdspan(src.accessor().offset(src.data(), offset),
-                sub_map,
+  auto sub_map_offset = submdspan_mapping(src.mapping(), args...);
+  return mdspan(src.accessor().offset(src.data(), sub_map_offset.second),
+                sub_map_offset.first,
                 AccessorPolicy::offset_policy(src.accessor()));
 ```
 
