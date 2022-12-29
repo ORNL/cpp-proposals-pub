@@ -1042,7 +1042,7 @@ let `P_left` denote the parameter pack of elements of type `size_t` such that:
 * if `extents_type::rank()` equals zero or one,
     `P_left` is the empty parameter pack;
 
-* else, `P_left` is the parameter pack of size `extents_type::rank() - 2`
+* else, `P_left` is the parameter pack of size `extents_type::rank() - 1`
     given by `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
 
 *Mandates:*
@@ -1298,7 +1298,7 @@ if users know that the latter can represent the former. <i>— end note]</i>
 
     * `other.extents()`, if `extents_type::rank()` is zero or one; else
     
-    * `other.extents().extent(0), other.stride(1), other.extents().extent(P_left)...`; and
+    * `other.stride(1), other.extents().extent(P_left)...`; and
 
 * if `extents_type::rank()` is zero,
     value-initializes <it>`unpadded-extent_`</it>;
@@ -1498,7 +1498,7 @@ let `P_right` be the parameter pack of elements of type `size_t` such that:
 * if `extents_type::rank()` equals zero or one,
     `P_right` is the empty parameter pack;
 
-* else, `P_right` is the parameter pack of size `extents_type::rank() - 2`
+* else, `P_right` is the parameter pack of size `extents_type::rank() - 1`
     given by `size_t(0)`, `size_t(1)`, ..., `extents_type::rank() - 2`.
 
 *Mandates:*
@@ -1755,7 +1755,7 @@ if users know that the latter can represent the former. <i>— end note]</i>
 
     * `other.extents()`, if `extents_type::rank()` is zero or one; else
     
-    * `other.extents().extent(P_right)..., other.stride(extents_type::rank() - 2), other.extents().extent(extents_type::rank() - 1)`; and
+    * `other.extents().extent(P_right)..., other.stride(extents_type::rank() - 2)`; and
 
 * if `extents_type::rank()` is zero,
     value-initializes <it>`unpadded-extent_`</it>;
