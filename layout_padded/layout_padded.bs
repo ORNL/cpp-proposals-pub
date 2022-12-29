@@ -901,6 +901,8 @@ struct layout_left_padded {
     <it>unpadded-extent-type</it> <it>unpadded-extent_</it>; // exposition only
 
   public:
+    constexpr mapping() noexcept;
+    constexpr mapping(const mapping&) noexcept = default;
     constexpr mapping(const extents_type& ext);
 
     template<class Size>
@@ -911,16 +913,20 @@ struct layout_left_padded {
         mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>&);
 
     template<size_t other_padding_stride, class OtherExtents>
-      constexpr explicit(not is_convertible_v<OtherExtents, extents_type>)
+      constexpr explicit(!is_convertible_v<OtherExtents, extents_type>)
         mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
 
-    constexpr mapping(const mapping&) noexcept = default;
+    template<size_t other_padding_stride, class OtherExtents>
+      constexpr explicit(extents_type::rank() > 0)
+        mapping(const layout_stride::mapping<OtherExtents>&) noexcept;
+
     mapping& operator=(const mapping&) noexcept = default;
 
+    // [mdspan.layout.left_padded.obs], ovservers
     constexpr extents_type extents() const noexcept;
 
     constexpr std::array<index_type, extents_type::rank()>
-    strides() const noexcept;
+      strides() const noexcept;
 
     constexpr index_type required_span_size() const noexcept;
 
@@ -936,30 +942,32 @@ struct layout_left_padded {
     static constexpr bool is_strided() noexcept { return true; }
 
     constexpr index_type stride(rank_type r) const noexcept;
+
+    template<size_t other_padding_stride, class OtherExtents>
+      friend constexpr bool operator==(const mapping&,
+        const typename layout_left_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
   };
 };
 ```
 
-Throughout this section, let `P_left` be the following
-size `extents_type::rank()` parameter pack of `size_t`:
+In subclauses [], let `P_left` be a parameter pack of elements of type `size_t` such that:
 
-* If `extents_type::rank()` equals zero or one, then the empty parameter pack;
+* If `extents_type::rank()` equals zero or one, `P_left` is the empty parameter pack;
 
-* else, the parameter pack `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
+* else, `P_left` is the parameter pack `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
 
-*Mandates:* If
+*Mandates:* 
 
-* `extents_type::rank()` is greater than one,
+* (1) If `extents_type::rank()` is greater than one,
 
 * `padding_stride` does not equal `dynamic_extent`, and
 
-* `extents_type::static_extent(0)` does not equal `dynamic_extent`,
+    * `extents_type::static_extent(0)` does not equal `dynamic_extent`,
 
-then the least multiple of `padding_stride`
-that is greater than or equal to
-`extents_type::static_extent(0)`
-is representable as a value of type `size_t`,
-and is representable as a value of type `index_type`.
+then either `padding_stride >= extents_type::static_extent(0)` is `true`, or
+`numeric_limits<size_t>::max()-padding_stride-extents_type::static_extent(0)%padding_stride > extents_type::static_extent(0)`.
+
+* (2) `padding_stride` is representable as a value of type `index_type`.
 
 ```c++
 static constexpr size_t <it>actual-padding-stride</it> = /* see-below */; // exposition only
@@ -997,6 +1005,12 @@ using <it>unpadded-extent-type</it> = /* see-below */; // exposition only
 
 * Otherwise, <it>`unpadded-extent-type`</it> names the type
     `extents<index_type, extents_type::static_extent(0)>`.
+
+```c++
+constexpr mapping();
+```
+
+*Effects:* Equivalent to `mapping(extents_type())`.
 
 ```c++
 constexpr mapping(const extents_type& ext);
@@ -1044,7 +1058,7 @@ constexpr mapping(const extents_type& ext, Size padding_value);
 
 * If `extents_type::rank()` is greater than one,
     then the least multiple of `padding_value`
-    greater than to equal to `ext.extent(0)`
+    greater than or equal to `ext.extent(0)`
     is representable as a value of type `index_type`.
 
 *Effects:*
@@ -1096,7 +1110,7 @@ template<size_t other_padding_stride, class OtherExtents>
 
 ```c++
 template<size_t other_padding_stride, class OtherExtents>
-  constexpr explicit(not is_convertible_v<OtherExtents, extents_type>)
+  constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
     mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
 ```
 
