@@ -80,6 +80,12 @@ Date: 2022-12-29
         as a value of type `index_type`.  (Before, this precondition only existed
         if `padding_stride` did not equal `dynamic_extent`.)
 
+    * Impose Preconditions and Mandates so that if the input padding stride is zero,
+        then the corresponding extent (leftmost for `layout_left_padded::mapping`,
+        rightmost for `layout_right_padded::mapping`) must be zero.
+        This makes it possible to say
+        "least multiple of $p$ greater than or equal to $e$."
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
@@ -832,7 +838,7 @@ template<size_t other_padding_stride, class OtherExtents>
 
 *Mandates:* If
 
-* `Extents::rank()` is greater than one,
+* `Extents::rank() > 1` is `true`,
 
 * `Extents::static_extent(0)` does not equal `dynamic_extent`,
 
@@ -858,7 +864,8 @@ is representable as a value of some (possibly different) integral type `V`,
 where $e$ is always representable as a value of type `V`.
 We explain here how to express this condition as a C++ constant expression.
 
-If $p$ is zero, then $e$ must be zero.  (FIXME)
+If $p$ is zero, then $e$ must be zero.
+(The clauses in question impose this via Mandate or Precondition.)
 Otherwise, let $L = k p$ be the least multiple of $p$ greater than or equal to $e$.
 There are three cases.
 
@@ -878,7 +885,7 @@ are representable as values of type `V`.
 
 *Preconditions:*
 
-* If `OtherExtents::rank()` is greater than one, then `other.stride(1)`
+* If `OtherExtents::rank() > 1` is `true`, then `other.stride(1)`
     is representable as a value of type `index_type` (*[basic.fundamental]*);
 
 * if `extents_type::rank() > 0` is `true`,
@@ -910,7 +917,7 @@ template<size_t other_padding_stride, class OtherExtents>
 
 *Mandates:* If
 
-* `Extents::rank()` is greater than one,
+* `Extents::rank() > 1` is `true`,
 
 * `Extents::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`,
 
@@ -927,7 +934,7 @@ greater than or equal to `OtherExtents::static_extent(OtherExtents::rank() - 1)`
 
 *Preconditions:*
 
-* If `OtherExtents::rank()` is greater than one, then `other.stride(OtherExtents::rank() - 2)`
+* If `OtherExtents::rank() > 1` is `true`, then `other.stride(OtherExtents::rank() - 2)`
     is representable as a value of type `index_type` (*[basic.fundamental]*);
 
 * if `extents_type::rank() > 0` is `true`,
@@ -1050,15 +1057,16 @@ let `P_left` denote the parameter pack of elements of type `size_t` such that:
 * `padding_stride` is representable as a value of type `index_type`
     (*[basic.fundamental]*).
 
-* If `extents_type::rank()` is greater than one,
+* If `extents_type::rank() > 1` is `true`,
     `padding_stride` does not equal `dynamic_extent`, and
     `extents_type::static_extent(0)`
     does not equal `dynamic_extent`,
     then either
 
-    * `padding_stride >= extents_type::static_extent(0)` is `true`, or
+    * `padding_stride >= extents_type::static_extent(0)` is `true`; or
 
-    * the least multiple of `padding_stride` that is greater than or equal to
+    * `padding_stride` is nonzero, and
+        the least multiple of `padding_stride` that is greater than or equal to
         `extents_type::static_extent(0)`
         is representable as a value of type `size_t` (*[basic.fundamental]*).
 
@@ -1123,11 +1131,17 @@ whether or not the `padding_stride` is `dynamic_extent`.
 constexpr mapping(const extents_type& ext);
 ```
 
-*Preconditions:* If `extents_type::rank()` is greater than one
+*Preconditions:* If `extents_type::rank() > 1` is true
 and `padding_stride` does not equal `dynamic_extent`,
-then the least multiple of `padding_stride`
-greater than to equal to `ext.extent(0)`
-is representable as a value of type `index_type` (*[basic.fundamental]*).
+then
+
+    * either `ext.extent(0)` is zero or
+        `padding_stride` is nonzero, and
+    
+    * the least multiple of `padding_stride`
+        greater than to equal to `ext.extent(0)`
+        is representable as a value of type `index_type`
+        (*[basic.fundamental]*).
 
 *Effects:*
 
@@ -1165,11 +1179,15 @@ constexpr mapping(const extents_type& ext, Size padding_value);
     the result of converting `padding_value` to `index_type`
     equals `padding_stride`.
 
-* If `extents_type::rank()` is greater than one,
-    then the least multiple of `padding_value`
-    greater than or equal to `ext.extent(0)`
-    is representable as a value of type `index_type`
-    (*[basic.fundamental]*).
+* If `extents_type::rank() > 1` is `true`, then
+
+    * either `ext.extent(0)` is zero or
+        `padding_value` is nonzero, and
+    
+    * the least multiple of `padding_value`
+        greater than or equal to `ext.extent(0)`
+        is representable as a value of type `index_type`
+        (*[basic.fundamental]*).
 
 *Effects:*
 
@@ -1197,6 +1215,9 @@ template<size_t other_padding_stride, class OtherExtents>
 *Mandates:* `padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride` is `true`.
 
 *Preconditions:*
+
+* If `extents_type::rank() > 1` is `true` and `padding_stride` is zero,
+    then `other.extents().extent(0)` is zero.
 
 * If `extents_type::rank() > 1` is `true`
     and `padding_stride` does not equal `dynamic_extent`,
@@ -1269,6 +1290,12 @@ if users know that the latter can represent the former. <i>— end note]</i>
 * If `extents_type::rank() > 0` is `true`,
     then `other.stride(0)` equals one.
 
+* If `extents_type::rank() > 1` is `true`,
+    `padding_stride` is zero,
+    and `other.extents().static_extent(0)`
+    is not `dynamic_extent`,
+    then `other.extents().static_extent(0)` is zero.
+
 * If `extents_type::rank() > 1` is `true`
     and `padding_stride` does not equal `dynamic_extent`,
     then `other.stride(1)` equals
@@ -1277,20 +1304,24 @@ if users know that the latter can represent the former. <i>— end note]</i>
 
 *Preconditions:*
 
+* If `extents_type::rank() > 1` is `true` and
+    `padding_stride` is zero,
+    then `other.extents(0)` is zero.
+
 * If `extents_type::rank() > 1` is `true`,
     then `other.stride(1)`
     is representable as a value of type `index_type`
-    ([basic.fundamental]).
+    (*[basic.fundamental]*).
 
 * If `extents_type::rank() > 1` is `true`,
     then for all $r$ in the range [2, `extents_type::rank()`),
     `other.stride(` $r$ `)` equals
     `other.stride(1)`
-    times the product of `other.extents(` $k$ `)`
+    times the product of `other.extents().extent(` $k$ `)`
     for all $k$ in the range [1, $r$).
 
 * `other.required_span_size()` is representable as a value
-    of type `index_type` ([basic.fundamental]).
+    of type `index_type` (*[basic.fundamental]*).
 
 *Effects:*
 
@@ -1345,7 +1376,7 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 * `(std::is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
 
 *Precondition:* `extents_type::`<it>`index-cast`</it>`(i)`
-is a multidimensional index in `extents()` ([mdspan.overview]).
+is a multidimensional index in `extents()` (*[mdspan.overview]*).
 
 *Effects:* Let P be a parameter pack such that
 `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.
@@ -1506,15 +1537,16 @@ let `P_right` be the parameter pack of elements of type `size_t` such that:
 * `padding_stride` is representable as a value of type `index_type`
     (*[basic.fundamental]*).
 
-* If `extents_type::rank()` is greater than one,
+* If `extents_type::rank() > 1` is `true`,
     `padding_stride` does not equal `dynamic_extent`, and
     `extents_type::static_extent(extents_type::rank() - 1)`
     does not equal `dynamic_extent`,
     then either
 
-    * `padding_stride >= extents_type::static_extent(0)` is `true`, or
+    * `padding_stride >= extents_type::static_extent(0)` is `true`; or
 
-    * the least multiple of `padding_stride` that is greater than or equal to
+    * `padding_stride` is nonzero, and
+        the least multiple of `padding_stride` that is greater than or equal to
         `extents_type::static_extent(extents_type::rank() - 1)`
         is representable as a value of type `size_t` (*[basic.fundamental]*).
 
@@ -1579,11 +1611,17 @@ whether or not the `padding_stride` is `dynamic_extent`.
 constexpr mapping(const extents_type& ext);
 ```
 
-*Preconditions:* If `extents_type::rank()` is greater than one
+*Preconditions:* If `extents_type::rank() > 1` is `true`
 and `padding_stride` does not equal `dynamic_extent`,
-then the least multiple of `padding_stride`
-greater than to equal to `ext.extent(extents_type::rank() - 1)`
-is representable as a value of type `index_type` (*[basic.fundamental]*).
+then
+
+    * either `ext.extent(extents_type::rank() - 1)` is zero or
+        `padding_stride` is nonzero, and
+    
+    * the least multiple of `padding_stride`
+        greater than to equal to `ext.extent(extents_type::rank() - 1)`
+        is representable as a value of type `index_type`
+        (*[basic.fundamental]*).
 
 *Effects:*
 
@@ -1622,11 +1660,15 @@ constexpr mapping(const extents_type& ext, Size padding_value);
     the result of converting `padding_value` to `index_type`
     equals `padding_stride`.
 
-* If `extents_type::rank()` is greater than one,
-    then the least multiple of `padding_value`
-    greater than to equal to `ext.extent(extents_type::rank() - 1)`
-    is representable as a value of type `index_type`
-    (*[basic.fundamental]*).
+* If `extents_type::rank() > 1` is `true`, then
+
+    * either `ext.extent(extents_type::rank() - 1)` is zero or
+        `padding_value` is nonzero, and
+    
+    * the least multiple of `padding_value`
+        greater than to equal to `ext.extent(extents_type::rank() - 1)`
+        is representable as a value of type `index_type`
+        (*[basic.fundamental]*).
 
 *Effects:*
 
@@ -1654,6 +1696,9 @@ template<size_t other_padding_stride, class OtherExtents>
 *Mandates:* `padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride` is `true`.
 
 *Preconditions:*
+
+* If `extents_type::rank() > 1` is `true` and `padding_stride` is zero,
+    then `other.extents().extent(extents_type::rank() - 1)` is zero.
 
 * If `extents_type::rank() > 1` is `true`
     and `padding_stride` does not equal `dynamic_extent`,
@@ -1726,6 +1771,12 @@ if users know that the latter can represent the former. <i>— end note]</i>
 * If `extents_type::rank() > 0` is `true`,
     then `other.stride(extents_type::rank() - 1)` equals one.
 
+* If `extents_type::rank() > 1` is `true`,
+    `padding_stride` is zero,
+    and `other.extents().static_extent(extents_type::rank() - 1)`
+    is not `dynamic_extent`,
+    then `other.extents().static_extent(extents_type::rank() - 1)` is zero.
+
 * If `extents_type::rank() > 1` is `true`
     and `padding_stride` does not equal `dynamic_extent`,
     then `other.stride(extents_type::rank() - 2)` equals
@@ -1734,20 +1785,24 @@ if users know that the latter can represent the former. <i>— end note]</i>
 
 *Preconditions:*
 
+* If `extents_type::rank() > 1` is `true` and
+    `padding_stride` is zero,
+    then `other.extents.extent(extents_type::rank() - 1)` is zero.
+
 * If `extents_type::rank() > 1` is `true`,
     then `other.stride(extents_type::rank() - 2)`
     is representable as a value of type `index_type`
-    ([basic.fundamental]).
+    (*[basic.fundamental]*).
 
 * If `extents_type::rank() > 1` is `true`,
     then for all $r$ in the range [0, `extents_type::rank() - 2`), 
     `other.stride(` $r$ `)` equals
     `other.stride(extents_type::rank() - 2)`
-    times the product of `other.extents(` $k$ `)`
+    times the product of `other.extents().extent(` $k$ `)`
     for all $k$ in the range [$r$ + 1, `extents_type::rank() - 1`).
 
 * `other.required_span_size()` is representable as a value
-    of type `index_type` ([basic.fundamental]).
+    of type `index_type` (*[basic.fundamental]*).
 
 *Effects:*
 
@@ -1802,7 +1857,7 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 * `(std::is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
 
 *Precondition:* `extents_type::`_`index-cast`_`(i)`
-is a multidimensional index in `extents()` ([mdspan.overview]).
+is a multidimensional index in `extents()` (*[mdspan.overview]*).
 
 *Effects:* Let `P` be a parameter pack such that
 `is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>` is `true`.
@@ -1876,7 +1931,7 @@ Otherwise, `false`.
 
 * `decltype(src)::layout_type` is `layout_left`;
 
-* `Extents::rank()` is greater than one;
+* `Extents::rank() > 1` is `true`;
 
 * all the $S_k$ except for $S_0$ and $S_1$ are `full_extent_t`;
 
@@ -1890,7 +1945,7 @@ then `layout_left_padded<Extents::static_extent(0)>::template mapping(sub_ext, s
 
 * `decltype(src)::layout_type` is `layout_right`;
 
-* `Extents::rank()` is greater than one;
+* `Extents::rank() > 1` is `true`;
 
 * all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
 
@@ -1914,7 +1969,7 @@ then, `layout_left_padded<padding_stride>::template mapping(sub_ext)`.
 
 * `decltype(src)::layout_type` is `layout_left_padded<padding_stride>` for some `size_t padding_stride`;
 
-* `Extents::rank()` is greater than one;
+* `Extents::rank() > 1` is `true`;
 
 * all the $S_k$ except for $S_0$ and $S_1$ are `full_extent_t`;
 
@@ -1938,7 +1993,7 @@ then, `layout_right_padded<padding_stride>::template mapping(sub_ext)`.
 
 * `decltype(src)::layout_type` is `layout_right_padded<padding_stride>` for some `size_t padding_stride`;
 
-* `Extents::rank()` is greater than one;
+* `Extents::rank() > 1` is `true`;
 
 * all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
 
