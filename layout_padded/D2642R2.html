@@ -2244,6 +2244,12 @@ that models <code class="highlight"><c- n>regular</c-></code> for each <code cla
        <p>Add precondition to <code class="highlight"><c- n>layout_</c-><c- p>(</c-><c- n>left</c-><c- p>,</c-> <c- n>right</c-><c- p>)</c-><c- n>_padding</c-><c- o>::</c-><c- n>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>,</c-> <c- n>Size</c-> <c- n>padding_value</c-><c- p>)</c-></code> constructor that <code class="highlight"><c- n>padding_value</c-></code> is representable
 as a value of type <code class="highlight"><c- n>index_type</c-></code>.  (Before, this precondition only existed
 if <code class="highlight"><c- n>padding_stride</c-></code> did not equal <code class="highlight"><c- n>dynamic_extent</c-></code>.)</p>
+      <li data-md>
+       <p>Impose Preconditions and Mandates so that if the input padding stride is zero,
+then the corresponding extent (leftmost for <code class="highlight"><c- n>layout_left_padded</c-><c- o>::</c-><c- n>mapping</c-></code>,
+rightmost for <code class="highlight"><c- n>layout_right_padded</c-><c- o>::</c-><c- n>mapping</c-></code>) must be zero.
+This makes it possible to say
+"least multiple of $p$ greater than or equal to $e$."</p>
      </ul>
    </ul>
    <h2 class="heading settled" data-level="3" id="proposed-changes-and-justification"><span class="secno">3. </span><span class="content">Proposed changes and justification</span><a class="self-link" href="#proposed-changes-and-justification"></a></h2>
@@ -2769,7 +2775,7 @@ also tells users that they can pass the mdspan’s data
 directly into C or Fortran libraries like the BLAS or LAPACK.
 Users can benefit from this even if the padding stride is a run-time value.</p>
    <p>Second, the <code class="highlight"><c- k>constexpr</c-></code> annotations in the existing layout mappings
-mean that users might be evaluating <code class="highlight"><c- n>layout_stride</c-><c- o>::</c-><c- n>mapping</c-><c- o>::</c-><c- k>operator</c-><c- p>()</c-></code> fully at compile time.  The reference mdspan implementation has <a href="https://github.com/kokkos/mdspan/tree/stable/compilation_tests">several tests</a> that demonstrate this by using the result of a layout mapping evaluation
+mean that users might already be evaluating <code class="highlight"><c- n>layout_stride</c-><c- o>::</c-><c- n>mapping</c-><c- o>::</c-><c- k>operator</c-><c- p>()</c-></code> fully at compile time.  The reference mdspan implementation has <a href="https://github.com/kokkos/mdspan/tree/stable/compilation_tests">several tests</a> that demonstrate this by using the result of a layout mapping evaluation
 in a context where it needs to be known at compile time.</p>
    <p>
     Third, the performance benefit of storing 
@@ -2846,7 +2852,7 @@ encoding the appropriate year (YYYY) and month (MM).</p>
    <p><em>Mandates:</em> If</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>,</p>
     <li data-md>
      <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
     <li data-md>
@@ -2868,7 +2874,8 @@ mandate that the least multiple of a <code class="highlight"><c- k>constexpr</c-
 greater than or equal to some other nonnegative <code class="highlight"><c- k>constexpr</c-></code> value $e$ of integral type <code class="highlight"><c- n>U</c-></code> is representable as a value of some (possibly different) integral type <code class="highlight"><c- n>V</c-></code>,
 where $e$ is always representable as a value of type <code class="highlight"><c- n>V</c-></code>.
 We explain here how to express this condition as a C++ constant expression.</p>
-   <p>If $p$ is zero, then $e$ must be zero.  (FIXME)
+   <p>If $p$ is zero, then $e$ must be zero.
+(The clauses in question impose this via Mandate or Precondition.)
 Otherwise, let $L = k p$ be the least multiple of $p$ greater than or equal to $e$.
 There are three cases.</p>
    <ol>
@@ -2888,7 +2895,7 @@ are representable as values of type <code class="highlight"><c- n>V</c-></code>.
    <p><em>Preconditions:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one, then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>);</p>
+     <p>If <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>, then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>);</p>
     <li data-md>
      <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>,
 then for all $r$ in the range [0, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code>), <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-></code> $r$ <code class="highlight"><c- p>)</c-></code> equals <code class="highlight"><c- n>extents</c-><c- p>().</c-></code><code class="highlight" data-span-tag="_"><c- n>fwd</c-><c- o>-</c-><c- n>prod</c-><c- o>-</c-><c- n>of</c-><c- o>-</c-><c- n>extents</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-></code> $r$ <code class="highlight"><c- p>)</c-></code>, and</p>
@@ -2914,7 +2921,7 @@ then for all $r$ in the range [0, <code class="highlight"><c- n>extents_type</c-
    <p><em>Mandates:</em> If</p>
    <ul>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>,</p>
     <li data-md>
      <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,</p>
     <li data-md>
@@ -2932,7 +2939,7 @@ then for all $r$ in the range [0, <code class="highlight"><c- n>extents_type</c-
    <p><em>Preconditions:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one, then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>);</p>
+     <p>If <code class="highlight"><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>, then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>OtherExtents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>);</p>
     <li data-md>
      <p>if <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>,
 then for all $r$ in the range [0, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code>), <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-></code> $r$ <code class="highlight"><c- p>)</c-></code> equals <code class="highlight"><c- n>extents</c-><c- p>().</c-></code><code class="highlight" data-span-tag="_"><c- n>rev</c-><c- o>-</c-><c- n>prod</c-><c- o>-</c-><c- n>of</c-><c- o>-</c-><c- n>extents</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-></code> $r$ <code class="highlight"><c- p>)</c-></code>, and</p>
@@ -3043,13 +3050,14 @@ let <code class="highlight"><c- n>P_left</c-></code> denote the parameter pack o
     <li data-md>
      <p><code class="highlight"><c- n>padding_stride</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one, <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>, <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
 then either</p>
      <ul>
       <li data-md>
-       <p><code class="highlight"><c- n>padding_stride</c-> <c- o>>=</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is <code class="highlight">true</code>, or</p>
+       <p><code class="highlight"><c- n>padding_stride</c-> <c- o>>=</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is <code class="highlight">true</code>; or</p>
       <li data-md>
-       <p>the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- b>size_t</c-></code> (<em>[basic.fundamental]</em>).</p>
+       <p><code class="highlight"><c- n>padding_stride</c-></code> is nonzero, and
+the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- b>size_t</c-></code> (<em>[basic.fundamental]</em>).</p>
      </ul>
    </ul>
 <pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>size_t</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>actual</c-><c- o>-</c-><c- n>padding</c-><c- o>-</c-><c- n>stride</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
@@ -3123,9 +3131,15 @@ whether or not the <code class="highlight"><c- n>padding_stride</c-></code> is <
    </p>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
 </pre>
-   <p><em>Preconditions:</em> If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one
+   <p><em>Preconditions:</em> If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is true
 and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
-then the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> greater than to equal to <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+then</p>
+   <ul>
+    <li data-md>
+     <p>either <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is zero or <code class="highlight"><c- n>padding_stride</c-></code> is nonzero, and</p>
+    <li data-md>
+     <p>the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> greater than to equal to <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+   </ul>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -3171,8 +3185,13 @@ else, direct-non-list-initializes
      <p>If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, then
 the result of converting <code class="highlight"><c- n>padding_value</c-></code> to <code class="highlight"><c- n>index_type</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>.</p>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,
-then the least multiple of <code class="highlight"><c- n>padding_value</c-></code> greater than or equal to <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>, then</p>
+     <ul>
+      <li data-md>
+       <p>either <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is zero or <code class="highlight"><c- n>padding_value</c-></code> is nonzero, and</p>
+      <li data-md>
+       <p>the least multiple of <code class="highlight"><c- n>padding_value</c-></code> greater than or equal to <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+     </ul>
    </ul>
    <p><em>Effects:</em></p>
    <ul>
@@ -3207,6 +3226,9 @@ else, direct-non-list-initializes
    <p><em>Mandates:</em> <code class="highlight"><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>padding_stride</c-> <c- o>==</c-> <c- n>other_padding_stride</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Preconditions:</em></p>
    <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> is zero,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is zero.</p>
     <li data-md>
      <p>
       If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
@@ -3294,6 +3316,10 @@ if users know that the latter can represent the former. <i>— end note]</i></p>
      <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>,
 then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> equals one.</p>
     <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>, <code class="highlight"><c- n>padding_stride</c-></code> is zero,
+and <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is not <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is zero.</p>
+    <li data-md>
      <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
 then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> equals
 the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code> <code class="highlight" data-span-tag="_"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code>_ <code class="highlight"><c- p>(</c-><c- n>other</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- mi>0</c-><c- p>))</c-></code>.</p>
@@ -3301,14 +3327,17 @@ the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> g
    <p><em>Preconditions:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>,
-then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> ([basic.fundamental]).</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> is zero,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is zero.</p>
     <li data-md>
      <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>,
-then for all $r$ in the range [2, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code>), <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-></code> $r$ <code class="highlight"><c- p>)</c-></code> equals <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> times the product of <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>(</c-></code> $k$ <code class="highlight"><c- p>)</c-></code> for all $k$ in the range [1, $r$).</p>
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>,
+then for all $r$ in the range [2, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code>), <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-></code> $r$ <code class="highlight"><c- p>)</c-></code> equals <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- mi>1</c-><c- p>)</c-></code> times the product of <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-></code> $k$ <code class="highlight"><c- p>)</c-></code> for all $k$ in the range [1, $r$).</p>
     <li data-md>
      <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable as a value
-of type <code class="highlight"><c- n>index_type</c-></code> ([basic.fundamental]).</p>
+of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
    </ul>
    <p><em>Effects:</em></p>
    <ul>
@@ -3381,7 +3410,7 @@ else, direct-non-list-initializes
    <p>
     <em>Precondition:</em> <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code>
     <it><code class="highlight"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code></it>
-    <code class="highlight"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents</c-><c- p>()</c-></code> ([mdspan.overview]).
+    <code class="highlight"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents</c-><c- p>()</c-></code> (<em>[mdspan.overview]</em>).
    </p>
    <p><em>Effects:</em> Let P be a parameter pack such that <code class="highlight"><c- n>is_same_v</c-><c- o>&lt;</c-><c- n>index_sequence_for</c-><c- o>&lt;</c-><c- n>Indices</c-><c- p>...</c-><c- o>></c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>P</c-><c- p>...</c-><c- o>>></c-></code> is <code class="highlight">true</code>.
 Equivalent to: <code class="highlight"><c- k>return</c-> <c- p>((</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- n>index_type</c-><c- o>></c-><c- p>(</c-><c- n>i</c-><c- p>)</c-> <c- o>*</c-> <c- n>stride</c-><c- p>(</c-><c- n>P</c-><c- p>))</c-> <c- o>+</c-> <c- p>...</c-> <c- o>+</c-> <c- mi>0</c-><c- p>);</c-></code>.</p>
@@ -3528,13 +3557,14 @@ let <code class="highlight"><c- n>P_right</c-></code> be the parameter pack of e
     <li data-md>
      <p><code class="highlight"><c- n>padding_stride</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one, <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>, <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, and <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
 then either</p>
      <ul>
       <li data-md>
-       <p><code class="highlight"><c- n>padding_stride</c-> <c- o>>=</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is <code class="highlight">true</code>, or</p>
+       <p><code class="highlight"><c- n>padding_stride</c-> <c- o>>=</c-> <c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- mi>0</c-><c- p>)</c-></code> is <code class="highlight">true</code>; or</p>
       <li data-md>
-       <p>the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- b>size_t</c-></code> (<em>[basic.fundamental]</em>).</p>
+       <p><code class="highlight"><c- n>padding_stride</c-></code> is nonzero, and
+the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> that is greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- b>size_t</c-></code> (<em>[basic.fundamental]</em>).</p>
      </ul>
    </ul>
 <pre class="language-c++ highlight"><c- k>static</c-> <c- n>constexpr</c-> <c- b>size_t</c-> <c- o>&lt;</c-><c- n>it</c-><c- o>></c-><c- n>actual</c-><c- o>-</c-><c- n>padding</c-><c- o>-</c-><c- n>stride</c-><c- o>&lt;/</c-><c- n>it</c-><c- o>></c-> <c- o>=</c-> <c- d>/* see-below */</c-><c- p>;</c-> <c- c1>// exposition only</c->
@@ -3608,9 +3638,14 @@ whether or not the <code class="highlight"><c- n>padding_stride</c-></code> is <
    </p>
 <pre class="language-c++ highlight"><c- n>constexpr</c-> <c- nf>mapping</c-><c- p>(</c-><c- k>const</c-> <c- n>extents_type</c-><c- o>&amp;</c-> <c- n>ext</c-><c- p>);</c->
 </pre>
-   <p><em>Preconditions:</em> If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one
-and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
-then the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> greater than to equal to <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+   <p><em>Preconditions:</em> If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then</p>
+   <ul>
+    <li data-md>
+     <p>either <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is zero or <code class="highlight"><c- n>padding_stride</c-></code> is nonzero, and</p>
+    <li data-md>
+     <p>the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> greater than to equal to <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+   </ul>
    <p><em>Effects:</em></p>
    <ul>
     <li data-md>
@@ -3656,8 +3691,13 @@ else, direct-non-list-initializes
      <p>If <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>, then
 the result of converting <code class="highlight"><c- n>padding_value</c-></code> to <code class="highlight"><c- n>index_type</c-></code> equals <code class="highlight"><c- n>padding_stride</c-></code>.</p>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one,
-then the least multiple of <code class="highlight"><c- n>padding_value</c-></code> greater than to equal to <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>, then</p>
+     <ul>
+      <li data-md>
+       <p>either <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is zero or <code class="highlight"><c- n>padding_value</c-></code> is nonzero, and</p>
+      <li data-md>
+       <p>the least multiple of <code class="highlight"><c- n>padding_value</c-></code> greater than to equal to <code class="highlight"><c- n>ext</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+     </ul>
    </ul>
    <p><em>Effects:</em></p>
    <ul>
@@ -3692,6 +3732,9 @@ else, direct-non-list-initializes
    <p><em>Mandates:</em> <code class="highlight"><c- n>padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>other_padding_stride</c-> <c- o>==</c-> <c- n>dynamic_extent</c-> <c- o>||</c-> <c- n>padding_stride</c-> <c- o>==</c-> <c- n>other_padding_stride</c-></code> is <code class="highlight">true</code>.</p>
    <p><em>Preconditions:</em></p>
    <ul>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> is zero,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is zero.</p>
     <li data-md>
      <p>
       If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
@@ -3779,6 +3822,10 @@ if users know that the latter can represent the former. <i>— end note]</i></p>
      <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>0</c-></code> is <code class="highlight">true</code>,
 then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> equals one.</p>
     <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>, <code class="highlight"><c- n>padding_stride</c-></code> is zero,
+and <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is not <code class="highlight"><c- n>dynamic_extent</c-></code>,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>static_extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is zero.</p>
+    <li data-md>
      <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> does not equal <code class="highlight"><c- n>dynamic_extent</c-></code>,
 then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> equals
 the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> greater than or equal to <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code> <code class="highlight" data-span-tag="_"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code>_ <code class="highlight"><c- p>(</c-><c- n>other</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>))</c-></code>.</p>
@@ -3786,14 +3833,17 @@ the least multiple of <code class="highlight"><c- n>padding_stride</c-></code> g
    <p><em>Preconditions:</em></p>
    <ul>
     <li data-md>
-     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>,
-then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> ([basic.fundamental]).</p>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code> and <code class="highlight"><c- n>padding_stride</c-></code> is zero,
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>.</c-><c- n>extent</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-><c- p>)</c-></code> is zero.</p>
     <li data-md>
      <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>,
-then for all $r$ in the range [0, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-></code>), <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-></code> $r$ <code class="highlight"><c- p>)</c-></code> equals <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> times the product of <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>(</c-></code> $k$ <code class="highlight"><c- p>)</c-></code> for all $k$ in the range [$r$ + 1, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-></code>).</p>
+then <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> is representable as a value of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
+    <li data-md>
+     <p>If <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>,
+then for all $r$ in the range [0, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-></code>), <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-></code> $r$ <code class="highlight"><c- p>)</c-></code> equals <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>stride</c-><c- p>(</c-><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>2</c-><c- p>)</c-></code> times the product of <code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>extents</c-><c- p>().</c-><c- n>extent</c-><c- p>(</c-></code> $k$ <code class="highlight"><c- p>)</c-></code> for all $k$ in the range [$r$ + 1, <code class="highlight"><c- n>extents_type</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>-</c-> <c- mi>1</c-></code>).</p>
     <li data-md>
      <p><code class="highlight"><c- n>other</c-><c- p>.</c-><c- n>required_span_size</c-><c- p>()</c-></code> is representable as a value
-of type <code class="highlight"><c- n>index_type</c-></code> ([basic.fundamental]).</p>
+of type <code class="highlight"><c- n>index_type</c-></code> (<em>[basic.fundamental]</em>).</p>
    </ul>
    <p><em>Effects:</em></p>
    <ul>
@@ -3863,7 +3913,7 @@ else, direct-non-list-initializes
     <li data-md>
      <p><code class="highlight"><c- p>(</c-><c- n>std</c-><c- o>::</c-><c- n>is_nothrow_constructible</c-><c- o>&lt;</c-><c- n>index_type</c-><c- p>,</c-> <c- n>Indices</c-><c- o>></c-> <c- o>&amp;&amp;</c-> <c- p>...)</c-></code> is <code class="highlight">true</code>.</p>
    </ul>
-   <p><em>Precondition:</em> <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code><code class="highlight" data-span-tag="_"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents</c-><c- p>()</c-></code> ([mdspan.overview]).</p>
+   <p><em>Precondition:</em> <code class="highlight"><c- n>extents_type</c-><c- o>::</c-></code><code class="highlight" data-span-tag="_"><c- n>index</c-><c- o>-</c-><c- n>cast</c-></code><code class="highlight" data-span-tag="_"><c- p>(</c-><c- n>i</c-><c- p>)</c-></code> is a multidimensional index in <code class="highlight"><c- n>extents</c-><c- p>()</c-></code> (<em>[mdspan.overview]</em>).</p>
    <p><em>Effects:</em> Let <code class="highlight"><c- n>P</c-></code> be a parameter pack such that <code class="highlight"><c- n>is_same_v</c-><c- o>&lt;</c-><c- n>index_sequence_for</c-><c- o>&lt;</c-><c- n>Indices</c-><c- p>...</c-><c- o>></c-><c- p>,</c-> <c- n>index_sequence</c-><c- o>&lt;</c-><c- n>P</c-><c- p>...</c-><c- o>>></c-></code> is <code class="highlight">true</code>.
 Equivalent to: <code class="highlight"><c- k>return</c-> <c- p>((</c-><c- k>static_cast</c-><c- o>&lt;</c-><c- n>index_type</c-><c- o>></c-><c- p>(</c-><c- n>i</c-><c- p>)</c-> <c- o>*</c-> <c- n>stride</c-><c- p>(</c-><c- n>P</c-><c- p>))</c-> <c- o>+</c-> <c- p>...</c-> <c- o>+</c-> <c- mi>0</c-><c- p>);</c-></code>.</p>
    <p><i>[Note:</i> Effects are also equivalent to</p>
@@ -3931,7 +3981,7 @@ Otherwise, <code class="highlight">false</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_left</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>;</p>
     <li data-md>
      <p>all the $S_k$ except for $S_0$ and $S_1$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
     <li data-md>
@@ -3945,7 +3995,7 @@ Otherwise, <code class="highlight">false</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_right</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>;</p>
     <li data-md>
      <p>all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
     <li data-md>
@@ -3969,7 +4019,7 @@ Otherwise, <code class="highlight">false</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_left_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>></c-></code> for some <code class="highlight"><c- b>size_t</c-> <c- n>padding_stride</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>;</p>
     <li data-md>
      <p>all the $S_k$ except for $S_0$ and $S_1$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
     <li data-md>
@@ -3993,7 +4043,7 @@ Otherwise, <code class="highlight">false</code>.</p>
     <li data-md>
      <p><code class="highlight"><c- k>decltype</c-><c- p>(</c-><c- n>src</c-><c- p>)</c-><c- o>::</c-><c- n>layout_type</c-></code> is <code class="highlight"><c- n>layout_right_padded</c-><c- o>&lt;</c-><c- n>padding_stride</c-><c- o>></c-></code> for some <code class="highlight"><c- b>size_t</c-> <c- n>padding_stride</c-></code>;</p>
     <li data-md>
-     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-></code> is greater than one;</p>
+     <p><code class="highlight"><c- n>Extents</c-><c- o>::</c-><c- n>rank</c-><c- p>()</c-> <c- o>></c-> <c- mi>1</c-></code> is <code class="highlight">true</code>;</p>
     <li data-md>
      <p>all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are <code class="highlight"><c- n>full_extent_t</c-></code>;</p>
     <li data-md>
