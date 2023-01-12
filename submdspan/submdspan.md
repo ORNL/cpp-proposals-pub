@@ -524,7 +524,10 @@ For performance and preservation of compile-time knowledge, we also require the 
 ```c++
 namespace std {
   template<class OffsetType, class LengthType, class StrideType>
-    class strided_index_range;
+    struct strided_index_range;
+
+  template<class LayoutMapping>
+    struct layout_mapping_offset;
 
   template<class IndexType, class... Extents, class... SliceSpecifiers>
     constexpr auto submdspan_extents(const extents<IndexType, Extents...>&,
@@ -578,6 +581,9 @@ on a candidate set that includes the lookup set found by argument dependent look
 
 <b>24.7.�.2 `strided_index_range` [mdspan.submdspan.strided_index_range]</b>
 
+[1]{.pnum} `strided_index_range` represents a set of `extent` regularly spaced integer indices.
+   The indices start at `offset`, and increase by increments of `stride`.
+
 ```c++
 template<class OffsetType, class ExtentType, class StrideType>
 struct strided_index_range {
@@ -591,9 +597,6 @@ struct strided_index_range {
 };
 ```
 
-[1]{.pnum} `strided_index_range` represents a set of `extent` regularly spaced integer indices.
-   The indices start at `offset`, and increase by increments of `stride`.
-
 [2]{.pnum} `strided_index_range` is an aggregate type.
 
 [3]{.pnum} *Mandates:*
@@ -606,8 +609,22 @@ Indices are selected from the half-open interval [1, 1 + 10).
 <i>- end note]</i>
 
 
+<b>24.7.�.3 `layout_mapping_offset` [mdspan.submdspan.layout_mapping_offset]</b>
 
-<b>24.7.�.3 Exposition-only helpers [mdspan.submdspan.helpers]</b>
+[1]{.pnum} Specializations of `layout_mapping_offset` are returned by overloads of `submdspan_mapping`.
+
+```c++
+template<class LayoutMapping>
+struct layout_mapping_offset {
+  LayoutMapping mapping;
+  size_t offset;
+};
+
+[2]{.pnum} `strided_index_range` is an aggregate type.
+
+[3]{.pnum} `LayoutMapping` shall meet the layout mapping requirements.
+
+<b>24.7.�.4 Exposition-only helpers [mdspan.submdspan.helpers]</b>
 
 ```c++
 template<class T>
@@ -798,7 +815,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
 [9]{.pnum} *Returns:*
 
-   * [9.1]{.pnum} `pair(layout_left::mapping(sub_ext), offset)`, if
+   * [9.1]{.pnum} `layout_mapping_offset{layout_left::mapping(sub_ext), offset}`, if
 
       * `decltype(src)::layout_type` is `layout_left`; and
 
@@ -806,7 +823,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
       * for `k` equal to `SubExtents::rank()-1`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`; otherwise
 
-   * [9.2]{.pnum} `pair(layout_right::mapping(sub_ext), offset)`, if
+   * [9.2]{.pnum} `layout_mapping_offset{layout_right::mapping(sub_ext), offset}`, if
 
       *  `decltype(src)::layout_type` is `layout_right`; and
 
@@ -814,7 +831,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t> || `_`is-strided-index-range`_`<`$S_k$`>::value` is `true`; otherwise
 
-   * [9.3]{.pnum} `pair(layout_stride::mapping(sub_ext, sub_strides), offset)`.
+   * [9.3]{.pnum} `layout_mapping_offset{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
 
 <b>24.7.�.6 `submdspan` function [mdspan.submdspan.submdspan]</b>
