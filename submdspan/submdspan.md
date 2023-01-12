@@ -367,7 +367,7 @@ size_t submdspan_offset(const Mapping&, SliceArgs...) { /* ... */ }
 
 Since both of these function may require computing similar information,
 one should actually fold `submdspan_offset` into `submdspan_mapping` and make
-that single customization point return a `pair` of the submapping and offset.
+that single customization point return a struct containing both the submapping and offset.
 
 
 With these components we can sketch out the implementation of `submdspan`.
@@ -388,6 +388,89 @@ To support custom layouts, `std::submdspan` calls `submdspan_mapping` using argu
 
 However, not all layout mappings may support efficient slicing for all possible slice specifier combinations.
 Thus, we do *not* propose to add this customization point to the layout policy requirements. 
+
+### Pure ADL vs CPO vs tag invoke
+
+In this paper we propose to implement the customization point via pure ADL.
+To evaluate whether there would be significant benefits of using customization point objects (CPOs) or a `tag_invoke` approach,
+we followed the discussion presented in P2279.
+
+But first we need to discuss the expected use case scenario.
+Most users will never call this customization point directly. Instead it is invoked via `std::submdspan`,
+which actually returns a multi dimensional array to the intended subset.
+The only place where users of C++ would call `submdspan_mapping` directly is when writing variants
+of something like `std::submdspan` for other data structures.
+For example a user may want to have a shared ownership variant of `mdspan`.
+However, in most cases where we have seen higher level data structures with multi-dimensional indexing,
+that higher level data structure actually contains an entire `mdspan` (or its predecessor `Kokkos::View` from the Kokkos library).
+Getting subsets of the data then delegates to calling `submdspan` instead of directly working on the underlying mapping.
+
+The only implementers of `submdspan_mapping` are developers of a custom layout policy for `mdspan`.
+We expect the number of such developers to be multiple orders of magnitude smaller than actual users of `mdspan`.
+
+One important consideration for `submdspan_mapping` is that there is no default implementation.
+I.e. this customization point is not used to overwrite behavior, as is for example true for something like std::swap.
+
+In P2279 Pure ADL, CPOs and `tag_invoke` were evaluated on 9 criteria.
+Here we will focus on the criteria where ADL, CPOs and `tag_invoke` got different "marks".
+
+#### Explicit Opt In
+
+One drawback for pure ADL is that it is not blazingly obvious that a function is an implementation of a customization point.
+Whether some random user function `begin` or `swap` is actually something intended to work with `ranges::begin` or `std::swap`, is impossible to judge at first sight.
+`tag_invoke` improves on that situation by making it blazingly obvious since the actual functions one implements is called `tag_invoke` which takes a `std::tag`.
+However, in our case the name of the overloaded function is extremely specific: `submdspan_mapping`.
+We do not believe that many people will be confused whether such a function, taking a layout policy mapping and slice specifiers as arguments, is intended
+as an implementation point for the customization point of `submdspan` or not.
+
+
+#### Diagnose Incorrect Opt In
+
+CPOs and `tag_invoke` got a "shrug" in P2279, because they may or may not be a bit better checkable than pure ADL.
+However, in the primary use of `submdspan_mapping` via call in `submdspan` we can largely check whether the function does
+what we expect. Specifically, the return type has to meet a set
+of well defined criteria - it needs to be a layout mapping, with `extents` which are defined by `std::submdspan_extents`.
+In fact `submdspan` mandates some of that static information matching the expectations.
+
+#### Associated Types
+
+In the case of `submdspan_mapping` there are no associated types per-se (in the way I understood that criteria).
+For a function like 
+```c++
+template<class T>
+T::iterator begin(T);
+```
+`T` itself knows the return type. However for `submdspan_mapping` the return type depends not just on the source mapping,
+but also all the slice specifier types. Thus the only way to get it is effectively asking the return type of the function,
+however that function is implemented. In fact I would argue that:
+
+```c++
+decltype(submdspan_mapping(declval(mapping_t), int, int, full_extent_t, int));
+```
+
+is more conscice than a possible `tag_invoke` scheme here.
+
+```c++
+decltype(std::tag_invoke(std::tag<std::submdspan_mapping>,declval(mapping_t, int, int, full_extent_t, int)));
+```
+
+#### Easily invoke the customization
+
+This is likely the biggest drawback of the ADL approach. If one indeed just needs the sub-mapping in a generic context,
+one has to remember to use ADL. However, there are two mitigating facts:
+
+- it will be very rare that someone needs to call the `submdspan_mapping` directly - at least compared to calling `submdspan`
+
+- the failure mode of calling `std::submdspan` on a custom mapping type, is an error at compile time - not calling a potential faulty default implementation. 
+
+
+#### Conclusion
+
+All in all this evaluation let us to believe that there are no significant benefits in prefering CPOs or `tag_invoke` over pure ADL for `submdspan_mapping`.
+However, considering the expected rareness of someone implemting the customization point, this is not something we consider a large issue.
+If the committee disagrees with our evaluation we are happy to utilize `tag_invoke` instead - which we believe is preferable over a CPO approach. 
+
+
 
 ### Making sure submdspan behavior meets expectations
 
