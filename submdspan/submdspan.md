@@ -19,15 +19,17 @@ toc: true
 
 ## Revision 2: Mailing 2023-01
 
+- Add discussion choice of customization point mechanism
+- rename `strided_index_range` to `strided_slice`
 - introduced named struct combining mapping and offset as return type for `submdspan_mapping`
 - removed redundant constraints, which are covered by mandates, thus users will get a better error message.
 - fixed layout policy type preservation logic - specifically preserve layouts for rank zero mappings, and create layout stride if any of the slice specifiers are `stride_index_range`
-- fixed submapping extent calculation for `strided_index_range` where the `extent` is smaller than the `stride` (still should give a submapping extent of 1)
-- fixed submapping stride calculation for `strided_index_range` slice specifiers.
+- fixed submapping extent calculation for `strided_slice` where the `extent` is smaller than the `stride` (still should give a submapping extent of 1)
+- fixed submapping stride calculation for `strided_slice` slice specifiers.
 
 ## Revision 1: Mailing 2022-10
 
-- updated rational for introducing `strided_index_range`
+- updated rational for introducing `strided_slice`
 - merged `submdspan_mapping` and `submdspan_offset` into a single customization point `submdspan_mapping` returing a `pair` of the new mapping and the offset.
 - update wording for argument dependent lookup.
 
@@ -149,7 +151,7 @@ Instead of providing begin, end and a step size, we propose to specify begin, ex
 This approach has one fundamental advantage: one can combine a runtime start value with a compile time extent,
 and thus directly generate a static extent for the sub-mdspan.
 
-We propose an aggregate type `strided_index_range` to express this slice specification.
+We propose an aggregate type `strided_slice` to express this slice specification.
 
 We use a struct with named fields instead of a `tuple`,
 in order to avoid confusion with the order of the three values.
@@ -188,7 +190,7 @@ void foo(mdspan<T,E,L,A> A) {
 template<class T, class E, class L, class A>
 void foo(mdspan<T,E,L,A> A) {
   using slice_spec_t = 
-    strided_index_range<int, integral_constant<int,4>, integral_constant<int,1>>;
+    strided_slice<int, integral_constant<int,4>, integral_constant<int,1>>;
 
   for(int i=0; i<A.extent(0); i)
     for(int j=0; j<A.extent(1); j++) {
@@ -204,32 +206,32 @@ since compile time information about extents is not available during the `submds
 
 ##### Template argument deduction
 
-We really want template argument deduction to work for `strided_index_range`.
+We really want template argument deduction to work for `strided_slice`.
 Languages like Fortran, Matlab, and Python
 have a concise notation for creating the equivalent kind of slice inline.
 It would be unfortunate if users had to write
 
 ```c++
-auto y = submdspan(x, strided_index_range<int, int, int>{0, 10, 3});
+auto y = submdspan(x, strided_slice<int, int, int>{0, 10, 3});
 ```
 
 instead of
 
 ```c++
-auto y = submdspan(x, strided_index_range{0, 10, 3});
+auto y = submdspan(x, strided_slice{0, 10, 3});
 ```
 
 Not having template argument deduction would make it particularly unpleasant
 to mix compile-time and run-time values.  For example, to express the offset and extent as compile-time values and the stride as a run-time value without template argument deduction, users would need to write
 
 ```c++
-auto y = submdspan(x, strided_index_range<integral_constant<size_t, 0>, integral_constant<size_t, 10>, 3>{{}, {}, 3});
+auto y = submdspan(x, strided_slice<integral_constant<size_t, 0>, integral_constant<size_t, 10>, 3>{{}, {}, 3});
 ```
 
 Template argument deduction would permit a consistently value-oriented style.
 
 ```c++
-auto y = submdspan(x, strided_index_range{integral_constant<size_t, 0>{}, integral_constant<size_t, 10>{}, 3});
+auto y = submdspan(x, strided_slice{integral_constant<size_t, 0>{}, integral_constant<size_t, 10>{}, 3});
 ```
 
 This case of compile-time offset and extent and run-time stride
@@ -241,12 +243,12 @@ would permit optimizations like
 
 ##### Designated initializers
 
-We would *also* like to permit use of designated initializers with `strided_index_range`.
+We would *also* like to permit use of designated initializers with `strided_slice`.
 This would let users choose a more verbose, self-documenting style.
 It would also avoid any confusion about the order of arguments.
 
 ```c++
-auto y = submdspan(x, strided_index_range{.offset=0, .extent=10, .stride=3});
+auto y = submdspan(x, strided_slice{.offset=0, .extent=10, .stride=3});
 ```
 
 Designated initializers only work for aggregate types.
@@ -260,25 +262,25 @@ and *non*-aggregate (class) template argument deduction,
 but it does not currently compile either of the following.
 
 ```c++
-auto a = strided_index_range{.offset=0, .extent=10, .stride=3};
-auto b = strided_index_range<int, int, int>{.offset=0, .extent=10, .stride=3});
+auto a = strided_slice{.offset=0, .extent=10, .stride=3};
+auto b = strided_slice<int, int, int>{.offset=0, .extent=10, .stride=3});
 ```
 
 Implementers may want to make mdspan available
 for users of earlier C++ versions.
 The result need not comply fully with the specification,
 but should be as usable and forward-compatible as possible.
-Implementers can back-port `strided_index_range`
+Implementers can back-port `strided_slice`
 by adding the following two constructors.
 
 ```c++
-strided_index_range() = default;
-strided_index_range(OffsetType offset_, ExtentType extent_, StrideType stride_)
+strided_slice() = default;
+strided_slice(OffsetType offset_, ExtentType extent_, StrideType stride_)
   : offset(offset_), extent_(extent), stride(stride_)
 {}
 ```
 
-These constructors make `strided_index_range` no longer an aggregate,
+These constructors make `strided_slice` no longer an aggregate,
 but restore (class) template argument deduction.
 They also preserve the struct's properties
 of being a structural type (usable as a non-type template parameter)
@@ -287,7 +289,7 @@ and trivially copyable (for compatibility with other programming languages).
 #### Compile-time integral values in slices
 
 We also propose that any integral value
-(on its own, in a `tuple`, or in `strided_index_range`)
+(on its own, in a `tuple`, or in `strided_slice`)
 can be specified as an `integral_constant`.
 This ensures that the value can be baked into the return *type* of `submdspan`.
 For example, layout mappings could be entirely compile time.
@@ -311,7 +313,7 @@ assert(&a_sub2(0) == &a(1));
 assert(a_sub2.extent(0) == 3);
 
 // subrange with stride
-auto a_sub3 = submdspan(a, strided_index_range{1, 7, 2});
+auto a_sub3 = submdspan(a, strided_slice{1, 7, 2});
 static_assert(decltype(a_sub3)::rank() == 1);
 assert(&a_sub3(0) == &a(1));
 assert(&a_sub3(3) == &a(7));
@@ -331,7 +333,7 @@ int* ptr = ...;
 int N0 = ..., N1 = ..., N2 = ..., N3 = ..., N4 = ...;
 mdspan a(ptr, N0, N1, N2, N3, N4);
 
-auto a_sub = submdspan(a,full_extent_t(), 3, strided_index_range{2,N2-5, 2}, 4, tuple{3, N5-5});
+auto a_sub = submdspan(a,full_extent_t(), 3, strided_slice{2,N2-5, 2}, 4, tuple{3, N5-5});
 
 // two integral specifiers so the rank is reduced by 2
 static_assert(decltype(a_sub) == 3);
@@ -532,7 +534,7 @@ For performance and preservation of compile-time knowledge, we also require the 
 ```c++
 namespace std {
   template<class OffsetType, class LengthType, class StrideType>
-    struct strided_index_range;
+    struct strided_slice;
 
   template<class LayoutMapping>
     struct layout_mapping_offset;
@@ -587,14 +589,14 @@ on a candidate set that includes the lookup set found by argument dependent look
 
     * the number of $S_j$ with $j < k$ such that `is_convertible_v<`$S_j$`, size_t>` is `false`.
 
-<b>24.7.�.2 `strided_index_range` [mdspan.submdspan.strided_index_range]</b>
+<b>24.7.�.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
 
-[1]{.pnum} `strided_index_range` represents a set of `extent` regularly spaced integer indices.
+[1]{.pnum} `strided_slice` represents a set of `extent` regularly spaced integer indices.
    The indices start at `offset`, and increase by increments of `stride`.
 
 ```c++
 template<class OffsetType, class ExtentType, class StrideType>
-struct strided_index_range {
+struct strided_slice {
   using offset_type = OffsetType;
   using extent_type = ExtentType;
   using stride_type = StrideType;
@@ -605,14 +607,14 @@ struct strided_index_range {
 };
 ```
 
-[2]{.pnum} `strided_index_range` is an aggregate type.
+[2]{.pnum} `strided_slice` is an aggregate type.
 
 [3]{.pnum} *Mandates:*
 
   * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or are specializations of `integral_constant` that are not a specialization of  `bool_constant`.
 
 <i>[Note: </i>
-`strided_index_range{.offset=1, .extent=10, .stride=3}` indicates the indices 1, 4, 7, and 10.
+`strided_slice{.offset=1, .extent=10, .stride=3}` indicates the indices 1, 4, 7, and 10.
 Indices are selected from the half-open interval [1, 1 + 10).
 <i>- end note]</i>
 
@@ -628,7 +630,7 @@ struct layout_mapping_offset {
   size_t offset;
 };
 
-[2]{.pnum} `strided_index_range` is an aggregate type.
+[2]{.pnum} `strided_slice` is an aggregate type.
 
 [3]{.pnum} `LayoutMapping` shall meet the layout mapping requirements.
 
@@ -636,10 +638,10 @@ struct layout_mapping_offset {
 
 ```c++
 template<class T>
-struct @_is-strided-index-range_@: false_type {};
+struct @_is-strided-slice_@: false_type {};
 
 template<class OffsetType, class ExtentType, class StrideType>
-struct @_is-strided-index-range_@<strided_index_range<OffsetType, ExtentType, StrideType>>: true_type {};
+struct @_is-strided-slice_@<strided_slice<OffsetType, ExtentType, StrideType>>: true_type {};
 ```
 
 
@@ -656,7 +658,7 @@ typename IndexType @_first_@_(size_t k, SliceSpecifiers... slices);
 
    * [2.2]{.pnum} otherwise, if `is_convertible_v<`$S_k$`, tuple<IndexType, IndexType>>` is `true`, then `get<0>(` $s_k$ `)`;
 
-   * [2.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_k$`>::value` is `true`, then $s_k$`.offset`;
+   * [2.3]{.pnum} otherwise, if _`is-strided-slice`_`<`$S_k$`>::value` is `true`, then $s_k$`.offset`;
 
    * [2.4]{.pnum} otherwise, `0`.
 
@@ -679,7 +681,7 @@ size_t @_last_@_(size_t k, const Extents& ext, SliceSpecifiers... slices);
 
    * [7.2]{.pnum} otherwise, if `is_convertible_v<`$S_k$`, tuple<index_type, index_type>>` is `true`, then `get<1>(` $s_k$ `)`;
 
-   * [7.3]{.pnum} otherwise, if _`is-strided-index-range`_`<`$S_k$`>::value` is `true`, then $s_k$`.offset + `$s_k$`.extent`;
+   * [7.3]{.pnum} otherwise, if _`is-strided-slice`_`<`$S_k$`>::value` is `true`, then $s_k$`.offset + `$s_k$`.extent`;
 
    * [7.4]{.pnum} otherwise, `ext.extent(k)`.
 
@@ -720,7 +722,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
    * [2.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
-   * [2.4]{.pnum} _`is-strided-index-range`_`<`$S_k$`>::value`.
+   * [2.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
 
 [3]{.pnum} *Preconditions:* For each rank index `r` of `src_exts.extents()`, *all* of the following are `true`:
 
@@ -740,15 +742,15 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
        * `tuple_element<1, `$S_k$`>() - tuple_element<0, `$S_k$`>()` if $S_k$ is a `tuple` of two spezialisations of `integral_constant`; otherwise
 
-       * `0`, if $S_k$ is a specialization of `strided_index_range`, whose `extent_type` is a spezialization of `integral_constant` for which `extent_type()` equals zero; otherwise
+       * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` is a spezialization of `integral_constant` for which `extent_type()` equals zero; otherwise
 
-       *  `1 + (`$S_k$`::extent_type()-1) / `$S_k$`::stride_type()` if $S_k$ is a specialization of `strided_index_range`, whose `extent_type` and `stride_type` members are specializations of `integral_constant`; otherwise
+       *  `1 + (`$S_k$`::extent_type()-1) / `$S_k$`::stride_type()` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` members are specializations of `integral_constant`; otherwise
 
        * `dynamic_extent`.
 
 [5]{.pnum} *Returns:* a value of type `SubExtents` `ext` such that for each `k` for which _`map-rank`_`[k] != dynamic_extent` is `true`:
 
-  * [5.1]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent == 0 ? 0 : 1 + (`$s_k$`.extent - 1) / `$s_k$`.stride` if $S_k$ is a specialization of `strided_index_range`, otherwise
+  * [5.1]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent == 0 ? 0 : 1 + (`$s_k$`.extent - 1) / `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`, otherwise
 
   * [5.2]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals _`last_`_`(k, src_exts, slices...) - `_`first`_`_<IndexType>(k, slices...)`.
 
@@ -785,7 +787,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
    * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
-   * [3.4]{.pnum} _`is-strided-index-range`_`<`$S_k$`>::value`.
+   * [3.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
 
 [4]{.pnum} *Preconditions:* For each rank index `r` of `src.extents()`, *all* of the following are `true`:
 
@@ -799,7 +801,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
 [6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that for each rank index `k` of `src.extents()` for which _`map-rank`_`[k]` is not `dynamic_extent` `sub_strides[`_`map-rank`_`[k]]` equals:
 
-   * [6.1]{.pnum} `src.stride(k) * `$s_k$`.stride` if _`is-strided-index-range`_`<`$S_k$`>::value` is `true`; otherwise
+   * [6.1]{.pnum} `src.stride(k) * `$s_k$`.stride` if _`is-strided-slice`_`<`$S_k$`>::value` is `true`; otherwise
 
    * [6.2]{.pnum} `src.stride(k)`.
 
@@ -861,7 +863,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
      * `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
-     * _`is-strided-index-range`_`<`$S_k$`>::value`.
+     * _`is-strided-slice`_`<`$S_k$`>::value`.
 
 
 [4]{.pnum} *Preconditions:* Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.  Then:
