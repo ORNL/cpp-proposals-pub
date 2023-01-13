@@ -727,13 +727,15 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
    * [2.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
 
-[3]{.pnum} *Preconditions:* For each rank index `r` of `src_exts.extents()`, *all* of the following are `true`:
+[3]{.pnum} *Preconditions:* For each rank index `k` of `src_exts.extents()`, *all* of the following are `true`:
 
-   * [3.1]{.pnum} `0 <= `_`first`_`_<IndexType>(r, slices...)`,
+   * [3.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,
+ 
+   * [3.2]{.pnum} `0 <= `_`first`_`_<IndexType>(k, slices...)`,
 
-   * [3.2]{.pnum} _`first`_`_<IndexType>(r, slices...) <= `_`last_`_`(r, src_exts, slices...)`, and
+   * [3.3]{.pnum} _`first`_`_<IndexType>(k, slices...) <= `_`last_`_`(k, src_exts, slices...)`, and
 
-   * [3.3]{.pnum} _`last_`_`(r, src_exts, slices...) <= src_exts.extent(r)`.
+   * [3.4]{.pnum} _`last_`_`(k, src_exts, slices...) <= src_exts.extent(k)`.
 
 [4]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
 
@@ -792,13 +794,16 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
    * [3.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
 
-[4]{.pnum} *Preconditions:* For each rank index `r` of `src.extents()`, *all* of the following are `true`:
+[4]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, *all* of the following are `true`:
 
-   * [4.1]{.pnum} `0 <= `_`first`_`_<index_type>(r, slices...)`,
+   * [4.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,  
 
-   * [4.2]{.pnum} _`first`_`_<index_type>(r, slices...) <= `_`last_`_`(r, src.extents(), slices...)`, and
+   * [4.2]{.pnum} `0 <= `_`first`_`_<index_type>(k, slices...)`,
 
-   * [4.3]{.pnum} _`last_`_`(r, src.extents(), slices...) <= src.extent(r)`.
+   * [4.3]{.pnum} _`first`_`_<index_type>(r, slices...) <= `_`last_`_`(k, src.extents(), slices...)`, and
+
+   * [4.4]{.pnum} _`last_`_`(k, src.extents(), slices...) <= src.extent(k)`.
+
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(src.extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
@@ -871,13 +876,15 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
 [4]{.pnum} *Preconditions:* Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.  Then:
 
-   * [4.1]{.pnum} For each rank index `r` of `src.extents()`, *all* of the following are `true`:
+   * [4.1]{.pnum} For each rank index `k` of `src.extents()`, *all* of the following are `true`:
 
-      * `0 <= `_`first`_`_<index_type>(r, slices...)`,
+      * if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,  
 
-      * _`first`_`_<index_type>(r, slices...) <= `_`last_`_`(r, src.extents(), slices...)`, and
+      * `0 <= `_`first`_`_<index_type>(k, slices...)`,
 
-      * _`last_`_`(r, src.extents(), slices...) <= src.extent(r)`;
+      * _`first`_`_<index_type>(k, slices...) <= `_`last_`_`(k, src.extents(), slices...)`, and
+
+      * _`last_`_`(k, src.extents(), slices...) <= src.extent(k)`;
 
    * [4.2]{.pnum} `sub_map_offset.mapping.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
 
