@@ -52,6 +52,7 @@ layout_left::mapping<extents<int, 4>> map;
 // map(3) == 3; 
 ```
 
+We believe that this issue is a defect in the C++23 draft and should be considered for defect resolution process.
 
 # Possible Fixes
 
@@ -77,7 +78,8 @@ With:
 ```
 
 Note that this approach mirrors the approach of `mdspan` itself, where the default constructor
-requires `rank_dynamic()>0`.
+requires `rank_dynamic()>0`. For `mdspan` we can't avoid that, since there is no way to generate
+a valid `data_handle`. For the pure `layout_mapping` there is an alternative:
 
 ## Construct a `layout_right` equivalent mapping for fully static extents
 
@@ -107,7 +109,7 @@ With:
     constexpr mapping(const mapping&) noexcept = default;
 ```
 
-Add at the beginnign of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons]
+Add at the begining of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] insert:
 
 ```c++
     constexpr mapping() 
@@ -116,3 +118,38 @@ Add at the beginnign of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons]
 
 *Effects:* Direct-non-list-initializes _`extents_`_ with `extents_type()` , and for all $d$ in the range $[$`0, `_`rank_`_$)$, 
            direct-non-list-initializes _`strides_`_`[d]` with `layout_right::mapping<extents_type>().stride(d)`.
+
+## Preference for Resolution
+
+We believe that it is preferrable to preserve default constructibility of `layout_stride` for all specializations of `layout_stride` to simplify a number of generic programming cases. Specifically, if layout policies are used directly in higher level data structures for which the user wants to enable default constructibility.
+
+## Proposed Wording
+
+
+In subsection 24.7.3.4.7.1 [mdspan.layout.stride.overview] replace:
+```c++
+    // [mdspan.layout.stride.cons], constructors
+    constexpr mapping() noexcept = default;
+    constexpr mapping(const mapping&) noexcept = default;
+```
+
+With:
+```c++
+    // [mdspan.layout.stride.cons], constructors
+    constexpr mapping() 
+      requires(extents_type::rank_dynamic()>0 || extents_type::rank()==0) noexcept = default;
+    constexpr mapping() 
+      requires(extents_type::rank_dynamic()==0 && extents_type::rank()>0) noexcept;
+    constexpr mapping(const mapping&) noexcept = default;
+```
+
+Add at the begining of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] insert:
+
+```c++
+    constexpr mapping() 
+      requires(extents_type::rank_dynamic()==0 && extents_type::rank()>0) noexcept;
+```
+
+*Effects:* Direct-non-list-initializes _`extents_`_ with `extents_type()` , and for all $d$ in the range $[$`0, `_`rank_`_$)$, 
+           direct-non-list-initializes _`strides_`_`[d]` with `layout_right::mapping<extents_type>().stride(d)`.
+
