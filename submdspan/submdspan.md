@@ -537,7 +537,7 @@ namespace std {
     struct strided_slice;
 
   template<class LayoutMapping>
-    struct layout_mapping_offset;
+    struct submdspan_mapping_result;
 
   template<class IndexType, class... Extents, class... SliceSpecifiers>
     constexpr auto submdspan_extents(const extents<IndexType, Extents...>&,
@@ -619,13 +619,13 @@ Indices are selected from the half-open interval [1, 1 + 10).
 <i>- end note]</i>
 
 
-<b>24.7.�.3 `layout_mapping_offset` [mdspan.submdspan.layout_mapping_offset]</b>
+<b>24.7.�.3 `submdspan_mapping_result` [mdspan.submdspan.submdspan_mapping_result]</b>
 
-[1]{.pnum} Specializations of `layout_mapping_offset` are returned by overloads of `submdspan_mapping`.
+[1]{.pnum} Specializations of `submdspan_mapping_result` are returned by overloads of `submdspan_mapping`.
 
 ```c++
 template<class LayoutMapping>
-struct layout_mapping_offset {
+struct submdspan_mapping_result {
   LayoutMapping mapping;
   size_t offset;
 };
@@ -811,9 +811,9 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
 [9]{.pnum} *Returns:*
 
-   * [9.1]{.pnum} `layout_mapping_offset{src, 0}`, if `Extents::rank()==0` is `true`; otherwise
+   * [9.1]{.pnum} `submdspan_mapping_result{src, 0}`, if `Extents::rank()==0` is `true`; otherwise
 
-   * [9.1]{.pnum} `layout_mapping_offset{layout_left::mapping(sub_ext), offset}`, if
+   * [9.1]{.pnum} `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
 
       * `decltype(src)::layout_type` is `layout_left`; and
 
@@ -821,7 +821,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
       * for `k` equal to `SubExtents::rank()-1`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-   * [9.2]{.pnum} `layout_mapping_offset{layout_right::mapping(sub_ext), offset}`, if
+   * [9.2]{.pnum} `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
 
       *  `decltype(src)::layout_type` is `layout_right`; and
 
@@ -829,7 +829,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-   * [9.3]{.pnum} `layout_mapping_offset{layout_stride::mapping(sub_ext, sub_strides), offset}`.
+   * [9.3]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
 
 <b>24.7.�.6 `submdspan` function [mdspan.submdspan.submdspan]</b>
