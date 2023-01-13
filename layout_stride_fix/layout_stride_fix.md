@@ -10,6 +10,8 @@ author:
     email: <lebrungrandt@ornl.gov>
   - name: Mark Hoemmen 
     email: <mhoemmen@nvidia.com>
+  - name: Nevin Liber
+    email: <nliber@anl.gov>
 toc: true
 ---
 
@@ -60,7 +62,7 @@ We believe that this issue is a defect in the C++23 draft and should be consider
 
 One option is to simply make the default constructor unavailable for `layout_stride` mappings of fully static extents.
 
-The wording change would simply add a requires clause to the class synapsis:
+The wording change would simply add a requires clause to the class synopsis
 
 In subsection 24.7.3.4.7.1 [mdspan.layout.stride.overview] replace:
 ```c++
@@ -79,7 +81,7 @@ With:
 
 Note that this approach mirrors the approach of `mdspan` itself, where the default constructor
 requires `rank_dynamic()>0`. For `mdspan` we can't avoid that, since there is no way to generate
-a valid `data_handle`. For the pure `layout_mapping` there is an alternative:
+a valid `data_handle`.
 
 ## Construct a `layout_right` equivalent mapping for fully static extents
 
@@ -109,7 +111,7 @@ With:
     constexpr mapping(const mapping&) noexcept = default;
 ```
 
-Add at the begining of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] insert:
+Add at the beginning of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] insert:
 
 ```c++
     constexpr mapping() 
@@ -121,7 +123,7 @@ Add at the begining of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] inser
 
 ## Preference for Resolution
 
-We believe that it is preferrable to preserve default constructibility of `layout_stride` for all specializations of `layout_stride` to simplify a number of generic programming cases. Specifically, if layout policies are used directly in higher level data structures for which the user wants to enable default constructibility.
+We believe that it is preferable to preserve default constructibility of `layout_stride` for all specializations of `layout_stride` to simplify a number of generic programming cases -- specifically, if layout policies are used directly in higher-level data structures for which the user wants to enable default constructibility.
 
 ## Proposed Wording
 
@@ -143,7 +145,7 @@ With:
     constexpr mapping(const mapping&) noexcept = default;
 ```
 
-Add at the begining of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] insert:
+Add at the beginning of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] insert:
 
 ```c++
     constexpr mapping() 
