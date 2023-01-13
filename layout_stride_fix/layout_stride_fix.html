@@ -421,7 +421,7 @@ static extents default constructor fix</h1>
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>PXXXX</td>
+    <td>P2763</td>
   </tr>
   <tr>
     <td>Date: </td>
@@ -439,6 +439,7 @@ static extents default constructor fix</h1>
       Christian Trott<br>&lt;<a href="mailto:crtrott@sandia.gov" class="email">crtrott@sandia.gov</a>&gt;<br>
       Damien Lebrun-Grandie<br>&lt;<a href="mailto:lebrungrandt@ornl.gov" class="email">lebrungrandt@ornl.gov</a>&gt;<br>
       Mark Hoemmen<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
+      Nevin Liber<br>&lt;<a href="mailto:nliber@anl.gov" class="email">nliber@anl.gov</a>&gt;<br>
     </td>
   </tr>
 </table>
@@ -514,7 +515,7 @@ fully static extents<a href="#delete-default-constructor-for-fully-static-extent
 <p>One option is to simply make the default constructor unavailable for
 <code>layout_stride</code> mappings of fully static extents.</p>
 <p>The wording change would simply add a requires clause to the class
-synapsis:</p>
+synopsis</p>
 <p>In subsection 24.7.3.4.7.1 [mdspan.layout.stride.overview]
 replace:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">// [mdspan.layout.stride.cons], constructors</span></span>
@@ -529,8 +530,7 @@ replace:</p>
 itself, where the default constructor requires
 <code>rank_dynamic()&gt;0</code>. For <code>mdspan</code> we can’t avoid
 that, since there is no way to generate a valid
-<code>data_handle</code>. For the pure <code>layout_mapping</code> there
-is an alternative:</p>
+<code>data_handle</code>.</p>
 <h2 data-number="3.2" id="construct-a-layout_right-equivalent-mapping-for-fully-static-extents"><span class="header-section-number">3.2</span> Construct a
 <code>layout_right</code> equivalent mapping for fully static extents<a href="#construct-a-layout_right-equivalent-mapping-for-fully-static-extents" class="self-link"></a></h2>
 <p>If one would want to preserve the default constructibility of every
@@ -555,7 +555,7 @@ replace:</p>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>      <span class="kw">requires</span><span class="op">(</span>extents_type<span class="op">::</span>rank_dynamic<span class="op">()==</span><span class="dv">0</span> <span class="op">&amp;&amp;</span> extents_type<span class="op">::</span>rank<span class="op">()&gt;</span><span class="dv">0</span><span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span></code></pre></div>
-<p>Add at the begining of subsection 24.7.3.4.7.3
+<p>Add at the beginning of subsection 24.7.3.4.7.3
 [mdspan.layout.stride.cons] insert:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>      <span class="kw">requires</span><span class="op">(</span>extents_type<span class="op">::</span>rank_dynamic<span class="op">()==</span><span class="dv">0</span> <span class="op">&amp;&amp;</span> extents_type<span class="op">::</span>rank<span class="op">()&gt;</span><span class="dv">0</span><span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
@@ -565,11 +565,11 @@ for all <span class="math inline"><em>d</em></span> in the range <span class="ma
 <em><code>strides_</code></em><code>[d]</code> with
 <code>layout_right::mapping&lt;extents_type&gt;().stride(d)</code>.</p>
 <h2 data-number="3.3" id="preference-for-resolution"><span class="header-section-number">3.3</span> Preference for Resolution<a href="#preference-for-resolution" class="self-link"></a></h2>
-<p>We believe that it is preferrable to preserve default
-constructibility of <code>layout_stride</code> for all specializations
-of <code>layout_stride</code> to simplify a number of generic
-programming cases. Specifically, if layout policies are used directly in
-higher level data structures for which the user wants to enable default
+<p>We believe that it is preferable to preserve default constructibility
+of <code>layout_stride</code> for all specializations of
+<code>layout_stride</code> to simplify a number of generic programming
+cases – specifically, if layout policies are used directly in
+higher-level data structures for which the user wants to enable default
 constructibility.</p>
 <h2 data-number="3.4" id="proposed-wording"><span class="header-section-number">3.4</span> Proposed Wording<a href="#proposed-wording" class="self-link"></a></h2>
 <p>In subsection 24.7.3.4.7.1 [mdspan.layout.stride.overview]
@@ -584,7 +584,7 @@ replace:</p>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>      <span class="kw">requires</span><span class="op">(</span>extents_type<span class="op">::</span>rank_dynamic<span class="op">()==</span><span class="dv">0</span> <span class="op">&amp;&amp;</span> extents_type<span class="op">::</span>rank<span class="op">()&gt;</span><span class="dv">0</span><span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span></code></pre></div>
-<p>Add at the begining of subsection 24.7.3.4.7.3
+<p>Add at the beginning of subsection 24.7.3.4.7.3
 [mdspan.layout.stride.cons] insert:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>      <span class="kw">requires</span><span class="op">(</span>extents_type<span class="op">::</span>rank_dynamic<span class="op">()==</span><span class="dv">0</span> <span class="op">&amp;&amp;</span> extents_type<span class="op">::</span>rank<span class="op">()&gt;</span><span class="dv">0</span><span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
