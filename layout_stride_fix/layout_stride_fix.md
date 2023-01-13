@@ -1,6 +1,6 @@
 ---
 title: "`layout_stride` static extents default constructor fix"
-document: PXXXX
+document: P2763
 date: today
 audience: LWG
 author:
