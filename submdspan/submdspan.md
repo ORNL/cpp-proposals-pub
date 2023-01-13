@@ -389,17 +389,16 @@ To support custom layouts, `std::submdspan` calls `submdspan_mapping` using argu
 However, not all layout mappings may support efficient slicing for all possible slice specifier combinations.
 Thus, we do *not* propose to add this customization point to the layout policy requirements. 
 
-### Pure ADL vs CPO vs tag invoke
+### Pure ADL vs. CPO vs. tag invoke
 
-In this paper we propose to implement the customization point via pure ADL.
+In this paper we propose to implement the customization point via pure ADL (argument-dependent lookup), that is, by calling functions with particular reserved names unqualified.
 To evaluate whether there would be significant benefits of using customization point objects (CPOs) or a `tag_invoke` approach,
 we followed the discussion presented in P2279.
 
 But first we need to discuss the expected use case scenario.
 Most users will never call this customization point directly. Instead it is invoked via `std::submdspan`,
-which actually returns a multi dimensional array to the intended subset.
-The only place where users of C++ would call `submdspan_mapping` directly is when writing variants
-of something like `std::submdspan` for other data structures.
+which returns an mdspan viewing the subset of elements indicated by the caller's slice specifiers.
+The only place where users of C++ would call `submdspan_mapping` directly is when writing functions that behave analogously to `std::submdspan` for other data structures.
 For example a user may want to have a shared ownership variant of `mdspan`.
 However, in most cases where we have seen higher level data structures with multi-dimensional indexing,
 that higher level data structure actually contains an entire `mdspan` (or its predecessor `Kokkos::View` from the Kokkos library).
@@ -409,10 +408,10 @@ The only implementers of `submdspan_mapping` are developers of a custom layout p
 We expect the number of such developers to be multiple orders of magnitude smaller than actual users of `mdspan`.
 
 One important consideration for `submdspan_mapping` is that there is no default implementation.
-I.e. this customization point is not used to overwrite behavior, as is for example true for something like std::swap.
+That is, this customization point is not used to override some default behavior, unlike functions such as `std::swap` that have a default behavior that users might like to override for their types.
 
 In P2279 Pure ADL, CPOs and `tag_invoke` were evaluated on 9 criteria.
-Here we will focus on the criteria where ADL, CPOs and `tag_invoke` got different "marks".
+Here we will focus on the criteria where ADL, CPOs and `tag_invoke` got different "marks."
 
 #### Explicit Opt In
 
@@ -434,7 +433,7 @@ In fact `submdspan` mandates some of that static information matching the expect
 
 #### Associated Types
 
-In the case of `submdspan_mapping` there are no associated types per-se (in the way I understood that criteria).
+In the case of `submdspan_mapping` there are no associated types per se (in the way we understood that criterion).
 For a function like 
 ```c++
 template<class T>
@@ -448,7 +447,7 @@ however that function is implemented. In fact I would argue that:
 decltype(submdspan_mapping(declval(mapping_t), int, int, full_extent_t, int));
 ```
 
-is more conscice than a possible `tag_invoke` scheme here.
+is more concise than a possible `tag_invoke` scheme here.
 
 ```c++
 decltype(std::tag_invoke(std::tag<std::submdspan_mapping>,declval(mapping_t, int, int, full_extent_t, int)));
@@ -467,8 +466,8 @@ one has to remember to use ADL. However, there are two mitigating facts:
 #### Conclusion
 
 All in all this evaluation let us to believe that there are no significant benefits in prefering CPOs or `tag_invoke` over pure ADL for `submdspan_mapping`.
-However, considering the expected rareness of someone implemting the customization point, this is not something we consider a large issue.
-If the committee disagrees with our evaluation we are happy to utilize `tag_invoke` instead - which we believe is preferable over a CPO approach. 
+However, considering the expected rareness of someone implementing the customization point, this is not something we consider a large issue.
+If the committee disagrees with our evaluation we are happy to use `tag_invoke` instead - which we believe is preferable over a CPO approach. 
 
 
 
