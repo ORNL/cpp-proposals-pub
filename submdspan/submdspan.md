@@ -28,6 +28,7 @@ toc: true
 - fixed layout policy type preservation logic - specifically preserve layouts for rank zero mappings, and create layout stride if any of the slice specifiers are `stride_index_range`
 - fixed submapping extent calculation for `strided_slice` where the `extent` is smaller than the `stride` (still should give a submapping extent of 1)
 - fixed submapping stride calculation for `strided_slice` slice specifiers.
+- added precondition to deal with stride 0 `strided_slice`
 
 ## Revision 1: Mailing 2022-10
 
