@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2022-10-14" />
-  <title>atomic_accessor</title>
+  <meta name="dcterms.date" content="2023-01-13" />
+  <title>Atomic Refs Bounded to Memory Orderings &amp; Atomic Accessors</title>
   <style>
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-  </style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+</style>
   <style>
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
@@ -28,60 +28,60 @@ pre > code.sourceCode { white-space: pre-wrap; }
 pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
-  { counter-reset: source-line 0; }
+{ counter-reset: source-line 0; }
 pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
+{ position: relative; left: -4em; counter-increment: source-line; }
 pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
 div.sourceCode
-  {  background-color: #f6f8fa; }
+{ background-color: #f6f8fa; }
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-code span { } /* Normal */
-code span.al { color: #ff0000; } /* Alert */
-code span.an { } /* Annotation */
-code span.at { } /* Attribute */
-code span.bn { color: #9f6807; } /* BaseN */
-code span.bu { color: #9f6807; } /* BuiltIn */
-code span.cf { color: #00607c; } /* ControlFlow */
-code span.ch { color: #9f6807; } /* Char */
-code span.cn { } /* Constant */
-code span.co { color: #008000; font-style: italic; } /* Comment */
-code span.cv { color: #008000; font-style: italic; } /* CommentVar */
-code span.do { color: #008000; } /* Documentation */
-code span.dt { color: #00607c; } /* DataType */
-code span.dv { color: #9f6807; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #9f6807; } /* Float */
-code span.fu { } /* Function */
-code span.im { } /* Import */
-code span.in { color: #008000; } /* Information */
-code span.kw { color: #00607c; } /* Keyword */
-code span.op { color: #af1915; } /* Operator */
-code span.ot { } /* Other */
-code span.pp { color: #6f4e37; } /* Preprocessor */
-code span.re { } /* RegionMarker */
-code span.sc { color: #9f6807; } /* SpecialChar */
-code span.ss { color: #9f6807; } /* SpecialString */
-code span.st { color: #9f6807; } /* String */
-code span.va { } /* Variable */
-code span.vs { color: #9f6807; } /* VerbatimString */
-code span.wa { color: #008000; font-weight: bold; } /* Warning */
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #008000; font-style: italic; } 
+code span.cv { color: #008000; font-style: italic; } 
+code span.do { color: #008000; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #008000; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #af1915; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #008000; font-weight: bold; } 
 code.diff {color: #898887}
 code.diff span.va {color: #6.0e28}
 code.diff span.st {color: #bf0303}
-  </style>
+</style>
   <style type="text/css">
 body {
 margin: 5em;
@@ -415,21 +415,22 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <body>
 <div class="wrapper">
 <header id="title-block-header">
-<h1 class="title" style="text-align:center"><code>atomic_accessor</code></h1>
+<h1 class="title" style="text-align:center">Atomic Refs Bounded to
+Memory Orderings &amp; Atomic Accessors</h1>
 
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>P2689</td>
+    <td>P2689R1</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2022-10-14</td>
+    <td>2023-01-13</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
     <td>Programming Language C++<br>
-      LEWGI and SG1<br>
+      SG1 &amp; LEWG<br>
     </td>
   </tr>
   <tr>
@@ -439,6 +440,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
       Damien Lebrun-Grandie<br>&lt;<a href="mailto:lebrungrandt@ornl.gov" class="email">lebrungrandt@ornl.gov</a>&gt;<br>
       Mark Hoemmen<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
       Daniel Sunderland<br>&lt;<a href="mailto:dansunderland@gmail.com" class="email">dansunderland@gmail.com</a>&gt;<br>
+      Nevin Liber<br>&lt;<a href="mailto:nliber@anl.gov" class="email">nliber@anl.gov</a>&gt;<br>
     </td>
   </tr>
 </table>
@@ -448,43 +450,336 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <div id="TOC" role="doc-toc">
 <h1 id="toctitle">Contents</h1>
 <ul>
-<li><a href="#revision-history"><span class="toc-section-number">1</span> Revision History<span></span></a>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision History</a>
 <ul>
-<li><a href="#initial-version-2022-10-mailing"><span class="toc-section-number">1.1</span> Initial Version 2022-10
-Mailing<span></span></a></li>
+<li><a href="#p2689r1-2023-01-pre-issaquah-2023-mailing" id="toc-p2689r1-2023-01-pre-issaquah-2023-mailing"><span class="toc-section-number">1.1</span> P2689R1 2023-01 (pre-Issaquah
+2023) mailing</a></li>
+<li><a href="#initial-version-2022-10-mailing" id="toc-initial-version-2022-10-mailing"><span class="toc-section-number">1.2</span> Initial Version 2022-10
+Mailing</a>
+<ul>
+<li><a href="#kona-2022-sg1-polls" id="toc-kona-2022-sg1-polls"><span class="toc-section-number">1.2.1</span> Kona 2022 SG1 polls</a></li>
 </ul></li>
-<li><a href="#rational"><span class="toc-section-number">2</span>
-Rational<span></span></a></li>
-<li><a href="#atomic_accessor-implementation"><span class="toc-section-number">3</span> <code>atomic_accessor</code>
-implementation<span></span></a></li>
-<li><a href="#open-question-relaxed-atomic-operations"><span class="toc-section-number">4</span> Open Question: relaxed atomic
-operations<span></span></a></li>
-<li><a href="#wording"><span class="toc-section-number">5</span>
-Wording<span></span></a></li>
-<li><a href="#acknowledgements"><span class="toc-section-number">6</span>
-Acknowledgements<span></span></a></li>
+</ul></li>
+<li><a href="#rational" id="toc-rational"><span class="toc-section-number">2</span> Rational</a></li>
+<li><a href="#design-decisions" id="toc-design-decisions"><span class="toc-section-number">3</span> Design decisions</a></li>
+<li><a href="#open-questions" id="toc-open-questions"><span class="toc-section-number">4</span> Open questions</a></li>
+<li><a href="#wording" id="toc-wording"><span class="toc-section-number">5</span> Wording</a>
+<ul>
+<li><a href="#bounded-atomic-ref" id="toc-bounded-atomic-ref"><span class="toc-section-number">5.1</span> Bounded atomic ref</a>
+<ul>
+<li><a href="#add-the-following-just-before-atomics.types.generic" id="toc-add-the-following-just-before-atomics.types.generic"><span class="toc-section-number">5.1.1</span> Add the following just before
+[atomics.types.generic]:</a></li>
+<li><a href="#in-version.syn" id="toc-in-version.syn"><span class="toc-section-number">5.1.2</span> In [version.syn]:</a></li>
+</ul></li>
+<li><a href="#atomic-accessors" id="toc-atomic-accessors"><span class="toc-section-number">5.2</span> Atomic Accessors</a>
+<ul>
+<li><a href="#put-the-following-before-mdspan.mdspan" id="toc-put-the-following-before-mdspan.mdspan"><span class="toc-section-number">5.2.1</span> Put the following before
+[mdspan.mdspan]:</a></li>
+</ul></li>
+<li><a href="#in-version.syn-1" id="toc-in-version.syn-1"><span class="toc-section-number">5.3</span> In [version.syn]</a></li>
+</ul></li>
+<li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">6</span> Acknowledgments</a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
-<h2 data-number="1.1" id="initial-version-2022-10-mailing"><span class="header-section-number">1.1</span> Initial Version 2022-10
+<h2 data-number="1.1" id="p2689r1-2023-01-pre-issaquah-2023-mailing"><span class="header-section-number">1.1</span> P2689R1 2023-01 (pre-Issaquah
+2023) mailing<a href="#p2689r1-2023-01-pre-issaquah-2023-mailing" class="self-link"></a></h2>
+<ul>
+<li>Added <code>atomic-ref-bounded</code> exposition-only template for
+an <code>atomic_ref</code> like type bounded to a particular
+<code>memory_order</code></li>
+<li>Added <code>atomic_ref_relaxed</code>,
+<code>atomic_ref_acq_rel</code> and <code>atomic_ref_seq_cst</code>
+alias templates</li>
+<li>Added <code>basic-atomic-accessor</code> exposition-only
+template</li>
+<li>Added <code>atomic_accessor_relaxed</code>,
+<code>atomic_accessor_acq_rel</code> and
+<code>atomic_accessor_seq_cst</code> templates</li>
+</ul>
+<h2 data-number="1.2" id="initial-version-2022-10-mailing"><span class="header-section-number">1.2</span> Initial Version 2022-10
 Mailing<a href="#initial-version-2022-10-mailing" class="self-link"></a></h2>
+<h3 data-number="1.2.1" id="kona-2022-sg1-polls"><span class="header-section-number">1.2.1</span> Kona 2022 SG1 polls<a href="#kona-2022-sg1-polls" class="self-link"></a></h3>
+<h4 data-number="1.2.1.1" id="sg1-poll-1"><span class="header-section-number">1.2.1.1</span> SG1 Poll #1<a href="#sg1-poll-1" class="self-link"></a></h4>
+We like the bound <code>memory_order</code> versions of
+<code>atomic_ref</code> (This says nothing about whether these are
+aliases of general a template that takes a <code>memory_order</code>
+argument.) <br> <br> <code>atomic_ref_relaxed</code> <br>
+<code>atomic_ref_acq_rel</code> (acquire for load, release for store)
+<br> <code>atomic_ref_seq_cst</code>
+<table>
+<thead>
+<tr>
+<th>
+SF
+</th>
+<th>
+F
+</th>
+<th>
+N
+</th>
+<th>
+A
+</th>
+<th>
+SA
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+1
+</td>
+<td>
+11
+</td>
+<td>
+0
+</td>
+<td>
+1
+</td>
+<td>
+0
+</td>
+</tr>
+</tbody>
+</table>
+<p>Consensus</p>
+<h4 data-number="1.2.1.2" id="sg1-poll-2"><span class="header-section-number">1.2.1.2</span> SG1 Poll #2<a href="#sg1-poll-2" class="self-link"></a></h4>
+X) The meaning of the bound <code>memory_order</code> is that is the
+default order <br> Y) The meaning of the bound <code>memory_order</code>
+is that is the only order
+<table>
+<thead>
+<tr>
+<th>
+SX
+</th>
+<th>
+X
+</th>
+<th>
+N
+</th>
+<th>
+Y
+</th>
+<th>
+SY
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+1
+</td>
+<td>
+1
+</td>
+<td>
+3
+</td>
+<td>
+4
+</td>
+<td>
+2
+</td>
+</tr>
+</tbody>
+</table>
+<p>Consensus for Y <br> <br> SX : we have a variant of this type in
+Folly and it has been useful to be able to override this <br> SY : it’s
+weird for <code>atomic_ref_relaxed</code> to have a <code>seq_cst</code>
+atomic done to it; since you can re-form the <code>_ref</code> you can
+still do it</p>
+<h4 data-number="1.2.1.3" id="sg1-poll-3"><span class="header-section-number">1.2.1.3</span> SG1 Poll #3<a href="#sg1-poll-3" class="self-link"></a></h4>
+the next version of this proposal, with these changes, should target SG1
+&amp; LEWG <br> <br> <code>atomic_accessor</code> -&gt;
+<code>atomic_ref</code> <br> <code>atomic_accessor_relaxed</code> -&gt;
+<code>atomic_ref_relaxed</code> <br>
+<code>atomic_accessor_acq_rel</code> -&gt;
+<code>atomic_ref_acq_rel</code> <br>
+<code>atomic_accessor_seq_cst</code> -&gt;
+<code>atomic_ref_seq_cst</code> <br> <br> (Return to SG1 for final
+wording when this is in LWG.)
+<table>
+<thead>
+<tr>
+<th>
+SF
+</th>
+<th>
+F
+</th>
+<th>
+N
+</th>
+<th>
+A
+</th>
+<th>
+SA
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+6
+</td>
+<td>
+6
+</td>
+<td>
+2
+</td>
+<td>
+0
+</td>
+<td>
+0
+</td>
+</tr>
+</tbody>
+</table>
 <h1 data-number="2" id="rational"><span class="header-section-number">2</span> Rational<a href="#rational" class="self-link"></a></h1>
-<p>This proposal adds an <code>atomic_accessor</code> to the C++
-standard, to be used with <code>mdspan</code>. When accessing data
-through an <code>mdspan</code> with an <code>atomic_accessor</code> all
-operations are performed atomically, by using <code>atomic_ref</code> as
-the <code>reference_type</code>. <code>atomic_accessor</code> was part
-of the rational provided in P0009 for <code>mdspan</code>s <em>accessor
-policy</em> template parameter.</p>
-<p>One of the primary use case for this accessor is the ability to write
-algorithms with somewhat generic <code>mdspan</code> outputs, which can
-be called in sequential and parallel contexts. When called in parallel
-contexts users would simply pass an <code>mdspan</code> with an
-<code>atomic_accessor</code> - the algorithm implementation itself could
-be agnostic to the calling context.</p>
+<p>This proposal adds three <code>atomic_ref</code> like types each
+bounded to a particular <code>memory_order</code>. The API differs from
+<code>atomic_ref</code> in that the <code>memory_order</code> cannot be
+specified at run time; i.e., none of its member functions take a
+<code>memory_order</code> parameter. In the specific case of
+<code>atomic_ref_acq_rel</code>, loads are done via
+<code>memory_order_acquire</code> and stores are done via
+<code>memory_order_release</code>.</p>
+<table>
+<thead>
+<tr>
+<th>
+Atomic Ref
+</th>
+<th>
+<code>memory_order</code>
+</th>
+<th>
+Loads
+</th>
+<th>
+Stores
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>atomic_ref_relaxed</code>
+</td>
+<td>
+<code>memory_order_relaxed</code>
+</td>
+<td>
+<code>memory_order_relaxed</code>
+</td>
+<td>
+<code>memory_order_relaxed</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>atomic_ref_acq_rel</code>
+</td>
+<td>
+<code>memory_order_acq_rel</code>
+</td>
+<td>
+<code>memory_order_acquire</code>
+</td>
+<td>
+<code>memory_order_release</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>atomic_ref_seq_cst</code>
+</td>
+<td>
+<code>memory_order_seq_cst</code>
+</td>
+<td>
+<code>memory_order_seq_cst</code>
+</td>
+<td>
+<code>memory_order_seq_cst</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p>This proposal also adds four atomic accessors to be used with
+<code>mdspan</code>. They only differ with their <code>reference</code>
+types and all operations are performed atomically by using that
+corresponding reference type.</p>
+<table>
+<thead>
+<tr>
+<th>
+Accessor
+</th>
+<th>
+<code>reference</code>
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>atomic_accessor</code>
+</td>
+<td>
+<code>atomic_ref</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>atomic_accessor_relaxed</code>
+</td>
+<td>
+<code>atomic_ref_relaxed</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>atomic_accessor_acq_rel</code>
+</td>
+<td>
+<code>atomic_ref_acq_rel</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>atomic_accessor_seq_cst</code>
+</td>
+<td>
+<code>atomic_ref_seq_cst</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><code>atomic_accessor</code> was part of the rational provided in
+P0009 for <code>mdspan</code>s <em>accessor policy</em> template
+parameter.</p>
+<p>One of the primary use cases for these accessors is the ability to
+write algorithms with somewhat generic <code>mdspan</code> outputs,
+which can be called in sequential and parallel contexts. When called in
+parallel contexts users would simply pass an <code>mdspan</code> with an
+atomic accessor - the algorithm implementation itself could be agnostic
+to the calling context.</p>
 <p>A variation on this use case is an implementation of an algorithm
-taking an execution policy, which adds the <code>atomic_accessor</code>
-to its output argument if called with a parallel policy, while using the
+taking an execution policy, which adds the atomic accessor to its output
+argument if called with a parallel policy, while using the
 <code>default_accessor</code> when called with a sequential policy. The
 following demonstrates this with a function computing a histogram:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy<span class="op">&gt;</span></span>
@@ -518,103 +813,423 @@ following demonstrates this with a function computing a histogram:</p>
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The above example is available on godbolt:
 https://godbolt.org/z/jY17Yoje1 .</p>
-<h1 data-number="3" id="atomic_accessor-implementation"><span class="header-section-number">3</span> <code>atomic_accessor</code>
-implementation<a href="#atomic_accessor-implementation" class="self-link"></a></h1>
-<p>The implementaiton of an <code>atomic_accessor</code> is
-straightforward when leveraging <code>atomic_ref</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> atomic_accessor <span class="op">{</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> offset_policy <span class="op">=</span> atomic_accessor;</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> element_type <span class="op">=</span> ElementType;</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference <span class="op">=</span> std<span class="op">::</span>atomic_ref<span class="op">&lt;</span>element_type<span class="op">&gt;</span>;</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> data_handle_type <span class="op">=</span> ElementType<span class="op">*</span>;</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> atomic_accessor<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> <span class="op">(</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>is_convertible_v<span class="op">&lt;</span>OtherElementType<span class="op">(*)[]</span>, element_type<span class="op">(*)[]&gt;</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">)</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> atomic_accessor<span class="op">(</span>stdex<span class="op">::</span>default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span> <span class="op">(</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>is_convertible_v<span class="op">&lt;</span>OtherElementType<span class="op">(*)[]</span>, element_type<span class="op">(*)[]&gt;</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="op">)</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> atomic_accessor<span class="op">(</span>atomic_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> data_handle_type</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> p <span class="op">+</span> i;</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> reference<span class="op">(</span>p<span class="op">[</span>i<span class="op">])</span>;</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
-<p>Compared to <code>default_accessor</code> we simply make the
-<code>reference</code> an <code>atomic_ref&lt;element_type&gt;</code>.
-We also add a conversion from <code>default_accessor</code> which would
-allow simple conversion of <code>mdspans</code> from non-atomic to
-atomic:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> array_t <span class="op">=</span> mdspan<span class="op">&lt;</span><span class="dt">int</span>, dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">2</span><span class="op">&gt;&gt;</span>;</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_array_t <span class="op">=</span> mdspan<span class="op">&lt;</span><span class="dt">int</span>, dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">2</span><span class="op">&gt;</span>,</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                              layout_right, atomic_accessor<span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;&gt;</span>;</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Assigning from non-atomic to atomic is fine:</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> foo<span class="op">(</span>array_t a<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>atomic_array_t atomic_a <span class="op">=</span> a;</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">...</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h1 data-number="4" id="open-question-relaxed-atomic-operations"><span class="header-section-number">4</span> Open Question: relaxed atomic
-operations<a href="#open-question-relaxed-atomic-operations" class="self-link"></a></h1>
-<p>In the majority of use cases for using atomic accesses on
-multi-dimensional arrays, those atomics are used to deal with simple
-accumulations in the presence of concurrent updates.</p>
-<p>The previous example demonstrates how it is possible to write generic
-algorithms which can be used in concurrent and non-concurrent
-situations.</p>
-<p>However: in most of these cases relaxed atomics are all that is
-needed. Using sequentially consistent atomics instead comes with a
-significant performance penalty on architectures with more relaxed
-memory semantics than X86. However: the simple operators (such as
-<code>operator+=</code>) of <code>atomic_ref</code> are doing
-sequentially consistent operations.</p>
-<p>On the <code>atomic_accessor</code> side this could be accounted for
-with an additional template argument taking the
-<code>memory_order</code>.</p>
-<p>That leaves the question of the reference type for such a
-<code>memory_order</code> aware accessor, with three options coming
-immediately to mind:</p>
-<ol type="1">
-<li>add a template parameter to <code>atomic_ref</code> which defaults
-to <code>memory_order_seq_cst</code>.</li>
-<li>add a new class <code>relaxed_atomic_ref</code> which has the same
-implementation as <code>atomic_ref</code> with the difference that the
-default <code>memory_order</code> of its update functions
-(e.g. <code>fetch_add</code>) is <code>memory_order_relaxed</code>.</li>
-<li>have <code>relaxed_atomic_ref</code> as an exposition only class for
-<code>atomic_accessor</code></li>
-</ol>
-<p>While we believe that option 1. would be preferable we recognize that
-it is a breaking change, and thus unlikely to be acceptable to the
-committee. Thus we would like to champion option 2, with the possible
-implication that we should introduce both <code>atomic_accessor</code>
-and <code>relaxed_atomic_accessor</code> to correspond to the two
-classes.</p>
-<p>A natural question arises regarding other memory orders. We do not
-believe that there are many use cases requiring anything other than
-relaxed or sequentially consistent atomic operations on multidimensional
-arrays. It is unlikely that multidimensional arrays will be widely used
-to implement complicated synchronization mechanism.</p>
+<h1 data-number="3" id="design-decisions"><span class="header-section-number">3</span> Design decisions<a href="#design-decisions" class="self-link"></a></h1>
+<p>Three options for atomic refs were discussed in SG1 in Kona 2022: add
+new types for <code>memory_order</code> bounded atomic refs, add a new
+<code>memory_order</code> template parameter to the existing
+<code>atomic_ref</code>, or add a constructor to the existing
+<code>atomic_ref</code> that takes a <code>memory_order</code> and
+stores it. Given that the last two are ABI breaks, the first option was
+polled and chosen. It was also decided that the new bounded atomic refs
+would not support overriding the specified <code>memory_order</code> at
+run time.</p>
+<p>This proposal has chosen to make a general exposition-only template
+<code>atomic-ref-bounded</code> that takes a <code>memory_order</code>
+as a template argument and alias templates for the three specific
+bounded atomic refs. Also, the various member functions are constrained
+by integral types not including <code>bool</code>, floating point types
+and pointer types, as opposed to the different template specializations
+specified for <code>atomic_ref</code>. Other than not being able to
+specifiy the <code>memory_order</code> at run time, the intention is
+that the bounded atomic ref types have the same functionality and API as
+<code>atomic_ref</code>.</p>
+<p>Similarly for the atomic accessors, it was decided in SG1 in Kona
+2022 to add four new types. This proposal has chosen to make a general
+exposition-only template <code>basic-atomic-accessor</code> which takes
+the <code>reference</code> type as a template parameter, and four alias
+templates for the specific atomic accessors.</p>
+<h1 data-number="4" id="open-questions"><span class="header-section-number">4</span> Open questions<a href="#open-questions" class="self-link"></a></h1>
+<p>This proposal uses alias templates to exposition-only types for
+<code>atomic_ref_relaxed</code>, <code>atomic_accessor</code>, etc.
+However, we do not want to prescribe a particular implementation. For
+instance, if an implementer wished to derive from an
+<code>atomic-ref-bounded</code>-like type (to get a more user friendly
+name mangling, which is something not normally covered by the Standard),
+would they be allowed to do so? We believe an alias template to an
+exposition-only type is not observable from the point of view of the
+Standard and such an implementation would be allowed, but we request
+clarification on this.</p>
+<!--
+
+ /$$      /$$                           /$$ /$$
+| $$  /$ | $$                          | $$|__/
+| $$ /$$$| $$  /$$$$$$   /$$$$$$   /$$$$$$$ /$$ /$$$$$$$   /$$$$$$
+| $$/$$ $$ $$ /$$__  $$ /$$__  $$ /$$__  $$| $$| $$__  $$ /$$__  $$
+| $$$$_  $$$$| $$  \ $$| $$  \__/| $$  | $$| $$| $$  \ $$| $$  \ $$
+| $$$/ \  $$$| $$  | $$| $$      | $$  | $$| $$| $$  | $$| $$  | $$
+| $$/   \  $$|  $$$$$$/| $$      |  $$$$$$$| $$| $$  | $$|  $$$$$$$
+|__/     \__/ \______/ |__/       \_______/|__/|__/  |__/ \____  $$
+                                                          /$$  \ $$
+                                                         |  $$$$$$/
+                                                          \______/
+-->
 <h1 data-number="5" id="wording"><span class="header-section-number">5</span> Wording<a href="#wording" class="self-link"></a></h1>
-<p>Wording will we provided after an initial review, and initial
-guidance on how to deal with the desire for easy relaxed atomic
-operations.</p>
-<h1 data-number="6" id="acknowledgements"><span class="header-section-number">6</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<p>The proposed changes are relative to <a href="https://wg21.link/n4917">N4917</a>:</p>
+<h2 data-number="5.1" id="bounded-atomic-ref"><span class="header-section-number">5.1</span> Bounded atomic ref<a href="#bounded-atomic-ref" class="self-link"></a></h2>
+<h3 data-number="5.1.1" id="add-the-following-just-before-atomics.types.generic"><span class="header-section-number">5.1.1</span> Add the following just before
+[atomics.types.generic]:<a href="#add-the-following-just-before-atomics.types.generic" class="self-link"></a></h3>
+<p><b>Class template <code>atomic-ref-bounded</code>
+[atomics.ref.bounded]</b></p>
+<p><b>General [atomics.ref.bounded.general]</b></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// all freestanding</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> T, memory_order MemoryOrder<span class="op">&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> atomic<span class="op">-</span>ref<span class="op">-</span>bounded <span class="op">{</span>  <span class="co">// exposition only</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>   <span class="kw">private</span><span class="op">:</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> atomic_ref_unbounded <span class="op">=</span> atomic_ref<span class="op">&lt;</span>T<span class="op">&gt;</span>;  <span class="co">// exposition only</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    atomic_ref_unbounded ref;                    <span class="co">// exposition only</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> memory_order store_ordering <span class="op">=</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        MemoryOrder <span class="op">==</span> memory_order_acq_rel <span class="op">?</span> memory_order_release</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                                            <span class="op">:</span> MemoryOrder;  <span class="co">// exposition only</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> memory_order load_ordering <span class="op">=</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        MemoryOrder <span class="op">==</span> memory_order_acq_rel <span class="op">?</span> memory_order_acquire</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                                            <span class="op">:</span> MemoryOrder;  <span class="co">// exposition only</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_integral_value <span class="op">=</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        is_integral_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span>is_same_v<span class="op">&lt;</span>T, <span class="dt">bool</span><span class="op">&gt;</span>;  <span class="co">// exposition only</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_floating_point_value <span class="op">=</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        is_floating_point_v<span class="op">&lt;</span>T<span class="op">&gt;</span>;  <span class="co">// exposition only</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_pointer_value <span class="op">=</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        is_pointer_v<span class="op">&lt;</span>T<span class="op">&gt;</span>;  <span class="co">// exposition only</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>   <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> value_type <span class="op">=</span> T;</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> difference_type <span class="op">=</span> <span class="dt">ptrdiff_t</span>;</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> memory_order memory_ordering <span class="op">=</span> MemoryOrder;</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> required_alignment <span class="op">=</span> atomic_ref_unbounded<span class="op">::</span>required_alignment;</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_lock_free <span class="op">=</span> atomic_ref_unbounded<span class="op">::</span>is_always_lock_free;</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> is_lock_free<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span> atomic<span class="op">-</span>ref<span class="op">-</span>bounded<span class="op">(</span>T<span class="op">&amp;</span> t<span class="op">)</span>;</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    atomic<span class="op">-</span>ref<span class="op">-</span>bounded<span class="op">(</span>atomic<span class="op">-</span>ref<span class="op">-</span>bounded <span class="kw">const</span><span class="op">&amp;</span> a<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    atomic<span class="op">-</span>ref<span class="op">-</span>bounded<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span>atomic<span class="op">-</span>ref<span class="op">-</span>bounded <span class="kw">const</span><span class="op">&amp;)</span> <span class="op">=</span> <span class="kw">delete</span>;</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> store<span class="op">(</span>T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">=(</span>T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    T load<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">operator</span> T<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    T exchange<span class="op">(</span>T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> compare_exchange_weak<span class="op">(</span>T<span class="op">&amp;</span> expected, T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    <span class="dt">bool</span> compare_exchange_strong<span class="op">(</span>T<span class="op">&amp;</span> expected, T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    T fetch_add<span class="op">(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    T fetch_add<span class="op">(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    T fetch_sub<span class="op">(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    T fetch_sub<span class="op">(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    T fetch_and<span class="op">(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    T fetch_or<span class="op">(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    T fetch_xor<span class="op">(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">++(</span><span class="dt">int</span><span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">++()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">--(</span><span class="dt">int</span><span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">--()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">+=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">+=(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">-=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">-=(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">&amp;=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">|=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>    T <span class="kw">operator</span><span class="op">^=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> wait<span class="op">(</span>T old<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> notify_one<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> notify_all<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+Class <code>atomic-ref-bounded</code> is for exposition only.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Mandates:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
+<code>is_trivially_copyable_v&lt;T&gt;</code> is
+<code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<code>is_same_v&lt;T, remove_cv_t&lt;T&gt;&gt;</code> is
+<code>true</code>.</p></li>
+</ul>
+<p><i>[Note:</i> Unlike <code>atomic_ref</code>, the memory ordering for
+the arithmetic operators is <code>MemoryOrder</code>, which is not
+necessarily <code>memory_order_seq_cst</code>. <i>– end note]</i></p>
+<p><strong>Operations [atomics.ref.bounded.ops]</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> is_lock_free<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.is_lock_free();</code></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">explicit</span> atomic<span class="op">-</span>ref<span class="op">-</span>bounded<span class="op">(</span>T<span class="op">&amp;</span> t<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Preconditions:</em> The referenced object is aligned to
+<code>required_alignment</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Postconditions:</em> <code>ref</code> references the object
+referenced by <code>t</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Throws:</em> Nothing.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>atomic<span class="op">-</span>ref<span class="op">-</span>bounded<span class="op">(</span>atomic<span class="op">-</span>ref<span class="op">-</span>bounded <span class="kw">const</span><span class="op">&amp;</span> a<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<em>Postconditions:</em> <code>*this</code> references the object
+referenced by <code>a</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> store<span class="op">(</span>T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<em>Effects:</em> Equivalent to:
+<code>ref.store(desired, store_ordering);</code></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">=(</span>T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<em>Effects:</em> Equivalent to:
+<code>store(desired); return desired;</code></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>T load<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<em>Effects:</em> Equivalent to:
+<code>ref.load(load_ordering);</code></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">operator</span> T<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<em>Effects:</em> Equivalent to: <code>return load();</code></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>T exchange<span class="op">(</span>T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.exchange(desired, memory_ordering);</code></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> compare_exchange_weak<span class="op">(</span>T<span class="op">&amp;</span> expected, T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);</code></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> compare_exchange_strong<span class="op">(</span>T<span class="op">&amp;</span> expected, T desired<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);</code></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>T fetch_add<span class="op">(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">13</a></span>
+<em>Constraints:</em>
+<code>is_integral_value || is_floating_point_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">14</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.fetch_add(operand, memory_ordering);</code></p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>T fetch_add<span class="op">(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">15</a></span>
+<em>Constraints:</em> <code>is_pointer_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">16</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.fetch_add(operand, memory_ordering);</code></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>T fetch_sub<span class="op">(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">17</a></span>
+<em>Constraints:</em>
+<code>is_integral_value || is_floating_point_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">18</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.fetch_sub(operand, memory_ordering);</code></p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>T fetch_sub<span class="op">(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">19</a></span>
+<em>Constraints:</em> <code>is_pointer_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">20</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.fetch_sub(operand, memory_ordering);</code></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>T fetch_and<span class="op">(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">21</a></span>
+<em>Constraints:</em> <code>is_integral_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">22</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.fetch_and(operand, memory_ordering);</code></p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>T fetch_or<span class="op">(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">23</a></span>
+<em>Constraints:</em> <code>is_integral_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">24</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.fetch_or(operand, memory_ordering);</code></p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>T fetch_xor<span class="op">(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">25</a></span>
+<em>Constraints:</em> <code>is_integral_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">26</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return ref.fetch_xor(operand, memory_ordering);</code></p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">++(</span><span class="dt">int</span><span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">27</a></span>
+<em>Constraints:</em> <code>is_integral_value || is_pointer_value</code>
+is <code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">28</a></span>
+<em>Effects:</em> Equivalent to: <code>return fetch_add(1);</code></p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">++()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">29</a></span>
+<em>Constraints:</em> <code>is_integral_value || is_pointer_value</code>
+is <code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">30</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_add(1) + 1;</code></p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">--(</span><span class="dt">int</span><span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">31</a></span>
+<em>Constraints:</em> <code>is_integral_value || is_pointer_value</code>
+is <code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">32</a></span>
+<em>Effects:</em> Equivalent to: <code>return fetch_sub(1);</code></p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">--()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">33</a></span>
+<em>Constraints:</em> <code>is_integral_value || is_pointer_value</code>
+is <code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">34</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_sub(1) - 1;</code></p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">+=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">35</a></span>
+<em>Constraints:</em>
+<code>is_integral_value || is_floating_point_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">36</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_add(operand) + operand;</code></p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">+=(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">37</a></span>
+<em>Constraints:</em> <code>is_pointer_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">38</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_add(operand) + operand;</code></p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">-=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">39</a></span>
+<em>Constraints:</em>
+<code>is_integral_value || is_floating_point_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">40</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_sub(operand) - operand;</code></p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">-=(</span>difference_type operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">41</a></span>
+<em>Constraints:</em> <code>is_pointer_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">42</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_sub(operand) - operand;</code></p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">&amp;=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">43</a></span>
+<em>Constraints:</em> <code>is_integral_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">44</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_and(operand) &amp; operand;</code></p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">|=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">45</a></span>
+<em>Constraints:</em> <code>is_integral_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">46</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_or(operand) | operand;</code></p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>T <span class="kw">operator</span><span class="op">^=(</span>T operand<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">47</a></span>
+<em>Constraints:</em> <code>is_integral_value</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">48</a></span>
+<em>Effects:</em> Equivalent to:
+<code>return fetch_xor(operand) ^ operand;</code></p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> wait<span class="op">(</span>T old<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">49</a></span>
+<em>Effects:</em> Equivalent to:
+<code>ref.wait(old, load_ordering);</code></p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> notify_one<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">50</a></span>
+<em>Effects:</em> Equivalent to: <code>ref.notify_one(); }</code></p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> notify_all<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">51</a></span>
+<em>Effects:</em> Equivalent to: <code>ref.notify_all(); }</code></p>
+<p><b>Memory Order Specific Atomic Refs
+[atomics.refs.bounded.order]</b></p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">// all freestanding</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_ref_relaxed <span class="op">=</span> atomic<span class="op">-</span>ref<span class="op">-</span>bounded<span class="op">&lt;</span>T, memory_order_relaxed<span class="op">&gt;</span>;</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_ref_acq_rel <span class="op">=</span> atomic<span class="op">-</span>ref<span class="op">-</span>bounded<span class="op">&lt;</span>T, memory_order_acq_rel<span class="op">&gt;</span>;</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_ref_seq_cst <span class="op">=</span> atomic<span class="op">-</span>ref<span class="op">-</span>bounded<span class="op">&lt;</span>T, memory_order_seq_cst<span class="op">&gt;</span>;</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 data-number="5.1.2" id="in-version.syn"><span class="header-section-number">5.1.2</span> In [version.syn]:<a href="#in-version.syn" class="self-link"></a></h3>
+<p>Update the feature test macro <code>__cpp_lib_atomic_ref</code>.</p>
+<h2 data-number="5.2" id="atomic-accessors"><span class="header-section-number">5.2</span> Atomic Accessors<a href="#atomic-accessors" class="self-link"></a></h2>
+<h3 data-number="5.2.1" id="put-the-following-before-mdspan.mdspan"><span class="header-section-number">5.2.1</span> Put the following before
+[mdspan.mdspan]:<a href="#put-the-following-before-mdspan.mdspan" class="self-link"></a></h3>
+<p><b>Class template <code>basic-atomic-accessor</code>
+[mdspan.accessor.basic]</b></p>
+<p><b>General [mdspan.accessor.basic.overview]</b></p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> ReferenceType<span class="op">&gt;</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor <span class="op">{</span>  <span class="co">// exposition only</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> offset_policy <span class="op">=</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor;</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> element_type <span class="op">=</span> ElementType;</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> reference <span class="op">=</span> ReferenceType;</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> data_handle_type <span class="op">=</span> ElementType<span class="op">*</span>;</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">(</span>default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">(</span>basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">&lt;</span>OtherElementType, ReferenceType<span class="op">&gt;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> data_handle_type offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+Class <code>basic-atomic-accessor</code> is for exposition only.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<code>basic-atomic-accessor</code> meets the accessor policy
+requirements.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<code>ElementType</code> is required to be a complete object type that
+is neither an abstract class type nor an array type.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+Each specialization of <code>basic-atomic-accessor</code> is a trivially
+copyable type that models <code>semiregular</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<code>[0,n)</code> is an accessible range for an object <code>p</code>
+of type <code>data_handle_type</code> and an object of type
+<code>basic-atomic-accessor</code> if and only if <code>[p,p+n)</code>
+is a valid range.</p>
+<p><b>Members [mdspan.accessor.basic.members]</b></p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">(</span>default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">(</span>basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">&lt;</span>OtherElementType, ReferenceType<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span></span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<em>Constraints:</em>
+<code>is_convertible_v&lt;OtherElementType (*)[], element_type (*)[]&gt;</code>
+is <code>true</code>.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Effects:</em> Equivalent to
+<code>return reference(p + i);</code></p>
+<div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> data_handle_type offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<em>Effects:</em> Equivalent to <code>return p[i];</code></p>
+<p><b>Atomic accessors [mdspan.accessor.atomic]</b></p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_accessor <span class="op">=</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">&lt;</span>ElementType, atomic_ref<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_accessor_relaxed <span class="op">=</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">&lt;</span>ElementType, atomic_ref_relaxed<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_accessor_acq_rel <span class="op">=</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">&lt;</span>ElementType, atomic_ref_acq_rel<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_accessor_seq_cst <span class="op">=</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">&lt;</span>ElementType, atomic_ref_seq_cst<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="5.3" id="in-version.syn-1"><span class="header-section-number">5.3</span> In [version.syn]<a href="#in-version.syn-1" class="self-link"></a></h2>
+<p>Add the following feature test macro:</p>
+<p><code>#define __cpp_lib_atomic_accessors YYYYMML // also in &lt;mdspan&gt;</code></p>
+<h1 data-number="6" id="acknowledgments"><span class="header-section-number">6</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
 <p>Sandia National Laboratories is a multimission laboratory managed and
 operated by National Technology and Engineering Solutions of Sandia,
 LLC., a wholly owned subsidiary of Honeywell International, Inc., for
@@ -628,6 +1243,9 @@ National Nuclear Security Administration, responsible for delivering a
 capable exascale ecosystem, including software, applications, and
 hardware technology, to support the nation’s exascale computing
 imperative.</p>
+<p>This research used resources of the Argonne Leadership Computing
+Facility, which is a DOE Office of Science User Facility supported under
+Contract DE-AC02-06CH11357.</p>
 </div>
 </div>
 </body>
