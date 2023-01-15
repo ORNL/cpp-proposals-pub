@@ -298,9 +298,6 @@ That is, they fill in the correct
 run-time padding stride value, if this is possible
 given the `padding_stride` template argument.
 Second, R2 adds more converting constructors.
-The rest of this section explains and justifies
-the new converting constructors.
-
 For `layout_left_padded::mapping`,
 R2 adds a converting constructor from each of the following.
 
@@ -1071,12 +1068,11 @@ public:
     constexpr mapping(const extents_type& ext, Size padding_value);
 
   template<class OtherExtents>
-    constexpr explicit
+    constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
       mapping(const layout_left::mapping<OtherExtents>&);
 
-  // TODO WORDING
   template<class OtherExtents>
-    constexpr explicit
+    constexpr explicit(extents_type::rank() > 0)
       mapping(const layout_stride::mapping<OtherExtents>&);
 
   template<size_t other_padding_stride, class OtherExtents>
@@ -1118,9 +1114,11 @@ public:
 [2]{.pnum} Throughout this section, let `P_left` be the following
 size `extents_type::rank()` parameter pack of `size_t`:
 
-  * [2.1]{.pnum} If `extents_type::rank()` equals zero or one, then the empty parameter pack;
+  * [2.1]{.pnum} If `extents_type::rank()` equals zero or one,
+      then the empty parameter pack;
 
-  * [2.2]{.pnum} else, the parameter pack `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
+  * [2.2]{.pnum} else, the parameter pack
+      `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
 
 [3]{.pnum} *Mandates:* If
 
@@ -1142,7 +1140,8 @@ static constexpr size_t @_actual-padding-stride_@ = /* see-below */; // expositi
 
 [3]{.pnum}
 
-  * [3.1]{.pnum } If `extents_type::rank()` equals zero or one, then `padding_stride`.
+  * [3.1]{.pnum } If `extents_type::rank()`
+      equals zero or one, then `padding_stride`.
 
   * [3.2]{.pnum } Else, if
 
@@ -1185,7 +1184,7 @@ using @_unpadded-extent-type_@ = /* see-below */; // exposition only
 
 ```c++
 constexpr mapping() 
-  requires(<it>actual-padding-stride == dynamic_extent</it>) noexcept;
+  requires(@_actual-padding-stride == dynamic_extent_@) noexcept;
 ```
 
 [6]{.pnum} *Effects:* Equivalent to `mapping(extents_type{});`.
@@ -1263,8 +1262,8 @@ constexpr mapping(const extents_type& ext, Size padding_value);
 
 ```c++
 template<class OtherExtents>
-  constexpr explicit
-    mapping(const layout_left::mapping<OtherExtents>&);
+  constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
+    mapping(const layout_left::mapping<OtherExtents>& other);
 ```
 
 [12]{.pnum} *Constraints:*
@@ -1282,7 +1281,7 @@ then _`actual-padding-stride`_ equals `OtherExtents::static_extent(0)`.
       then `other.stride(1)` equals
       the least multiple of `padding_stride`
       greater than or equal to
-      `extents_type::`_`index-cast`_`(other.extent(0))`; and
+      `extents_type::`_`index-cast`_`(other.extents().extent(0))`; and
 
   * [14.2]{.pnum} `other.required_span_size()`
       is representable as a value of type `index_type`
@@ -1291,6 +1290,41 @@ then _`actual-padding-stride`_ equals `OtherExtents::static_extent(0)`.
 [15]{.pnum} *Effects:*
 
   * [15.1]{.pnum} Direct-non-list-initializes _`inner-mapping`_ with:
+
+    * `other.extents()`,
+        if `extents_type::rank()` is zero or one; else
+    
+    * `other.stride(1), other.extents().extent(P_left)...`; and
+
+  * [15.2]{.pnum} if `extents_type::rank()` is zero,
+      value-initializes _`unpadded-extent`_;
+      else, direct-non-list-initializes _`unpadded-extent`_
+      with `other.extents().extent(0)`.
+
+```c++
+template<class OtherExtents>
+  constexpr explicit(extents_type::rank() > 0)
+    mapping(const layout_stride::mapping<OtherExtents>& other);
+```
+
+[16]{.pnum}  *Constraints:*
+`is_constructible_v<extents_type, OtherExtents>` is `true`.
+
+[17]{.pnum} *Mandates:*
+`padding_stride == dynamic_extent` is `true`.
+
+[18]{.pnum} *Preconditions:*
+
+  * [18.1]{.pnum} If `extents_type::rank() > 0` is `true`,
+      then `other.stride(0)` equals 1;
+
+  * [18.2]{.pnum} `other.required_span_size()`
+      is representable as a value of type `index_type`
+      (*[basic.fundamental]*).
+
+[19]{.pnum} *Effects:*
+
+  * [19.1]{.pnum} Direct-non-list-initializes _`inner-mapping`_ with:
 
     * `other.extents()`,
         if `extents_type::rank()` is zero or one; else
@@ -1504,7 +1538,7 @@ public:
       mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>& other);
 
   template<size_t other_padding_stride, class OtherExtents>
-    constexpr explicit(not is_convertible_v<OtherExtents, extents_type>)
+    constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
       mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>& other) noexcept;
 
   constexpr mapping(const mapping&) noexcept = default;
