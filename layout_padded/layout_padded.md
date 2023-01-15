@@ -1877,15 +1877,21 @@ template<class OtherExtents>
 [17]{.pnum}  *Constraints:*
 `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[18]{.pnum} *Mandates:*
-`padding_stride == dynamic_extent` is `true`.
-
 [19]{.pnum} *Preconditions:*
 
-  * [19.1]{.pnum} If `extents_type::rank() > 0` is `true`,
-      then `other.stride(extents_type::rank() - 1)` equals 1;
+  * [19.1]{.pnum} If `extents_type::rank() > 1` is `true`
+      and `padding_stride == dynamic_extent` is `false`,
+      then `other.stride(extens_type::rank()-2)` equals
+      the least multiple of `padding_stride`
+      greater than or equal to
+      `extents_type::`_`index-cast`_`(other.extents().extent(extents_type()::rank()-1))`; and
 
-  * [19.2]{.pnum} `other.required_span_size()`
+  * [19.2]{.pnum} If `extents_type::rank() > 0` is `true`,
+      then `other.stride(extents_type::rank() - 1)` equals 1; and
+
+  * [19.3]{.pnum} If `extents_type::rank() > 2` is `true`, then for all `r` in the range $[$`0, extents_type::rank()-2`$)$, `other.stride(r)` equals `extents().`_`rev-prod-of-extents`_`(r) / other.extents().extent(extents_type::rank()-1) * other.stride(extens_type::rank()-1)`.
+
+  * [19.4]{.pnum} `other.required_span_size()`
       is representable as a value of type `index_type`
       (*[basic.fundamental]*).
 
