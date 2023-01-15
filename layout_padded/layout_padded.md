@@ -70,7 +70,16 @@ Revision 2 to be submitted 2023-01-15.
 
   * (TODO FINISH) Add default constructors for `layout_{left,right}_padded::mapping`; `=default` for _`actual-padding-stride`_` != dynamic_extent`, not `=default` otherwise
 
-  * (TODO FINISH) Add more converting constructors from other mappings to `layout_{left,right}_padded::mapping`
+  * (TODO FINISH) Add converting constructors from `layout_(left,right)::mapping` to `layout_(left,right)_padded::mapping`
+
+  * (TODO FINISH) Add converting constructors from `layout_stride::mapping` to `layout_(left,right)_padded::mapping`
+
+  * Add `operator==` to `layout_{left,right}_padded::mapping`
+
+  * In Remarks for the existing constructor
+      `layout_stride::mapping(const StridedLayoutMapping&)`,
+      add `layout_left_padded` and `layout_right_padded`
+      to the list of the layouts in the expression inside `explicit`
 
   * Reformat from Bikeshed to Pandoc
 
@@ -1013,6 +1022,59 @@ then `Extents::static_extent(Extents::rank() - 1)` is a multiple of `other_paddi
   * `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
 
 [12]{.pnum} *Effects:* Direct-non-list-initializes `extents_` with `other.extents()`.
+
+> In Section � *[mdspan.layout.stride.cons]*,
+> in paragraph 7 (Remarks for the constructor
+> `layout_stride::mapping(const StridedLayoutMapping&)`),
+> right after the word Remarks,
+> add the following text.
+
+Let _`is-layout-left-padded-mapping-of`_ be
+the exposition-only variable template defined as follows.
+
+```c++
+template<class Layout>
+struct @_is-layout-left-padded_@ : // exposition only
+  false_type {};
+
+template<size_t padding_stride>
+struct @_is-layout-left-padded_@<layout_left_padded<padding_stride>> : // exposition only
+  true_type {};
+
+template<class Mapping>
+constexpr bool @_is-layout-left-padded-mapping-of_@ // exposition only
+  @_is-layout-left-padded_@<typename Mapping::layout_type>::value;
+```
+
+Let _`is-layout-right-padded-mapping-of`_ be
+the exposition-only variable template defined as follows.
+
+```c++
+template<class Layout>
+struct @_is-layout-left-padded_@ : // exposition only
+  false_type {};
+
+template<size_t padding_stride>
+struct @_is-layout-left-padded_@<layout_left_padded<padding_stride>> : // exposition only
+  true_type {};
+
+template<class Mapping>
+constexpr bool @_is-layout-left-padded-mapping-of_@ // exposition only
+  @_is-layout-left-padded_@<typename Mapping::layout_type>::value;
+```
+
+> In Section � *[mdspan.layout.stride.cons]*,
+> in paragraph 7 (Remarks for the constructor
+> `layout_stride::mapping(const StridedLayoutMapping&)`),
+> add the following two lines immediately below
+> _`is-mapping-of`_`<layout_right, LayoutStrideMapping> ||`
+> and above
+> _`is-mapping-of`_`<layout_stride, LayoutStrideMapping> ||`:
+
+```c++
+@_`is-layout-left-padded-mapping-of`_@ `<LayoutStrideMapping> ||`
+@_`is-layout-right-padded-mapping-of`_@ `<LayoutStrideMapping> ||`
+```
 
 > After the end of Section � *[mdspan.layout.stride]*, add the following:
 
