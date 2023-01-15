@@ -1103,7 +1103,6 @@ public:
 
   constexpr index_type stride(rank_type r) const noexcept;
 
-  // TODO wording
   template<size_t other_padding_stride, class OtherExtents>
     friend constexpr bool operator==(
       const mapping&,
@@ -1489,6 +1488,23 @@ constexpr index_type stride(rank_type r) const noexcept;
 
 [32]{.pnum} *Effects:* Equivalent to
 `return `_`inner-mapping`_`.stride(r);`.
+
+```c++
+template<size_t other_padding_stride, class OtherExtents>
+  friend constexpr bool operator==(
+    const mapping& x,
+    const typename layout_left_padding<other_padding_stride>::mapping<OtherExtents>& y) noexcept;
+```
+
+[33]{.pnum} *Constraints:*
+`OtherExtents::rank() == extents_type::rank()` is `true`.
+
+[34]{.pnum} *Returns:* `true` if
+
+  * [34.1]{.pnum} `x.extents() == y.extents()` is `true`; and
+
+  * [34.2]{.pnum} if `extents_type::rank() > 1` is `true`,
+      then `x.stride(1) == y.stride(1)` is `true`.
 
 ## Class template `layout_right_padded::mapping` [mdspan.layout.right_padded]
 
