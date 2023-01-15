@@ -1497,18 +1497,18 @@ constexpr std::array<index_type, extents_type::rank()>
 ```
 
 [30]{.pnum} *Effects:* Equivalent to
-`return `_`inner-mapping`_`.strides();`.
+`return ` _`inner-mapping`_`.strides();`.
 
 ```c++
 constexpr index_type required_span_size() const noexcept;
 ```
 
 [31]{.pnum} *Effects:* Equivalent to
-`return `_`inner-mapping`_`.required_span_size();`.
+`return ` _`inner-mapping`_`.required_span_size();`.
 
 ```c++
 template<class... Indices>
-constexpr size_t operator()(Indices... idxs) const noexcept;
+constexpr size_t operator()(Indices... i) const noexcept;
 ```
 
 [32]{.pnum} *Constraints:*
@@ -1528,7 +1528,7 @@ is `true`.  Equivalent to:
 `return ((static_cast<index_type>(i) * stride(P)) + ... + 0);`.
 
 <i>[Note:</i> Effects are also equivalent to
-`return `_`inner-mapping`_`(idxs...);`,
+`return `_`inner-mapping`_`(i...);`,
 but only after the Precondition
 has been applied. <i>-- end note]</i>
 
@@ -1559,7 +1559,7 @@ constexpr index_type stride(rank_type r) const noexcept;
 ```
 
 [37]{.pnum} *Effects:* Equivalent to
-`return `_`inner-mapping`_`.stride(r);`.
+`return ` _`inner-mapping`_`.stride(r);`.
 
 ```c++
 template<size_t other_padding_stride, class OtherExtents>
@@ -1998,14 +1998,14 @@ constexpr std::array<index_type, extents_type::rank()>
 ```
 
 [30]{.pnum} *Effects:* Equivalent to
-`return `_`inner-mapping`_`.strides();`.
+`return ` _`inner-mapping`_`.strides();`.
 
 ```c++
 constexpr index_type required_span_size() const noexcept;
 ```
 
 [31]{.pnum} *Effects:* Equivalent to
-`return `_`inner-mapping`_`.required_span_size();`.
+`return ` _`inner-mapping`_`.required_span_size();`.
 
 ```c++
 template<class... Indices>
@@ -2061,7 +2061,7 @@ constexpr index_type stride(rank_type r) const noexcept;
 ```
 
 [37]{.pnum} *Effects:* Equivalent to
-`return `_`inner-mapping`_`.stride(r);`.
+`return ` _`inner-mapping`_`.stride(r);`.
 
 ```c++
 template<size_t other_padding_stride, class OtherExtents>
@@ -2099,84 +2099,47 @@ template<size_t other_padding_stride, class OtherExtents>
 
 > In paragraph 7 (the "Returns" clause) of Section � [mdspan.submdspan.mapping] ("Layout specializations of submdspan_mapping"), replace (7.3) (the `layout_stride` fall-back return type) with the following.
 
-[7.3]{.pnum} Else, if
+[9.4]{.pnum} `submdspan_mapping_result{layout_left_padded<Extents::static_extent(0)>::mapping(sub_ext, src.extent(0)), offset}` if
 
-  * `decltype(src)::layout_type` is `layout_left`;
+  * `decltype(src)::layout_type` is `layout_left`; and
 
-  * `Extents::rank()` is greater than one;
-
-  * all the $S_k$ except for $S_0$ and $S_1$ are `full_extent_t`;
-
+  * for each `k` in the range $[$`1, SubExtents::rank()-1`$)$, $S_k$ is `full_extent_t`; and
+  
   * `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>` is `true`; and
 
-  * `is_convertible_v<` $S_1$ `, tuple<index_type, index_type>>` is `true`;
+  * for `k` equal to `SubExtents::rank()-1`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-then `layout_left_padded<Extents::static_extent(0)>::template mapping(sub_ext, src.extent(0))`.
+[9.5]{.pnum} `submdspan_mapping_result{layout_right_padded<Extents::static_extent(0)>::template mapping(sub_ext, src.extent(0)), offset}` if
 
-[7.4]{.pnum} Else, if
+  * `decltype(src)::layout_type` is `layout_right`; and
 
-  * `decltype(src)::layout_type` is `layout_right`;
+  * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, $S_k$ is `full_extent_t`; and
+  
+  * for `k` equal to `Extents::rank() - 1` `is_convertible_v<` $S_k$ `, tuple<index_type, index_type>>` is `true`; and
 
-  * `Extents::rank()` is greater than one;
+  * for `k` equal to `SubExtents::rank() - SubExtents::rank()`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-  * all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
+[9.6]{.pnum} `submdspan_mapping_result{layout_left_padded<dynamic_extent>::mapping(sub_ext, src.extent(0)), offset}` if
 
-  * `is_convertible_v<` $S_{r-2}$ `, tuple<index_type, index_type>>` is `true`; and
+  * `decltype(src)::layout_type` is a specialization of `layout_left_padded`; and
 
-  * `is_convertible_v<` $S_{r-1}$ `, tuple<index_type, index_type>>` is `true`;
+  * for each `k` in the range $[$`1, SubExtents::rank()-1`$)$, $S_k$ is `full_extent_t`; and
+  
+  * `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>> || is_convertible_v<`$S_0$`, full_extent_t>` is `true`; and
 
-then `layout_right_padded<Extents::static_extent(r - 1)>::template mapping(sub_ext, src.extent(r - 1))`.
+  * for `k` equal to `SubExtents::rank()-1`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-[7.5]{.pnum} Else, if
+[9.7]{.pnum} `submdspan_mapping_result{layout_right_padded<dynamic_extent>::template mapping(sub_ext, src.extent(0)), offset}` if
 
-  * `decltype(src)::layout_type` is `layout_left_padded<padding_stride>` for some `size_t padding_stride`;
+  * `decltype(src)::layout_type` is a specialization of `layout_right_padded`; and
 
-  * `Extents::rank()` equals zero or one; and
+  * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, $S_k$ is `full_extent_t`; and
+  
+  * for `k` equal to `Extents::rank() - 1` `is_convertible_v<` $S_k$ `, tuple<index_type, index_type>> || is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-  * if `Extents::rank()` equals one, then $S_0$ is `full_extent_t` or `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>` is `true`;
+  * for `k` equal to `SubExtents::rank() - SubExtents::rank()`, `is_convertible_v<S_k, tuple<index_type, index_type>> || is_convertible_v<S_k, full_extent_t>` is `true`; otherwise
 
-then, `layout_left_padded<padding_stride>::template mapping(sub_ext)`.
-
-[7.6]{.pnum} Else, if
-
-  * `decltype(src)::layout_type` is `layout_left_padded<padding_stride>` for some `size_t padding_stride`;
-
-  * `Extents::rank()` is greater than one;
-
-  * all the $S_k$ except for $S_0$ and $S_1$ are `full_extent_t`;
-
-  * `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>` is `true`; and
-
-  * `is_convertible_v<` $S_1$ `, tuple<index_type, index_type>>` is `true`;
-
-then `layout_left_padded<padding_stride>::template mapping(sub_ext, src.stride(1))`;
-
-[7.7]{.pnum} Else, if
-
-  * `decltype(src)::layout_type` is `layout_right_padded<padding_stride>` for some `size_t padding_stride`;
-
-  * `Extents::rank()` equals zero or one; and
-
-  * if `Extents::rank()` equals one, then $S_0$ is `full_extent_t` or `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>` is `true`;
-
-then, `layout_right_padded<padding_stride>::template mapping(sub_ext)`.
-
-[7.8]{.pnum} Else, if
-
-  * `decltype(src)::layout_type` is `layout_right_padded<padding_stride>` for some `size_t padding_stride`;
-
-  * `Extents::rank()` is greater than one;
-
-  * all the $S_k$ except for the two rightmost $S_{r-2}$ and $S_{r-1}$ are `full_extent_t`;
-
-  * `is_convertible_v<` $S_{r-2}$ `, tuple<index_type, index_type>>` is `true`; and
-
-  * `is_convertible_v<` $S_{r-1}$ `, tuple<index_type, index_type>>` is `true`;
-
-then `layout_right_padded<padding_stride>::template mapping(sub_ext, src.stride(r - 2))`;
-
-[7.9]{.pnum} Otherwise,
-`layout_stride::mapping(sub_ext, sub_strides)`;
+[9.8]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
 ## Layout specializations of `submdspan_offset` [mdspan.submdspan.offset]
 
