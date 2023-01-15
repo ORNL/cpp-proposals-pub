@@ -1072,8 +1072,8 @@ constexpr bool @_is-layout-left-padded-mapping-of_@ // exposition only
 > _`is-mapping-of`_`<layout_stride, LayoutStrideMapping> ||`:
 
 ```c++
-@_`is-layout-left-padded-mapping-of`_@ `<LayoutStrideMapping> ||`
-@_`is-layout-right-padded-mapping-of`_@ `<LayoutStrideMapping> ||`
+@_is-layout-left-padded-mapping-of_@ <LayoutStrideMapping> ||
+@_is-layout-right-padded-mapping-of_@ <LayoutStrideMapping> ||
 ```
 
 > After the end of Section � *[mdspan.layout.stride]*, add the following:
