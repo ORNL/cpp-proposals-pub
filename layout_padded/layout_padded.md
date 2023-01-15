@@ -329,7 +329,7 @@ Thus, this is an implicit conversion
 as long as the conversion from the input's `extents_type`
 to the result's `extents_type` would be implicit.
 
-This conversino is useful for C++ wrappers for the BLAS or LAPACK.
+This conversion is useful for C++ wrappers for the BLAS or LAPACK.
 `layout_left_padded<dynamic_extent>::mapping<dextent<int, 2>>`
 expresses in C++ exactly the 2-D array layout
 that the BLAS and LAPACK accept, including their requirement
