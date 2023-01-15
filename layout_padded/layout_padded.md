@@ -286,6 +286,88 @@ layout_left_padded<4>::mapping m_orig{extents{9, 2}};
 layout_left_padded<dynamic_extent>::mapping m_new(m_orig);
 ```
 
+### New layout mapping constructors in R2
+
+R2 of this proposal adds new constructors to
+`layout_{left,right}_padded::mapping`.
+First, it adds default constructors
+that default-construct the `extents_type` object,
+but otherwise behave like the
+`mapping(const extents_type&)` constructor.
+That is, they fill in the correct
+run-time padding stride value, if this is possible
+given the `padding_stride` template argument.
+Second, R2 adds more converting constructors.
+The rest of this section explains and justifies
+the new converting constructors.
+
+For `layout_left_padded::mapping`,
+R2 adds a converting constructor from each of the following.
+
+  * `layout_left::mapping<OtherExtents>`
+
+  * `layout_stride::mapping<OtherExtents>`
+
+For `layout_right_padded::mapping`,
+R2 adds a converting constructor from each of the following.
+
+  * `layout_right::mapping<OtherExtents>`
+
+  * `layout_stride::mapping<OtherExtents>`
+
+### Conversion from `layout_left` to `layout_left_padded`
+
+The converting constructor
+from `layout_left::mapping` to `layout_left_padded::mapping`
+exists by analogy with the existing constructor
+`layout_stride::mapping(const StridedLayoutMapping& other)`
+(*[mdspan.layout.stride.cons]*) that can convert
+from `layout_left::mapping` to `layout_stride::mapping`.
+`layout_left` expresses a special case of `layout_left_padded`,
+just as `layout_left` expresses a special case of `layout_stride`.
+Thus, this is an implicit conversion
+as long as the conversion from the input's `extents_type`
+to the result's `extents_type` would be implicit.
+
+This conversino is useful for C++ wrappers for the BLAS or LAPACK.
+`layout_left_padded<dynamic_extent>::mapping<dextent<int, 2>>`
+expresses in C++ exactly the 2-D array layout
+that the BLAS and LAPACK accept, including their requirement
+that the extents and `stride(1)` all be run-time values.
+Thus, a C++ wrapper for the BLAS (see P1673) or LAPACK
+might reasonably have a specialization for `mdspan` with layout
+`layout_left_padded<dynamic_extent>::mapping<dextent<int, 2>>`,
+that can call with very few error checks or layout conversions
+directly into an existing C or Fortran BLAS or LAPACK library.
+However, users would reasonably want to create their 2-D arrays
+as `layout_left`, since it's a simpler layout
+that doesn't need to store the column stride.
+The converting constructor from `layout_left::mapping`
+to `layout_left_padded::mapping` would let users
+or libraries easily convert from the less general `layout_left`
+to the slightly more general `layout_left_padded`
+that a C++ BLAS or LAPACK wrapper would naturally use.
+
+### Conversion from `layout_stride` to `layout_left_padded`
+
+The converting constructor from `layout_stride::mapping`
+to `layout_left_padded::mapping`
+exists by analogy with the existing converting constructor
+from `layout_stride::mapping` to `layout_left::mapping`.
+This constructor is `explicit` for `rank() > 0`,
+because it always converts from a more general case
+to a more specific case.
+
+Explicit conversions to `layout_stride::mapping`
+are useful because `layout_stride::mapping` can express
+all the layout mappings in the Standard and this proposal.
+It's like a "type-erased" version of all of them.
+For example, a library of `mdspan` algorithms
+might reasonably convert to `layout_stride::mapping`
+for some less performance-critical algorithms,
+as a way to minimize algorithm instantiations
+for different layouts.
+
 ## Integration with `submdspan`
 
 We propose changing `submdspan`
@@ -988,48 +1070,48 @@ public:
   template<class Size>
     constexpr mapping(const extents_type& ext, Size padding_value);
 
-    template<class OtherExtents>
-      constexpr explicit
-        mapping(const layout_left::mapping<OtherExtents>&);
+  template<class OtherExtents>
+    constexpr explicit
+      mapping(const layout_left::mapping<OtherExtents>&);
 
-    // TODO WORDING
-    template<class OtherExtents>
-      constexpr explicit
-        mapping(const layout_stride::mapping<OtherExtents>&);
+  // TODO WORDING
+  template<class OtherExtents>
+    constexpr explicit
+      mapping(const layout_stride::mapping<OtherExtents>&);
 
-    template<size_t other_padding_stride, class OtherExtents>
-      constexpr explicit( /* see below */ )
-        mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>&);
+  template<size_t other_padding_stride, class OtherExtents>
+    constexpr explicit( /* see below */ )
+      mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>&);
 
-    template<size_t other_padding_stride, class OtherExtents>
-      constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
-        mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
+  template<size_t other_padding_stride, class OtherExtents>
+    constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
+      mapping(const layout_right_padded<other_padding_stride>::mapping<OtherExtents>&) noexcept;
 
-    constexpr extents_type extents() const noexcept;
+  constexpr extents_type extents() const noexcept;
 
-    constexpr std::array<index_type, extents_type::rank()>
+  constexpr std::array<index_type, extents_type::rank()>
     strides() const noexcept;
 
-    constexpr index_type required_span_size() const noexcept;
+  constexpr index_type required_span_size() const noexcept;
 
-    template<class... Indices>
+  template<class... Indices>
     constexpr index_type operator()(Indices... idxs) const noexcept;
 
-    static constexpr bool is_always_unique() noexcept { return true; }
-    static constexpr bool is_always_exhaustive() noexcept;
-    static constexpr bool is_always_strided() noexcept { return true; }
+  static constexpr bool is_always_unique() noexcept { return true; }
+  static constexpr bool is_always_exhaustive() noexcept;
+  static constexpr bool is_always_strided() noexcept { return true; }
 
-    static constexpr bool is_unique() noexcept { return true; }
-    constexpr bool is_exhaustive() const noexcept;
-    static constexpr bool is_strided() noexcept { return true; }
+  static constexpr bool is_unique() noexcept { return true; }
+  constexpr bool is_exhaustive() const noexcept;
+  static constexpr bool is_strided() noexcept { return true; }
 
-    constexpr index_type stride(rank_type r) const noexcept;
+  constexpr index_type stride(rank_type r) const noexcept;
 
-    // TODO wording
-    template<size_t other_padding_stride, class OtherExtents>
-      friend constexpr bool operator==(
-        const mapping&,
-        const typename layout_left_padding<other_padding_stride>::mapping<OtherExtents>&) noexcept;
+  // TODO wording
+  template<size_t other_padding_stride, class OtherExtents>
+    friend constexpr bool operator==(
+      const mapping&,
+      const typename layout_left_padding<other_padding_stride>::mapping<OtherExtents>&) noexcept;
 };
 ```
 
