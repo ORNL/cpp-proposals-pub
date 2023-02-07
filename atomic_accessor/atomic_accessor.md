@@ -1,5 +1,5 @@
 ---
-title: "Atomic Refs Bounded to Memory Orderings & Atomic Accessors"
+title: "Atomic Refs Bound to Memory Orderings & Atomic Accessors"
 document: P2689R2
 date: today
 audience: SG1 & LEWG
@@ -188,7 +188,7 @@ the next version of this proposal, with these changes, should target SG1 & LEWG
 
 # Rational
 
-This proposal adds three `atomic_ref` like types each bounded to a particular `memory_order`.
+This proposal adds three `atomic_ref` like types each bound to a particular `memory_order`.
 The API differs from `atomic_ref` in that the `memory_order` cannot be specified at run time; i.e., none of its member functions
 take a `memory_order` parameter.
 In the specific case of `atomic_ref_acq_rel`, loads are done via `memory_order_acquire` and stores are done via `memory_order_release`.
@@ -264,13 +264,13 @@ The above example is available on godbolt: https://godbolt.org/z/jY17Yoje1 .
 
 # Design decisions
 
-Three options for atomic refs were discussed in SG1 in Kona 2022:  add new types for `memory_order` bounded atomic refs, add a new `memory_order` template parameter to the existing `atomic_ref`, or add a constructor to the existing `atomic_ref` that takes a `memory_order` and stores it.  Given that the last two are ABI breaks, the first option was polled and chosen.
-It was also decided that the new bounded atomic refs would not support overriding the specified `memory_order` at run time.
+Three options for atomic refs were discussed in SG1 in Kona 2022:  add new types for `memory_order` bound atomic refs, add a new `memory_order` template parameter to the existing `atomic_ref`, or add a constructor to the existing `atomic_ref` that takes a `memory_order` and stores it.  Given that the last two are ABI breaks, the first option was polled and chosen.
+It was also decided that the new bound atomic refs would not support overriding the specified `memory_order` at run time.
 
 This proposal has chosen to make a general exposition-only template `atomic-ref-bound` that takes a `memory_order` as a template argument
-and alias templates for the three specific bounded atomic refs.
+and alias templates for the three specific bound atomic refs.
 Also, the various member functions are constrained by integral types not including `bool`, floating point types and pointer types, as opposed to the different template specializations specified for `atomic_ref`.
-Other than not being able to specifiy the `memory_order` at run time, the intention is that the bounded atomic ref types have the same functionality and API as `atomic_ref`.
+Other than not being able to specifiy the `memory_order` at run time, the intention is that the bound atomic ref types have the same functionality and API as `atomic_ref`.
 
 Similarly for the atomic accessors, it was decided in SG1 in Kona 2022 to add four new types.
 This proposal has chosen to make
@@ -308,7 +308,7 @@ from the point of view of the Standard and such an implementation would be allow
 
 The proposed changes are relative to [N4917](https://wg21.link/n4917):
 
-## Bounded atomic ref
+## Bound atomic ref
 
 ### Add the following just before [atomics.types.generic]:
 
