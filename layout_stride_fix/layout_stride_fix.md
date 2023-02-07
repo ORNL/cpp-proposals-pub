@@ -20,7 +20,7 @@ toc: true
 
 # Revision 1:
 
-- LWG just wants the default constructor to always do what was proposed for all-static extents case
+- LWG wants the default constructor to behave the same regardless of whether all the extents are static: that is, it should fill in the strides in the same way as `layout_right::mapping` would.
 
 ## Initial Version 2023-01 Mailing
 
@@ -128,7 +128,7 @@ Add at the beginning of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] inse
 
 We believe that it is preferable to preserve default constructibility of `layout_stride` for all specializations of `layout_stride` to simplify a number of generic programming cases -- specifically, if layout policies are used directly in higher-level data structures for which the user wants to enable default constructibility.
 
-Based on feedback in LWG we leave out the defaulted constructor for cases with dynamic extents and just always default construct layout_stride as if it were a layout_right with the same default constructed extents.
+Based on feedback in LWG we leave out the defaulted constructor for cases with dynamic extents and just always default construct `layout_stride::mapping` as if it were a `layout_right::mapping` with the same default constructed `extents`.
 
 ## Proposed Wording
 

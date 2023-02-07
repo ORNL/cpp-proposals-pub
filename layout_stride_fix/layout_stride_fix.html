@@ -471,8 +471,10 @@ extents</a></li>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
 <h1 data-number="2" id="revision-1"><span class="header-section-number">2</span> Revision 1:<a href="#revision-1" class="self-link"></a></h1>
 <ul>
-<li>LWG just wants the default constructor to always do what was
-proposed for all-static extents case</li>
+<li>LWG wants the default constructor to behave the same regardless of
+whether all the extents are static: that is, it should fill in the
+strides in the same way as <code>layout_right::mapping</code>
+would.</li>
 </ul>
 <h2 data-number="2.1" id="initial-version-2023-01-mailing"><span class="header-section-number">2.1</span> Initial Version 2023-01
 Mailing<a href="#initial-version-2023-01-mailing" class="self-link"></a></h2>
@@ -575,8 +577,9 @@ higher-level data structures for which the user wants to enable default
 constructibility.</p>
 <p>Based on feedback in LWG we leave out the defaulted constructor for
 cases with dynamic extents and just always default construct
-layout_stride as if it were a layout_right with the same default
-constructed extents.</p>
+<code>layout_stride::mapping</code> as if it were a
+<code>layout_right::mapping</code> with the same default constructed
+<code>extents</code>.</p>
 <h2 data-number="4.4" id="proposed-wording"><span class="header-section-number">4.4</span> Proposed Wording<a href="#proposed-wording" class="self-link"></a></h2>
 <p>In subsection 24.7.3.4.7.1 [mdspan.layout.stride.overview]
 replace:</p>
