@@ -1,6 +1,6 @@
 ---
 title: "Atomic Refs Bounded to Memory Orderings & Atomic Accessors"
-document: P2689R1
+document: P2689R2
 date: today
 audience: SG1 & LEWG
 author:
@@ -19,6 +19,48 @@ toc: true
 
 
 # Revision History
+
+## P2689R2 (SG1 Issaquah 2023 discussion)
+
+- Renamed `atomic-ref-bounded` to `atomic.ref.bound`
+- Renamed `atomic-ref-unbounded` to `atomic-ref-unbound`
+- Fixed the wording for `basic-atomic-accessor::offset`
+- Fixed the wording for `basic-atomic-accessor::access`
+
+### Issaquah 2023 SG1 Polls
+
+Forward P2689R1 to LEWG, targeting C++26
+Incl. wording changes:
+<br>
+- Atomic ref [un]bounded to [un]bound
+<br>
+- Basic atomic accessors `access()` effects should be
+`return reference(p[i]);`
+<br>
+- Basic atomic accessors `offset()` effects should be
+`return p+i;`
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>9</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+Unanimous consent
+
 
 ## P2689R1 2023-01 (pre-Issaquah 2023) mailing
 
@@ -209,7 +251,7 @@ The above example is available on godbolt: https://godbolt.org/z/jY17Yoje1 .
 Three options for atomic refs were discussed in SG1 in Kona 2022:  add new types for `memory_order` bounded atomic refs, add a new `memory_order` template parameter to the existing `atomic_ref`, or add a constructor to the existing `atomic_ref` that takes a `memory_order` and stores it.  Given that the last two are ABI breaks, the first option was polled and chosen.
 It was also decided that the new bounded atomic refs would not support overriding the specified `memory_order` at run time.
 
-This proposal has chosen to make a general exposition-only template `atomic-ref-bounded` that takes a `memory_order` as a template argument
+This proposal has chosen to make a general exposition-only template `atomic-ref-bound` that takes a `memory_order` as a template argument
 and alias templates for the three specific bounded atomic refs.
 Also, the various member functions are constrained by integral types not including `bool`, floating point types and pointer types, as opposed to the different template specializations specified for `atomic_ref`.
 Other than not being able to specifiy the `memory_order` at run time, the intention is that the bounded atomic ref types have the same functionality and API as `atomic_ref`.
@@ -222,7 +264,7 @@ a general exposition-only template `basic-atomic-accessor` which takes the `refe
 
 This proposal uses alias templates to exposition-only types for `atomic_ref_relaxed`, `atomic_accessor`, etc.
 However, we do not want to prescribe a particular implementation.
-For instance, if an implementer wished to derive from an `atomic-ref-bounded`-like type (to get a more
+For instance, if an implementer wished to derive from an `atomic-ref-bound`-like type (to get a more
 user friendly name mangling, which is something not normally covered by the Standard), would
 they be allowed to do so?  We believe an alias template to an exposition-only type is not observable
 from the point of view of the Standard and such an implementation would be allowed, but we request clarification on this.
@@ -250,17 +292,17 @@ The proposed changes are relative to [N4917](https://wg21.link/n4917):
 
 ### Add the following just before [atomics.types.generic]:
 
-<b>Class template `atomic-ref-bounded` [atomics.ref.bounded]</b>
+<b>Class template `atomic-ref-bound` [atomics.ref.bound]</b>
 
-<b>General [atomics.ref.bounded.general]</b>
+<b>General [atomics.ref.bound.general]</b>
 
 ```c++
 // all freestanding
 template <class T, memory_order MemoryOrder>
-struct atomic-ref-bounded {  // exposition only
+struct atomic-ref-bound {  // exposition only
    private:
-    using atomic_ref_unbounded = atomic_ref<T>;  // exposition only
-    atomic_ref_unbounded ref;                    // exposition only
+    using atomic_ref_unbound = atomic_ref<T>;  // exposition only
+    atomic_ref_unbound ref;                    // exposition only
 
     static constexpr memory_order store_ordering =
         MemoryOrder == memory_order_acq_rel ? memory_order_release
@@ -281,14 +323,14 @@ struct atomic-ref-bounded {  // exposition only
     using value_type = T;
     using difference_type = ptrdiff_t;
     static constexpr memory_order memory_ordering = MemoryOrder;
-    static constexpr size_t required_alignment = atomic_ref_unbounded::required_alignment;
+    static constexpr size_t required_alignment = atomic_ref_unbound::required_alignment;
 
-    static constexpr bool is_always_lock_free = atomic_ref_unbounded::is_always_lock_free;
+    static constexpr bool is_always_lock_free = atomic_ref_unbound::is_always_lock_free;
     bool is_lock_free() const noexcept;
 
-    explicit atomic-ref-bounded(T& t);
-    atomic-ref-bounded(atomic-ref-bounded const& a) noexcept;
-    atomic-ref-bounded& operator=(atomic-ref-bounded const&) = delete;
+    explicit atomic-ref-bound(T& t);
+    atomic-ref-bound(atomic-ref-bound const& a) noexcept;
+    atomic-ref-bound& operator=(atomic-ref-bound const&) = delete;
 
     void store(T desired) const noexcept;
     T operator=(T desired) const noexcept;
@@ -327,7 +369,7 @@ struct atomic-ref-bounded {  // exposition only
     void notify_all() const noexcept;
 };
 ```
-[1]{.pnum} Class `atomic-ref-bounded` is for exposition only.
+[1]{.pnum} Class `atomic-ref-bound` is for exposition only.
 
 [2]{.pnum} *Mandates:*
 
@@ -340,14 +382,14 @@ Unlike `atomic_ref`, the memory ordering for the arithmetic operators is `Memory
 necessarily `memory_order_seq_cst`.
 <i>-- end note]</i>
 
-**Operations [atomics.ref.bounded.ops]**
+**Operations [atomics.ref.bound.ops]**
 ```c++
 bool is_lock_free() const noexcept;
 ```
 [1]{.pnum} *Effects:* Equivalent to: `return ref.is_lock_free();`
 
 ```c++
-explicit atomic-ref-bounded(T& t);
+explicit atomic-ref-bound(T& t);
 ```
 
 [2]{.pnum} *Preconditions:* The referenced object is aligned to `required_alignment`.
@@ -357,7 +399,7 @@ explicit atomic-ref-bounded(T& t);
 [4]{.pnum} *Throws:* Nothing.
 
 ```c++
-atomic-ref-bounded(atomic-ref-bounded const& a) noexcept;
+atomic-ref-bound(atomic-ref-bound const& a) noexcept;
 ```
 [5]{.pnum} *Postconditions:* `*this` references the object referenced by `a`.
 
@@ -539,19 +581,19 @@ void notify_all() const noexcept;
 [51]{.pnum} *Effects:* Equivalent to: `ref.notify_all(); }`
 
 
-<b>Memory Order Specific Atomic Refs [atomics.refs.bounded.order]</b>
+<b>Memory Order Specific Atomic Refs [atomics.refs.bound.order]</b>
 
 ```c++
 // all freestanding
 namespace std {
 template<class T>
-using atomic_ref_relaxed = atomic-ref-bounded<T, memory_order_relaxed>;
+using atomic_ref_relaxed = atomic-ref-bound<T, memory_order_relaxed>;
 
 template<class T>
-using atomic_ref_acq_rel = atomic-ref-bounded<T, memory_order_acq_rel>;
+using atomic_ref_acq_rel = atomic-ref-bound<T, memory_order_acq_rel>;
 
 template<class T>
-using atomic_ref_seq_cst = atomic-ref-bounded<T, memory_order_seq_cst>;
+using atomic_ref_seq_cst = atomic-ref-bound<T, memory_order_seq_cst>;
 }
 ```
 
@@ -612,12 +654,11 @@ constexpr basic-atomic-accessor(basic-atomic-accessor<OtherElementType, Referenc
 ```c++
 constexpr reference access(data_handle_type p, size_t i) const noexcept;
 ```
-[2]{.pnum} *Effects:* Equivalent to `return reference(p + i);`
-
+[2]{.pnum} *Effects:* Equivalent to `return p[i];`
 ```c++
 constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept;
 ```
-[3]{.pnum} *Effects:* Equivalent to `return p[i];`
+[3]{.pnum} *Effects:* Equivalent to `return reference(p + i);`
 
 <b>Atomic accessors [mdspan.accessor.atomic]</b>
 ```c++
