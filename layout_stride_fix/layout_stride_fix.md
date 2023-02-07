@@ -153,6 +153,8 @@ Add at the beginning of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] inse
     constexpr mapping() noexcept;
 ```
 
+*Preconditions*: `layout_right::mapping<extents_type>.required_­span_­size()` is representable as a value of type `index_­type` ([[basic.fundamental]](https://eel.is/c++draft/basic.fundamental)).
+
 *Effects:* Direct-non-list-initializes _`extents_`_ with `extents_type()` , and for all $d$ in the range $[$`0, `_`rank_`_$)$, 
            direct-non-list-initializes _`strides_`_`[d]` with `layout_right::mapping<extents_type>().stride(d)`.
 
