@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-02-06" />
+  <meta name="dcterms.date" content="2023-02-07" />
   <title>Atomic Refs Bound to Memory Orderings &amp; Atomic Accessors</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ Orderings &amp; Atomic Accessors</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-02-06</td>
+    <td>2023-02-07</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -467,24 +467,23 @@ Mailing</a>
 </ul></li>
 <li><a href="#rational" id="toc-rational"><span class="toc-section-number">2</span> Rational</a></li>
 <li><a href="#design-decisions" id="toc-design-decisions"><span class="toc-section-number">3</span> Design decisions</a></li>
-<li><a href="#note-to-lwg" id="toc-note-to-lwg"><span class="toc-section-number">4</span> Note to LWG</a></li>
-<li><a href="#open-questions" id="toc-open-questions"><span class="toc-section-number">5</span> Open questions</a></li>
-<li><a href="#wording" id="toc-wording"><span class="toc-section-number">6</span> Wording</a>
+<li><a href="#open-questions" id="toc-open-questions"><span class="toc-section-number">4</span> Open questions</a></li>
+<li><a href="#wording" id="toc-wording"><span class="toc-section-number">5</span> Wording</a>
 <ul>
-<li><a href="#bound-atomic-ref" id="toc-bound-atomic-ref"><span class="toc-section-number">6.1</span> Bound atomic ref</a>
+<li><a href="#bound-atomic-ref" id="toc-bound-atomic-ref"><span class="toc-section-number">5.1</span> Bound atomic ref</a>
 <ul>
-<li><a href="#add-the-following-just-before-atomics.types.generic" id="toc-add-the-following-just-before-atomics.types.generic"><span class="toc-section-number">6.1.1</span> Add the following just before
+<li><a href="#add-the-following-just-before-atomics.types.generic" id="toc-add-the-following-just-before-atomics.types.generic"><span class="toc-section-number">5.1.1</span> Add the following just before
 [atomics.types.generic]:</a></li>
-<li><a href="#in-version.syn" id="toc-in-version.syn"><span class="toc-section-number">6.1.2</span> In [version.syn]:</a></li>
+<li><a href="#in-version.syn" id="toc-in-version.syn"><span class="toc-section-number">5.1.2</span> In [version.syn]:</a></li>
 </ul></li>
-<li><a href="#atomic-accessors" id="toc-atomic-accessors"><span class="toc-section-number">6.2</span> Atomic Accessors</a>
+<li><a href="#atomic-accessors" id="toc-atomic-accessors"><span class="toc-section-number">5.2</span> Atomic Accessors</a>
 <ul>
-<li><a href="#put-the-following-before-mdspan.mdspan" id="toc-put-the-following-before-mdspan.mdspan"><span class="toc-section-number">6.2.1</span> Put the following before
+<li><a href="#put-the-following-before-mdspan.mdspan" id="toc-put-the-following-before-mdspan.mdspan"><span class="toc-section-number">5.2.1</span> Put the following before
 [mdspan.mdspan]:</a></li>
 </ul></li>
-<li><a href="#in-version.syn-1" id="toc-in-version.syn-1"><span class="toc-section-number">6.3</span> In [version.syn]</a></li>
+<li><a href="#in-version.syn-1" id="toc-in-version.syn-1"><span class="toc-section-number">5.3</span> In [version.syn]</a></li>
 </ul></li>
-<li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">7</span> Acknowledgments</a></li>
+<li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">6</span> Acknowledgments</a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
@@ -492,15 +491,16 @@ Mailing</a>
 discussion)<a href="#p2689r2-sg1-issaquah-2023-discussion" class="self-link"></a></h2>
 <ul>
 <li>Renamed <code>atomic-ref-bounded</code> to
-<code>atomic.ref.bound</code></li>
+<code>atomic-ref-bound</code></li>
 <li>Renamed <code>atomic-ref-unbounded</code> to
 <code>atomic-ref-unbound</code></li>
 <li>Fixed the wording for
 <code>basic-atomic-accessor::offset</code></li>
 <li>Fixed the wording for
 <code>basic-atomic-accessor::access</code></li>
-<li>If P2616R3 is also approved, similar changes should be applied to
-<code>atomic-ref-bound</code> as well</li>
+<li>If P2616R3 (Making std::atomic notification/wait operations usable
+in more situations) is also approved, similar changes should be applied
+to <code>atomic-ref-bound</code> as well</li>
 </ul>
 <h3 data-number="1.1.1" id="issaquah-2023-sg1-polls"><span class="header-section-number">1.1.1</span> Issaquah 2023 SG1 Polls<a href="#issaquah-2023-sg1-polls" class="self-link"></a></h3>
 <h4 data-number="1.1.1.1" id="p2689-poll"><span class="header-section-number">1.1.1.1</span> P2689 poll<a href="#p2689-poll" class="self-link"></a></h4>
@@ -929,13 +929,13 @@ that the bound atomic ref types have the same functionality and API as
 exposition-only template <code>basic-atomic-accessor</code> which takes
 the <code>reference</code> type as a template parameter, and four alias
 templates for the specific atomic accessors.</p>
-<h1 data-number="4" id="note-to-lwg"><span class="header-section-number">4</span> Note to LWG<a href="#note-to-lwg" class="self-link"></a></h1>
-<p>Assuming both papers are approved, similar changes to
-<code>atomic_ref</code> in P2616R3 should also be applied to
+<p>Assuming both papers are approved, SG1 voted that similar changes to
+<code>atomic_ref</code> in P2616R3 (Making std::atomic notification/wait
+operations usable in more situations) should also be applied to
 <code>atomic-ref-bound</code>. They are not yet in the wording of either
 paper, as we do not know what order LWG will apply them to the working
 draft.</p>
-<h1 data-number="5" id="open-questions"><span class="header-section-number">5</span> Open questions<a href="#open-questions" class="self-link"></a></h1>
+<h1 data-number="4" id="open-questions"><span class="header-section-number">4</span> Open questions<a href="#open-questions" class="self-link"></a></h1>
 <p>This proposal uses alias templates to exposition-only types for
 <code>atomic_ref_relaxed</code>, <code>atomic_accessor</code>, etc.
 However, we do not want to prescribe a particular implementation. For
@@ -960,10 +960,10 @@ clarification on this.</p>
                                                          |  $$$$$$/
                                                           \______/
 -->
-<h1 data-number="6" id="wording"><span class="header-section-number">6</span> Wording<a href="#wording" class="self-link"></a></h1>
+<h1 data-number="5" id="wording"><span class="header-section-number">5</span> Wording<a href="#wording" class="self-link"></a></h1>
 <p>The proposed changes are relative to <a href="https://wg21.link/n4917">N4917</a>:</p>
-<h2 data-number="6.1" id="bound-atomic-ref"><span class="header-section-number">6.1</span> Bound atomic ref<a href="#bound-atomic-ref" class="self-link"></a></h2>
-<h3 data-number="6.1.1" id="add-the-following-just-before-atomics.types.generic"><span class="header-section-number">6.1.1</span> Add the following just before
+<h2 data-number="5.1" id="bound-atomic-ref"><span class="header-section-number">5.1</span> Bound atomic ref<a href="#bound-atomic-ref" class="self-link"></a></h2>
+<h3 data-number="5.1.1" id="add-the-following-just-before-atomics.types.generic"><span class="header-section-number">5.1.1</span> Add the following just before
 [atomics.types.generic]:<a href="#add-the-following-just-before-atomics.types.generic" class="self-link"></a></h3>
 <p><b>Class template <code>atomic-ref-bound</code>
 [atomics.ref.bound]</b></p>
@@ -1250,10 +1250,10 @@ is <code>true</code>.</p>
 <span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
 <span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_ref_seq_cst <span class="op">=</span> atomic<span class="op">-</span>ref<span class="op">-</span>bound<span class="op">&lt;</span>T, memory_order_seq_cst<span class="op">&gt;</span>;</span>
 <span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 data-number="6.1.2" id="in-version.syn"><span class="header-section-number">6.1.2</span> In [version.syn]:<a href="#in-version.syn" class="self-link"></a></h3>
+<h3 data-number="5.1.2" id="in-version.syn"><span class="header-section-number">5.1.2</span> In [version.syn]:<a href="#in-version.syn" class="self-link"></a></h3>
 <p>Update the feature test macro <code>__cpp_lib_atomic_ref</code>.</p>
-<h2 data-number="6.2" id="atomic-accessors"><span class="header-section-number">6.2</span> Atomic Accessors<a href="#atomic-accessors" class="self-link"></a></h2>
-<h3 data-number="6.2.1" id="put-the-following-before-mdspan.mdspan"><span class="header-section-number">6.2.1</span> Put the following before
+<h2 data-number="5.2" id="atomic-accessors"><span class="header-section-number">5.2</span> Atomic Accessors<a href="#atomic-accessors" class="self-link"></a></h2>
+<h3 data-number="5.2.1" id="put-the-following-before-mdspan.mdspan"><span class="header-section-number">5.2.1</span> Put the following before
 [mdspan.mdspan]:<a href="#put-the-following-before-mdspan.mdspan" class="self-link"></a></h3>
 <p><b>Class template <code>basic-atomic-accessor</code>
 [mdspan.accessor.basic]</b></p>
@@ -1322,10 +1322,10 @@ is <code>true</code>.</p>
 <span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span> <span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
 <span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> atomic_accessor_seq_cst <span class="op">=</span> basic<span class="op">-</span>atomic<span class="op">-</span>accessor<span class="op">&lt;</span>ElementType, atomic_ref_seq_cst<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
 <span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h2 data-number="6.3" id="in-version.syn-1"><span class="header-section-number">6.3</span> In [version.syn]<a href="#in-version.syn-1" class="self-link"></a></h2>
+<h2 data-number="5.3" id="in-version.syn-1"><span class="header-section-number">5.3</span> In [version.syn]<a href="#in-version.syn-1" class="self-link"></a></h2>
 <p>Add the following feature test macro:</p>
 <p><code>#define __cpp_lib_atomic_accessors YYYYMML // also in &lt;mdspan&gt;</code></p>
-<h1 data-number="7" id="acknowledgments"><span class="header-section-number">7</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
+<h1 data-number="6" id="acknowledgments"><span class="header-section-number">6</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
 <p>Sandia National Laboratories is a multimission laboratory managed and
 operated by National Technology and Engineering Solutions of Sandia,
 LLC., a wholly owned subsidiary of Honeywell International, Inc., for

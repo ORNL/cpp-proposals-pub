@@ -22,11 +22,11 @@ toc: true
 
 ## P2689R2 (SG1 Issaquah 2023 discussion)
 
-- Renamed `atomic-ref-bounded` to `atomic.ref.bound`
+- Renamed `atomic-ref-bounded` to `atomic-ref-bound`
 - Renamed `atomic-ref-unbounded` to `atomic-ref-unbound`
 - Fixed the wording for `basic-atomic-accessor::offset`
 - Fixed the wording for `basic-atomic-accessor::access`
-- If P2616R3 is also approved, similar changes should be applied to `atomic-ref-bound` as well
+- If P2616R3 (Making std::atomic notification/wait operations usable in more situations) is also approved, similar changes should be applied to `atomic-ref-bound` as well
 
 ### Issaquah 2023 SG1 Polls
 
@@ -276,9 +276,7 @@ Similarly for the atomic accessors, it was decided in SG1 in Kona 2022 to add fo
 This proposal has chosen to make
 a general exposition-only template `basic-atomic-accessor` which takes the `reference` type as a template parameter, and four alias templates for the specific atomic accessors.
 
-# Note to LWG
-
-Assuming both papers are approved, similar changes to `atomic_ref` in P2616R3 should also be applied to `atomic-ref-bound`.  They are not yet in the wording of either paper, as we do not know what order LWG will apply them to the working draft.
+Assuming both papers are approved, SG1 voted that similar changes to `atomic_ref` in P2616R3 (Making std::atomic notification/wait operations usable in more situations) should also be applied to `atomic-ref-bound`.  They are not yet in the wording of either paper, as we do not know what order LWG will apply them to the working draft.
 
 # Open questions
 
