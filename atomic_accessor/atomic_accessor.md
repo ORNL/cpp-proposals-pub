@@ -674,11 +674,11 @@ constexpr basic-atomic-accessor(basic-atomic-accessor<OtherElementType, Referenc
 ```c++
 constexpr reference access(data_handle_type p, size_t i) const noexcept;
 ```
-[2]{.pnum} *Effects:* Equivalent to `return p[i];`
+[2]{.pnum} *Effects:* Equivalent to `return reference(p[i]);`
 ```c++
 constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept;
 ```
-[3]{.pnum} *Effects:* Equivalent to `return reference(p + i);`
+[3]{.pnum} *Effects:* Equivalent to `return p + i;`
 
 <b>Atomic accessors [mdspan.accessor.atomic]</b>
 ```c++
