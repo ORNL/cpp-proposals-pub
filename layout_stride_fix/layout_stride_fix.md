@@ -18,6 +18,9 @@ toc: true
 
 # Revision History
 
+# Revision 1:
+
+- LWG just wants the default constructor to always do what was proposed for all-static extents case
 
 ## Initial Version 2023-01 Mailing
 
@@ -125,6 +128,8 @@ Add at the beginning of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] inse
 
 We believe that it is preferable to preserve default constructibility of `layout_stride` for all specializations of `layout_stride` to simplify a number of generic programming cases -- specifically, if layout policies are used directly in higher-level data structures for which the user wants to enable default constructibility.
 
+Based on feedback in LWG we leave out the defaulted constructor for cases with dynamic extents and just always default construct layout_stride as if it were a layout_right with the same default constructed extents.
+
 ## Proposed Wording
 
 
@@ -138,18 +143,14 @@ In subsection 24.7.3.4.7.1 [mdspan.layout.stride.overview] replace:
 With:
 ```c++
     // [mdspan.layout.stride.cons], constructors
-    constexpr mapping() 
-      requires(extents_type::rank_dynamic()>0 || extents_type::rank()==0) noexcept = default;
-    constexpr mapping() 
-      requires(extents_type::rank_dynamic()==0 && extents_type::rank()>0) noexcept;
+    constexpr mapping() noexcept; 
     constexpr mapping(const mapping&) noexcept = default;
 ```
 
 Add at the beginning of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] insert:
 
 ```c++
-    constexpr mapping() 
-      requires(extents_type::rank_dynamic()==0 && extents_type::rank()>0) noexcept;
+    constexpr mapping() noexcept;
 ```
 
 *Effects:* Direct-non-list-initializes _`extents_`_ with `extents_type()` , and for all $d$ in the range $[$`0, `_`rank_`_$)$, 
