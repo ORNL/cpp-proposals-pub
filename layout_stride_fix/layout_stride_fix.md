@@ -1,6 +1,6 @@
 ---
 title: "`layout_stride` static extents default constructor fix"
-document: P2763
+document: P2763R1
 date: today
 audience: LWG
 author:
@@ -18,6 +18,10 @@ toc: true
 
 # Revision History
 
+# Revision 1:
+
+- LWG wants the default constructor to behave the same regardless of whether all the extents are static: that is, it should fill in the strides in the same way as `layout_right::mapping` would.
+- add precondtion to ensure representability in index type of the required span size.
 
 ## Initial Version 2023-01 Mailing
 
@@ -125,6 +129,8 @@ Add at the beginning of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] inse
 
 We believe that it is preferable to preserve default constructibility of `layout_stride` for all specializations of `layout_stride` to simplify a number of generic programming cases -- specifically, if layout policies are used directly in higher-level data structures for which the user wants to enable default constructibility.
 
+Based on feedback in LWG we leave out the defaulted constructor for cases with dynamic extents and just always default construct `layout_stride::mapping` as if it were a `layout_right::mapping` with the same default constructed `extents`.
+
 ## Proposed Wording
 
 
@@ -138,19 +144,17 @@ In subsection 24.7.3.4.7.1 [mdspan.layout.stride.overview] replace:
 With:
 ```c++
     // [mdspan.layout.stride.cons], constructors
-    constexpr mapping() 
-      requires(extents_type::rank_dynamic()>0 || extents_type::rank()==0) noexcept = default;
-    constexpr mapping() 
-      requires(extents_type::rank_dynamic()==0 && extents_type::rank()>0) noexcept;
+    constexpr mapping() noexcept; 
     constexpr mapping(const mapping&) noexcept = default;
 ```
 
 Add at the beginning of subsection 24.7.3.4.7.3 [mdspan.layout.stride.cons] insert:
 
 ```c++
-    constexpr mapping() 
-      requires(extents_type::rank_dynamic()==0 && extents_type::rank()>0) noexcept;
+    constexpr mapping() noexcept;
 ```
+
+*Preconditions*: `layout_right::mapping<extents_type>().required_span_size()` is representable as a value of type `index_type` ([[basic.fundamental]](https://eel.is/c++draft/basic.fundamental)).
 
 *Effects:* Direct-non-list-initializes _`extents_`_ with `extents_type()` , and for all $d$ in the range $[$`0, `_`rank_`_$)$, 
            direct-non-list-initializes _`strides_`_`[d]` with `layout_right::mapping<extents_type>().stride(d)`.
