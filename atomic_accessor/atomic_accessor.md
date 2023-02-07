@@ -26,8 +26,11 @@ toc: true
 - Renamed `atomic-ref-unbounded` to `atomic-ref-unbound`
 - Fixed the wording for `basic-atomic-accessor::offset`
 - Fixed the wording for `basic-atomic-accessor::access`
+- If P2616R3 is also approved, similar changes should be applied to `atomic-ref-bound` as well
 
 ### Issaquah 2023 SG1 Polls
+
+#### P2689 poll
 
 Forward P2689R1 to LEWG, targeting C++26
 Incl. wording changes:
@@ -61,6 +64,19 @@ Incl. wording changes:
 </table>
 Unanimous consent
 
+#### P2616 poll
+Apply changes in P2616R3 to the additions of P2689R1
+<table>
+<thead>
+<tr>
+<th>SF</th>
+<th>F</th>
+<th>N</th>
+<th>A</th>
+<th>SA</th>
+</tr>
+</table>
+No objection to unanimous consent
 
 ## P2689R1 2023-01 (pre-Issaquah 2023) mailing
 
@@ -259,6 +275,10 @@ Other than not being able to specifiy the `memory_order` at run time, the intent
 Similarly for the atomic accessors, it was decided in SG1 in Kona 2022 to add four new types.
 This proposal has chosen to make
 a general exposition-only template `basic-atomic-accessor` which takes the `reference` type as a template parameter, and four alias templates for the specific atomic accessors.
+
+# Note to LWG
+
+Assuming both papers are approved, similar changes to `atomic_ref` in P2616R3 should also be applied to `atomic-ref-bound`.  They are not yet in the wording of either paper, as we do not know what order LWG will apply them to the working draft.
 
 # Open questions
 
