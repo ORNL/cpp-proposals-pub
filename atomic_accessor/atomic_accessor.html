@@ -5,7 +5,7 @@
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="dcterms.date" content="2023-02-06" />
-  <title>Atomic Refs Bounded to Memory Orderings &amp; Atomic Accessors</title>
+  <title>Atomic Refs Bound to Memory Orderings &amp; Atomic Accessors</title>
   <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -415,8 +415,8 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <body>
 <div class="wrapper">
 <header id="title-block-header">
-<h1 class="title" style="text-align:center">Atomic Refs Bounded to
-Memory Orderings &amp; Atomic Accessors</h1>
+<h1 class="title" style="text-align:center">Atomic Refs Bound to Memory
+Orderings &amp; Atomic Accessors</h1>
 
 <table style="border:none;float:right">
   <tr>
@@ -471,7 +471,7 @@ Mailing</a>
 <li><a href="#open-questions" id="toc-open-questions"><span class="toc-section-number">5</span> Open questions</a></li>
 <li><a href="#wording" id="toc-wording"><span class="toc-section-number">6</span> Wording</a>
 <ul>
-<li><a href="#bounded-atomic-ref" id="toc-bounded-atomic-ref"><span class="toc-section-number">6.1</span> Bounded atomic ref</a>
+<li><a href="#bound-atomic-ref" id="toc-bound-atomic-ref"><span class="toc-section-number">6.1</span> Bound atomic ref</a>
 <ul>
 <li><a href="#add-the-following-just-before-atomics.types.generic" id="toc-add-the-following-just-before-atomics.types.generic"><span class="toc-section-number">6.1.1</span> Add the following just before
 [atomics.types.generic]:</a></li>
@@ -740,7 +740,7 @@ SA
 </table>
 <h1 data-number="2" id="rational"><span class="header-section-number">2</span> Rational<a href="#rational" class="self-link"></a></h1>
 <p>This proposal adds three <code>atomic_ref</code> like types each
-bounded to a particular <code>memory_order</code>. The API differs from
+bound to a particular <code>memory_order</code>. The API differs from
 <code>atomic_ref</code> in that the <code>memory_order</code> cannot be
 specified at run time; i.e., none of its member functions take a
 <code>memory_order</code> parameter. In the specific case of
@@ -906,23 +906,23 @@ following demonstrates this with a function computing a histogram:</p>
 https://godbolt.org/z/jY17Yoje1 .</p>
 <h1 data-number="3" id="design-decisions"><span class="header-section-number">3</span> Design decisions<a href="#design-decisions" class="self-link"></a></h1>
 <p>Three options for atomic refs were discussed in SG1 in Kona 2022: add
-new types for <code>memory_order</code> bounded atomic refs, add a new
+new types for <code>memory_order</code> bound atomic refs, add a new
 <code>memory_order</code> template parameter to the existing
 <code>atomic_ref</code>, or add a constructor to the existing
 <code>atomic_ref</code> that takes a <code>memory_order</code> and
 stores it. Given that the last two are ABI breaks, the first option was
-polled and chosen. It was also decided that the new bounded atomic refs
+polled and chosen. It was also decided that the new bound atomic refs
 would not support overriding the specified <code>memory_order</code> at
 run time.</p>
 <p>This proposal has chosen to make a general exposition-only template
 <code>atomic-ref-bound</code> that takes a <code>memory_order</code> as
-a template argument and alias templates for the three specific bounded
+a template argument and alias templates for the three specific bound
 atomic refs. Also, the various member functions are constrained by
 integral types not including <code>bool</code>, floating point types and
 pointer types, as opposed to the different template specializations
 specified for <code>atomic_ref</code>. Other than not being able to
 specifiy the <code>memory_order</code> at run time, the intention is
-that the bounded atomic ref types have the same functionality and API as
+that the bound atomic ref types have the same functionality and API as
 <code>atomic_ref</code>.</p>
 <p>Similarly for the atomic accessors, it was decided in SG1 in Kona
 2022 to add four new types. This proposal has chosen to make a general
@@ -962,7 +962,7 @@ clarification on this.</p>
 -->
 <h1 data-number="6" id="wording"><span class="header-section-number">6</span> Wording<a href="#wording" class="self-link"></a></h1>
 <p>The proposed changes are relative to <a href="https://wg21.link/n4917">N4917</a>:</p>
-<h2 data-number="6.1" id="bounded-atomic-ref"><span class="header-section-number">6.1</span> Bounded atomic ref<a href="#bounded-atomic-ref" class="self-link"></a></h2>
+<h2 data-number="6.1" id="bound-atomic-ref"><span class="header-section-number">6.1</span> Bound atomic ref<a href="#bound-atomic-ref" class="self-link"></a></h2>
 <h3 data-number="6.1.1" id="add-the-following-just-before-atomics.types.generic"><span class="header-section-number">6.1.1</span> Add the following just before
 [atomics.types.generic]:<a href="#add-the-following-just-before-atomics.types.generic" class="self-link"></a></h3>
 <p><b>Class template <code>atomic-ref-bound</code>
