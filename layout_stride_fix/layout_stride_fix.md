@@ -1,6 +1,6 @@
 ---
 title: "`layout_stride` static extents default constructor fix"
-document: P2763
+document: P2763R1
 date: today
 audience: LWG
 author:
@@ -21,6 +21,7 @@ toc: true
 # Revision 1:
 
 - LWG wants the default constructor to behave the same regardless of whether all the extents are static: that is, it should fill in the strides in the same way as `layout_right::mapping` would.
+- add precondtion to ensure representability in index type of the required span size.
 
 ## Initial Version 2023-01 Mailing
 
