@@ -534,6 +534,10 @@ options</a></li>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
 <h2 data-number="1.1" id="p1684r5-to-be-submitted"><span class="header-section-number">1.1</span> P1684R5: To be submitted<a href="#p1684r5-to-be-submitted" class="self-link"></a></h2>
 <h3 data-number="1.1.1" id="changes-from-r4"><span class="header-section-number">1.1.1</span> Changes from R4<a href="#changes-from-r4" class="self-link"></a></h3>
+<ul>
+<li>Add nonwording explanation why we don’t add a way to extract the
+container from an mdarray</li>
+</ul>
 <h2 data-number="1.2" id="p1684r4-2023-01-mailing"><span class="header-section-number">1.2</span> P1684R4: 2023-01 Mailing<a href="#p1684r4-2023-01-mailing" class="self-link"></a></h2>
 <h3 data-number="1.2.1" id="changes-from-r3"><span class="header-section-number">1.2.1</span> Changes from R3<a href="#changes-from-r3" class="self-link"></a></h3>
 <ul>
@@ -599,20 +603,19 @@ was voted into the C++23 draft. This proposal builds on
 <code>vector</code> as <code>mdspan</code> is to <code>span</code>.
 Owning semantics can make it easier for users to express common cases,
 like returning an array from a function. It also makes it much easier to
-create a multi dimensional array for use:</p>
+create a multidimensional array for use:</p>
 <p><strong>C++23:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a mapping so one knows how many </span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// elements the buffer needs to have</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>dextents<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;</span> map<span class="op">(</span>N,M<span class="op">)</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">2</span><span class="op">&gt;&gt;</span> map<span class="op">(</span>N, M<span class="op">)</span>;</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Create the underlying data object</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>vector<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;</span> buffer<span class="op">(</span>map<span class="op">.</span>required_span_size<span class="op">())</span>;</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Create the mdspan</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>mdspan matrix<span class="op">(</span>buffer<span class="op">.</span>data<span class="op">()</span>, N, M<span class="op">)</span>;</span></code></pre></div>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>mdspan matrix<span class="op">(</span>buffer<span class="op">.</span>data<span class="op">()</span>, map<span class="op">)</span>;</span></code></pre></div>
 <p><strong>This Work:</strong></p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">&lt;</span><span class="dt">double</span>, dextents<span class="op">&lt;</span><span class="dv">3</span>,<span class="dv">3</span><span class="op">&gt;&gt;</span> matrix<span class="op">(</span>N,M<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">&lt;</span><span class="dt">double</span>, dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">2</span><span class="op">&gt;&gt;</span> matrix<span class="op">(</span>N, M<span class="op">)</span>;</span></code></pre></div>
 <p>In addition, especially for arrays with small, compile-time extents,
 <code>mdarray</code>’s owning semantics make fewer demands on
 interprocedural analysis for optimization. In particular, the lack of
@@ -868,10 +871,10 @@ instance, in the case where the <code>container</code> happens to be an
 reused<a href="#extents-design-reused" class="self-link"></a></h2>
 <p>As with <code>mdspan</code>, the <code>Extents</code> template
 parameter to <code>mdarray</code> shall be a template instantiation of
-<code>std::extents</code>, as described in <span class="citation" data-cites="P0009R18">[<a href="#ref-P0009R18" role="doc-biblioref"><strong>P0009R18?</strong></a>]</span>. The
-concerns addressed by this aspect of the design are exactly the same in
-<code>mdarray</code> and <code>mdspan</code>, so using the same form and
-mechanism seems like the right thing to do here.</p>
+<code>std::extents</code>. The concerns addressed by this aspect of the
+design are exactly the same in <code>mdarray</code> and
+<code>mdspan</code>, so using the same form and mechanism seems like the
+right thing to do here.</p>
 <h2 data-number="3.4" id="layoutpolicy-design-reused"><span class="header-section-number">3.4</span> <code>LayoutPolicy</code>
 design reused<a href="#layoutpolicy-design-reused" class="self-link"></a></h2>
 <p>While not quite as straightforward, the decision to use the same
@@ -917,11 +920,9 @@ return something that is (at the very least) convertible to
 <code>array</code> of the correct size:</p>
 <div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> a <span class="op">=</span> mdarray<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">3</span>, <span class="dv">3</span><span class="op">&gt;()</span>;</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>array<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">9</span><span class="op">&gt;</span> data <span class="op">=</span> <em>get-underlying-container</em><span class="op">(</span>a<span class="op">)</span>; </span></code></pre></div>
-<p>(Whether or not a reference to the underlying container should be
-obtainable is slightly less clear, though we see no reason why this
-should not be allowed.) The default for an <code>mdarray</code> with
-variable extents is only slightly less clear, though it should almost
-certainly meet the requirements of <em>contiguous container</em>
+<p>The default for an <code>mdarray</code> with variable extents is only
+slightly less clear, though it should almost certainly meet the
+requirements of <em>contiguous container</em>
 (<strong>[container.requirements.general]</strong>/13). The default
 model for <em>contiguous container</em> of variable size in the standard
 library is <code>vector</code>, so an entirely reasonable outcome would
