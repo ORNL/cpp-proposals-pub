@@ -1284,33 +1284,36 @@ container.</p>
 <h2 data-number="3.6" id="why-we-dont-propose-a-way-to-extract-the-container"><span class="header-section-number">3.6</span> Why we don’t propose a way to
 extract the container<a href="#why-we-dont-propose-a-way-to-extract-the-container" class="self-link"></a></h2>
 <p>LEWG’s review of P1684R4 included a question why we do not offer an
-operation for “extracting” the container from an mdarray. This would
-effectively move the container out of the mdarray. Users could then
-reuse the container for other mdarray objects or for other purposes.</p>
+operation for “extracting” the container from an <code>mdarray</code>.
+This would effectively move the container out of the
+<code>mdarray</code>. Users could then reuse the container for other
+<code>mdarray</code> objects or for other purposes.</p>
 <p>We argue here that this extraction functionality is unnecessary,
 because there are better ways of expressing the desired use cases.
 However, if LEWG insists on this feature, we explain its postconditions
 and how we would provide it.</p>
 <h3 data-number="3.6.1" id="meaning-of-extracting-the-container"><span class="header-section-number">3.6.1</span> Meaning of “extracting the
 container”<a href="#meaning-of-extracting-the-container" class="self-link"></a></h3>
-<p>LEWG’s review of P1684R4 asked us to consider “extracting” a
-container from an array. This does <em>not</em> mean just getting a
-reference to the container. R1 of the proposal included both const and
-nonconst overloads of a member function <code>container()</code>
-returning <code>const container_type&amp;</code> resp.
+<p>LEWG’s review of P1684R4 asked us to consider adding a way to
+“extract” the container from an <code>mdarray</code>. This does
+<em>not</em> mean just getting a reference to the container. R1 of the
+proposal included both const and nonconst overloads of a member function
+<code>container()</code> returning
+<code>const container_type&amp;</code> resp.
 <code>container_type&amp;</code>. We removed this in R2, because “it’s a
 bad idea to allow someone to resize the container owned by an
 <code>mdarray</code>.”</p>
-<p>What LEWG meant by “extraction” was a way to reuse an mdarray’s
-existing storage and reinterpret it, for example with different extents
-or layout. In the example below, functions <code>f0</code> and
-<code>f1</code> interpret the storage represented by a
-<code>std::vector&lt;float&gt;</code> in different ways. Neither of them
-allocate, and each passes along the
+<p>What LEWG meant by “extraction” was a way to reuse an
+<code>mdarray</code>’s existing storage and reinterpret it, for example
+with different extents or layout. In the example below, functions
+<code>f0</code> and <code>f1</code> interpret the storage represented by
+a <code>std::vector&lt;float&gt;</code> in different ways. Neither of
+the two functions allocate, and each passes along the
 <code>std::vector&lt;float&gt;</code> to the next operation. The
-hypothetical <code>extract_container()</code> member function of mdarray
-would move the container out of the mdarray and return the moved-from
-container as <code>mdarray::container_type&amp;&amp;</code>.</p>
+hypothetical <code>extract_container()</code> member function of
+<code>mdarray</code> would move the container out of the
+<code>mdarray</code> and return the moved-from container as
+<code>mdarray::container_type&amp;&amp;</code>.</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&amp;&amp;</span> f0<span class="op">(</span>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&amp;&amp;</span> storage<span class="op">)</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  mdarray m0<span class="op">{</span>storage, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">}</span>;</span>
@@ -1336,7 +1339,7 @@ container as <code>mdarray::container_type&amp;&amp;</code>.</p>
 <h3 data-number="3.6.2" id="existing-ways-to-get-the-same-effects"><span class="header-section-number">3.6.2</span> Existing ways to get the same
 effects<a href="#existing-ways-to-get-the-same-effects" class="self-link"></a></h3>
 <p>There are two reasons users may want to extract the container from an
-mdarray.</p>
+<code>mdarray</code>.</p>
 <ol type="1">
 <li><p>They want to reuse the container’s <em>storage</em>, but not the
 <em>elements</em>.</p></li>
@@ -1344,43 +1347,44 @@ mdarray.</p>
 <em>elements</em>.</p></li>
 </ol>
 <p>In this section, we will explain how both of these use cases are
-covered by the current mdarray design, plus existing C++ Standard
-Library features.</p>
+covered by the current <code>mdarray</code> design, plus existing C++
+Standard Library features.</p>
 <h4 data-number="3.6.2.1" id="reusing-storage-but-not-elements"><span class="header-section-number">3.6.2.1</span> Reusing storage, but not
 elements<a href="#reusing-storage-but-not-elements" class="self-link"></a></h4>
 <p>Users may want to reuse the container’s <em>storage</em>, but not the
 <em>elements</em>. That is, they do not care what the elements are when
-they create a new mdarray from a previously extracted container.</p>
+they create a new <code>mdarray</code> from a previously extracted
+container.</p>
 <p>This use case treats the container like a memory pool. That strongly
 suggests passing along a memory resource or allocator, instead of
 passing along a container. For example, they could use <a href="http://en.cppreference.com/w/cpp/memory/polymorphic_allocator"><code>std::pmr::polymorphic_allocator</code></a>
 with <a href="https://en.cppreference.com/w/cpp/memory/monotonic_buffer_resource"><code>std::pmr::monotonic_buffer_resource</code></a>.
 The following shows how that might change the above <code>f0</code>,
 <code>f1</code> example.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>f0<span class="op">(</span>std<span class="op">::</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> resource<span class="op">)</span></span>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>f0<span class="op">(</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> resource<span class="op">)</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>pmr<span class="op">::</span>polymorphic_allocator<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> allocator<span class="op">{</span>resource<span class="op">}</span>;</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  mdarray m0<span class="op">{</span>std<span class="op">::</span>pmr<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;{</span><span class="dv">24</span>, allocator<span class="op">}</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">}</span>;</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>polymorphic_allocator<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> allocator<span class="op">{</span>resource<span class="op">}</span>;</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  mdarray m0<span class="op">{</span>pmr<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;{</span><span class="dv">24</span>, allocator<span class="op">}</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">}</span>;</span>
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... compute with m0 ...</span></span>
 <span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> resource;</span>
 <span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
 <span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span></span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>f1<span class="op">(</span>std<span class="op">::</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> resource<span class="op">)</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>f1<span class="op">(</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> resource<span class="op">)</span></span>
 <span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>pmr<span class="op">::</span>polymorphic_allocator<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> allocator<span class="op">{</span>resource<span class="op">}</span>;</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  mdarray m1<span class="op">{</span>std<span class="op">::</span>pmr<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;{</span><span class="dv">24</span>, allocator<span class="op">}</span>, <span class="dv">6</span>, <span class="dv">4</span><span class="op">}</span>;</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>polymorphic_allocator<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> allocator<span class="op">{</span>resource<span class="op">}</span>;</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  mdarray m1<span class="op">{</span>pmr<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;{</span><span class="dv">24</span>, allocator<span class="op">}</span>, <span class="dv">6</span>, <span class="dv">4</span><span class="op">}</span>;</span>
 <span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... compute with m1 ...</span></span>
 <span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> resource;</span>
 <span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
 <span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
 <span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> storage<span class="op">{</span><span class="dv">24</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">}</span>;</span>
-<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>pmr<span class="op">::</span>monotonic_buffer_resource mbr<span class="op">{</span></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>  vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> storage<span class="op">{</span><span class="dv">24</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">}</span>;</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>monotonic_buffer_resource mbr<span class="op">{</span></span>
 <span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>    storage<span class="op">.</span>data<span class="op">()</span>, <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)</span> <span class="op">*</span> storage<span class="op">.</span>size<span class="op">()}</span>;</span>
-<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> mbr_ptr <span class="op">=</span> f1<span class="op">(</span>f0<span class="op">(</span>mbr<span class="op">))</span>;</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> mbr_ptr <span class="op">=</span> f1<span class="op">(</span>f0<span class="op">(</span>mbr<span class="op">))</span>;</span>
 <span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... use mbr_ptr for other things ... </span></span>
 <span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
 <span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
@@ -1391,9 +1395,9 @@ The following shows how that might change the above <code>f0</code>,
 </ol>
 <p>The second point means that users would not be able to call functions
 that use a container with an incompatible allocator type. This is
-somewhat mitigated by mdspan being the preferred function parameter type
-for array views. Putting <code>mdarray</code> in the interface of a
-function expresses an ownership transfer. That is,</p>
+somewhat mitigated by <code>mdspan</code> being the preferred function
+parameter type for array views. Putting <code>mdarray</code> in the
+interface of a function expresses an ownership transfer. That is,</p>
 <ol type="1">
 <li><p>the only reason to expose <code>mdarray</code> as a function
 parameter is if the caller is transferring ownership of the
@@ -1418,9 +1422,9 @@ cannot be resized after creation. The correct types to use are
 elements<a href="#reusing-storage-and-elements" class="self-link"></a></h4>
 <p>If users want to reuse both storage and elements of the container,
 they could just pass along a reference to the container, and view the
-elements using mdspan. This is no more complicated than the original
-<code>f0</code>, <code>f1</code> example, as the code below illustrates,
-and is arguably more idiomatic.</p>
+elements using <code>mdspan</code>. This is no more complicated than the
+original <code>f0</code>, <code>f1</code> example, as the code below
+illustrates, and is arguably more idiomatic.</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&amp;&amp;</span> f0<span class="op">(</span>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&amp;&amp;</span> storage<span class="op">)</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  mdspan m0<span class="op">{</span>storage<span class="op">.</span>data<span class="op">()</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">}</span>;</span>
@@ -1430,7 +1434,7 @@ and is arguably more idiomatic.</p>
 <span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&amp;&amp;</span> f1<span class="op">(</span>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&amp;&amp;</span> storage<span class="op">)</span></span>
 <span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  mdarray m1<span class="op">{</span>storage<span class="op">.</span>data<span class="op">()</span>, <span class="dv">6</span>, <span class="dv">4</span><span class="op">}</span>;</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  mdspan m1<span class="op">{</span>storage<span class="op">.</span>data<span class="op">()</span>, <span class="dv">6</span>, <span class="dv">4</span><span class="op">}</span>;</span>
 <span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... compute with m1 ...</span></span>
 <span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> std<span class="op">::</span>move<span class="op">(</span>storage<span class="op">)</span>;</span>
 <span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
@@ -1439,69 +1443,92 @@ and is arguably more idiomatic.</p>
 <span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Only one vector allocation, created as a temporary,</span></span>
 <span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>  <span class="co">// and moved into used_storage.</span></span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> used_storage<span class="op">(</span>f1<span class="op">(</span>f0<span class="op">(</span>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;(</span><span class="dv">24</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">))))</span>;</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>  vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> used_storage<span class="op">(</span>f1<span class="op">(</span>f0<span class="op">(</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;(</span><span class="dv">24</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">))))</span>;</span>
 <span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... use used_storage for other things ...</span></span>
 <span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
 <span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>To elaborate: Other languages and libraries have a “reshape” facility
-for reinterpreting an existing array as an array with a different
+<p>Here are some important points in the above example.</p>
+<ol type="1">
+<li><p><code>mdspan</code> views the elements in <code>storage</code>.
+It does <em>not</em> take ownership of or even store the
+container.</p></li>
+<li><p>The above example only passes the <code>vector</code> along in
+order to look as similar as possible to the first <code>f0</code>,
+<code>f1</code> example. The functions here do not <em>need</em> to pass
+the <code>vector</code> along; they just need to make sure that the
+<code>vector</code>’s lifetime contains the lifetimes of all the
+<code>mdspan</code> that view its elements.</p></li>
+</ol>
+<h4 data-number="3.6.2.3" id="reshape-reuses-storage-and-elements"><span class="header-section-number">3.6.2.3</span> “Reshape” reuses storage
+and elements<a href="#reshape-reuses-storage-and-elements" class="self-link"></a></h4>
+<p>Reusing storage and elements is equivalent to the “reshape” facility
+found in other programming languages and libraries. This facility
+reinterprets an existing array as an array with a different
 (multidimensional) “shape.” Examples include Fortran’s
-<code>RESHAPE</code> intrinsic function. The mdarray class cannot be
-“reshaped in place,” because the extents and layout are part of the
-type. Even if all the extents are dynamic, the <em>rank</em> is
+<code>RESHAPE</code> intrinsic function. The <code>mdarray</code> class
+cannot be “reshaped in place,” because the extents and layout are part
+of the type. Even if all the extents are dynamic, the <em>rank</em> is
 static.</p>
-<p>If mdarray had a facility for extracting the container, then one way
-to implement an “out-of-place reshape” would be to extract the container
-from the source mdarray and move it into a new destination mdarray.
-However, depending on the container type, this may copy the elements
-instead of viewing the original elements. An example of such a container
-type is <code>std::array</code>.</p>
+<p>If <code>mdarray</code> had a facility for extracting the container,
+then one way to implement an “out-of-place reshape” would be to extract
+the container from the source <code>mdarray</code> and move it into a
+new destination <code>mdarray</code>. However, depending on the
+container type, this may copy the elements instead of viewing the
+original elements. An example of such a container type is
+<code>std::array</code>.</p>
 <p>Thus, the only way to implement a reshape operation that
-<em>always</em> views the original elements would be to use mdspan. That
-is, the reshape operation could view an existing mdarray as an mdspan
-with different extents and/or layout.</p>
+<em>always</em> views the original elements would be to use
+<code>mdspan</code>. That is, the reshape operation could view an
+existing <code>mdarray</code> as an <code>mdspan</code> with different
+extents and/or layout.</p>
 <h3 data-number="3.6.3" id="effects-of-extracting-the-container-from-an-mdarray"><span class="header-section-number">3.6.3</span> Effects of extracting the
 container from an mdarray<a href="#effects-of-extracting-the-container-from-an-mdarray" class="self-link"></a></h3>
-<p>The discussion above explains why we do not think mdarray needs an
-operation for extracting its container. If we were nevertheless to add
-such an operation, this section explains its postconditions: that is,
-the state of the “extracted-from” mdarray.</p>
+<p>The discussion above explains why we do not think
+<code>mdarray</code> needs an operation for extracting its container. If
+we were nevertheless to add such an operation, this section explains its
+postconditions: that is, the state of the “extracted-from”
+<code>mdarray</code>.</p>
 <h4 data-number="3.6.3.1" id="an-extracted-from-mdarray-is-like-a-moved-from-object"><span class="header-section-number">3.6.3.1</span> An “extracted-from” mdarray
 is like a moved-from object<a href="#an-extracted-from-mdarray-is-like-a-moved-from-object" class="self-link"></a></h4>
 <p>The hypothetical <code>extract_container()</code> member function
 would have the effect of returning <code>move(ctr_)</code>. If the
 caller uses the result in a <code>container_type</code> move constructor
-or move assignment operator, then this would leave the mdarray’s
-container in a moved-from state. Given that mdarray can accept any
-contiguous container and imposes no requirements on the container’s
-moved-from state, the resulting moved-from container would be in a
-“valid but unspecified” state ([lib.types.movedfrom]). This would make
-it invalid to access any elements of the “extracted-from” mdarray.</p>
-<p>If the mdarray has any dynamic extents, these could hypothetically be
-set to zero, thus ensuring that the mdarray’s multidimensional index
-space would be empty. However, if the mdarray has all static extents,
-there is no way to zero those out, as they are part of the mdarray’s
-type. The mdarray would be unusable. Its destructor would still do the
-right thing, but users could no longer rely on any other properties of
-the mdarray. It would effectively be in a “valid but unspecified state,”
-just like its container.</p>
-<p>This means that generic code can treat an extracted-from mdarray like
-any moved-from object. Given that mdarray already has a move constructor
-and move assignment operator, users can treat an extracted-from mdarray
-just like a moved-from mdarray.</p>
-<p>Even if the mdarray has dynamic extents, we think it would be better
-to leave them alone after container extraction, rather than to try to
-set them to zero. This would make the behavior of extraction consistent,
-regardless of the extents type.</p>
+or move assignment operator, then this would leave the
+<code>mdarray</code>’s container in a moved-from state. Given that
+<code>mdarray</code> can accept any contiguous container and imposes no
+requirements on the container’s moved-from state, the resulting
+moved-from container would be in a “valid but unspecified” state
+([lib.types.movedfrom]). This would make it invalid to access any
+elements of the “extracted-from” <code>mdarray</code>.</p>
+<p>If the <code>mdarray</code> has any dynamic extents, these could
+hypothetically be set to zero, thus ensuring that the
+<code>mdarray</code>’s multidimensional index space would be empty.
+However, if the <code>mdarray</code> has all static extents, there is no
+way to zero those out, as they are part of the <code>mdarray</code>’s
+type. The <code>mdarray</code> would be unusable. Its destructor would
+still do the right thing, but users could no longer rely on any other
+properties of the <code>mdarray</code>. It would effectively be in a
+“valid but unspecified state,” just like its container.</p>
+<p>This means that generic code should treat an extracted-from
+<code>mdarray</code> like any moved-from object: the only safe operation
+is to let it be destroyed. Given that <code>mdarray</code> already has a
+move constructor and move assignment operator, users can treat an
+extracted-from <code>mdarray</code> just like a moved-from
+<code>mdarray</code>.</p>
+<p>Even if the <code>mdarray</code> has dynamic extents, we think it
+would be better to leave them alone after container extraction, rather
+than to try to set them to zero. This would make the behavior of
+extraction consistent, regardless of the extents type.</p>
 <h4 data-number="3.6.3.2" id="possible-states-of-moved-from-containers"><span class="header-section-number">3.6.3.2</span> Possible states of
 moved-from containers<a href="#possible-states-of-moved-from-containers" class="self-link"></a></h4>
 <p>Users may want to know more specifically how an extracted-from
-mdarray behaves, depending on its container type. Different contiguous
-containers have different moved-from states. The generic moved-from
-object state is “valid but unspecified” ([lib.types.movedfrom]). “Valid
-but unspecified” for a moved-from container means that</p>
+<code>mdarray</code> behaves, depending on its container type. Different
+contiguous containers have different moved-from states. The generic
+moved-from object state is “valid but unspecified”
+([lib.types.movedfrom]). “Valid but unspecified” for a moved-from
+container means that</p>
 <ol type="1">
-<li>the size could change arbitrarily (or not),</li>
+<li>the size could change arbitrarily (or not change at all),</li>
 <li>the elements could be no longer accessible, or</li>
 <li>any still-accessible elements could be in a moved-from state.</li>
 </ol>
@@ -1528,8 +1555,8 @@ transferring ownership of an underlying memory allocation from one
 object to another. We summarize them here. The feature they all share in
 common is that they leave both the source and destination objects in a
 valid and known state. In contrast, extracting the container from an
-mdarray would make the mdarray unusable for anything other than
-destruction.</p>
+<code>mdarray</code> would make the <code>mdarray</code> unusable for
+anything other than destruction.</p>
 <h4 data-number="3.6.4.1" id="unique_ptrrelease"><span class="header-section-number">3.6.4.1</span>
 <code>unique_ptr::release</code><a href="#unique_ptrrelease" class="self-link"></a></h4>
 <p>The <a href="https://en.cppreference.com/w/cpp/memory/unique_ptr/release"><code>unique_ptr::release</code></a>
@@ -1565,18 +1592,20 @@ and is analogous to mdarray’s constructors that take
 <h3 data-number="3.6.5" id="extraction-interface-options"><span class="header-section-number">3.6.5</span> Extraction interface
 options<a href="#extraction-interface-options" class="self-link"></a></h3>
 <p>If WG21 were to require us to add this extraction interface to
-mdarray, this section offers suggestions for its design.</p>
+<code>mdarray</code>, this section offers suggestions for its
+design.</p>
 <h4 data-number="3.6.5.1" id="suggested-names"><span class="header-section-number">3.6.5.1</span> Suggested names<a href="#suggested-names" class="self-link"></a></h4>
 <p>The name of this operation should convey the following ideas.</p>
 <ul>
 <li><p>Before the operation, the container belongs to the
-mdarray.</p></li>
-<li><p>The caller reaches inside the mdarray and pulls out the
-container.</p></li>
+<code>mdarray</code>.</p></li>
+<li><p>The caller reaches inside the <code>mdarray</code> and pulls out
+the container.</p></li>
 <li><p>After the operation, the caller owns the container.</p></li>
 <li><p>This “transfer of ownership” works by moving the
 container.</p></li>
-<li><p>The postcondition is an unusable mdarray.</p></li>
+<li><p>The postcondition is that the only safe operation the
+<code>mdarray</code> can do is to be destroyed.</p></li>
 </ul>
 <p>The operation is analogous to smashing a piggy bank and pulling coins
 out of the wreckage.</p>
@@ -1587,36 +1616,38 @@ out of the wreckage.</p>
 <li><code>release_container</code></li>
 </ol>
 <p>Both “relinquish” and “release” convey this idea of handing over
-ownership. However, if the container is an <code>array</code> or a
+ownership. However, if the container is a <code>std::array</code> or a
 container with similar move behavior, then nothing is actually “handed
 over” (except the elements themselves). Furthermore, precedence for
 “release” in <code>unique_ptr</code> might incorrectly suggest that the
-extracted-from mdarray has a specified state; it does not.</p>
-<p>“Extract” suggests that we reach inside the mdarray and pull out
-(move) something that normally belongs there (the mdarray owns it
-beforehand). After the extraction, the caller owns the container. The
-word “extraction” suggests forceful removal of a useful component (e.g.,
-a tooth or mineral resources), leaving the result depleted or with
-degraded functionality.</p>
+extracted-from <code>mdarray</code> has a specified state; it does
+not.</p>
+<p>“Extract” suggests that we reach inside the <code>mdarray</code> and
+pull out (move) something that normally belongs there (the
+<code>mdarray</code> owns it beforehand). After the extraction, the
+caller owns the container. The word “extraction” suggests forceful
+removal of a useful component (e.g., a tooth or mineral resources),
+leaving the result depleted or with degraded functionality.</p>
 <h4 data-number="3.6.5.2" id="suggested-interface"><span class="header-section-number">3.6.5.2</span> Suggested interface<a href="#suggested-interface" class="self-link"></a></h4>
 <p>If the interface is a member function, it must have return type
 <code>container_type&amp;&amp;</code> and be nonconst. Making it rvalue
 reference qualified might incorrectly suggest that the layout mapping
-were moved-from. In fact, the mdarray still has a perfectly valid layout
-mapping after the operation.</p>
+were moved-from. The layout mappings that the Standard provides do not
+even have move constructors.</p>
 <h4 data-number="3.6.5.3" id="suggested-wording"><span class="header-section-number">3.6.5.3</span> Suggested wording<a href="#suggested-wording" class="self-link"></a></h4>
 <div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>container_type<span class="op">&amp;&amp;</span> extract_container<span class="op">()</span>;</span></code></pre></div>
 <p><em>Effects</em>: Equivalent to: <code>return move(ctr_);</code></p>
 <h3 data-number="3.6.6" id="alternatives"><span class="header-section-number">3.6.6</span> Alternatives<a href="#alternatives" class="self-link"></a></h3>
 <h4 data-number="3.6.6.1" id="out-of-place-reshape"><span class="header-section-number">3.6.6.1</span> Out-of-place reshape<a href="#out-of-place-reshape" class="self-link"></a></h4>
-<p>As discussed above, it is not possible to reshape an mdarray in place
-if the mdarray has any static extents, because the extents are part of
-its type. However, one could imagine an out-of-place reshape operation.
-This would generalize mdarray’s move constructor, by also letting the
-caller assign different extents and/or layout. The mdarray class could
-provide out-of-place reshape as new mdarray constructors, analogous to
-the constructors that take <code>container_type&amp;&amp;</code> and the
-extents or mapping.</p>
+<p>As discussed above, it is not possible to reshape an
+<code>mdarray</code> in place if the <code>mdarray</code> has any static
+extents, because the extents are part of its type. However, one could
+imagine an out-of-place reshape operation. This would generalize
+<code>mdarray</code>’s move constructor, by also letting the caller
+assign different extents and/or layout. The <code>mdarray</code> class
+could provide out-of-place reshape as new <code>mdarray</code>
+constructors, analogous to the constructors that take
+<code>container_type&amp;&amp;</code> and the extents or mapping.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SourceExtents, <span class="kw">class</span> SourceLayout, <span class="kw">class</span><span class="op">...</span> OtherIndexTypes<span class="op">&gt;</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">(</span>mdarray<span class="op">&lt;</span>element_type, SourceExtents, SourceLayout<span class="op">&gt;&amp;&amp;</span>, OtherIndexTypes<span class="op">...</span> exts<span class="op">)</span>; </span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SourceExtents, <span class="kw">class</span> SourceLayout<span class="op">&gt;</span></span>
@@ -1624,17 +1655,18 @@ extents or mapping.</p>
 <span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SourceExtents, <span class="kw">class</span> SourceLayout<span class="op">&gt;</span></span>
 <span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">(</span>mdarray<span class="op">&lt;</span>element_type, SourceExtents, SourceLayout<span class="op">&gt;&amp;&amp;</span>, <span class="kw">const</span> mapping_type<span class="op">&amp;)</span>; </span></code></pre></div>
 <p>The advantage of this approach is that users could apply their C++
-knowledge about generic moved-from objects to mdarray. Users would not
-need to know that an “extracted-from” mdarray behaves like a moved-from
-mdarray. The disadvantage of this approach is that users could not reuse
-the container for anything other than mdarray.</p>
+knowledge about generic moved-from objects to <code>mdarray</code>.
+Users would not need to know that an “extracted-from”
+<code>mdarray</code> behaves like a moved-from <code>mdarray</code>. The
+disadvantage of this approach is that users could not reuse the
+container for anything other than <code>mdarray</code>.</p>
 <h3 data-number="3.6.7" id="conclusions"><span class="header-section-number">3.6.7</span> Conclusions<a href="#conclusions" class="self-link"></a></h3>
 <p>We do not recommend adding an operation for extracting the container
-from an mdarray. There are existing ways to reuse storage and possibly
-also elements sequentially from one mdarray to the next, such as using
-custom allocators or viewing existing storage with an mdspan. The mdspan
-approach is the most idiomatic and does not increase code
-complexity.</p>
+from an <code>mdarray</code>. There are existing ways to reuse storage
+and possibly also elements sequentially from one <code>mdarray</code> to
+the next, such as using custom allocators or viewing existing storage
+with an <code>mdspan</code>. The <code>mdspan</code> approach is the
+most idiomatic and does not increase code complexity.</p>
 <h1 data-number="4" id="wording"><span class="header-section-number">4</span> Wording<a href="#wording" class="self-link"></a></h1>
 <p><br /></p>
 <p>Insert the following after section 24.6.6</p>
