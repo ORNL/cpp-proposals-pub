@@ -1139,8 +1139,9 @@ output parameters.</p></li>
 <ul>
 <li><p>Change “complex version(s) thereof” to “specialization(s) of
 <code>complex</code>”</p></li>
-<li><p>Remove note (“conjugation is self-annihilating”) repeating the
+<li><p>Remove Note (“conjugation is self-annihilating”) repeating the
 contents of a note a few lines before</p></li>
+<li><p>Remove Notes with editorial or tutorial content.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -5704,17 +5705,18 @@ These tag classes specify whether algorithms and other users of a matrix
 (<code>lower_triangular_t</code>) of the matrix. This is also subject to
 the restrictions of <code>implicit_unit_diagonal_t</code> if that tag is
 also applied; see below.</p>
-<p><i>[Note:</i> The <code>conjugate_transposed</code> and
-<code>transposed</code> functions in this section return a view of an
-input <code>mdspan</code> with its rightmost two indices effectively
-reversed. Regardless, when we refer to the upper triangle of
-<code>B = transposed(A)</code>, we still mean the elements of
-<code>B</code> accessed by <code>B[i,j]</code> with <code>i</code> ≤
-<code>j</code>. For all algorithms in this section that take a triangle
-tag parameter, the triangle tag refers to the actual input matrix,
-<em>after</em> any transformations like <code>transposed</code>. This
-differs from the BLAS’ <code>UPLO</code> argument, which refers to the
-pre-transformed “original” matrix. <i>– end note]</i></p>
+<!--
+The `conjugate_transposed` and `transposed` functions in this section
+return a view of an input `mdspan`
+with its rightmost two indices effectively reversed.
+Regardless, when we refer to the upper triangle of `B = transposed(A)`,
+we still mean the elements of `B` accessed by `B[i,j]` with `i` ≤ `j`.
+For all algorithms in this section that take a triangle tag parameter,
+the triangle tag refers to the actual input matrix,
+*after* any transformations like `transposed`.
+This differs from the BLAS' `UPLO` argument,
+which refers to the pre-transformed "original" matrix.
+-->
 <h3 data-number="16.3.3" id="diagonal-tags-linalg.tags.diagonal"><span class="header-section-number">16.3.3</span> Diagonal tags
 [linalg.tags.diagonal]<a href="#diagonal-tags-linalg.tags.diagonal" class="self-link"></a></h3>
 <div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> implicit_unit_diagonal_t <span class="op">{</span></span>
@@ -6383,20 +6385,18 @@ note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> Equivalent to
 <code>return mdspan{x.data(), x.mapping(), accessor_scaled{alpha, x.accessor()}};</code>.</p>
-<p><i>[Note:</i> The elements of the returned <code>mdspan</code> are
-read only.</p>
-<p>Nested <code>scaled</code> expressions remain nested. An expression
-such as <code>scaled(alpha, scaled(beta, x))</code> would not be
-transformed into <code>scaled(alpha * beta, x)</code>. This is because
-such transformations would change at least the order of operations, and
-possibly also the result type. For example, if <code>x</code> is a
-rank-1 <code>mdspan</code> whose <code>value_type</code> is
-<code>double</code>, and if <code>sizeof(int)</code> is 4 and
-<code>double</code> is IEEE 754 binary64, then
-<code>scaled(1 &lt;&lt; 20, scaled(1 &lt;&lt; 20, x))</code> does not
-overflow <code>int</code>, but
-<code>scaled((1 &lt;&lt; 20) * (1 &lt;&lt; 20), x)</code> would overflow
-<code>int</code>. <i>– end note]</i></p>
+<!--
+Nested `scaled` expressions remain nested.
+An expression such as `scaled(alpha, scaled(beta, x))`
+would not be transformed into `scaled(alpha * beta, x)`.
+This is because such transformations would change at least
+the order of operations, and possibly also the result type.
+For example, if `x` is a rank-1 `mdspan` whose `value_type` is `double`,
+and if `sizeof(int)` is 4 and `double` is IEEE 754 binary64,
+then `scaled(1 << 20, scaled(1 << 20, x))` does not overflow `int`,
+but `scaled((1 << 20) * (1 << 20), x)`
+would overflow `int`.
+-->
 <p>[<em>Example:</em></p>
 <div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test_scaled<span class="op">(</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">10</span><span class="op">&gt;&gt;</span> x<span class="op">)</span></span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
