@@ -1,7 +1,7 @@
 
 ---
-title: "P1673R11 LEWG presentation"
-document: DXXXX
+title: "P2812: P1673R11 LEWG presentation"
+document: P2812
 date: 2023/02/10
 audience: LEWG
 author:
