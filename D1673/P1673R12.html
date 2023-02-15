@@ -1147,6 +1147,9 @@ language</p></li>
 <li><p>Remove Notes that incorrectly stated that the input matrix was
 symmetric or Hermitian (it’s not necessarily symmetric or Hermitian;
 it’s just interpreted that way)</p></li>
+<li><p>Remove implementation freedom Notes</p></li>
+<li><p>Update non-wording text referring to P1467 (which was voted into
+C++23)</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -3115,8 +3118,8 @@ multiplies the matrices’ elements. Use of subtraction assumes that
 arbitrary elements have an additive inverse, but the textbook matrix
 multiplication algorithm makes sense even for element types that lack
 additive inverses for all elements. Also, use of subtractions changes
-floating-point rounding behavior in a way that was only fully understood
-recently (see Demmel 2007).</p>
+floating-point rounding behavior, though that change is understood and
+often considered acceptable (see Demmel 2007).</p>
 <p>As an example of (c), the textbook substitution algorithm for solving
 triangular linear systems is exact. In contrast, one can approximate
 triangular solve with a stationary iteration. (See, e.g., Section 5 of
@@ -3170,14 +3173,14 @@ implementations. This includes any available hardware acceleration, as
 well as the locality and parallelism optimizations we describe below.
 Thus, we think restricting generic implementations to textbook
 algorithms will not overly limit implementers.</p>
-<p>The set of floating-point types currently has three members:
-<code>float</code>, <code>double</code>, and <code>long double</code>.
-If a proposal like P1467R4 (“Extended floating-point types and standard
-names”) is accepted, it will grow to include implementation-specific
-types, such as short or extended-precision floats. This “future-proofs”
-our proposal in some sense, though implementers will need to take care
-to avoid approximations if the element type lacks the needed
-precision.</p>
+<p>Acceptance of P1467 (“Extended floating-point types and standard
+names”) into C++23 means that the set of floating-point types has grown.
+Before P1467, this set had three members: <code>float</code>,
+<code>double</code>, and <code>long double</code>. After P1467, it
+includes implementation-specific types, such as short or
+extended-precision floats. This change may require implementers to look
+carefully at the definition of logarithmically stable before making
+certain algorithmic choices, especially for short floats.</p>
 <h3 data-number="11.7.7" id="reordering-sums-and-creating-temporaries"><span class="header-section-number">11.7.7</span> Reordering sums and creating
 temporaries<a href="#reordering-sums-and-creating-temporaries" class="self-link"></a></h3>
 <p>Even textbook descriptions of linear algebra algorithms presume the
@@ -5989,13 +5992,15 @@ element of <code>x</code>.</p>
 <span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  add<span class="op">(</span>scaled<span class="op">(</span>alpha, x<span class="op">)</span>, scaled<span class="op">(</span>beta, y<span class="op">)</span>, w<span class="op">)</span>;</span>
 <span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>–<em>end example</em>]</p>
-<p><i>[Note:</i> An implementation could dispatch to a function in the
-BLAS library, by noticing that the first argument has an
-<code>accessor_scaled</code> <code>Accessor</code> type. It could use
-this information to extract the appropriate run-time value(s) of the
-relevant BLAS function arguments (e.g., <code>ALPHA</code> and/or
-<code>BETA</code>), by calling
-<code>accessor_scaled::scaling_factor</code>. <i>– end note]</i></p>
+<!--
+An implementation could dispatch to a function
+in the BLAS library, by noticing that the first argument
+has an `accessor_scaled` `Accessor` type.
+It could use this information to extract the appropriate
+run-time value(s) of the relevant BLAS function arguments
+(e.g., `ALPHA` and/or `BETA`),
+by calling `accessor_scaled::scaling_factor`.
+-->
 <h3 data-number="16.5.1" id="exposition-only-function-object-conj-if-needed-linalg.scaled.conj"><span class="header-section-number">16.5.1</span> Exposition-only function
 object <em><code>conj-if-needed</code></em> [linalg.scaled.conj]<a href="#exposition-only-function-object-conj-if-needed-linalg.scaled.conj" class="self-link"></a></h3>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
@@ -6419,13 +6424,14 @@ The <code>conjugated</code> function takes an <code>mdspan</code>
 <code>y</code> with the same domain as <code>x</code>, whose elements
 are the complex conjugates of the corresponding elements of
 <code>x</code>.</p>
-<p><i>[Note:</i> An implementation could dispatch to a function in the
-BLAS library, by noticing that the <code>Accessor</code> type of an
-<code>mdspan</code> input has type <code>accessor_conjugate</code>, and
-that its nested <code>Accessor</code> type is compatible with the BLAS
-library. If so, it could set the corresponding <code>TRANS*</code> BLAS
-function argument accordingly and call the BLAS function. <i>– end
-note]</i></p>
+<!--
+An implementation could dispatch to a function in the BLAS library,
+by noticing that the `Accessor` type of an `mdspan` input
+has type `accessor_conjugate`,
+and that its nested `Accessor` type is compatible with the BLAS library.
+If so, it could set the corresponding `TRANS*` BLAS function argument accordingly
+and call the BLAS function.
+-->
 <h3 data-number="16.6.1" id="exposition-only-class-template-conjugated-scalar"><span class="header-section-number">16.6.1</span> Exposition-only class
 template <em><code>conjugated-scalar</code></em><a href="#exposition-only-class-template-conjugated-scalar" class="self-link"></a></h3>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
@@ -7530,13 +7536,14 @@ floating-point types or specializations of <code>complex</code>, and if
 <code>T</code> has higher precision than <code>InVec1::value_type</code>
 or <code>InVec2::value_type</code>, then intermediate terms in the sum
 use <code>T</code>’s precision or greater.</p>
-<p><i>[Note:</i> Like <code>reduce</code>, <code>dot</code> applies
-binary <code>operator+</code> in an unspecified order. This may yield a
-nondeterministic result for non-associative or non-commutative
-<code>operator+</code> such as floating-point addition. However,
-implementations may perform extra work to make the result deterministic.
-They may do so for all <code>dot</code> overloads, or just for specific
-<code>ExecutionPolicy</code> types. <i>– end note]</i></p>
+<!--
+Like `reduce`, `dot` applies binary `operator+` in an
+unspecified order.  This may yield a nondeterministic result for
+non-associative or non-commutative `operator+` such as floating-point
+addition.  However, implementations may perform extra work to make the
+result deterministic.  They may do so for all `dot` overloads, or just
+for specific `ExecutionPolicy` types.
+-->
 <p><i>[Note:</i> Users can get <code>xDOTC</code> behavior by giving the
 first argument as the result of <code>conjugated</code>. Alternately,
 they can use the shortcut <code>dotc</code> below. <i>– end
