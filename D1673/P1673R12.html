@@ -7014,8 +7014,8 @@ extents <i>– end note]</i></li>
 <li><span class="marginalizedparent"><a class="marginalized">(3.5)</a></span>
 else, if <code>Layout</code> is
 <code>layout_transpose&lt;NestedLayout&gt;</code> for some
-<code>NestedLayout</code>, then equivalent to <i>[Note:</i> getting the
-nested mapping untransposes the extents <i>– end note]</i></li>
+<code>NestedLayout</code>, then equivalent to
+<!-- getting the nested mapping untransposes the extents --></li>
 </ul>
 <div class="sourceCode" id="cb69"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> R<span class="op">(</span>a<span class="op">.</span>data<span class="op">()</span>, a<span class="op">.</span>mapping<span class="op">().</span>nested_mapping<span class="op">()</span>, a<span class="op">.</span>accessor<span class="op">())</span>;</span></code></pre></div>
 <ul>
@@ -7543,11 +7543,11 @@ non-associative or non-commutative `operator+` such as floating-point
 addition.  However, implementations may perform extra work to make the
 result deterministic.  They may do so for all `dot` overloads, or just
 for specific `ExecutionPolicy` types.
+
+Users can get `xDOTC` behavior by giving the first argument
+as the result of `conjugated`.
+Alternately, they can use the shortcut `dotc` below.
 -->
-<p><i>[Note:</i> Users can get <code>xDOTC</code> behavior by giving the
-first argument as the result of <code>conjugated</code>. Alternately,
-they can use the shortcut <code>dotc</code> below. <i>– end
-note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 Nonconjugated dot product with default result type</p>
 <div class="sourceCode" id="cb82"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -8779,10 +8779,11 @@ denotes the transpose of the column vector <span class="math inline"><em>y</em><
 <em>Complexity:</em> The count of <code>mdspan</code> array accesses and
 arithmetic operations is linear in <code>x.extent(0)</code> times
 <code>y.extent(0)</code>.</p>
-<p><i>[Note:</i> Users can get <code>xGERC</code> behavior by giving the
-second argument as the result of <code>conjugated</code>. Alternately,
-they can use the shortcut <code>matrix_rank_1_update_c</code> below.
-<i>– end note]</i></p>
+<!--
+Users can get `xGERC` behavior by giving the second argument
+as the result of `conjugated`.  Alternately, they can use the shortcut
+`matrix_rank_1_update_c` below.
+-->
 <h5 data-number="16.10.3.6.2" id="nonsymmetric-conjugated-rank-1-update-linalg.algs.blas2.rank1.gerc"><span class="header-section-number">16.10.3.6.2</span> Nonsymmetric conjugated
 rank-1 update [linalg.algs.blas2.rank1.gerc]<a href="#nonsymmetric-conjugated-rank-1-update-linalg.algs.blas2.rank1.gerc" class="self-link"></a></h5>
 <div class="sourceCode" id="cb118"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb118-1"><a href="#cb118-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -10050,10 +10051,12 @@ matrix-matrix right product [linalg.algs.blas3.trmm.up.right]<a href="#updating-
 such that <span class="math inline"><em>C</em> = <em>E</em> + <em>B</em><em>A</em></span>.</p>
 <h4 data-number="16.10.4.5" id="rank-k-update-of-a-symmetric-or-hermitian-matrix-linalg.alg.blas3.rank-k"><span class="header-section-number">16.10.4.5</span> Rank-k update of a
 symmetric or Hermitian matrix [linalg.alg.blas3.rank-k]<a href="#rank-k-update-of-a-symmetric-or-hermitian-matrix-linalg.alg.blas3.rank-k" class="self-link"></a></h4>
-<p><i>[Note:</i> Users can achieve the effect of the <code>TRANS</code>
-argument of these BLAS functions, by applying <code>transposed</code> or
-<code>conjugate_transposed</code> to the input matrix. <i>– end
-note]</i></p>
+<!--
+Users can achieve the effect
+of the `TRANS` argument of these BLAS functions,
+by applying `transposed` or `conjugate_transposed`
+to the input matrix.
+-->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Complexity:</em> For all algorithms in this Clause, the count of
 <code>mdspan</code> array accesses and arithmetic operations is linear
@@ -10198,10 +10201,12 @@ of <code>C</code> but outside the triangle specified by
 <code>t</code>.</p>
 <h4 data-number="16.10.4.6" id="rank-2k-update-of-a-symmetric-or-hermitian-matrix-linalg.alg.blas3.rank2k"><span class="header-section-number">16.10.4.6</span> Rank-2k update of a
 symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]<a href="#rank-2k-update-of-a-symmetric-or-hermitian-matrix-linalg.alg.blas3.rank2k" class="self-link"></a></h4>
-<p><i>[Note:</i> Users can achieve the effect of the <code>TRANS</code>
-argument of these BLAS functions, by applying <code>transposed</code> or
-<code>conjugate_transposed</code> to the input matrices. <i>– end
-note]</i></p>
+<!--
+Users can achieve the effect
+of the `TRANS` argument of these BLAS functions,
+by applying `transposed` or `conjugate_transposed`
+to the input matrices.
+-->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Complexity:</em> The count of <code>mdspan</code> array accesses and
 arithmetic operations is linear in <code>A.extent(0)</code> times
