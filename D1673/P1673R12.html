@@ -1166,7 +1166,9 @@ mathematical notation, the interpretation of <code>Triangle t</code>
 parameters, and that calls to <code>abs</code>, <code>conj</code>,
 <code>imag</code>, and <code>real</code> are unqualified. Move the
 definitions of lower triangle, upper triangle, and diagonal from
-<em>[linalg.tags.triangle]</em> into <em>[linalg.general]</em>.</p></li>
+<em>[linalg.tags.triangle]</em> into <em>[linalg.general]</em>. Move the
+definitions of implicit unit diagonal and explicit diagonal from
+<em>[linalg.tags.diagonal]</em> into <em>[linalg.general]</em>.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -5593,7 +5595,25 @@ starts with <code>symmetric</code>, or</p></li>
 <li><p>as equal to zero if the name of <code>F</code> starts with
 <code>triangular</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+For any function <code>F</code> that takes a
+<code>DiagonalStorage d</code> parameter, <code>d</code> applies to
+accesses to the previous-of-the-previous parameter to the function. Let
+<code>M</code> be such an access-modified function parameter. If
+<code>d</code> specifies that an implicit unit diagonal is to be
+assumed, then</p>
+<ul>
+<li><p><code>F</code> will not access the diagonal of <code>M</code>;
+and</p></li>
+<li><p>the algorithm will interpret <code>M</code> as if it has a unit
+diagonal, that is, a diagonal each of whose elements behaves as a
+two-sided multiplicative identity (even if <code>M</code>’s value type
+does not have a two-sided multiplicative identity).</p></li>
+</ul>
+<p>Otherwise, if <code>d</code> specifies that an explicit diagonal is
+to be assumed, then <code>F</code> will access the diagonal of
+<code>M</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 Within all the functions in <strong>[linalg]</strong>, any calls to
 <code>abs</code>, <code>conj</code>, <code>imag</code>, and
 <code>real</code> are unqualified.</p>
@@ -5803,20 +5823,11 @@ These tag classes specify whether algorithms should access the matrix’s
 diagonal entries, and if not, then how algorithms should interpret the
 matrix’s implicitly represented diagonal values.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-The <code>implicit_unit_diagonal_t</code> tag indicates two things:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> the
-algorithm will never access the <code>i,i</code> element of the matrix
-for any <code>i</code>; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> the
-algorithm will interpret the matrix as if it has a “unit diagonal,” a
-diagonal each of whose elements behaves as a two-sided multiplicative
-identity (even if the matrix’s value type does not have a two-sided
-multiplicative identity).</p></li>
-</ul>
+The <code>implicit_unit_diagonal_t</code> tag indicates that an implicit
+unit diagonal is to be assumed (<em>[linalg.general]</em>).</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-The tag <code>explicit_diagonal_t</code> indicates that algorithms may
-access the matrix’s diagonal entries directly.</p>
+The <code>explicit_diagonal_t</code> tag indicates that an explicit
+diagonal is to be assumed (<em>[linalg.general]</em>).</p>
 <h2 data-number="16.5" id="layouts-for-packed-matrix-types-linalg.layouts"><span class="header-section-number">16.5</span> Layouts for packed matrix
 types [linalg.layouts]<a href="#layouts-for-packed-matrix-types-linalg.layouts" class="self-link"></a></h2>
 <h3 data-number="16.5.1" id="layout_blas_packed-linalg.layouts.packed"><span class="header-section-number">16.5.1</span>
