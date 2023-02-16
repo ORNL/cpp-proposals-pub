@@ -608,8 +608,8 @@ the following</a></li>
 <ul>
 <li><a href="#value-and-reference-requirements-linalg.reqs.val" id="toc-value-and-reference-requirements-linalg.reqs.val"><span class="toc-section-number">16.2.1</span> Value and reference
 requirements [linalg.reqs.val]</a></li>
-<li><a href="#requirements-for-algorithms-and-methods-on-floating-point-values-linalg.reqs.flpt" id="toc-requirements-for-algorithms-and-methods-on-floating-point-values-linalg.reqs.flpt"><span class="toc-section-number">16.2.2</span> Requirements for algorithms and
-methods on floating-point values [linalg.reqs.flpt]</a></li>
+<li><a href="#requirements-for-functions-on-floating-point-values-linalg.reqs.flpt" id="toc-requirements-for-functions-on-floating-point-values-linalg.reqs.flpt"><span class="toc-section-number">16.2.2</span> Requirements for functions on
+floating-point values [linalg.reqs.flpt]</a></li>
 </ul></li>
 <li><a href="#tag-classes-linalg.tags" id="toc-tag-classes-linalg.tags"><span class="toc-section-number">16.3</span> Tag classes [linalg.tags]</a>
 <ul>
@@ -1152,6 +1152,7 @@ it’s just interpreted that way)</p></li>
 C++23)</p></li>
 <li><p>Change “the following requirement(s)” to “the following
 element(s),” as a “requirement” is a kind of element</p></li>
+<li><p>Change “algorithm or method” to “function”</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -5525,10 +5526,9 @@ This clause lists the minimum requirements for all algorithms and
 classes in <strong>[linalg]</strong>, and for the following types:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span> for
-any input or output <code>mdspan</code> parameter(s) of any algorithm or
-method in <strong>[linalg]</strong>, the parameter(s)’
-<code>value_type</code> and <code>reference</code> type
-aliases;</p></li>
+any input or output <code>mdspan</code> parameter(s) of any function in
+<strong>[linalg]</strong>, the parameter(s)’ <code>value_type</code> and
+<code>reference</code> type aliases;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span> the
 <code>Scalar</code> template parameter (if any) of any algorithm or
 class in <strong>[linalg]</strong>;</p></li>
@@ -5550,15 +5550,15 @@ complexity requirements, if any, are satisfied.</p>
 linear algebra value type meets the requirements of
 <code>semiregular</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> The
-algorithm or method may perform read-only access on any input or output
+function may perform read-only access on any input or output
 <code>mdspan</code> arbitrarily many times.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span> The
-algorithm or method may make arbitrarily many objects of any linear
-algebra value type, value-initializing or direct-initializing them with
-any existing object of that type.</p></li>
+function may make arbitrarily many objects of any linear algebra value
+type, value-initializing or direct-initializing them with any existing
+object of that type.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.4)</a></span> The
-algorithm or method may assign arbitrarily many times to any reference
-resulting from a valid output <code>mdspan</code> access.</p></li>
+function may assign arbitrarily many times to any reference resulting
+from a valid output <code>mdspan</code> access.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.5)</a></span> The
 <em>triangular solve algorithms</em> in <strong>[linalg.algs]</strong>
 either have a <code>BinaryDivideOp</code> template parameter (see
@@ -5580,7 +5580,7 @@ numerator (first argument of <code>divide</code>), any denominator
 (second argument of <code>divide</code>), and any assignment is well
 formed.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.6)</a></span>
-Otherwise, the algorithm or method will use a sequence of evaluations of
+Otherwise, the function will use a sequence of evaluations of
 <code>*</code>, <code>*=</code>, <code>+</code>, <code>+=</code>, and
 <code>=</code> operators that would produce the result specified by the
 algorithm’s Effects and Remarks when operating on elements of a semiring
@@ -5589,7 +5589,7 @@ that any addend, any partial sum of addends in any order, any factor,
 any partial product of factors respecting their order, and any
 assignment is well formed.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.7)</a></span> If
-the wording for the algorithm or method additionally includes</p>
+the wording for the function additionally includes</p>
 <ul>
 <li><p><em><code>conj-if-needed</code></em><code>(z)</code> for some
 expression <code>z</code>
@@ -5602,29 +5602,27 @@ or</p></li>
 expression where it would be mathematically appropriate is well
 formed.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.10)</a></span> If
-the algorithm or method has an output <code>mdspan</code>, then all
-addends (or subtrahends, if applicable) (or results of
-<code>divide</code> on intermediate terms, if applicable) are assignable
-and convertible to the output <code>mdspan</code>’s
-<code>value_type</code>.</p></li>
+the function has an output <code>mdspan</code>, then all addends (or
+subtrahends, if applicable) (or results of <code>divide</code> on
+intermediate terms, if applicable) are assignable and convertible to the
+output <code>mdspan</code>’s <code>value_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.11)</a></span> The
-algorithm or method may reorder addends and partial sums arbitrarily.
-<i>[Note:</i> Factors in each product are not reordered; multiplication
-is not necessarily commutative. <i>– end note]</i></p></li>
+function may reorder addends and partial sums arbitrarily. <i>[Note:</i>
+Factors in each product are not reordered; multiplication is not
+necessarily commutative. <i>– end note]</i></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.12)</a></span> The
-algorithm or method may replace any value with the sum of that value and
-a value-initialized object of any input or output <code>mdspan</code>’s
+function may replace any value with the sum of that value and a
+value-initialized object of any input or output <code>mdspan</code>’s
 <code>value_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.13)</a></span> If
-the algorithm or method has a <code>T init</code> parameter, then the
-algorithm or method may replace any value with the sum of that value and
-a value-initialized object of type <code>T</code>.</p></li>
+the function has a <code>T init</code> parameter, then the function may
+replace any value with the sum of that value and a value-initialized
+object of type <code>T</code>.</p></li>
 </ul>
-<h3 data-number="16.2.2" id="requirements-for-algorithms-and-methods-on-floating-point-values-linalg.reqs.flpt"><span class="header-section-number">16.2.2</span> Requirements for algorithms
-and methods on floating-point values [linalg.reqs.flpt]<a href="#requirements-for-algorithms-and-methods-on-floating-point-values-linalg.reqs.flpt" class="self-link"></a></h3>
+<h3 data-number="16.2.2" id="requirements-for-functions-on-floating-point-values-linalg.reqs.flpt"><span class="header-section-number">16.2.2</span> Requirements for functions
+on floating-point values [linalg.reqs.flpt]<a href="#requirements-for-functions-on-floating-point-values-linalg.reqs.flpt" class="self-link"></a></h3>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-For all algorithms and classes in <strong>[linalg]</strong>, suppose
-that</p>
+For all functions in <strong>[linalg]</strong>, suppose that</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span> all
 input and output <code>mdspan</code> have <code>value_type</code> a
@@ -5637,16 +5635,15 @@ argument corresponding to the <code>T init</code> parameter has a
 floating-point type.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-Then, algorithms and classes’ methods may do the following:</p>
+Then, functions may do the following:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
 compute floating-point sums in any way that improves their accuracy for
 arbitrary input;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 perform additional arithmetic operations (other than those specified by
-the algorithm’s or method’s wording and
-<strong>[linalg.reqs.val]</strong>) in order to improve performance or
-accuracy; and</p></li>
+the function’s wording and <strong>[linalg.reqs.val]</strong>) in order
+to improve performance or accuracy; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span> use
 approximations (that might not be exact even if computing with real
 numbers), instead of computations that would be exact if it were
@@ -5655,13 +5652,13 @@ possible to compute without rounding error;</p></li>
 <p>as long as</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span> the
-algorithm or method satisfies the complexity requirements; and</p></li>
+function satisfies the complexity requirements; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.5)</a></span> the
-algorithm or method is <em>logarithmically stable</em>, as defined in J.
-Demmel, I. Dumitriu, and O. Holtz, “Fast linear algebra is stable,”
-<em>Numerische Mathematik</em> 108 (59-91), 2007. <i>[Note:</i>
-Strassen’s algorithm for matrix-matrix multiply is an example of a
-logarithmically stable algorithm. <i>– end note]</i></p></li>
+function is <em>logarithmically stable</em>, as defined in J. Demmel, I.
+Dumitriu, and O. Holtz, “Fast linear algebra is stable,” <em>Numerische
+Mathematik</em> 108 (59-91), 2007. <i>[Note:</i> Strassen’s algorithm
+for matrix-matrix multiply is an example of a logarithmically stable
+algorithm. <i>– end note]</i></p></li>
 </ul>
 <h2 data-number="16.3" id="tag-classes-linalg.tags"><span class="header-section-number">16.3</span> Tag classes [linalg.tags]<a href="#tag-classes-linalg.tags" class="self-link"></a></h2>
 <h3 data-number="16.3.1" id="storage-order-tags-linalg.tags.order"><span class="header-section-number">16.3.1</span> Storage order tags
@@ -6022,12 +6019,13 @@ does not include a declaration of
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
 else, <code>E</code>.</p></li>
 </ul>
-<p><i>[Note:</i> The special case for arithmetic types preserves the
-type of its argument, unlike <code>std::conj</code>. The
-<code>conj(E)</code> case invokes <code>conj</code> via unqualified
-lookup. The <code>E</code> case presumes that a type without a
-<code>conj</code> function is noncomplex, so that the conjugate is the
-identity. <i>– end note]</i></p>
+<!--
+The special case for arithmetic types
+preserves the type of its argument, unlike `std::conj`.
+The `conj(E)` case invokes `conj` via unqualified lookup.
+The `E` case presumes that a type without a `conj` function is noncomplex,
+so that the conjugate is the identity.
+-->
 <h3 data-number="16.5.2" id="exposition-only-class-templates-proxy-reference-base-and-proxy-reference-linalg.scaled.base"><span class="header-section-number">16.5.2</span> Exposition-only class
 templates <em><code>proxy-reference-base</code></em> and
 <em><code>proxy-reference</code></em> [linalg.scaled.base]<a href="#exposition-only-class-templates-proxy-reference-base-and-proxy-reference-linalg.scaled.base" class="self-link"></a></h3>
@@ -6163,11 +6161,12 @@ selected by overload resolution does not return the absolute value of
 its input, the program is ill-formed, no diagnostic required.</p></li>
 </ul>
 <!-- TODO (mfh 2022/07/06) this lookup language will go into front matter. -->
-<p><i>[Note:</i> This function exists because of
-<code>vector_norm2</code> and <code>vector_abs_sum</code>.</p>
-<p>The unsigned integer special case avoids an ambiguous lookup. The
-other case invokes <code>abs</code> via unqualified lookup. <i>– end
-note]</i></p>
+<!--
+This function exists because of `vector_norm2` and `vector_abs_sum`.
+
+The unsigned integer special case avoids an ambiguous lookup.
+The other case invokes `abs` via unqualified lookup.
+-->
 <div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> <span class="kw">auto</span> real<span class="op">(</span><span class="kw">const</span> derived_type<span class="op">&amp;</span> x<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 The expression <code>real(E)</code> for subexpression <code>E</code>
@@ -6189,15 +6188,17 @@ required;</p></li>
 else,
 <code>value_type(static_cast&lt;const this_type&amp;&gt;(E))</code>.</p></li>
 </ul>
-<p><i>[Note:</i> This function exists because of
-<code>vector_abs_sum</code>.</p>
-<p>The arithmetic type special case exists because
-<code>std::real</code> returns a different type than its input for some
-arithmetic types. All arithmetic types represent a noncomplex number.
-Otherwise, if <code>real</code> can be found via unqualified lookup, it
-is used. If not, then <code>value_type</code> is assumed to represent a
-noncomplex number, for which the number’s real part is the same as the
-number. <i>– end note]</i></p>
+<!--
+This function exists because of `vector_abs_sum`.
+
+The arithmetic type special case exists because
+`std::real` returns a different type than its input
+for some arithmetic types.
+All arithmetic types represent a noncomplex number.
+Otherwise, if `real` can be found via unqualified lookup, it is used.
+If not, then `value_type` is assumed to represent a noncomplex number,
+for which the number's real part is the same as the number.
+-->
 <div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> <span class="kw">auto</span> imag<span class="op">(</span><span class="kw">const</span> derived_type<span class="op">&amp;</span> x<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 The expression <code>imag(E)</code> for subexpression <code>E</code>
@@ -6218,16 +6219,18 @@ required;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
 else, <code>value_type{}</code>.</p></li>
 </ul>
-<p><i>[Note:</i> This function exists because of
-<code>vector_abs_sum</code>.</p>
-<p>The arithmetic type special case exists because
-<code>std::imag</code> returns a different type than its input for some
-arithmetic types. All arithmetic types represent a noncomplex number.
-Otherwise, if <code>imag</code> can be found via unqualified lookup, it
-is used. If not, then <code>value_type</code> is assumed to represent a
-noncomplex number, for which the number’s imaginary part is zero (which
-is constructed by value-initializing <code>value_type</code>). <i>– end
-note]</i></p>
+<!--
+This function exists because of `vector_abs_sum`.
+
+The arithmetic type special case exists because
+`std::imag` returns a different type than its input
+for some arithmetic types.
+All arithmetic types represent a noncomplex number.
+Otherwise, if `imag` can be found via unqualified lookup, it is used.
+If not, then `value_type` is assumed to represent a noncomplex number,
+for which the number's imaginary part is zero
+(which is constructed by value-initializing `value_type`).
+-->
 <div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> <span class="kw">auto</span> conj<span class="op">(</span><span class="kw">const</span> derived_type<span class="op">&amp;</span> x<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
@@ -6265,11 +6268,14 @@ implementation of <code>accessor_scaled</code>
 <span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> value_type <span class="op">=</span> <span class="kw">decltype</span><span class="op">(</span><em>scaling-factor</em> <span class="op">*</span> ReferenceValue<span class="op">(</span>declval<span class="op">&lt;</span>Reference<span class="op">&gt;()))</span>;</span>
 <span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>  value_type to_value<span class="op">(</span>Reference reference<span class="op">)</span> <span class="kw">const</span>;</span>
 <span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
-<p><i>[Note:</i> The point of the <code>ReferenceValue</code> template
-parameter is so that the input of <code>to_value</code> can be cast to a
-value immediately, before any transformations are applied. This ensures
-the original order of operations, as if computing nonlazily. It also
-makes fewer requirements of the reference type. <i>– end note]</i></p>
+<!--
+The point of the `ReferenceValue` template parameter
+is so that the input of `to_value` can be cast to a value immediately,
+before any transformations are applied.
+This ensures the original order of operations,
+as if computing nonlazily.
+It also makes fewer requirements of the reference type.
+-->
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em></p>
 <ul>
@@ -6903,10 +6909,10 @@ where</p>
 <code>default_accessor&lt;ElementType&gt;</code>, then
 <code>add_const_t&lt;ElementType&gt;</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1.2)</a></span>
-else, <code>ElementType</code>; <i>[Note:</i> For general accessors, the
-<code>const ElementType</code> version of the accessor may not exist;
-Even if it does, <code>transposed</code> has no way to deduce it
-generically. <i>– end note]</i></p></li>
+else, <code>ElementType</code>; <!-- For general accessors,
+    the `const ElementType` version of the accessor may not exist;
+    Even if it does, `transposed` has no way
+    to deduce it generically. --></p></li>
 </ul></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 <code>ReturnLayout</code> is:</p>
@@ -6948,10 +6954,10 @@ and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2.7)</a></span>
 else if <code>Layout</code> is
 <code>layout_transpose&lt;NestedLayout&gt;</code> for some
-<code>NestedLayout</code>, then <code>NestedLayout</code> <i>[Note:</i>
-this optimizes applying <code>transposed</code> twice to an
-<code>mdspan</code> with a custom layout, as long as there are no
-intervening layout changes <i>– end note]</i>;</p></li>
+<code>NestedLayout</code>, then <code>NestedLayout</code>;
+<!-- this optimizes applying `transposed` twice
+    to an `mdspan` with a custom layout,
+    as long as there are no intervening layout changes --></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2.8)</a></span>
 else, <code>layout_transpose&lt;Layout&gt;</code>;</p></li>
 </ul></li>
@@ -7188,17 +7194,20 @@ defined in this section help define the exposition-only concepts.</p>
 If an algorithm in <em>[linalg.algs]</em> accesses the elements of an
 <em><code>in-vector</code></em>, <em><code>in-matrix</code></em>, or
 <em><code>in-object</code></em>, it will do so in read-only fashion.</p>
-<p><i>[Note:</i> The <code>element_type</code> of an
-<em><code>in-vector</code></em>, <em><code>in-matrix</code></em>, or
-<em><code>in-object</code></em> need not be <code>const</code>, because
-an mdspan accessor with a nonconst <code>element_type</code> need not
-necessarily be convertible to an accessor with a const
-<code>element_type</code>. <i>– end note]</i></p>
-<p><i>[Note:</i> The exposition-only concept
-<em><code>possibly-packed-inout-matrix</code></em> constrains symmetric
-and Hermitian update algorithms. These may write either to a
-unique-layout mdspan or to a <code>layout_blas_packed</code> mdspan
-(whose layout is nonunique). <i>– end note]</i></p>
+<!--
+The `element_type` of an
+_`in-vector`_, _`in-matrix`_, or _`in-object`_ need not be `const`,
+because an mdspan accessor with a nonconst `element_type`
+need not necessarily be convertible to an accessor
+with a const `element_type`.
+
+The exposition-only concept
+_`possibly-packed-inout-matrix`_
+constrains symmetric and Hermitian update algorithms.
+These may write either to a unique-layout mdspan
+or to a `layout_blas_packed` mdspan
+(whose layout is nonunique).
+-->
 <h2 data-number="16.10" id="algorithms-linalg.algs"><span class="header-section-number">16.10</span> Algorithms [linalg.algs]<a href="#algorithms-linalg.algs" class="self-link"></a></h2>
 <h3 data-number="16.10.1" id="requirements-based-on-template-parameter-name-linalg.algs.reqs"><span class="header-section-number">16.10.1</span> Requirements based on
 template parameter name [linalg.algs.reqs]<a href="#requirements-based-on-template-parameter-name-linalg.algs.reqs" class="self-link"></a></h3>
@@ -7269,16 +7278,16 @@ right by the input vector whose components are <code>a</code> and
 <code>r</code> is the Euclidean norm of the input vector, and whose
 second component as zero.</p>
 <p><i>[Note:</i> This function corresponds to the LAPACK function
-<code>xLARTG</code>. The BLAS variant <code>xROTG</code> takes four
-arguments – <code>a</code>, <code>b</code>, <code>c</code>, and
-<code>s</code>– and overwrites the input <code>a</code> with
-<code>r</code>. We have chosen <code>xLARTG</code>’s interface because
-it separates input and output, and to encourage following
-<code>xLARTG</code>’s more careful implementation. <i>– end
-note]</i></p>
-<p><i>[Note:</i> <code>givens_rotation_setup</code> has an overload for
-complex numbers, because the output argument <code>c</code> (cosine) is
-a signed magnitude. <i>– end note]</i></p>
+<code>xLARTG</code>. <i>– end note]</i></p>
+<!--
+The BLAS variant `xROTG` takes four arguments -- `a`, `b`, `c`, and
+`s`-- and overwrites the input `a` with `r`.  We have chosen
+`xLARTG`'s interface because it separates input and output, and to
+encourage following `xLARTG`'s more careful implementation.
+
+`givens_rotation_setup` has an overload for complex numbers,
+because the output argument `c` (cosine) is a signed magnitude.
+-->
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em> <code>{c, s, r}</code>, where <code>c</code> and
 <code>s</code> form the plane (Givens) rotation corresponding to the
@@ -7329,22 +7338,22 @@ rotation to vectors [linalg.algs.blas1.givens.rot]<a href="#apply-a-computed-giv
 <span id="cb76-38"><a href="#cb76-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> Real c,</span>
 <span id="cb76-39"><a href="#cb76-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> s<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
-<code>xROT</code>. <code>c</code> and <code>s</code> form a plane
-(Givens) rotation. Users normally would compute <code>c</code> and
-<code>s</code> using <code>givens_rotation_setup</code>, but they are
-not required to do this.</p>
-<p>For <code>i</code> in the domains of both <code>x</code> and
-<code>y</code>, if <span class="math inline"><em>x</em><sub><em>i</em></sub></span> is the value
-of <code>x[i]</code> on input and <span class="math inline"><em>y</em><sub><em>i</em></sub></span> is the value
-of <code>y[i]</code> on input, then this algorithm computes <span class="math inline"><em>x</em><sub><em>i</em></sub>′</span> such that
-<span class="math inline"><em>x</em><sub><em>i</em></sub>′ = <em>c</em><em>x</em><sub><em>i</em></sub> + <em>s</em><em>y</em><sub><em>i</em></sub></span>
-and <span class="math inline"><em>y</em><sub><em>i</em></sub>′</span>
-such that <span class="math inline"><em>y</em><sub><em>i</em></sub>′ = <em>c</em><em>y</em><sub><em>i</em></sub> − <em>s̄</em><em>x</em><sub><em>i</em></sub></span>
-(where <span class="math inline"><em>s̄</em></span> denotes the complex
-conjugate of <span class="math inline"><em>s</em></span>), and assigns
-<span class="math inline"><em>x</em><sub><em>i</em></sub>′</span> to
-<code>x[i]</code> and <span class="math inline"><em>y</em><sub><em>i</em></sub>′</span> to
-<code>y[i]</code>. <i>– end note]</i></p>
+<code>xROT</code>. <i>– end note]</i></p>
+<!--
+`c` and `s` form a plane (Givens) rotation.
+Users normally would compute `c` and `s`
+using `givens_rotation_setup`,
+but they are not required to do this.
+
+For `i` in the domains of both `x` and `y`,
+if $x_i$ is the value of `x[i]` on input
+and $y_i$ is the value of `y[i]` on input,
+then this algorithm computes
+$x_i'$ such that $x_i' = c x_i + s y_i$ and
+$y_i'$ such that $y_i' = c y_i - \bar{s} x_i$
+(where $\bar{s}$ denotes the complex conjugate of $s$),
+and assigns $x_i'$ to `x[i]` and $y_i'$ to `y[i]`.
+-->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em> <code>x.extent(0)</code> equals
 <code>y.extent(0)</code>.</p>
@@ -7572,10 +7581,10 @@ equivalent to <code>dot(exec, v1, v2, T{});</code>.</p>
 of two vectors [linalg.algs.blas1.dot.dotc]<a href="#conjugated-dot-product-of-two-vectors-linalg.algs.blas1.dot.dotc" class="self-link"></a></h5>
 <p><i>[Note:</i> The functions in this section correspond to the BLAS
 functions <code>xDOT</code> (for real element types) and
-<code>xDOTC</code> (for complex element types).</p>
-<p><code>dotc</code> exists to give users reasonable default inner
-product behavior for both real and complex element types. <i>– end
-note]</i></p>
+<code>xDOTC</code> (for complex element types). <i>– end note]</i> <!--
+`dotc` exists to give users reasonable default inner product behavior
+for both real and complex element types.
+--></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 Conjugated dot product with specified result type</p>
 <div class="sourceCode" id="cb83"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -7754,10 +7763,13 @@ with specified result type<a href="#sum-of-absolute-values-with-specified-result
 <span id="cb88-10"><a href="#cb88-10" aria-hidden="true" tabindex="-1"></a>                 T init<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> This function corresponds to the BLAS functions
 <code>SASUM</code>, <code>DASUM</code>, <code>CSASUM</code>, and
-<code>DZASUM</code>. The different behavior for complex element types is
-based on the observation that this lower-cost approximation of the
-one-norm serves just as well as the actual one-norm for many linear
-algebra algorithms in practice. <i>– end note]</i></p>
+<code>DZASUM</code>.<i>– end note]</i></p>
+<!--
+The different behavior for complex
+element types is based on the observation that this lower-cost
+approximation of the one-norm serves just as well as the actual
+one-norm for many linear algebra algorithms in practice.
+-->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Constraints:</em>
 <code>decltype(init + abs(declval&lt;typename InVec::value_type&gt;()))</code>
@@ -8477,8 +8489,8 @@ matrix-vector product [linalg.algs.blas2.trmv.in-place]<a href="#in-place-triang
 <span id="cb105-20"><a href="#cb105-20" aria-hidden="true" tabindex="-1"></a>  InOutVec y<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> Performing this operation in place hinders
 parallelization. However, other <code>ExecutionPolicy</code>-specific
-optimizations, such as vectorization, are still possible. This is why
-the <code>ExecutionPolicy</code> overload exists. <i>– end note]</i></p>
+optimizations, such as vectorization, are still possible. <i>– end
+note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em> <code>A.extent(1)</code> equals
 <code>y.extent(0)</code>.</p>
@@ -8681,8 +8693,8 @@ solve [linalg.algs.blas2.trsv.in-place]<a href="#in-place-triangular-solve-linal
 <span id="cb112-24"><a href="#cb112-24" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> Performing triangular solve in place hinders
 parallelization. However, other <code>ExecutionPolicy</code>-specific
-optimizations, such as vectorization, are still possible. This is why
-the <code>ExecutionPolicy</code> overload exists. <i>– end note]</i></p>
+optimizations, such as vectorization, are still possible. <i>– end
+note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em> <code>A.extent(0)</code> equals
 <code>b.extent(0)</code>.</p>
@@ -8850,10 +8862,12 @@ Symmetric matrix [linalg.algs.blas2.rank1.syr]<a href="#rank-1-update-of-a-symme
 <span id="cb119-35"><a href="#cb119-35" aria-hidden="true" tabindex="-1"></a>  InOutMat A,</span>
 <span id="cb119-36"><a href="#cb119-36" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
-<code>xSYR</code> and <code>xSPR</code>.</p>
-<p>They have overloads taking a scaling factor <code>alpha</code>,
-because it would be impossible to express updates like <span class="math inline"><em>C</em> = <em>C</em> − <em>x</em><em>x</em><sup><em>T</em></sup></span>
-otherwise. <i>– end note]</i></p>
+<code>xSYR</code> and <code>xSPR</code>. <i>– end note]</i></p>
+<!--
+They have overloads taking a scaling factor `alpha`,
+because it would be impossible to express updates
+like $C = C - x x^T$ otherwise.
+-->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -10087,11 +10101,13 @@ update [linalg.alg.blas3.rank-k.syrk]<a href="#rank-k-symmetric-matrix-update-li
 <span id="cb139-19"><a href="#cb139-19" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
 <span id="cb139-20"><a href="#cb139-20" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
-<code>xSYRK</code>.</p>
-<p>They take a scaling factor <code>alpha</code>, because it would be
-impossible to express the update <span class="math inline"><em>C</em> = <em>C</em> − <em>A</em><em>A</em><sup><em>T</em></sup></span>
-otherwise. The scaling factor parameter is required in order to avoid
-ambiguity with <code>ExecutionPolicy</code>. <i>– end note]</i></p>
+<code>xSYRK</code>. <i>– end note]</i></p>
+<!--
+They take a scaling factor `alpha`, because it would be
+impossible to express the update $C = C - A A^T$ otherwise.
+The scaling factor parameter is required in order to
+avoid ambiguity with `ExecutionPolicy`. 
+-->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -10155,12 +10171,14 @@ update [linalg.alg.blas3.rank-k.herk]<a href="#rank-k-hermitian-matrix-update-li
 <span id="cb140-19"><a href="#cb140-19" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
 <span id="cb140-20"><a href="#cb140-20" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
-<code>xHERK</code>.</p>
-<p>They take a scaling factor <code>alpha</code>, because it would be
-impossible to express the updates <span class="math inline"><em>C</em> = <em>C</em> − <em>A</em><em>A</em><sup><em>T</em></sup></span>
-or <span class="math inline"><em>C</em> = <em>C</em> − <em>A</em><em>A</em><sup><em>H</em></sup></span>
-otherwise. The scaling factor parameter is required in order to avoid
-ambiguity with <code>ExecutionPolicy</code>. <i>– end note]</i></p>
+<code>xHERK</code>. <i>– end note]</i></p>
+<!--
+They take a scaling factor `alpha`,
+because it would be impossible to express the updates
+$C = C - A A^T$ or $C = C - A A^H$ otherwise.
+The scaling factor parameter is required in order to
+avoid ambiguity with `ExecutionPolicy`. 
+-->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -10236,9 +10254,11 @@ matrix update [linalg.alg.blas3.rank2k.syr2k]<a href="#rank-2k-symmetric-matrix-
 <span id="cb141-19"><a href="#cb141-19" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
 <span id="cb141-20"><a href="#cb141-20" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
-<code>xSYR2K</code>. The BLAS “quick reference” has a typo; the “ALPHA”
-argument of <code>CSYR2K</code> and <code>ZSYR2K</code> should not be
-conjugated. <i>– end note]</i></p>
+<code>xSYR2K</code>. <i>– end note]</i> <!--
+The BLAS "quick reference" has a typo;
+the "ALPHA" argument of `CSYR2K` and `ZSYR2K`
+should not be conjugated.
+--></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -10361,8 +10381,9 @@ triangle specified by <code>t</code>.</p>
 <h4 data-number="16.10.4.7" id="solve-multiple-triangular-linear-systems-linalg.alg.blas3.trsm"><span class="header-section-number">16.10.4.7</span> Solve multiple triangular
 linear systems [linalg.alg.blas3.trsm]<a href="#solve-multiple-triangular-linear-systems-linalg.alg.blas3.trsm" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS function
-<code>xTRSM</code>. The Reference BLAS does not have a
-<code>xTPSM</code> function. <i>– end note]</i></p>
+<code>xTRSM</code>.
+<!-- The Reference BLAS does not have a `xTPSM` function. --> <i>– end
+note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The following elements apply to all functions in this section.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -10546,8 +10567,7 @@ In-place left solve of multiple triangular systems</p>
 factorizations like Cholesky and LU in place.</p>
 <p>Performing triangular solve in place hinders parallelization.
 However, other <code>ExecutionPolicy</code>-specific optimizations, such
-as vectorization, are still possible. This is why the
-<code>ExecutionPolicy</code> overload exists. <i>– end note]</i></p>
+as vectorization, are still possible. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Preconditions:</em> <code>A.extent(1)</code> equals
 <code>B.extent(0)</code>.</p>
@@ -10629,15 +10649,19 @@ Not-in-place right solve of multiple triangular systems</p>
 <span id="cb145-51"><a href="#cb145-51" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb145-52"><a href="#cb145-52" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
 <span id="cb145-53"><a href="#cb145-53" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span></code></pre></div>
-<p><i>[Note:</i> One can derive what these algorithms do from the
-<code>triangular_matrix_matrix_left_solve()</code> algorithm, by
-swapping the order of indices of each matrix access (representing the
-transpose), swapping <code>i</code> and <code>j</code>, and swapping the
-order of product terms in the sum. This is because
-<code>triangular_matrix_matrix_left_solve()</code> solves AX = B, taking
-the transpose of both sides does not change the equation, and the
-transpose of a product of two matrices is the product of the reversed
-matrices in transposed order. <i>– end note]</i></p>
+<!--
+One can derive what these algorithms do
+from the `triangular_matrix_matrix_left_solve()` algorithm,
+by swapping the order of indices of each matrix access
+(representing the transpose), swapping `i` and `j`,
+and swapping the order of product terms in the sum.
+This is because
+`triangular_matrix_matrix_left_solve()` solves AX = B,
+taking the transpose of both sides does not change the equation,
+and the transpose of a product of two matrices
+is the product of the reversed matrices
+in transposed order.
+-->
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Preconditions:</em> <code>A.extent(1)</code> equals
 <code>B.extent(1)</code>.</p>
@@ -10708,8 +10732,7 @@ In-place right solve of multiple triangular systems</p>
 factorizations like Cholesky and LU in place.</p>
 <p>Performing triangular solve in place hinders parallelization.
 However, other <code>ExecutionPolicy</code>-specific optimizations, such
-as vectorization, are still possible. This is why the
-<code>ExecutionPolicy</code> overload exists. <i>– end note]</i></p>
+as vectorization, are still possible. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Preconditions:</em> <code>A.extent(1)</code> equals
 <code>B.extent(1)</code>.</p>
