@@ -1153,6 +1153,13 @@ C++23)</p></li>
 <li><p>Change “the following requirement(s)” to “the following
 element(s),” as a “requirement” is a kind of element</p></li>
 <li><p>Change “algorithm or method” to “function”</p></li>
+<li><p>Change Preconditions elements that should be something else
+(generally Mandates) to that something else</p></li>
+<li><p>In some cases where it makes sense, use
+<code>extents::operator==</code> in elements, instead of comparing
+<code>extent(r)</code> for each r</p></li>
+<li><p>For <code>vector_sum_of_squares</code>, remove last remnants of
+R10 “mathematical expression of the algorithm” wording</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6483,9 +6490,6 @@ part of the implementation of <code>accessor_conjugate</code>
 <code>reference</code>.</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">static</span> <span class="kw">auto</span> to_value<span class="op">(</span>Reference value_type<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Preconditions:</em> This function may be invoked arbitrarily many
-times.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Equivalent to
 <code>return</code><em><code>conj-if-needed</code></em><code>(ReferenceValue(reference));</code>.</p>
 <h3 data-number="16.6.2" id="class-template-accessor_conjugate-linalg.conj.accessor_conjugate"><span class="header-section-number">16.6.2</span> Class template
@@ -6708,10 +6712,10 @@ and</p></li>
 <code>InputExtents::rank()-2</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Preconditions:</em> <code>InputExtents</code> is a specialization of
-<code>extents</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Constraints:</em> <code>InputExtents::rank()</code> equals 2.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Mandates:</em> <code>InputExtents</code> is a specialization of
+<code>extents</code>.</p>
 <div class="sourceCode" id="cb49"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> InputExtents<span class="op">&gt;</span></span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <em>transpose-extents-t</em><span class="op">&lt;</span>InputExtents<span class="op">&gt;</span></span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><em>transpose-extents</em><span class="op">(</span><span class="kw">const</span> InputExtents<span class="op">&amp;</span> in<span class="op">)</span>; <span class="co">// exposition only</span></span></code></pre></div>
@@ -6781,8 +6785,8 @@ that</p>
 <span id="cb50-48"><a href="#cb50-48" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
 <span id="cb50-49"><a href="#cb50-49" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
-<em>Preconditions:</em> <code>Layout</code> shall meet the
-<code>mdspan</code> layout mapping policy requirements.</p>
+<code>Layout</code> shall meet the <code>mdspan</code> layout mapping
+policy requirements.</p>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Constraints:</em> <code>Extents::rank()</code> equals 2.</p>
 <div class="sourceCode" id="cb51"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">explicit</span> mapping<span class="op">(</span><span class="kw">const</span> <em>nested-mapping-type</em><span class="op">&amp;</span> map<span class="op">)</span>;</span></code></pre></div>
@@ -7383,9 +7387,8 @@ elements [linalg.algs.blas1.swap]<a href="#swap-matrix-or-vector-elements-linalg
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xSWAP</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em> For all <code>r</code> in 0, 1, …,
-<code>x.rank()</code> - 1, <code>x.extent(r)</code> equals
-<code>y.extent(r)</code>.</p>
+<em>Preconditions:</em> <code>x.extents()</code> equals
+<code>y.extents()</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Constraints:</em> <code>x.rank()</code> equals
 <code>y.rank()</code>.</p>
@@ -7432,9 +7435,8 @@ matrix or vector into another [linalg.algs.blas1.copy]<a href="#copy-elements-of
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xCOPY</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em> For all <code>r</code> in 0, 1, …,
-<code>x.rank()</code> - 1, <code>x.extent(r)</code> equals
-<code>y.extent(r)</code>.</p>
+<em>Preconditions:</em> <code>x.extents()</code> equals
+<code>y.extents()</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Constraints:</em> <code>x.rank()</code> equals
 <code>y.rank()</code>.</p>
@@ -7467,13 +7469,12 @@ elementwise [linalg.algs.blas1.add]<a href="#add-vectors-or-matrices-elementwise
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xAXPY</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em> For all <code>r</code> in 0, 1, …,
-<code>x.rank()</code> - 1,</p>
+<em>Preconditions:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>x.extent(r)</code> equals <code>z.extent(r)</code>.</p></li>
+<code>x.extents()</code> equals <code>z.extents()</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-<code>y.extent(r)</code> equals <code>z.extent(r)</code>.</p></li>
+<code>y.extents()</code> equals <code>z.extents()</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Constraints:</em> <code>x.rank()</code>, <code>y.rank()</code>, and
@@ -7528,8 +7529,8 @@ Nonconjugated dot product with specified result type</p>
 <span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a>      InVec2 v2,</span>
 <span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>      T init<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em> <code>v1.extent(0)</code> equals
-<code>v2.extent(0)</code>.</p>
+<em>Preconditions:</em> <code>v1.extents()</code> equals
+<code>v2.extents()</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Mandates:</em> If neither <code>v1.static_extent(0)</code> nor
 <code>v2.static_extent(0)</code> equals <code>dynamic_extent</code>,
@@ -7645,43 +7646,40 @@ a vector’s elements [linalg.algs.blas1.ssq]<a href="#scaled-sum-of-squares-of-
 <p><i>[Note:</i> These functions correspond to the LAPACK function
 <code>xLASSQ</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em></p>
+<em>Mandates:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>T</code> shall be <em>Cpp17MoveConstructible</em> and
-<em>Cpp17LessThanComparable</em>, and</p></li>
+<code>T</code> meets both the <em>Cpp17MoveConstructible</em> and
+<em>Cpp17LessThanComparable</em> requirements, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-<code>abs(x[0])</code> shall be convertible to <code>T</code>.</p></li>
+<code>abs(declval&lt;InVec::value_type&gt;())</code> is convertible to
+<code>T</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Constraints:</em> For all <code>i</code> in the domain of
-<code>v</code>, and for <code>f</code> and <code>ssq</code> of type
-<code>T</code>, the expression
-<code>ssq = ssq + (abs(x[i]) / f)*(abs(x[i]) / f)</code> is well
-formed.</p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Returns two values:</p>
 <ul>
-<li><p><code>scaling_factor</code>: the maximum of
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
+<code>scaling_factor</code>: the maximum of
 <code>init.scaling_factor</code> and <code>abs(x[i])</code> for all
 <code>i</code> in the domain of <code>v</code>; and</p></li>
-<li><p><code>scaled_sum_of_squares</code>: a value such that
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<code>scaled_sum_of_squares</code>: a value such that
 <code>scaling_factor * scaling_factor * scaled_sum_of_squares</code>
 equals the sum of squares of <code>abs(x[i])</code> for all
 <code>i</code> in the domain of <code>v</code>, plus
 <code>init.scaling_factor * init.scaling_factor * init.scaled_sum_of_squares</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Remarks:</em> If <code>InVec::value_type</code> is either a
 floating-point type or <code>complex&lt;R&gt;</code> for some
 floating-point type <code>R</code>, and if <code>T</code> is a
 floating-point type, then</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> if
 <code>T</code> has higher precision than <code>InVec::value_type</code>,
 then intermediate terms in the sum use <code>T</code>’s precision or
 greater; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> any
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> any
 guarantees regarding overflow and underflow of
 <code>vector_sum_of_squares</code> are implementation-defined.</p></li>
 </ul>
@@ -7702,9 +7700,9 @@ specified result type<a href="#euclidean-norm-with-specified-result-type" class=
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xNRM2</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em>
-<code>init + abs(declval&lt;InVec::value_type&gt;())*abs(declval&lt;InVec::value_type&gt;())</code>
-shall be convertible to <code>T</code>.</p>
+<em>Mandates:</em>
+<code>init + abs(declval&lt;InVec::value_type&gt;()) * abs(declval&lt;InVec::value_type&gt;())</code>
+is convertible to <code>T</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> Returns the square root of the sum of squares of
 (<code>init</code> and the absolute values of the elements of
@@ -7771,11 +7769,9 @@ approximation of the one-norm serves just as well as the actual
 one-norm for many linear algebra algorithms in practice.
 -->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Constraints:</em>
-<code>decltype(init + abs(declval&lt;typename InVec::value_type&gt;()))</code>
-and
-<code>decltype(init + abs(declval&lt;typename InVec::value_type&gt;()))</code>
-are both convertible to <code>T</code>.</p>
+<em>Mandates:</em>
+<code>decltype(init + abs(declval&lt;InVec::value_type&gt;()))</code> is
+convertible to <code>T</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> Let <code>N</code> be <code>v.extent(0)</code>:</p>
 <ul>
@@ -7828,9 +7824,7 @@ absolute value of vector elements [linalg.algs.blas1.iamax]<a href="#index-of-ma
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>IxAMAX</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em> For <code>i</code> in the domain of
-<code>v</code>, let <code>abs_value_type</code> be
-<code>decltype(v[i])</code>; then, <code>abs_value_type</code> shall be
+<em>Mandates:</em> <code>InVec::value_type</code> is
 <em>Cpp17LessThanComparable</em>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> Returns the index (in the domain of <code>v</code>) of
@@ -7856,9 +7850,9 @@ specified result type<a href="#frobenius-norm-with-specified-result-type" class=
 <span id="cb91-11"><a href="#cb91-11" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
 <span id="cb91-12"><a href="#cb91-12" aria-hidden="true" tabindex="-1"></a>  T init<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em>
-<code>init + abs(declval&lt;InMat::value_type&gt;())*abs(declval&lt;InMat::value_type&gt;())</code>
-shall be convertible to <code>T</code>.</p>
+<em>Mandates:</em>
+<code>init + abs(declval&lt;InMat::value_type&gt;()) * abs(declval&lt;InMat::value_type&gt;())</code>
+is convertible to <code>T</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> Returns the square root of the sum of squares of
 <code>init</code> and the absolute values of the elements of
@@ -7891,10 +7885,13 @@ default result type<a href="#frobenius-norm-with-default-result-type" class="sel
 <span id="cb92-6"><a href="#cb92-6" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> matrix_frob_norm<span class="op">(</span></span>
 <span id="cb92-7"><a href="#cb92-7" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb92-8"><a href="#cb92-8" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
+<!-- TODO (mfh 2023/02/16)
+What if that product of absolute values is an expression template?
+Is it even our job to worry about that?
+-->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Effects:</em> Let <code>T</code> be
-<code>abs(declval&lt;V&gt;()) * abs(declval&lt;V&gt;())</code>, where
-<code>V</code> names the type <code>typename InMat::value_type</code>.
+<code>decltype(abs(declval&lt;InMat::value_type&gt;()) * abs(declval&lt;InMat::value_type&gt;()))</code>,
 Then, the one-parameter overload is equivalent to
 <code>matrix_frob_norm(A, T{});</code>, and the two-parameter overload
 is equivalent to <code>matrix_frob_norm(exec, A, T{});</code>.</p>
@@ -7915,9 +7912,8 @@ specified result type<a href="#one-norm-with-specified-result-type" class="self-
 <span id="cb93-11"><a href="#cb93-11" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
 <span id="cb93-12"><a href="#cb93-12" aria-hidden="true" tabindex="-1"></a>  T init<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Constraints:</em>
-<code>abs(declval&lt;typename InMat::value_type&gt;())</code> is
-convertible to <code>T</code>.</p>
+<em>Mandates:</em> <code>abs(declval&lt;InMat::value_type&gt;())</code>
+is convertible to <code>T</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -7931,12 +7927,12 @@ matrix <span class="math inline"><em>A</em></span>.</p></li>
 maximum over all columns of <code>A</code>, of the sum of the absolute
 values of the elements of the column. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Remarks:</em> If <code>typename InMat::value_type</code> is a
-floating-point type or <code>complex&lt;R&gt;</code> for some
-floating-point type <code>R</code>, if <code>T</code> is a
-floating-point type, and if <code>T</code> has higher precision than
-<code>typename InMat::value_type</code>, then intermediate terms in each
-sum use <code>T</code>’s precision or greater.</p>
+<em>Remarks:</em> If <code>InMat::value_type</code> is a floating-point
+type or <code>complex&lt;R&gt;</code> for some floating-point type
+<code>R</code>, if <code>T</code> is a floating-point type, and if
+<code>T</code> has higher precision than <code>InMat::value_type</code>,
+then intermediate terms in each sum use <code>T</code>’s precision or
+greater.</p>
 <h5 data-number="16.10.2.12.2" id="one-norm-with-default-result-type"><span class="header-section-number">16.10.2.12.2</span> One norm with default
 result type<a href="#one-norm-with-default-result-type" class="self-link"></a></h5>
 <div class="sourceCode" id="cb94"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat<span class="op">&gt;</span></span>
@@ -7972,8 +7968,8 @@ specified result type<a href="#infinity-norm-with-specified-result-type" class="
 <span id="cb95-11"><a href="#cb95-11" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
 <span id="cb95-12"><a href="#cb95-12" aria-hidden="true" tabindex="-1"></a>  T init<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em> <code>abs(A[0,0])</code> shall be convertible to
-<code>T</code>.</p>
+<em>Mandates:</em> <code>abs(declval&lt;InMat::value_type&gt;())</code>
+is convertible to <code>T</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em></p>
 <ul>
