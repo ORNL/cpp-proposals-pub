@@ -1164,7 +1164,9 @@ R10 “mathematical expression of the algorithm” wording</p></li>
 <li><p>Add section <em>[linalg.general]</em> (“General”) that explains
 mathematical notation, the interpretation of <code>Triangle t</code>
 parameters, and that calls to <code>abs</code>, <code>conj</code>,
-<code>imag</code>, and <code>real</code> are unqualified.</p></li>
+<code>imag</code>, and <code>real</code> are unqualified. Move the
+definitions of lower triangle, upper triangle, and diagonal from
+<em>[linalg.tags.triangle]</em> into <em>[linalg.general]</em>.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -5557,6 +5559,23 @@ intent is that the result of the computation is written to the elements
 of the function parameter <code>R</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+Some of the functions in this clause distinguish between the “upper
+triangle,” “lower triangle,” and “diagonal” of a matrix.</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> The
+<em>diagonal</em> is the set of all elements of <code>A</code> accessed
+by <code>A[i,i]</code> for 0 ≤ <code>i</code> &lt;
+min(<code>A.extent(0)</code>, <code>A.extent(1)</code>).</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> The
+<em>upper triangle</em> of a matrix <code>A</code> is the set of all
+elements of <code>A</code> accessed by <code>A[i,j]</code> with
+<code>i</code> ≤ <code>j</code>. It includes the diagonal.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span> The
+<em>lower triangle</em> of <code>A</code> is the set of all elements of
+<code>A</code> accessed by <code>A[i,j]</code> with <code>i</code> ≥
+<code>j</code>. It includes the diagonal.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 For any function <code>F</code> that takes a <code>Triangle t</code>
 parameter, <code>t</code> applies to accesses to the previous parameter
 to the function. Let <code>M</code> be such an access-modified function
@@ -5739,23 +5758,6 @@ of each depends on the specific layout that uses the tag. See
 <code>layout_blas_packed</code> below.</p>
 <h3 data-number="16.4.2" id="triangle-tags-linalg.tags.triangle"><span class="header-section-number">16.4.2</span> Triangle tags
 [linalg.tags.triangle]<a href="#triangle-tags-linalg.tags.triangle" class="self-link"></a></h3>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-Some linear algebra algorithms distinguish between the “upper triangle,”
-“lower triangle,” and “diagonal” of a matrix.</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span> The
-<em>diagonal</em> is the set of all elements of <code>A</code> accessed
-by <code>A[i,i]</code> for 0 ≤ <code>i</code> &lt;
-min(<code>A.extent(0)</code>, <code>A.extent(1)</code>).</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span> The
-<em>upper triangle</em> of a matrix <code>A</code> is the set of all
-elements of <code>A</code> accessed by <code>A[i,j]</code> with
-<code>i</code> ≤ <code>j</code>. It includes the diagonal.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span> The
-<em>lower triangle</em> of <code>A</code> is the set of all elements of
-<code>A</code> accessed by <code>A[i,j]</code> with <code>i</code> ≥
-<code>j</code>. It includes the diagonal.</p></li>
-</ul>
 <div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> upper_triangle_t <span class="op">{</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> upper_triangle_t<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
@@ -5765,7 +5767,7 @@ elements of <code>A</code> accessed by <code>A[i,j]</code> with
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> lower_triangle_t<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> lower_triangle_t lower_triangle <span class="op">=</span> <span class="op">{</span> <span class="op">}</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 These tag classes specify whether algorithms and other users of a matrix
 (represented as an <code>mdspan</code>) should access the upper triangle
 (<code>upper_triangular_t</code>) or lower triangle
