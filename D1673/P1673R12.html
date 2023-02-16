@@ -1168,7 +1168,10 @@ parameters, and that calls to <code>abs</code>, <code>conj</code>,
 definitions of lower triangle, upper triangle, and diagonal from
 <em>[linalg.tags.triangle]</em> into <em>[linalg.general]</em>. Move the
 definitions of implicit unit diagonal and explicit diagonal from
-<em>[linalg.tags.diagonal]</em> into <em>[linalg.general]</em>.</p></li>
+<em>[linalg.tags.diagonal]</em> into <em>[linalg.general]</em>. Remove
+Remarks on <code>Triangle</code> and <code>DiagonalStorage</code> and
+definitions of <span class="math inline"><em>A</em><sup><em>T</em></sup></span> and <span class="math inline"><em>A</em><sup><em>H</em></sup></span> that
+<em>[linalg.general]</em> makes redundant.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -8249,13 +8252,6 @@ neither <code>y.static_extent(0)</code> nor
 <code>mdspan</code> parameters perform a count of <code>mdspan</code>
 array accesses and arithmetic operations that is linear in
 <code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>A</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>A[i,j]</code> as
-equal to <code>A[j,i]</code> for indices <code>i,j</code> in the domain
-of <code>A</code> but outside the triangle specified by
-<code>t</code>.</p>
 <h5 data-number="16.11.3.2.1" id="overwriting-symmetric-matrix-vector-product"><span class="header-section-number">16.11.3.2.1</span> Overwriting symmetric
 matrix-vector product<a href="#overwriting-symmetric-matrix-vector-product" class="self-link"></a></h5>
 <div class="sourceCode" id="cb100"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
@@ -8369,13 +8365,6 @@ neither <code>y.static_extent(0)</code> nor
 <code>mdspan</code> parameters perform a count of <code>mdspan</code>
 array accesses and arithmetic operations that is linear in
 <code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>A</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>A[i,j]</code> as
-equal to <em><code>conj-if-needed</code></em><code>(A[j,i])</code> for
-indices <code>i,j</code> in the domain of <code>A</code> but outside the
-triangle specified by <code>t</code>.</p>
 <h5 data-number="16.11.3.3.1" id="overwriting-hermitian-matrix-vector-product"><span class="header-section-number">16.11.3.3.1</span> Overwriting Hermitian
 matrix-vector product<a href="#overwriting-hermitian-matrix-vector-product" class="self-link"></a></h5>
 <div class="sourceCode" id="cb102"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
@@ -8485,19 +8474,6 @@ neither <code>y.static_extent(0)</code> nor
 <code>mdspan</code> parameters perform a count of <code>mdspan</code>
 array accesses and arithmetic operations that is linear in
 <code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Remarks:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> The
-functions will only access the triangle of <code>A</code> specified by
-the <code>Triangle</code> argument <code>t</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span> If
-the <code>DiagonalStorage</code> template argument has type
-<code>implicit_unit_diagonal_t</code>, then the functions will not
-access the diagonal of <code>A</code>, and will interpret <code>A</code>
-as if each of its diagonal elements behaves as a two-sided
-multiplicative identity.</p></li>
-</ul>
 <h5 data-number="16.11.3.4.1" id="overwriting-triangular-matrix-vector-product-linalg.algs.blas2.trmv.ov"><span class="header-section-number">16.11.3.4.1</span> Overwriting triangular
 matrix-vector product [linalg.algs.blas2.trmv.ov]<a href="#overwriting-triangular-matrix-vector-product-linalg.algs.blas2.trmv.ov" class="self-link"></a></h5>
 <div class="sourceCode" id="cb104"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb104-1"><a href="#cb104-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
@@ -8637,19 +8613,6 @@ neither <code>A.static_extent(1)</code> nor
 <code>mdspan</code> parameters perform a count of <code>mdspan</code>
 array accesses and arithmetic operations that is linear in
 <code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Remarks:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> The
-functions will only access the triangle of <code>A</code> specified by
-the <code>Triangle</code> argument <code>t</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span> If
-the <code>DiagonalStorage</code> template argument has type
-<code>implicit_unit_diagonal_t</code>, then the functions will not
-access the diagonal of <code>A</code>, and will interpret <code>A</code>
-as if each of its diagonal elements behaves as a two-sided
-multiplicative identity.</p></li>
-</ul>
 <h5 data-number="16.11.3.5.1" id="not-in-place-triangular-solve-linalg.algs.blas2.trsv.not-in-place"><span class="header-section-number">16.11.3.5.1</span> Not-in-place triangular
 solve [linalg.algs.blas2.trsv.not-in-place]<a href="#not-in-place-triangular-solve-linalg.algs.blas2.trsv.not-in-place" class="self-link"></a></h5>
 <div class="sourceCode" id="cb107"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
@@ -8848,9 +8811,7 @@ neither <code>A.static_extent(1)</code> nor
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Overwrites <span class="math inline"><em>A</em></span>
-with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>x</em><em>y</em><sup><em>T</em></sup></span>,
-where <span class="math inline"><em>y</em><sup><em>T</em></sup></span>
-denotes the transpose of the column vector <span class="math inline"><em>y</em></span>.</p>
+with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>x</em><em>y</em><sup><em>T</em></sup></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> The count of <code>mdspan</code> array accesses and
 arithmetic operations is linear in <code>x.extent(0)</code> times
@@ -8961,25 +8922,16 @@ neither <code>A.static_extent(0)</code> nor
 <em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-Overloads without an <code>alpha</code> parameter overwrite <span class="math inline"><em>A</em></span> with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>x</em><sup><em>T</em></sup></span>,
-where <span class="math inline"><em>x</em><sup><em>T</em></sup></span>
-denotes the transpose of the column vector <span class="math inline"><em>x</em></span>.</p></li>
+Overloads without an <code>alpha</code> parameter overwrite <span class="math inline"><em>A</em></span> with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>x</em><sup><em>T</em></sup></span>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
 Overloads with an <code>alpha</code> parameter overwrite <span class="math inline"><em>A</em></span> with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>α</em><em>x</em><em>x</em><sup><em>T</em></sup></span>,
 where the scalar <span class="math inline"><em>α</em></span> is
-<code>alpha</code> and <span class="math inline"><em>x</em><sup><em>T</em></sup></span> denotes the
-transpose of the column vector <span class="math inline"><em>x</em></span>.</p></li>
+<code>alpha</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> The count of <code>mdspan</code> array accesses and
 arithmetic operations is linear in <code>x.extent(0)</code> times
 <code>x.extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>A</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>A[i,j]</code> as
-equal to <code>A[j,i]</code> for indices <code>i,j</code> in the domain
-<code>A</code> but outside that triangle.</p>
 <h5 data-number="16.11.3.6.4" id="rank-1-update-of-a-hermitian-matrix-linalg.algs.blas2.rank1.her"><span class="header-section-number">16.11.3.6.4</span> Rank-1 update of a
 Hermitian matrix [linalg.algs.blas2.rank1.her]<a href="#rank-1-update-of-a-hermitian-matrix-linalg.algs.blas2.rank1.her" class="self-link"></a></h5>
 <div class="sourceCode" id="cb120"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb120-1"><a href="#cb120-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec,</span>
@@ -9054,31 +9006,16 @@ neither <code>A.static_extent(0)</code> nor
 <em>Effects:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-Overloads without an <code>alpha</code> parameter overwrite <span class="math inline"><em>A</em></span> with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>x</em><sup><em>H</em></sup></span>,
-where <span class="math inline"><em>x</em><sup><em>H</em></sup></span>
-denotes the conjugate transpose of the column vector <span class="math inline"><em>x</em></span>.</p></li>
+Overloads without an <code>alpha</code> parameter overwrite <span class="math inline"><em>A</em></span> with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>x</em><sup><em>H</em></sup></span>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
 Overloads with an <code>alpha</code> parameter overwrite <span class="math inline"><em>A</em></span> with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>α</em><em>x</em><em>x</em><sup><em>H</em></sup></span>,
 where the scalar <span class="math inline"><em>α</em></span> is
-<code>alpha</code> and <span class="math inline"><em>x</em><sup><em>H</em></sup></span> denotes the
-conjugate transpose of the column vector <span class="math inline"><em>x</em></span>.</p></li>
+<code>alpha</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> The count of <code>mdspan</code> array accesses and
 arithmetic operations is linear in <code>x.extent(0)</code> times
 <code>x.extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Remarks:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> The
-functions will only access the triangle of <code>A</code> specified by
-the <code>Triangle</code> argument <code>t</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span> For
-indices <code>i,j</code> in the domain of <code>A</code> but outside the
-triangle specified by <code>t</code>, the functions will interpret the
-value <code>A[i,j]</code> as equal to
-<em><code>conj-if-needed</code></em><code>(A[j,i])</code>.</p></li>
-</ul>
 <h4 data-number="16.11.3.7" id="rank-2-update-of-a-symmetric-matrix-linalg.algs.blas2.rank2.syr2"><span class="header-section-number">16.11.3.7</span> Rank-2 update of a
 symmetric matrix [linalg.algs.blas2.rank2.syr2]<a href="#rank-2-update-of-a-symmetric-matrix-linalg.algs.blas2.rank2.syr2" class="self-link"></a></h4>
 <div class="sourceCode" id="cb121"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb121-1"><a href="#cb121-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -9140,20 +9077,11 @@ neither <code>A.static_extent(0)</code> or
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Overwrites <span class="math inline"><em>A</em></span>
-with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>y</em><sup><em>T</em></sup> + <em>y</em><em>x</em><sup><em>T</em></sup></span>,
-where <span class="math inline"><em>x</em><sup><em>T</em></sup></span>
-denotes the transpose of the column vector <span class="math inline"><em>x</em></span>, and <span class="math inline"><em>y</em><sup><em>T</em></sup></span> denotes the
-transpose of the column vector <span class="math inline"><em>y</em></span>.</p>
+with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>y</em><sup><em>T</em></sup> + <em>y</em><em>x</em><sup><em>T</em></sup></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> The count of <code>mdspan</code> array accesses and
 arithmetic operations is linear in <code>x.extent(0)</code> times
 <code>y.extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>A</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>A[i,j]</code> as
-equal to <code>A[j,i]</code> for indices <code>i,j</code> in the domain
-<code>A</code> but outside that triangle.</p>
 <h4 data-number="16.11.3.8" id="rank-2-update-of-a-hermitian-matrix-linalg.algs.blas2.rank2.her2"><span class="header-section-number">16.11.3.8</span> Rank-2 update of a
 Hermitian matrix [linalg.algs.blas2.rank2.her2]<a href="#rank-2-update-of-a-hermitian-matrix-linalg.algs.blas2.rank2.her2" class="self-link"></a></h4>
 <div class="sourceCode" id="cb122"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb122-1"><a href="#cb122-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -9215,21 +9143,11 @@ neither <code>A.static_extent(0)</code> nor
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Overwrites <span class="math inline"><em>A</em></span>
-with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>y</em><sup><em>H</em></sup> + <em>y</em><em>x</em><sup><em>H</em></sup></span>,
-where <span class="math inline"><em>x</em><sup><em>H</em></sup></span>
-denotes the conjugate transpose of the column vector <span class="math inline"><em>x</em></span>, and <span class="math inline"><em>y</em><sup><em>H</em></sup></span> denotes the
-conjugate transpose of the column vector <span class="math inline"><em>y</em></span>.</p>
+with <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>y</em><sup><em>H</em></sup> + <em>y</em><em>x</em><sup><em>H</em></sup></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> The count of <code>mdspan</code> array accesses and
 arithmetic operations is linear in <code>x.extent(0)</code> times
 <code>y.extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>A</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>A[i,j]</code> as
-equal to <em><code>conj-if-needed</code></em><code>(A[j,i])</code> for
-indices <code>i,j</code> in the domain of <code>A</code> but outside the
-triangle specified by <code>t</code>.</p>
 <h3 data-number="16.11.4" id="blas-3-functions-linalg.algs.blas3"><span class="header-section-number">16.11.4</span> BLAS 3 functions
 [linalg.algs.blas3]<a href="#blas-3-functions-linalg.algs.blas3" class="self-link"></a></h3>
 <h4 data-number="16.11.4.1" id="general-matrix-matrix-product-linalg.algs.blas3.gemm"><span class="header-section-number">16.11.4.1</span> General matrix-matrix
@@ -9373,18 +9291,8 @@ equals <code>dynamic_extent</code>, then <code>C.static_extent(r)</code>
 equals <code>E.static_extent(r)</code> (if applicable).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> The
-functions will only access the triangle of <code>A</code> specified by
-the <code>Triangle</code> argument <code>t</code>, and will interpret
-the value <code>A[i,j]</code> as equal to <code>A[j,i]</code> for
-indices <code>i,j</code> in the domain <code>A</code> but outside that
-triangle.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
-<code>C</code> and <code>E</code> (if applicable) may refer to the same
-matrix.</p></li>
-</ul>
+<em>Remarks:</em> <code>C</code> and <code>E</code> (if applicable) may
+refer to the same matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all overloads of
 <code>symmetric_matrix_left_product</code>.</p>
@@ -9608,19 +9516,8 @@ equals <code>dynamic_extent</code>, then <code>C.static_extent(r)</code>
 equals <code>E.static_extent(r)</code> (if applicable).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> The
-functions will only access the triangle of <code>A</code> specified by
-the <code>Triangle</code> argument <code>t</code>, and will interpret
-the value <code>A[i,j]</code> as equal to
-<em><code>conj-if-needed</code></em><code>(A[j,i])</code> for indices
-<code>i,j</code> in the domain of <code>A</code> but outside the
-triangle specified by <code>t</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-<code>C</code> and <code>E</code> (if applicable) may refer to the same
-matrix.</p></li>
-</ul>
+<em>Remarks:</em> <code>C</code> and <code>E</code> (if applicable) may
+refer to the same matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all overloads of
 <code>hermitian_matrix_left_product</code>.</p>
@@ -9842,21 +9739,8 @@ equals <code>dynamic_extent</code>, then <code>C.static_extent(r)</code>
 equals <code>E.static_extent(r)</code> (if applicable).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> The
-functions will only access the triangle of <code>A</code> specified by
-the <code>Triangle</code> argument <code>t</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span> If
-the <code>DiagonalStorage</code> template argument has type
-<code>implicit_unit_diagonal_t</code>, then the functions will not
-access the diagonal of <code>A</code>, and will interpret <code>A</code>
-as if each of its diagonal elements behaves as a two-sided
-multiplicative identity.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
-<code>C</code> and <code>E</code> (if applicable) may refer to the same
-matrix.</p></li>
-</ul>
+<em>Remarks:</em> <code>C</code> and <code>E</code> (if applicable) may
+refer to the same matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all overloads of
 <code>triangular_matrix_left_product</code>.</p>
@@ -10201,15 +10085,7 @@ neither <code>C.static_extent(0)</code> nor
 <em>Effects:</em> Overwrites <span class="math inline"><em>C</em></span>
 with <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>α</em><em>A</em><em>A</em><sup><em>T</em></sup></span>,
 where the scalar <span class="math inline"><em>α</em></span> is
-<code>alpha</code> and <span class="math inline"><em>A</em><sup><em>T</em></sup></span> denotes the
-transpose of the matrix <span class="math inline"><em>A</em></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>C</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>C[i,j]</code> as
-equal to <code>C[j,i]</code> for indices <code>i,j</code> in the domain
-of <code>C</code> but outside the triangle specified by
-<code>t</code>.</p>
+<code>alpha</code>.</p>
 <h5 data-number="16.11.4.5.2" id="rank-k-hermitian-matrix-update-linalg.alg.blas3.rank-k.herk"><span class="header-section-number">16.11.4.5.2</span> Rank-k Hermitian matrix
 update [linalg.alg.blas3.rank-k.herk]<a href="#rank-k-hermitian-matrix-update-linalg.alg.blas3.rank-k.herk" class="self-link"></a></h5>
 <div class="sourceCode" id="cb140"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T,</span>
@@ -10272,15 +10148,7 @@ neither <code>C.static_extent(0)</code> nor
 <em>Effects:</em> Overwrites <span class="math inline"><em>C</em></span>
 with <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>α</em><em>A</em><em>A</em><sup><em>H</em></sup></span>,
 where the scalar <span class="math inline"><em>α</em></span> is
-<code>alpha</code> and <span class="math inline"><em>A</em><sup><em>H</em></sup></span> denotes the
-conjugate transpose of the matrix <span class="math inline"><em>A</em></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>C</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>C[i,j]</code> as
-equal to <code>C[j,i]</code> for indices <code>i,j</code> in the domain
-of <code>C</code> but outside the triangle specified by
-<code>t</code>.</p>
+<code>alpha</code>.</p>
 <h4 data-number="16.11.4.6" id="rank-2k-update-of-a-symmetric-or-hermitian-matrix-linalg.alg.blas3.rank2k"><span class="header-section-number">16.11.4.6</span> Rank-2k update of a
 symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]<a href="#rank-2k-update-of-a-symmetric-or-hermitian-matrix-linalg.alg.blas3.rank2k" class="self-link"></a></h4>
 <!--
@@ -10357,17 +10225,7 @@ neither <code>A.static_extent(0)</code> nor
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Overwrites <span class="math inline"><em>C</em></span>
-with <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>A</em><em>B</em><sup><em>T</em></sup> + <em>B</em><em>A</em><sup><em>T</em></sup></span>,
-where <span class="math inline"><em>A</em><sup><em>T</em></sup></span>
-denotes the transpose of the matrix <span class="math inline"><em>A</em></span> and <span class="math inline"><em>B</em><sup><em>T</em></sup></span> denotes the
-transpose of the matrix <span class="math inline"><em>B</em></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>C</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>C[i,j]</code> as
-equal to <code>C[j,i]</code> for indices <code>i,j</code> in the domain
-of <code>C</code> but outside the triangle specified by
-<code>t</code>.</p>
+with <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>A</em><em>B</em><sup><em>T</em></sup> + <em>B</em><em>A</em><sup><em>T</em></sup></span>.</p>
 <h5 data-number="16.11.4.6.2" id="rank-2k-hermitian-matrix-update-linalg.alg.blas3.rank2k.her2k"><span class="header-section-number">16.11.4.6.2</span> Rank-2k Hermitian
 matrix update [linalg.alg.blas3.rank2k.her2k]<a href="#rank-2k-hermitian-matrix-update-linalg.alg.blas3.rank2k.her2k" class="self-link"></a></h5>
 <div class="sourceCode" id="cb142"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb142-1"><a href="#cb142-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
@@ -10429,17 +10287,7 @@ neither <code>A.static_extent(0)</code> nor
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Overwrites <span class="math inline"><em>C</em></span>
-with <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>A</em><em>B</em><sup><em>H</em></sup> + <em>B</em><em>A</em><sup><em>H</em></sup></span>,
-where <span class="math inline"><em>A</em><sup><em>H</em></sup></span>
-denotes the conjugate transpose of the matrix <span class="math inline"><em>A</em></span> and <span class="math inline"><em>B</em><sup><em>H</em></sup></span> denotes the
-conjugate transpose of the matrix <span class="math inline"><em>B</em></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em> The functions will only access the triangle of
-<code>C</code> specified by the <code>Triangle</code> argument
-<code>t</code>, and will interpret the value <code>C[i,j]</code> as
-equal to <em><code>conj-if-needed</code></em><code>(C[j,i])</code> for
-indices <code>i,j</code> in the domain of <code>C</code> but outside the
-triangle specified by <code>t</code>.</p>
+with <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>A</em><em>B</em><sup><em>H</em></sup> + <em>B</em><em>A</em><sup><em>H</em></sup></span>.</p>
 <h4 data-number="16.11.4.7" id="solve-multiple-triangular-linear-systems-linalg.alg.blas3.trsm"><span class="header-section-number">16.11.4.7</span> Solve multiple triangular
 linear systems [linalg.alg.blas3.trsm]<a href="#solve-multiple-triangular-linear-systems-linalg.alg.blas3.trsm" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS function
@@ -10483,19 +10331,6 @@ neither <code>A.static_extent(0)</code> nor
 <code>A.static_extent(1)</code> equals <code>dynamic_extent</code>, then
 <code>A.static_extent(0)</code> equals
 <code>A.static_extent(1)</code>.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> The
-functions will only access the triangle of <code>A</code> specified by
-the <code>Triangle</code> argument <code>t</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span> If
-the <code>DiagonalStorage</code> template argument has type
-<code>implicit_unit_diagonal_t</code>, then the functions will not
-access the diagonal of <code>A</code>, and will interpret <code>A</code>
-as if each of its diagonal elements behaves as a two-sided
-multiplicative identity.</p></li>
 </ul>
 <h5 data-number="16.11.4.7.1" id="solve-multiple-triangular-linear-systems-with-triangular-matrix-on-the-left-linalg.alg.blas3.trsm.left"><span class="header-section-number">16.11.4.7.1</span> Solve multiple
 triangular linear systems with triangular matrix on the left
