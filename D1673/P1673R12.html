@@ -1178,6 +1178,9 @@ with “<em>Returns:</em> <code>X</code>”. Fix formatting of multiple
 “be.”</p></li>
 <li><p>In <em>[linalg.tags.order]</em>, add missing forward
 reference.</p></li>
+<li><p>Replace “if applicable” with hopefully canonical
+wording.</p></li>
+<li><p>Audit complexity elements and revise their wording.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -5710,10 +5713,11 @@ or</p></li>
 expression where it would be mathematically appropriate is well
 formed.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.10)</a></span> If
-the function has an output <code>mdspan</code>, then all addends (or
-subtrahends, if applicable) (or results of <code>divide</code> on
-intermediate terms, if applicable) are assignable and convertible to the
-output <code>mdspan</code>’s <code>value_type</code>.</p></li>
+the function has an output <code>mdspan</code>, then all addends,
+subtrahends (for the triangular solve algorithms), or results of the
+<code>divide</code> parameter on intermediate terms (if the function
+takes a <code>divide</code> parameter) are assignable and convertible to
+the output <code>mdspan</code>’s <code>value_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.11)</a></span> The
 function may reorder addends and partial sums arbitrarily. <i>[Note:</i>
 Factors in each product are not reordered; multiplication is not
@@ -6751,8 +6755,8 @@ read only. <i>– end note]</i>;</p>
 transformation [linalg.transp]<a href="#transpose-in-place-transformation-linalg.transp" class="self-link"></a></h2>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <code>layout_transpose</code> is an <code>mdspan</code> layout mapping
-policy that swaps the rightmost two indices, extents, and strides (if
-applicable) of any unique <code>mdspan</code> layout mapping policy.</p>
+policy that swaps the rightmost two indices, extents, and strides of any
+unique <code>mdspan</code> layout mapping policy.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 The <code>transposed</code> function takes an <code>mdspan</code>
 representing a matrix, and returns a new read-only <code>mdspan</code>
@@ -6761,8 +6765,8 @@ representing the transpose of the input matrix.</p>
 <code>layout_transpose</code> [linalg.transp.layout_transpose]<a href="#layout_transpose-linalg.transp.layout_transpose" class="self-link"></a></h3>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <code>layout_transpose</code> is an <code>mdspan</code> layout mapping
-policy that swaps the rightmost two indices, extents, and strides (if
-applicable) of any unique <code>mdspan</code> layout mapping policy.</p>
+policy that swaps the rightmost two indices, extents, and strides of any
+unique <code>mdspan</code> layout mapping policy.</p>
 <div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> InputExtents<span class="op">&gt;</span></span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <em>transpose-extents-t</em> <span class="op">=</span> <span class="co">/* see below */</span>; <span class="co">// exposition only</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -8060,8 +8064,8 @@ The following elements apply to all functions in this section.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 <code>A.extent(0)</code> equals <code>y.extent(0)</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>y.extent(0)</code> equals <code>z.extent(0)</code> (if
-applicable).</p></li>
+<code>y.extent(0)</code> equals <code>z.extent(0)</code> (for those
+overloads that take a <code>z</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Mandates:</em></p>
@@ -8080,7 +8084,7 @@ neither <code>A.static_extent(0)</code> nor
 neither <code>y.static_extent(0)</code> nor
 <code>z.static_extent(0)</code> equals <code>dynamic_extent</code>, then
 <code>y.static_extent(0)</code> equals <code>z.static_extent(0)</code>
-(if applicable).</p></li>
+(for those overloads that take a <code>z</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> All algorithms in this Clause with
@@ -8179,8 +8183,8 @@ The following elements apply to all functions in this section.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 <code>A.extent(0)</code> equals <code>y.extent(0)</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-<code>y.extent(0)</code> equals <code>z.extent(0)</code> (if
-applicable).</p></li>
+<code>y.extent(0)</code> equals <code>z.extent(0)</code> (for those
+overloads that take a <code>z</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Constraints:</em></p>
@@ -8212,7 +8216,7 @@ neither <code>A.static_extent(0)</code> nor
 neither <code>y.static_extent(0)</code> nor
 <code>z.static_extent(0)</code> equals <code>dynamic_extent</code>, then
 <code>y.static_extent(0)</code> equals <code>z.static_extent(0)</code>
-(if applicable).</p></li>
+(for those overloads that take a <code>z</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> All algorithms in this Clause with
@@ -8290,8 +8294,8 @@ The following elements apply to all functions in this section.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 <code>A.extent(0)</code> equals <code>y.extent(0)</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-<code>y.extent(0)</code> equals <code>z.extent(0)</code> (if
-applicable).</p></li>
+<code>y.extent(0)</code> equals <code>z.extent(0)</code> (for those
+overloads that take a <code>z</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Constraints:</em></p>
@@ -8323,7 +8327,7 @@ neither <code>A.static_extent(0)</code> nor
 neither <code>y.static_extent(0)</code> nor
 <code>z.static_extent(0)</code> equals <code>dynamic_extent</code>, then
 <code>y.static_extent(0)</code> equals <code>z.static_extent(0)</code>
-(if applicable).</p></li>
+(for those overloads that take a <code>z</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> All algorithms in this Clause with
@@ -8397,11 +8401,11 @@ The following elements apply to all functions in this section.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 <code>A.extent(0)</code> equals <code>y.extent(0)</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>A.extent(1)</code> equals <code>x.extent(0)</code> (if
-applicable), and</p></li>
+<code>A.extent(1)</code> equals <code>x.extent(0)</code> (for those
+overloads that take an <code>x</code> parameter).</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-<code>y.extent(0)</code> equals <code>z.extent(0)</code> (if
-applicable).</p></li>
+<code>y.extent(0)</code> equals <code>z.extent(0)</code> (for those
+overloads that take a <code>z</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Constraints:</em> if <code>InMat</code> has
@@ -8425,18 +8429,29 @@ neither <code>A.static_extent(0)</code> nor
 neither <code>A.static_extent(1)</code> nor
 <code>x.static_extent(0)</code> equals <code>dynamic_extent</code>, then
 <code>A.static_extent(1)</code> equals <code>x.static_extent(0)</code>
-(if applicable); and</p></li>
+(for those overloads that take an <code>x</code> parameter);
+and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span> if
 neither <code>y.static_extent(0)</code> nor
 <code>z.static_extent(0)</code> equals <code>dynamic_extent</code>, then
 <code>y.static_extent(0)</code> equals <code>z.static_extent(0)</code>
-(if applicable).</p></li>
+(for those overloads that take a <code>z</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> All algorithms in this Clause with
-<code>mdspan</code> parameters perform a count of <code>mdspan</code>
-array accesses and arithmetic operations that is linear in
-<code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
+<em>Complexity:</em> For all algorithms in this Clause with
+<code>mdspan</code> parameters,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
+those overloads that take an <code>x</code> parameter perform a count of
+<code>mdspan</code> array accesses and arithmetic operations that is
+linear in <code>x.extent(0)</code> times
+<code>A.extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span> and
+those overloads that do not take an <code>x</code> parameter perform a
+count of <code>mdspan</code> array accesses and arithmetic operations
+that is linear in <code>y.extent(0)</code> times
+<code>A.extent(1)</code>.</p></li>
+</ul>
 <h5 data-number="16.11.3.4.1" id="overwriting-triangular-matrix-vector-product-linalg.algs.blas2.trmv.ov"><span class="header-section-number">16.11.3.4.1</span> Overwriting triangular
 matrix-vector product [linalg.algs.blas2.trmv.ov]<a href="#overwriting-triangular-matrix-vector-product-linalg.algs.blas2.trmv.ov" class="self-link"></a></h5>
 <div class="sourceCode" id="cb99"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
@@ -8569,10 +8584,20 @@ neither <code>A.static_extent(1)</code> nor
 <code>b.static_extent(0)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> All algorithms in this Clause with
-<code>mdspan</code> parameters perform a count of <code>mdspan</code>
-array accesses and arithmetic operations that is linear in
-<code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
+<em>Complexity:</em> For all algorithms in this Clause with
+<code>mdspan</code> parameters,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
+those overloads that take an <code>x</code> parameter perform a count of
+<code>mdspan</code> array accesses and arithmetic operations that is
+linear in <code>x.extent(0)</code> times
+<code>A.extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span> and
+those overloads that do not take an <code>x</code> parameter perform a
+count of <code>mdspan</code> array accesses and arithmetic operations
+that is linear in <code>b.extent(0)</code> times
+<code>A.extent(1)</code>.</p></li>
+</ul>
 <h5 data-number="16.11.3.5.1" id="not-in-place-triangular-solve-linalg.algs.blas2.trsv.not-in-place"><span class="header-section-number">16.11.3.5.1</span> Not-in-place triangular
 solve [linalg.algs.blas2.trsv.not-in-place]<a href="#not-in-place-triangular-solve-linalg.algs.blas2.trsv.not-in-place" class="self-link"></a></h5>
 <div class="sourceCode" id="cb102"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
@@ -8772,9 +8797,10 @@ neither <code>A.static_extent(1)</code> nor
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>A</em> = <em>x</em><em>y</em><sup><em>T</em></sup></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>x.extent(0)</code> times
-<code>y.extent(0)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>x.extent(0)</code> times <code>y.extent(0)</code>.</p>
 <!--
 Users can get `xGERC` behavior by giving the second argument
 as the result of `conjugated`.  Alternately, they can use the shortcut
@@ -8888,9 +8914,10 @@ where the scalar <span class="math inline"><em>α</em></span> is
 <code>alpha</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>x.extent(0)</code> times
-<code>x.extent(0)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>x.extent(0)</code> times <code>x.extent(0)</code>.</p>
 <h5 data-number="16.11.3.6.4" id="rank-1-update-of-a-hermitian-matrix-linalg.algs.blas2.rank1.her"><span class="header-section-number">16.11.3.6.4</span> Rank-1 update of a
 Hermitian matrix [linalg.algs.blas2.rank1.her]<a href="#rank-1-update-of-a-hermitian-matrix-linalg.algs.blas2.rank1.her" class="self-link"></a></h5>
 <div class="sourceCode" id="cb115"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec,</span>
@@ -8972,9 +8999,10 @@ where the scalar <span class="math inline"><em>α</em></span> is
 <code>alpha</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>x.extent(0)</code> times
-<code>x.extent(0)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>x.extent(0)</code> times <code>x.extent(0)</code>.</p>
 <h4 data-number="16.11.3.7" id="rank-2-update-of-a-symmetric-matrix-linalg.algs.blas2.rank2.syr2"><span class="header-section-number">16.11.3.7</span> Rank-2 update of a
 symmetric matrix [linalg.algs.blas2.rank2.syr2]<a href="#rank-2-update-of-a-symmetric-matrix-linalg.algs.blas2.rank2.syr2" class="self-link"></a></h4>
 <div class="sourceCode" id="cb116"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb116-1"><a href="#cb116-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -9037,9 +9065,10 @@ neither <code>A.static_extent(0)</code> or
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>A</em> = <em>A</em> + <em>x</em><em>y</em><sup><em>T</em></sup> + <em>y</em><em>x</em><sup><em>T</em></sup></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>x.extent(0)</code> times
-<code>y.extent(0)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>x.extent(0)</code> times <code>y.extent(0)</code>.</p>
 <h4 data-number="16.11.3.8" id="rank-2-update-of-a-hermitian-matrix-linalg.algs.blas2.rank2.her2"><span class="header-section-number">16.11.3.8</span> Rank-2 update of a
 Hermitian matrix [linalg.algs.blas2.rank2.her2]<a href="#rank-2-update-of-a-hermitian-matrix-linalg.algs.blas2.rank2.her2" class="self-link"></a></h4>
 <div class="sourceCode" id="cb117"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb117-1"><a href="#cb117-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -9102,9 +9131,10 @@ neither <code>A.static_extent(0)</code> nor
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>A</em> = <em>A</em> + <em>x</em><em>y</em><sup><em>H</em></sup> + <em>y</em><em>x</em><sup><em>H</em></sup></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>x.extent(0)</code> times
-<code>y.extent(0)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>x.extent(0)</code> times <code>y.extent(0)</code>.</p>
 <h3 data-number="16.11.4" id="blas-3-functions-linalg.algs.blas3"><span class="header-section-number">16.11.4</span> BLAS 3 functions
 [linalg.algs.blas3]<a href="#blas-3-functions-linalg.algs.blas3" class="self-link"></a></h3>
 <h4 data-number="16.11.4.1" id="general-matrix-matrix-product-linalg.algs.blas3.gemm"><span class="header-section-number">16.11.4.1</span> General matrix-matrix
@@ -9117,11 +9147,11 @@ The following elements apply to all functions in this section.</p>
 <em>Preconditions:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>C.extent(0)</code> equals <code>E.extent(0)</code> (if
-applicable),</p></li>
+<code>C.extent(0)</code> equals <code>E.extent(0)</code> (for those
+overloads that take an <code>E</code> parameter),</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>C.extent(1)</code> equals <code>E.extent(1)</code> (if
-applicable),</p></li>
+<code>C.extent(1)</code> equals <code>E.extent(1)</code> (for those
+overloads that take an <code>E</code> parameter),</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 <code>A.extent(1)</code> equals <code>B.extent(0)</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
@@ -9136,7 +9166,8 @@ applicable),</p></li>
 all <code>r</code> in 0, 1, …, <code>C.rank()</code> - 1, if neither
 <code>C.static_extent(r)</code> nor <code>E.static_extent(r)</code>
 equals <code>dynamic_extent</code>, then <code>C.static_extent(r)</code>
-equals <code>E.static_extent(r)</code> (if applicable).</p></li>
+equals <code>E.static_extent(r)</code> (for those overloads that take an
+<code>E</code> parameter).</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> If
 neither <code>A.static_extent(1)</code> nor
 <code>B.static_extent(0)</code> equals <code>dynamic_extent</code>, then
@@ -9154,9 +9185,10 @@ neither <code>B.static_extent(1)</code> nor
 <code>C.static_extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Complexity:</em> For all algorithms in this Clause, the count of
-<code>mdspan</code> array accesses and arithmetic operations is linear
-in <code>A.extent(0)</code> times <code>B.extent(1)</code> times
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>A.extent(0)</code> times <code>B.extent(1)</code> times
 <code>A.extent(1)</code>.</p>
 <h5 data-number="16.11.4.1.1" id="overwriting-general-matrix-matrix-product"><span class="header-section-number">16.11.4.1.1</span> Overwriting general
 matrix-matrix product<a href="#overwriting-general-matrix-matrix-product" class="self-link"></a></h5>
@@ -9220,11 +9252,11 @@ The following elements apply to all functions in this section.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
 <code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>C.extent(0)</code> equals <code>E.extent(0)</code> (if
-applicable), and</p></li>
+<code>C.extent(0)</code> equals <code>E.extent(0)</code> (for those
+overloads that take an <code>E</code> parameter), and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>C.extent(1)</code> equals <code>E.extent(1)</code> (if
-applicable).</p></li>
+<code>C.extent(1)</code> equals <code>E.extent(1)</code> (for those
+overloads that take an <code>E</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Constraints:</em> If <code>InMat1</code> has
@@ -9243,11 +9275,12 @@ neither <code>A.static_extent(0)</code> nor
 all <code>r</code> in 0, 1, …, <code>C.rank()</code> - 1, if neither
 <code>C.static_extent(r)</code> nor <code>E.static_extent(r)</code>
 equals <code>dynamic_extent</code>, then <code>C.static_extent(r)</code>
-equals <code>E.static_extent(r)</code> (if applicable).</p></li>
+equals <code>E.static_extent(r)</code> (for those overloads that take an
+<code>E</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em> <code>C</code> and <code>E</code> (if applicable) may
-refer to the same matrix.</p>
+<em>Remarks:</em> <code>C</code> and <code>E</code> (for those overloads
+that take an <code>E</code> parameter) may refer to the same matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all overloads of
 <code>symmetric_matrix_left_product</code>.</p>
@@ -9281,9 +9314,11 @@ neither <code>B.static_extent(1)</code> nor
 <code>C.static_extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>A.extent(0)</code> times
-<code>B.extent(1)</code> times <code>A.extent(1)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>A.extent(0)</code> times <code>B.extent(1)</code> times
+<code>A.extent(1)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span> The
 following elements apply to all overloads of
 <code>symmetric_matrix_right_product</code>.</p>
@@ -9317,9 +9352,11 @@ neither <code>A.static_extent(1)</code> nor
 <code>C.static_extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>B.extent(0)</code> times
-<code>A.extent(1)</code> times <code>B.extent(1)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>B.extent(0)</code> times <code>A.extent(1)</code> times
+<code>B.extent(1)</code>.</p>
 <h5 data-number="16.11.4.2.1" id="overwriting-symmetric-matrix-matrix-left-product-linalg.algs.blas3.symm.ov.left"><span class="header-section-number">16.11.4.2.1</span> Overwriting symmetric
 matrix-matrix left product [linalg.algs.blas3.symm.ov.left]<a href="#overwriting-symmetric-matrix-matrix-left-product-linalg.algs.blas3.symm.ov.left" class="self-link"></a></h5>
 <div class="sourceCode" id="cb120"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb120-1"><a href="#cb120-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
@@ -9441,11 +9478,11 @@ The following elements apply to all functions in this section.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
 <code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>C.extent(0)</code> equals <code>E.extent(0)</code> (if
-applicable), and</p></li>
+<code>C.extent(0)</code> equals <code>E.extent(0)</code> (for those
+overloads that take an <code>E</code> parameter), and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>C.extent(1)</code> equals <code>E.extent(1)</code> (if
-applicable).</p></li>
+<code>C.extent(1)</code> equals <code>E.extent(1)</code> (for those
+overloads that take an <code>E</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Constraints:</em> If <code>InMat1</code> has
@@ -9464,11 +9501,12 @@ neither <code>A.static_extent(0)</code> nor
 all <code>r</code> in 0, 1, …, <code>C.rank()</code> - 1, if neither
 <code>C.static_extent(r)</code> nor <code>E.static_extent(r)</code>
 equals <code>dynamic_extent</code>, then <code>C.static_extent(r)</code>
-equals <code>E.static_extent(r)</code> (if applicable).</p></li>
+equals <code>E.static_extent(r)</code> (for those overloads that take an
+<code>E</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em> <code>C</code> and <code>E</code> (if applicable) may
-refer to the same matrix.</p>
+<em>Remarks:</em> <code>C</code> and <code>E</code> (for those overloads
+that take an <code>E</code> parameter) may refer to the same matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all overloads of
 <code>hermitian_matrix_left_product</code>.</p>
@@ -9502,9 +9540,11 @@ neither <code>B.static_extent(1)</code> nor
 <code>C.static_extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>A.extent(0)</code> times
-<code>B.extent(1)</code> times <code>A.extent(1)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>A.extent(0)</code> times <code>B.extent(1)</code> times
+<code>A.extent(1)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span> The
 following elements apply to all overloads of
 <code>hermitian_matrix_right_product</code>.</p>
@@ -9538,9 +9578,11 @@ neither <code>A.static_extent(1)</code> nor
 <code>C.static_extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>B.extent(0)</code> times
-<code>A.extent(1)</code> times <code>B.extent(1)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>B.extent(0)</code> times <code>A.extent(1)</code> times
+<code>B.extent(1)</code>.</p>
 <h5 data-number="16.11.4.3.1" id="overwriting-hermitian-matrix-matrix-left-product-linalg.algs.blas3.hemm.ov.left"><span class="header-section-number">16.11.4.3.1</span> Overwriting Hermitian
 matrix-matrix left product [linalg.algs.blas3.hemm.ov.left]<a href="#overwriting-hermitian-matrix-matrix-left-product-linalg.algs.blas3.hemm.ov.left" class="self-link"></a></h5>
 <div class="sourceCode" id="cb124"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
@@ -9657,11 +9699,11 @@ The following elements apply to all functions in this section.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
 <code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>C.extent(0)</code> equals <code>E.extent(0)</code> (if
-applicable), and</p></li>
+<code>C.extent(0)</code> equals <code>E.extent(0)</code> (for those
+overloads that take an <code>E</code> parameter), and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>C.extent(1)</code> equals <code>E.extent(1)</code> (if
-applicable).</p></li>
+<code>C.extent(1)</code> equals <code>E.extent(1)</code> (for those
+overloads that take an <code>E</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Constraints:</em></p>
@@ -9683,11 +9725,12 @@ neither <code>A.static_extent(0)</code> nor
 all <code>r</code> in 0, 1, …, <code>C.rank()</code> - 1, if neither
 <code>C.static_extent(r)</code> nor <code>E.static_extent(r)</code>
 equals <code>dynamic_extent</code>, then <code>C.static_extent(r)</code>
-equals <code>E.static_extent(r)</code> (if applicable).</p></li>
+equals <code>E.static_extent(r)</code> (for those overloads that take an
+<code>E</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em> <code>C</code> and <code>E</code> (if applicable) may
-refer to the same matrix.</p>
+<em>Remarks:</em> <code>C</code> and <code>E</code> (for those overloads
+that take an <code>E</code> parameter) may refer to the same matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all overloads of
 <code>triangular_matrix_left_product</code>.</p>
@@ -9695,13 +9738,13 @@ The following elements apply to all overloads of
 <em>Preconditions:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
-<code>A.extent(1)</code> equals <code>B.extent(0)</code> (if
-applicable),</p></li>
+<code>A.extent(1)</code> equals <code>B.extent(0)</code> (for those
+overloads that take a <code>B</code> parameter),</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
 <code>A.extent(0)</code> equals <code>C.extent(0)</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
-<code>B.extent(1)</code> equals <code>C.extent(1)</code> (if
-applicable).</p></li>
+<code>B.extent(1)</code> equals <code>C.extent(1)</code> (for those
+overloads that take a <code>B</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Mandates:</em></p>
@@ -9710,7 +9753,7 @@ applicable).</p></li>
 neither <code>A.static_extent(1)</code> nor
 <code>B.static_extent(0)</code> equals <code>dynamic_extent</code>, then
 <code>A.static_extent(1)</code> equals <code>B.static_extent(0)</code>
-(if applicable);</p></li>
+(for those overloads that take a <code>B</code> parameter);</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(8.2)</a></span> if
 neither <code>A.static_extent(0)</code> nor
 <code>C.static_extent(0)</code> equals <code>dynamic_extent</code>, then
@@ -9720,12 +9763,23 @@ and</p></li>
 neither <code>B.static_extent(1)</code> nor
 <code>C.static_extent(1)</code> equals <code>dynamic_extent</code>, then
 <code>B.static_extent(1)</code> equals <code>C.static_extent(1)</code>
-(if applicable).</p></li>
+(for those overloads that take a <code>B</code> parameter).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>A.extent(0)</code> times
-<code>B.extent(1)</code> times <code>A.extent(1)</code>.</p>
+<em>Complexity:</em> For all algorithms in this Clause with
+<code>mdspan</code> parameters,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
+those overloads that take a <code>B</code> parameter perform a count of
+<code>mdspan</code> array accesses and arithmetic operations that is
+linear in <code>A.extent(0)</code> times <code>B.extent(1)</code> times
+<code>A.extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span> and
+those overloads that do not take a <code>B</code> parameter perform a
+count of <code>mdspan</code> array accesses and arithmetic operations
+that is linear in <code>A.extent(0)</code> times
+<code>C.extent(1)</code> times <code>A.extent(1)</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span> The
 following elements apply to all overloads of
 <code>triangular_matrix_right_product</code>.</p>
@@ -9733,11 +9787,11 @@ following elements apply to all overloads of
 <em>Preconditions:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(11.1)</a></span>
-<code>B.extent(1)</code> equals <code>A.extent(0)</code> (if
-applicable),</p></li>
+<code>B.extent(1)</code> equals <code>A.extent(0)</code> (for those
+overloads that take a <code>B</code> parameter),</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(11.2)</a></span>
-<code>B.extent(0)</code> equals <code>C.extent(0)</code> (if
-applicable), and</p></li>
+<code>B.extent(0)</code> equals <code>C.extent(0)</code> (for those
+overloads that take a <code>B</code> parameter), and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(11.3)</a></span>
 <code>A.extent(1)</code> equals <code>C.extent(1)</code>.</p></li>
 </ul>
@@ -9748,12 +9802,12 @@ applicable), and</p></li>
 neither <code>B.static_extent(1)</code> nor
 <code>A.static_extent(0)</code> equals <code>dynamic_extent</code>, then
 <code>B.static_extent(1)</code> equals <code>A.static_extent(0)</code>
-(if applicable);</p></li>
+(for those overloads that take a <code>B</code> parameter);</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span> if
 neither <code>B.static_extent(0)</code> nor
 <code>C.static_extent(0)</code> equals <code>dynamic_extent</code>, then
 <code>B.static_extent(0)</code> equals <code>C.static_extent(0)</code>
-(if applicable); and</p></li>
+(for those overloads that take a <code>B</code> parameter); and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.3)</a></span> if
 neither <code>A.static_extent(1)</code> nor
 <code>C.static_extent(1)</code> equals <code>dynamic_extent</code>, then
@@ -9761,9 +9815,20 @@ neither <code>A.static_extent(1)</code> nor
 <code>C.static_extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>B.extent(0)</code> times
-<code>A.extent(1)</code> times <code>B.extent(1)</code>.</p>
+<em>Complexity:</em> For all algorithms in this Clause with
+<code>mdspan</code> parameters,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(13.1)</a></span>
+those overloads that take a <code>B</code> parameter perform a count of
+<code>mdspan</code> array accesses and arithmetic operations that is
+linear in <code>B.extent(0)</code> times <code>A.extent(1)</code> times
+<code>B.extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(13.1)</a></span> and
+those overloads that do not take a <code>B</code> parameter perform a
+count of <code>mdspan</code> array accesses and arithmetic operations
+that is linear in <code>C.extent(0)</code> times
+<code>A.extent(1)</code> times <code>C.extent(1)</code>.</p></li>
+</ul>
 <h5 data-number="16.11.4.4.1" id="overwriting-triangular-matrix-matrix-left-product-linalg.algs.blas3.trmm.ov.left"><span class="header-section-number">16.11.4.4.1</span> Overwriting triangular
 matrix-matrix left product [linalg.algs.blas3.trmm.ov.left]<a href="#overwriting-triangular-matrix-matrix-left-product-linalg.algs.blas3.trmm.ov.left" class="self-link"></a></h5>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
@@ -9961,9 +10026,10 @@ by applying `transposed` or `conjugate_transposed`
 to the input matrix.
 -->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Complexity:</em> For all algorithms in this Clause, the count of
-<code>mdspan</code> array accesses and arithmetic operations is linear
-in <code>A.extent(0)</code> times <code>A.extent(1)</code> times
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>A.extent(0)</code> times <code>A.extent(1)</code> times
 <code>A.extent(0)</code>.</p>
 <h5 data-number="16.11.4.5.1" id="rank-k-symmetric-matrix-update-linalg.alg.blas3.rank-k.syrk"><span class="header-section-number">16.11.4.5.1</span> Rank-k symmetric matrix
 update [linalg.alg.blas3.rank-k.syrk]<a href="#rank-k-symmetric-matrix-update-linalg.alg.blas3.rank-k.syrk" class="self-link"></a></h5>
@@ -10097,9 +10163,11 @@ by applying `transposed` or `conjugate_transposed`
 to the input matrices.
 -->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>A.extent(0)</code> times
-<code>A.extent(1)</code> times <code>B.extent(1)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>A.extent(0)</code> times <code>A.extent(1)</code> times
+<code>B.extent(1)</code>.</p>
 <h5 data-number="16.11.4.6.1" id="rank-2k-symmetric-matrix-update-linalg.alg.blas3.rank2k.syr2k"><span class="header-section-number">16.11.4.6.1</span> Rank-2k symmetric
 matrix update [linalg.alg.blas3.rank2k.syr2k]<a href="#rank-2k-symmetric-matrix-update-linalg.alg.blas3.rank2k.syr2k" class="self-link"></a></h5>
 <div class="sourceCode" id="cb136"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
@@ -10238,8 +10306,8 @@ The following elements apply to all functions in this section.</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> For
 all <code>r</code> in 0, 1, …, <code>B.rank()</code> - 1,
-<code>X.extent(r)</code> equals <code>B.extent(r)</code> (if
-applicable); and</p></li>
+<code>X.extent(r)</code> equals <code>B.extent(r)</code> (for those
+overloads that take an <code>X</code> parameter); and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 <code>A.extent(0)</code> equals <code>A.extent(1)</code>.</p></li>
 </ul>
@@ -10248,12 +10316,15 @@ applicable); and</p></li>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> if
 <code>r,j</code> is in the domain of <code>X</code> and <code>B</code>,
-then the expression <code>X[r,j] = B[r,j]</code> is well formed (if
-applicable); and</p></li>
+then the expression <code>X[r,j] = B[r,j]</code> is well formed (for
+those overloads that take an <code>X</code> parameter); and
+<!-- FIXME (mfh 2023/02/17) this appears left over from R10 working --></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> if
 <code>DiagonalStorage</code> is <code>explicit_diagonal_t</code>, and
 <code>i,j</code> is in the domain of <code>X</code>, then the expression
-<code>X[i,j] /= A[i,i]</code> is well formed (if applicable).</p></li>
+<code>X[i,j] /= A[i,i]</code> is well formed (for those overloads that
+take an <code>X</code> parameter).
+<!-- FIXME (mfh 2023/02/17) this appears left over from R10 working --></p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Mandates:</em></p>
@@ -10262,7 +10333,8 @@ applicable); and</p></li>
 all <code>r</code> in 0, 1, …, <code>X.rank()</code> - 1, if neither
 <code>X.static_extent(r)</code> nor <code>B.static_extent(r)</code>
 equals <code>dynamic_extent</code>, then <code>X.static_extent(r)</code>
-equals <code>B.static_extent(r)</code> (if applicable).</p></li>
+equals <code>B.static_extent(r)</code> (for those overloads that take an
+<code>X</code> parameter).</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> If
 neither <code>A.static_extent(0)</code> nor
 <code>A.static_extent(1)</code> equals <code>dynamic_extent</code>, then
@@ -10273,9 +10345,11 @@ neither <code>A.static_extent(0)</code> nor
 triangular linear systems with triangular matrix on the left
 [linalg.alg.blas3.trsm.left]<a href="#solve-multiple-triangular-linear-systems-with-triangular-matrix-on-the-left-linalg.alg.blas3.trsm.left" class="self-link"></a></h5>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>A.extent(0)</code> times
-<code>A.extent(1)</code> times <code>X.extent(1)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>A.extent(0)</code> times <code>A.extent(1)</code> times
+<code>B.extent(1)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 Not-in-place left solve of multiple triangular systems</p>
 <div class="sourceCode" id="cb138"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
@@ -10425,9 +10499,11 @@ inverse of the second argument) and the first argument, in that order.
 triangular linear systems with triangular matrix on the right
 [linalg.alg.blas3.trsm.right]<a href="#solve-multiple-triangular-linear-systems-with-triangular-matrix-on-the-right-linalg.alg.blas3.trsm.right" class="self-link"></a></h5>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Complexity:</em> The count of <code>mdspan</code> array accesses and
-arithmetic operations is linear in <code>B.extent(0)</code> times
-<code>B.extent(1)</code> times <code>A.extent(1)</code>.</p>
+<em>Complexity:</em> All algorithms in this Clause with
+<code>mdspan</code> parameters perform a count of <code>mdspan</code>
+array accesses and arithmetic operations that is linear in
+<code>B.extent(0)</code> times <code>B.extent(1)</code> times
+<code>A.extent(1)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 Not-in-place right solve of multiple triangular systems</p>
 <div class="sourceCode" id="cb140"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
