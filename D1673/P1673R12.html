@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-02-16" />
+  <meta name="dcterms.date" content="2023-02-17" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-02-16</td>
+    <td>2023-02-17</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1176,6 +1176,8 @@ definitions of <span class="math inline"><em>A</em><sup><em>T</em></sup></span> 
 with “<em>Returns:</em> <code>X</code>”. Fix formatting of multiple
 <em>Returns:</em> cases. Change “name(s) the type” to “is” or
 “be.”</p></li>
+<li><p>In <em>[linalg.tags.order]</em>, add missing forward
+reference.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -5769,6 +5771,10 @@ algorithm. <i>– end note]</i></p></li>
 <h2 data-number="16.4" id="tag-classes-linalg.tags"><span class="header-section-number">16.4</span> Tag classes [linalg.tags]<a href="#tag-classes-linalg.tags" class="self-link"></a></h2>
 <h3 data-number="16.4.1" id="storage-order-tags-linalg.tags.order"><span class="header-section-number">16.4.1</span> Storage order tags
 [linalg.tags.order]<a href="#storage-order-tags-linalg.tags.order" class="self-link"></a></h3>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+The storage order tags describe the order of elements in an
+<code>mdspan</code> with <code>layout_blas_packed</code>
+(<em>[linalg.layouts.packed]</em>) layout.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> column_major_t <span class="op">{</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> column_major_t<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
@@ -5778,11 +5784,9 @@ algorithm. <i>– end note]</i></p></li>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> row_major_t<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> row_major_t row_major <span class="op">=</span> <span class="op">{</span> <span class="op">}</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <code>column_major_t</code> indicates a column-major order, and
-<code>row_major_t</code> indicates a row-major order. The interpretation
-of each depends on the specific layout that uses the tag. See
-<code>layout_blas_packed</code> below.</p>
+<code>row_major_t</code> indicates a row-major order.</p>
 <h3 data-number="16.4.2" id="triangle-tags-linalg.tags.triangle"><span class="header-section-number">16.4.2</span> Triangle tags
 [linalg.tags.triangle]<a href="#triangle-tags-linalg.tags.triangle" class="self-link"></a></h3>
 <div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> upper_triangle_t <span class="op">{</span></span>
