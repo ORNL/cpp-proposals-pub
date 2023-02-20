@@ -583,9 +583,7 @@ noncommutative multiplication</a></li>
 </ul></li>
 <li><a href="#future-work" id="toc-future-work"><span class="toc-section-number">12</span> Future work</a>
 <ul>
-<li><a href="#generalize-function-parameters" id="toc-generalize-function-parameters"><span class="toc-section-number">12.1</span> Generalize function
-parameters</a></li>
-<li><a href="#batched-linear-algebra" id="toc-batched-linear-algebra"><span class="toc-section-number">12.2</span> Batched linear algebra</a></li>
+<li><a href="#batched-linear-algebra" id="toc-batched-linear-algebra"><span class="toc-section-number">12.1</span> Batched linear algebra</a></li>
 </ul></li>
 <li><a href="#data-structures-and-utilities-borrowed-from-other-proposals" id="toc-data-structures-and-utilities-borrowed-from-other-proposals"><span class="toc-section-number">13</span> Data structures and utilities
 borrowed from other proposals</a>
@@ -1181,6 +1179,8 @@ reference.</p></li>
 <li><p>Replace “if applicable” with hopefully canonical
 wording.</p></li>
 <li><p>Audit complexity elements and revise their wording.</p></li>
+<li><p>Nonwording: Update reference to P2128 to reflect its adoption
+into C++23, and remove outdated future work.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -2579,51 +2579,55 @@ it easier for us to add an efficient “batched” interface in future
 proposals.</p>
 <h3 data-number="11.2.5" id="generic-enough-to-replace-a-multidimensional-array-concept"><span class="header-section-number">11.2.5</span> Generic enough to replace a
 “multidimensional array concept”<a href="#generic-enough-to-replace-a-multidimensional-array-concept" class="self-link"></a></h3>
-<p>LEWGI requested in the 2019 Cologne meeting that we explore using a
-concept instead of <code>mdspan</code> to define the arguments for the
-linear algebra functions. This would mean that instead of having our
-functions take <code>mdspan</code> parameters, they would be generic on
+<p>Our functions differ from the C++ Standard algorithms, in that they
+take a concrete type <code>mdspan</code> with template parameters,
+rather than any of an open set of types that satisfy some concept. LEWGI
+requested in the 2019 Cologne meeting that we explore using a concept
+instead of <code>mdspan</code> to define the arguments for the linear
+algebra functions. This would mean that instead of having our functions
+take <code>mdspan</code> parameters, the functions would be generic on
 one or more suitably constrained multidimensional array types. The
 constraints would form a “multidimensional array concept.”</p>
 <p>We investigated this option, and rejected it, for the following
-reasons.</p>
-<ol type="1">
-<li><p>Our proposal uses enough features of <code>mdspan</code> that any
-concept generally applicable to all functions we propose would largely
-replicate the definition of <code>mdspan</code>.</p></li>
-<li><p>This proposal could support most multidimensional array types, if
-the array types just made themselves convertible to
-<code>mdspan</code>.</p></li>
-<li><p>We could always generalize our algorithms later.</p></li>
-<li><p>Any multidimensional array concept would need revision in the
-light of <a href="https://wg21.link/p2128r6">P2128R6</a>.</p></li>
-</ol>
-<p>This proposal refers to almost all of <code>mdspan</code>’s features,
-including <code>extents</code>, layouts, and accessors. We expect
-implementations to use all of them for optimizations, for example to
-extract the scaling factor from the return value of <code>scaled</code>
-in order to call an optimized BLAS library directly.</p>
-<p>Suppose that a general customization point <code>get_mdspan</code>
-exists, that takes a reference to a multidimensional array type and
-returns an <code>mdspan</code> that views the array. Then, our proposal
-could support most multidimensional array types. “Most” includes all
-such types that refer to a subset of a contiguous span of memory.</p>
-<p>Requiring that a multidimensional array refer to a subset of a
-contiguous span of memory would exclude multidimensional array types
-that have a noncontiguous backing store, such as a <code>map</code>. If
-we later wanted to support such types, we could always generalize our
-algorithms later.</p>
-<p>Finally, any existing multidimensional array concept would need
-revision in the light of
-<a href="https://wg21.link/p2128r6">P2128R6</a>, which has been voted
-into the C++ Standard draft. P2128 lets <code>operator[]</code> take
-multiple parameters. The version of mdspan which was voted into the C++
-Standard draft uses <code>operator[]</code> instead of
-<code>operator()</code> as the array access operator.</p>
-<p>After further discussion at the 2019 Belfast meeting, LEWGI accepted
-our position that having our algorithms take <code>mdspan</code> instead
-of template parameters constrained by a multidimensional array concept
-would be fine for now.</p>
+reasons. First, our proposal uses enough features of <code>mdspan</code>
+that any concept generally applicable to all functions we propose would
+replicate almost the entire definition of <code>mdspan</code>. This
+proposal refers to almost all of <code>mdspan</code>’s features,
+including <code>extents</code>, layouts, and accessors. The
+<code>conjugated</code>, <code>scaled</code>, and
+<code>transposed</code> functions in this proposal depend specifically
+on custom layouts and accessors. These features make the algorithms have
+more functionality than their C or Fortran BLAS equivalents, while
+reducing the number of parameters that the algorithms take. They also
+make the interface more consistent, in that each <code>mdspan</code>
+parameter of a function behaves as itself and is not otherwise
+“modified” by other parameters. Second, conversely, we think that
+<code>mdspan</code>’s potential for customization gives it the power to
+represent any reasonable multidimensional array view. Thus,
+<code>mdspan</code> “is the concept.” Third, this proposal could support
+any reasonable multidimensional array type, if the type just made it
+convertible to <code>mdspan</code>, for example via a general
+customization point <code>get_mdspan</code> that returns an
+<code>mdspan</code> that views the array’s elements. Fourth, a
+multidimensional array concept would only have value if nearly all
+multidimensional arrays “in the wild” had the same interface, and if
+that were actually the interface we wanted. However, the adoption of
+<a href="https://wg21.link/p2128r6">P2128R6</a> into C++23 makes
+<code>operator[]</code> the preferred multidimensional array access
+operator. As the discussion in P2128 points out, <code>operator[]</code>
+not supporting multiple parameters before C++23 meant that different
+multidimensional array classes exposed array access with different
+syntax. While many of them used the function call operator
+<code>operator()</code>, <code>mdspan</code> quite deliberately does
+not. P2128 explains why it’s a bad idea for a multidimensional array
+type to support both <code>operator()</code> and
+<code>operator[]</code>. Thus, a hypothetical multidimensional array
+concept could not represent both pre-C++23 and post-C++23
+multidimensional arrays. After further discussion at the 2019 Belfast
+meeting, LEWGI accepted our position that it is reasonable for our
+algorithms to take the concrete (yet highly customizable) type
+<code>mdspan</code>, instead of template parameters constrained by a
+multidimensional array concept.</p>
 <h2 data-number="11.3" id="function-argument-aliasing-and-zero-scalar-multipliers"><span class="header-section-number">11.3</span> Function argument aliasing and
 zero scalar multipliers<a href="#function-argument-aliasing-and-zero-scalar-multipliers" class="self-link"></a></h2>
 <p>Summary:</p>
@@ -3663,49 +3667,7 @@ tempted to use <code>[](const auto&amp; y) { return 1 / y; }</code> as
 the inverse function, thus leading back to Way (1)’s issues.</p></li>
 </ul>
 <h1 data-number="12" id="future-work"><span class="header-section-number">12</span> Future work<a href="#future-work" class="self-link"></a></h1>
-<p>Summary:</p>
-<ol type="1">
-<li><p>Consider generalizing function parameters to take any type that
-implements a customization point for getting an <code>mdspan</code>
-viewing its elements. This includes <code>mdarray</code> (see
-P1684).</p></li>
-<li><p>Add batched linear algebra overloads.</p></li>
-</ol>
-<h2 data-number="12.1" id="generalize-function-parameters"><span class="header-section-number">12.1</span> Generalize function
-parameters<a href="#generalize-function-parameters" class="self-link"></a></h2>
-<p>Our functions differ from the C++ Standard algorithms, in that they
-take a concrete type <code>mdspan</code> with template parameters,
-rather than any type that satisfies a concept. We think that the
-template parameters of <code>mdspan</code> fully describe the
-multidimensional equivalent of a multipass iterator, and that
-“conceptification” of multidimensional arrays would unnecessarily delay
-this proposal.</p>
-<p>In a future proposal, we may consider generalizing our function’s
-template parameters, to permit any type besides <code>mdspan</code> that
-implements the <code>get_mdspan</code> customization point, as long as
-the return value of <code>get_mdspan</code> satisfies the current
-requirements. <code>get_mdspan</code> would return an
-<code>mdspan</code> that views its argument’s data.</p>
-<p>The <code>mdarray</code> class, proposed in
-<a href="https://wg21.link/p1684">P1684</a>, is the container analog of
-<code>mdspan</code>. It is a new kind of container, with the same copy
-behavior as containers like <code>vector</code>. It will be possible to
-get an <code>mdspan</code> that views an <code>mdarray</code>. Previous
-versions of this proposal included function overloads that took
-<code>mdarray</code> directly. The goals were user convenience, and to
-avoid any potential overhead of conversion to <code>mdspan</code>,
-especially for very small matrices and vectors. In a future revision of
-P1684, <code>mdarray</code> will implement a customization point
-<code>view</code> (final name yet to be decided), that returns an
-<code>mdspan</code> viewing the elements of the <code>mdarray</code>.
-This would let users use <code>mdarray</code> directly in our functions.
-This customization point approach would also simplify using our
-functions with other matrix and vector types, such as those proposed by
-P1385. Implementations may optionally add direct overloads of our
-functions for <code>mdarray</code> or other types. This would address
-any concerns about overhead of converting from <code>mdarray</code> to
-<code>mdspan</code>.</p>
-<h2 data-number="12.2" id="batched-linear-algebra"><span class="header-section-number">12.2</span> Batched linear algebra<a href="#batched-linear-algebra" class="self-link"></a></h2>
+<h2 data-number="12.1" id="batched-linear-algebra"><span class="header-section-number">12.1</span> Batched linear algebra<a href="#batched-linear-algebra" class="self-link"></a></h2>
 <p>We plan to write a separate proposal that will add “batched” versions
 of linear algebra functions to this proposal. “Batched” linear algebra
 functions solve many independent problems all at once, in a single
