@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-02-09" />
+  <meta name="dcterms.date" content="2023-02-21" />
   <title>mdarray: An Owning Multidimensional Array Analog of mdspan</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ Owning Multidimensional Array Analog of <code>mdspan</code></h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-02-09</td>
+    <td>2023-02-21</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1396,28 +1396,35 @@ The following shows how that might change the above <code>f0</code>,
 <p>The second point means that users would not be able to call functions
 that use a container with an incompatible allocator type. This is
 somewhat mitigated by <code>mdspan</code> being the preferred function
-parameter type for array views. Putting <code>mdarray</code> in the
-interface of a function expresses an ownership transfer. That is,</p>
+parameter type for array views.</p>
+<p>That last sentence calls for elaboration. If users want a function to
+take a read-only view of a contiguous one-dimensional array of
+<code>T</code>, the idiomatic parameter type is
+<code>span&lt;const T&gt;</code>, not
+<code>const vector&lt;T&gt;&amp;</code>. If users want a function to
+take a writeable view of a contiguous one-dimensional array of
+<code>T</code>, the idiomatic parameter type is
+<code>span&lt;T&gt;</code>, not <code>vector&lt;T&gt;&amp;</code>. The
+only reason to pass a <code>vector</code> by nonconst reference is
+because the function needs to call member functions that change its
+size: e.g., <code>resize</code> or <code>push_back</code>. As
+<code>span</code> is to <code>vector</code>, so <code>mdspan</code> is
+to <code>mdarray</code>. There is even less reason to pass
+<code>mdarray</code> by nonconst reference, because <code>mdarray</code>
+has no member functions that change its extents. (This is a deliberate
+choice that ensures consistent behavior of all <code>mdarray</code>s,
+whether or not they have any run-time extents.)</p>
+<p>Two reasons remain to expose <code>mdarray</code> as a function
+parameter.</p>
 <ol type="1">
-<li><p>the only reason to expose <code>mdarray</code> as a function
-parameter is if the caller is transferring ownership of the
-<code>mdarray</code> to the function; and</p></li>
-<li><p>the only reason to expose <code>mdarray</code> as a function
-return type is if the function is transferring ownership of the
-<code>mdarray</code> to the caller.</p></li>
+<li><p>The caller is transferring ownership of the <code>mdarray</code>
+to the function. This implies passing <code>mdarray</code> by rvalue
+reference.</p></li>
+<li><p>The <code>mdarray</code> is small enough that passing by value is
+inexpensive (e.g., the object can fit in registers).</p></li>
 </ol>
-<p>The exception to the first point is if the function takes
-<code>mdarray</code> parameters by value; this means that the function
-does not care about the cost of copying the container.</p>
-<p>It’s even more of an antipattern to see
-<code>mdarray&lt;T, ...&gt;&amp;</code> or
-<code>const mdarray&lt;T, ...&gt;&amp;</code> as function parameters,
-than it is to see <code>vector&lt;T&gt;&amp;</code> or
-<code>const vector&lt;T&gt;&amp;</code> as function parameters. This is
-because, unlike <code>vector&lt;T&gt;&amp;</code>, <code>mdarray</code>
-cannot be resized after creation. The correct types to use are
-<code>mdspan&lt;T, ...&gt;</code> resp.
-<code>mdspan&lt;const T, ...&gt;</code>.</p>
+<p>Otherwise, the correct idiom is to pass an <code>mdspan</code> that
+views the elements of the mdarray.</p>
 <h4 data-number="3.6.2.2" id="reusing-storage-and-elements"><span class="header-section-number">3.6.2.2</span> Reusing storage and
 elements<a href="#reusing-storage-and-elements" class="self-link"></a></h4>
 <p>If users want to reuse both storage and elements of the container,
