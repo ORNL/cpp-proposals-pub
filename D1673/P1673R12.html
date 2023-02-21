@@ -467,132 +467,132 @@ algebra interface based on the BLAS</h1>
 <li><a href="#purpose-of-this-paper" id="toc-purpose-of-this-paper"><span class="toc-section-number">3</span>
 Purpose of this paper</a></li>
 <li><a href="#overview-of-contents" id="toc-overview-of-contents"><span class="toc-section-number">4</span> Overview of contents</a></li>
-<li><a href="#interoperable-with-other-linear-algebra-proposals" id="toc-interoperable-with-other-linear-algebra-proposals"><span class="toc-section-number">5</span> Interoperable with other linear
-algebra proposals</a></li>
-<li><a href="#why-include-dense-linear-algebra-in-the-c-standard-library" id="toc-why-include-dense-linear-algebra-in-the-c-standard-library"><span class="toc-section-number">6</span> Why include dense linear algebra in
+<li><a href="#why-include-dense-linear-algebra-in-the-c-standard-library" id="toc-why-include-dense-linear-algebra-in-the-c-standard-library"><span class="toc-section-number">5</span> Why include dense linear algebra in
 the C++ Standard Library?</a></li>
-<li><a href="#why-base-a-c-linear-algebra-library-on-the-blas" id="toc-why-base-a-c-linear-algebra-library-on-the-blas"><span class="toc-section-number">7</span> Why base a C++ linear algebra
+<li><a href="#why-base-a-c-linear-algebra-library-on-the-blas" id="toc-why-base-a-c-linear-algebra-library-on-the-blas"><span class="toc-section-number">6</span> Why base a C++ linear algebra
 library on the BLAS?</a></li>
-<li><a href="#criteria-for-including-algorithms" id="toc-criteria-for-including-algorithms"><span class="toc-section-number">8</span> Criteria for including
+<li><a href="#criteria-for-including-algorithms" id="toc-criteria-for-including-algorithms"><span class="toc-section-number">7</span> Criteria for including
 algorithms</a>
 <ul>
-<li><a href="#criteria-for-all-the-algorithms" id="toc-criteria-for-all-the-algorithms"><span class="toc-section-number">8.1</span> Criteria for all the
+<li><a href="#criteria-for-all-the-algorithms" id="toc-criteria-for-all-the-algorithms"><span class="toc-section-number">7.1</span> Criteria for all the
 algorithms</a></li>
-<li><a href="#criteria-for-including-blas-1-algorithms-coexistence-with-ranges" id="toc-criteria-for-including-blas-1-algorithms-coexistence-with-ranges"><span class="toc-section-number">8.2</span> Criteria for including BLAS 1
+<li><a href="#criteria-for-including-blas-1-algorithms-coexistence-with-ranges" id="toc-criteria-for-including-blas-1-algorithms-coexistence-with-ranges"><span class="toc-section-number">7.2</span> Criteria for including BLAS 1
 algorithms; coexistence with ranges</a>
 <ul>
-<li><a href="#low-risk-of-syntactic-collision-with-ranges" id="toc-low-risk-of-syntactic-collision-with-ranges"><span class="toc-section-number">8.2.1</span> Low risk of syntactic collision
+<li><a href="#low-risk-of-syntactic-collision-with-ranges" id="toc-low-risk-of-syntactic-collision-with-ranges"><span class="toc-section-number">7.2.1</span> Low risk of syntactic collision
 with ranges</a></li>
-<li><a href="#minimal-overlap-with-ranges-is-justified-by-user-convenience" id="toc-minimal-overlap-with-ranges-is-justified-by-user-convenience"><span class="toc-section-number">8.2.2</span> Minimal overlap with ranges is
+<li><a href="#minimal-overlap-with-ranges-is-justified-by-user-convenience" id="toc-minimal-overlap-with-ranges-is-justified-by-user-convenience"><span class="toc-section-number">7.2.2</span> Minimal overlap with ranges is
 justified by user convenience</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#notation-and-conventions" id="toc-notation-and-conventions"><span class="toc-section-number">9</span> Notation and conventions</a>
+<li><a href="#notation-and-conventions" id="toc-notation-and-conventions"><span class="toc-section-number">8</span> Notation and conventions</a>
 <ul>
-<li><a href="#the-blas-uses-fortran-terms" id="toc-the-blas-uses-fortran-terms"><span class="toc-section-number">9.1</span> The BLAS uses Fortran
+<li><a href="#the-blas-uses-fortran-terms" id="toc-the-blas-uses-fortran-terms"><span class="toc-section-number">8.1</span> The BLAS uses Fortran
 terms</a></li>
-<li><a href="#we-call-subroutines-functions" id="toc-we-call-subroutines-functions"><span class="toc-section-number">9.2</span> We call “subroutines”
+<li><a href="#we-call-subroutines-functions" id="toc-we-call-subroutines-functions"><span class="toc-section-number">8.2</span> We call “subroutines”
 functions</a></li>
-<li><a href="#element-types-and-blas-function-name-prefix" id="toc-element-types-and-blas-function-name-prefix"><span class="toc-section-number">9.3</span> Element types and BLAS function
+<li><a href="#element-types-and-blas-function-name-prefix" id="toc-element-types-and-blas-function-name-prefix"><span class="toc-section-number">8.3</span> Element types and BLAS function
 name prefix</a></li>
 </ul></li>
-<li><a href="#what-we-exclude-from-the-design" id="toc-what-we-exclude-from-the-design"><span class="toc-section-number">10</span> What we exclude from the design</a>
+<li><a href="#what-we-exclude-from-the-design" id="toc-what-we-exclude-from-the-design"><span class="toc-section-number">9</span> What we exclude from the design</a>
 <ul>
-<li><a href="#most-functions-not-in-the-reference-blas" id="toc-most-functions-not-in-the-reference-blas"><span class="toc-section-number">10.1</span> Most functions not in the
+<li><a href="#most-functions-not-in-the-reference-blas" id="toc-most-functions-not-in-the-reference-blas"><span class="toc-section-number">9.1</span> Most functions not in the
 Reference BLAS</a></li>
-<li><a href="#lapack-or-related-functionality" id="toc-lapack-or-related-functionality"><span class="toc-section-number">10.2</span> LAPACK or related
+<li><a href="#lapack-or-related-functionality" id="toc-lapack-or-related-functionality"><span class="toc-section-number">9.2</span> LAPACK or related
 functionality</a></li>
-<li><a href="#extended-precision-blas" id="toc-extended-precision-blas"><span class="toc-section-number">10.3</span> Extended-precision BLAS</a></li>
-<li><a href="#arithmetic-operators-and-associated-expression-templates" id="toc-arithmetic-operators-and-associated-expression-templates"><span class="toc-section-number">10.4</span> Arithmetic operators and
+<li><a href="#extended-precision-blas" id="toc-extended-precision-blas"><span class="toc-section-number">9.3</span> Extended-precision BLAS</a></li>
+<li><a href="#arithmetic-operators-and-associated-expression-templates" id="toc-arithmetic-operators-and-associated-expression-templates"><span class="toc-section-number">9.4</span> Arithmetic operators and
 associated expression templates</a></li>
-<li><a href="#banded-matrix-layouts" id="toc-banded-matrix-layouts"><span class="toc-section-number">10.5</span> Banded matrix layouts</a></li>
-<li><a href="#tensors" id="toc-tensors"><span class="toc-section-number">10.6</span> Tensors</a></li>
-<li><a href="#explicit-support-for-asynchronous-return-of-scalar-values" id="toc-explicit-support-for-asynchronous-return-of-scalar-values"><span class="toc-section-number">10.7</span> Explicit support for asynchronous
+<li><a href="#banded-matrix-layouts" id="toc-banded-matrix-layouts"><span class="toc-section-number">9.5</span> Banded matrix layouts</a></li>
+<li><a href="#tensors" id="toc-tensors"><span class="toc-section-number">9.6</span> Tensors</a></li>
+<li><a href="#explicit-support-for-asynchronous-return-of-scalar-values" id="toc-explicit-support-for-asynchronous-return-of-scalar-values"><span class="toc-section-number">9.7</span> Explicit support for asynchronous
 return of scalar values</a></li>
 </ul></li>
-<li><a href="#design-justification" id="toc-design-justification"><span class="toc-section-number">11</span> Design justification</a>
+<li><a href="#design-justification" id="toc-design-justification"><span class="toc-section-number">10</span> Design justification</a>
 <ul>
-<li><a href="#we-do-not-require-using-the-blas-library-or-any-particular-back-end" id="toc-we-do-not-require-using-the-blas-library-or-any-particular-back-end"><span class="toc-section-number">11.1</span> We do not require using the BLAS
+<li><a href="#we-do-not-require-using-the-blas-library-or-any-particular-back-end" id="toc-we-do-not-require-using-the-blas-library-or-any-particular-back-end"><span class="toc-section-number">10.1</span> We do not require using the BLAS
 library or any particular “back-end”</a></li>
-<li><a href="#why-use-mdspan" id="toc-why-use-mdspan"><span class="toc-section-number">11.2</span> Why use <code>mdspan</code>?</a>
+<li><a href="#why-use-mdspan" id="toc-why-use-mdspan"><span class="toc-section-number">10.2</span> Why use <code>mdspan</code>?</a>
 <ul>
-<li><a href="#view-of-a-multidimensional-array" id="toc-view-of-a-multidimensional-array"><span class="toc-section-number">11.2.1</span> View of a multidimensional
+<li><a href="#view-of-a-multidimensional-array" id="toc-view-of-a-multidimensional-array"><span class="toc-section-number">10.2.1</span> View of a multidimensional
 array</a></li>
-<li><a href="#ease-of-use" id="toc-ease-of-use"><span class="toc-section-number">11.2.2</span> Ease of use</a></li>
-<li><a href="#blas-and-mdspan-are-low-level" id="toc-blas-and-mdspan-are-low-level"><span class="toc-section-number">11.2.3</span> BLAS and <code>mdspan</code>
+<li><a href="#ease-of-use" id="toc-ease-of-use"><span class="toc-section-number">10.2.2</span> Ease of use</a></li>
+<li><a href="#blas-and-mdspan-are-low-level" id="toc-blas-and-mdspan-are-low-level"><span class="toc-section-number">10.2.3</span> BLAS and <code>mdspan</code>
 are low level</a></li>
-<li><a href="#hook-for-future-expansion" id="toc-hook-for-future-expansion"><span class="toc-section-number">11.2.4</span> Hook for future
+<li><a href="#hook-for-future-expansion" id="toc-hook-for-future-expansion"><span class="toc-section-number">10.2.4</span> Hook for future
 expansion</a></li>
-<li><a href="#generic-enough-to-replace-a-multidimensional-array-concept" id="toc-generic-enough-to-replace-a-multidimensional-array-concept"><span class="toc-section-number">11.2.5</span> Generic enough to replace a
+<li><a href="#generic-enough-to-replace-a-multidimensional-array-concept" id="toc-generic-enough-to-replace-a-multidimensional-array-concept"><span class="toc-section-number">10.2.5</span> Generic enough to replace a
 “multidimensional array concept”</a></li>
 </ul></li>
-<li><a href="#function-argument-aliasing-and-zero-scalar-multipliers" id="toc-function-argument-aliasing-and-zero-scalar-multipliers"><span class="toc-section-number">11.3</span> Function argument aliasing and
+<li><a href="#function-argument-aliasing-and-zero-scalar-multipliers" id="toc-function-argument-aliasing-and-zero-scalar-multipliers"><span class="toc-section-number">10.3</span> Function argument aliasing and
 zero scalar multipliers</a></li>
-<li><a href="#support-for-different-matrix-layouts" id="toc-support-for-different-matrix-layouts"><span class="toc-section-number">11.4</span> Support for different matrix
+<li><a href="#support-for-different-matrix-layouts" id="toc-support-for-different-matrix-layouts"><span class="toc-section-number">10.4</span> Support for different matrix
 layouts</a></li>
-<li><a href="#interpretation-of-lower-upper-triangular" id="toc-interpretation-of-lower-upper-triangular"><span class="toc-section-number">11.5</span> Interpretation of “lower / upper
+<li><a href="#interpretation-of-lower-upper-triangular" id="toc-interpretation-of-lower-upper-triangular"><span class="toc-section-number">10.5</span> Interpretation of “lower / upper
 triangular”</a>
 <ul>
-<li><a href="#triangle-refers-to-what-part-of-the-matrix-is-accessed" id="toc-triangle-refers-to-what-part-of-the-matrix-is-accessed"><span class="toc-section-number">11.5.1</span> Triangle refers to what part of
+<li><a href="#triangle-refers-to-what-part-of-the-matrix-is-accessed" id="toc-triangle-refers-to-what-part-of-the-matrix-is-accessed"><span class="toc-section-number">10.5.1</span> Triangle refers to what part of
 the matrix is accessed</a></li>
-<li><a href="#blas-applies-uplo-to-original-matrix-we-apply-triangle-to-transformed-matrix" id="toc-blas-applies-uplo-to-original-matrix-we-apply-triangle-to-transformed-matrix"><span class="toc-section-number">11.5.2</span> BLAS applies UPLO to original
+<li><a href="#blas-applies-uplo-to-original-matrix-we-apply-triangle-to-transformed-matrix" id="toc-blas-applies-uplo-to-original-matrix-we-apply-triangle-to-transformed-matrix"><span class="toc-section-number">10.5.2</span> BLAS applies UPLO to original
 matrix; we apply Triangle to transformed matrix</a></li>
-<li><a href="#summary" id="toc-summary"><span class="toc-section-number">11.5.3</span> Summary</a></li>
+<li><a href="#summary" id="toc-summary"><span class="toc-section-number">10.5.3</span> Summary</a></li>
 </ul></li>
-<li><a href="#over--and-underflow-wording-for-vector-2-norm" id="toc-over--and-underflow-wording-for-vector-2-norm"><span class="toc-section-number">11.6</span> Over- and underflow wording for
+<li><a href="#over--and-underflow-wording-for-vector-2-norm" id="toc-over--and-underflow-wording-for-vector-2-norm"><span class="toc-section-number">10.6</span> Over- and underflow wording for
 vector 2-norm</a></li>
-<li><a href="#constraining-matrix-and-vector-element-types-and-scalars" id="toc-constraining-matrix-and-vector-element-types-and-scalars"><span class="toc-section-number">11.7</span> Constraining matrix and vector
+<li><a href="#constraining-matrix-and-vector-element-types-and-scalars" id="toc-constraining-matrix-and-vector-element-types-and-scalars"><span class="toc-section-number">10.7</span> Constraining matrix and vector
 element types and scalars</a>
 <ul>
-<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">11.7.1</span> Introduction</a></li>
-<li><a href="#value-type-constraints-do-not-suffice-to-describe-algorithm-behavior" id="toc-value-type-constraints-do-not-suffice-to-describe-algorithm-behavior"><span class="toc-section-number">11.7.2</span> Value type constraints do not
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">10.7.1</span> Introduction</a></li>
+<li><a href="#value-type-constraints-do-not-suffice-to-describe-algorithm-behavior" id="toc-value-type-constraints-do-not-suffice-to-describe-algorithm-behavior"><span class="toc-section-number">10.7.2</span> Value type constraints do not
 suffice to describe algorithm behavior</a></li>
-<li><a href="#associativity-is-too-strict" id="toc-associativity-is-too-strict"><span class="toc-section-number">11.7.3</span> Associativity is too
+<li><a href="#associativity-is-too-strict" id="toc-associativity-is-too-strict"><span class="toc-section-number">10.7.3</span> Associativity is too
 strict</a></li>
-<li><a href="#generalizing-associativity-helps-little" id="toc-generalizing-associativity-helps-little"><span class="toc-section-number">11.7.4</span> Generalizing associativity
+<li><a href="#generalizing-associativity-helps-little" id="toc-generalizing-associativity-helps-little"><span class="toc-section-number">10.7.4</span> Generalizing associativity
 helps little</a></li>
-<li><a href="#categories-of-qoi-enhancements" id="toc-categories-of-qoi-enhancements"><span class="toc-section-number">11.7.5</span> Categories of QoI
+<li><a href="#categories-of-qoi-enhancements" id="toc-categories-of-qoi-enhancements"><span class="toc-section-number">10.7.5</span> Categories of QoI
 enhancements</a></li>
-<li><a href="#properties-of-textbook-algorithm-descriptions" id="toc-properties-of-textbook-algorithm-descriptions"><span class="toc-section-number">11.7.6</span> Properties of textbook
+<li><a href="#properties-of-textbook-algorithm-descriptions" id="toc-properties-of-textbook-algorithm-descriptions"><span class="toc-section-number">10.7.6</span> Properties of textbook
 algorithm descriptions</a></li>
-<li><a href="#reordering-sums-and-creating-temporaries" id="toc-reordering-sums-and-creating-temporaries"><span class="toc-section-number">11.7.7</span> Reordering sums and creating
+<li><a href="#reordering-sums-and-creating-temporaries" id="toc-reordering-sums-and-creating-temporaries"><span class="toc-section-number">10.7.7</span> Reordering sums and creating
 temporaries</a></li>
-<li><a href="#textbook-algorithm-description-in-semiring-terms" id="toc-textbook-algorithm-description-in-semiring-terms"><span class="toc-section-number">11.7.8</span> “Textbook” algorithm
+<li><a href="#textbook-algorithm-description-in-semiring-terms" id="toc-textbook-algorithm-description-in-semiring-terms"><span class="toc-section-number">10.7.8</span> “Textbook” algorithm
 description in semiring terms</a></li>
-<li><a href="#summary-1" id="toc-summary-1"><span class="toc-section-number">11.7.9</span> Summary</a></li>
+<li><a href="#summary-1" id="toc-summary-1"><span class="toc-section-number">10.7.9</span> Summary</a></li>
 </ul></li>
-<li><a href="#support-for-user-defined-complex-number-types" id="toc-support-for-user-defined-complex-number-types"><span class="toc-section-number">11.8</span> Support for user-defined complex
+<li><a href="#support-for-user-defined-complex-number-types" id="toc-support-for-user-defined-complex-number-types"><span class="toc-section-number">10.8</span> Support for user-defined complex
 number types</a>
 <ul>
-<li><a href="#conj-does-not-have-the-desired-interface" id="toc-conj-does-not-have-the-desired-interface"><span class="toc-section-number">11.8.1</span> <code>conj</code> does not have
+<li><a href="#conj-does-not-have-the-desired-interface" id="toc-conj-does-not-have-the-desired-interface"><span class="toc-section-number">10.8.1</span> <code>conj</code> does not have
 the desired interface</a></li>
-<li><a href="#why-users-define-their-own-complex-number-types" id="toc-why-users-define-their-own-complex-number-types"><span class="toc-section-number">11.8.2</span> Why users define their own
+<li><a href="#why-users-define-their-own-complex-number-types" id="toc-why-users-define-their-own-complex-number-types"><span class="toc-section-number">10.8.2</span> Why users define their own
 complex number types</a></li>
-<li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers" id="toc-why-users-want-to-conjugate-matrices-of-real-numbers"><span class="toc-section-number">11.8.3</span> Why users want to “conjugate”
+<li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers" id="toc-why-users-want-to-conjugate-matrices-of-real-numbers"><span class="toc-section-number">10.8.3</span> Why users want to “conjugate”
 matrices of real numbers</a></li>
-<li><a href="#effects-of-conjs-real-to-complex-change" id="toc-effects-of-conjs-real-to-complex-change"><span class="toc-section-number">11.8.4</span> Effects of <code>conj</code>’s
+<li><a href="#effects-of-conjs-real-to-complex-change" id="toc-effects-of-conjs-real-to-complex-change"><span class="toc-section-number">10.8.4</span> Effects of <code>conj</code>’s
 real-to-complex change</a></li>
-<li><a href="#lewg-feedback-on-r8-solution" id="toc-lewg-feedback-on-r8-solution"><span class="toc-section-number">11.8.5</span> LEWG feedback on R8
+<li><a href="#lewg-feedback-on-r8-solution" id="toc-lewg-feedback-on-r8-solution"><span class="toc-section-number">10.8.5</span> LEWG feedback on R8
 solution</a></li>
-<li><a href="#sg6s-response-to-lewgs-r8-feedback" id="toc-sg6s-response-to-lewgs-r8-feedback"><span class="toc-section-number">11.8.6</span> SG6’s response to LEWG’s R8
+<li><a href="#sg6s-response-to-lewgs-r8-feedback" id="toc-sg6s-response-to-lewgs-r8-feedback"><span class="toc-section-number">10.8.6</span> SG6’s response to LEWG’s R8
 feedback</a></li>
-<li><a href="#current-solution" id="toc-current-solution"><span class="toc-section-number">11.8.7</span> Current solution</a></li>
+<li><a href="#current-solution" id="toc-current-solution"><span class="toc-section-number">10.8.7</span> Current solution</a></li>
 </ul></li>
-<li><a href="#support-for-division-with-noncommutative-multiplication" id="toc-support-for-division-with-noncommutative-multiplication"><span class="toc-section-number">11.9</span> Support for division with
+<li><a href="#support-for-division-with-noncommutative-multiplication" id="toc-support-for-division-with-noncommutative-multiplication"><span class="toc-section-number">10.9</span> Support for division with
 noncommutative multiplication</a></li>
 </ul></li>
-<li><a href="#future-work" id="toc-future-work"><span class="toc-section-number">12</span> Future work</a>
+<li><a href="#future-work" id="toc-future-work"><span class="toc-section-number">11</span> Future work</a>
 <ul>
-<li><a href="#batched-linear-algebra" id="toc-batched-linear-algebra"><span class="toc-section-number">12.1</span> Batched linear algebra</a></li>
+<li><a href="#batched-linear-algebra" id="toc-batched-linear-algebra"><span class="toc-section-number">11.1</span> Batched linear algebra</a></li>
 </ul></li>
-<li><a href="#data-structures-and-utilities-borrowed-from-other-proposals" id="toc-data-structures-and-utilities-borrowed-from-other-proposals"><span class="toc-section-number">13</span> Data structures and utilities
+<li><a href="#data-structures-and-utilities-borrowed-from-other-proposals" id="toc-data-structures-and-utilities-borrowed-from-other-proposals"><span class="toc-section-number">12</span> Data structures and utilities
 borrowed from other proposals</a>
 <ul>
-<li><a href="#mdspan" id="toc-mdspan"><span class="toc-section-number">13.1</span> <code>mdspan</code></a></li>
-<li><a href="#new-mdspan-layouts-in-this-proposal" id="toc-new-mdspan-layouts-in-this-proposal"><span class="toc-section-number">13.2</span> New <code>mdspan</code> layouts
+<li><a href="#mdspan" id="toc-mdspan"><span class="toc-section-number">12.1</span> <code>mdspan</code></a></li>
+<li><a href="#new-mdspan-layouts-in-this-proposal" id="toc-new-mdspan-layouts-in-this-proposal"><span class="toc-section-number">12.2</span> New <code>mdspan</code> layouts
 in this proposal</a></li>
 </ul></li>
-<li><a href="#implementation-experience" id="toc-implementation-experience"><span class="toc-section-number">14</span> Implementation experience</a></li>
+<li><a href="#implementation-experience" id="toc-implementation-experience"><span class="toc-section-number">13</span> Implementation experience</a></li>
+<li><a href="#interoperable-with-other-linear-algebra-proposals" id="toc-interoperable-with-other-linear-algebra-proposals"><span class="toc-section-number">14</span> Interoperable with other linear
+algebra proposals</a></li>
 <li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">15</span> Acknowledgments</a></li>
 <li><a href="#references" id="toc-references"><span class="toc-section-number">16</span> References</a>
 <ul>
@@ -1183,6 +1183,9 @@ wording.</p></li>
 <li><p>Nonwording: Update reference to P2128 to reflect its adoption
 into C++23, and remove outdated future work.</p></li>
 <li><p>Nonwording: Add implementation experience section.</p></li>
+<li><p>Nonwording: Update P1385 reference from R6 to R7, and move the
+“interoperable with other linear algebra proposals” section to a more
+fitting place.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -1340,29 +1343,24 @@ hopeful adoption of P0009 for C++23. The reference implementation of
 <span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <h1 data-number="4" id="overview-of-contents"><span class="header-section-number">4</span> Overview of contents<a href="#overview-of-contents" class="self-link"></a></h1>
 <p>Section
-<a href="#interoperable-with-other-linear-algebra-proposals"><span class="secno">5</span></a> explains how this proposal is interoperable
-with other linear algebra proposals currently under WG21 review. In
-particular, we believe this proposal is complementary to P1385R6, and
-the authors of P1385R6 have expressed the same view.</p>
-<p>Section
-<a href="#why-include-dense-linear-algebra-in-the-c-standard-library"><span class="secno">6</span></a> motivates considering <em>any</em> dense
+<a href="#why-include-dense-linear-algebra-in-the-c-standard-library"><span class="secno">5</span></a> motivates considering <em>any</em> dense
 linear algebra proposal for the C++ Standard Library.</p>
 <p>Section
-<a href="#why-base-a-c-linear-algebra-library-on-the-blas"><span class="secno">7</span></a> shows why we chose the BLAS as a starting
+<a href="#why-base-a-c-linear-algebra-library-on-the-blas"><span class="secno">6</span></a> shows why we chose the BLAS as a starting
 point for our proposed library. The BLAS is an existing standard with
 decades of use, a rich set of functions, and many optimized
 implementations.</p>
-<p>Section <a href="#criteria-for-including-algorithms"><span class="secno">8</span></a> lists what we consider general criteria for
+<p>Section <a href="#criteria-for-including-algorithms"><span class="secno">7</span></a> lists what we consider general criteria for
 including algorithms in the C++ Standard Library. We rely on these
 criteria to justify the algorithms in this proposal.</p>
-<p>Section <a href="#notation-and-conventions"><span class="secno">9</span></a> describes BLAS notation and conventions in
+<p>Section <a href="#notation-and-conventions"><span class="secno">8</span></a> describes BLAS notation and conventions in
 C++ terms. Understanding this will give readers context for algorithms,
 and show how our proposed algorithms expand on BLAS functionality.</p>
-<p>Section <a href="#what-we-exclude-from-the-design"><span class="secno">10</span></a> lists functionality that we intentionally
+<p>Section <a href="#what-we-exclude-from-the-design"><span class="secno">9</span></a> lists functionality that we intentionally
 exclude from our proposal. We imitate the BLAS in aiming to be a set of
 “performance primitives” on which external libraries or applications may
 build a more complete linear algebra solution.</p>
-<p>Section <a href="#design-justification"><span class="secno">11</span></a> elaborates on our design justification. This
+<p>Section <a href="#design-justification"><span class="secno">10</span></a> elaborates on our design justification. This
 section explains</p>
 <ul>
 <li><p>why we use <code>mdspan</code> to represent matrix and vector
@@ -1376,16 +1374,21 @@ avoiding undue overflow and underflow; and</p></li>
 <li><p>how we impose requirements on algorithms’ behavior and on the
 various value types that algorithms encounter.</p></li>
 </ul>
-<p>Section <a href="#future-work"><span class="secno">12</span></a>
+<p>Section <a href="#future-work"><span class="secno">11</span></a>
 lists future work, that is, ways future proposals could build on this
 one.</p>
 <p>Section
-<a href="#data-structures-and-utilities-borrowed-from-other-proposals"><span class="secno">13</span></a> gives the data structures and utilities from
+<a href="#data-structures-and-utilities-borrowed-from-other-proposals"><span class="secno">12</span></a> gives the data structures and utilities from
 other proposals on which we depend. In particular, we rely heavily on
 <code>mdspan</code> (adopted into C++23), and add custom layouts and
 accessors.</p>
-<p>Section <a href="#implementation-experience"><span class="secno">14</span></a> briefly summarizes the existing
+<p>Section <a href="#implementation-experience"><span class="secno">13</span></a> briefly summarizes the existing
 implementations of this proposal.</p>
+<p>Section
+<a href="#interoperable-with-other-linear-algebra-proposals"><span class="secno">14</span></a> explains how this proposal is interoperable
+with other linear algebra proposals currently under WG21 review. In
+particular, we believe this proposal is complementary to P1385, and the
+authors of P1385 have expressed the same view.</p>
 <p>Section <a href="#acknowledgments"><span class="secno">15</span></a>
 credits funding agencies and contributors.</p>
 <p>Section <a href="#references"><span class="secno">16</span></a> is
@@ -1695,29 +1698,7 @@ xTRSM
 </td>
 </tr>
 </table>
-<h1 data-number="5" id="interoperable-with-other-linear-algebra-proposals"><span class="header-section-number">5</span> Interoperable with other linear
-algebra proposals<a href="#interoperable-with-other-linear-algebra-proposals" class="self-link"></a></h1>
-<p>We believe this proposal is complementary to P1385R6, a proposal for
-a C++ Standard linear algebra library that introduces matrix and vector
-classes with overloaded arithmetic operators. The P1385 authors and we
-have expressed together in a joint paper,
-<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf">P1891</a>,
-that P1673 and P1385 “are orthogonal. They are not competing papers; …
-there is no overlap of functionality.”</p>
-<p>Many of us have had experience using and implementing matrix and
-vector operator arithmetic libraries like what P1385 proposes. We
-designed P1673 in part as a natural foundation or implementation layer
-for such libraries. Our view is that a free function interface like
-P1673’s clearly separates algorithms from data structures, and more
-naturally allows for a richer set of operations such as what the BLAS
-provides. Our paper <a href="https://wg21.link/p1674">P1674</a> explains
-why we think our proposal is a minimal C++ “respelling” of the BLAS.</p>
-<p>A natural extension of the present proposal would include accepting
-P1385’s matrix and vector objects as input for the algorithms proposed
-here. A straightforward way to do that would be for P1385’s matrix and
-vector objects to make views of their data available as
-<code>mdspan</code>.</p>
-<h1 data-number="6" id="why-include-dense-linear-algebra-in-the-c-standard-library"><span class="header-section-number">6</span> Why include dense linear algebra
+<h1 data-number="5" id="why-include-dense-linear-algebra-in-the-c-standard-library"><span class="header-section-number">5</span> Why include dense linear algebra
 in the C++ Standard Library?<a href="#why-include-dense-linear-algebra-in-the-c-standard-library" class="self-link"></a></h1>
 <ol type="1">
 <li><p>“Direction for ISO C++” (P0939R4) explicitly calls out “Linear
@@ -1812,7 +1793,7 @@ after various mathematicians. Any of them comes with its own theory and
 set of applications for which robust and accurate implementations are
 indispensible. We think that linear algebra operations are at least as
 broadly useful, and in many cases significantly more so.</p>
-<h1 data-number="7" id="why-base-a-c-linear-algebra-library-on-the-blas"><span class="header-section-number">7</span> Why base a C++ linear algebra
+<h1 data-number="6" id="why-base-a-c-linear-algebra-library-on-the-blas"><span class="header-section-number">6</span> Why base a C++ linear algebra
 library on the BLAS?<a href="#why-base-a-c-linear-algebra-library-on-the-blas" class="self-link"></a></h1>
 <ol type="1">
 <li><p>The BLAS is a standard that codifies decades of existing
@@ -1872,9 +1853,9 @@ results, not just crashing). Historical examples of vendors’ C BLAS
 implementations have also had ABI issues that required work-arounds.
 This dependence on ABI details makes availability in a standard C++
 library valuable.</p>
-<h1 data-number="8" id="criteria-for-including-algorithms"><span class="header-section-number">8</span> Criteria for including
+<h1 data-number="7" id="criteria-for-including-algorithms"><span class="header-section-number">7</span> Criteria for including
 algorithms<a href="#criteria-for-including-algorithms" class="self-link"></a></h1>
-<h2 data-number="8.1" id="criteria-for-all-the-algorithms"><span class="header-section-number">8.1</span> Criteria for all the
+<h2 data-number="7.1" id="criteria-for-all-the-algorithms"><span class="header-section-number">7.1</span> Criteria for all the
 algorithms<a href="#criteria-for-all-the-algorithms" class="self-link"></a></h2>
 <p>We include algorithms in our proposal based on the following
 criteria, ordered by decreasing importance. Many of our algorithms
@@ -1928,7 +1909,7 @@ avoids the tedium of comparing the result of <code>find</code> to
 functions that were nontrivial for compilers to optimize in its time,
 like scaled elementwise vector sums, as well as functions that generally
 require human effort to optimize, like matrix-matrix multiply.</p>
-<h2 data-number="8.2" id="criteria-for-including-blas-1-algorithms-coexistence-with-ranges"><span class="header-section-number">8.2</span> Criteria for including BLAS 1
+<h2 data-number="7.2" id="criteria-for-including-blas-1-algorithms-coexistence-with-ranges"><span class="header-section-number">7.2</span> Criteria for including BLAS 1
 algorithms; coexistence with ranges<a href="#criteria-for-including-blas-1-algorithms-coexistence-with-ranges" class="self-link"></a></h2>
 <p>The BLAS developed in three “levels”: 1, 2, and 3. BLAS 1 includes
 “vector-vector” operations like dot products, norms, and vector
@@ -1951,7 +1932,7 @@ ranges algorithms?</p></li>
 existing ranges algorithms? (That is, do we really need these new
 algorithms?)</p></li>
 </ol>
-<h3 data-number="8.2.1" id="low-risk-of-syntactic-collision-with-ranges"><span class="header-section-number">8.2.1</span> Low risk of syntactic
+<h3 data-number="7.2.1" id="low-risk-of-syntactic-collision-with-ranges"><span class="header-section-number">7.2.1</span> Low risk of syntactic
 collision with ranges<a href="#low-risk-of-syntactic-collision-with-ranges" class="self-link"></a></h3>
 <p>We think there is low risk of our proposal colliding syntactically
 with existing ranges algorithms, for the following reasons.</p>
@@ -1976,7 +1957,7 @@ have not proposed a design, and it has proven challenging to get
 compilers to optimize any existing design for multidimensional
 iterators.</p></li>
 </ul>
-<h3 data-number="8.2.2" id="minimal-overlap-with-ranges-is-justified-by-user-convenience"><span class="header-section-number">8.2.2</span> Minimal overlap with ranges
+<h3 data-number="7.2.2" id="minimal-overlap-with-ranges-is-justified-by-user-convenience"><span class="header-section-number">7.2.2</span> Minimal overlap with ranges
 is justified by user convenience<a href="#minimal-overlap-with-ranges-is-justified-by-user-convenience" class="self-link"></a></h3>
 <p>The rest of this section answers the second question. The BLAS 2 and
 3 algorithms require multiple nested loops, and high-performing
@@ -2092,8 +2073,8 @@ because matrix algorithms decompose into vector algorithms. If our
 proposal lacked BLAS 1 algorithms, even simple ones like
 <code>add</code> and <code>scale</code>, matrix algorithm developers
 would end up writing them anyway.</p>
-<h1 data-number="9" id="notation-and-conventions"><span class="header-section-number">9</span> Notation and conventions<a href="#notation-and-conventions" class="self-link"></a></h1>
-<h2 data-number="9.1" id="the-blas-uses-fortran-terms"><span class="header-section-number">9.1</span> The BLAS uses Fortran terms<a href="#the-blas-uses-fortran-terms" class="self-link"></a></h2>
+<h1 data-number="8" id="notation-and-conventions"><span class="header-section-number">8</span> Notation and conventions<a href="#notation-and-conventions" class="self-link"></a></h1>
+<h2 data-number="8.1" id="the-blas-uses-fortran-terms"><span class="header-section-number">8.1</span> The BLAS uses Fortran terms<a href="#the-blas-uses-fortran-terms" class="self-link"></a></h2>
 <p>The BLAS’ “native” language is Fortran. It has a C binding as well,
 but the BLAS Standard and documentation use Fortran terms. Where
 applicable, we will call out relevant Fortran terms and highlight
@@ -2101,12 +2082,12 @@ possibly confusing differences with corresponding C++ ideas. Our paper
 <a href="https://wg21.link/p1674">P1674</a> (“Evolving a Standard C++
 Linear Algebra Library from the BLAS”) goes into more detail on these
 issues.</p>
-<h2 data-number="9.2" id="we-call-subroutines-functions"><span class="header-section-number">9.2</span> We call “subroutines”
+<h2 data-number="8.2" id="we-call-subroutines-functions"><span class="header-section-number">8.2</span> We call “subroutines”
 functions<a href="#we-call-subroutines-functions" class="self-link"></a></h2>
 <p>Like Fortran, the BLAS distinguishes between functions that return a
 value, and subroutines that do not return a value. In what follows, we
 will refer to both as “BLAS functions” or “functions.”</p>
-<h2 data-number="9.3" id="element-types-and-blas-function-name-prefix"><span class="header-section-number">9.3</span> Element types and BLAS function
+<h2 data-number="8.3" id="element-types-and-blas-function-name-prefix"><span class="header-section-number">8.3</span> Element types and BLAS function
 name prefix<a href="#element-types-and-blas-function-name-prefix" class="self-link"></a></h2>
 <p>The BLAS implements functionality for four different matrix, vector,
 or scalar element types:</p>
@@ -2176,9 +2157,8 @@ Different applications have different reasons to want either. The C++
 Standard includes complex numbers, so a Standard linear algebra library
 needs to respect the mathematical structures that go along with complex
 numbers.</p>
-<h1 data-number="10" id="what-we-exclude-from-the-design"><span class="header-section-number">10</span> What we exclude from the
-design<a href="#what-we-exclude-from-the-design" class="self-link"></a></h1>
-<h2 data-number="10.1" id="most-functions-not-in-the-reference-blas"><span class="header-section-number">10.1</span> Most functions not in the
+<h1 data-number="9" id="what-we-exclude-from-the-design"><span class="header-section-number">9</span> What we exclude from the design<a href="#what-we-exclude-from-the-design" class="self-link"></a></h1>
+<h2 data-number="9.1" id="most-functions-not-in-the-reference-blas"><span class="header-section-number">9.1</span> Most functions not in the
 Reference BLAS<a href="#most-functions-not-in-the-reference-blas" class="self-link"></a></h2>
 <p>The BLAS Standard includes functionality that appears neither in the
 <a href="http://www.netlib.org/lapack/explore-html/d1/df9/group__blas.html">Reference
@@ -2214,7 +2194,7 @@ P1417R0.</p></li>
 exceptions, for the same reason that we include vector 2-norm: to expose
 hooks for quality-of-implementation improvements that avoid underflow or
 overflow when computing with floating-point values.</p>
-<h2 data-number="10.2" id="lapack-or-related-functionality"><span class="header-section-number">10.2</span> LAPACK or related
+<h2 data-number="9.2" id="lapack-or-related-functionality"><span class="header-section-number">9.2</span> LAPACK or related
 functionality<a href="#lapack-or-related-functionality" class="self-link"></a></h2>
 <p>The <a href="http://www.netlib.org/lapack/">LAPACK</a> Fortran
 library implements solvers for the following classes of mathematical
@@ -2284,7 +2264,7 @@ error bounds that rely on properties of floating-point arithmetic.</p>
 <p>For these reasons, we have left LAPACK-like functionality for future
 work. It would be natural for a future LAPACK-like C++ library to build
 on our proposal.</p>
-<h2 data-number="10.3" id="extended-precision-blas"><span class="header-section-number">10.3</span> Extended-precision BLAS<a href="#extended-precision-blas" class="self-link"></a></h2>
+<h2 data-number="9.3" id="extended-precision-blas"><span class="header-section-number">9.3</span> Extended-precision BLAS<a href="#extended-precision-blas" class="self-link"></a></h2>
 <p>Our interface subsumes some functionality of the Mixed-Precision BLAS
 specification (Chapter 4 of the BLAS Standard). For example, users may
 multiply two 16-bit floating-point matrices (assuming that a 16-bit
@@ -2304,7 +2284,7 @@ Implementations of our interface also have the freedom to use more
 accurate evaluation methods than typical BLAS implementations. For
 example, it is possible to make floating-point sums completely <a href="https://bebop.cs.berkeley.edu/reproblas/">independent of parallel
 evaluation order</a>.</p>
-<h2 data-number="10.4" id="arithmetic-operators-and-associated-expression-templates"><span class="header-section-number">10.4</span> Arithmetic operators and
+<h2 data-number="9.4" id="arithmetic-operators-and-associated-expression-templates"><span class="header-section-number">9.4</span> Arithmetic operators and
 associated expression templates<a href="#arithmetic-operators-and-associated-expression-templates" class="self-link"></a></h2>
 <p>Our proposal omits arithmetic operators on matrices and vectors. We
 do so for the following reasons:</p>
@@ -2327,9 +2307,9 @@ structures.</p></li>
 introduce problems such as dangling references and aliasing.</p></li>
 </ol>
 <p>Our goal is to propose a low-level interface. Other libraries, such
-as that proposed by <a href="https://wg21.link/p1385r6">P1385R6</a>,
-could use our interface to implement overloaded arithmetic for matrices
-and vectors. A constrained, function-based, BLAS-like interface builds
+as that proposed by <a href="https://wg21.link/p1385">P1385</a>, could
+use our interface to implement overloaded arithmetic for matrices and
+vectors. A constrained, function-based, BLAS-like interface builds
 incrementally on the many years of BLAS experience.</p>
 <p>Arithmetic operators on matrices and vectors would require the
 library, not necessarily the user, to specify the element type of an
@@ -2343,7 +2323,7 @@ but <code>common_type_t&lt;complex&lt;float&gt;, double&gt;</code> is
 want <code>complex&lt;double&gt;</code>; others may want
 <code>complex&lt;long double&gt;</code> or something else, and others
 may want to choose different types in the same program.</p>
-<p>P1385R6 lets users customize the return type of such arithmetic
+<p>P1385 lets users customize the return type of such arithmetic
 expressions. However, different algorithms may call for the same
 expression with the same inputs to have different output types. For
 example, iterative refinement of linear systems <code>Ax=b</code> can
@@ -2402,14 +2382,14 @@ They introduce no more potential for dangling references than
 <code>mdspan</code> itself. The use of views like <code>mdspan</code> is
 self-documenting; it tells users that they need to take responsibility
 for scope of the viewed data.</p>
-<h2 data-number="10.5" id="banded-matrix-layouts"><span class="header-section-number">10.5</span> Banded matrix layouts<a href="#banded-matrix-layouts" class="self-link"></a></h2>
+<h2 data-number="9.5" id="banded-matrix-layouts"><span class="header-section-number">9.5</span> Banded matrix layouts<a href="#banded-matrix-layouts" class="self-link"></a></h2>
 <p>This proposal omits banded matrix types. It would be easy to add the
 required layouts and specializations of algorithms later. The packed and
 unpacked symmetric and triangular layouts in this proposal cover the
 major concerns that would arise in the banded case, like nonstrided and
 nonunique layouts, and matrix types that forbid access to some
 multi-indices in the Cartesian product of extents.</p>
-<h2 data-number="10.6" id="tensors"><span class="header-section-number">10.6</span> Tensors<a href="#tensors" class="self-link"></a></h2>
+<h2 data-number="9.6" id="tensors"><span class="header-section-number">9.6</span> Tensors<a href="#tensors" class="self-link"></a></h2>
 <p>We exclude tensors from this proposal, for the following reasons.
 First, tensor libraries naturally build on optimized dense linear
 algebra libraries like the BLAS, so a linear algebra library is a good
@@ -2421,7 +2401,7 @@ which to optimize. Fourth, even though linear algebra is a special case
 of tensor algebra, users of linear algebra have different interface
 expectations than users of tensor algebra. Thus, it makes sense to have
 two separate interfaces.</p>
-<h2 data-number="10.7" id="explicit-support-for-asynchronous-return-of-scalar-values"><span class="header-section-number">10.7</span> Explicit support for
+<h2 data-number="9.7" id="explicit-support-for-asynchronous-return-of-scalar-values"><span class="header-section-number">9.7</span> Explicit support for
 asynchronous return of scalar values<a href="#explicit-support-for-asynchronous-return-of-scalar-values" class="self-link"></a></h2>
 <p>After we presented revision 2 of this paper, LEWG asked us to
 consider support for discrete graphics processing units (GPUs). GPUs
@@ -2458,7 +2438,7 @@ asynchronous algorithms, but none of these suggest returning results
 asynchronously by pointer. Our proposal deliberately imitates the
 existing standard algorithms. Right now, we have no standard
 asynchronous algorithms to imitate.</p>
-<h1 data-number="11" id="design-justification"><span class="header-section-number">11</span> Design justification<a href="#design-justification" class="self-link"></a></h1>
+<h1 data-number="10" id="design-justification"><span class="header-section-number">10</span> Design justification<a href="#design-justification" class="self-link"></a></h1>
 <p>We take a step-wise approach. We begin with core BLAS dense linear
 algebra functionality. We then deviate from that only as much as
 necessary to get algorithms that behave as much as reasonable like the
@@ -2469,7 +2449,7 @@ Library from the BLAS” <a href="https://wg21.link/p1674">(P1674)</a> and
 “Historical lessons for C++ linear algebra library standardization”
 <a href="https://wg21.link/p1417">(P1417)</a> They will give details and
 references for many of the points that we summarize here.</p>
-<h2 data-number="11.1" id="we-do-not-require-using-the-blas-library-or-any-particular-back-end"><span class="header-section-number">11.1</span> We do not require using the
+<h2 data-number="10.1" id="we-do-not-require-using-the-blas-library-or-any-particular-back-end"><span class="header-section-number">10.1</span> We do not require using the
 BLAS library or any particular “back-end”<a href="#we-do-not-require-using-the-blas-library-or-any-particular-back-end" class="self-link"></a></h2>
 <p>Our proposal is inspired by and extends the dense BLAS interface. A
 natural implementation might look like this:</p>
@@ -2507,8 +2487,8 @@ improvements.</p>
 <p>In summary: While a natural way to implement this proposal would be
 to wrap an existing C or Fortran BLAS library, we do not want to require
 this. Thus, we do not specify a “back-end” C-style interface.</p>
-<h2 data-number="11.2" id="why-use-mdspan"><span class="header-section-number">11.2</span> Why use <code>mdspan</code>?<a href="#why-use-mdspan" class="self-link"></a></h2>
-<h3 data-number="11.2.1" id="view-of-a-multidimensional-array"><span class="header-section-number">11.2.1</span> View of a multidimensional
+<h2 data-number="10.2" id="why-use-mdspan"><span class="header-section-number">10.2</span> Why use <code>mdspan</code>?<a href="#why-use-mdspan" class="self-link"></a></h2>
+<h3 data-number="10.2.1" id="view-of-a-multidimensional-array"><span class="header-section-number">10.2.1</span> View of a multidimensional
 array<a href="#view-of-a-multidimensional-array" class="self-link"></a></h3>
 <p>The BLAS operates on what C++ programmers might call views of
 multidimensional arrays. Users of the BLAS can store their data in
@@ -2526,14 +2506,14 @@ same data ownership model that the BLAS expresses. Users may manage
 allocation and deallocation however they wish. In addition,
 <code>mdspan</code> lets our algorithms exploit any dimensions known at
 compile time.</p>
-<h3 data-number="11.2.2" id="ease-of-use"><span class="header-section-number">11.2.2</span> Ease of use<a href="#ease-of-use" class="self-link"></a></h3>
+<h3 data-number="10.2.2" id="ease-of-use"><span class="header-section-number">10.2.2</span> Ease of use<a href="#ease-of-use" class="self-link"></a></h3>
 <p>The <code>mdspan</code> class’ layout and accessor policies let us
 simplify our interfaces, by encapsulating transpose, conjugate, and
 scalar arguments. Features of <code>mdspan</code> make implementing
 BLAS-like algorithms much less error prone and easier to read. These
 include its encapsulation of matrix indexing and its built-in “slicing”
 capabilities via <code>submdspan</code>.</p>
-<h3 data-number="11.2.3" id="blas-and-mdspan-are-low-level"><span class="header-section-number">11.2.3</span> BLAS and <code>mdspan</code>
+<h3 data-number="10.2.3" id="blas-and-mdspan-are-low-level"><span class="header-section-number">10.2.3</span> BLAS and <code>mdspan</code>
 are low level<a href="#blas-and-mdspan-are-low-level" class="self-link"></a></h3>
 <p>The BLAS is low level; it imposes no mathematical meaning on
 multidimensional arrays. This gives users the freedom to develop
@@ -2573,7 +2553,7 @@ mathematical interpretation changes with each in-place operation
 performed on it. The low-level <code>mdspan</code> data structure
 carries no mathematical properties in itself, so it models this
 situation better.</p>
-<h3 data-number="11.2.4" id="hook-for-future-expansion"><span class="header-section-number">11.2.4</span> Hook for future expansion<a href="#hook-for-future-expansion" class="self-link"></a></h3>
+<h3 data-number="10.2.4" id="hook-for-future-expansion"><span class="header-section-number">10.2.4</span> Hook for future expansion<a href="#hook-for-future-expansion" class="self-link"></a></h3>
 <p>The <code>mdspan</code> class treats its layout as an extension
 point. This lets our interface support layouts beyond what the BLAS
 Standard permits. The accessor extension point offers us a hook for
@@ -2582,7 +2562,7 @@ feature of <code>Kokkos::View</code>, the data structure that inspired
 <code>mdspan</code>.) In addition, using <code>mdspan</code> will make
 it easier for us to add an efficient “batched” interface in future
 proposals.</p>
-<h3 data-number="11.2.5" id="generic-enough-to-replace-a-multidimensional-array-concept"><span class="header-section-number">11.2.5</span> Generic enough to replace a
+<h3 data-number="10.2.5" id="generic-enough-to-replace-a-multidimensional-array-concept"><span class="header-section-number">10.2.5</span> Generic enough to replace a
 “multidimensional array concept”<a href="#generic-enough-to-replace-a-multidimensional-array-concept" class="self-link"></a></h3>
 <p>Our functions differ from the C++ Standard algorithms, in that they
 take a concrete type <code>mdspan</code> with template parameters,
@@ -2633,7 +2613,7 @@ meeting, LEWGI accepted our position that it is reasonable for our
 algorithms to take the concrete (yet highly customizable) type
 <code>mdspan</code>, instead of template parameters constrained by a
 multidimensional array concept.</p>
-<h2 data-number="11.3" id="function-argument-aliasing-and-zero-scalar-multipliers"><span class="header-section-number">11.3</span> Function argument aliasing and
+<h2 data-number="10.3" id="function-argument-aliasing-and-zero-scalar-multipliers"><span class="header-section-number">10.3</span> Function argument aliasing and
 zero scalar multipliers<a href="#function-argument-aliasing-and-zero-scalar-multipliers" class="self-link"></a></h2>
 <p>Summary:</p>
 <ol type="1">
@@ -2673,7 +2653,7 @@ version (as if <code>beta</code> is zero), and a read-and-write version
 <p>For a detailed analysis, please see our paper “Evolving a Standard
 C++ Linear Algebra Library from the BLAS”
 <a href="https://wg21.link/p1674">(P1674)</a>.</p>
-<h2 data-number="11.4" id="support-for-different-matrix-layouts"><span class="header-section-number">11.4</span> Support for different matrix
+<h2 data-number="10.4" id="support-for-different-matrix-layouts"><span class="header-section-number">10.4</span> Support for different matrix
 layouts<a href="#support-for-different-matrix-layouts" class="self-link"></a></h2>
 <p>Summary:</p>
 <ol type="1">
@@ -2718,9 +2698,9 @@ simple class meant to be easy for the compiler to optimize – with extra
 baggage for representing what amounts to sparse matrices. We think that
 BLAS matrix “type” is better represented with a higher-level library
 that builds on our proposal.</p>
-<h2 data-number="11.5" id="interpretation-of-lower-upper-triangular"><span class="header-section-number">11.5</span> Interpretation of “lower /
+<h2 data-number="10.5" id="interpretation-of-lower-upper-triangular"><span class="header-section-number">10.5</span> Interpretation of “lower /
 upper triangular”<a href="#interpretation-of-lower-upper-triangular" class="self-link"></a></h2>
-<h3 data-number="11.5.1" id="triangle-refers-to-what-part-of-the-matrix-is-accessed"><span class="header-section-number">11.5.1</span> Triangle refers to what part
+<h3 data-number="10.5.1" id="triangle-refers-to-what-part-of-the-matrix-is-accessed"><span class="header-section-number">10.5.1</span> Triangle refers to what part
 of the matrix is accessed<a href="#triangle-refers-to-what-part-of-the-matrix-is-accessed" class="self-link"></a></h3>
 <p>The triangular, symmetric, and Hermitian algorithms in this proposal
 all take a <code>Triangle</code> tag that specifies whether the
@@ -2749,7 +2729,7 @@ require at least twice the storage. For symmetric and Hermitian
 matrices, only accessing the matrix’s elements nonredundantly ensures
 that the matrix remains mathematically symmetric resp. Hermitian, even
 in the presence of rounding error.</p>
-<h3 data-number="11.5.2" id="blas-applies-uplo-to-original-matrix-we-apply-triangle-to-transformed-matrix"><span class="header-section-number">11.5.2</span> BLAS applies UPLO to
+<h3 data-number="10.5.2" id="blas-applies-uplo-to-original-matrix-we-apply-triangle-to-transformed-matrix"><span class="header-section-number">10.5.2</span> BLAS applies UPLO to
 original matrix; we apply Triangle to transformed matrix<a href="#blas-applies-uplo-to-original-matrix-we-apply-triangle-to-transformed-matrix" class="self-link"></a></h3>
 <p>The BLAS routines that take an <code>UPLO</code> argument generally
 also take a <code>TRANS</code> argument. The <code>TRANS</code> argument
@@ -2801,7 +2781,7 @@ matrix is just the same data, viewed as an <code>N</code> x
 <code>transposed</code> need not use a special
 <code>layout_transpose</code>, if it knows how to reinterpret the input
 layout.</p>
-<h3 data-number="11.5.3" id="summary"><span class="header-section-number">11.5.3</span> Summary<a href="#summary" class="self-link"></a></h3>
+<h3 data-number="10.5.3" id="summary"><span class="header-section-number">10.5.3</span> Summary<a href="#summary" class="self-link"></a></h3>
 <ol type="1">
 <li><p>BLAS applies <code>UPLO</code> to the original matrix, before any
 transposition. Our proposal applies <code>Triangle</code> to the
@@ -2809,7 +2789,7 @@ transformed matrix, after any transposition.</p></li>
 <li><p>Our approach is the only reasonable way to handle the full
 generality of user-defined layouts and layout transformations.</p></li>
 </ol>
-<h2 data-number="11.6" id="over--and-underflow-wording-for-vector-2-norm"><span class="header-section-number">11.6</span> Over- and underflow wording
+<h2 data-number="10.6" id="over--and-underflow-wording-for-vector-2-norm"><span class="header-section-number">10.6</span> Over- and underflow wording
 for vector 2-norm<a href="#over--and-underflow-wording-for-vector-2-norm" class="self-link"></a></h2>
 <p>SG6 recommended to us at Belfast 2019 to change the special overflow
 / underflow wording for <code>vector_norm2</code> to imitate the BLAS
@@ -2889,9 +2869,9 @@ implementors” as “primarily commentary to implementors” and permissible
 to skip (see e.g., MPI 3.0, Section 2.1, p. 9). We thus interpret
 “Advice to implementors” in the BLAS Standard as a nonbinding quality of
 implementation (QoI) recommendation.</p>
-<h2 data-number="11.7" id="constraining-matrix-and-vector-element-types-and-scalars"><span class="header-section-number">11.7</span> Constraining matrix and vector
+<h2 data-number="10.7" id="constraining-matrix-and-vector-element-types-and-scalars"><span class="header-section-number">10.7</span> Constraining matrix and vector
 element types and scalars<a href="#constraining-matrix-and-vector-element-types-and-scalars" class="self-link"></a></h2>
-<h3 data-number="11.7.1" id="introduction"><span class="header-section-number">11.7.1</span> Introduction<a href="#introduction" class="self-link"></a></h3>
+<h3 data-number="10.7.1" id="introduction"><span class="header-section-number">10.7.1</span> Introduction<a href="#introduction" class="self-link"></a></h3>
 <p>The BLAS only accepts four different types of scalars and matrix and
 vector elements. In C++ terms, these correspond to <code>float</code>,
 <code>double</code>, <code>complex&lt;float&gt;</code>, and
@@ -2921,7 +2901,7 @@ algorithms.</p></li>
 vendors to optimize. Thus, performance is a major concern. “Accuracy”
 here refers to either to rounding error or to approximation error (for
 matrix or vector element types where either makes sense).</p>
-<h3 data-number="11.7.2" id="value-type-constraints-do-not-suffice-to-describe-algorithm-behavior"><span class="header-section-number">11.7.2</span> Value type constraints do
+<h3 data-number="10.7.2" id="value-type-constraints-do-not-suffice-to-describe-algorithm-behavior"><span class="header-section-number">10.7.2</span> Value type constraints do
 not suffice to describe algorithm behavior<a href="#value-type-constraints-do-not-suffice-to-describe-algorithm-behavior" class="self-link"></a></h3>
 <p>LEWG’s 2020 review of P1673R2 asked us to investigate
 conceptification of its algorithms. “Conceptification” here refers to an
@@ -2945,7 +2925,7 @@ Second, what we really want to do is describe the behavior of
 algorithms, regardless of value types’ semantics. “The algorithm may
 reorder sums” means something different than “addition on the terms in
 the sum is associative.”</p>
-<h3 data-number="11.7.3" id="associativity-is-too-strict"><span class="header-section-number">11.7.3</span> Associativity is too
+<h3 data-number="10.7.3" id="associativity-is-too-strict"><span class="header-section-number">10.7.3</span> Associativity is too
 strict<a href="#associativity-is-too-strict" class="self-link"></a></h3>
 <p>P1813R0 requires associative addition for many algorithms, such as
 <code>reduce</code>. However, many practical arithmetic systems that
@@ -2988,7 +2968,7 @@ need not. Compare to <code>MPI_Op_create</code>’s <code>commute</code>
 parameter, that affects the behavior of algorithms like
 <code>MPI_Reduce</code> when used with the resulting user-defined
 reduction operator.)</p>
-<h3 data-number="11.7.4" id="generalizing-associativity-helps-little"><span class="header-section-number">11.7.4</span> Generalizing associativity
+<h3 data-number="10.7.4" id="generalizing-associativity-helps-little"><span class="header-section-number">10.7.4</span> Generalizing associativity
 helps little<a href="#generalizing-associativity-helps-little" class="self-link"></a></h3>
 <p>Suppose we accept that associativity and related properties are not
 useful for describing our proposed algorithms. Could there be a
@@ -3085,7 +3065,7 @@ will distinguish textbook from non-textbook ways of changing algorithms,
 explain that we only permit non-textbook changes for floating-point
 types, then develop constraints on types that permit textbook
 changes.</p>
-<h3 data-number="11.7.5" id="categories-of-qoi-enhancements"><span class="header-section-number">11.7.5</span> Categories of QoI
+<h3 data-number="10.7.5" id="categories-of-qoi-enhancements"><span class="header-section-number">10.7.5</span> Categories of QoI
 enhancements<a href="#categories-of-qoi-enhancements" class="self-link"></a></h3>
 <p>An important goal of constraining our algorithms is to give
 implementers the freedom to make QoI enhancements. We categorize QoI
@@ -3123,7 +3103,7 @@ recommend either (Strang 2016), or the concise mathematical description
 of operations in the BLAS Standard. In the next section, we will list
 properties of textbook descriptions, and explain some ways in which QoI
 enhancements might fail to adhere to those properties.</p>
-<h3 data-number="11.7.6" id="properties-of-textbook-algorithm-descriptions"><span class="header-section-number">11.7.6</span> Properties of textbook
+<h3 data-number="10.7.6" id="properties-of-textbook-algorithm-descriptions"><span class="header-section-number">10.7.6</span> Properties of textbook
 algorithm descriptions<a href="#properties-of-textbook-algorithm-descriptions" class="self-link"></a></h3>
 <p>“Textbook descriptions” of the algorithms we propose tend to have the
 following properties. For each property, we give an example of a
@@ -3221,7 +3201,7 @@ includes implementation-specific types, such as short or
 extended-precision floats. This change may require implementers to look
 carefully at the definition of logarithmically stable before making
 certain algorithmic choices, especially for short floats.</p>
-<h3 data-number="11.7.7" id="reordering-sums-and-creating-temporaries"><span class="header-section-number">11.7.7</span> Reordering sums and creating
+<h3 data-number="10.7.7" id="reordering-sums-and-creating-temporaries"><span class="header-section-number">10.7.7</span> Reordering sums and creating
 temporaries<a href="#reordering-sums-and-creating-temporaries" class="self-link"></a></h3>
 <p>Even textbook descriptions of linear algebra algorithms presume the
 freedom to reorder sums and create temporary values. Optimizations for
@@ -3238,7 +3218,7 @@ be implementation defined, and others may be user-specified. We intend
 to permit implementers to optimize for these types as well. This
 motivates us to describe our algorithms’ type requirements in a generic
 way.</p>
-<h4 data-number="11.7.7.1" id="special-case-only-one-element-type"><span class="header-section-number">11.7.7.1</span> Special case: Only one
+<h4 data-number="10.7.7.1" id="special-case-only-one-element-type"><span class="header-section-number">10.7.7.1</span> Special case: Only one
 element type<a href="#special-case-only-one-element-type" class="self-link"></a></h4>
 <p>We find it easier to think about type requirements by starting with
 the assumption that all element and scalar types in algorithms are the
@@ -3286,7 +3266,7 @@ more detailed explanation.</p>
 value-initialization produces a two-sided additive identity. What
 matters is what the algorithm’s implementation may do, not whether the
 type actually behaves in this way.</p>
-<h4 data-number="11.7.7.2" id="general-case-multiple-input-element-types"><span class="header-section-number">11.7.7.2</span> General case: Multiple
+<h4 data-number="10.7.7.2" id="general-case-multiple-input-element-types"><span class="header-section-number">10.7.7.2</span> General case: Multiple
 input element types<a href="#general-case-multiple-input-element-types" class="self-link"></a></h4>
 <p>An important feature of P1673 is the ability to compute with mixed
 matrix or vector element types. For instance,
@@ -3294,7 +3274,7 @@ matrix or vector element types. For instance,
 + alpha*x, an elementwise scaled vector sum. The element types of the
 vectors x, y, and z could be all different, and could differ from the
 type of alpha.</p>
-<h5 data-number="11.7.7.2.1" id="accumulate-into-output-value-type"><span class="header-section-number">11.7.7.2.1</span> Accumulate into output
+<h5 data-number="10.7.7.2.1" id="accumulate-into-output-value-type"><span class="header-section-number">10.7.7.2.1</span> Accumulate into output
 value type<a href="#accumulate-into-output-value-type" class="self-link"></a></h5>
 <p>Generic algorithms would use the output <code>mdspan</code>’s
 <code>value_type</code> to accumulate partial sums, and for any
@@ -3304,7 +3284,7 @@ types might accumulate into higher-precision temporaries, or use other
 ways to increase accuracy when accumulating partial sums, but the output
 <code>mdspan</code>’s <code>value_type</code> would still control
 accumulation behavior in general.</p>
-<h5 data-number="11.7.7.2.2" id="proxy-references-or-expression-templates"><span class="header-section-number">11.7.7.2.2</span> Proxy references or
+<h5 data-number="10.7.7.2.2" id="proxy-references-or-expression-templates"><span class="header-section-number">10.7.7.2.2</span> Proxy references or
 expression templates<a href="#proxy-references-or-expression-templates" class="self-link"></a></h5>
 <ol type="1">
 <li><p>Proxy references: The input and/or output <code>mdspan</code>
@@ -3336,7 +3316,7 @@ side of the expression that defines the algorithm. If algorithms have
 permission to rearrange the order of sums, then they need to be able to
 break up such expressions into separate terms, even if some of those
 expressions are expression templates.</p>
-<h3 data-number="11.7.8" id="textbook-algorithm-description-in-semiring-terms"><span class="header-section-number">11.7.8</span> “Textbook” algorithm
+<h3 data-number="10.7.8" id="textbook-algorithm-description-in-semiring-terms"><span class="header-section-number">10.7.8</span> “Textbook” algorithm
 description in semiring terms<a href="#textbook-algorithm-description-in-semiring-terms" class="self-link"></a></h3>
 <p>As we explain in the “Value type constraints do not suffice to
 describe algorithm behavior” section above, we deliberately constrain
@@ -3356,7 +3336,7 @@ not require all elements to have an additive inverse. That is, addition
 is allowed, but not subtraction. Implementers may apply any mathematical
 transformation to the expressions that would give the same result for
 any semiring.</p>
-<h4 data-number="11.7.8.1" id="why-a-semiring"><span class="header-section-number">11.7.8.1</span> Why a semiring?<a href="#why-a-semiring" class="self-link"></a></h4>
+<h4 data-number="10.7.8.1" id="why-a-semiring"><span class="header-section-number">10.7.8.1</span> Why a semiring?<a href="#why-a-semiring" class="self-link"></a></h4>
 <p>We use a semiring because</p>
 <ol type="1">
 <li><p>we generally want to reorder terms in sums, but we do not want to
@@ -3368,7 +3348,7 @@ matrix or vector element types with noncommutative multiplication, such
 as quaternions or matrices. The second is because algebra operations
 might be useful for signed integers, where a formulation using
 subtraction risks unexpected undefined behavior.</p>
-<h4 data-number="11.7.8.2" id="semirings-and-testing"><span class="header-section-number">11.7.8.2</span> Semirings and testing<a href="#semirings-and-testing" class="self-link"></a></h4>
+<h4 data-number="10.7.8.2" id="semirings-and-testing"><span class="header-section-number">10.7.8.2</span> Semirings and testing<a href="#semirings-and-testing" class="self-link"></a></h4>
 <p>It’s important that implementers be able to test our proposed
 algorithms for custom element types, not just the built-in arithmetic
 types. We don’t want to require hypothetical “exact real arithmetic”
@@ -3377,7 +3357,7 @@ testing with simple classes built out of unsigned integers. This section
 is not part of our Standard Library proposal, but we include it to give
 guidance to implementers and to show that it’s feasible to test our
 proposal.</p>
-<h4 data-number="11.7.8.3" id="commutative-multiplication"><span class="header-section-number">11.7.8.3</span> Commutative
+<h4 data-number="10.7.8.3" id="commutative-multiplication"><span class="header-section-number">10.7.8.3</span> Commutative
 multiplication<a href="#commutative-multiplication" class="self-link"></a></h4>
 <p>C++ unsigned integers implement commutative rings. (Rings always have
 commutative addition; a “commutative ring” has commutative
@@ -3386,12 +3366,12 @@ into a commutative semiring by wrapping it in a class that does not
 provide unary or binary <code>operator-</code>. Adding a “tag” template
 parameter to this class would let implementers build tests for mixed
 element types.</p>
-<h4 data-number="11.7.8.4" id="noncommutative-multiplication"><span class="header-section-number">11.7.8.4</span> Noncommutative
+<h4 data-number="10.7.8.4" id="noncommutative-multiplication"><span class="header-section-number">10.7.8.4</span> Noncommutative
 multiplication<a href="#noncommutative-multiplication" class="self-link"></a></h4>
 <p>The semiring of 2x2 matrices with element type a commutative semiring
 is itself a semiring, but with noncommutative multiplication. This is a
 good way to build a noncommutative semiring for testing.</p>
-<h3 data-number="11.7.9" id="summary-1"><span class="header-section-number">11.7.9</span> Summary<a href="#summary-1" class="self-link"></a></h3>
+<h3 data-number="10.7.9" id="summary-1"><span class="header-section-number">10.7.9</span> Summary<a href="#summary-1" class="self-link"></a></h3>
 <ul>
 <li><p>Constraining the matrix and vector element types and scalar types
 in our functions gives implementers the freedom to make QoI enhancements
@@ -3410,9 +3390,9 @@ implementation freedom, even though we do not think it is a good way to
 constrain types. We then use the semiring description to explain how
 implementers can test generic algorithms.</p></li>
 </ul>
-<h2 data-number="11.8" id="support-for-user-defined-complex-number-types"><span class="header-section-number">11.8</span> Support for user-defined
+<h2 data-number="10.8" id="support-for-user-defined-complex-number-types"><span class="header-section-number">10.8</span> Support for user-defined
 complex number types<a href="#support-for-user-defined-complex-number-types" class="self-link"></a></h2>
-<h3 data-number="11.8.1" id="conj-does-not-have-the-desired-interface"><span class="header-section-number">11.8.1</span> <code>conj</code> does not
+<h3 data-number="10.8.1" id="conj-does-not-have-the-desired-interface"><span class="header-section-number">10.8.1</span> <code>conj</code> does not
 have the desired interface<a href="#conj-does-not-have-the-desired-interface" class="self-link"></a></h3>
 <p>Based on precedence from the BLAS and LAPACK, generic linear algebra
 code that works for both complex and real numbers uses the “conjugate
@@ -3431,7 +3411,7 @@ unexpected, and it can hinder use of an optimized BLAS.</p></li>
 types, but users cannot overload <code>conj</code> for these
 types.</p></li>
 </ol>
-<h3 data-number="11.8.2" id="why-users-define-their-own-complex-number-types"><span class="header-section-number">11.8.2</span> Why users define their own
+<h3 data-number="10.8.2" id="why-users-define-their-own-complex-number-types"><span class="header-section-number">10.8.2</span> Why users define their own
 complex number types<a href="#why-users-define-their-own-complex-number-types" class="self-link"></a></h3>
 <ol type="1">
 <li><p><code>complex&lt;R&gt;</code> only permits <code>R</code> =
@@ -3480,7 +3460,7 @@ and Thrust. The SYCL standard is contemplating adding a custom complex
 number type. One of the authors wrote <code>Kokkos::complex</code> circa
 2014 to make it possible to build and run Trilinos’ linear solvers with
 complex numbers on NVIDIA graphics processing units (GPUs).</p>
-<h3 data-number="11.8.3" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="header-section-number">11.8.3</span> Why users want to
+<h3 data-number="10.8.3" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="header-section-number">10.8.3</span> Why users want to
 “conjugate” matrices of real numbers<a href="#why-users-want-to-conjugate-matrices-of-real-numbers" class="self-link"></a></h3>
 <p>It’s possible to describe many linear algebra algorithms in a way
 that works for both complex and real numbers, by treating conjugation as
@@ -3501,7 +3481,7 @@ thing as Hermitian for matrices of complex numbers. For example, a
 matrix whose off-diagonal elements are all <code>3 + 4i</code> is
 symmetric, but not Hermitian. Complex symmetric matrices are useful in
 practice, for example when modeling damped vibrations (Craven 1969).</p>
-<h3 data-number="11.8.4" id="effects-of-conjs-real-to-complex-change"><span class="header-section-number">11.8.4</span> Effects of
+<h3 data-number="10.8.4" id="effects-of-conjs-real-to-complex-change"><span class="header-section-number">10.8.4</span> Effects of
 <code>conj</code>’s real-to-complex change<a href="#effects-of-conjs-real-to-complex-change" class="self-link"></a></h3>
 <p>The fact that <code>conj</code> for arithmetic-type arguments returns
 <code>complex</code> may complicate or prevent implementers from using
@@ -3525,7 +3505,7 @@ having value type <code>double</code>, <code>B</code> having value type
 compile, due to
 <code>complex&lt;decltype(declval&lt;double&gt;() * declval&lt;MyReal&gt;())&gt;</code>
 not being well formed.</p>
-<h3 data-number="11.8.5" id="lewg-feedback-on-r8-solution"><span class="header-section-number">11.8.5</span> LEWG feedback on R8
+<h3 data-number="10.8.5" id="lewg-feedback-on-r8-solution"><span class="header-section-number">10.8.5</span> LEWG feedback on R8
 solution<a href="#lewg-feedback-on-r8-solution" class="self-link"></a></h3>
 <p>In R8 of this paper, we proposed an exposition-only function
 <em><code>conj-if-needed</code></em>. For arithmetic types, it would be
@@ -3560,7 +3540,7 @@ then change P1673 again to use <code>conjugate</code> (thus replacing
 R8’s <em><code>conj-if-needed</code></em>). This would thus reintroduce
 support for custom complex numbers.</p></li>
 </ol>
-<h3 data-number="11.8.6" id="sg6s-response-to-lewgs-r8-feedback"><span class="header-section-number">11.8.6</span> SG6’s response to LEWG’s R8
+<h3 data-number="10.8.6" id="sg6s-response-to-lewgs-r8-feedback"><span class="header-section-number">10.8.6</span> SG6’s response to LEWG’s R8
 feedback<a href="#sg6s-response-to-lewgs-r8-feedback" class="self-link"></a></h3>
 <p>SG6 small group (there was no quorum) reviewed P1673 on 2022/06/09,
 after LEWG’s R8 review on 2022/05/24. SG6 small group expressed the
@@ -3587,7 +3567,7 @@ to regain safety. The cost is that custom real types need to have a
 <code>conj</code> ADL-findable, if users use <code>conjugated</code> or
 <code>conjugate_transposed</code>.)</p></li>
 </ul>
-<h3 data-number="11.8.7" id="current-solution"><span class="header-section-number">11.8.7</span> Current solution<a href="#current-solution" class="self-link"></a></h3>
+<h3 data-number="10.8.7" id="current-solution"><span class="header-section-number">10.8.7</span> Current solution<a href="#current-solution" class="self-link"></a></h3>
 <p>We have adopted SG6 small group’s recommendation, with a slight
 wording modification to make it obvious that the conjugate of an
 arithmetic type returns the same type as its input.</p>
@@ -3608,7 +3588,7 @@ numbers.</p></li>
 <li><p>It does not depend on a future customization point syntax or
 library convention.</p></li>
 </ol>
-<h2 data-number="11.9" id="support-for-division-with-noncommutative-multiplication"><span class="header-section-number">11.9</span> Support for division with
+<h2 data-number="10.9" id="support-for-division-with-noncommutative-multiplication"><span class="header-section-number">10.9</span> Support for division with
 noncommutative multiplication<a href="#support-for-division-with-noncommutative-multiplication" class="self-link"></a></h2>
 <p>An important feature of this proposal is its support for value types
 that have noncommutative multiplication. Examples include square
@@ -3671,8 +3651,8 @@ thus leading to Way (1)’s issues.</p></li>
 tempted to use <code>[](const auto&amp; y) { return 1 / y; }</code> as
 the inverse function, thus leading back to Way (1)’s issues.</p></li>
 </ul>
-<h1 data-number="12" id="future-work"><span class="header-section-number">12</span> Future work<a href="#future-work" class="self-link"></a></h1>
-<h2 data-number="12.1" id="batched-linear-algebra"><span class="header-section-number">12.1</span> Batched linear algebra<a href="#batched-linear-algebra" class="self-link"></a></h2>
+<h1 data-number="11" id="future-work"><span class="header-section-number">11</span> Future work<a href="#future-work" class="self-link"></a></h1>
+<h2 data-number="11.1" id="batched-linear-algebra"><span class="header-section-number">11.1</span> Batched linear algebra<a href="#batched-linear-algebra" class="self-link"></a></h2>
 <p>We plan to write a separate proposal that will add “batched” versions
 of linear algebra functions to this proposal. “Batched” linear algebra
 functions solve many independent problems all at once, in a single
@@ -3698,9 +3678,9 @@ have an additional rank; if so, then the leftmost extent will refer to
 the batch dimension. Input arguments may also have an additional rank to
 match; if they do not, the function will use (“broadcast”) the same
 input argument for all the output arguments in the batch.</p>
-<h1 data-number="13" id="data-structures-and-utilities-borrowed-from-other-proposals"><span class="header-section-number">13</span> Data structures and utilities
+<h1 data-number="12" id="data-structures-and-utilities-borrowed-from-other-proposals"><span class="header-section-number">12</span> Data structures and utilities
 borrowed from other proposals<a href="#data-structures-and-utilities-borrowed-from-other-proposals" class="self-link"></a></h1>
-<h2 data-number="13.1" id="mdspan"><span class="header-section-number">13.1</span> <code>mdspan</code><a href="#mdspan" class="self-link"></a></h2>
+<h2 data-number="12.1" id="mdspan"><span class="header-section-number">12.1</span> <code>mdspan</code><a href="#mdspan" class="self-link"></a></h2>
 <p>This proposal depends on P0009 and follow-on papers that were voted
 into the current C++ Standard draft. P0009’s main class is
 <code>mdspan</code>, which is a “view” (in the sense of
@@ -3723,7 +3703,7 @@ custom <code>Accessor</code>s later in this paper to implement “scaled
 views” and “conjugated views” of an existing
 <code>mdspan</code>.</p></li>
 </ul>
-<h2 data-number="13.2" id="new-mdspan-layouts-in-this-proposal"><span class="header-section-number">13.2</span> New <code>mdspan</code>
+<h2 data-number="12.2" id="new-mdspan-layouts-in-this-proposal"><span class="header-section-number">12.2</span> New <code>mdspan</code>
 layouts in this proposal<a href="#new-mdspan-layouts-in-this-proposal" class="self-link"></a></h2>
 <p>Our proposal uses the layout mapping policy of <code>mdspan</code> in
 order to represent different matrix and vector data layouts. The current
@@ -3780,7 +3760,7 @@ unless otherwise specified.</p>
 <p>Some of our functions explicitly require outputs with specific
 nonunique layouts. This includes low-rank updates to symmetric or
 Hermitian matrices.</p>
-<h1 data-number="14" id="implementation-experience"><span class="header-section-number">14</span> Implementation experience<a href="#implementation-experience" class="self-link"></a></h1>
+<h1 data-number="13" id="implementation-experience"><span class="header-section-number">13</span> Implementation experience<a href="#implementation-experience" class="self-link"></a></h1>
 <p>As far as the authors know, there are currently two implementations
 of the proposal:</p>
 <ul>
@@ -3796,6 +3776,27 @@ algorithms.</p></li>
 <code>mdspan</code> layouts in P2642. The <a href="https://github.com/kokkos/mdspan/">reference implementation of
 <code>mdspan</code></a>, written and maintained by the authors and
 others, includes implementations of all these features.</p>
+<h1 data-number="14" id="interoperable-with-other-linear-algebra-proposals"><span class="header-section-number">14</span> Interoperable with other linear
+algebra proposals<a href="#interoperable-with-other-linear-algebra-proposals" class="self-link"></a></h1>
+<p>We believe this proposal is complementary to P1385, a proposal for a
+C++ Standard linear algebra library that introduces matrix and vector
+classes with overloaded arithmetic operators. The P1385 authors and we
+have expressed together in a joint paper,
+<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1891r0.pdf">P1891</a>,
+that P1673 and P1385 “are orthogonal. They are not competing papers; …
+there is no overlap of functionality.”</p>
+<p>We designed P1673 in part as a natural foundation or implementation
+layer for existing libraries with similar design and goals as P1385. Our
+view is that a free function interface like P1673’s clearly separates
+algorithms from data structures, and more naturally allows for a richer
+set of operations such as what the BLAS provides. Our paper
+<a href="https://wg21.link/p1674">P1674</a> explains why we think our
+proposal is a minimal C++ “respelling” of the BLAS.</p>
+<p>A natural extension of the present proposal would include accepting
+P1385’s matrix and vector objects as input for the algorithms proposed
+here. A straightforward way to do that would be for P1385’s matrix and
+vector objects to make views of their data available as
+<code>mdspan</code>.</p>
 <h1 data-number="15" id="acknowledgments"><span class="header-section-number">15</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
 <p>Sandia National Laboratories is a multimission laboratory managed and
 operated by National Technology &amp; Engineering Solutions of Sandia,
@@ -3867,7 +3868,7 @@ Factorization”, <em>SIAM J. Sci. Comput.</em>, Vol. 37, No. 2,
 C169-C193, 2015.</p></li>
 <li><p>G. Davidson and B. Steagall, “A proposal to add linear algebra
 support to the C++ standard library,”
-<a href="https://wg21.link/p1385r6">P1385R6</a>, Mar. 2020.</p></li>
+<a href="https://wg21.link/p1385r7">P1385R7</a>, Oct. 2022.</p></li>
 <li><p>B. Dawes, H. Hinnant, B. Stroustrup, D. Vandevoorde, and M. Wong,
 “Direction for ISO C++,”
 <a href="https://wg21.link/p0939r4">P0939R4</a>, Oct. 2019.</p></li>
