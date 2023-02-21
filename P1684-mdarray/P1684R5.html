@@ -1358,36 +1358,50 @@ container.</p>
 <p>This use case treats the container like a memory pool. That strongly
 suggests passing along a memory resource or allocator, instead of
 passing along a container. For example, they could use <a href="http://en.cppreference.com/w/cpp/memory/polymorphic_allocator"><code>std::pmr::polymorphic_allocator</code></a>
-with <a href="https://en.cppreference.com/w/cpp/memory/monotonic_buffer_resource"><code>std::pmr::monotonic_buffer_resource</code></a>.
-The following shows how that might change the above <code>f0</code>,
-<code>f1</code> example.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>f0<span class="op">(</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> resource<span class="op">)</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>polymorphic_allocator<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> allocator<span class="op">{</span>resource<span class="op">}</span>;</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  mdarray m0<span class="op">{</span>pmr<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;{</span><span class="dv">24</span>, allocator<span class="op">}</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">}</span>;</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... compute with m0 ...</span></span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> resource;</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+with a custom <a href="https://en.cppreference.com/w/cpp/memory/memory_resource"><code>std::pmr::memory_resource</code></a>
+subclass that wraps a fixed-size contiguous buffer. The following shows
+how that might change the above <code>f0</code>, <code>f1</code>
+example.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> custom_memory_resource <span class="op">:</span> <span class="kw">public</span> std<span class="op">::</span>pmr<span class="op">::</span>memory_resource <span class="op">{</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Use the given span of char as a fixed-size memory pool.</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// do_allocate needs to bless allocations with start_lifetime_as_array.</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Extent<span class="op">&gt;</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  custom_memory_resource<span class="op">(</span>std<span class="op">::</span>span<span class="op">&lt;</span><span class="dt">char</span>, Extent<span class="op">&gt;</span> buffer<span class="op">)</span>;</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">~</span>custom_memory_resource<span class="op">()</span> <span class="kw">override</span>;</span>
 <span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span></span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>f1<span class="op">(</span>pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> resource<span class="op">)</span></span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>polymorphic_allocator<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> allocator<span class="op">{</span>resource<span class="op">}</span>;</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  mdarray m1<span class="op">{</span>pmr<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;{</span><span class="dv">24</span>, allocator<span class="op">}</span>, <span class="dv">6</span>, <span class="dv">4</span><span class="op">}</span>;</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... compute with m1 ...</span></span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> resource;</span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
-<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>  vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> storage<span class="op">{</span><span class="dv">24</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">}</span>;</span>
-<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>monotonic_buffer_resource mbr<span class="op">{</span></span>
-<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>    storage<span class="op">.</span>data<span class="op">()</span>, <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)</span> <span class="op">*</span> storage<span class="op">.</span>size<span class="op">()}</span>;</span>
-<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>monotonic_buffer_resource<span class="op">*</span> mbr_ptr <span class="op">=</span> f1<span class="op">(</span>f0<span class="op">(</span>mbr<span class="op">))</span>;</span>
-<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... use mbr_ptr for other things ... </span></span>
-<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... implementation details go here ...</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>pmr<span class="op">::</span>memory_resource<span class="op">*</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>f0<span class="op">(</span>pmr<span class="op">::</span>memory_resource<span class="op">*</span> resource<span class="op">)</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>polymorphic_allocator<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> allocator<span class="op">{</span>resource<span class="op">}</span>;</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>  mdarray m0<span class="op">{</span>pmr<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;{</span><span class="dv">24</span>, allocator<span class="op">}</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">}</span>;</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... compute with m0 ...</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> resource;</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>pmr<span class="op">::</span>memory_resource<span class="op">*</span></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>f1<span class="op">(</span>pmr<span class="op">::</span>memory_resource<span class="op">*</span> resource<span class="op">)</span></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>polymorphic_allocator<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> allocator<span class="op">{</span>resource<span class="op">}</span>;</span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>  mdarray m1<span class="op">{</span>pmr<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;{</span><span class="dv">24</span>, allocator<span class="op">}</span>, <span class="dv">6</span>, <span class="dv">4</span><span class="op">}</span>;</span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... compute with m1 ...</span></span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> resource;</span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span></span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>  vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> storage<span class="op">{</span><span class="dv">24</span>, <span class="fl">0.0</span><span class="bu">f</span><span class="op">}</span>;</span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>memory_resource mbr<span class="op">{</span></span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>    span<span class="op">{</span>storage<span class="op">.</span>data<span class="op">()</span>, <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)</span> <span class="op">*</span> storage<span class="op">.</span>size<span class="op">()}}</span>;</span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>  pmr<span class="op">::</span>memory_resource<span class="op">*</span> mbr_ptr <span class="op">=</span> f1<span class="op">(</span>f0<span class="op">(&amp;</span>mbr<span class="op">))</span>;</span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... use mbr_ptr for other things ... </span></span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The disadvantages of this approach are</p>
 <ol type="1">
 <li><p>it makes the code more complicated, and</p></li>
