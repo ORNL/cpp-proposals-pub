@@ -1190,7 +1190,8 @@ fitting place.</p></li>
 value types in <em>[linalg.reqs.val]</em>.</p></li>
 <li><p>Add feature test macro <code>__cpp_lib_linalg</code>.</p></li>
 <li><p>Remove “Throws: Nothing” from <code>givens_rotation_setup</code>
-because it doesn’t need to be explicitly stated.</p></li>
+because it doesn’t need to be explicitly stated, and make all overloads
+<code>noexcept</code>.</p></li>
 <li><p><code>transposed</code> no longer returns a read-only
 <code>mdspan</code>.</p></li>
 <li><p>Remove <code>const</code> from by-value parameters, and pass
@@ -4088,10 +4089,10 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
 <span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
 <span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup_result<span class="op">&lt;</span>Real<span class="op">&gt;</span></span>
-<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>Real a, Real b<span class="op">)</span>;</span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>Real a, Real b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
 <span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span></span>
-<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span>;</span>
+<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.givens.rot], apply computed Givens rotation</span></span>
 <span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-vector</em> InOutVec1,</span>
@@ -7275,10 +7276,10 @@ product of extents of any <code>mdspan</code> parameter.</p>
 [linalg.algs.blas1.givens.lartg]<a href="#compute-givens-rotation-linalg.algs.blas1.givens.lartg" class="self-link"></a></h5>
 <div class="sourceCode" id="cb70"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
 <span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup_result<span class="op">&lt;</span>Real<span class="op">&gt;</span></span>
-<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>Real a, Real b<span class="op">)</span>;</span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>Real a, Real b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
 <span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span></span>
-<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span>;</span></code></pre></div>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 This function computes the plane (Givens) rotation represented by the
 two values <code>c</code> and <code>s</code> such that the 2x2 system of
