@@ -1191,6 +1191,8 @@ value types in <em>[linalg.reqs.val]</em>.</p></li>
 <li><p>Add feature test macro <code>__cpp_lib_linalg</code>.</p></li>
 <li><p>Remove “Throws: Nothing” from <code>givens_rotation_setup</code>
 because it doesn’t need to be explicitly stated.</p></li>
+<li><p><code>transposed</code> no longer returns a read-only
+<code>mdspan</code>.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6952,10 +6954,10 @@ comparable, and</p></li>
 [linalg.transp.transposed]<a href="#transposed-linalg.transp.transposed" class="self-link"></a></h3>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The <code>transposed</code> function takes a rank-2 <code>mdspan</code>
-representing a matrix, and returns a new read-only <code>mdspan</code>
-representing the transpose of the input matrix. The input matrix’s data
-are not modified, and the returned <code>mdspan</code> accesses the
-input matrix’s data in place.</p>
+representing a matrix, and returns a new <code>mdspan</code>
+representing the input matrix’s transpose. The input matrix’s data are
+not modified, and the returned <code>mdspan</code> accesses the input
+matrix’s data in place.</p>
 <div class="sourceCode" id="cb65"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType,</span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Extents,</span>
 <span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Layout,</span>
@@ -6966,77 +6968,52 @@ input matrix’s data in place.</p>
 Let <code>ReturnExtents</code> be
 <em><code>transpose-extents-t</code></em><code>&lt;Extents&gt;</code>.
 Let <code>R</code> be
-<code>mdspan&lt;ReturnElementType, ReturnExtents, ReturnLayout, ReturnAccessor&gt;</code>,
-where</p>
+<code>mdspan&lt;ElementType, ReturnExtents, ReturnLayout, Accessor&gt;</code>,
+where <code>ReturnLayout</code> is:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>ReturnElementType</code> is:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1.1)</a></span> if
-<code>Accessor</code> is
-<code>default_accessor&lt;ElementType&gt;</code>, then
-<code>add_const_t&lt;ElementType&gt;</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1.2)</a></span>
-else, <code>ElementType</code>; <!-- For general accessors,
-    the `const ElementType` version of the accessor may not exist;
-    Even if it does, `transposed` has no way
-    to deduce it generically. --></p></li>
-</ul></li>
+<code>layout_right</code> if <code>Layout</code> is
+<code>layout_left</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>ReturnLayout</code> is:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.1)</a></span> if
-<code>Layout</code> is <code>layout_left</code>, then
-<code>layout_right</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.2)</a></span>
-else if <code>Layout</code> is <code>layout_right</code>, then
-<code>layout_left</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.3)</a></span>
-else if <code>Layout</code> is <code>layout_stride</code>, then
-<code>layout_stride</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.4)</a></span>
-else if <code>Layout</code> is
+Otherwise, <code>layout_left</code> if <code>Layout</code> is
+<code>layout_right</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
+Otherwise, <code>layout_stride</code> if <code>Layout</code> is
+<code>layout_stride</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
+Otherwise, <code>layout_right_padded&lt;padding_stride&gt;</code> if
+<code>Layout</code> is
 <code>layout_left_padded&lt;padding_stride&gt;</code> for some
-<code>padding_stride</code>, then
-<code>layout_right_padded&lt;padding_stride&gt;</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.5)</a></span>
-else if <code>Layout</code> is
+<code>padding_stride</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.5)</a></span>
+Otherwise, <code>layout_left_padded&lt;padding_stride&gt;</code> if
+<code>Layout</code> is
 <code>layout_right_padded&lt;padding_stride&gt;</code> for some
-<code>padding_stride</code>, then
-<code>layout_left_padded&lt;padding_stride&gt;</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.6)</a></span>
-else if <code>Layout</code> is
-<code>layout_blas_packed&lt;Triangle, StorageOrder&gt;</code> for some
-<code>Triangle</code> and <code>StorageOrder</code>, then
+<code>padding_stride</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.6)</a></span>
+Otherwise,
 <code>layout_blas_packed&lt;OppositeTriangle, OppositeStorageOrder&gt;</code>,
-where</p>
+if <code>Layout</code> is
+<code>layout_blas_packed&lt;Triangle, StorageOrder&gt;</code> for some
+<code>Triangle</code> and <code>StorageOrder</code>, where</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.6.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.6.1)</a></span>
 <code>OppositeTriangle</code> is
 <code>conditional_t&lt;is_same_v&lt;Triangle, upper_triangle_t&gt;, lower_triangle_t, upper_triangle_t&gt;</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.6.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.6.2)</a></span>
 <code>OppositeStorageOrder</code> is
-<code>conditional_t&lt;is_same_v&lt;StorageOrder, column_major_t&gt;, row_major_t, column_major_t&gt;</code>;</p></li>
+<code>conditional_t&lt;is_same_v&lt;StorageOrder, column_major_t&gt;, row_major_t, column_major_t&gt;</code>.</p></li>
 </ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.7)</a></span>
-else if <code>Layout</code> is
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.7)</a></span>
+Otherwise, <code>NestedLayout</code> if <code>Layout</code> is
 <code>layout_transpose&lt;NestedLayout&gt;</code> for some
-<code>NestedLayout</code>, then <code>NestedLayout</code>;
+<code>NestedLayout</code>.
 <!-- this optimizes applying `transposed` twice
     to an `mdspan` with a custom layout,
     as long as there are no intervening layout changes --></p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2.8)</a></span>
-else, <code>layout_transpose&lt;Layout&gt;</code>;</p></li>
-</ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span> and,
-<code>ReturnAccessor</code> is:</p>
-<ul>
-<li><p>if <code>Accessor</code> is
-<code>default_accessor&lt;ElementType&gt;</code>, then
-<code>default_accessor&lt;add_const_t&lt;ElementType&gt;&gt;</code>;</p></li>
-<li><p>else, <code>Accessor</code>.</p></li>
-</ul></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.8)</a></span>
+Otherwise, <code>layout_transpose&lt;Layout&gt;</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Returns:</em></p>
@@ -7078,9 +7055,6 @@ Otherwise,
 where <code>ReturnMapping</code> is
 <code>typename layout_transpose&lt;Layout&gt;::template mapping&lt;ReturnExtents&gt;</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Remarks:</em> The elements of the returned <code>mdspan</code> are
-read only.</p>
 <p>[<em>Example:</em></p>
 <div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test_transposed<span class="op">(</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">&gt;&gt;</span> a<span class="op">)</span></span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
