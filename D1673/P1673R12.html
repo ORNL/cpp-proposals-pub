@@ -1199,6 +1199,10 @@ linear algebra value types by value, including
 <code>complex</code>.</p></li>
 <li><p>Rename <code>vector_norm2</code> to
 <code>vector_two_norm</code>.</p></li>
+<li><p><code>symmetric_matrix_rank_k_update</code> and
+<code>hermitian_matrix_rank_k_update</code> (“the BLAS 3
+<code>*_update</code> functions”) now have overloads that do not take an
+<code>alpha</code> scaling parameter.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -5273,281 +5277,313 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1318"><a href="#cb7-1318" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1319"><a href="#cb7-1319" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
 <span id="cb7-1320"><a href="#cb7-1320" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
-<span id="cb7-1321"><a href="#cb7-1321" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-1322"><a href="#cb7-1322" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.rank-k.herk],</span></span>
-<span id="cb7-1323"><a href="#cb7-1323" aria-hidden="true" tabindex="-1"></a><span class="co">// rank-k Hermitian matrix update</span></span>
-<span id="cb7-1324"><a href="#cb7-1324" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T,</span>
-<span id="cb7-1325"><a href="#cb7-1325" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1326"><a href="#cb7-1326" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
-<span id="cb7-1327"><a href="#cb7-1327" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
-<span id="cb7-1328"><a href="#cb7-1328" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_k_update<span class="op">(</span></span>
-<span id="cb7-1329"><a href="#cb7-1329" aria-hidden="true" tabindex="-1"></a>  T alpha,</span>
-<span id="cb7-1330"><a href="#cb7-1330" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1331"><a href="#cb7-1331" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
-<span id="cb7-1332"><a href="#cb7-1332" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
-<span id="cb7-1333"><a href="#cb7-1333" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1334"><a href="#cb7-1334" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> T,</span>
-<span id="cb7-1335"><a href="#cb7-1335" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1336"><a href="#cb7-1336" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
-<span id="cb7-1337"><a href="#cb7-1337" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
-<span id="cb7-1338"><a href="#cb7-1338" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_k_update<span class="op">(</span></span>
-<span id="cb7-1339"><a href="#cb7-1339" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1340"><a href="#cb7-1340" aria-hidden="true" tabindex="-1"></a>  T alpha,</span>
-<span id="cb7-1341"><a href="#cb7-1341" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1342"><a href="#cb7-1342" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
-<span id="cb7-1343"><a href="#cb7-1343" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
-<span id="cb7-1344"><a href="#cb7-1344" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-1345"><a href="#cb7-1345" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.rank2k.syr2k],</span></span>
-<span id="cb7-1346"><a href="#cb7-1346" aria-hidden="true" tabindex="-1"></a><span class="co">// rank-2k symmetric matrix update</span></span>
-<span id="cb7-1347"><a href="#cb7-1347" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1348"><a href="#cb7-1348" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1349"><a href="#cb7-1349" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
-<span id="cb7-1350"><a href="#cb7-1350" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
-<span id="cb7-1351"><a href="#cb7-1351" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_rank_2k_update<span class="op">(</span></span>
-<span id="cb7-1352"><a href="#cb7-1352" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1353"><a href="#cb7-1353" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1354"><a href="#cb7-1354" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
-<span id="cb7-1355"><a href="#cb7-1355" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
-<span id="cb7-1356"><a href="#cb7-1356" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1357"><a href="#cb7-1357" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1358"><a href="#cb7-1358" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1359"><a href="#cb7-1359" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
-<span id="cb7-1360"><a href="#cb7-1360" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
-<span id="cb7-1361"><a href="#cb7-1361" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_rank_2k_update<span class="op">(</span></span>
-<span id="cb7-1362"><a href="#cb7-1362" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1363"><a href="#cb7-1363" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1364"><a href="#cb7-1364" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1321"><a href="#cb7-1321" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1322"><a href="#cb7-1322" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1323"><a href="#cb7-1323" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1324"><a href="#cb7-1324" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb7-1325"><a href="#cb7-1325" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1326"><a href="#cb7-1326" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1327"><a href="#cb7-1327" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1328"><a href="#cb7-1328" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1329"><a href="#cb7-1329" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1330"><a href="#cb7-1330" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1331"><a href="#cb7-1331" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1332"><a href="#cb7-1332" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb7-1333"><a href="#cb7-1333" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1334"><a href="#cb7-1334" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1335"><a href="#cb7-1335" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1336"><a href="#cb7-1336" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1337"><a href="#cb7-1337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-1338"><a href="#cb7-1338" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.rank-k.herk],</span></span>
+<span id="cb7-1339"><a href="#cb7-1339" aria-hidden="true" tabindex="-1"></a><span class="co">// rank-k Hermitian matrix update</span></span>
+<span id="cb7-1340"><a href="#cb7-1340" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T,</span>
+<span id="cb7-1341"><a href="#cb7-1341" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1342"><a href="#cb7-1342" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1343"><a href="#cb7-1343" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1344"><a href="#cb7-1344" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb7-1345"><a href="#cb7-1345" aria-hidden="true" tabindex="-1"></a>  T alpha,</span>
+<span id="cb7-1346"><a href="#cb7-1346" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1347"><a href="#cb7-1347" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1348"><a href="#cb7-1348" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1349"><a href="#cb7-1349" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1350"><a href="#cb7-1350" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> T,</span>
+<span id="cb7-1351"><a href="#cb7-1351" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1352"><a href="#cb7-1352" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1353"><a href="#cb7-1353" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1354"><a href="#cb7-1354" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb7-1355"><a href="#cb7-1355" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1356"><a href="#cb7-1356" aria-hidden="true" tabindex="-1"></a>  T alpha,</span>
+<span id="cb7-1357"><a href="#cb7-1357" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1358"><a href="#cb7-1358" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1359"><a href="#cb7-1359" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1360"><a href="#cb7-1360" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1361"><a href="#cb7-1361" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1362"><a href="#cb7-1362" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1363"><a href="#cb7-1363" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb7-1364"><a href="#cb7-1364" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1365"><a href="#cb7-1365" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
 <span id="cb7-1366"><a href="#cb7-1366" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
-<span id="cb7-1367"><a href="#cb7-1367" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-1368"><a href="#cb7-1368" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.rank2k.her2k],</span></span>
-<span id="cb7-1369"><a href="#cb7-1369" aria-hidden="true" tabindex="-1"></a><span class="co">// rank-2k Hermitian matrix update</span></span>
-<span id="cb7-1370"><a href="#cb7-1370" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1371"><a href="#cb7-1371" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1372"><a href="#cb7-1372" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
-<span id="cb7-1373"><a href="#cb7-1373" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
-<span id="cb7-1374"><a href="#cb7-1374" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_2k_update<span class="op">(</span></span>
-<span id="cb7-1375"><a href="#cb7-1375" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1376"><a href="#cb7-1376" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1377"><a href="#cb7-1377" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
-<span id="cb7-1378"><a href="#cb7-1378" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
-<span id="cb7-1379"><a href="#cb7-1379" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1380"><a href="#cb7-1380" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1381"><a href="#cb7-1381" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1382"><a href="#cb7-1382" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
-<span id="cb7-1383"><a href="#cb7-1383" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
-<span id="cb7-1384"><a href="#cb7-1384" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_2k_update<span class="op">(</span></span>
-<span id="cb7-1385"><a href="#cb7-1385" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1386"><a href="#cb7-1386" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1387"><a href="#cb7-1387" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1388"><a href="#cb7-1388" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
-<span id="cb7-1389"><a href="#cb7-1389" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
-<span id="cb7-1390"><a href="#cb7-1390" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-1391"><a href="#cb7-1391" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.trsm],</span></span>
-<span id="cb7-1392"><a href="#cb7-1392" aria-hidden="true" tabindex="-1"></a><span class="co">// solve multiple triangular linear systems</span></span>
-<span id="cb7-1393"><a href="#cb7-1393" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-1394"><a href="#cb7-1394" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.trsm.left],</span></span>
-<span id="cb7-1395"><a href="#cb7-1395" aria-hidden="true" tabindex="-1"></a><span class="co">// solve multiple triangular linear systems</span></span>
-<span id="cb7-1396"><a href="#cb7-1396" aria-hidden="true" tabindex="-1"></a><span class="co">// with triangular matrix on the left</span></span>
-<span id="cb7-1397"><a href="#cb7-1397" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1398"><a href="#cb7-1398" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1399"><a href="#cb7-1399" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1400"><a href="#cb7-1400" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1401"><a href="#cb7-1401" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat,</span>
-<span id="cb7-1402"><a href="#cb7-1402" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
-<span id="cb7-1403"><a href="#cb7-1403" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
-<span id="cb7-1404"><a href="#cb7-1404" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1405"><a href="#cb7-1405" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1406"><a href="#cb7-1406" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1407"><a href="#cb7-1407" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1408"><a href="#cb7-1408" aria-hidden="true" tabindex="-1"></a>  OutMat X,</span>
-<span id="cb7-1409"><a href="#cb7-1409" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
-<span id="cb7-1410"><a href="#cb7-1410" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1411"><a href="#cb7-1411" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1412"><a href="#cb7-1412" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1413"><a href="#cb7-1413" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1414"><a href="#cb7-1414" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1415"><a href="#cb7-1415" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat,</span>
-<span id="cb7-1416"><a href="#cb7-1416" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
-<span id="cb7-1417"><a href="#cb7-1417" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
-<span id="cb7-1418"><a href="#cb7-1418" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1419"><a href="#cb7-1419" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1420"><a href="#cb7-1420" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1421"><a href="#cb7-1421" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1422"><a href="#cb7-1422" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1423"><a href="#cb7-1423" aria-hidden="true" tabindex="-1"></a>  OutMat X,</span>
-<span id="cb7-1424"><a href="#cb7-1424" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
-<span id="cb7-1425"><a href="#cb7-1425" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1426"><a href="#cb7-1426" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1427"><a href="#cb7-1427" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1428"><a href="#cb7-1428" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
-<span id="cb7-1429"><a href="#cb7-1429" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
-<span id="cb7-1430"><a href="#cb7-1430" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
-<span id="cb7-1431"><a href="#cb7-1431" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1432"><a href="#cb7-1432" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1433"><a href="#cb7-1433" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1434"><a href="#cb7-1434" aria-hidden="true" tabindex="-1"></a>  InOutMat B,</span>
-<span id="cb7-1435"><a href="#cb7-1435" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
-<span id="cb7-1436"><a href="#cb7-1436" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1437"><a href="#cb7-1437" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1438"><a href="#cb7-1438" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1439"><a href="#cb7-1439" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1440"><a href="#cb7-1440" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
-<span id="cb7-1441"><a href="#cb7-1441" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
-<span id="cb7-1442"><a href="#cb7-1442" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
-<span id="cb7-1443"><a href="#cb7-1443" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1444"><a href="#cb7-1444" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1445"><a href="#cb7-1445" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1446"><a href="#cb7-1446" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1447"><a href="#cb7-1447" aria-hidden="true" tabindex="-1"></a>  InOutMat B,</span>
-<span id="cb7-1448"><a href="#cb7-1448" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
-<span id="cb7-1449"><a href="#cb7-1449" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-1450"><a href="#cb7-1450" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1451"><a href="#cb7-1451" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1452"><a href="#cb7-1452" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1453"><a href="#cb7-1453" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1454"><a href="#cb7-1454" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1455"><a href="#cb7-1455" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
-<span id="cb7-1456"><a href="#cb7-1456" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1457"><a href="#cb7-1457" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1458"><a href="#cb7-1458" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1459"><a href="#cb7-1459" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1460"><a href="#cb7-1460" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span>
-<span id="cb7-1461"><a href="#cb7-1461" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1462"><a href="#cb7-1462" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1463"><a href="#cb7-1463" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1464"><a href="#cb7-1464" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1465"><a href="#cb7-1465" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1466"><a href="#cb7-1466" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1467"><a href="#cb7-1467" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
-<span id="cb7-1468"><a href="#cb7-1468" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1469"><a href="#cb7-1469" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1470"><a href="#cb7-1470" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1471"><a href="#cb7-1471" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1472"><a href="#cb7-1472" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1473"><a href="#cb7-1473" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span>
-<span id="cb7-1474"><a href="#cb7-1474" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1475"><a href="#cb7-1475" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1476"><a href="#cb7-1476" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1477"><a href="#cb7-1477" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb7-1478"><a href="#cb7-1478" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
-<span id="cb7-1479"><a href="#cb7-1479" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1480"><a href="#cb7-1480" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1481"><a href="#cb7-1481" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1482"><a href="#cb7-1482" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span>
-<span id="cb7-1483"><a href="#cb7-1483" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1484"><a href="#cb7-1484" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1485"><a href="#cb7-1485" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1486"><a href="#cb7-1486" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1487"><a href="#cb7-1487" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb7-1488"><a href="#cb7-1488" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
-<span id="cb7-1489"><a href="#cb7-1489" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1490"><a href="#cb7-1490" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1491"><a href="#cb7-1491" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1492"><a href="#cb7-1492" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1493"><a href="#cb7-1493" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span>
-<span id="cb7-1494"><a href="#cb7-1494" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-1495"><a href="#cb7-1495" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.trsm.right],</span></span>
-<span id="cb7-1496"><a href="#cb7-1496" aria-hidden="true" tabindex="-1"></a><span class="co">// solve multiple triangular linear systems</span></span>
-<span id="cb7-1497"><a href="#cb7-1497" aria-hidden="true" tabindex="-1"></a><span class="co">// with triangular matrix on the right</span></span>
-<span id="cb7-1498"><a href="#cb7-1498" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1499"><a href="#cb7-1499" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1500"><a href="#cb7-1500" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1501"><a href="#cb7-1501" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1502"><a href="#cb7-1502" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat,</span>
-<span id="cb7-1503"><a href="#cb7-1503" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
-<span id="cb7-1504"><a href="#cb7-1504" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
-<span id="cb7-1505"><a href="#cb7-1505" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1506"><a href="#cb7-1506" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1507"><a href="#cb7-1507" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1508"><a href="#cb7-1508" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1509"><a href="#cb7-1509" aria-hidden="true" tabindex="-1"></a>  OutMat X,</span>
-<span id="cb7-1510"><a href="#cb7-1510" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
-<span id="cb7-1511"><a href="#cb7-1511" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1512"><a href="#cb7-1512" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1513"><a href="#cb7-1513" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1514"><a href="#cb7-1514" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1515"><a href="#cb7-1515" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1516"><a href="#cb7-1516" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat,</span>
-<span id="cb7-1517"><a href="#cb7-1517" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
-<span id="cb7-1518"><a href="#cb7-1518" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
-<span id="cb7-1519"><a href="#cb7-1519" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1520"><a href="#cb7-1520" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
-<span id="cb7-1521"><a href="#cb7-1521" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1522"><a href="#cb7-1522" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1523"><a href="#cb7-1523" aria-hidden="true" tabindex="-1"></a>  InMat B,</span>
-<span id="cb7-1524"><a href="#cb7-1524" aria-hidden="true" tabindex="-1"></a>  OutMat X,</span>
-<span id="cb7-1525"><a href="#cb7-1525" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
-<span id="cb7-1526"><a href="#cb7-1526" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1527"><a href="#cb7-1527" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1528"><a href="#cb7-1528" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1529"><a href="#cb7-1529" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
-<span id="cb7-1530"><a href="#cb7-1530" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
-<span id="cb7-1531"><a href="#cb7-1531" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
-<span id="cb7-1532"><a href="#cb7-1532" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1533"><a href="#cb7-1533" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1534"><a href="#cb7-1534" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1535"><a href="#cb7-1535" aria-hidden="true" tabindex="-1"></a>  InOutMat B,</span>
-<span id="cb7-1536"><a href="#cb7-1536" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
-<span id="cb7-1537"><a href="#cb7-1537" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1538"><a href="#cb7-1538" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1539"><a href="#cb7-1539" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1540"><a href="#cb7-1540" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1541"><a href="#cb7-1541" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
-<span id="cb7-1542"><a href="#cb7-1542" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
-<span id="cb7-1543"><a href="#cb7-1543" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
-<span id="cb7-1544"><a href="#cb7-1544" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1545"><a href="#cb7-1545" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1546"><a href="#cb7-1546" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1547"><a href="#cb7-1547" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1548"><a href="#cb7-1548" aria-hidden="true" tabindex="-1"></a>  InOutMat B,</span>
-<span id="cb7-1549"><a href="#cb7-1549" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
-<span id="cb7-1550"><a href="#cb7-1550" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-1551"><a href="#cb7-1551" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1552"><a href="#cb7-1552" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1553"><a href="#cb7-1553" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1554"><a href="#cb7-1554" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1555"><a href="#cb7-1555" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1556"><a href="#cb7-1556" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
-<span id="cb7-1557"><a href="#cb7-1557" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1558"><a href="#cb7-1558" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1559"><a href="#cb7-1559" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1560"><a href="#cb7-1560" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
-<span id="cb7-1561"><a href="#cb7-1561" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span>
-<span id="cb7-1562"><a href="#cb7-1562" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1563"><a href="#cb7-1563" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1564"><a href="#cb7-1564" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1565"><a href="#cb7-1565" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1566"><a href="#cb7-1566" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
-<span id="cb7-1567"><a href="#cb7-1567" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1568"><a href="#cb7-1568" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
-<span id="cb7-1569"><a href="#cb7-1569" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1570"><a href="#cb7-1570" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
-<span id="cb7-1571"><a href="#cb7-1571" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1572"><a href="#cb7-1572" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1573"><a href="#cb7-1573" aria-hidden="true" tabindex="-1"></a>  InMat B,</span>
-<span id="cb7-1574"><a href="#cb7-1574" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span>
-<span id="cb7-1575"><a href="#cb7-1575" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1576"><a href="#cb7-1576" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1577"><a href="#cb7-1577" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1578"><a href="#cb7-1578" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb7-1579"><a href="#cb7-1579" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
-<span id="cb7-1580"><a href="#cb7-1580" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1581"><a href="#cb7-1581" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1582"><a href="#cb7-1582" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1583"><a href="#cb7-1583" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span>
-<span id="cb7-1584"><a href="#cb7-1584" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1585"><a href="#cb7-1585" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1586"><a href="#cb7-1586" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1587"><a href="#cb7-1587" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1588"><a href="#cb7-1588" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb7-1589"><a href="#cb7-1589" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
-<span id="cb7-1590"><a href="#cb7-1590" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1591"><a href="#cb7-1591" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1592"><a href="#cb7-1592" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1593"><a href="#cb7-1593" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1594"><a href="#cb7-1594" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span>
-<span id="cb7-1595"><a href="#cb7-1595" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb7-1367"><a href="#cb7-1367" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1368"><a href="#cb7-1368" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1369"><a href="#cb7-1369" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1370"><a href="#cb7-1370" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1371"><a href="#cb7-1371" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb7-1372"><a href="#cb7-1372" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1373"><a href="#cb7-1373" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1374"><a href="#cb7-1374" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1375"><a href="#cb7-1375" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1376"><a href="#cb7-1376" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-1377"><a href="#cb7-1377" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.rank2k.syr2k],</span></span>
+<span id="cb7-1378"><a href="#cb7-1378" aria-hidden="true" tabindex="-1"></a><span class="co">// rank-2k symmetric matrix update</span></span>
+<span id="cb7-1379"><a href="#cb7-1379" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1380"><a href="#cb7-1380" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1381"><a href="#cb7-1381" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1382"><a href="#cb7-1382" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1383"><a href="#cb7-1383" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_rank_2k_update<span class="op">(</span></span>
+<span id="cb7-1384"><a href="#cb7-1384" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1385"><a href="#cb7-1385" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1386"><a href="#cb7-1386" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1387"><a href="#cb7-1387" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1388"><a href="#cb7-1388" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1389"><a href="#cb7-1389" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1390"><a href="#cb7-1390" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1391"><a href="#cb7-1391" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1392"><a href="#cb7-1392" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1393"><a href="#cb7-1393" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_rank_2k_update<span class="op">(</span></span>
+<span id="cb7-1394"><a href="#cb7-1394" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1395"><a href="#cb7-1395" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1396"><a href="#cb7-1396" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1397"><a href="#cb7-1397" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1398"><a href="#cb7-1398" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1399"><a href="#cb7-1399" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-1400"><a href="#cb7-1400" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.rank2k.her2k],</span></span>
+<span id="cb7-1401"><a href="#cb7-1401" aria-hidden="true" tabindex="-1"></a><span class="co">// rank-2k Hermitian matrix update</span></span>
+<span id="cb7-1402"><a href="#cb7-1402" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1403"><a href="#cb7-1403" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1404"><a href="#cb7-1404" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1405"><a href="#cb7-1405" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1406"><a href="#cb7-1406" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_2k_update<span class="op">(</span></span>
+<span id="cb7-1407"><a href="#cb7-1407" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1408"><a href="#cb7-1408" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1409"><a href="#cb7-1409" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1410"><a href="#cb7-1410" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1411"><a href="#cb7-1411" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1412"><a href="#cb7-1412" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1413"><a href="#cb7-1413" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1414"><a href="#cb7-1414" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb7-1415"><a href="#cb7-1415" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb7-1416"><a href="#cb7-1416" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_2k_update<span class="op">(</span></span>
+<span id="cb7-1417"><a href="#cb7-1417" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1418"><a href="#cb7-1418" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1419"><a href="#cb7-1419" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1420"><a href="#cb7-1420" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1421"><a href="#cb7-1421" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb7-1422"><a href="#cb7-1422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-1423"><a href="#cb7-1423" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.trsm],</span></span>
+<span id="cb7-1424"><a href="#cb7-1424" aria-hidden="true" tabindex="-1"></a><span class="co">// solve multiple triangular linear systems</span></span>
+<span id="cb7-1425"><a href="#cb7-1425" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-1426"><a href="#cb7-1426" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.trsm.left],</span></span>
+<span id="cb7-1427"><a href="#cb7-1427" aria-hidden="true" tabindex="-1"></a><span class="co">// solve multiple triangular linear systems</span></span>
+<span id="cb7-1428"><a href="#cb7-1428" aria-hidden="true" tabindex="-1"></a><span class="co">// with triangular matrix on the left</span></span>
+<span id="cb7-1429"><a href="#cb7-1429" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1430"><a href="#cb7-1430" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1431"><a href="#cb7-1431" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1432"><a href="#cb7-1432" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1433"><a href="#cb7-1433" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat,</span>
+<span id="cb7-1434"><a href="#cb7-1434" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
+<span id="cb7-1435"><a href="#cb7-1435" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
+<span id="cb7-1436"><a href="#cb7-1436" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1437"><a href="#cb7-1437" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1438"><a href="#cb7-1438" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1439"><a href="#cb7-1439" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1440"><a href="#cb7-1440" aria-hidden="true" tabindex="-1"></a>  OutMat X,</span>
+<span id="cb7-1441"><a href="#cb7-1441" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
+<span id="cb7-1442"><a href="#cb7-1442" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1443"><a href="#cb7-1443" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1444"><a href="#cb7-1444" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1445"><a href="#cb7-1445" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1446"><a href="#cb7-1446" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1447"><a href="#cb7-1447" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat,</span>
+<span id="cb7-1448"><a href="#cb7-1448" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
+<span id="cb7-1449"><a href="#cb7-1449" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
+<span id="cb7-1450"><a href="#cb7-1450" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1451"><a href="#cb7-1451" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1452"><a href="#cb7-1452" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1453"><a href="#cb7-1453" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1454"><a href="#cb7-1454" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1455"><a href="#cb7-1455" aria-hidden="true" tabindex="-1"></a>  OutMat X,</span>
+<span id="cb7-1456"><a href="#cb7-1456" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
+<span id="cb7-1457"><a href="#cb7-1457" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1458"><a href="#cb7-1458" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1459"><a href="#cb7-1459" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1460"><a href="#cb7-1460" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
+<span id="cb7-1461"><a href="#cb7-1461" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
+<span id="cb7-1462"><a href="#cb7-1462" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
+<span id="cb7-1463"><a href="#cb7-1463" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1464"><a href="#cb7-1464" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1465"><a href="#cb7-1465" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1466"><a href="#cb7-1466" aria-hidden="true" tabindex="-1"></a>  InOutMat B,</span>
+<span id="cb7-1467"><a href="#cb7-1467" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
+<span id="cb7-1468"><a href="#cb7-1468" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1469"><a href="#cb7-1469" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1470"><a href="#cb7-1470" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1471"><a href="#cb7-1471" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1472"><a href="#cb7-1472" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
+<span id="cb7-1473"><a href="#cb7-1473" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
+<span id="cb7-1474"><a href="#cb7-1474" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
+<span id="cb7-1475"><a href="#cb7-1475" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1476"><a href="#cb7-1476" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1477"><a href="#cb7-1477" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1478"><a href="#cb7-1478" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1479"><a href="#cb7-1479" aria-hidden="true" tabindex="-1"></a>  InOutMat B,</span>
+<span id="cb7-1480"><a href="#cb7-1480" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
+<span id="cb7-1481"><a href="#cb7-1481" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-1482"><a href="#cb7-1482" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1483"><a href="#cb7-1483" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1484"><a href="#cb7-1484" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1485"><a href="#cb7-1485" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1486"><a href="#cb7-1486" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
+<span id="cb7-1487"><a href="#cb7-1487" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
+<span id="cb7-1488"><a href="#cb7-1488" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1489"><a href="#cb7-1489" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1490"><a href="#cb7-1490" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1491"><a href="#cb7-1491" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1492"><a href="#cb7-1492" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span>
+<span id="cb7-1493"><a href="#cb7-1493" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1494"><a href="#cb7-1494" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1495"><a href="#cb7-1495" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1496"><a href="#cb7-1496" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1497"><a href="#cb7-1497" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1498"><a href="#cb7-1498" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
+<span id="cb7-1499"><a href="#cb7-1499" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
+<span id="cb7-1500"><a href="#cb7-1500" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1501"><a href="#cb7-1501" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1502"><a href="#cb7-1502" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1503"><a href="#cb7-1503" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1504"><a href="#cb7-1504" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1505"><a href="#cb7-1505" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span>
+<span id="cb7-1506"><a href="#cb7-1506" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1507"><a href="#cb7-1507" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1508"><a href="#cb7-1508" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1509"><a href="#cb7-1509" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
+<span id="cb7-1510"><a href="#cb7-1510" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
+<span id="cb7-1511"><a href="#cb7-1511" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1512"><a href="#cb7-1512" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1513"><a href="#cb7-1513" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1514"><a href="#cb7-1514" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span>
+<span id="cb7-1515"><a href="#cb7-1515" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1516"><a href="#cb7-1516" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1517"><a href="#cb7-1517" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1518"><a href="#cb7-1518" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1519"><a href="#cb7-1519" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
+<span id="cb7-1520"><a href="#cb7-1520" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_left_solve<span class="op">(</span></span>
+<span id="cb7-1521"><a href="#cb7-1521" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1522"><a href="#cb7-1522" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1523"><a href="#cb7-1523" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1524"><a href="#cb7-1524" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1525"><a href="#cb7-1525" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span>
+<span id="cb7-1526"><a href="#cb7-1526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-1527"><a href="#cb7-1527" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.alg.blas3.trsm.right],</span></span>
+<span id="cb7-1528"><a href="#cb7-1528" aria-hidden="true" tabindex="-1"></a><span class="co">// solve multiple triangular linear systems</span></span>
+<span id="cb7-1529"><a href="#cb7-1529" aria-hidden="true" tabindex="-1"></a><span class="co">// with triangular matrix on the right</span></span>
+<span id="cb7-1530"><a href="#cb7-1530" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1531"><a href="#cb7-1531" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1532"><a href="#cb7-1532" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1533"><a href="#cb7-1533" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1534"><a href="#cb7-1534" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat,</span>
+<span id="cb7-1535"><a href="#cb7-1535" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
+<span id="cb7-1536"><a href="#cb7-1536" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
+<span id="cb7-1537"><a href="#cb7-1537" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1538"><a href="#cb7-1538" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1539"><a href="#cb7-1539" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1540"><a href="#cb7-1540" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1541"><a href="#cb7-1541" aria-hidden="true" tabindex="-1"></a>  OutMat X,</span>
+<span id="cb7-1542"><a href="#cb7-1542" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
+<span id="cb7-1543"><a href="#cb7-1543" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1544"><a href="#cb7-1544" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1545"><a href="#cb7-1545" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1546"><a href="#cb7-1546" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1547"><a href="#cb7-1547" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1548"><a href="#cb7-1548" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat,</span>
+<span id="cb7-1549"><a href="#cb7-1549" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
+<span id="cb7-1550"><a href="#cb7-1550" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
+<span id="cb7-1551"><a href="#cb7-1551" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1552"><a href="#cb7-1552" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
+<span id="cb7-1553"><a href="#cb7-1553" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1554"><a href="#cb7-1554" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1555"><a href="#cb7-1555" aria-hidden="true" tabindex="-1"></a>  InMat B,</span>
+<span id="cb7-1556"><a href="#cb7-1556" aria-hidden="true" tabindex="-1"></a>  OutMat X,</span>
+<span id="cb7-1557"><a href="#cb7-1557" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
+<span id="cb7-1558"><a href="#cb7-1558" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1559"><a href="#cb7-1559" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1560"><a href="#cb7-1560" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1561"><a href="#cb7-1561" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
+<span id="cb7-1562"><a href="#cb7-1562" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
+<span id="cb7-1563"><a href="#cb7-1563" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
+<span id="cb7-1564"><a href="#cb7-1564" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1565"><a href="#cb7-1565" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1566"><a href="#cb7-1566" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1567"><a href="#cb7-1567" aria-hidden="true" tabindex="-1"></a>  InOutMat B,</span>
+<span id="cb7-1568"><a href="#cb7-1568" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
+<span id="cb7-1569"><a href="#cb7-1569" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1570"><a href="#cb7-1570" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1571"><a href="#cb7-1571" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1572"><a href="#cb7-1572" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1573"><a href="#cb7-1573" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
+<span id="cb7-1574"><a href="#cb7-1574" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> BinaryDivideOp<span class="op">&gt;</span></span>
+<span id="cb7-1575"><a href="#cb7-1575" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
+<span id="cb7-1576"><a href="#cb7-1576" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1577"><a href="#cb7-1577" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1578"><a href="#cb7-1578" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1579"><a href="#cb7-1579" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1580"><a href="#cb7-1580" aria-hidden="true" tabindex="-1"></a>  InOutMat B,</span>
+<span id="cb7-1581"><a href="#cb7-1581" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span>
+<span id="cb7-1582"><a href="#cb7-1582" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-1583"><a href="#cb7-1583" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1584"><a href="#cb7-1584" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1585"><a href="#cb7-1585" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1586"><a href="#cb7-1586" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1587"><a href="#cb7-1587" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
+<span id="cb7-1588"><a href="#cb7-1588" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
+<span id="cb7-1589"><a href="#cb7-1589" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1590"><a href="#cb7-1590" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1591"><a href="#cb7-1591" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1592"><a href="#cb7-1592" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1593"><a href="#cb7-1593" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span>
+<span id="cb7-1594"><a href="#cb7-1594" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1595"><a href="#cb7-1595" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1596"><a href="#cb7-1596" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1597"><a href="#cb7-1597" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1598"><a href="#cb7-1598" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1599"><a href="#cb7-1599" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
+<span id="cb7-1600"><a href="#cb7-1600" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
+<span id="cb7-1601"><a href="#cb7-1601" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1602"><a href="#cb7-1602" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
+<span id="cb7-1603"><a href="#cb7-1603" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1604"><a href="#cb7-1604" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1605"><a href="#cb7-1605" aria-hidden="true" tabindex="-1"></a>  InMat B,</span>
+<span id="cb7-1606"><a href="#cb7-1606" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span>
+<span id="cb7-1607"><a href="#cb7-1607" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb7-1608"><a href="#cb7-1608" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1609"><a href="#cb7-1609" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1610"><a href="#cb7-1610" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
+<span id="cb7-1611"><a href="#cb7-1611" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
+<span id="cb7-1612"><a href="#cb7-1612" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1613"><a href="#cb7-1613" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1614"><a href="#cb7-1614" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1615"><a href="#cb7-1615" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span>
+<span id="cb7-1616"><a href="#cb7-1616" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb7-1617"><a href="#cb7-1617" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1618"><a href="#cb7-1618" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1619"><a href="#cb7-1619" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
+<span id="cb7-1620"><a href="#cb7-1620" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
+<span id="cb7-1621"><a href="#cb7-1621" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_matrix_right_solve<span class="op">(</span></span>
+<span id="cb7-1622"><a href="#cb7-1622" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb7-1623"><a href="#cb7-1623" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1624"><a href="#cb7-1624" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1625"><a href="#cb7-1625" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
+<span id="cb7-1626"><a href="#cb7-1626" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span>
+<span id="cb7-1627"><a href="#cb7-1627" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <h2 data-number="17.2" id="general-linalg.general"><span class="header-section-number">17.2</span> General [linalg.general]<a href="#general-linalg.general" class="self-link"></a></h2>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 For the effects of all functions in this clause, when the effects are
@@ -10022,14 +10058,28 @@ update [linalg.alg.blas3.rank-k.syrk]<a href="#rank-k-symmetric-matrix-update-li
 <span id="cb135-17"><a href="#cb135-17" aria-hidden="true" tabindex="-1"></a>  T alpha,</span>
 <span id="cb135-18"><a href="#cb135-18" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb135-19"><a href="#cb135-19" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
-<span id="cb135-20"><a href="#cb135-20" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span></code></pre></div>
+<span id="cb135-20"><a href="#cb135-20" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb135-21"><a href="#cb135-21" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb135-22"><a href="#cb135-22" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb135-23"><a href="#cb135-23" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb135-24"><a href="#cb135-24" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb135-25"><a href="#cb135-25" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb135-26"><a href="#cb135-26" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb135-27"><a href="#cb135-27" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb135-28"><a href="#cb135-28" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb135-29"><a href="#cb135-29" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb135-30"><a href="#cb135-30" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb135-31"><a href="#cb135-31" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb135-32"><a href="#cb135-32" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb135-33"><a href="#cb135-33" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb135-34"><a href="#cb135-34" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb135-35"><a href="#cb135-35" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb135-36"><a href="#cb135-36" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xSYRK</code>. <i>– end note]</i></p>
 <!--
 They take a scaling factor `alpha`, because it would be
 impossible to express the update $C = C - A A^T$ otherwise.
-The scaling factor parameter is required in order to
-avoid ambiguity with `ExecutionPolicy`. 
 -->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em></p>
@@ -10059,9 +10109,11 @@ neither <code>C.static_extent(0)</code> nor
 <code>C.static_extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Effects:</em> Computes <span class="math inline"><em>C</em> = <em>C</em> + <em>α</em><em>A</em><em>A</em><sup><em>T</em></sup></span>,
+<em>Effects:</em> Overloads that take an <code>alpha</code> parameter
+compute <span class="math inline"><em>C</em> = <em>C</em> + <em>α</em><em>A</em><em>A</em><sup><em>T</em></sup></span>,
 where the scalar <span class="math inline"><em>α</em></span> is
-<code>alpha</code>.</p>
+<code>alpha</code>. Overloads that do not take an <code>alpha</code>
+parameter compute <span class="math inline"><em>C</em> = <em>C</em> + <em>A</em><em>A</em><sup><em>T</em></sup></span>.</p>
 <h5 data-number="17.11.4.5.2" id="rank-k-hermitian-matrix-update-linalg.alg.blas3.rank-k.herk"><span class="header-section-number">17.11.4.5.2</span> Rank-k Hermitian matrix
 update [linalg.alg.blas3.rank-k.herk]<a href="#rank-k-hermitian-matrix-update-linalg.alg.blas3.rank-k.herk" class="self-link"></a></h5>
 <div class="sourceCode" id="cb136"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T,</span>
@@ -10083,15 +10135,29 @@ update [linalg.alg.blas3.rank-k.herk]<a href="#rank-k-hermitian-matrix-update-li
 <span id="cb136-17"><a href="#cb136-17" aria-hidden="true" tabindex="-1"></a>  T alpha,</span>
 <span id="cb136-18"><a href="#cb136-18" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb136-19"><a href="#cb136-19" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
-<span id="cb136-20"><a href="#cb136-20" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span></code></pre></div>
+<span id="cb136-20"><a href="#cb136-20" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb136-21"><a href="#cb136-21" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
+<span id="cb136-22"><a href="#cb136-22" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb136-23"><a href="#cb136-23" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb136-24"><a href="#cb136-24" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb136-25"><a href="#cb136-25" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb136-26"><a href="#cb136-26" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb136-27"><a href="#cb136-27" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span>
+<span id="cb136-28"><a href="#cb136-28" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb136-29"><a href="#cb136-29" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb136-30"><a href="#cb136-30" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
+<span id="cb136-31"><a href="#cb136-31" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
+<span id="cb136-32"><a href="#cb136-32" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> hermitian_matrix_rank_k_update<span class="op">(</span></span>
+<span id="cb136-33"><a href="#cb136-33" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb136-34"><a href="#cb136-34" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb136-35"><a href="#cb136-35" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb136-36"><a href="#cb136-36" aria-hidden="true" tabindex="-1"></a>  Triangle t<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xHERK</code>. <i>– end note]</i></p>
 <!--
 They take a scaling factor `alpha`,
 because it would be impossible to express the updates
 $C = C - A A^T$ or $C = C - A A^H$ otherwise.
-The scaling factor parameter is required in order to
-avoid ambiguity with `ExecutionPolicy`. 
 -->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Preconditions:</em></p>
@@ -10121,9 +10187,11 @@ neither <code>C.static_extent(0)</code> nor
 <code>C.static_extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Effects:</em> Computes <span class="math inline"><em>C</em> = <em>C</em> + <em>α</em><em>A</em><em>A</em><sup><em>H</em></sup></span>,
+<em>Effects:</em> Overloads that take an <code>alpha</code> parameter
+compute <span class="math inline"><em>C</em> = <em>C</em> + <em>α</em><em>A</em><em>A</em><sup><em>H</em></sup></span>,
 where the scalar <span class="math inline"><em>α</em></span> is
-<code>alpha</code>.</p>
+<code>alpha</code>. Overloads that do not take an <code>alpha</code>
+parameter compute <span class="math inline"><em>C</em> = <em>C</em> + <em>A</em><em>A</em><sup><em>H</em></sup></span>.</p>
 <h4 data-number="17.11.4.6" id="rank-2k-update-of-a-symmetric-or-hermitian-matrix-linalg.alg.blas3.rank2k"><span class="header-section-number">17.11.4.6</span> Rank-2k update of a
 symmetric or Hermitian matrix [linalg.alg.blas3.rank2k]<a href="#rank-2k-update-of-a-symmetric-or-hermitian-matrix-linalg.alg.blas3.rank2k" class="self-link"></a></h4>
 <!--
