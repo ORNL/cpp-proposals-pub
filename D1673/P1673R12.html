@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-02-26" />
+  <meta name="dcterms.date" content="2023-02-27" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-02-26</td>
+    <td>2023-02-27</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1203,6 +1203,10 @@ linear algebra value types by value, including
 <code>hermitian_matrix_rank_k_update</code> (“the BLAS 3
 <code>*_update</code> functions”) now have overloads that do not take an
 <code>alpha</code> scaling parameter.</p></li>
+<li><p>Change <code>symmetric_matrix_{left,right}_product</code> to
+<code>symmetric_matrix_product</code>, distinguishing the left and right
+cases by order of the <code>A, t</code> and <code>B</code>
+parameters.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -1655,7 +1659,7 @@ xGEMM
 xSYMM
 </td>
 <td>
-<code>symmetric_matrix_{left,right}_product</code>
+<code>symmetric_matrix_product</code>
 </td>
 </tr>
 <tr>
@@ -4899,7 +4903,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-940"><a href="#cb7-940" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb7-941"><a href="#cb7-941" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb7-942"><a href="#cb7-942" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-943"><a href="#cb7-943" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-943"><a href="#cb7-943" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb7-944"><a href="#cb7-944" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-945"><a href="#cb7-945" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-946"><a href="#cb7-946" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
@@ -4909,7 +4913,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-950"><a href="#cb7-950" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb7-951"><a href="#cb7-951" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb7-952"><a href="#cb7-952" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-953"><a href="#cb7-953" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-953"><a href="#cb7-953" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb7-954"><a href="#cb7-954" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-955"><a href="#cb7-955" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-956"><a href="#cb7-956" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -4919,24 +4923,24 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-960"><a href="#cb7-960" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas3.symm.ov.right],</span></span>
 <span id="cb7-961"><a href="#cb7-961" aria-hidden="true" tabindex="-1"></a><span class="co">// overwriting symmetric matrix-matrix right product</span></span>
 <span id="cb7-962"><a href="#cb7-962" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-963"><a href="#cb7-963" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-964"><a href="#cb7-964" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-963"><a href="#cb7-963" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-964"><a href="#cb7-964" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb7-965"><a href="#cb7-965" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-966"><a href="#cb7-966" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_right_product<span class="op">(</span></span>
-<span id="cb7-967"><a href="#cb7-967" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-968"><a href="#cb7-968" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-969"><a href="#cb7-969" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-966"><a href="#cb7-966" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
+<span id="cb7-967"><a href="#cb7-967" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb7-968"><a href="#cb7-968" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb7-969"><a href="#cb7-969" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-970"><a href="#cb7-970" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb7-971"><a href="#cb7-971" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-972"><a href="#cb7-972" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-973"><a href="#cb7-973" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-974"><a href="#cb7-974" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-973"><a href="#cb7-973" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-974"><a href="#cb7-974" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb7-975"><a href="#cb7-975" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-976"><a href="#cb7-976" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_right_product<span class="op">(</span></span>
+<span id="cb7-976"><a href="#cb7-976" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb7-977"><a href="#cb7-977" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-978"><a href="#cb7-978" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-979"><a href="#cb7-979" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-980"><a href="#cb7-980" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-978"><a href="#cb7-978" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb7-979"><a href="#cb7-979" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb7-980"><a href="#cb7-980" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-981"><a href="#cb7-981" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb7-982"><a href="#cb7-982" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-983"><a href="#cb7-983" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas3.symm.up.left],</span></span>
@@ -4946,7 +4950,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-987"><a href="#cb7-987" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb7-988"><a href="#cb7-988" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb7-989"><a href="#cb7-989" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-990"><a href="#cb7-990" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-990"><a href="#cb7-990" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb7-991"><a href="#cb7-991" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-992"><a href="#cb7-992" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-993"><a href="#cb7-993" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
@@ -4958,7 +4962,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-999"><a href="#cb7-999" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb7-1000"><a href="#cb7-1000" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb7-1001"><a href="#cb7-1001" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1002"><a href="#cb7-1002" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-1002"><a href="#cb7-1002" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb7-1003"><a href="#cb7-1003" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-1004"><a href="#cb7-1004" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1005"><a href="#cb7-1005" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -4969,27 +4973,27 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1010"><a href="#cb7-1010" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas3.symm.up.right],</span></span>
 <span id="cb7-1011"><a href="#cb7-1011" aria-hidden="true" tabindex="-1"></a><span class="co">// updating symmetric matrix-matrix right product</span></span>
 <span id="cb7-1012"><a href="#cb7-1012" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1013"><a href="#cb7-1013" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1014"><a href="#cb7-1014" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1013"><a href="#cb7-1013" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1014"><a href="#cb7-1014" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb7-1015"><a href="#cb7-1015" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb7-1016"><a href="#cb7-1016" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1017"><a href="#cb7-1017" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_right_product<span class="op">(</span></span>
-<span id="cb7-1018"><a href="#cb7-1018" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1019"><a href="#cb7-1019" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1020"><a href="#cb7-1020" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1017"><a href="#cb7-1017" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
+<span id="cb7-1018"><a href="#cb7-1018" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb7-1019"><a href="#cb7-1019" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb7-1020"><a href="#cb7-1020" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-1021"><a href="#cb7-1021" aria-hidden="true" tabindex="-1"></a>  InMat3 E,</span>
 <span id="cb7-1022"><a href="#cb7-1022" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb7-1023"><a href="#cb7-1023" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-1024"><a href="#cb7-1024" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1025"><a href="#cb7-1025" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1026"><a href="#cb7-1026" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1025"><a href="#cb7-1025" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1026"><a href="#cb7-1026" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb7-1027"><a href="#cb7-1027" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb7-1028"><a href="#cb7-1028" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1029"><a href="#cb7-1029" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_right_product<span class="op">(</span></span>
+<span id="cb7-1029"><a href="#cb7-1029" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb7-1030"><a href="#cb7-1030" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1031"><a href="#cb7-1031" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1032"><a href="#cb7-1032" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1033"><a href="#cb7-1033" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1031"><a href="#cb7-1031" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb7-1032"><a href="#cb7-1032" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb7-1033"><a href="#cb7-1033" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-1034"><a href="#cb7-1034" aria-hidden="true" tabindex="-1"></a>  InMat3 E,</span>
 <span id="cb7-1035"><a href="#cb7-1035" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb7-1036"><a href="#cb7-1036" aria-hidden="true" tabindex="-1"></a></span>
@@ -9288,8 +9292,9 @@ equals <code>E.static_extent(r)</code> (for those overloads that take an
 <em>Remarks:</em> <code>C</code> and <code>E</code> (for those overloads
 that take an <code>E</code> parameter) may refer to the same matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-The following elements apply to all overloads of
-<code>symmetric_matrix_left_product</code>.</p>
+The following elements apply to all the functions in
+<em>[linalg.algs.blas3.symm.ov.left]</em> and
+<em>[linalg.algs.blas3.symm.up.left]</em>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -9326,8 +9331,9 @@ array accesses and arithmetic operations that is linear in
 <code>A.extent(0)</code> times <code>B.extent(1)</code> times
 <code>A.extent(1)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span> The
-following elements apply to all overloads of
-<code>symmetric_matrix_right_product</code>.</p>
+following elements apply to all the functions in
+<em>[linalg.algs.blas3.symm.ov.right]</em> and
+<em>[linalg.algs.blas3.symm.up.right]</em>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -9369,7 +9375,7 @@ matrix-matrix left product [linalg.algs.blas3.symm.ov.left]<a href="#overwriting
 <span id="cb121-2"><a href="#cb121-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb121-3"><a href="#cb121-3" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb121-4"><a href="#cb121-4" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb121-5"><a href="#cb121-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_left_product<span class="op">(</span></span>
+<span id="cb121-5"><a href="#cb121-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb121-6"><a href="#cb121-6" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb121-7"><a href="#cb121-7" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb121-8"><a href="#cb121-8" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
@@ -9379,7 +9385,7 @@ matrix-matrix left product [linalg.algs.blas3.symm.ov.left]<a href="#overwriting
 <span id="cb121-12"><a href="#cb121-12" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb121-13"><a href="#cb121-13" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb121-14"><a href="#cb121-14" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb121-15"><a href="#cb121-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_left_product<span class="op">(</span></span>
+<span id="cb121-15"><a href="#cb121-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb121-16"><a href="#cb121-16" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb121-17"><a href="#cb121-17" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb121-18"><a href="#cb121-18" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -9390,24 +9396,24 @@ matrix-matrix left product [linalg.algs.blas3.symm.ov.left]<a href="#overwriting
 <h5 data-number="17.11.4.2.2" id="overwriting-symmetric-matrix-matrix-right-product-linalg.algs.blas3.symm.ov.right"><span class="header-section-number">17.11.4.2.2</span> Overwriting symmetric
 matrix-matrix right product [linalg.algs.blas3.symm.ov.right]<a href="#overwriting-symmetric-matrix-matrix-right-product-linalg.algs.blas3.symm.ov.right" class="self-link"></a></h5>
 <div class="sourceCode" id="cb122"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb122-1"><a href="#cb122-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb122-2"><a href="#cb122-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb122-3"><a href="#cb122-3" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb122-2"><a href="#cb122-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb122-3"><a href="#cb122-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb122-4"><a href="#cb122-4" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb122-5"><a href="#cb122-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_right_product<span class="op">(</span></span>
-<span id="cb122-6"><a href="#cb122-6" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb122-7"><a href="#cb122-7" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb122-8"><a href="#cb122-8" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb122-5"><a href="#cb122-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
+<span id="cb122-6"><a href="#cb122-6" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb122-7"><a href="#cb122-7" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb122-8"><a href="#cb122-8" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb122-9"><a href="#cb122-9" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb122-10"><a href="#cb122-10" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb122-11"><a href="#cb122-11" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb122-12"><a href="#cb122-12" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb122-13"><a href="#cb122-13" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb122-12"><a href="#cb122-12" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb122-13"><a href="#cb122-13" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb122-14"><a href="#cb122-14" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb122-15"><a href="#cb122-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_right_product<span class="op">(</span></span>
+<span id="cb122-15"><a href="#cb122-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb122-16"><a href="#cb122-16" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb122-17"><a href="#cb122-17" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb122-18"><a href="#cb122-18" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb122-19"><a href="#cb122-19" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb122-17"><a href="#cb122-17" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb122-18"><a href="#cb122-18" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb122-19"><a href="#cb122-19" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb122-20"><a href="#cb122-20" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>C</em> = <em>B</em><em>A</em></span>.</p>
@@ -9418,7 +9424,7 @@ matrix-matrix left product [linalg.algs.blas3.symm.up.left]<a href="#updating-sy
 <span id="cb123-3"><a href="#cb123-3" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb123-4"><a href="#cb123-4" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb123-5"><a href="#cb123-5" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb123-6"><a href="#cb123-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_left_product<span class="op">(</span></span>
+<span id="cb123-6"><a href="#cb123-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb123-7"><a href="#cb123-7" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb123-8"><a href="#cb123-8" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb123-9"><a href="#cb123-9" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
@@ -9430,7 +9436,7 @@ matrix-matrix left product [linalg.algs.blas3.symm.up.left]<a href="#updating-sy
 <span id="cb123-15"><a href="#cb123-15" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb123-16"><a href="#cb123-16" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb123-17"><a href="#cb123-17" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb123-18"><a href="#cb123-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_left_product<span class="op">(</span></span>
+<span id="cb123-18"><a href="#cb123-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb123-19"><a href="#cb123-19" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb123-20"><a href="#cb123-20" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb123-21"><a href="#cb123-21" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -9442,27 +9448,27 @@ matrix-matrix left product [linalg.algs.blas3.symm.up.left]<a href="#updating-sy
 <h5 data-number="17.11.4.2.4" id="updating-symmetric-matrix-matrix-right-product-linalg.algs.blas3.symm.up.right"><span class="header-section-number">17.11.4.2.4</span> Updating symmetric
 matrix-matrix right product [linalg.algs.blas3.symm.up.right]<a href="#updating-symmetric-matrix-matrix-right-product-linalg.algs.blas3.symm.up.right" class="self-link"></a></h5>
 <div class="sourceCode" id="cb124"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb124-3"><a href="#cb124-3" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb124-3"><a href="#cb124-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb124-4"><a href="#cb124-4" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb124-5"><a href="#cb124-5" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb124-6"><a href="#cb124-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_right_product<span class="op">(</span></span>
-<span id="cb124-7"><a href="#cb124-7" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb124-8"><a href="#cb124-8" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb124-9"><a href="#cb124-9" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb124-6"><a href="#cb124-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
+<span id="cb124-7"><a href="#cb124-7" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb124-8"><a href="#cb124-8" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb124-9"><a href="#cb124-9" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb124-10"><a href="#cb124-10" aria-hidden="true" tabindex="-1"></a>  InMat3 E,</span>
 <span id="cb124-11"><a href="#cb124-11" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb124-12"><a href="#cb124-12" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb124-13"><a href="#cb124-13" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb124-14"><a href="#cb124-14" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb124-15"><a href="#cb124-15" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb124-14"><a href="#cb124-14" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb124-15"><a href="#cb124-15" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb124-16"><a href="#cb124-16" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb124-17"><a href="#cb124-17" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb124-18"><a href="#cb124-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_right_product<span class="op">(</span></span>
+<span id="cb124-18"><a href="#cb124-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_product<span class="op">(</span></span>
 <span id="cb124-19"><a href="#cb124-19" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb124-20"><a href="#cb124-20" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb124-21"><a href="#cb124-21" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb124-22"><a href="#cb124-22" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb124-20"><a href="#cb124-20" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb124-21"><a href="#cb124-21" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb124-22"><a href="#cb124-22" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb124-23"><a href="#cb124-23" aria-hidden="true" tabindex="-1"></a>  InMat3 E,</span>
 <span id="cb124-24"><a href="#cb124-24" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
