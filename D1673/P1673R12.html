@@ -1203,12 +1203,15 @@ linear algebra value types by value, including
 <code>hermitian_matrix_rank_k_update</code> (“the BLAS 3
 <code>*_update</code> functions”) now have overloads that do not take an
 <code>alpha</code> scaling parameter.</p></li>
-<li><p>Change <code>symmetric_matrix_{left,right}_product</code> to
-<code>symmetric_matrix_product</code>, and change
-<code>hermitian_matrix_{left,right}_product</code> to
-<code>hermitian_matrix_product</code>. Distinguish the left and right
-cases by order of the <code>A, t</code> and <code>B</code>
-parameters.</p></li>
+<li><p>Change
+<code>{symmetric,hermitian,triangular}_matrix_{left,right}_product</code>
+to <code>{symmetric,hermitian,triangular}_matrix_product</code>.
+Distinguish the left and right cases by order of the <code>A, t</code>
+and <code>B</code> (or <code>C</code>, in the case of in-place
+<code>triangular_matrix_product</code>) parameters. NOTE: As a result,
+<code>triangular_matrix_product</code> (for the in-place right product
+case) is now an exception to the rule that output or in/out parameters
+appear last.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -1677,7 +1680,7 @@ xHEMM
 xTRMM
 </td>
 <td>
-<code>triangular_matrix_{left,right}_product</code>
+<code>triangular_matrix_product</code>
 </td>
 </tr>
 <tr>
@@ -5112,7 +5115,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1147"><a href="#cb7-1147" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb7-1148"><a href="#cb7-1148" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb7-1149"><a href="#cb7-1149" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1150"><a href="#cb7-1150" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-1150"><a href="#cb7-1150" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1151"><a href="#cb7-1151" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1152"><a href="#cb7-1152" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-1153"><a href="#cb7-1153" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
@@ -5124,7 +5127,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1159"><a href="#cb7-1159" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb7-1160"><a href="#cb7-1160" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb7-1161"><a href="#cb7-1161" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1162"><a href="#cb7-1162" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-1162"><a href="#cb7-1162" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1163"><a href="#cb7-1163" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-1164"><a href="#cb7-1164" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1165"><a href="#cb7-1165" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -5135,7 +5138,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1170"><a href="#cb7-1170" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb7-1171"><a href="#cb7-1171" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb7-1172"><a href="#cb7-1172" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb7-1173"><a href="#cb7-1173" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-1173"><a href="#cb7-1173" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1174"><a href="#cb7-1174" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1175"><a href="#cb7-1175" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-1176"><a href="#cb7-1176" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
@@ -5145,7 +5148,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1180"><a href="#cb7-1180" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb7-1181"><a href="#cb7-1181" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb7-1182"><a href="#cb7-1182" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb7-1183"><a href="#cb7-1183" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-1183"><a href="#cb7-1183" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1184"><a href="#cb7-1184" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-1185"><a href="#cb7-1185" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1186"><a href="#cb7-1186" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -5155,49 +5158,49 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1190"><a href="#cb7-1190" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas3.trmm.ov.right],</span></span>
 <span id="cb7-1191"><a href="#cb7-1191" aria-hidden="true" tabindex="-1"></a><span class="co">// overwriting triangular matrix-matrix right product</span></span>
 <span id="cb7-1192"><a href="#cb7-1192" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1193"><a href="#cb7-1193" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1194"><a href="#cb7-1194" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1195"><a href="#cb7-1195" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1193"><a href="#cb7-1193" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1194"><a href="#cb7-1194" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1195"><a href="#cb7-1195" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb7-1196"><a href="#cb7-1196" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1197"><a href="#cb7-1197" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
-<span id="cb7-1198"><a href="#cb7-1198" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1199"><a href="#cb7-1199" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1200"><a href="#cb7-1200" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1201"><a href="#cb7-1201" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1197"><a href="#cb7-1197" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
+<span id="cb7-1198"><a href="#cb7-1198" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb7-1199"><a href="#cb7-1199" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb7-1200"><a href="#cb7-1200" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1201"><a href="#cb7-1201" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb7-1202"><a href="#cb7-1202" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb7-1203"><a href="#cb7-1203" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-1204"><a href="#cb7-1204" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1205"><a href="#cb7-1205" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1206"><a href="#cb7-1206" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1207"><a href="#cb7-1207" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1205"><a href="#cb7-1205" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1206"><a href="#cb7-1206" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1207"><a href="#cb7-1207" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb7-1208"><a href="#cb7-1208" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1209"><a href="#cb7-1209" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
+<span id="cb7-1209"><a href="#cb7-1209" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1210"><a href="#cb7-1210" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1211"><a href="#cb7-1211" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1212"><a href="#cb7-1212" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1213"><a href="#cb7-1213" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1214"><a href="#cb7-1214" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1211"><a href="#cb7-1211" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb7-1212"><a href="#cb7-1212" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb7-1213"><a href="#cb7-1213" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1214"><a href="#cb7-1214" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb7-1215"><a href="#cb7-1215" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
-<span id="cb7-1216"><a href="#cb7-1216" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1217"><a href="#cb7-1217" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1218"><a href="#cb7-1218" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1219"><a href="#cb7-1219" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb7-1220"><a href="#cb7-1220" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
-<span id="cb7-1221"><a href="#cb7-1221" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1222"><a href="#cb7-1222" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1223"><a href="#cb7-1223" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1224"><a href="#cb7-1224" aria-hidden="true" tabindex="-1"></a>  InOutMat C<span class="op">)</span>;</span>
+<span id="cb7-1216"><a href="#cb7-1216" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-matrix</em> InOutMat,</span>
+<span id="cb7-1217"><a href="#cb7-1217" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1218"><a href="#cb7-1218" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1219"><a href="#cb7-1219" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage<span class="op">&gt;</span></span>
+<span id="cb7-1220"><a href="#cb7-1220" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
+<span id="cb7-1221"><a href="#cb7-1221" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1222"><a href="#cb7-1222" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1223"><a href="#cb7-1223" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1224"><a href="#cb7-1224" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d<span class="op">)</span>;</span>
 <span id="cb7-1225"><a href="#cb7-1225" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb7-1226"><a href="#cb7-1226" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1227"><a href="#cb7-1227" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1228"><a href="#cb7-1228" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1229"><a href="#cb7-1229" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb7-1230"><a href="#cb7-1230" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
+<span id="cb7-1226"><a href="#cb7-1226" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
+<span id="cb7-1227"><a href="#cb7-1227" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb7-1228"><a href="#cb7-1228" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1229"><a href="#cb7-1229" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage<span class="op">&gt;</span></span>
+<span id="cb7-1230"><a href="#cb7-1230" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1231"><a href="#cb7-1231" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1232"><a href="#cb7-1232" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1233"><a href="#cb7-1233" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1234"><a href="#cb7-1234" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1235"><a href="#cb7-1235" aria-hidden="true" tabindex="-1"></a>  InOutMat C<span class="op">)</span>;</span>
+<span id="cb7-1232"><a href="#cb7-1232" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb7-1233"><a href="#cb7-1233" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb7-1234"><a href="#cb7-1234" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1235"><a href="#cb7-1235" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d<span class="op">)</span>;</span>
 <span id="cb7-1236"><a href="#cb7-1236" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-1237"><a href="#cb7-1237" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas3.trmm.up.left],</span></span>
 <span id="cb7-1238"><a href="#cb7-1238" aria-hidden="true" tabindex="-1"></a><span class="co">// updating triangular matrix-matrix left product</span></span>
@@ -5207,7 +5210,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1242"><a href="#cb7-1242" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb7-1243"><a href="#cb7-1243" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb7-1244"><a href="#cb7-1244" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1245"><a href="#cb7-1245" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-1245"><a href="#cb7-1245" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1246"><a href="#cb7-1246" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1247"><a href="#cb7-1247" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb7-1248"><a href="#cb7-1248" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
@@ -5221,7 +5224,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1256"><a href="#cb7-1256" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb7-1257"><a href="#cb7-1257" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb7-1258"><a href="#cb7-1258" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1259"><a href="#cb7-1259" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb7-1259"><a href="#cb7-1259" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1260"><a href="#cb7-1260" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-1261"><a href="#cb7-1261" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb7-1262"><a href="#cb7-1262" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -5233,31 +5236,31 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-1268"><a href="#cb7-1268" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas3.trmm.up.right],</span></span>
 <span id="cb7-1269"><a href="#cb7-1269" aria-hidden="true" tabindex="-1"></a><span class="co">// updating triangular matrix-matrix right product</span></span>
 <span id="cb7-1270"><a href="#cb7-1270" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb7-1271"><a href="#cb7-1271" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1272"><a href="#cb7-1272" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1273"><a href="#cb7-1273" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1271"><a href="#cb7-1271" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1272"><a href="#cb7-1272" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1273"><a href="#cb7-1273" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb7-1274"><a href="#cb7-1274" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb7-1275"><a href="#cb7-1275" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1276"><a href="#cb7-1276" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
-<span id="cb7-1277"><a href="#cb7-1277" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1278"><a href="#cb7-1278" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1279"><a href="#cb7-1279" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1280"><a href="#cb7-1280" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1276"><a href="#cb7-1276" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
+<span id="cb7-1277"><a href="#cb7-1277" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb7-1278"><a href="#cb7-1278" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb7-1279"><a href="#cb7-1279" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1280"><a href="#cb7-1280" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb7-1281"><a href="#cb7-1281" aria-hidden="true" tabindex="-1"></a>  InMat3 E,</span>
 <span id="cb7-1282"><a href="#cb7-1282" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb7-1283"><a href="#cb7-1283" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-1284"><a href="#cb7-1284" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb7-1285"><a href="#cb7-1285" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb7-1286"><a href="#cb7-1286" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb7-1287"><a href="#cb7-1287" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1285"><a href="#cb7-1285" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb7-1286"><a href="#cb7-1286" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb7-1287"><a href="#cb7-1287" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb7-1288"><a href="#cb7-1288" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb7-1289"><a href="#cb7-1289" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb7-1290"><a href="#cb7-1290" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
+<span id="cb7-1290"><a href="#cb7-1290" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb7-1291"><a href="#cb7-1291" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-1292"><a href="#cb7-1292" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb7-1293"><a href="#cb7-1293" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb7-1294"><a href="#cb7-1294" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb7-1295"><a href="#cb7-1295" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb7-1292"><a href="#cb7-1292" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb7-1293"><a href="#cb7-1293" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb7-1294"><a href="#cb7-1294" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb7-1295"><a href="#cb7-1295" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb7-1296"><a href="#cb7-1296" aria-hidden="true" tabindex="-1"></a>  InMat3 E,</span>
 <span id="cb7-1297"><a href="#cb7-1297" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb7-1298"><a href="#cb7-1298" aria-hidden="true" tabindex="-1"></a></span>
@@ -9748,8 +9751,9 @@ equals <code>E.static_extent(r)</code> (for those overloads that take an
 <em>Remarks:</em> <code>C</code> and <code>E</code> (for those overloads
 that take an <code>E</code> parameter) may refer to the same matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-The following elements apply to all overloads of
-<code>triangular_matrix_left_product</code>.</p>
+The following elements apply to all the functions in
+<em>[linalg.algs.blas3.trmm.ov.left]</em> and
+<em>[linalg.algs.blas3.trmm.up.left]</em>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -9797,8 +9801,9 @@ that is linear in <code>A.extent(0)</code> times
 <code>C.extent(1)</code> times <code>A.extent(1)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span> The
-following elements apply to all overloads of
-<code>triangular_matrix_right_product</code>.</p>
+following elements apply to all the functions in
+<em>[linalg.algs.blas3.trmm.ov.right]</em> and
+<em>[linalg.algs.blas3.trmm.up.right]</em>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -9854,7 +9859,7 @@ Not-in-place overwriting triangular matrix-matrix left product</p>
 <span id="cb129-3"><a href="#cb129-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb129-4"><a href="#cb129-4" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb129-5"><a href="#cb129-5" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb129-6"><a href="#cb129-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb129-6"><a href="#cb129-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb129-7"><a href="#cb129-7" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb129-8"><a href="#cb129-8" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb129-9"><a href="#cb129-9" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
@@ -9866,7 +9871,7 @@ Not-in-place overwriting triangular matrix-matrix left product</p>
 <span id="cb129-15"><a href="#cb129-15" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb129-16"><a href="#cb129-16" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb129-17"><a href="#cb129-17" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb129-18"><a href="#cb129-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb129-18"><a href="#cb129-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb129-19"><a href="#cb129-19" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb129-20"><a href="#cb129-20" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb129-21"><a href="#cb129-21" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -9881,7 +9886,7 @@ In-place overwriting triangular matrix-matrix left product</p>
 <span id="cb130-2"><a href="#cb130-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb130-3"><a href="#cb130-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb130-4"><a href="#cb130-4" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb130-5"><a href="#cb130-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb130-5"><a href="#cb130-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb130-6"><a href="#cb130-6" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb130-7"><a href="#cb130-7" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb130-8"><a href="#cb130-8" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
@@ -9891,7 +9896,7 @@ In-place overwriting triangular matrix-matrix left product</p>
 <span id="cb130-12"><a href="#cb130-12" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb130-13"><a href="#cb130-13" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb130-14"><a href="#cb130-14" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb130-15"><a href="#cb130-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb130-15"><a href="#cb130-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb130-16"><a href="#cb130-16" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb130-17"><a href="#cb130-17" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb130-18"><a href="#cb130-18" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -9912,53 +9917,53 @@ matrix-matrix right product [linalg.algs.blas3.trmm.ov.right]<a href="#overwriti
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 Not-in-place overwriting triangular matrix-matrix right product</p>
 <div class="sourceCode" id="cb131"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb131-1"><a href="#cb131-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb131-2"><a href="#cb131-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb131-3"><a href="#cb131-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb131-4"><a href="#cb131-4" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb131-2"><a href="#cb131-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb131-3"><a href="#cb131-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb131-4"><a href="#cb131-4" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb131-5"><a href="#cb131-5" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb131-6"><a href="#cb131-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
-<span id="cb131-7"><a href="#cb131-7" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb131-8"><a href="#cb131-8" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb131-9"><a href="#cb131-9" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb131-10"><a href="#cb131-10" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb131-6"><a href="#cb131-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
+<span id="cb131-7"><a href="#cb131-7" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb131-8"><a href="#cb131-8" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb131-9"><a href="#cb131-9" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb131-10"><a href="#cb131-10" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb131-11"><a href="#cb131-11" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb131-12"><a href="#cb131-12" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb131-13"><a href="#cb131-13" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb131-14"><a href="#cb131-14" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb131-15"><a href="#cb131-15" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb131-16"><a href="#cb131-16" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb131-14"><a href="#cb131-14" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb131-15"><a href="#cb131-15" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb131-16"><a href="#cb131-16" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb131-17"><a href="#cb131-17" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb131-18"><a href="#cb131-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
+<span id="cb131-18"><a href="#cb131-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb131-19"><a href="#cb131-19" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb131-20"><a href="#cb131-20" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb131-21"><a href="#cb131-21" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb131-22"><a href="#cb131-22" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb131-23"><a href="#cb131-23" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb131-20"><a href="#cb131-20" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb131-21"><a href="#cb131-21" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb131-22"><a href="#cb131-22" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb131-23"><a href="#cb131-23" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb131-24"><a href="#cb131-24" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>C</em> = <em>B</em><em>A</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 In-place overwriting triangular matrix-matrix right product</p>
-<div class="sourceCode" id="cb132"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb132-3"><a href="#cb132-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb132-4"><a href="#cb132-4" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb132-5"><a href="#cb132-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
-<span id="cb132-6"><a href="#cb132-6" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb132-7"><a href="#cb132-7" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb132-8"><a href="#cb132-8" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb132-9"><a href="#cb132-9" aria-hidden="true" tabindex="-1"></a>  InOutMat C<span class="op">)</span>;</span>
+<div class="sourceCode" id="cb132"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-matrix</em> InOutMat,</span>
+<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb132-3"><a href="#cb132-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb132-4"><a href="#cb132-4" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage<span class="op">&gt;</span></span>
+<span id="cb132-5"><a href="#cb132-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
+<span id="cb132-6"><a href="#cb132-6" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb132-7"><a href="#cb132-7" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb132-8"><a href="#cb132-8" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb132-9"><a href="#cb132-9" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d<span class="op">)</span>;</span>
 <span id="cb132-10"><a href="#cb132-10" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb132-11"><a href="#cb132-11" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb132-12"><a href="#cb132-12" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb132-13"><a href="#cb132-13" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb132-14"><a href="#cb132-14" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat<span class="op">&gt;</span></span>
-<span id="cb132-15"><a href="#cb132-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
+<span id="cb132-11"><a href="#cb132-11" aria-hidden="true" tabindex="-1"></a>         <em>inout-matrix</em> InOutMat,</span>
+<span id="cb132-12"><a href="#cb132-12" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
+<span id="cb132-13"><a href="#cb132-13" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb132-14"><a href="#cb132-14" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage<span class="op">&gt;</span></span>
+<span id="cb132-15"><a href="#cb132-15" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb132-16"><a href="#cb132-16" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb132-17"><a href="#cb132-17" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb132-18"><a href="#cb132-18" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb132-19"><a href="#cb132-19" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb132-20"><a href="#cb132-20" aria-hidden="true" tabindex="-1"></a>  InOutMat C<span class="op">)</span>;</span></code></pre></div>
+<span id="cb132-17"><a href="#cb132-17" aria-hidden="true" tabindex="-1"></a>  InOutMat C,</span>
+<span id="cb132-18"><a href="#cb132-18" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
+<span id="cb132-19"><a href="#cb132-19" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb132-20"><a href="#cb132-20" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Preconditions:</em> <code>C.extent(1)</code> equals
 <code>A.extent(0)</code>.</p>
@@ -9977,7 +9982,7 @@ matrix-matrix left product [linalg.algs.blas3.trmm.up.left]<a href="#updating-tr
 <span id="cb133-4"><a href="#cb133-4" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb133-5"><a href="#cb133-5" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb133-6"><a href="#cb133-6" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb133-7"><a href="#cb133-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb133-7"><a href="#cb133-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb133-8"><a href="#cb133-8" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb133-9"><a href="#cb133-9" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb133-10"><a href="#cb133-10" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
@@ -9991,7 +9996,7 @@ matrix-matrix left product [linalg.algs.blas3.trmm.up.left]<a href="#updating-tr
 <span id="cb133-18"><a href="#cb133-18" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb133-19"><a href="#cb133-19" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb133-20"><a href="#cb133-20" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb133-21"><a href="#cb133-21" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_left_product<span class="op">(</span></span>
+<span id="cb133-21"><a href="#cb133-21" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb133-22"><a href="#cb133-22" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb133-23"><a href="#cb133-23" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
 <span id="cb133-24"><a href="#cb133-24" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
@@ -10004,31 +10009,31 @@ matrix-matrix left product [linalg.algs.blas3.trmm.up.left]<a href="#updating-tr
 <h5 data-number="17.11.4.4.4" id="updating-triangular-matrix-matrix-right-product-linalg.algs.blas3.trmm.up.right"><span class="header-section-number">17.11.4.4.4</span> Updating triangular
 matrix-matrix right product [linalg.algs.blas3.trmm.up.right]<a href="#updating-triangular-matrix-matrix-right-product-linalg.algs.blas3.trmm.up.right" class="self-link"></a></h5>
 <div class="sourceCode" id="cb134"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb134-1"><a href="#cb134-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
-<span id="cb134-2"><a href="#cb134-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb134-3"><a href="#cb134-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb134-4"><a href="#cb134-4" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb134-2"><a href="#cb134-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb134-3"><a href="#cb134-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb134-4"><a href="#cb134-4" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb134-5"><a href="#cb134-5" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb134-6"><a href="#cb134-6" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb134-7"><a href="#cb134-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
-<span id="cb134-8"><a href="#cb134-8" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb134-9"><a href="#cb134-9" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb134-10"><a href="#cb134-10" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb134-11"><a href="#cb134-11" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb134-7"><a href="#cb134-7" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
+<span id="cb134-8"><a href="#cb134-8" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb134-9"><a href="#cb134-9" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb134-10"><a href="#cb134-10" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb134-11"><a href="#cb134-11" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb134-12"><a href="#cb134-12" aria-hidden="true" tabindex="-1"></a>  InMat3 E,</span>
 <span id="cb134-13"><a href="#cb134-13" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span>
 <span id="cb134-14"><a href="#cb134-14" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb134-15"><a href="#cb134-15" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
-<span id="cb134-16"><a href="#cb134-16" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb134-17"><a href="#cb134-17" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
-<span id="cb134-18"><a href="#cb134-18" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb134-16"><a href="#cb134-16" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
+<span id="cb134-17"><a href="#cb134-17" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb134-18"><a href="#cb134-18" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
 <span id="cb134-19"><a href="#cb134-19" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat3,</span>
 <span id="cb134-20"><a href="#cb134-20" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
-<span id="cb134-21"><a href="#cb134-21" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_right_product<span class="op">(</span></span>
+<span id="cb134-21"><a href="#cb134-21" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> triangular_matrix_product<span class="op">(</span></span>
 <span id="cb134-22"><a href="#cb134-22" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb134-23"><a href="#cb134-23" aria-hidden="true" tabindex="-1"></a>  InMat1 A,</span>
-<span id="cb134-24"><a href="#cb134-24" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb134-25"><a href="#cb134-25" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
-<span id="cb134-26"><a href="#cb134-26" aria-hidden="true" tabindex="-1"></a>  InMat2 B,</span>
+<span id="cb134-23"><a href="#cb134-23" aria-hidden="true" tabindex="-1"></a>  InMat1 B,</span>
+<span id="cb134-24"><a href="#cb134-24" aria-hidden="true" tabindex="-1"></a>  InMat2 A,</span>
+<span id="cb134-25"><a href="#cb134-25" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb134-26"><a href="#cb134-26" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb134-27"><a href="#cb134-27" aria-hidden="true" tabindex="-1"></a>  InMat3 E,</span>
 <span id="cb134-28"><a href="#cb134-28" aria-hidden="true" tabindex="-1"></a>  OutMat C<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
@@ -10953,9 +10958,9 @@ skinny” means that the matrix has many more rows than columns.</p>
 <span id="cb145-87"><a href="#cb145-87" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> info2;</span>
 <span id="cb145-88"><a href="#cb145-88" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb145-89"><a href="#cb145-89" aria-hidden="true" tabindex="-1"></a>  <span class="co">// R = R_tmp * R</span></span>
-<span id="cb145-90"><a href="#cb145-90" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> std<span class="op">::</span>linalg<span class="op">::</span>triangular_matrix_left_product;</span>
-<span id="cb145-91"><a href="#cb145-91" aria-hidden="true" tabindex="-1"></a>  triangular_matrix_left_product<span class="op">(</span>R_tmp, upper_triangle,</span>
-<span id="cb145-92"><a href="#cb145-92" aria-hidden="true" tabindex="-1"></a>                                 explicit_diagonal, R<span class="op">)</span>;</span>
+<span id="cb145-90"><a href="#cb145-90" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> std<span class="op">::</span>linalg<span class="op">::</span>triangular_matrix_product;</span>
+<span id="cb145-91"><a href="#cb145-91" aria-hidden="true" tabindex="-1"></a>  triangular_matrix_product<span class="op">(</span>R_tmp, upper_triangle,</span>
+<span id="cb145-92"><a href="#cb145-92" aria-hidden="true" tabindex="-1"></a>                            explicit_diagonal, R<span class="op">)</span>;</span>
 <span id="cb145-93"><a href="#cb145-93" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> std<span class="op">::</span>nullopt;</span>
 <span id="cb145-94"><a href="#cb145-94" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </div>
