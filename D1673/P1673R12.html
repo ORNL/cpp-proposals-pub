@@ -559,24 +559,22 @@ temporaries</a></li>
 description in semiring terms</a></li>
 <li><a href="#summary-1" id="toc-summary-1"><span class="toc-section-number">10.7.9</span> Summary</a></li>
 </ul></li>
-<li><a href="#support-for-user-defined-complex-number-types" id="toc-support-for-user-defined-complex-number-types"><span class="toc-section-number">10.8</span> Support for user-defined complex
-number types</a>
+<li><a href="#fix-issues-with-complex-and-support-user-defined-complex-number-types" id="toc-fix-issues-with-complex-and-support-user-defined-complex-number-types"><span class="toc-section-number">10.8</span> Fix issues with
+<code>complex</code>, and support user-defined complex number types</a>
 <ul>
-<li><a href="#conj-does-not-have-the-desired-interface" id="toc-conj-does-not-have-the-desired-interface"><span class="toc-section-number">10.8.1</span> <code>conj</code> does not have
-the desired interface</a></li>
-<li><a href="#real-and-imag-do-not-have-the-desired-interface" id="toc-real-and-imag-do-not-have-the-desired-interface"><span class="toc-section-number">10.8.2</span> <code>real</code> and
-<code>imag</code> do not have the desired interface</a></li>
-<li><a href="#why-users-define-their-own-complex-number-types" id="toc-why-users-define-their-own-complex-number-types"><span class="toc-section-number">10.8.3</span> Why users define their own
-complex number types</a></li>
-<li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers" id="toc-why-users-want-to-conjugate-matrices-of-real-numbers"><span class="toc-section-number">10.8.4</span> Why users want to “conjugate”
-matrices of real numbers</a></li>
-<li><a href="#effects-of-conjs-real-to-complex-change" id="toc-effects-of-conjs-real-to-complex-change"><span class="toc-section-number">10.8.5</span> Effects of <code>conj</code>’s
-real-to-complex change</a></li>
-<li><a href="#lewg-feedback-on-r8-solution" id="toc-lewg-feedback-on-r8-solution"><span class="toc-section-number">10.8.6</span> LEWG feedback on R8
+<li><a href="#motivation-and-summary-of-solution" id="toc-motivation-and-summary-of-solution"><span class="toc-section-number">10.8.1</span> Motivation and summary of
 solution</a></li>
-<li><a href="#sg6s-response-to-lewgs-r8-feedback" id="toc-sg6s-response-to-lewgs-r8-feedback"><span class="toc-section-number">10.8.7</span> SG6’s response to LEWG’s R8
+<li><a href="#why-users-define-their-own-complex-number-types" id="toc-why-users-define-their-own-complex-number-types"><span class="toc-section-number">10.8.2</span> Why users define their own
+complex number types</a></li>
+<li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers" id="toc-why-users-want-to-conjugate-matrices-of-real-numbers"><span class="toc-section-number">10.8.3</span> Why users want to “conjugate”
+matrices of real numbers</a></li>
+<li><a href="#effects-of-conjs-real-to-complex-change" id="toc-effects-of-conjs-real-to-complex-change"><span class="toc-section-number">10.8.4</span> Effects of <code>conj</code>’s
+real-to-complex change</a></li>
+<li><a href="#lewg-feedback-on-r8-solution" id="toc-lewg-feedback-on-r8-solution"><span class="toc-section-number">10.8.5</span> LEWG feedback on R8
+solution</a></li>
+<li><a href="#sg6s-response-to-lewgs-r8-feedback" id="toc-sg6s-response-to-lewgs-r8-feedback"><span class="toc-section-number">10.8.6</span> SG6’s response to LEWG’s R8
 feedback</a></li>
-<li><a href="#current-solution" id="toc-current-solution"><span class="toc-section-number">10.8.8</span> Current solution</a></li>
+<li><a href="#current-solution" id="toc-current-solution"><span class="toc-section-number">10.8.7</span> Current solution</a></li>
 </ul></li>
 <li><a href="#support-for-division-with-noncommutative-multiplication" id="toc-support-for-division-with-noncommutative-multiplication"><span class="toc-section-number">10.9</span> Support for division with
 noncommutative multiplication</a></li>
@@ -3446,47 +3444,77 @@ implementation freedom, even though we do not think it is a good way to
 constrain types. We then use the semiring description to explain how
 implementers can test generic algorithms.</p></li>
 </ul>
-<h2 data-number="10.8" id="support-for-user-defined-complex-number-types"><span class="header-section-number">10.8</span> Support for user-defined
-complex number types<a href="#support-for-user-defined-complex-number-types" class="self-link"></a></h2>
-<h3 data-number="10.8.1" id="conj-does-not-have-the-desired-interface"><span class="header-section-number">10.8.1</span> <code>conj</code> does not
-have the desired interface<a href="#conj-does-not-have-the-desired-interface" class="self-link"></a></h3>
-<p>Based on precedence from the BLAS and LAPACK, generic linear algebra
-code that works for both complex and real numbers uses the “conjugate
-transpose” for both cases, and intends conjugation to be the identity
-for real numbers. P1673 users may thus want to apply
-<code>conjugate_transposed</code> to matrices of arbitrary value
-types.</p>
-<p>The Standard currently offers <code>conj</code> as the way to compute
-the conjugate of a number. However, there are two issues with
-<code>conj</code>.</p>
+<h2 data-number="10.8" id="fix-issues-with-complex-and-support-user-defined-complex-number-types"><span class="header-section-number">10.8</span> Fix issues with
+<code>complex</code>, and support user-defined complex number types<a href="#fix-issues-with-complex-and-support-user-defined-complex-number-types" class="self-link"></a></h2>
+<h3 data-number="10.8.1" id="motivation-and-summary-of-solution"><span class="header-section-number">10.8.1</span> Motivation and summary of
+solution<a href="#motivation-and-summary-of-solution" class="self-link"></a></h3>
+<p>The BLAS provides functionality specifically for vectors and matrices
+of complex numbers. Built into the BLAS is the assumption that the
+complex conjugate of a real number is just the number. This makes it
+possible to write algorithms that are generic on whether the vector or
+matrix value type is real or complex. For example, such generic
+algorithms can use the “conjugate transpose” for both cases. P1673 users
+may thus want to apply <code>conjugate_transposed</code> to matrices of
+arbitrary value types.</p>
+<p>The BLAS also needs to distinguish between complex and real value
+types, because some BLAS functions behave differently for each. For
+example, for real numbers, the BLAS functions <code>SASUM</code> and
+<code>DASUM</code> compute the sum of absolute values of the vector’s
+elements. For complex numbers, the corresponding BLAS functions
+<code>SCASUM</code> and <code>DZASUM</code> compute the sum of absolute
+values of the real and imaginary components, rather than the sum of
+magnitudes. This is an optimization to avoid square roots (as Appendix
+A.1 of the BLAS Standard explains), but it is well founded in the theory
+of accuracy of matrix factorizations.</p>
+<p>The C++ Standard’s functions <code>conj</code>, <code>real</code>,
+and <code>imag</code> return the complex conjugate, real part, and
+imaginary part of a complex number, respectively. They also have
+overloads for arithmetic types that give the expected mathematical
+behavior: the conjugate or real part of a real number is the number
+itself, and the imaginary part of a real number is zero. Thus, it would
+make sense for P1673 to use these functions to express generic
+algorithms with complex or real numbers. However, these functions have
+three issues that preclude their direct use in P1673’s algorithms.</p>
 <ol type="1">
-<li><p>For arguments of arithmetic type, <code>conj</code> returns
-<code>complex</code>. The resulting value type change is mathematically
-unexpected, and it can hinder use of an optimized BLAS.</p></li>
-<li><p>P1673 users have good reasons to define their own complex number
-types, but users cannot overload <code>conj</code> in the
-<code>std</code> namespace for these types.</p></li>
+<li><p>The existing overloads of these functions in the <code>std</code>
+namespace do not always preserve the type of their argument. For
+arguments of arithmetic type, <code>conj</code> returns
+<code>complex</code>. For arguments of integral type, <code>real</code>
+and <code>imag</code> always return <code>double</code>. The resulting
+value type change is mathematically unexpected in generic algorithms,
+can cause information loss for 64-bit integers, and can hinder use of an
+optimized BLAS.</p></li>
+<li><p>Users sometimes need to define their own “custom” complex number
+types instead of using specializations of <code>complex</code>, but
+users cannot overload functions in the <code>std</code> namespace for
+these types.</p></li>
+<li><p>How does P1673 tell if a user-defined type represents a complex
+number?</p></li>
 </ol>
-<h3 data-number="10.8.2" id="real-and-imag-do-not-have-the-desired-interface"><span class="header-section-number">10.8.2</span> <code>real</code> and
-<code>imag</code> do not have the desired interface<a href="#real-and-imag-do-not-have-the-desired-interface" class="self-link"></a></h3>
-<p>The BLAS depends on being able to get the real and imaginary parts of
-a complex number. For example, its complex version of the sum of
-absolute values of the elements of a vector is the sum of absolute
-values of the real and imaginary components (the functions
-<code>SCASUM</code> and <code>DZASUM</code>).</p>
-<p>The Standard currently offers <code>real</code> and <code>imag</code>
-as the way to get the real and imaginary parts, respectively, of a
-number. However, there are two issues with these functions.</p>
-<ol type="1">
-<li><p>For arguments of integral type, <code>real</code> and
-<code>imag</code> always return <code>double</code>. Thus, they do not
-preserve the type of their argument.</p></li>
-<li><p>P1673 users have good reasons to define their own complex number
-types, but users cannot overload <code>real</code> or <code>imag</code>
-in the <code>std</code> namespace for these types.</p></li>
-</ol>
-<h3 data-number="10.8.3" id="why-users-define-their-own-complex-number-types"><span class="header-section-number">10.8.3</span> Why users define their own
+<p>Libraries such as Kokkos address Issue (2) by defining
+<code>conj</code>, <code>real</code>, and <code>imag</code> functions in
+the library’s namespace (not <code>std</code>). Generic code then can
+rely on argument-dependent lookup (ADL) by invoking these functions
+without namespace qualification. The library’s functions help make the
+custom complex type “interface-compatible” with
+<code>std::complex</code>. This ADL solution long predates any more
+elaborate customization point technique. In our experience, many
+mathematical libraries use this approach.</p>
+<p>This common practice suggests a way for P1673 to solve the other
+issues as well. A user-defined type represents a complex number if and
+only if it has ADL-findable <code>conj</code>, <code>real</code>, and
+<code>imag</code> functions. This means that P1673 can “wrap” these
+functions to make them behave as mathematically expected for any value
+type. These “wrappers” can also adjust the behavior of
+<code>std::conj</code>, <code>std::real</code>, and
+<code>std::imag</code> for arithmetic types.</p>
+<p>P1673 defines these wrappers as the exposition-only functions
+<em><code>conj-if-needed</code></em>,
+<em><code>real-if-needed</code></em>, and
+<em><code>imag-if-needed</code></em>.</p>
+<h3 data-number="10.8.2" id="why-users-define-their-own-complex-number-types"><span class="header-section-number">10.8.2</span> Why users define their own
 complex number types<a href="#why-users-define-their-own-complex-number-types" class="self-link"></a></h3>
+<p>Users define their own complex number types for three reasons.</p>
 <ol type="1">
 <li><p>The Standard only permits <code>complex&lt;R&gt;</code> if
 <code>R</code> is a floating-point type.</p></li>
@@ -3495,13 +3523,13 @@ alignment, not <code>2 * sizeof(R)</code>.</p></li>
 <li><p>Some C++ extensions cannot use <code>complex&lt;R&gt;</code>,
 because they require annotations on a type’s member functions.</p></li>
 </ol>
-<p>Users define their own complex number types for three reasons. First,
-the C++ Standard currently permits <code>complex&lt;R&gt;</code> only if
-<code>R</code> is a floating-point type. Before adoption of P1467 into
-C++23, this meant that <code>R</code> could only be <code>float</code>,
-<code>double</code>, or <code>long double</code>. Even after adoption of
-P1467, implementations are not required to provide other floating-point
-types. This prevents use of other types in portable C++, such as</p>
+<p>First, the C++ Standard currently permits
+<code>complex&lt;R&gt;</code> only if <code>R</code> is a floating-point
+type. Before adoption of P1467 into C++23, this meant that
+<code>R</code> could only be <code>float</code>, <code>double</code>, or
+<code>long double</code>. Even after adoption of P1467, implementations
+are not required to provide other floating-point types. This prevents
+use of other types in portable C++, such as</p>
 <ul>
 <li><p>“short” low-precision floating-point or fixed-point number types
 that are critical for performance of machine learning and signal
@@ -3511,8 +3539,8 @@ processing applications;</p></li>
 <li><p>extended-precision floating-point types that can improve the
 accuracy of floating-point sums, reduce parallel nondeterminism, and
 make sums less dependent on evaluation order; and</p></li>
-<li><p>custom number types such as “bigfloats” (custom
-arbitrary-precision floating-point types).</p></li>
+<li><p>custom number types such as “bigfloats” (arbitrary-precision
+floating-point types) or fractions of integers.</p></li>
 </ul>
 <p>Second, the Standard explicitly specifies that
 <code>complex&lt;R&gt;</code> has the same alignment as
@@ -3533,8 +3561,8 @@ to define their own complex number types. These include CUDA, Kokkos,
 and Thrust. The SYCL standard is contemplating adding a custom complex
 number type. One of the authors wrote <code>Kokkos::complex</code> circa
 2014 to make it possible to build and run Trilinos’ linear solvers with
-complex numbers on NVIDIA graphics processing units (GPUs).</p>
-<h3 data-number="10.8.4" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="header-section-number">10.8.4</span> Why users want to
+such C++ extensions.</p>
+<h3 data-number="10.8.3" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="header-section-number">10.8.3</span> Why users want to
 “conjugate” matrices of real numbers<a href="#why-users-want-to-conjugate-matrices-of-real-numbers" class="self-link"></a></h3>
 <p>It’s possible to describe many linear algebra algorithms in a way
 that works for both complex and real numbers, by treating conjugation as
@@ -3555,7 +3583,7 @@ thing as Hermitian for matrices of complex numbers. For example, a
 matrix whose off-diagonal elements are all <code>3 + 4i</code> is
 symmetric, but not Hermitian. Complex symmetric matrices are useful in
 practice, for example when modeling damped vibrations (Craven 1969).</p>
-<h3 data-number="10.8.5" id="effects-of-conjs-real-to-complex-change"><span class="header-section-number">10.8.5</span> Effects of
+<h3 data-number="10.8.4" id="effects-of-conjs-real-to-complex-change"><span class="header-section-number">10.8.4</span> Effects of
 <code>conj</code>’s real-to-complex change<a href="#effects-of-conjs-real-to-complex-change" class="self-link"></a></h3>
 <p>The fact that <code>conj</code> for arithmetic-type arguments returns
 <code>complex</code> may complicate or prevent implementers from using
@@ -3579,7 +3607,7 @@ having value type <code>double</code>, <code>B</code> having value type
 compile, due to
 <code>complex&lt;decltype(declval&lt;double&gt;() * declval&lt;MyReal&gt;())&gt;</code>
 not being well formed.</p>
-<h3 data-number="10.8.6" id="lewg-feedback-on-r8-solution"><span class="header-section-number">10.8.6</span> LEWG feedback on R8
+<h3 data-number="10.8.5" id="lewg-feedback-on-r8-solution"><span class="header-section-number">10.8.5</span> LEWG feedback on R8
 solution<a href="#lewg-feedback-on-r8-solution" class="self-link"></a></h3>
 <p>In R8 of this paper, we proposed an exposition-only function
 <em><code>conj-if-needed</code></em>. For arithmetic types, it would be
@@ -3614,7 +3642,7 @@ then change P1673 again to use <code>conjugate</code> (thus replacing
 R8’s <em><code>conj-if-needed</code></em>). This would thus reintroduce
 support for custom complex numbers.</p></li>
 </ol>
-<h3 data-number="10.8.7" id="sg6s-response-to-lewgs-r8-feedback"><span class="header-section-number">10.8.7</span> SG6’s response to LEWG’s R8
+<h3 data-number="10.8.6" id="sg6s-response-to-lewgs-r8-feedback"><span class="header-section-number">10.8.6</span> SG6’s response to LEWG’s R8
 feedback<a href="#sg6s-response-to-lewgs-r8-feedback" class="self-link"></a></h3>
 <p>SG6 small group (there was no quorum) reviewed P1673 on 2022/06/09,
 after LEWG’s R8 review on 2022/05/24. SG6 small group expressed the
@@ -3641,33 +3669,33 @@ to regain safety. The cost is that custom real types need to have a
 <code>conj</code> ADL-findable, if users use <code>conjugated</code> or
 <code>conjugate_transposed</code>.)</p></li>
 </ul>
-<h3 data-number="10.8.8" id="current-solution"><span class="header-section-number">10.8.8</span> Current solution<a href="#current-solution" class="self-link"></a></h3>
+<h3 data-number="10.8.7" id="current-solution"><span class="header-section-number">10.8.7</span> Current solution<a href="#current-solution" class="self-link"></a></h3>
 <p>We have adopted SG6 small group’s recommendation, with a slight
 wording modification to make it obvious that the conjugate of an
 arithmetic type returns the same type as its input.</p>
 <p>We propose an exposition-only function object
-<em><code>conj-if-needed</code></em>. For arithmetic types, it would
-behave as the identity function. If it can call <code>conj</code>
-through ADL-only (unqualified) lookup, it does so. Otherwise, it again
-would behave as the identity function.</p>
+<em><code>conj-if-needed</code></em>. For arithmetic types, it behaves
+as the identity function. If it can call <code>conj</code> through
+ADL-only (unqualified) lookup, it does so. Otherwise, it again behaves
+as the identity function.</p>
+<p>We take the same approach to fix the issues discussed above with
+<code>real</code> and <code>imag</code>. That is, we define
+exposition-only functions <em><code>real-if-needed</code></em> and
+<em><code>imag-if-needed</code></em>. These assume that any
+non-arithmetic type without ADL-findable <code>real</code> resp.
+<code>imag</code> is a non-complex type.</p>
 <p>This approach has the following advantages.</p>
 <ol type="1">
 <li><p>Most custom number types, noncomplex or complex, will work “out
-of the box.” Custom complex number types would likely already have an
-ADL-findable <code>conj</code> defined, for interface compatibility with
-<code>std::complex</code>.</p></li>
-<li><p>Conjugation will preserve the type of its argument.</p></li>
+of the box.” Existing custom complex number types likely already have
+ADL-findable <code>conj</code>, <code>real</code>, and
+<code>imag</code>. If they do not, then users can define them.</p></li>
+<li><p>It ensures type preservation for arithmetic types.</p></li>
 <li><p>It uses existing C++ idioms and interfaces for complex
 numbers.</p></li>
 <li><p>It does not depend on a future customization point syntax or
 library convention.</p></li>
 </ol>
-<p>We take the same approach to fix the issues discussed above with
-<code>real</code> and <code>imag</code>. That is, we define
-exposition-only functions <em><code>real-if-needed</code></em> and
-<em><code>imag-if-needed</code></em>. These assume that any type without
-ADL-findable <code>real</code> resp. <code>imag</code> is a non-complex
-type.</p>
 <h2 data-number="10.9" id="support-for-division-with-noncommutative-multiplication"><span class="header-section-number">10.9</span> Support for division with
 noncommutative multiplication<a href="#support-for-division-with-noncommutative-multiplication" class="self-link"></a></h2>
 <p>An important feature of this proposal is its support for value types
