@@ -1240,6 +1240,11 @@ complex numbers, instead of <code>abs(z[k])</code>.</p></li>
 <li><p>Make <code>idx_abs_max</code> behave the same for custom complex
 types as for <code>std::complex</code>.</p></li>
 </ol></li>
+<li><p>Simplify wording for <em><code>proxy-reference</code></em>’s
+hidden friends <code>real</code>, <code>imag</code>, and
+<code>conj</code>, so that they just defer to the corresponding
+<em><code>*-if-needed</code></em> exposition-only functions, rather than
+duplicating the wording of those functions.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6463,72 +6468,16 @@ The other case invokes `abs` via unqualified lookup.
 -->
 <div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> <span class="kw">auto</span> real<span class="op">(</span><span class="kw">const</span> derived_type<span class="op">&amp;</span> x<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-The expression <code>real(E)</code> for subexpression <code>E</code>
-whose type is <code>derived_type</code> is expression-equivalent to:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>value_type(static_cast&lt;const this_type&amp;&gt;(E))</code>, if
-<code>value_type</code> is an arithmetic type;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
-else,
-<code>real(value_type(static_cast&lt;const this_type&amp;&gt;(E)))</code>,
-if that expression is valid, with overload resolution performed in a
-context that includes the declaration
-<code>template&lt;class T&gt; T real(T) = delete;</code>; if the
-function selected by overload resolution does not return the absolute
-value of its input, the program is ill-formed, no diagnostic
-required;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
-else,
-<code>value_type(static_cast&lt;const this_type&amp;&gt;(E))</code>.</p></li>
-</ul>
-<!--
-This function exists because of `vector_abs_sum`.
-
-The arithmetic type special case exists because
-`std::real` returns a different type than its input
-for some arithmetic types.
-All arithmetic types represent a noncomplex number.
-Otherwise, if `real` can be found via unqualified lookup, it is used.
-If not, then `value_type` is assumed to represent a noncomplex number,
-for which the number's real part is the same as the number.
--->
+<em>Returns:</em> <em><code>real-if-needed</code></em>
+<code>(value_type(static_cast&lt;const this_type&amp;&gt;(x)))</code></p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> <span class="kw">auto</span> imag<span class="op">(</span><span class="kw">const</span> derived_type<span class="op">&amp;</span> x<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-The expression <code>imag(E)</code> for subexpression <code>E</code>
-whose type is <code>derived_type</code> is expression-equivalent to:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-<code>value_type{}</code>, if <code>value_type</code> is an arithmetic
-type;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
-else,
-<code>imag(value_type(static_cast&lt;const this_type&amp;&gt;(E)))</code>,
-if that expression is valid, with overload resolution performed in a
-context that includes the declaration
-<code>template&lt;class T&gt; T imag(T) = delete;</code>; if the
-function selected by overload resolution does not return the absolute
-value of its input, the program is ill-formed, no diagnostic
-required;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
-else, <code>value_type{}</code>.</p></li>
-</ul>
-<!--
-This function exists because of `vector_abs_sum`.
-
-The arithmetic type special case exists because
-`std::imag` returns a different type than its input
-for some arithmetic types.
-All arithmetic types represent a noncomplex number.
-Otherwise, if `imag` can be found via unqualified lookup, it is used.
-If not, then `value_type` is assumed to represent a noncomplex number,
-for which the number's imaginary part is zero
-(which is constructed by value-initializing `value_type`).
--->
+<em>Returns:</em> <em><code>imag-if-needed</code></em>
+<code>(value_type(static_cast&lt;const this_type&amp;&gt;(x)))</code></p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">friend</span> <span class="kw">auto</span> conj<span class="op">(</span><span class="kw">const</span> derived_type<span class="op">&amp;</span> x<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Returns:</em>
-<em><code>conj-if-needed</code></em><code>(x)</code></p>
+<em>Returns:</em> <em><code>conj-if-needed</code></em>
+<code>(value_type(static_cast&lt;const this_type&amp;&gt;(x)))</code></p>
 <h3 data-number="17.6.5" id="exposition-only-class-template-scaled-scalar"><span class="header-section-number">17.6.5</span> Exposition-only class
 template <em><code>scaled-scalar</code></em><a href="#exposition-only-class-template-scaled-scalar" class="self-link"></a></h3>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
