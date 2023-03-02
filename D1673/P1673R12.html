@@ -564,17 +564,19 @@ number types</a>
 <ul>
 <li><a href="#conj-does-not-have-the-desired-interface" id="toc-conj-does-not-have-the-desired-interface"><span class="toc-section-number">10.8.1</span> <code>conj</code> does not have
 the desired interface</a></li>
-<li><a href="#why-users-define-their-own-complex-number-types" id="toc-why-users-define-their-own-complex-number-types"><span class="toc-section-number">10.8.2</span> Why users define their own
+<li><a href="#real-and-imag-do-not-have-the-desired-interface" id="toc-real-and-imag-do-not-have-the-desired-interface"><span class="toc-section-number">10.8.2</span> <code>real</code> and
+<code>imag</code> do not have the desired interface</a></li>
+<li><a href="#why-users-define-their-own-complex-number-types" id="toc-why-users-define-their-own-complex-number-types"><span class="toc-section-number">10.8.3</span> Why users define their own
 complex number types</a></li>
-<li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers" id="toc-why-users-want-to-conjugate-matrices-of-real-numbers"><span class="toc-section-number">10.8.3</span> Why users want to “conjugate”
+<li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers" id="toc-why-users-want-to-conjugate-matrices-of-real-numbers"><span class="toc-section-number">10.8.4</span> Why users want to “conjugate”
 matrices of real numbers</a></li>
-<li><a href="#effects-of-conjs-real-to-complex-change" id="toc-effects-of-conjs-real-to-complex-change"><span class="toc-section-number">10.8.4</span> Effects of <code>conj</code>’s
+<li><a href="#effects-of-conjs-real-to-complex-change" id="toc-effects-of-conjs-real-to-complex-change"><span class="toc-section-number">10.8.5</span> Effects of <code>conj</code>’s
 real-to-complex change</a></li>
-<li><a href="#lewg-feedback-on-r8-solution" id="toc-lewg-feedback-on-r8-solution"><span class="toc-section-number">10.8.5</span> LEWG feedback on R8
+<li><a href="#lewg-feedback-on-r8-solution" id="toc-lewg-feedback-on-r8-solution"><span class="toc-section-number">10.8.6</span> LEWG feedback on R8
 solution</a></li>
-<li><a href="#sg6s-response-to-lewgs-r8-feedback" id="toc-sg6s-response-to-lewgs-r8-feedback"><span class="toc-section-number">10.8.6</span> SG6’s response to LEWG’s R8
+<li><a href="#sg6s-response-to-lewgs-r8-feedback" id="toc-sg6s-response-to-lewgs-r8-feedback"><span class="toc-section-number">10.8.7</span> SG6’s response to LEWG’s R8
 feedback</a></li>
-<li><a href="#current-solution" id="toc-current-solution"><span class="toc-section-number">10.8.7</span> Current solution</a></li>
+<li><a href="#current-solution" id="toc-current-solution"><span class="toc-section-number">10.8.8</span> Current solution</a></li>
 </ul></li>
 <li><a href="#support-for-division-with-noncommutative-multiplication" id="toc-support-for-division-with-noncommutative-multiplication"><span class="toc-section-number">10.9</span> Support for division with
 noncommutative multiplication</a></li>
@@ -3462,35 +3464,53 @@ the conjugate of a number. However, there are two issues with
 <code>complex</code>. The resulting value type change is mathematically
 unexpected, and it can hinder use of an optimized BLAS.</p></li>
 <li><p>P1673 users have good reasons to define their own complex number
-types, but users cannot overload <code>conj</code> for these
-types.</p></li>
+types, but users cannot overload <code>conj</code> in the
+<code>std</code> namespace for these types.</p></li>
 </ol>
-<h3 data-number="10.8.2" id="why-users-define-their-own-complex-number-types"><span class="header-section-number">10.8.2</span> Why users define their own
+<h3 data-number="10.8.2" id="real-and-imag-do-not-have-the-desired-interface"><span class="header-section-number">10.8.2</span> <code>real</code> and
+<code>imag</code> do not have the desired interface<a href="#real-and-imag-do-not-have-the-desired-interface" class="self-link"></a></h3>
+<p>The BLAS depends on being able to get the real and imaginary parts of
+a complex number. For example, its complex version of the sum of
+absolute values of the elements of a vector is the sum of absolute
+values of the real and imaginary components (the functions
+<code>SCASUM</code> and <code>DZASUM</code>).</p>
+<p>The Standard currently offers <code>real</code> and <code>imag</code>
+as the way to get the real and imaginary parts, respectively, of a
+number. However, there are two issues with these functions.</p>
+<ol type="1">
+<li><p>For arguments of integral type, <code>real</code> and
+<code>imag</code> always return <code>double</code>. Thus, they do not
+preserve the type of their argument.</p></li>
+<li><p>P1673 users have good reasons to define their own complex number
+types, but users cannot overload <code>real</code> or <code>imag</code>
+in the <code>std</code> namespace for these types.</p></li>
+</ol>
+<h3 data-number="10.8.3" id="why-users-define-their-own-complex-number-types"><span class="header-section-number">10.8.3</span> Why users define their own
 complex number types<a href="#why-users-define-their-own-complex-number-types" class="self-link"></a></h3>
 <ol type="1">
-<li><p><code>complex&lt;R&gt;</code> only permits <code>R</code> =
-<code>float</code>, <code>double</code>, and
-<code>long double</code>.</p></li>
+<li><p>The Standard only permits <code>complex&lt;R&gt;</code> if
+<code>R</code> is a floating-point type.</p></li>
 <li><p><code>complex&lt;R&gt;</code> only has <code>sizeof(R)</code>
 alignment, not <code>2 * sizeof(R)</code>.</p></li>
 <li><p>Some C++ extensions cannot use <code>complex&lt;R&gt;</code>,
 because they require annotations on a type’s member functions.</p></li>
 </ol>
 <p>Users define their own complex number types for three reasons. First,
-the C++ Standard currently supports <code>complex&lt;R&gt;</code> only
-for <code>R</code> = <code>float</code>, <code>double</code>, and
-<code>long double</code>. This prevents use of other types,
-including</p>
+the C++ Standard currently permits <code>complex&lt;R&gt;</code> only if
+<code>R</code> is a floating-point type. Before adoption of P1467 into
+C++23, this meant that <code>R</code> could only be <code>float</code>,
+<code>double</code>, or <code>long double</code>. Even after adoption of
+P1467, implementations are not required to provide other floating-point
+types. This prevents use of other types in portable C++, such as</p>
 <ul>
+<li><p>“short” low-precision floating-point or fixed-point number types
+that are critical for performance of machine learning and signal
+processing applications;</p></li>
 <li><p>signed integers (the resulting complex numbers represent the
 <em>Gaussian integers</em>);</p></li>
-<li><p>“short” low-precision floating-point or fixed-point number types
-that are critical for performance of machine learning
-applications;</p></li>
-<li><p>extended-precision floating-point types like binary128 that can
-improve the accuracy of floating-point sums, reduce parallel
-nondeterminism, and make sums less dependent on evaluation order;
-and</p></li>
+<li><p>extended-precision floating-point types that can improve the
+accuracy of floating-point sums, reduce parallel nondeterminism, and
+make sums less dependent on evaluation order; and</p></li>
 <li><p>custom number types such as “bigfloats” (custom
 arbitrary-precision floating-point types).</p></li>
 </ul>
@@ -3514,7 +3534,7 @@ and Thrust. The SYCL standard is contemplating adding a custom complex
 number type. One of the authors wrote <code>Kokkos::complex</code> circa
 2014 to make it possible to build and run Trilinos’ linear solvers with
 complex numbers on NVIDIA graphics processing units (GPUs).</p>
-<h3 data-number="10.8.3" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="header-section-number">10.8.3</span> Why users want to
+<h3 data-number="10.8.4" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="header-section-number">10.8.4</span> Why users want to
 “conjugate” matrices of real numbers<a href="#why-users-want-to-conjugate-matrices-of-real-numbers" class="self-link"></a></h3>
 <p>It’s possible to describe many linear algebra algorithms in a way
 that works for both complex and real numbers, by treating conjugation as
@@ -3535,7 +3555,7 @@ thing as Hermitian for matrices of complex numbers. For example, a
 matrix whose off-diagonal elements are all <code>3 + 4i</code> is
 symmetric, but not Hermitian. Complex symmetric matrices are useful in
 practice, for example when modeling damped vibrations (Craven 1969).</p>
-<h3 data-number="10.8.4" id="effects-of-conjs-real-to-complex-change"><span class="header-section-number">10.8.4</span> Effects of
+<h3 data-number="10.8.5" id="effects-of-conjs-real-to-complex-change"><span class="header-section-number">10.8.5</span> Effects of
 <code>conj</code>’s real-to-complex change<a href="#effects-of-conjs-real-to-complex-change" class="self-link"></a></h3>
 <p>The fact that <code>conj</code> for arithmetic-type arguments returns
 <code>complex</code> may complicate or prevent implementers from using
@@ -3559,7 +3579,7 @@ having value type <code>double</code>, <code>B</code> having value type
 compile, due to
 <code>complex&lt;decltype(declval&lt;double&gt;() * declval&lt;MyReal&gt;())&gt;</code>
 not being well formed.</p>
-<h3 data-number="10.8.5" id="lewg-feedback-on-r8-solution"><span class="header-section-number">10.8.5</span> LEWG feedback on R8
+<h3 data-number="10.8.6" id="lewg-feedback-on-r8-solution"><span class="header-section-number">10.8.6</span> LEWG feedback on R8
 solution<a href="#lewg-feedback-on-r8-solution" class="self-link"></a></h3>
 <p>In R8 of this paper, we proposed an exposition-only function
 <em><code>conj-if-needed</code></em>. For arithmetic types, it would be
@@ -3594,7 +3614,7 @@ then change P1673 again to use <code>conjugate</code> (thus replacing
 R8’s <em><code>conj-if-needed</code></em>). This would thus reintroduce
 support for custom complex numbers.</p></li>
 </ol>
-<h3 data-number="10.8.6" id="sg6s-response-to-lewgs-r8-feedback"><span class="header-section-number">10.8.6</span> SG6’s response to LEWG’s R8
+<h3 data-number="10.8.7" id="sg6s-response-to-lewgs-r8-feedback"><span class="header-section-number">10.8.7</span> SG6’s response to LEWG’s R8
 feedback<a href="#sg6s-response-to-lewgs-r8-feedback" class="self-link"></a></h3>
 <p>SG6 small group (there was no quorum) reviewed P1673 on 2022/06/09,
 after LEWG’s R8 review on 2022/05/24. SG6 small group expressed the
@@ -3621,7 +3641,7 @@ to regain safety. The cost is that custom real types need to have a
 <code>conj</code> ADL-findable, if users use <code>conjugated</code> or
 <code>conjugate_transposed</code>.)</p></li>
 </ul>
-<h3 data-number="10.8.7" id="current-solution"><span class="header-section-number">10.8.7</span> Current solution<a href="#current-solution" class="self-link"></a></h3>
+<h3 data-number="10.8.8" id="current-solution"><span class="header-section-number">10.8.8</span> Current solution<a href="#current-solution" class="self-link"></a></h3>
 <p>We have adopted SG6 small group’s recommendation, with a slight
 wording modification to make it obvious that the conjugate of an
 arithmetic type returns the same type as its input.</p>
@@ -3642,6 +3662,12 @@ numbers.</p></li>
 <li><p>It does not depend on a future customization point syntax or
 library convention.</p></li>
 </ol>
+<p>We take the same approach to fix the issues discussed above with
+<code>real</code> and <code>imag</code>. That is, we define
+exposition-only functions <em><code>real-if-needed</code></em> and
+<em><code>imag-if-needed</code></em>. These assume that any type without
+ADL-findable <code>real</code> resp. <code>imag</code> is a non-complex
+type.</p>
 <h2 data-number="10.9" id="support-for-division-with-noncommutative-multiplication"><span class="header-section-number">10.9</span> Support for division with
 noncommutative multiplication<a href="#support-for-division-with-noncommutative-multiplication" class="self-link"></a></h2>
 <p>An important feature of this proposal is its support for value types
@@ -7928,7 +7954,7 @@ with specified result type<a href="#sum-of-absolute-values-with-specified-result
 <span id="cb84-9"><a href="#cb84-9" aria-hidden="true" tabindex="-1"></a>                 InVec v,</span>
 <span id="cb84-10"><a href="#cb84-10" aria-hidden="true" tabindex="-1"></a>                 T init<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> This function corresponds to the BLAS functions
-<code>SASUM</code>, <code>DASUM</code>, <code>CSASUM</code>, and
+<code>SASUM</code>, <code>DASUM</code>, <code>SCASUM</code>, and
 <code>DZASUM</code>.<i>– end note]</i></p>
 <!--
 The different behavior for complex
