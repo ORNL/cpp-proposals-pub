@@ -1230,6 +1230,16 @@ definition of the type <code>T</code>.</p></li>
 <em><code>imag-if-needed</code></em>, and use them to make
 <code>vector_abs_sum</code> behave the same for custom complex types as
 for <code>std::complex</code>.</p></li>
+<li><p>Fix two design issues with <code>idx_abs_max</code>.</p>
+<ol type="1">
+<li><p>For the complex case, make it behave like the BLAS’s ICAMAX or
+IZAMAX, by using <code>abs(</code> <em><code>real-if-needed</code></em>
+<code>(z[k])) + abs(</code> <em><code>imag-if-needed</code></em>
+<code>(z[k]))</code> as the element absolute value definition for
+complex numbers, instead of <code>abs(z[k])</code>.</p></li>
+<li><p>Make <code>idx_abs_max</code> behave the same for custom complex
+types as for <code>std::complex</code>.</p></li>
+</ol></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -7929,11 +7939,11 @@ one-norm for many linear algebra algorithms in practice.
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
 <code>decltype(init + abs(declval&lt;InVec::value_type&gt;()))</code> is
 convertible to <code>T</code>, if <code>InVec::value_type</code> is an
 arithmetic type.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
 Otherwise, <code>decltype(init + abs(</code>
 <em><code>real-if-needed</code></em>
 <code>(declval&lt;InVec::value_type&gt;())) + abs(</code>
@@ -7992,13 +8002,36 @@ absolute value of vector elements [linalg.algs.blas1.iamax]<a href="#index-of-ma
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>IxAMAX</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em> <code>InVec::value_type</code> is
-<em>Cpp17LessThanComparable</em>.</p>
+<em>Mandates:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
+<code>InVec::value_type</code> is <em>Cpp17LessThanComparable</em>, if
+<code>InVec::value_type</code> is an arithmetic type.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
+Otherwise, <code>decltype(abs(</code>
+<em><code>real-if-needed</code></em>
+<code>(declval&lt;InVec::value_type&gt;())) + abs(</code>
+<em><code>imag-if-needed</code></em>
+<code>(declval&lt;InVec::value_type&gt;())))</code> is
+<em>Cpp17LessThanComparable</em>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Returns:</em> The index (in the domain of <code>v</code>) of the
-first element of <code>v</code> having largest absolute value. Returns
+<em>Returns:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
 <code>numeric_limits&lt;typename InVec::size_type&gt;::max()</code> if
-<code>v</code> has zero elements.</p>
+<code>v</code> has zero elements.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+Otherwise, the index (in the domain of <code>v</code>) of the first
+element of <code>v</code> having largest absolute value, if
+<code>InVec::value_type</code> is an arithmetic type.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+Otherwise, the index (in the domain of <code>v</code>) of the first
+element <code>v_e</code> of <code>v</code> for which <code>abs(</code>
+<em><code>real-if-needed</code></em> <code>(v_e)) + abs(</code>
+<em><code>imag-if-needed</code></em> <code>(v_e))</code> has the largest
+value.</p></li>
+</ul>
 <h4 data-number="17.11.2.11" id="frobenius-norm-of-a-matrix-linalg.algs.blas1.matfrobnorm"><span class="header-section-number">17.11.2.11</span> Frobenius norm of a
 matrix [linalg.algs.blas1.matfrobnorm]<a href="#frobenius-norm-of-a-matrix-linalg.algs.blas1.matfrobnorm" class="self-link"></a></h4>
 <h5 data-number="17.11.2.11.1" id="frobenius-norm-with-specified-result-type"><span class="header-section-number">17.11.2.11.1</span> Frobenius norm with
