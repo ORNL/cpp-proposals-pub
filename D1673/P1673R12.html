@@ -1227,7 +1227,7 @@ requirements <em>[linalg.reqs.alg]</em>.</p></li>
 <li><p>In wording of <em><code>conj-if-needed</code></em>, add missing
 definition of the type <code>T</code>.</p></li>
 <li><p>Add exposition-only <em><code>real-if-needed</code></em> and
-<em><code>imag-if-needed</code></em>, which we will use to make
+<em><code>imag-if-needed</code></em>, and use them to make
 <code>vector_abs_sum</code> behave the same for custom complex types as
 for <code>std::complex</code>.</p></li>
 </ul></li>
@@ -7927,24 +7927,37 @@ approximation of the one-norm serves just as well as the actual
 one-norm for many linear algebra algorithms in practice.
 -->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em>
+<em>Mandates:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
 <code>decltype(init + abs(declval&lt;InVec::value_type&gt;()))</code> is
-convertible to <code>T</code>.</p>
+convertible to <code>T</code>, if <code>InVec::value_type</code> is an
+arithmetic type.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+Otherwise, <code>decltype(init + abs(</code>
+<em><code>real-if-needed</code></em>
+<code>(declval&lt;InVec::value_type&gt;())) + abs(</code>
+<em><code>imag-if-needed</code></em>
+<code>(declval&lt;InVec::value_type&gt;())))</code> is convertible to
+<code>T</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em> Let <code>N</code> be <code>v.extent(0)</code>.</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
 <code>init</code> if <code>N</code> is zero.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
-<code>init</code>, <code>abs(real(v[0])) + abs(imag(v[0]))</code>, …,
-<code>abs(real(v[N-1])) + abs(imag(v[N-1]))</code>), if
-<code>typename InVec::value_type</code> is a specialization of
-<code>complex</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
-<code>init</code>, <code>abs(v[0])</code>, …,
-<code>abs(v[N-1])</code>).</p></li>
+<code>init</code>, <code>abs(v[0])</code>, …, <code>abs(v[N-1])</code>),
+if <code>InVec::value_type</code> is an arithmetic type.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
+<code>init</code>, <code>abs(</code>
+<em><code>real-if-needed</code></em> <code>(v[0])) + abs(</code>
+<em><code>imag-if-needed</code></em> <code>(v[0]))</code>, …,
+<code>abs(</code> <em><code>real-if-needed</code></em>
+<code>(v[N-1])) + abs(</code> <em><code>imag-if-needed</code></em>
+<code>(v[N-1]))</code>).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Remarks:</em> If <code>InVec::value_type</code> is a floating-point
