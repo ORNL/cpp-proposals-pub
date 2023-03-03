@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-03-02" />
+  <meta name="dcterms.date" content="2023-03-03" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-03-02</td>
+    <td>2023-03-03</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -537,46 +537,52 @@ the matrix is accessed</a></li>
 matrix; we apply Triangle to transformed matrix</a></li>
 <li><a href="#summary" id="toc-summary"><span class="toc-section-number">10.5.3</span> Summary</a></li>
 </ul></li>
-<li><a href="#over--and-underflow-wording-for-vector-2-norm" id="toc-over--and-underflow-wording-for-vector-2-norm"><span class="toc-section-number">10.6</span> Over- and underflow wording for
+<li><a href="#norms-and-infinity-norms-for-vectors-and-matrices-of-complex-numbers" id="toc-norms-and-infinity-norms-for-vectors-and-matrices-of-complex-numbers"><span class="toc-section-number">10.6</span> 1-norms and infinity-norms for
+vectors and matrices of complex numbers</a>
+<ul>
+<li><a href="#vectors" id="toc-vectors"><span class="toc-section-number">10.6.1</span> Vectors</a></li>
+<li><a href="#matrices" id="toc-matrices"><span class="toc-section-number">10.6.2</span> Matrices</a></li>
+</ul></li>
+<li><a href="#over--and-underflow-wording-for-vector-2-norm" id="toc-over--and-underflow-wording-for-vector-2-norm"><span class="toc-section-number">10.7</span> Over- and underflow wording for
 vector 2-norm</a></li>
-<li><a href="#constraining-matrix-and-vector-element-types-and-scalars" id="toc-constraining-matrix-and-vector-element-types-and-scalars"><span class="toc-section-number">10.7</span> Constraining matrix and vector
+<li><a href="#constraining-matrix-and-vector-element-types-and-scalars" id="toc-constraining-matrix-and-vector-element-types-and-scalars"><span class="toc-section-number">10.8</span> Constraining matrix and vector
 element types and scalars</a>
 <ul>
-<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">10.7.1</span> Introduction</a></li>
-<li><a href="#value-type-constraints-do-not-suffice-to-describe-algorithm-behavior" id="toc-value-type-constraints-do-not-suffice-to-describe-algorithm-behavior"><span class="toc-section-number">10.7.2</span> Value type constraints do not
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">10.8.1</span> Introduction</a></li>
+<li><a href="#value-type-constraints-do-not-suffice-to-describe-algorithm-behavior" id="toc-value-type-constraints-do-not-suffice-to-describe-algorithm-behavior"><span class="toc-section-number">10.8.2</span> Value type constraints do not
 suffice to describe algorithm behavior</a></li>
-<li><a href="#associativity-is-too-strict" id="toc-associativity-is-too-strict"><span class="toc-section-number">10.7.3</span> Associativity is too
+<li><a href="#associativity-is-too-strict" id="toc-associativity-is-too-strict"><span class="toc-section-number">10.8.3</span> Associativity is too
 strict</a></li>
-<li><a href="#generalizing-associativity-helps-little" id="toc-generalizing-associativity-helps-little"><span class="toc-section-number">10.7.4</span> Generalizing associativity
+<li><a href="#generalizing-associativity-helps-little" id="toc-generalizing-associativity-helps-little"><span class="toc-section-number">10.8.4</span> Generalizing associativity
 helps little</a></li>
-<li><a href="#categories-of-qoi-enhancements" id="toc-categories-of-qoi-enhancements"><span class="toc-section-number">10.7.5</span> Categories of QoI
+<li><a href="#categories-of-qoi-enhancements" id="toc-categories-of-qoi-enhancements"><span class="toc-section-number">10.8.5</span> Categories of QoI
 enhancements</a></li>
-<li><a href="#properties-of-textbook-algorithm-descriptions" id="toc-properties-of-textbook-algorithm-descriptions"><span class="toc-section-number">10.7.6</span> Properties of textbook
+<li><a href="#properties-of-textbook-algorithm-descriptions" id="toc-properties-of-textbook-algorithm-descriptions"><span class="toc-section-number">10.8.6</span> Properties of textbook
 algorithm descriptions</a></li>
-<li><a href="#reordering-sums-and-creating-temporaries" id="toc-reordering-sums-and-creating-temporaries"><span class="toc-section-number">10.7.7</span> Reordering sums and creating
+<li><a href="#reordering-sums-and-creating-temporaries" id="toc-reordering-sums-and-creating-temporaries"><span class="toc-section-number">10.8.7</span> Reordering sums and creating
 temporaries</a></li>
-<li><a href="#textbook-algorithm-description-in-semiring-terms" id="toc-textbook-algorithm-description-in-semiring-terms"><span class="toc-section-number">10.7.8</span> “Textbook” algorithm
+<li><a href="#textbook-algorithm-description-in-semiring-terms" id="toc-textbook-algorithm-description-in-semiring-terms"><span class="toc-section-number">10.8.8</span> “Textbook” algorithm
 description in semiring terms</a></li>
-<li><a href="#summary-1" id="toc-summary-1"><span class="toc-section-number">10.7.9</span> Summary</a></li>
+<li><a href="#summary-1" id="toc-summary-1"><span class="toc-section-number">10.8.9</span> Summary</a></li>
 </ul></li>
-<li><a href="#fix-issues-with-complex-and-support-user-defined-complex-number-types" id="toc-fix-issues-with-complex-and-support-user-defined-complex-number-types"><span class="toc-section-number">10.8</span> Fix issues with
+<li><a href="#fix-issues-with-complex-and-support-user-defined-complex-number-types" id="toc-fix-issues-with-complex-and-support-user-defined-complex-number-types"><span class="toc-section-number">10.9</span> Fix issues with
 <code>complex</code>, and support user-defined complex number types</a>
 <ul>
-<li><a href="#motivation-and-summary-of-solution" id="toc-motivation-and-summary-of-solution"><span class="toc-section-number">10.8.1</span> Motivation and summary of
+<li><a href="#motivation-and-summary-of-solution" id="toc-motivation-and-summary-of-solution"><span class="toc-section-number">10.9.1</span> Motivation and summary of
 solution</a></li>
-<li><a href="#why-users-define-their-own-complex-number-types" id="toc-why-users-define-their-own-complex-number-types"><span class="toc-section-number">10.8.2</span> Why users define their own
+<li><a href="#why-users-define-their-own-complex-number-types" id="toc-why-users-define-their-own-complex-number-types"><span class="toc-section-number">10.9.2</span> Why users define their own
 complex number types</a></li>
-<li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers" id="toc-why-users-want-to-conjugate-matrices-of-real-numbers"><span class="toc-section-number">10.8.3</span> Why users want to “conjugate”
+<li><a href="#why-users-want-to-conjugate-matrices-of-real-numbers" id="toc-why-users-want-to-conjugate-matrices-of-real-numbers"><span class="toc-section-number">10.9.3</span> Why users want to “conjugate”
 matrices of real numbers</a></li>
-<li><a href="#effects-of-conjs-real-to-complex-change" id="toc-effects-of-conjs-real-to-complex-change"><span class="toc-section-number">10.8.4</span> Effects of <code>conj</code>’s
+<li><a href="#effects-of-conjs-real-to-complex-change" id="toc-effects-of-conjs-real-to-complex-change"><span class="toc-section-number">10.9.4</span> Effects of <code>conj</code>’s
 real-to-complex change</a></li>
-<li><a href="#lewg-feedback-on-r8-solution" id="toc-lewg-feedback-on-r8-solution"><span class="toc-section-number">10.8.5</span> LEWG feedback on R8
+<li><a href="#lewg-feedback-on-r8-solution" id="toc-lewg-feedback-on-r8-solution"><span class="toc-section-number">10.9.5</span> LEWG feedback on R8
 solution</a></li>
-<li><a href="#sg6s-response-to-lewgs-r8-feedback" id="toc-sg6s-response-to-lewgs-r8-feedback"><span class="toc-section-number">10.8.6</span> SG6’s response to LEWG’s R8
+<li><a href="#sg6s-response-to-lewgs-r8-feedback" id="toc-sg6s-response-to-lewgs-r8-feedback"><span class="toc-section-number">10.9.6</span> SG6’s response to LEWG’s R8
 feedback</a></li>
-<li><a href="#current-solution" id="toc-current-solution"><span class="toc-section-number">10.8.7</span> Current solution</a></li>
+<li><a href="#current-solution" id="toc-current-solution"><span class="toc-section-number">10.9.7</span> Current solution</a></li>
 </ul></li>
-<li><a href="#support-for-division-with-noncommutative-multiplication" id="toc-support-for-division-with-noncommutative-multiplication"><span class="toc-section-number">10.9</span> Support for division with
+<li><a href="#support-for-division-with-noncommutative-multiplication" id="toc-support-for-division-with-noncommutative-multiplication"><span class="toc-section-number">10.10</span> Support for division with
 noncommutative multiplication</a></li>
 </ul></li>
 <li><a href="#future-work" id="toc-future-work"><span class="toc-section-number">11</span> Future work</a>
@@ -1440,9 +1446,15 @@ C++;</p></li>
 <li><p>how the BLAS’ different “matrix types” map to different
 algorithms, rather than different <code>mdspan</code> layouts;</p></li>
 <li><p>how we express quality-of-implementation recommendations about
-avoiding undue overflow and underflow; and</p></li>
+avoiding undue overflow and underflow;</p></li>
 <li><p>how we impose requirements on algorithms’ behavior and on the
-various value types that algorithms encounter.</p></li>
+various value types that algorithms encounter;</p></li>
+<li><p>how we support for user-defined complex number types and address
+type preservation and domain issues with <code>std::abs</code>,
+<code>std::conj</code>, <code>std::real</code>, and
+<code>std::imag</code>; and,</p></li>
+<li><p>how we support division for triangular solves, for value types
+with noncommutative multiplication.</p></li>
 </ul>
 <p>Section <a href="#future-work"><span class="secno">11</span></a>
 lists future work, that is, ways future proposals could build on this
@@ -2079,11 +2091,12 @@ challenging part of their implementation, nor is it what makes an
 implementation “high quality.”</p>
 <p>Algorithms in the third category could be replaced with a few lines
 of C++ that use ranges algorithms. For example, here is a parallel
-implementation of <code>idx_abs_max</code>, that omits template
-parameters’ constraints and uses <code>std::abs</code> instead of
-<em><code>abs-if-needed</code></em> for simplicity of exposition. (Here
-is a <a href="https://godbolt.org/z/7eW9ExsKM">Compiler Explorer
-link</a> to a working example.)</p>
+implementation of <code>idx_abs_max</code>, with simplifications for
+exposition. (It omits template parameters’ constraints, uses
+<code>std::abs</code> instead of <em><code>abs-if-needed</code></em>,
+and does not address the complex number case. Here is a
+<a href="https://godbolt.org/z/7eW9ExsKM">Compiler Explorer link</a> to
+a working example.)</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Element, <span class="kw">class</span> Extents,</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> Layout, <span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> Extents<span class="op">::</span>size_type idx_abs_max<span class="op">(</span></span>
@@ -2192,7 +2205,10 @@ functions, the <code>x</code> is a prefix, but for a few functions like
 the function name. (<code>IxAMAX</code> is a Fortran function that
 returns <code>INTEGER</code>, and therefore follows the old Fortran
 implicit naming rule that integers start with <code>I</code>,
-<code>J</code>, etc.)</p>
+<code>J</code>, etc.) Other examples include the vector 2-norm functions
+<code>SCNRM2</code> and <code>DZNRM2</code>, where the first letter
+indicates the return type and the second letter indicates the vector
+element type.</p>
 <p>Not all BLAS functions exist for all four data types. These come in
 three categories:</p>
 <ol type="1">
@@ -2860,7 +2876,97 @@ transformed matrix, after any transposition.</p></li>
 <li><p>Our approach is the only reasonable way to handle the full
 generality of user-defined layouts and layout transformations.</p></li>
 </ol>
-<h2 data-number="10.6" id="over--and-underflow-wording-for-vector-2-norm"><span class="header-section-number">10.6</span> Over- and underflow wording
+<h2 data-number="10.6" id="norms-and-infinity-norms-for-vectors-and-matrices-of-complex-numbers"><span class="header-section-number">10.6</span> 1-norms and infinity-norms for
+vectors and matrices of complex numbers<a href="#norms-and-infinity-norms-for-vectors-and-matrices-of-complex-numbers" class="self-link"></a></h2>
+<h3 data-number="10.6.1" id="vectors"><span class="header-section-number">10.6.1</span> Vectors<a href="#vectors" class="self-link"></a></h3>
+<p>The 1-norm of a vector of real numbers is the sum of the absolute
+values of the vector’s elements. The infinity-norm of a vector of real
+numbers is the maximum of the absolute values of the vector’s elements.
+Both of these are useful for analyzing rounding errors when solving
+common linear algebra problems. For example, the 1-norm of a vector
+expresses the condition number of the sum of the vector’s elements (see
+Higham 2002, Section 4.2), while the infinity-norm expresses the
+normwise backward error of the computed solution vector when solving a
+linear system using Gaussian elimination (see LAPACK Users’ Guide).</p>
+<p>The straightforward extension of both of these definitions for
+vectors of complex numbers would be to replace “absolute value” with
+“magnitude.” C++ suggests this by defining <code>std::abs</code> for
+complex arguments as the magnitude. However, the BLAS instead uses the
+sum of the absolute values of the real and imaginary components of each
+element. For example, the BLAS functions <code>SASUM</code> and
+<code>DASUM</code> compute the actual 1-norm <span class="math inline">∑<sub><em>i</em></sub>|<em>v</em><sub><em>i</em></sub>|</span>.
+of their length-<span class="math inline"><em>n</em></span> input vector
+of real elements <span class="math inline"><em>v</em></span>, while
+their complex counterparts <code>CSASUM</code> and <code>DZASUM</code>
+compute <span class="math inline">∑<sub><em>i</em></sub>|ℜ(<em>z</em><sub><em>i</em></sub>)| + |ℑ(<em>z</em><sub><em>i</em></sub>)|</span>
+for their length <span class="math inline"><em>n</em></span> input
+vector of complex elements <span class="math inline"><em>z</em></span>.
+Likewise, the real BLAS functions <code>ISAMAX</code> and
+<code>IDAMAX</code> find <span class="math inline">max<sub><em>i</em></sub>|<em>v</em><sub><em>i</em></sub>|</span>,
+while their complex counterparts <code>ICAMAX</code> and
+<code>IZAMAX</code> find <span class="math inline">max<sub><em>i</em></sub>|ℜ(<em>z</em><sub><em>i</em></sub>)| + |ℑ(<em>z</em><sub><em>i</em></sub>)|</span>.</p>
+<p>Annex A.1 of the BLAS Standard (p. 173) explains that this is a
+performance optimization, to avoid the expense of computing <span class="math inline"><em>n</em></span> square roots (one for each vector
+element). It also results in tighter error bounds. For example, adding
+complex numbers sums their real and imaginary parts separately. Thus,
+the rounding error committed by the sum can be considered as a
+two-component vector. For a vector <span class="math inline"><em>x</em></span> of length 2, <span class="math inline">$\| x \|_1 \leq \sqrt{2} \| x \|_2$</span> and <span class="math inline">∥<em>x</em>∥<sub>2</sub> ≤ ∥<em>x</em>∥<sub>1</sub></span>
+(see LAPACK Users’ Guide), so using the “1-norm” <span class="math inline">|ℜ(<em>z</em>)| + |ℑ(<em>z</em>)|</span> of a
+complex number <span class="math inline"><em>z</em></span>, instead of
+the “2-norm” <span class="math inline">|<em>z</em>|</span>, gives a
+tighter error bound.</p>
+<p>This is why P1673’s <code>vector_abs_sum</code> (vector 1-norm) and
+<code>idx_abs_max</code> (vector infinity-norm) functions use <span class="math inline">|ℜ(<em>z</em>)| + |ℑ(<em>z</em>)|</span> instead of
+<span class="math inline">|<em>z</em>|</span> for the “absolute value”
+of each vector element.</p>
+<p>One disadvantage of these definitions is that the resulting
+quantities are not actually norms. This is because they do not preserve
+scaling factors.</p>
+<h3 data-number="10.6.2" id="matrices"><span class="header-section-number">10.6.2</span> Matrices<a href="#matrices" class="self-link"></a></h3>
+<p>The 1-norm <span class="math inline">∥<em>A</em>∥<sub>1</sub></span>
+of a matrix <span class="math inline"><em>A</em></span> is <span class="math inline"><em>m</em><em>a</em><em>x</em><sub>∥<em>x</em>∥<sub>1</sub></sub>∥<em>A</em><em>x</em>∥<sub>1</sub></span>
+for all vectors <span class="math inline"><em>x</em></span> with the
+same number of elements as A has columns. The infinity-norm <span class="math inline">∥<em>A</em>∥<sub>∞</sub></span> of a matrix <span class="math inline"><em>A</em></span> is <span class="math inline"><em>m</em><em>a</em><em>x</em><sub>∥<em>x</em>∥<sub>∞</sub></sub>∥<em>A</em><em>x</em>∥<sub>∞</sub></span>
+for all vectors <span class="math inline"><em>x</em></span> with the
+same number of elements as A has columns. The 1-norm is the
+infinity-norm of the transpose, and vice versa.</p>
+<p>Given that these norms are defined using the corresponding vector
+norms, it would seem reasonable to use the BLAS’s optimizations for
+vectors of complex numbers. However, the BLAS exists to serve LINPACK
+and its successor, LAPACK (see P1417 for citations and a summary of the
+history). Thus, looking at what LAPACK actually computes would be the
+best guide. LAPACK uses matrix 1-norms and infinity-norms in two
+different ways.</p>
+<p>First, <em>equilibration</em> reduces errors when solving linear
+systems using Gaussian elimination. It does so by scaling rows and
+columns to minimize the matrix’s <em>condition number</em> <span class="math inline">∥<em>A</em>∥<sub>1</sub>∥<em>A</em><sup>−1</sup>∥<sub>1</sub></span>
+(or <span class="math inline">∥<em>A</em>∥<sub>∞</sub>∥<em>A</em><sup>−1</sup>∥<sub>∞</sub></span>;
+minimizing one minimizes the other). This effectively tries to make the
+maximum absolute value of each row and column of the matrix as close to
+1 as possible. (We say “close to 1,” because LAPACK equilibrates using
+scaling factors that are powers of two, to prevent rounding error in
+binary floating-point arithmetic.) LAPACK performs equilibration with
+the routines <code>xyzEQU</code>, where <code>x</code> represents the
+matrix’s element type and the two letters <code>yz</code> represent the
+kind of matrix (e.g., <code>GE</code> for a general dense nonsymmetric
+matrix). The complex versions of these routines use <span class="math inline">|ℜ(<em>A</em><sub><em>i</em><em>j</em></sub>)| + |ℑ(<em>A</em><sub><em>i</em><em>j</em></sub>)|</span>
+for the “absolute value” of each matrix element <span class="math inline"><em>A</em><sub><em>i</em><em>j</em></sub></span>.
+This aligns mathematically with how LAPACK measures errors when solving
+a linear system <span class="math inline"><em>A</em><em>x</em> = <em>b</em></span>.</p>
+<p>Second, <em>condition number estimation</em> estimates the condition
+number of a matrix <span class="math inline"><em>A</em></span>. LAPACK
+relies on the 1-norm condition number <span class="math inline">∥<em>A</em>∥<sub>1</sub>∥<em>A</em><sup>−1</sup>∥<sub>1</sub></span>
+to estimate errors for nearly all of its computations. LAPACK’s
+<code>xyzCON</code> routines perform condition number estimation. It
+turns out that the complex versions of these routines require using the
+“true” 1-norm <span class="math inline">|<em>A</em><sub><em>i</em><em>j</em></sub>|</span>,
+instead of <span class="math inline">|ℜ(<em>A</em><sub><em>i</em><em>j</em></sub>)| + |ℑ(<em>A</em><sub><em>i</em><em>j</em></sub>)|</span>
+(as explained in Higham 1988).</p>
+<p>LAPACK only ever actually <em>computes</em> matrix 1-norms or
+infinity-norms when it estimates the matrix condition number. Thus,
+LAPACK actually needs to compute the “true” matrix 1-norm (and
+infinity-norm).</p>
+<h2 data-number="10.7" id="over--and-underflow-wording-for-vector-2-norm"><span class="header-section-number">10.7</span> Over- and underflow wording
 for vector 2-norm<a href="#over--and-underflow-wording-for-vector-2-norm" class="self-link"></a></h2>
 <p>SG6 recommended to us at Belfast 2019 to change the special overflow
 / underflow wording for <code>vector_two_norm</code> to imitate the BLAS
@@ -2940,9 +3046,9 @@ implementors” as “primarily commentary to implementors” and permissible
 to skip (see e.g., MPI 3.0, Section 2.1, p. 9). We thus interpret
 “Advice to implementors” in the BLAS Standard as a nonbinding quality of
 implementation (QoI) recommendation.</p>
-<h2 data-number="10.7" id="constraining-matrix-and-vector-element-types-and-scalars"><span class="header-section-number">10.7</span> Constraining matrix and vector
+<h2 data-number="10.8" id="constraining-matrix-and-vector-element-types-and-scalars"><span class="header-section-number">10.8</span> Constraining matrix and vector
 element types and scalars<a href="#constraining-matrix-and-vector-element-types-and-scalars" class="self-link"></a></h2>
-<h3 data-number="10.7.1" id="introduction"><span class="header-section-number">10.7.1</span> Introduction<a href="#introduction" class="self-link"></a></h3>
+<h3 data-number="10.8.1" id="introduction"><span class="header-section-number">10.8.1</span> Introduction<a href="#introduction" class="self-link"></a></h3>
 <p>The BLAS only accepts four different types of scalars and matrix and
 vector elements. In C++ terms, these correspond to <code>float</code>,
 <code>double</code>, <code>complex&lt;float&gt;</code>, and
@@ -2972,7 +3078,7 @@ algorithms.</p></li>
 vendors to optimize. Thus, performance is a major concern. “Accuracy”
 here refers to either to rounding error or to approximation error (for
 matrix or vector element types where either makes sense).</p>
-<h3 data-number="10.7.2" id="value-type-constraints-do-not-suffice-to-describe-algorithm-behavior"><span class="header-section-number">10.7.2</span> Value type constraints do
+<h3 data-number="10.8.2" id="value-type-constraints-do-not-suffice-to-describe-algorithm-behavior"><span class="header-section-number">10.8.2</span> Value type constraints do
 not suffice to describe algorithm behavior<a href="#value-type-constraints-do-not-suffice-to-describe-algorithm-behavior" class="self-link"></a></h3>
 <p>LEWG’s 2020 review of P1673R2 asked us to investigate
 conceptification of its algorithms. “Conceptification” here refers to an
@@ -2996,7 +3102,7 @@ Second, what we really want to do is describe the behavior of
 algorithms, regardless of value types’ semantics. “The algorithm may
 reorder sums” means something different than “addition on the terms in
 the sum is associative.”</p>
-<h3 data-number="10.7.3" id="associativity-is-too-strict"><span class="header-section-number">10.7.3</span> Associativity is too
+<h3 data-number="10.8.3" id="associativity-is-too-strict"><span class="header-section-number">10.8.3</span> Associativity is too
 strict<a href="#associativity-is-too-strict" class="self-link"></a></h3>
 <p>P1813R0 requires associative addition for many algorithms, such as
 <code>reduce</code>. However, many practical arithmetic systems that
@@ -3039,7 +3145,7 @@ need not. Compare to <code>MPI_Op_create</code>’s <code>commute</code>
 parameter, that affects the behavior of algorithms like
 <code>MPI_Reduce</code> when used with the resulting user-defined
 reduction operator.)</p>
-<h3 data-number="10.7.4" id="generalizing-associativity-helps-little"><span class="header-section-number">10.7.4</span> Generalizing associativity
+<h3 data-number="10.8.4" id="generalizing-associativity-helps-little"><span class="header-section-number">10.8.4</span> Generalizing associativity
 helps little<a href="#generalizing-associativity-helps-little" class="self-link"></a></h3>
 <p>Suppose we accept that associativity and related properties are not
 useful for describing our proposed algorithms. Could there be a
@@ -3136,7 +3242,7 @@ will distinguish textbook from non-textbook ways of changing algorithms,
 explain that we only permit non-textbook changes for floating-point
 types, then develop constraints on types that permit textbook
 changes.</p>
-<h3 data-number="10.7.5" id="categories-of-qoi-enhancements"><span class="header-section-number">10.7.5</span> Categories of QoI
+<h3 data-number="10.8.5" id="categories-of-qoi-enhancements"><span class="header-section-number">10.8.5</span> Categories of QoI
 enhancements<a href="#categories-of-qoi-enhancements" class="self-link"></a></h3>
 <p>An important goal of constraining our algorithms is to give
 implementers the freedom to make QoI enhancements. We categorize QoI
@@ -3174,7 +3280,7 @@ recommend either (Strang 2016), or the concise mathematical description
 of operations in the BLAS Standard. In the next section, we will list
 properties of textbook descriptions, and explain some ways in which QoI
 enhancements might fail to adhere to those properties.</p>
-<h3 data-number="10.7.6" id="properties-of-textbook-algorithm-descriptions"><span class="header-section-number">10.7.6</span> Properties of textbook
+<h3 data-number="10.8.6" id="properties-of-textbook-algorithm-descriptions"><span class="header-section-number">10.8.6</span> Properties of textbook
 algorithm descriptions<a href="#properties-of-textbook-algorithm-descriptions" class="self-link"></a></h3>
 <p>“Textbook descriptions” of the algorithms we propose tend to have the
 following properties. For each property, we give an example of a
@@ -3272,7 +3378,7 @@ includes implementation-specific types, such as short or
 extended-precision floats. This change may require implementers to look
 carefully at the definition of logarithmically stable before making
 certain algorithmic choices, especially for short floats.</p>
-<h3 data-number="10.7.7" id="reordering-sums-and-creating-temporaries"><span class="header-section-number">10.7.7</span> Reordering sums and creating
+<h3 data-number="10.8.7" id="reordering-sums-and-creating-temporaries"><span class="header-section-number">10.8.7</span> Reordering sums and creating
 temporaries<a href="#reordering-sums-and-creating-temporaries" class="self-link"></a></h3>
 <p>Even textbook descriptions of linear algebra algorithms presume the
 freedom to reorder sums and create temporary values. Optimizations for
@@ -3289,7 +3395,7 @@ be implementation defined, and others may be user-specified. We intend
 to permit implementers to optimize for these types as well. This
 motivates us to describe our algorithms’ type requirements in a generic
 way.</p>
-<h4 data-number="10.7.7.1" id="special-case-only-one-element-type"><span class="header-section-number">10.7.7.1</span> Special case: Only one
+<h4 data-number="10.8.7.1" id="special-case-only-one-element-type"><span class="header-section-number">10.8.7.1</span> Special case: Only one
 element type<a href="#special-case-only-one-element-type" class="self-link"></a></h4>
 <p>We find it easier to think about type requirements by starting with
 the assumption that all element and scalar types in algorithms are the
@@ -3337,7 +3443,7 @@ more detailed explanation.</p>
 value-initialization produces a two-sided additive identity. What
 matters is what the algorithm’s implementation may do, not whether the
 type actually behaves in this way.</p>
-<h4 data-number="10.7.7.2" id="general-case-multiple-input-element-types"><span class="header-section-number">10.7.7.2</span> General case: Multiple
+<h4 data-number="10.8.7.2" id="general-case-multiple-input-element-types"><span class="header-section-number">10.8.7.2</span> General case: Multiple
 input element types<a href="#general-case-multiple-input-element-types" class="self-link"></a></h4>
 <p>An important feature of P1673 is the ability to compute with mixed
 matrix or vector element types. For instance,
@@ -3345,7 +3451,7 @@ matrix or vector element types. For instance,
 + alpha*x, an elementwise scaled vector sum. The element types of the
 vectors x, y, and z could be all different, and could differ from the
 type of alpha.</p>
-<h5 data-number="10.7.7.2.1" id="accumulate-into-output-value-type"><span class="header-section-number">10.7.7.2.1</span> Accumulate into output
+<h5 data-number="10.8.7.2.1" id="accumulate-into-output-value-type"><span class="header-section-number">10.8.7.2.1</span> Accumulate into output
 value type<a href="#accumulate-into-output-value-type" class="self-link"></a></h5>
 <p>Generic algorithms would use the output <code>mdspan</code>’s
 <code>value_type</code> to accumulate partial sums, and for any
@@ -3355,7 +3461,7 @@ types might accumulate into higher-precision temporaries, or use other
 ways to increase accuracy when accumulating partial sums, but the output
 <code>mdspan</code>’s <code>value_type</code> would still control
 accumulation behavior in general.</p>
-<h5 data-number="10.7.7.2.2" id="proxy-references-or-expression-templates"><span class="header-section-number">10.7.7.2.2</span> Proxy references or
+<h5 data-number="10.8.7.2.2" id="proxy-references-or-expression-templates"><span class="header-section-number">10.8.7.2.2</span> Proxy references or
 expression templates<a href="#proxy-references-or-expression-templates" class="self-link"></a></h5>
 <ol type="1">
 <li><p>Proxy references: The input and/or output <code>mdspan</code>
@@ -3387,7 +3493,7 @@ side of the expression that defines the algorithm. If algorithms have
 permission to rearrange the order of sums, then they need to be able to
 break up such expressions into separate terms, even if some of those
 expressions are expression templates.</p>
-<h3 data-number="10.7.8" id="textbook-algorithm-description-in-semiring-terms"><span class="header-section-number">10.7.8</span> “Textbook” algorithm
+<h3 data-number="10.8.8" id="textbook-algorithm-description-in-semiring-terms"><span class="header-section-number">10.8.8</span> “Textbook” algorithm
 description in semiring terms<a href="#textbook-algorithm-description-in-semiring-terms" class="self-link"></a></h3>
 <p>As we explain in the “Value type constraints do not suffice to
 describe algorithm behavior” section above, we deliberately constrain
@@ -3407,7 +3513,7 @@ not require all elements to have an additive inverse. That is, addition
 is allowed, but not subtraction. Implementers may apply any mathematical
 transformation to the expressions that would give the same result for
 any semiring.</p>
-<h4 data-number="10.7.8.1" id="why-a-semiring"><span class="header-section-number">10.7.8.1</span> Why a semiring?<a href="#why-a-semiring" class="self-link"></a></h4>
+<h4 data-number="10.8.8.1" id="why-a-semiring"><span class="header-section-number">10.8.8.1</span> Why a semiring?<a href="#why-a-semiring" class="self-link"></a></h4>
 <p>We use a semiring because</p>
 <ol type="1">
 <li><p>we generally want to reorder terms in sums, but we do not want to
@@ -3419,7 +3525,7 @@ matrix or vector element types with noncommutative multiplication, such
 as quaternions or matrices. The second is because algebra operations
 might be useful for signed integers, where a formulation using
 subtraction risks unexpected undefined behavior.</p>
-<h4 data-number="10.7.8.2" id="semirings-and-testing"><span class="header-section-number">10.7.8.2</span> Semirings and testing<a href="#semirings-and-testing" class="self-link"></a></h4>
+<h4 data-number="10.8.8.2" id="semirings-and-testing"><span class="header-section-number">10.8.8.2</span> Semirings and testing<a href="#semirings-and-testing" class="self-link"></a></h4>
 <p>It’s important that implementers be able to test our proposed
 algorithms for custom element types, not just the built-in arithmetic
 types. We don’t want to require hypothetical “exact real arithmetic”
@@ -3428,7 +3534,7 @@ testing with simple classes built out of unsigned integers. This section
 is not part of our Standard Library proposal, but we include it to give
 guidance to implementers and to show that it’s feasible to test our
 proposal.</p>
-<h4 data-number="10.7.8.3" id="commutative-multiplication"><span class="header-section-number">10.7.8.3</span> Commutative
+<h4 data-number="10.8.8.3" id="commutative-multiplication"><span class="header-section-number">10.8.8.3</span> Commutative
 multiplication<a href="#commutative-multiplication" class="self-link"></a></h4>
 <p>C++ unsigned integers implement commutative rings. (Rings always have
 commutative addition; a “commutative ring” has commutative
@@ -3437,12 +3543,12 @@ into a commutative semiring by wrapping it in a class that does not
 provide unary or binary <code>operator-</code>. Adding a “tag” template
 parameter to this class would let implementers build tests for mixed
 element types.</p>
-<h4 data-number="10.7.8.4" id="noncommutative-multiplication"><span class="header-section-number">10.7.8.4</span> Noncommutative
+<h4 data-number="10.8.8.4" id="noncommutative-multiplication"><span class="header-section-number">10.8.8.4</span> Noncommutative
 multiplication<a href="#noncommutative-multiplication" class="self-link"></a></h4>
 <p>The semiring of 2x2 matrices with element type a commutative semiring
 is itself a semiring, but with noncommutative multiplication. This is a
 good way to build a noncommutative semiring for testing.</p>
-<h3 data-number="10.7.9" id="summary-1"><span class="header-section-number">10.7.9</span> Summary<a href="#summary-1" class="self-link"></a></h3>
+<h3 data-number="10.8.9" id="summary-1"><span class="header-section-number">10.8.9</span> Summary<a href="#summary-1" class="self-link"></a></h3>
 <ul>
 <li><p>Constraining the matrix and vector element types and scalar types
 in our functions gives implementers the freedom to make QoI enhancements
@@ -3461,9 +3567,9 @@ implementation freedom, even though we do not think it is a good way to
 constrain types. We then use the semiring description to explain how
 implementers can test generic algorithms.</p></li>
 </ul>
-<h2 data-number="10.8" id="fix-issues-with-complex-and-support-user-defined-complex-number-types"><span class="header-section-number">10.8</span> Fix issues with
+<h2 data-number="10.9" id="fix-issues-with-complex-and-support-user-defined-complex-number-types"><span class="header-section-number">10.9</span> Fix issues with
 <code>complex</code>, and support user-defined complex number types<a href="#fix-issues-with-complex-and-support-user-defined-complex-number-types" class="self-link"></a></h2>
-<h3 data-number="10.8.1" id="motivation-and-summary-of-solution"><span class="header-section-number">10.8.1</span> Motivation and summary of
+<h3 data-number="10.9.1" id="motivation-and-summary-of-solution"><span class="header-section-number">10.9.1</span> Motivation and summary of
 solution<a href="#motivation-and-summary-of-solution" class="self-link"></a></h3>
 <p>The BLAS provides functionality specifically for vectors and matrices
 of complex numbers. Built into the BLAS is the assumption that the
@@ -3529,7 +3635,7 @@ type. These “wrappers” can also adjust the behavior of
 <em><code>conj-if-needed</code></em>,
 <em><code>real-if-needed</code></em>, and
 <em><code>imag-if-needed</code></em>.</p>
-<h3 data-number="10.8.2" id="why-users-define-their-own-complex-number-types"><span class="header-section-number">10.8.2</span> Why users define their own
+<h3 data-number="10.9.2" id="why-users-define-their-own-complex-number-types"><span class="header-section-number">10.9.2</span> Why users define their own
 complex number types<a href="#why-users-define-their-own-complex-number-types" class="self-link"></a></h3>
 <p>Users define their own complex number types for three reasons.</p>
 <ol type="1">
@@ -3579,7 +3685,7 @@ and Thrust. The SYCL standard is contemplating adding a custom complex
 number type. One of the authors wrote <code>Kokkos::complex</code> circa
 2014 to make it possible to build and run Trilinos’ linear solvers with
 such C++ extensions.</p>
-<h3 data-number="10.8.3" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="header-section-number">10.8.3</span> Why users want to
+<h3 data-number="10.9.3" id="why-users-want-to-conjugate-matrices-of-real-numbers"><span class="header-section-number">10.9.3</span> Why users want to
 “conjugate” matrices of real numbers<a href="#why-users-want-to-conjugate-matrices-of-real-numbers" class="self-link"></a></h3>
 <p>It’s possible to describe many linear algebra algorithms in a way
 that works for both complex and real numbers, by treating conjugation as
@@ -3600,7 +3706,7 @@ thing as Hermitian for matrices of complex numbers. For example, a
 matrix whose off-diagonal elements are all <code>3 + 4i</code> is
 symmetric, but not Hermitian. Complex symmetric matrices are useful in
 practice, for example when modeling damped vibrations (Craven 1969).</p>
-<h3 data-number="10.8.4" id="effects-of-conjs-real-to-complex-change"><span class="header-section-number">10.8.4</span> Effects of
+<h3 data-number="10.9.4" id="effects-of-conjs-real-to-complex-change"><span class="header-section-number">10.9.4</span> Effects of
 <code>conj</code>’s real-to-complex change<a href="#effects-of-conjs-real-to-complex-change" class="self-link"></a></h3>
 <p>The fact that <code>conj</code> for arithmetic-type arguments returns
 <code>complex</code> may complicate or prevent implementers from using
@@ -3624,7 +3730,7 @@ having value type <code>double</code>, <code>B</code> having value type
 compile, due to
 <code>complex&lt;decltype(declval&lt;double&gt;() * declval&lt;MyReal&gt;())&gt;</code>
 not being well formed.</p>
-<h3 data-number="10.8.5" id="lewg-feedback-on-r8-solution"><span class="header-section-number">10.8.5</span> LEWG feedback on R8
+<h3 data-number="10.9.5" id="lewg-feedback-on-r8-solution"><span class="header-section-number">10.9.5</span> LEWG feedback on R8
 solution<a href="#lewg-feedback-on-r8-solution" class="self-link"></a></h3>
 <p>In R8 of this paper, we proposed an exposition-only function
 <em><code>conj-if-needed</code></em>. For arithmetic types, it would be
@@ -3659,7 +3765,7 @@ then change P1673 again to use <code>conjugate</code> (thus replacing
 R8’s <em><code>conj-if-needed</code></em>). This would thus reintroduce
 support for custom complex numbers.</p></li>
 </ol>
-<h3 data-number="10.8.6" id="sg6s-response-to-lewgs-r8-feedback"><span class="header-section-number">10.8.6</span> SG6’s response to LEWG’s R8
+<h3 data-number="10.9.6" id="sg6s-response-to-lewgs-r8-feedback"><span class="header-section-number">10.9.6</span> SG6’s response to LEWG’s R8
 feedback<a href="#sg6s-response-to-lewgs-r8-feedback" class="self-link"></a></h3>
 <p>SG6 small group (there was no quorum) reviewed P1673 on 2022/06/09,
 after LEWG’s R8 review on 2022/05/24. SG6 small group expressed the
@@ -3686,7 +3792,7 @@ to regain safety. The cost is that custom real types need to have a
 <code>conj</code> ADL-findable, if users use <code>conjugated</code> or
 <code>conjugate_transposed</code>.)</p></li>
 </ul>
-<h3 data-number="10.8.7" id="current-solution"><span class="header-section-number">10.8.7</span> Current solution<a href="#current-solution" class="self-link"></a></h3>
+<h3 data-number="10.9.7" id="current-solution"><span class="header-section-number">10.9.7</span> Current solution<a href="#current-solution" class="self-link"></a></h3>
 <p>We have adopted SG6 small group’s recommendation, with a slight
 wording modification to make it obvious that the conjugate of an
 arithmetic type returns the same type as its input.</p>
@@ -3713,7 +3819,7 @@ numbers.</p></li>
 <li><p>It does not depend on a future customization point syntax or
 library convention.</p></li>
 </ol>
-<h2 data-number="10.9" id="support-for-division-with-noncommutative-multiplication"><span class="header-section-number">10.9</span> Support for division with
+<h2 data-number="10.10" id="support-for-division-with-noncommutative-multiplication"><span class="header-section-number">10.10</span> Support for division with
 noncommutative multiplication<a href="#support-for-division-with-noncommutative-multiplication" class="self-link"></a></h2>
 <p>An important feature of this proposal is its support for value types
 that have noncommutative multiplication. Examples include square
@@ -3971,6 +4077,8 @@ and M. Dominiak, “A General Property Customization Mechanism,”
 <li><p>E. Anderson, “Algorithm 978: Safe Scaling in the Level 1 BLAS,”
 <em>ACM Transactions on Mathematical Software</em>, Vol. 44, pp. 1-28,
 2017.</p></li>
+<li><p>E. Anderson et al., <a href="https://netlib.org/lapack/lug/lapack_lug.html"><em>LAPACK Users’
+Guide</em></a>, Third Edition, SIAM, 1999.</p></li>
 <li><p><a href="http://netlib.org/blas/blast-forum/blas-report.pdf">“Basic Linear
 Algebra Subprograms Technical (BLAST) Forum Standard,”</a>
 <em>International Journal of High Performance Applications and
@@ -4021,7 +4129,13 @@ API for BLAS and LAPACK,”</a> SLATE Working Notes, Innovative Computing
 Laboratory, University of Tennessee Knoxville, Feb. 2018.</p></li>
 <li><p>K. Goto and R. A. van de Geijn, <a href="https://doi.org/10.1145/1356052.1356053">“Anatomy of
 high-performance matrix multiplication,”</a>, <em>ACM Transactions on
-Mathematical Software</em> (TOMS), Vol. 34, No. 3, May 2008.</p></li>
+Mathematical Software</em>, Vol. 34, No. 3, pp. 1-25, May 2008.</p></li>
+<li><p>N. J. Higham, <em>Accuracy and Stability of Numerical
+Algorithms</em>, Second Edition, SIAM, 2022.</p></li>
+<li><p>N. J. Higham, <a href="https://doi.org/10.1145/50063.214386">“FORTRAN codes for
+estimating the one-norm of a real or complex matrix, with applications
+to condition estimation,”</a> <em>ACM Transactions on Mathematical
+Software</em>, Vol. 14, No. 4, pp. 381-396, Dec. 1988.</p></li>
 <li><p>J. Hoberock, “Integrating Executors with Parallel Algorithms,”
 <a href="https://wg21.link/p1019r2">P1019R2</a>, Jan. 2019.</p></li>
 <li><p>N. A. Josuttis, “The C++ Standard Library: A Tutorial and
