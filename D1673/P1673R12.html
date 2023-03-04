@@ -2894,7 +2894,7 @@ vectors of complex numbers would be to replace “absolute value” with
 complex arguments as the magnitude. However, the BLAS instead uses the
 sum of the absolute values of the real and imaginary components of each
 element. For example, the BLAS functions <code>SASUM</code> and
-<code>DASUM</code> compute the actual 1-norm <span class="math inline">∑<sub><em>i</em></sub>|<em>v</em><sub><em>i</em></sub>|</span>.
+<code>DASUM</code> compute the actual 1-norm <span class="math inline">∑<sub><em>i</em></sub>|<em>v</em><sub><em>i</em></sub>|</span>
 of their length-<span class="math inline"><em>n</em></span> input vector
 of real elements <span class="math inline"><em>v</em></span>, while
 their complex counterparts <code>CSASUM</code> and <code>DZASUM</code>
@@ -2910,7 +2910,7 @@ performance optimization, to avoid the expense of computing <span class="math in
 element). It also results in tighter error bounds. For example, adding
 complex numbers sums their real and imaginary parts separately. Thus,
 the rounding error committed by the sum can be considered as a
-two-component vector. For a vector <span class="math inline"><em>x</em></span> of length 2, <span class="math inline">$\| x \|_1 \leq \sqrt{2} \| x \|_2$</span> and <span class="math inline">∥<em>x</em>∥<sub>2</sub> ≤ ∥<em>x</em>∥<sub>1</sub></span>
+two-component vector. For a vector <span class="math inline"><em>x</em></span> of length 2, <span class="math inline">∥<em>x</em>∥<sub>1</sub>≤</span> sqrt(2) <span class="math inline">∥<em>x</em>∥<sub>2</sub></span> and <span class="math inline">∥<em>x</em>∥<sub>2</sub> ≤ ∥<em>x</em>∥<sub>1</sub></span>
 (see LAPACK Users’ Guide), so using the “1-norm” <span class="math inline">|ℜ(<em>z</em>)| + |ℑ(<em>z</em>)|</span> of a
 complex number <span class="math inline"><em>z</em></span>, instead of
 the “2-norm” <span class="math inline">|<em>z</em>|</span>, gives a
@@ -2921,7 +2921,9 @@ tighter error bound.</p>
 of each vector element.</p>
 <p>One disadvantage of these definitions is that the resulting
 quantities are not actually norms. This is because they do not preserve
-scaling factors.</p>
+scaling factors. As a result, the names of the functions
+<code>vector_abs_sum</code> and <code>idx_abs_max</code> do not include
+the word “norm.”</p>
 <h3 data-number="10.6.2" id="matrices"><span class="header-section-number">10.6.2</span> Matrices<a href="#matrices" class="self-link"></a></h3>
 <p>The 1-norm <span class="math inline">∥<em>A</em>∥<sub>1</sub></span>
 of a matrix <span class="math inline"><em>A</em></span> is <span class="math inline"><em>m</em><em>a</em><em>x</em><sub>∥<em>x</em>∥<sub>1</sub></sub>∥<em>A</em><em>x</em>∥<sub>1</sub></span>
@@ -2965,7 +2967,9 @@ instead of <span class="math inline">|ℜ(<em>A</em><sub><em>i</em><em>j</em></s
 <p>LAPACK only ever actually <em>computes</em> matrix 1-norms or
 infinity-norms when it estimates the matrix condition number. Thus,
 LAPACK actually needs to compute the “true” matrix 1-norm (and
-infinity-norm).</p>
+infinity-norm). This is why P1673 defines <code>matrix_one_norm</code>
+and <code>matrix_inf_norm</code> to return the “true” matrix 1-norm
+resp. infinity-norm.</p>
 <h2 data-number="10.7" id="over--and-underflow-wording-for-vector-2-norm"><span class="header-section-number">10.7</span> Over- and underflow wording
 for vector 2-norm<a href="#over--and-underflow-wording-for-vector-2-norm" class="self-link"></a></h2>
 <p>SG6 recommended to us at Belfast 2019 to change the special overflow
