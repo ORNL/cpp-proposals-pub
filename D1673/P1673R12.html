@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-03-03" />
+  <meta name="dcterms.date" content="2023-03-04" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-03-03</td>
+    <td>2023-03-04</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -540,8 +540,9 @@ matrix; we apply Triangle to transformed matrix</a></li>
 <li><a href="#norms-and-infinity-norms-for-vectors-and-matrices-of-complex-numbers" id="toc-norms-and-infinity-norms-for-vectors-and-matrices-of-complex-numbers"><span class="toc-section-number">10.6</span> 1-norms and infinity-norms for
 vectors and matrices of complex numbers</a>
 <ul>
-<li><a href="#vectors" id="toc-vectors"><span class="toc-section-number">10.6.1</span> Vectors</a></li>
-<li><a href="#matrices" id="toc-matrices"><span class="toc-section-number">10.6.2</span> Matrices</a></li>
+<li><a href="#summary-1" id="toc-summary-1"><span class="toc-section-number">10.6.1</span> Summary</a></li>
+<li><a href="#vectors" id="toc-vectors"><span class="toc-section-number">10.6.2</span> Vectors</a></li>
+<li><a href="#matrices" id="toc-matrices"><span class="toc-section-number">10.6.3</span> Matrices</a></li>
 </ul></li>
 <li><a href="#over--and-underflow-wording-for-vector-2-norm" id="toc-over--and-underflow-wording-for-vector-2-norm"><span class="toc-section-number">10.7</span> Over- and underflow wording for
 vector 2-norm</a></li>
@@ -563,7 +564,7 @@ algorithm descriptions</a></li>
 temporaries</a></li>
 <li><a href="#textbook-algorithm-description-in-semiring-terms" id="toc-textbook-algorithm-description-in-semiring-terms"><span class="toc-section-number">10.8.8</span> “Textbook” algorithm
 description in semiring terms</a></li>
-<li><a href="#summary-1" id="toc-summary-1"><span class="toc-section-number">10.8.9</span> Summary</a></li>
+<li><a href="#summary-2" id="toc-summary-2"><span class="toc-section-number">10.8.9</span> Summary</a></li>
 </ul></li>
 <li><a href="#fix-issues-with-complex-and-support-user-defined-complex-number-types" id="toc-fix-issues-with-complex-and-support-user-defined-complex-number-types"><span class="toc-section-number">10.9</span> Fix issues with
 <code>complex</code>, and support user-defined complex number types</a>
@@ -2878,7 +2879,34 @@ generality of user-defined layouts and layout transformations.</p></li>
 </ol>
 <h2 data-number="10.6" id="norms-and-infinity-norms-for-vectors-and-matrices-of-complex-numbers"><span class="header-section-number">10.6</span> 1-norms and infinity-norms for
 vectors and matrices of complex numbers<a href="#norms-and-infinity-norms-for-vectors-and-matrices-of-complex-numbers" class="self-link"></a></h2>
-<h3 data-number="10.6.1" id="vectors"><span class="header-section-number">10.6.1</span> Vectors<a href="#vectors" class="self-link"></a></h3>
+<h3 data-number="10.6.1" id="summary-1"><span class="header-section-number">10.6.1</span> Summary<a href="#summary-1" class="self-link"></a></h3>
+<p>We define complex 1-norms and infinity-norms for matrices using the
+magnitude of each element, but for vectors using the sum of absolute
+values of the real and imaginary components of each element.</p>
+<p>We do so because the BLAS exists for the implementation of algorithms
+to solve linear systems, linear least-squares problems, and eigenvalue
+problems. The BLAS does not aim to provide a complete set of
+mathematical operations. Every function in the BLAS exists because some
+LINPACK or LAPACK algorithm needs it.</p>
+<p>For vectors, we use the sum of absolute values of the components
+because</p>
+<ul>
+<li><p>this more accurately expresses the condition number of the sum of
+the vector’s elements,</p></li>
+<li><p>it results in a tighter error bound, and</p></li>
+<li><p>it avoids a square root per element, with potentially the
+additional cost of preventing undue underflow or overflow (as
+<code>hypot</code> implementations do).</p></li>
+</ul>
+<p>The resulting functions are not actually norms in the mathematical
+sense, so their names <code>vector_abs_sum</code> and
+<code>idx_abs_max</code> do not include the word “norm.”</p>
+<p>For matrices, we use the magnitude because the only reason LAPACK
+ever actually <em>computes</em> matrix 1-norms or infinity-norms is for
+estimating the condition number of a matrix. For this case, LAPACK
+actually needs to compute the “true” matrix 1-norm (and infinity-norm),
+that uses the magnitude.</p>
+<h3 data-number="10.6.2" id="vectors"><span class="header-section-number">10.6.2</span> Vectors<a href="#vectors" class="self-link"></a></h3>
 <p>The 1-norm of a vector of real numbers is the sum of the absolute
 values of the vector’s elements. The infinity-norm of a vector of real
 numbers is the maximum of the absolute values of the vector’s elements.
@@ -2905,12 +2933,23 @@ Likewise, the real BLAS functions <code>ISAMAX</code> and
 <code>IDAMAX</code> find <span class="math inline">max<sub><em>i</em></sub>|<em>v</em><sub><em>i</em></sub>|</span>,
 while their complex counterparts <code>ICAMAX</code> and
 <code>IZAMAX</code> find <span class="math inline">max<sub><em>i</em></sub>|ℜ(<em>z</em><sub><em>i</em></sub>)| + |ℑ(<em>z</em><sub><em>i</em></sub>)|</span>.</p>
-<p>Annex A.1 of the BLAS Standard (p. 173) explains that this is a
-performance optimization, to avoid the expense of computing <span class="math inline"><em>n</em></span> square roots (one for each vector
-element). It also results in tighter error bounds. For example, adding
-complex numbers sums their real and imaginary parts separately. Thus,
-the rounding error committed by the sum can be considered as a
-two-component vector. For a vector <span class="math inline"><em>x</em></span> of length 2, <span class="math inline">∥<em>x</em>∥<sub>1</sub>≤</span> sqrt(2) <span class="math inline">∥<em>x</em>∥<sub>2</sub></span> and <span class="math inline">∥<em>x</em>∥<sub>2</sub> ≤ ∥<em>x</em>∥<sub>1</sub></span>
+<p>This definition of <code>CSASUM</code> and <code>DZASUM</code>
+accurately expresses the condition number of the sum of a complex
+vector’s elements. This is because complex numbers are added
+componentwise, so summing a complex vector componentwise is really like
+summing two real vectors separately. Thus, it is the logical
+generalization of the vector 1-norm.</p>
+<p>Annex A.1 of the BLAS Standard (p. 173) explains that this is also a
+performance optimization, to avoid the expense of one square root per
+vector element. Computing the magnitude is equivalent to two-argument
+<code>hypot</code>. Thus, for the same reason, high-quality
+implementations of magnitude for floating-point arguments may do extra
+work besides the square root, to prevent undue underflow or
+overflow.</p>
+<p>This approach also results in tighter error bounds. We mentioned
+above how adding complex numbers sums their real and imaginary parts
+separately. Thus, the rounding error committed by the sum can be
+considered as a two-component vector. For a vector <span class="math inline"><em>x</em></span> of length 2, <span class="math inline">∥<em>x</em>∥<sub>1</sub>≤</span> sqrt(2) <span class="math inline">∥<em>x</em>∥<sub>2</sub></span> and <span class="math inline">∥<em>x</em>∥<sub>2</sub> ≤ ∥<em>x</em>∥<sub>1</sub></span>
 (see LAPACK Users’ Guide), so using the “1-norm” <span class="math inline">|ℜ(<em>z</em>)| + |ℑ(<em>z</em>)|</span> of a
 complex number <span class="math inline"><em>z</em></span>, instead of
 the “2-norm” <span class="math inline">|<em>z</em>|</span>, gives a
@@ -2921,10 +2960,13 @@ tighter error bound.</p>
 of each vector element.</p>
 <p>One disadvantage of these definitions is that the resulting
 quantities are not actually norms. This is because they do not preserve
-scaling factors. As a result, the names of the functions
+scaling factors. For magnitude, <span class="math inline">|<em>α</em><em>z</em>|</span> equals <span class="math inline">|<em>α</em>||<em>z</em>|</span> for any real number
+<span class="math inline"><em>α</em></span> and complex number <span class="math inline"><em>z</em></span>. However, <span class="math inline">|<em>α</em>ℜ(<em>z</em>)| + |<em>α</em>ℑ(<em>z</em>)|</span>
+does not equal <span class="math inline"><em>α</em>(|ℜ(<em>z</em>)|+|ℑ(<em>z</em>)|)</span>
+in general. As a result, the names of the functions
 <code>vector_abs_sum</code> and <code>idx_abs_max</code> do not include
 the word “norm.”</p>
-<h3 data-number="10.6.2" id="matrices"><span class="header-section-number">10.6.2</span> Matrices<a href="#matrices" class="self-link"></a></h3>
+<h3 data-number="10.6.3" id="matrices"><span class="header-section-number">10.6.3</span> Matrices<a href="#matrices" class="self-link"></a></h3>
 <p>The 1-norm <span class="math inline">∥<em>A</em>∥<sub>1</sub></span>
 of a matrix <span class="math inline"><em>A</em></span> is <span class="math inline"><em>m</em><em>a</em><em>x</em><sub>∥<em>x</em>∥<sub>1</sub></sub>∥<em>A</em><em>x</em>∥<sub>1</sub></span>
 for all vectors <span class="math inline"><em>x</em></span> with the
@@ -2960,10 +3002,9 @@ number of a matrix <span class="math inline"><em>A</em></span>. LAPACK
 relies on the 1-norm condition number <span class="math inline">∥<em>A</em>∥<sub>1</sub>∥<em>A</em><sup>−1</sup>∥<sub>1</sub></span>
 to estimate errors for nearly all of its computations. LAPACK’s
 <code>xyzCON</code> routines perform condition number estimation. It
-turns out that the complex versions of these routines require using the
-“true” 1-norm <span class="math inline">|<em>A</em><sub><em>i</em><em>j</em></sub>|</span>,
-instead of <span class="math inline">|ℜ(<em>A</em><sub><em>i</em><em>j</em></sub>)| + |ℑ(<em>A</em><sub><em>i</em><em>j</em></sub>)|</span>
-(as explained in Higham 1988).</p>
+turns out that the complex versions of these routines require the “true”
+1-norm that uses the magnitude of each matrix element (as explained in
+Higham 1988).</p>
 <p>LAPACK only ever actually <em>computes</em> matrix 1-norms or
 infinity-norms when it estimates the matrix condition number. Thus,
 LAPACK actually needs to compute the “true” matrix 1-norm (and
@@ -3552,7 +3593,7 @@ multiplication<a href="#noncommutative-multiplication" class="self-link"></a></h
 <p>The semiring of 2x2 matrices with element type a commutative semiring
 is itself a semiring, but with noncommutative multiplication. This is a
 good way to build a noncommutative semiring for testing.</p>
-<h3 data-number="10.8.9" id="summary-1"><span class="header-section-number">10.8.9</span> Summary<a href="#summary-1" class="self-link"></a></h3>
+<h3 data-number="10.8.9" id="summary-2"><span class="header-section-number">10.8.9</span> Summary<a href="#summary-2" class="self-link"></a></h3>
 <ul>
 <li><p>Constraining the matrix and vector element types and scalar types
 in our functions gives implementers the freedom to make QoI enhancements
