@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-03-04" />
+  <meta name="dcterms.date" content="2023-03-10" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-03-04</td>
+    <td>2023-03-10</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1263,6 +1263,8 @@ wording for <em><code>proxy-reference</code></em>’s hidden friend
 <code>abs</code> to defer to <em><code>abs-if-needed</code></em>. Use
 <em><code>abs-if-needed</code></em> instead of <code>abs</code>
 throughout P1673.</p></li>
+<li><p>Change remarks about aliasing (e.g., “<span class="math inline"><em>y</em></span> and <span class="math inline"><em>z</em></span> may refer to the same vector”) to
+say “object” instead of “vector” or “matrix.”</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -7845,7 +7847,7 @@ neither <code>x.static_extent(r)</code> nor
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>x</em> + <em>y</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Remarks:</em> <code>z</code> may refer to the same vector as
+<em>Remarks:</em> <code>z</code> may refer to the same object as
 <code>x</code> or <code>y</code>.</p>
 <h4 data-number="17.11.2.6" id="dot-product-of-two-vectors-linalg.algs.blas1.dot"><span class="header-section-number">17.11.2.6</span> Dot product of two
 vectors [linalg.algs.blas1.dot]<a href="#dot-product-of-two-vectors-linalg.algs.blas1.dot" class="self-link"></a></h4>
@@ -8529,7 +8531,7 @@ product<a href="#updating-matrix-vector-product" class="self-link"></a></h5>
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Remarks:</em> <code>y</code> and <code>z</code> may refer to the
-same vector.</p>
+same object.</p>
 <h4 data-number="17.11.3.2" id="symmetric-matrix-vector-product-linalg.algs.blas2.symv"><span class="header-section-number">17.11.3.2</span> Symmetric matrix-vector
 product [linalg.algs.blas2.symv]<a href="#symmetric-matrix-vector-product-linalg.algs.blas2.symv" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
@@ -8640,7 +8642,7 @@ matrix-vector product<a href="#updating-symmetric-matrix-vector-product" class="
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Remarks:</em> <code>y</code> and <code>z</code> may refer to the
-same vector.</p>
+same object.</p>
 <h4 data-number="17.11.3.3" id="hermitian-matrix-vector-product-linalg.algs.blas2.hemv"><span class="header-section-number">17.11.3.3</span> Hermitian matrix-vector
 product [linalg.algs.blas2.hemv]<a href="#hermitian-matrix-vector-product-linalg.algs.blas2.hemv" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
@@ -8749,7 +8751,7 @@ matrix-vector product<a href="#updating-hermitian-matrix-vector-product" class="
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Remarks:</em> <code>y</code> and <code>z</code> may refer to the
-same vector.</p>
+same object.</p>
 <h4 data-number="17.11.3.4" id="triangular-matrix-vector-product-linalg.algs.blas2.trmv"><span class="header-section-number">17.11.3.4</span> Triangular matrix-vector
 product [linalg.algs.blas2.trmv]<a href="#triangular-matrix-vector-product-linalg.algs.blas2.trmv" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
@@ -8912,7 +8914,7 @@ matrix-vector product [linalg.algs.blas2.trmv.up]<a href="#updating-triangular-m
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Remarks:</em> <code>y</code> and <code>z</code> may refer to the
-same vector.</p>
+same object.</p>
 <h4 data-number="17.11.3.5" id="solve-a-triangular-linear-system-linalg.algs.blas2.trsv"><span class="header-section-number">17.11.3.5</span> Solve a triangular linear
 system [linalg.algs.blas2.trsv]<a href="#solve-a-triangular-linear-system-linalg.algs.blas2.trsv" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
@@ -9597,7 +9599,7 @@ matrix-matrix product<a href="#updating-general-matrix-matrix-product" class="se
 <em>Effects:</em> Computes <span class="math inline"><em>C</em> = <em>E</em> + <em>A</em><em>B</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Remarks:</em> <code>C</code> and <code>E</code> may refer to the
-same matrix.</p>
+same object.</p>
 <h4 data-number="17.11.4.2" id="symmetric-matrix-matrix-product-linalg.algs.blas3.symm"><span class="header-section-number">17.11.4.2</span> Symmetric matrix-matrix
 product [linalg.algs.blas3.symm]<a href="#symmetric-matrix-matrix-product-linalg.algs.blas3.symm" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS function
@@ -9643,7 +9645,7 @@ equals <code>E.static_extent(r)</code> (for those overloads that take an
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Remarks:</em> <code>C</code> and <code>E</code> (for those overloads
-that take an <code>E</code> parameter) may refer to the same matrix.</p>
+that take an <code>E</code> parameter) may refer to the same object.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all the functions in
 <em>[linalg.algs.blas3.symm.ov.left]</em> and
@@ -9871,7 +9873,7 @@ equals <code>E.static_extent(r)</code> (for those overloads that take an
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Remarks:</em> <code>C</code> and <code>E</code> (for those overloads
-that take an <code>E</code> parameter) may refer to the same matrix.</p>
+that take an <code>E</code> parameter) may refer to the same object.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all the functions in
 <em>[linalg.algs.blas3.hemm.ov.left]</em> and
@@ -10097,7 +10099,7 @@ equals <code>E.static_extent(r)</code> (for those overloads that take an
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Remarks:</em> <code>C</code> and <code>E</code> (for those overloads
-that take an <code>E</code> parameter) may refer to the same matrix.</p>
+that take an <code>E</code> parameter) may refer to the same object.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The following elements apply to all the functions in
 <em>[linalg.algs.blas3.trmm.ov.left]</em> and
