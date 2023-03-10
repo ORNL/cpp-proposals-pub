@@ -1277,6 +1277,11 @@ Bibliography.</p></li>
 language, and add <em><code>real-if-needed</code></em> and
 <em><code>imag-if-needed</code></em> to the list of expressions
 there.</p></li>
+<li><p>Rephase <em>[linalg.reqs.alg]</em> to make it more like
+<code>sort</code>, e.g., not making it explicitly a constraint that
+certain expressions are well formed.</p></li>
+<li><p>Add to <em>[linalg.reqs.val]</em> that a value-initialized object
+of linear algebra value type acts as the additive identity.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -5989,6 +5994,9 @@ template parameter of <code>sum_of_squares_result</code>.</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 Linear algebra value types must meet the requirements of
 <code>semiregular</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+A value-initialized object of linear algebra value type acts as the
+additive identity.</p>
 <h3 data-number="17.3.2" id="algorithm-and-class-requirements-linalg.reqs.alg"><span class="header-section-number">17.3.2</span> Algorithm and class
 requirements [linalg.reqs.alg]<a href="#algorithm-and-class-requirements-linalg.reqs.alg" class="self-link"></a></h3>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
@@ -6021,59 +6029,38 @@ algorithm uses a sequence of evaluations of <code>*</code>,
 unary <code>-</code>, binary <code>-</code>, <code>-=</code>, and
 <code>=</code> operators that would produce the result specified by the
 algorithm’s Effects and Remarks when operating on elements of a field
-with noncommutative multiplication. It is a constraint on the algorithm
-that any addend, any subtrahend, any partial sum of addends in any order
-(treating any difference as a sum with the second term negated), any
-factor, any partial product of factors respecting their order, any
-numerator (first argument of <code>divide</code>), any denominator
-(second argument of <code>divide</code>), and any assignment is well
-formed.</p></li>
+with noncommutative multiplication. <it> It is a constraint on the
+algorithm that any addend, any subtrahend, any partial sum of addends in
+any order (treating any difference as a sum with the second term
+negated), any factor, any partial product of factors respecting their
+order, any numerator (first argument of <code>divide</code>), any
+denominator (second argument of <code>divide</code>), and any assignment
+is well formed. </it> <i>[Note:</i> EDITORIAL: We’re not sure if we need
+the previous sentence. We’re trying to express that all intermediate
+terms in the algorithm are again linear algebra value types with the
+operators that the algorithm needs. <i>– end note]</i></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.5)</a></span>
 Otherwise, the function will use a sequence of evaluations of
 <code>*</code>, <code>*=</code>, <code>+</code>, <code>+=</code>, and
 <code>=</code> operators that would produce the result specified by the
 algorithm’s Effects and Remarks when operating on elements of a semiring
-with noncommutative multiplication. It is a constraint on the algorithm
-that any addend, any partial sum of addends in any order, any factor,
-any partial product of factors respecting their order, and any
-assignment is well formed.</p></li>
+with noncommutative multiplication. <it> It is a constraint on the
+algorithm that any addend, any partial sum of addends in any order, any
+factor, any partial product of factors respecting their order, and any
+assignment is well formed. </it> <i>[Note:</i> EDITORIAL: We’re not sure
+if we need the previous sentence. We’re trying to express that all
+intermediate terms in the algorithm are again linear algebra value types
+with the operators that the algorithm needs. <i>– end note]</i></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.6)</a></span> If
-the wording for the function additionally includes</p>
-<ul>
-<li><p><em><code>abs-if-needed</code></em> <code>(x)</code> for some
-expression <code>x</code>
-(<strong>[linalg.scaled.abs]</strong>),</p></li>
-<li><p><em><code>conj-if-needed</code></em> <code>(x)</code> for some
-expression <code>x</code>
-(<strong>[linalg.scaled.conj]</strong>),</p></li>
-<li><p><em><code>real-if-needed</code></em> <code>(x)</code> for some
-expression <code>x</code>
-(<strong>[linalg.scaled.real]</strong>),</p></li>
-<li><p><em><code>imag-if-needed</code></em> <code>(x)</code> for some
-expression <code>x</code> (<strong>[linalg.scaled.imag]</strong>),
-or</p></li>
-<li><p><code>sqrt(x)</code> for some expression <code>x</code>,</p></li>
-</ul>
-<p>then it is a constraint on the algorithm that use of the expression
-is well formed.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.7)</a></span> If
 the function has an output <code>mdspan</code>, then all addends,
 subtrahends (for the triangular solve algorithms), or results of the
 <code>divide</code> parameter on intermediate terms (if the function
 takes a <code>divide</code> parameter) are assignable and convertible to
 the output <code>mdspan</code>’s <code>value_type</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.8)</a></span> The
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.7)</a></span> The
 function may reorder addends and partial sums arbitrarily. <i>[Note:</i>
 Factors in each product are not reordered; multiplication is not
 necessarily commutative. <i>– end note]</i></p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.9)</a></span> The
-function may replace any value with the sum of that value and a
-value-initialized object of any input or output <code>mdspan</code>’s
-<code>value_type</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.10)</a></span> If
-the function has a <code>T init</code> parameter, then the function may
-replace any value with the sum of that value and a value-initialized
-object of type <code>T</code>.</p></li>
 </ul>
 <h3 data-number="17.3.3" id="requirements-for-functions-on-floating-point-values-linalg.reqs.flpt"><span class="header-section-number">17.3.3</span> Requirements for functions
 on floating-point values [linalg.reqs.flpt]<a href="#requirements-for-functions-on-floating-point-values-linalg.reqs.flpt" class="self-link"></a></h3>
