@@ -23,7 +23,7 @@ toc: true
 
 - Add feature test macro
 - fix wording for aggregate type
-- fix too late definition of sub_map_offset
+- make sure sub_map_offset is defined before it is used
 - use exposition only _`integral-constant-like`_ concept instead of `integral_constant`
 
 ## Revision 2: Mailing 2023-01
