@@ -24,6 +24,7 @@ toc: true
 - Add feature test macro
 - fix wording for aggregate type
 - fix too late definition of sub_map_offset
+- use exposition only _`integral-constant-like`_ concept instead of `integral_constant`
 
 ## Revision 2: Mailing 2023-01
 
@@ -533,7 +534,7 @@ For performance and preservation of compile-time knowledge, we also require the 
 >  _In <b>[version.syn]</b>, add:_
 
 ```c++
-#define __cpp_lib_mdspan YYYYMML // also in <mdspan>
+#define __cpp_lib_submdspan YYYYMML // also in <mdspan>
 ```
 
 [1]{.pnum} Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
@@ -580,6 +581,12 @@ namespace std {
     constexpr auto submdspan(
       const mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src,
       SliceSpecifiers...slices) -> @_see below_@;
+
+  template<typename T>
+  concept @_integral-constant-like_@ =       // @_exposition only_@
+         std::is_integral_v<decltype(T::value)>
+      && !std::is_same_v<bool, std::remove_const_t<decltype(T::value)>>
+      && T() == T::value;
 }
 ```
 
@@ -605,6 +612,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
     * the number of $S_j$ with $j < k$ such that `is_convertible_v<`$S_j$`, size_t>` is `false`.
 
+
 <b>24.7.�.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
 
 [1]{.pnum} `strided_slice` represents a set of `extent` regularly spaced integer indices.
@@ -628,7 +636,7 @@ struct strided_slice {
 
 [3]{.pnum} *Mandates:*
 
-  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or are specializations of `integral_constant` that are not a specialization of  `bool_constant`.
+  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or satisfy _`integral-constant-like`_.
 
 <i>[Note: </i>
 `strided_slice{.offset=1, .extent=10, .stride=3}` indicates the indices 1, 4, 7, and 10.
@@ -648,7 +656,8 @@ struct submdspan_mapping_result {
 };
 ```
 
-[2]{.pnum} `strided_slice` is an aggregate type.
+[2]{.pnum} `submdspan_mapping_result` has the data members and special members specified above.
+           It has no base classes or members other than those specified.
 
 [3]{.pnum} `LayoutMapping` shall meet the layout mapping requirements.
 
@@ -760,11 +769,11 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
        * `Extents::static_extent(k)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-       * `tuple_element<1, `$S_k$`>() - tuple_element<0, `$S_k$`>()` if $S_k$ is a `tuple` of two specializations of `integral_constant`; otherwise
+       * `tuple_element<1, `$S_k$`>() - tuple_element<0, `$S_k$`>()` if $S_k$ is a `tuple` of two types satisfying _`integral-constant-like`_; otherwise
 
-       * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` is a specialization of `integral_constant` for which `extent_type()` equals zero; otherwise
+       * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` satisfies _`integral-constant-like`_, for which `extent_type()` equals zero; otherwise
 
-       *  `1 + (`$S_k$`::extent_type()-1) / `$S_k$`::stride_type()` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` members are specializations of `integral_constant`; otherwise
+       *  `1 + (`$S_k$`::extent_type() - 1) / `$S_k$`::stride_type()` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` satisfy _`integral-constant-like`_; otherwise
 
        * `dynamic_extent`.
 
@@ -868,7 +877,7 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
 [1]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
 
-[2] Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.
+[2]{.pnum} Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.
 
 [3]{.pnum} *Constraints:*
 
