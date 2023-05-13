@@ -19,6 +19,13 @@ toc: true
 
 # Revision History
 
+## Revision 3: Mailing 2023-03
+
+- Add feature test macro
+- fix wording for aggregate type
+- make sure sub_map_offset is defined before it is used
+- use exposition only _`integral-constant-like`_ concept instead of `integral_constant`
+
 ## Revision 2: Mailing 2023-01
 
 - Add discussion choice of customization point mechanism
@@ -524,6 +531,13 @@ For performance and preservation of compile-time knowledge, we also require the 
 # Wording
 
 
+>  _In <b>[version.syn]</b>, add:_
+
+```c++
+#define __cpp_lib_submdspan YYYYMML // also in <mdspan>
+```
+
+[1]{.pnum} Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
 
 ## Add subsection 22.7.X [mdspan.submdspan] with the following
 
@@ -567,6 +581,12 @@ namespace std {
     constexpr auto submdspan(
       const mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src,
       SliceSpecifiers...slices) -> @_see below_@;
+
+  template<typename T>
+  concept @_integral-constant-like_@ =       // @_exposition only_@
+         std::is_integral_v<decltype(T::value)>
+      && !std::is_same_v<bool, std::remove_const_t<decltype(T::value)>>
+      && T() == T::value;
 }
 ```
 
@@ -592,6 +612,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
     * the number of $S_j$ with $j < k$ such that `is_convertible_v<`$S_j$`, size_t>` is `false`.
 
+
 <b>24.7.�.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
 
 [1]{.pnum} `strided_slice` represents a set of `extent` regularly spaced integer indices.
@@ -610,11 +631,12 @@ struct strided_slice {
 };
 ```
 
-[2]{.pnum} `strided_slice` is an aggregate type.
+[2]{.pnum} `strided_slice` has the data members and special members specified above.
+           It has no base classes or members other than those specified.
 
 [3]{.pnum} *Mandates:*
 
-  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or are specializations of `integral_constant` that are not a specialization of  `bool_constant`.
+  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or satisfy _`integral-constant-like`_.
 
 <i>[Note: </i>
 `strided_slice{.offset=1, .extent=10, .stride=3}` indicates the indices 1, 4, 7, and 10.
@@ -634,7 +656,8 @@ struct submdspan_mapping_result {
 };
 ```
 
-[2]{.pnum} `strided_slice` is an aggregate type.
+[2]{.pnum} `submdspan_mapping_result` has the data members and special members specified above.
+           It has no base classes or members other than those specified.
 
 [3]{.pnum} `LayoutMapping` shall meet the layout mapping requirements.
 
@@ -746,11 +769,11 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
        * `Extents::static_extent(k)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-       * `tuple_element<1, `$S_k$`>() - tuple_element<0, `$S_k$`>()` if $S_k$ is a `tuple` of two specializations of `integral_constant`; otherwise
+       * `tuple_element<1, `$S_k$`>() - tuple_element<0, `$S_k$`>()` if $S_k$ is a `tuple` of two types satisfying _`integral-constant-like`_; otherwise
 
-       * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` is a specialization of `integral_constant` for which `extent_type()` equals zero; otherwise
+       * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` satisfies _`integral-constant-like`_, for which `extent_type()` equals zero; otherwise
 
-       *  `1 + (`$S_k$`::extent_type()-1) / `$S_k$`::stride_type()` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` members are specializations of `integral_constant`; otherwise
+       *  `1 + (`$S_k$`::extent_type() - 1) / `$S_k$`::stride_type()` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` satisfy _`integral-constant-like`_; otherwise
 
        * `dynamic_extent`.
 
@@ -854,17 +877,19 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
 [1]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
 
-[2]{.pnum} *Constraints:*
+[2]{.pnum} Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.
 
-   * [2.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
+[3]{.pnum} *Constraints:*
 
-   * [2.2]{.pnum} `submdspan_mapping(src.mapping(), slices...)` is well formed.
+   * [3.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-[3]{.pnum} *Mandates:* 
+   * [3.2]{.pnum} `submdspan_mapping(src.mapping(), slices...)` is well formed.
 
-   * [3.1]{.pnum} `is_same_v<decltype(sub_map.extents()), decltype(submdspan_extents(src.mapping(), slices...))>` is `true`, and
+[4]{.pnum} *Mandates:* 
 
-   * [3.2]{.pnum} For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
+   * [4.1]{.pnum} `is_same_v<decltype(sub_map_offset.extents()), decltype(submdspan_extents(src.mapping(), slices...))>` is `true`, and
+
+   * [4.2]{.pnum} For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
 
      * `is_convertible_v<`$S_k$`, index_type>`,
 
@@ -875,9 +900,9 @@ template<class ElementType, class Extents, class LayoutPolicy,
      * _`is-strided-slice`_`<`$S_k$`>::value`.
 
 
-[4]{.pnum} *Preconditions:* Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.  Then:
+[5]{.pnum} *Preconditions:* 
 
-   * [4.1]{.pnum} For each rank index `k` of `src.extents()`, *all* of the following are `true`:
+   * [5.1]{.pnum} For each rank index `k` of `src.extents()`, *all* of the following are `true`:
 
       * if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,  
 
@@ -887,13 +912,13 @@ template<class ElementType, class Extents, class LayoutPolicy,
 
       * _`last_`_`(k, src.extents(), slices...) <= src.extent(k)`;
 
-   * [4.2]{.pnum} `sub_map_offset.mapping.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
+   * [5.2]{.pnum} `sub_map_offset.mapping.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
 
-   * [4.3]{.pnum} for each integer pack `I` which is a multidimensional index in `sub_map_offset.mapping.extents()`,
+   * [5.3]{.pnum} for each integer pack `I` which is a multidimensional index in `sub_map_offset.mapping.extents()`,
      `sub_map_offset.mapping(I...) + sub_map_offset.offset == src.mapping()(`_`src-indices`_`(array{I...}, slices ...))` is `true`.
 
 <i>[Note: </i>
-Conditions 4.2 and 4.3 make it so that it is not valid to call `submdspan` with layout mappings, for which an overload of `submdspan_mapping`,
+Conditions 5.2 and 5.3 make it so that it is not valid to call `submdspan` with layout mappings, for which an overload of `submdspan_mapping`,
 does not return a mapping, which maps to the algorithmicly expected indices, given the slice specifiers.
 <i>- end note]</i>
 
