@@ -2,7 +2,7 @@
 title: "Extending Linear Algebra Support to Batched Operations"
 document: 
 date: today
-audience: LWG
+audience: SG1, SG6, LEWGI
 author:
   - name: Mark Hoemmen 
     email: <mhoemmen@nvidia.com>
@@ -215,14 +215,20 @@ but they are not required to do so.)
 
 This gives us two design options.
 
-1. Omit reductions from the batched interface.
-
-2. Overload reduction functions for the batched case
+1. Overload reduction functions for the batched case
     to return `void` and take an output `mdspan`.
 
+2. Omit reductions from the batched interface.
+
+We favor the second approach:
+adding overloads of P1673 reduction-like functions that return `void`
+and write the reduction results to an output `mdspan`.
+This has the disadvantage that the batched and non-batched versions
+of the same function would no longer take the same number of arguments.
+However, there should be no ambiguity between the two cases.
+
 The Batched BLAS interface proposal (Dongarra 2018)
-takes the first approach:
-it simply omits reductions from the batched interface.
+takes the second option: it simply omits batched reductions.
 In some cases, users could replace the missing features with other functions.
 For example, a batched dot product $x^T y_1$, $x^T y_2$, $\dots$, $x^T y_K$
 could be expressed as a non-batched matrix-vector product,
@@ -230,7 +236,7 @@ and a batched dot product $x_1^T y_1$, $x_2^T y_2$, $\dots$, $x_K^T y_K$
 could be expressed as a batched matrix multiply,
 where each problem in the batch is 1 by $N$ times 1 by $N$
 (where $N$ is the number of elements in each vector).
-However, this approach has three issues.
+However, this approach has four issues.
 
 1. The authors' experience is that special cases
     of more general BLAS functions
@@ -242,19 +248,24 @@ However, this approach has three issues.
     The max-norm (or index of the max absolute value,
     which is what the BLAS computes) is an example.
 
-3. Even if some functions can be represented this way,
+3. Other reduction functions could be represented with existing operations,
+    but doing so efficiently may be difficult.
+    For example, a batched 1-norm could be represented
+    as the dot product of an elementwise absolute value of a matrix,
+    with a vector whose elements are all the value 1.
+    One could represent the elementwise absolute value lazily
+    with an accessor, and a vector of all ones efficiently
+    with a nonunique layout.  However, the resulting code
+    might not be efficient.
+
+4. Even if some batched reduction functions
+    could be represented with existing operations,
     doing so may sacrifice accuracy or correctness guarantees
     due to rounding error.  For example, the batched 2-norm
     could be represented as a batched dot product of each vector by itself,
     followed by an elementwise square root.
     However, the result would be more prone to underflow or overflow,
     since the batched dot product would be working with squares of elements.
-
-The alternative would be to add overloads of P1673 reduction-like functions
-that return `void` and write the reduction results to an output `mdspan`.
-This has the disadvantage that the batched and non-batched versions
-of the same function would no longer take the same number of arguments.
-However, there should be no ambiguity between the two cases.
 
 ### Representing broadcast parameters
 
@@ -290,6 +301,10 @@ that is more challenging for users to implement.
 We also do not want to add such layouts to the Standard Library,
 as we think broadcast parameters
 have a natural representation without them.
+
+# Suggested poll questions
+
+1. Should broadcast input parameters be represented by `mdspan` with one less rank (than the batched case would normally require), or by some other method?
 
 # References
 
