@@ -196,12 +196,65 @@ described elsewhere in this proposal.
 
 The Batched BLAS interface specification (Dongarra 2018) omits "reduction"-like operations -- dot products and norms -- that return a single value.
 
-The original P1673 design had reductions write to an output reference, with the intent that this could be generalized to an output rank-1 (the batch mode) mdspan.  LEWG and previous Study Groups asked P1673 authors to make reductions look like `std::reduce`: returning a value, instead of writing to an output reference.  This interface is easier to understand for the non-batched case, but it means that the batched interface cannot be made fully consistent with the non-batched interface.  (This is because we do not permit stdblas to allocate and return arrays of elements.)
+The original P1673 design had reductions write to an output reference
+(or rank-0 mdspan), with the intent that this could be generalized
+to an output rank-1 (the batch mode) mdspan.
+LEWG and previous Study Groups asked P1673 authors
+to make reductions look like `std::reduce`:
+returning a value, instead of writing to an output argument.
+This interface is easier to understand
+and more consistent with the Standard Library for the non-batched case.
+However, it means that the batched interface
+cannot be made fully consistent with the non-batched interface.
+(This is because we do not permit P1673 or its extensions
+to allocate and return arrays of elements.
+It is an essential feature of P1673, as it was of the BLAS and LAPACK,
+that it can be implemented and used without dynamic memory allocation.
+Implementations may still choose to do dynamic memory allocation internally,
+but they are not required to do so.)
 
-Options:
+This gives us two design options.
 
-1. Overload to take an output mdspan
-2. Omit reductions from the batched interface (Batched BLAS spec takes this approach)
+1. Omit reductions from the batched interface.
+
+2. Overload reduction functions for the batched case
+    to return `void` and take an output `mdspan`.
+
+The Batched BLAS interface proposal (Dongarra 2018)
+takes the first approach:
+it simply omits reductions from the batched interface.
+In some cases, users could replace the missing features with other functions.
+For example, a batched dot product $x^T y_1$, $x^T y_2$, $\dots$, $x^T y_K$
+could be expressed as a non-batched matrix-vector product,
+and a batched dot product $x_1^T y_1$, $x_2^T y_2$, $\dots$, $x_K^T y_K$
+could be expressed as a batched matrix multiply,
+where each problem in the batch is 1 by $N$ times 1 by $N$
+(where $N$ is the number of elements in each vector).
+However, this approach has three issues.
+
+1. The authors' experience is that special cases
+    of more general BLAS functions
+    (e.g., 1 by $N$ times 1 by $N$ matrix multiplies)
+    may not perform as well as more specialized BLAS functions
+    (e.g, dot products).
+
+2. Some reduction functions cannot naturally be represented this way.
+    The max-norm (or index of the max absolute value,
+    which is what the BLAS computes) is an example.
+
+3. Even if some functions can be represented this way,
+    doing so may sacrifice accuracy or correctness guarantees
+    due to rounding error.  For example, the batched 2-norm
+    could be represented as a batched dot product of each vector by itself,
+    followed by an elementwise square root.
+    However, the result would be more prone to underflow or overflow,
+    since the batched dot product would be working with squares of elements.
+
+The alternative would be to add overloads of P1673 reduction-like functions
+that return `void` and write the reduction results to an output `mdspan`.
+This has the disadvantage that the batched and non-batched versions
+of the same function would no longer take the same number of arguments.
+However, there should be no ambiguity between the two cases.
 
 ### Representing broadcast parameters
 
@@ -237,18 +290,6 @@ that is more challenging for users to implement.
 We also do not want to add such layouts to the Standard Library,
 as we think broadcast parameters
 have a natural representation without them.
-
-## Principle
-
-Higher rank arguments
-
-## Challenge 1: Reductions
-
-output argument
-
-## Challenge 2: Multiple Scaling factors
-
-extra mdspan args?
 
 # References
 
