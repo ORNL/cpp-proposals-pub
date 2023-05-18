@@ -1,7 +1,7 @@
 
 ---
-title: "A free function linear algebra interface based on the BLAS"
-document: P1673
+title: "`aligned_accessor`: An mdspan accessor expressing pointer overalignment"
+document: P????
 date: today
 audience: LEWG
 author:
