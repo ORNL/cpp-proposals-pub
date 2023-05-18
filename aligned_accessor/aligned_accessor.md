@@ -128,6 +128,11 @@ A similar question came up in the "properties" proposal P0900, which we quote he
 For these reasons, we have made `aligned_accessor` stand-alone,
 instead of having it modify another user-provided accessor.
 
+# Implementation
+
+We have tested an implementation of this proposal with the
+[reference mdspan implementation](https://github.com/kokkos/mdspan/).
+
 # Example
 
 ```c++

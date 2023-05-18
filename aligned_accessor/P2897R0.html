@@ -459,12 +459,13 @@ Purpose of this paper</a></li>
 <li><a href="#the-accessor-is-not-nestable" id="toc-the-accessor-is-not-nestable"><span class="toc-section-number">5.1</span> The accessor is not
 nestable</a></li>
 </ul></li>
-<li><a href="#example" id="toc-example"><span class="toc-section-number">6</span> Example</a></li>
-<li><a href="#wording" id="toc-wording"><span class="toc-section-number">7</span> Wording</a>
+<li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">6</span> Implementation</a></li>
+<li><a href="#example" id="toc-example"><span class="toc-section-number">7</span> Example</a></li>
+<li><a href="#wording" id="toc-wording"><span class="toc-section-number">8</span> Wording</a>
 <ul>
-<li><a href="#add-subsection-mdspan.accessor.aligned-with-the-following" id="toc-add-subsection-mdspan.accessor.aligned-with-the-following"><span class="toc-section-number">7.1</span> Add subsection �
+<li><a href="#add-subsection-mdspan.accessor.aligned-with-the-following" id="toc-add-subsection-mdspan.accessor.aligned-with-the-following"><span class="toc-section-number">8.1</span> Add subsection �
 [mdspan.accessor.aligned] with the following</a></li>
-<li><a href="#members-mdspan.accessor.aligned.members" id="toc-members-mdspan.accessor.aligned.members"><span class="toc-section-number">7.2</span> Members
+<li><a href="#members-mdspan.accessor.aligned.members" id="toc-members-mdspan.accessor.aligned.members"><span class="toc-section-number">8.2</span> Members
 [mdspan.accessor.aligned.members]</a></li>
 </ul></li>
 </ul>
@@ -594,7 +595,10 @@ implementer.</p>
 <p>For these reasons, we have made <code>aligned_accessor</code>
 stand-alone, instead of having it modify another user-provided
 accessor.</p>
-<h1 data-number="6" id="example"><span class="header-section-number">6</span> Example<a href="#example" class="self-link"></a></h1>
+<h1 data-number="6" id="implementation"><span class="header-section-number">6</span> Implementation<a href="#implementation" class="self-link"></a></h1>
+<p>We have tested an implementation of this proposal with the <a href="https://github.com/kokkos/mdspan/">reference mdspan
+implementation</a>.</p>
+<h1 data-number="7" id="example"><span class="header-section-number">7</span> Example<a href="#example" class="self-link"></a></h1>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> aligned_mdspan <span class="op">=</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">1</span><span class="op">&gt;</span>, std<span class="op">::</span>layout_right, std<span class="op">::</span>aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, byte_alignment<span class="op">&gt;&gt;</span>;</span>
@@ -647,7 +651,7 @@ accessor.</p>
 <span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>  vectorized_axpy<span class="op">(</span>y, alpha, x<span class="op">)</span>;</span>
 <span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> vectorized_norm<span class="op">(</span>y<span class="op">)</span>;</span>
 <span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h1 data-number="7" id="wording"><span class="header-section-number">7</span> Wording<a href="#wording" class="self-link"></a></h1>
+<h1 data-number="8" id="wording"><span class="header-section-number">8</span> Wording<a href="#wording" class="self-link"></a></h1>
 <blockquote>
 <p>Text in blockquotes is not proposed wording, but rather instructions
 for generating proposed wording. The � character is used to denote a
@@ -669,7 +673,7 @@ and before <code>class mdspan</code>, add the following.</p>
 <p>At the end of <strong>[mdspan.accessor.default]</strong> and before
 <strong>[mdspan.mdspan]</strong>, add all the material that follows.</p>
 </blockquote>
-<h2 data-number="7.1" id="add-subsection-mdspan.accessor.aligned-with-the-following"><span class="header-section-number">7.1</span> Add subsection �
+<h2 data-number="8.1" id="add-subsection-mdspan.accessor.aligned-with-the-following"><span class="header-section-number">8.1</span> Add subsection �
 [mdspan.accessor.aligned] with the following<a href="#add-subsection-mdspan.accessor.aligned-with-the-following" class="self-link"></a></h2>
 <p><b> � Class template <code>aligned_accessor</code>
 [mdspan.accessor.aligned] </b></p>
@@ -715,7 +719,7 @@ copyable type that models <code>semiregular</code>.</p>
 <span class="math inline">[0, <em>n</em>)</span> is an accessible range
 for an object <code>p</code> of type <code>data_handle_type</code> and
 an object of type <code>aligned_accessor</code> if and only if <span class="math inline">[</span><code>p</code>, <code>p</code> + <span class="math inline"><em>n</em>)</span> is a valid range.</p>
-<h2 data-number="7.2" id="members-mdspan.accessor.aligned.members"><span class="header-section-number">7.2</span> Members
+<h2 data-number="8.2" id="members-mdspan.accessor.aligned.members"><span class="header-section-number">8.2</span> Members
 [mdspan.accessor.aligned.members]<a href="#members-mdspan.accessor.aligned.members" class="self-link"></a></h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="dt">size_t</span> other_byte_alignment<span class="op">&gt;</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
