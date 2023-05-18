@@ -687,20 +687,19 @@ and before <code>class mdspan</code>, add the following.</p>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="dt">size_t</span> other_byte_alignment<span class="op">&gt;</span></span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>      aligned_accessor<span class="op">&lt;</span>OtherElementType, other_byte_alignment<span class="op">&gt;)</span> <span class="kw">noexcept</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">{}</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">operator</span> default_accessor<span class="op">&lt;</span>element_type<span class="op">&gt;()</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">{}</span>;</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">static</span> <span class="dt">bool</span> is_sufficiently_aligned<span class="op">(</span>data_handle_type p<span class="op">)</span>;</span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>      aligned_accessor<span class="op">&lt;</span>OtherElementType, other_byte_alignment<span class="op">&gt;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">operator</span> default_accessor<span class="op">&lt;</span>element_type<span class="op">&gt;()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">{}</span>;</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">static</span> <span class="dt">bool</span> is_sufficiently_aligned<span class="op">(</span>data_handle_type p<span class="op">)</span>;</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Mandates</em>: <code>byte_alignment</code> is a power of two.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -720,8 +719,7 @@ an object of type <code>aligned_accessor</code> if and only if <span class="math
 [mdspan.accessor.aligned.members]<a href="#members-mdspan.accessor.aligned.members" class="self-link"></a></h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="dt">size_t</span> other_byte_alignment<span class="op">&gt;</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    aligned_accessor<span class="op">&lt;</span>OtherElementType, other_byte_alignment<span class="op">&gt;)</span> <span class="kw">noexcept</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">{}</span></span></code></pre></div>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    aligned_accessor<span class="op">&lt;</span>OtherElementType, other_byte_alignment<span class="op">&gt;)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Constraints</em>:</p>
 <ul>
