@@ -146,6 +146,12 @@ b. "Strided": each batch argument is packed into a single array, with a fixed el
 
 c. "Interleaved": for example, if the batch index is `k`, then the `i, j` element of all the problems (or, possibly only SIMD width number of problems) are stored contiguously.
 
+Different vendors offer different options.  For example,
+NVIDIA's [cuBLAS](https://docs.nvidia.com/cuda/cublas/index.html) 
+includes both P2P (`*Batched`) and strided (`*StridedBatched`) operations,
+and its [CUTLASS library](https://developer.nvidia.com/blog/cutlass-fast-linear-algebra-in-cuda-c/)
+supports many variations of strided and interleaved.
+
 The P2P interface would require extra packing and unpacking of pointers,
 and therefore extra overhead.  In practice, users often want to represent
 a batch as a "pre-packed" array with a particular layout,

@@ -599,6 +599,10 @@ the batch.</p></li>
 then the <code>i, j</code> element of all the problems (or, possibly
 only SIMD width number of problems) are stored contiguously.</p></li>
 </ol>
+<p>Different vendors offer different options. For example, NVIDIA’s <a href="https://docs.nvidia.com/cuda/cublas/index.html">cuBLAS</a>
+includes both P2P (<code>*Batched</code>) and strided
+(<code>*StridedBatched</code>) operations, and its <a href="https://developer.nvidia.com/blog/cutlass-fast-linear-algebra-in-cuda-c/">CUTLASS
+library</a> supports many variations of strided and interleaved.</p>
 <p>The P2P interface would require extra packing and unpacking of
 pointers, and therefore extra overhead. In practice, users often want to
 represent a batch as a “pre-packed” array with a particular layout, so
