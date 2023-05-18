@@ -162,7 +162,7 @@ with an extra rank representing the batch mode
 
 We may want to add new layouts that bake more information into the layout at compile time.  We may also wish to add `aligned_accessor`.
 
-### Representing scaling factors
+### Representing scaling factors (alpha and beta)
 
 Some BLAS functions take scaling factors.
 For example, a single matrix-matrix multiply computes
@@ -191,6 +191,19 @@ so that `scaled` could take either a single scaling factor
 or an `mdspan` of scaling factors.
 This would be consistent with the "broadcast" approach
 described elsewhere in this proposal.
+
+### Conjugate, transpose, and triangle arguments
+
+Dongarra 2018 proposes that the different problems in a batch
+could take different conjugate, transpose, triangle,
+or diagonal-interpretation (explicit or implicit unit) arguments.
+However, not all vendor libraries support this.
+Furthermore, changing these arguments actually changes the algorithm
+in a way that this not always amenable
+to optimizations like vectorization.
+For these reason, we require that all the problems in a batch
+have the same conjugate, transpose, triangle,
+and diagonal-interpretation arguments.
 
 ### Representing the result of a reduction (dot product or norm)
 
