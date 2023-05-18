@@ -101,6 +101,16 @@ High-performance implementation is not just a parallel loop over non-batched fun
 
 SIMD interleaved layout -- even if nested C++17 parallel algorithms worked perfectly, they could not optimize this case, because the layout crosses multiple independent problems.
 
+# Existing Practice
+
+## Vendor Libraries
+
+mkl blah blah, cublas blah blah, rocblas blah blah
+
+## Open Source Practice
+
+KokkosKernels blah blah, BLAS proposal blah blah, Magma??
+
 # Design discussion
 
 ## Interface options
