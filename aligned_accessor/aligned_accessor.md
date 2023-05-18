@@ -142,8 +142,8 @@ extern float vectorized_norm(aligned_mdspan<32> y);
 
 // Interfaces that require 16-byte alignment,
 // because they want to do 4-wide SIMD of float.
-extern void fill_x(aligned_mdspan<32> x);
-extern void fill_y(aligned_mdspan<32> y);
+extern void fill_x(aligned_mdspan<16> x);
+extern void fill_y(aligned_mdspan<16> y);
 
 // Helper functions for making overaligned array allocations.
 
