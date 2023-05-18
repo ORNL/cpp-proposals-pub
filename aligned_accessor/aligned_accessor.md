@@ -263,7 +263,7 @@ struct aligned_accessor {
 ```c++
 template<class OtherElementType, size_t other_byte_alignment>
   constexpr aligned_accessor(
-    aligned_accessor<OtherElementType, other_byte_alignment>) noexcept;
+    aligned_accessor<OtherElementType, other_byte_alignment>) noexcept {}
 ```
 
 [1]{.pnum} *Constraints*:
