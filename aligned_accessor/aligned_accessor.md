@@ -1,5 +1,36 @@
 
-## Abstract
+---
+title: "A free function linear algebra interface based on the BLAS"
+document: P1673
+date: today
+audience: LEWG
+author:
+  - name: Mark Hoemmen
+    email: <mhoemmen@nvidia.com>
+  - name: Damien Lebrun-Grandie
+    email: <lebrungrandt@ornl.gov>
+  - name: Nicolas Manual Morales
+    email: <???@sandia.gov>
+  - name: Christian Trott
+    email: <crtrott@sandia.gov>
+toc: true
+---
+
+# Authors
+
+* Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)
+
+* Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratory)
+
+* Nicolas Manuel Morales (???@sandia.gov) (Sandia National Laboratories)
+
+* Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
+
+# Revision history
+
+* Revision 0 (pre-Varna) to be submitted 2023-05-19
+
+# Purpose of this paper
 
 We propose adding `aligned_accessor` to the C++ Standard Library.
 This class template is an mdspan accessor policy
@@ -25,7 +56,7 @@ We realized that `aligned_accessor` was more generally applicable
 and that standardization would help the padded layouts proposed by P2642
 reach their maximum value.
 
-## Key features
+# Key features
 
 * `offset_policy` is `default_accessor`
 
@@ -72,7 +103,9 @@ This makes it easier for users to check preconditions,
 without needing to know how to cast a pointer to an integer
 of the correct size and signedness.
 
-## Should the accessor be nestable?
+# Design discussion
+
+## The accessor is not nestable
 
 We considered making `aligned_accessor` "wrap" any accessor type meeting the right requirements.
 For example, `aligned_accessor` could take the inner accessor as a template parameter, store an instance of it, and dispatch to its member functions.
@@ -96,95 +129,7 @@ A similar question came up in the "properties" proposal P0900, which we quote he
 For these reasons, we have made `aligned_accessor` stand-alone,
 instead of having it modify another user-provided accessor.
 
-## Wording
-
-### Synopsis
-
-```c++
-template<class ElementType, size_t the_byte_alignment>
-struct aligned_accessor {
-  using offset_policy = default_accessor<ElementType>;
-  using element_type = ElementType;
-  using reference = ElementType&;
-  using data_handle_type = ElementType*;
-
-  static constexpr size_t byte_alignment = the_byte_alignment;
-
-  constexpr aligned_accessor() noexcept = default;
-
-  template<class OtherElementType, size_t other_byte_alignment>
-    constexpr aligned_accessor(
-      aligned_accessor<OtherElementType, other_byte_alignment>) noexcept
-    {}
-
-  constexpr operator default_accessor<element_type>() const {
-    return {};
-  }
-
-  constexpr reference access(data_handle_type p, size_t i) const noexcept;
-
-  constexpr typename offset_policy::data_handle_type
-    offset(data_handle_type p, size_t i) const noexcept;
-
-  constexpr static bool is_sufficiently_aligned(data_handle_type p) {
-    auto p_val = std::bit_cast<uintptr_t>(p);
-    return (p_val / byte_alignment) * byte_alignment == p_val;
-  }
-};
-```
-
-*Mandates*: `byte_alignment` is a power of two.
-
-1. `aligned_accessor` meets the accessor policy requirements.
-
-2. `ElementType`  is required to be a complete object type that is neither an abstract class type nor an array type.
-
-3. Each specialization of `aligned_accessor` is a trivially copyable type that models `semiregular`.
-
-4. $[0, n)$ is an accessible range for an object `p` of type `data_handle_type` and an object of type `aligned_accessor` if and only if $[`p`, `p` + $n)$ is a valid range.
-
-### Members
-
-```c++
-template<class OtherElementType, size_t other_byte_alignment>
-  constexpr aligned_accessor(
-    aligned_accessor<OtherElementType, other_byte_alignment>) noexcept
-  {}
-```
-
-*Constraints*:
-
-* `is_convertible_v<OtherElementType(*)[], element_type(*)[]>` is `true`, and
-
-* `gcd(other_byte_alignment, byte_alignment) == byte_alignment` is `true`.
-
-
-```c++
-constexpr reference access(data_handle_type p, size_t i) const noexcept;
-```
-
-*Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
-
-*Effects*: Equivalent to: `return assume_aligned<byte_alignment>(p)[i];`
-
-```c++
-constexpr typename offset_policy::data_handle_type
-  offset(data_handle_type p, size_t i) const noexcept;
-```
-
-*Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
-
-*Effects*: Equivalent to: `return p + i;`
-
-```c++
-constexpr static bool is_sufficiently_aligned(data_handle_type p);
-```
-
-*Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
-
-*Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
-
-## Examples
+# Example
 
 ```c++
 template<size_t byte_alignment>
@@ -240,3 +185,116 @@ float user_function(size_t num_elements, float alpha)
   return vectorized_norm(y);
 }
 ```
+
+# Wording
+
+> Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
+> The � character is used to denote a placeholder section number which the editor shall determine.
+>
+> In *[version.syn]*, add
+
+```c++
+#define __cpp_lib_aligned_accessor YYYYMML // also in <mdspan>
+```
+
+> Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
+>
+> To the Header `<mdspan>` synopsis **[mdspan.syn]**, after `class default_accessor` and before `class mdspan`, add the following.
+
+```c++
+// [mdspan.accessor.aligned], class template aligned_accessor
+template<class ElementType, size_t byte_alignment>
+  class aligned_accessor;
+```
+
+> At the end of **[mdspan.accessor.default]** and before **[mdspan.mdspan]**, add all the material that follows.
+
+## Add subsection � [mdspan.accessor.aligned] with the following
+
+<b> � Class template `aligned_accessor` [mdspan.accessor.aligned] </b>
+
+<b> �.1 Overview [mdspan.accessor.aligned.overview] </b>
+
+```c++
+template<class ElementType, size_t the_byte_alignment>
+struct aligned_accessor {
+  using offset_policy = default_accessor<ElementType>;
+  using element_type = ElementType;
+  using reference = ElementType&;
+  using data_handle_type = ElementType*;
+
+  static constexpr size_t byte_alignment = the_byte_alignment;
+
+  constexpr aligned_accessor() noexcept = default;
+
+  template<class OtherElementType, size_t other_byte_alignment>
+    constexpr aligned_accessor(
+      aligned_accessor<OtherElementType, other_byte_alignment>) noexcept
+    {}
+
+  constexpr operator default_accessor<element_type>() const {
+    return {};
+  }
+
+  constexpr reference access(data_handle_type p, size_t i) const noexcept;
+
+  constexpr typename offset_policy::data_handle_type
+    offset(data_handle_type p, size_t i) const noexcept;
+
+  constexpr static bool is_sufficiently_aligned(data_handle_type p) {
+    auto p_val = std::bit_cast<uintptr_t>(p);
+    return (p_val / byte_alignment) * byte_alignment == p_val;
+  }
+};
+```
+
+[1]{.pnum} *Mandates*: `byte_alignment` is a power of two.
+
+[2]{.pnum} `aligned_accessor` meets the accessor policy requirements.
+
+[3]{.pnum} `ElementType`  is required to be a complete object type that is neither an abstract class type nor an array type.
+
+[4]{.pnum} Each specialization of `aligned_accessor` is a trivially copyable type that models `semiregular`.
+
+[5]{.pnum} $[0, n)$ is an accessible range for an object `p` of type `data_handle_type` and an object of type `aligned_accessor` if and only if $[$`p`, `p` + $n)$ is a valid range.
+
+## Members [mdspan.accessor.aligned.members]
+
+```c++
+template<class OtherElementType, size_t other_byte_alignment>
+  constexpr aligned_accessor(
+    aligned_accessor<OtherElementType, other_byte_alignment>) noexcept
+  {}
+```
+
+[1]{.pnum} *Constraints*:
+
+* [1.1]{.pnum} `is_convertible_v<OtherElementType(*)[], element_type(*)[]>` is `true`, and
+
+* [1.2]{.pnum} `gcd(other_byte_alignment, byte_alignment) == byte_alignment` is `true`.
+
+```c++
+constexpr reference access(data_handle_type p, size_t i) const noexcept;
+```
+
+[2]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
+
+[3]{.pnum} *Effects*: Equivalent to: `return assume_aligned<byte_alignment>(p)[i];`
+
+```c++
+constexpr typename offset_policy::data_handle_type
+  offset(data_handle_type p, size_t i) const noexcept;
+```
+
+[4]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
+
+[5]{.pnum} *Effects*: Equivalent to: `return p + i;`
+
+```c++
+constexpr static bool is_sufficiently_aligned(data_handle_type p);
+```
+
+[6]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
+
+[7]{.pnum} *Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
+
