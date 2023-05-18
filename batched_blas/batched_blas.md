@@ -13,14 +13,24 @@ author:
 toc: true
 ---
 
-
 # Revision History
 
 ## Initial Version 2023-05 Mailing
 
 - Initial version for SG review
 
-# What is batched linear algebra?
+# Abstract
+
+We propose extending P1673
+("A free function linear algebra interface based on the BLAS")
+to support "batched" linear algebra, that is,
+solving multiple independent problems all at once.
+The initial version of this proposal discusses the interface changes to P1673
+that would be needed for batched linear algebra.
+
+# Motivation
+
+## What is batched linear algebra?
 
 "Batched" linear algebra functions solve
 many independent linear algebra problems all at once, in a single function call.  For example, a "batched GEMM" computes multiple matrix-matrix multiplies at once.
@@ -85,13 +95,9 @@ Input arguments may also have an additional rank to match;
 if they do not, the function will use ("broadcast") the same
 input argument for all the output arguments in the batch.
 
-# Why we should extend support to batched linear algebra
+## Why we should extend support to batched linear algebra
 
-1. Many applications need to solve 
-
-1. Essential for performance of many small linear algebra problems
-
-2. High-performance implementation is not just a parallel loop over non-batched function calls
+High-performance implementation is not just a parallel loop over non-batched function calls.
 
 SIMD interleaved layout -- even if nested C++17 parallel algorithms worked perfectly, they could not optimize this case, because the layout crosses multiple independent problems.
 
@@ -105,7 +111,7 @@ mkl blah blah, cublas blah blah, rocblas blah blah
 
 KokkosKernels blah blah, BLAS proposal blah blah, Magma??
 
-# Extending std::linalg
+# Design discussion
 
 ## Interface options
 
@@ -156,32 +162,81 @@ with an extra rank representing the batch mode
 
 We may want to add new layouts that bake more information into the layout at compile time.  We may also wish to add `aligned_accessor`.
 
-### Representing 
+### Representing scaling factors
 
-### What about alpha and beta?
+Some BLAS functions take scaling factors.
+For example, a single matrix-matrix multiply computes
+`C = beta * C + alpha * A * B`
+for matrices `A`, `B`, and `C` and scalars `alpha` and `beta`.
+Batched linear algebra has a design choice:
+should the different problems in a batch
+use the same or different scaling factors?
 
-P1673 expresses this with an accessor (result of `scaled`).
-Could an accessor view an mdspan?
-It's possible, but we might also consider either requiring all alpha and beta to be the same, or adding new overloads.
+P1673 expresses scaling factors with an accessor `accessor_scaled`,
+that users access mainly by calling the `scaled` function.
+For example, `scaled(alpha, A)` represents the product
+of the (scalar) scaling factor `alpha` and the matrix `A`.
 
-2018 specification (see above) omits reductions (dot product and norms).
+If we want to use the same scaling factor for all the problems in a batch,
+we can use `accessor_scaled` and `scaled` without interface changes.
+However, if we want to use a different scaling factor for each problem,
+we would either need to let `accessor_scaled`
+hold an `mdspan` of the scaling factors,
+or change all the function interfaces
+to take separate `mdspan` parameters for the scaling factors.
+We favor changing `accessor_scaled`,
+as it would maintain interface consistency.
+We could also retain the existing `accessor_scaled` that holds a scalar,
+so that `scaled` could take either a single scaling factor
+or an `mdspan` of scaling factors.
+This would be consistent with the "broadcast" approach
+described elsewhere in this proposal.
 
-P1673 originally had reductions write to an output reference, with the intent that this could be generalized to an output rank-1 (the batch mode) mdspan.  LEWG and previous SGs asked P1673 authors to make reductions look like `std::reduce`: returning a value, instead of writing to an output reference.  This interface is easier to understand for the non-batched case, but it means that the batched interface cannot be made fully consistent with the non-batched interface.  (This is because we do not permit stdblas to allocate and return arrays of elements.)
+### Representing the result of a reduction (dot product or norm)
+
+The Batched BLAS interface specification (Dongarra 2018) omits "reduction"-like operations -- dot products and norms -- that return a single value.
+
+The original P1673 design had reductions write to an output reference, with the intent that this could be generalized to an output rank-1 (the batch mode) mdspan.  LEWG and previous Study Groups asked P1673 authors to make reductions look like `std::reduce`: returning a value, instead of writing to an output reference.  This interface is easier to understand for the non-batched case, but it means that the batched interface cannot be made fully consistent with the non-batched interface.  (This is because we do not permit stdblas to allocate and return arrays of elements.)
 
 Options:
 
 1. Overload to take an output mdspan
 2. Omit reductions from the batched interface (Batched BLAS spec takes this approach)
 
-### What about broadcasts?
+### Representing broadcast parameters
 
-Example: matrix-vector multiply with the same matrix, but different input and output vectors.
+If the output `mdspan` has an extra rank,
+then we assume that users want to do a batched computation,
+and we treat the leftmost extent as the batch extent
+(the index of a problem in the batch).
+Any input `mdspan` with an extra rank
+also has its leftmost extent treated as the batch extent.
 
-Broadcast layouts for input are effectively strided layouts with stride zero in the broadcast mode.  (`layout_stride` does not permit this, but general strided layouts can have zero strides.)
+Users may want to repeat a single input for all the problems in a batch.
+For example, users may want to perform matrix-vector multiply
+with the same matrix, but different input and output vectors.
+We call the repeated single input a "broadcast" parameter.
+This feature minimizes storage requirements and overhead.
+Output (or input/output) `mdspan` cannot be broadcast.
 
-Interpretation via overloads is unambiguous (if there's an extra mode in an mdspan
+We represent broadcast input parameters
+as an input `mdspan` without the extra batch extent.
+That is, the input's rank is the same as it would have been
+in the non-batched case.
+This interpretation is unambiguous for all P1673 functions.
 
-leftmost mode (???) is the batch mode)
+We could have chosen to express broadcast parameters
+by requiring that they have the "extra" batch extent,
+but using a nonunique layout:
+for example, a strided layout with stride zero in the batch mode.
+(`layout_stride` does not permit this,
+but general strided layouts can have zero strides.)
+Users can still do this with our proposal.
+However, we consider nonunique layouts an expert mdspan feature
+that is more challenging for users to implement.
+We also do not want to add such layouts to the Standard Library,
+as we think broadcast parameters
+have a natural representation without them.
 
 ## Principle
 
