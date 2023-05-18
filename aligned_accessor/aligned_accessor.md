@@ -10,7 +10,7 @@ author:
   - name: Damien Lebrun-Grandie
     email: <lebrungrandt@ornl.gov>
   - name: Nicolas Manual Morales
-    email: <???@sandia.gov>
+    email: <nmmoral@sandia.gov>
   - name: Christian Trott
     email: <crtrott@sandia.gov>
 toc: true
@@ -22,7 +22,7 @@ toc: true
 
 * Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratory)
 
-* Nicolas Manuel Morales (???@sandia.gov) (Sandia National Laboratories)
+* Nicolas Manuel Morales (nmmoral@sandia.gov) (Sandia National Laboratories)
 
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 
@@ -241,10 +241,7 @@ struct aligned_accessor {
   constexpr typename offset_policy::data_handle_type
     offset(data_handle_type p, size_t i) const noexcept;
 
-  constexpr static bool is_sufficiently_aligned(data_handle_type p) {
-    auto p_val = std::bit_cast<uintptr_t>(p);
-    return (p_val / byte_alignment) * byte_alignment == p_val;
-  }
+  constexpr static bool is_sufficiently_aligned(data_handle_type p);
 };
 ```
 
