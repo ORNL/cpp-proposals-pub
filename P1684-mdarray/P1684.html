@@ -530,6 +530,9 @@ out of <code>mdarray</code></li>
 <li>in moved from state <code>data()</code> also may not work together
 with <code>mapping().required_span_size()</code>.</li>
 </ul></li>
+<li>work around the fact that <code>data()</code> and
+<code>pointer</code> is not a thing required by contiguous container
+requirements …</li>
 </ul>
 <h2 data-number="1.2" id="p1684r4-2023-01-mailing"><span class="header-section-number">1.2</span> P1684R4: 2023-01 Mailing<a href="#p1684r4-2023-01-mailing" class="self-link"></a></h2>
 <h4 data-number="1.2.0.1" id="changes-from-r3"><span class="header-section-number">1.2.0.1</span> Changes from R3<a href="#changes-from-r3" class="self-link"></a></h4>
@@ -1771,9 +1774,9 @@ an observer of the underlying container’s size.</p>
 <span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> index_type <span class="op">=</span> <span class="kw">typename</span> Extents<span class="op">::</span>index_type;</span>
 <span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> size_type <span class="op">=</span> <span class="kw">typename</span> Extents<span class="op">::</span>size_type;</span>
 <span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> rank_type <span class="op">=</span> <span class="kw">typename</span> Extents<span class="op">::</span>rank_type;</span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> pointer <span class="op">=</span> <span class="kw">typename</span> container_type<span class="op">::</span>pointer;</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> pointer <span class="op">=</span> <span class="kw">decltype</span><span class="op">(</span>to_address<span class="op">(</span>declval<span class="op">&lt;</span>container_type<span class="op">&gt;().</span>begin<span class="op">()))</span>;</span>
 <span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference <span class="op">=</span> <span class="kw">typename</span> container_type<span class="op">::</span>reference;</span>
-<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> const_pointer <span class="op">=</span> <span class="kw">typename</span> container_type<span class="op">::</span>const_pointer;</span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> const_pointer <span class="op">=</span> <span class="kw">decltype</span><span class="op">(</span>to_address<span class="op">(</span>declval<span class="op">&lt;</span>container_type<span class="op">&gt;().</span>cbegin<span class="op">()))</span>;</span>
 <span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> const_reference <span class="op">=</span> <span class="kw">typename</span> container_type<span class="op">::</span>const_reference;</span>
 <span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> rank_type rank<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> extents_type<span class="op">::</span>rank<span class="op">()</span>; <span class="op">}</span></span>
@@ -1877,8 +1880,8 @@ an observer of the underlying container’s size.</p>
 <span id="cb29-121"><a href="#cb29-121" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">void</span> swap<span class="op">(</span>mdarray<span class="op">&amp;</span> x, mdarray<span class="op">&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb29-122"><a href="#cb29-122" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-123"><a href="#cb29-123" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>map_</em><span class="op">.</span>extents<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb29-124"><a href="#cb29-124" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> pointer container_data<span class="op">()</span>; <span class="op">{</span> <span class="cf">return</span> <em>ctr_</em><span class="op">.</span>data<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb29-125"><a href="#cb29-125" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_pointer container_data<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>ctr_</em><span class="op">.</span>data<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb29-124"><a href="#cb29-124" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> pointer container_data<span class="op">()</span>; <span class="op">{</span> <span class="cf">return</span> to_address<span class="op">(</span><em>ctr_</em><span class="op">.</span>begin<span class="op">())</span>; <span class="op">}</span></span>
+<span id="cb29-125"><a href="#cb29-125" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> const_pointer container_data<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> to_address<span class="op">(</span><em>ctr_</em><span class="op">.</span>cbegin<span class="op">())</span>; <span class="op">}</span></span>
 <span id="cb29-126"><a href="#cb29-126" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> mapping_type<span class="op">&amp;</span> mapping<span class="op">()</span> <span class="kw">const</span> <span class="op">{</span> <span class="cf">return</span> <em>map_</em>; <span class="op">}</span></span>
 <span id="cb29-127"><a href="#cb29-127" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-128"><a href="#cb29-128" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents,</span>
@@ -2831,9 +2834,14 @@ index space <code>extents()</code> is 0, otherwise
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>           <span class="kw">class</span> OtherLayoutType, <span class="kw">class</span> OtherAccessorType<span class="op">&gt;</span></span>
 <span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">operator</span> mdspan <span class="op">()</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
-<em>Constraints:</em>
+<em>Constraints:</em></p>
+<ul>
+<li><p>[11.1]{pnum}
 <code>is_assignable_v&lt;mdspan&lt;element_type, extents_type, layout_type&gt;, mdspan&lt;OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType&gt;&gt;</code>
-is <code>true</code>.</p>
+is <code>true</code>.</p></li>
+<li><p>[11.2]{pnum} <code>is_same_v&lt;pointer, element_type*&gt;</code>
+is <code>true</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Preconditions:</em>
 <code>container_size() &gt;=</code><em><code>map_</code></em><code>.required_span_size()</code>
@@ -2844,10 +2852,15 @@ is <code>true</code>.</p>
 <div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherAccessorType<span class="op">&gt;</span></span>
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">&lt;</span>element_type, extents_type, layout_type, OtherAccessorType<span class="op">&gt;</span></span>
 <span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>      to_mdspan<span class="op">(</span><span class="kw">const</span> OtherAccessorType<span class="op">&amp;</span> a <span class="op">=</span> default_accessor<span class="op">&lt;</span>element_type<span class="op">&gt;())</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">13</a></span>
-<em>Constraints:</em>
-<code>is_assignable_v&lt;mdspan&lt;element_type, extents_type, layout_type&gt;, mdspan&lt;element_type, extents_type, layout_type, OtherAccessorType&gt;&gt;</code>
-is <code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
+<em>Constraints:</em></p>
+<ul>
+<li><p>[11.1]{pnum}
+<code>is_assignable_v&lt;mdspan&lt;element_type, extents_type, layout_type&gt;, mdspan&lt;OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType&gt;&gt;</code>
+is <code>true</code>.</p></li>
+<li><p>[11.2]{pnum} <code>is_same_v&lt;pointer, element_type*&gt;</code>
+is <code>true</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Preconditions:</em>
 <code>container_size() &gt;=</code><em><code>map_</code></em><code>.required_span_size()</code>
@@ -2859,9 +2872,15 @@ is <code>true</code>.</p>
 <span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">&lt;</span><span class="kw">const</span> element_type, extents_type, layout_type, OtherAccessorType<span class="op">&gt;</span></span>
 <span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>      to_mdspan<span class="op">(</span><span class="kw">const</span> OtherAccessorType<span class="op">&amp;</span> a <span class="op">=</span> default_accessor<span class="op">&lt;</span><span class="kw">const</span> element_type<span class="op">&gt;())</span> <span class="kw">const</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">15</a></span>
-<em>Constraints:</em>
+<em>Constraints:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(15.1)</a></span>
 <code>is_assignable_v&lt;mdspan&lt;const element_type, extents_type, layout_type&gt;, mdspan&lt;const element_type, extents_type, layout_type, OtherAccessorType&gt;&gt;</code>
-is <code>true</code>.</p>
+is <code>true</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(15.2)</a></span>
+<code>is_same_v&lt;const_pointer, const element_type*&gt;</code> is
+<code>true</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Preconditions:</em>
 <code>container_size() &gt;=</code><em><code>map_</code></em><code>.required_span_size()</code>
