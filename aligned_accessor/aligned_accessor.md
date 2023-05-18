@@ -1,7 +1,7 @@
 
 ---
 title: "`aligned_accessor`: An mdspan accessor expressing pointer overalignment"
-document: P????
+document: P2897R0
 date: today
 audience: LEWG
 author:
@@ -9,7 +9,7 @@ author:
     email: <mhoemmen@nvidia.com>
   - name: Damien Lebrun-Grandie
     email: <lebrungrandt@ornl.gov>
-  - name: Nicolas Manual Morales
+  - name: Nicolas Morales
     email: <nmmoral@sandia.gov>
   - name: Christian Trott
     email: <crtrott@sandia.gov>
@@ -22,7 +22,7 @@ toc: true
 
 * Damien Lebrun-Grandie (lebrungrandt@ornl.gov) (Oak Ridge National Laboratory)
 
-* Nicolas Manuel Morales (nmmoral@sandia.gov) (Sandia National Laboratories)
+* Nicolas Morales (nmmoral@sandia.gov) (Sandia National Laboratories)
 
 * Christian Trott (crtrott@sandia.gov) (Sandia National Laboratories)
 
@@ -35,12 +35,11 @@ toc: true
 We propose adding `aligned_accessor` to the C++ Standard Library.
 This class template is an mdspan accessor policy
 that uses `assume_aligned` to decorate pointer access.
-We think it belongs in the Standard Library
-because it would serve as a common vocabulary type
+We think it belongs in the Standard Library for two reasons.
+First, it would serve as a common vocabulary type
 for interfaces that take `mdspan` to declare
 their minimum alignment requirements.
-It also applies the optimizations of `assume_aligned`
-to an `mdspan`'s data handle.
+Second, it extends to `mdspan` accesses the optimizations that compilers can perform to pointers decorated with `assume_aligned`.
 
 `aligned_accessor` is analogous to
 the various `atomic_accessor_*` templates proposed by P2689.
