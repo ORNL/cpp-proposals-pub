@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-05-18" />
+  <meta name="dcterms.date" content="2023-05-19" />
   <title>Extending Linear Algebra Support to Batched Operations</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ Support to Batched Operations</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-05-18</td>
+    <td>2023-05-19</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -474,7 +474,8 @@ reduction (dot product or norm)</a></li>
 parameters</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#references" id="toc-references"><span class="toc-section-number">5</span> References</a></li>
+<li><a href="#wording-sketch" id="toc-wording-sketch"><span class="toc-section-number">5</span> Wording Sketch</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">6</span> References</a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
@@ -800,7 +801,96 @@ proposal. However, we consider nonunique layouts an expert mdspan
 feature that is more challenging for users to implement. We also do not
 want to add such layouts to the Standard Library, as we think broadcast
 parameters have a natural representation without them.</p>
-<h1 data-number="5" id="references"><span class="header-section-number">5</span> References<a href="#references" class="self-link"></a></h1>
+<h1 data-number="5" id="wording-sketch"><span class="header-section-number">5</span> Wording Sketch<a href="#wording-sketch" class="self-link"></a></h1>
+<p>In P1673 the wording for individual functions is very simple:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a> in<span class="op">-</span>matrix InMat,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a> in<span class="op">-</span>vector InVec,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a> out<span class="op">-</span>vector OutVec<span class="op">&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> matrix_vector_product<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>           InMat A,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>           InVec x,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>           OutVec y<span class="op">)</span>;</span></code></pre></div>
+<p><em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>x</em></span></p>
+<p>This wording relies on exposition only concepts
+<em><code>in-matrix</code></em>, <em><code>in-vector</code></em> and
+<em><code>out-vector</code></em> given by:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">concept</span> <em>in-vector</em> <span class="op">=</span> <span class="co">// exposition only</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><em>is-mdspan</em><span class="op">&lt;</span>T<span class="op">&gt;::</span>value <span class="op">&amp;&amp;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>T<span class="op">::</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">1</span>;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">concept</span> <em>out-vector</em> <span class="op">=</span> <span class="co">// exposition only</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><em>is-mdspan</em><span class="op">&lt;</span>T<span class="op">&gt;::</span>value <span class="op">&amp;&amp;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>T<span class="op">::</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>is_assignable_v<span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">::</span>reference, <span class="kw">typename</span> T<span class="op">::</span>element_type<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>T<span class="op">::</span>is_always_unique<span class="op">()</span>;</span></code></pre></div>
+<p>We propose adding new overloads of the function with new exposition
+only concepts, accounting for broadcasting of input arguments:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">concept</span> <em>batched-in-vector</em> <span class="op">=</span> <span class="co">// exposition only</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><em>is-mdspan</em><span class="op">&lt;</span>T<span class="op">&gt;::</span>value <span class="op">&amp;&amp;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="op">(</span>T<span class="op">::</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">||</span> T<span class="op">::</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">2</span><span class="op">)</span>;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">concept</span> <em>batched-out-vector</em> <span class="op">=</span> <span class="co">// exposition only</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><em>is-mdspan</em><span class="op">&lt;</span>T<span class="op">&gt;::</span>value <span class="op">&amp;&amp;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>T<span class="op">::</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">2</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>is_assignable_v<span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">::</span>reference, <span class="kw">typename</span> T<span class="op">::</span>element_type<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>T<span class="op">::</span>is_always_unique<span class="op">()</span>;</span></code></pre></div>
+<p>The batched <em><code>batched-out-***</code></em> and
+<em><code>batched-inout-***</code></em> concepts strictly increase the
+rank requirement by one, <em><code>in-***</code></em> concepts allow the
+original rank and one higher.</p>
+<p>In addition to these new exposition only concepts we need some helper
+functions:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>batched-in-vector</em> InVec<span class="op">&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span>InVec<span class="op">::</span>rank<span class="op">()==</span><span class="dv">1</span><span class="op">)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> get_batch_vector<span class="op">(</span>InVec v, <span class="dt">int</span> <span class="co">/*batch*/</span><span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> v; <span class="op">}</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>batched-in-vector</em> InVec<span class="op">&gt;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">requires</span><span class="op">(</span>InVec<span class="op">::</span>rank<span class="op">()==</span><span class="dv">2</span><span class="op">)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> get_batch_vector<span class="op">(</span>InVec v, <span class="dt">int</span> batch<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> submdspan<span class="op">(</span>v, batch, full_extent<span class="op">)</span>; <span class="op">}</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>batched-out-vector</em> OutVec<span class="op">&gt;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> get_batch_vector<span class="op">(</span>OutVec v, <span class="dt">int</span> batch<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> submdspan<span class="op">(</span>v, batch, full_extent<span class="op">)</span>; <span class="op">}</span></span></code></pre></div>
+<p>With those functions (and their equivalents for matrices) we can now
+define the batched overload for <code>matrix_vector_product</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a> <em>batched-in-matrix</em> InMat,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a> <em>batched-in-vector</em> InVec,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a> <em>batched-out-vector</em> OutVec<span class="op">&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> matrix_vector_product<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>           InMat A,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>           InVec x,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>           OutVec y<span class="op">)</span>;</span></code></pre></div>
+<p><em>Preconditions:</em>
+<code>(y.extent(0) == x.extent(0) || x.rank() == 1) &amp;&amp; (y.extent(0) == A.extent(0) || A.rank()==2)</code>
+is <code>true</code>.</p>
+<p><em>Effects:</em> Equivalent to calling
+<code>matrix_vector_product(get_batch_matrix(A, i), get_batch_vector(x,  i), get_batch_vector(y, i))</code>
+for each <code>i</code> in the range of <span class="math inline">[</span> 0,<code>A.extent(0)</code><span class="math inline">)</span>.</p>
+<p>This leaves the question of having calls with separate scaling factor
+per subobject. To support that we add an additional overload taking a
+rank-1 <code>mdspan</code> with the scaling factors:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a> <em>in-vector</em> Alphas,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a> <em>batched-in-matrix</em> InMat,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a> <em>batched-in-vector</em> InVec,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a> <em>batched-out-vector</em> OutVec<span class="op">&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> matrix_vector_product<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>           Alphas alphas,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>           InMat A,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>           InVec x,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>           OutVec y<span class="op">)</span>;</span></code></pre></div>
+<p><em>Preconditions:</em>
+<code>(y.extent(0) == alphas.extent(0)) &amp;&amp; (y.extent(0) == x.extent(0) || x.rank() == 1) &amp;&amp; (y.extent(0) == A.extent(0) || A.rank()==2)</code>
+is <code>true</code>.</p>
+<p><em>Effects:</em> Equivalent to calling
+<code>matrix_vector_product(scaled(alphas[i],get_batch_matrix(A, i)), get_batch_vector(x,  i), get_batch_vector(y, i))</code>
+for each <code>i</code> in the range of <span class="math inline">[</span> 0,<code>A.extent(0)</code><span class="math inline">)</span>.</p>
+<h1 data-number="6" id="references"><span class="header-section-number">6</span> References<a href="#references" class="self-link"></a></h1>
 <ul>
 <li><p>Samuel D. Relton, Pedro Valero-Lara, and Mawussi Zounon, <a href="http://www.nlafet.eu/wp-content/uploads/2016/01/NLAFET-WN5-Relton-ValeroLara-Zounon-161111.pdf">“A
 Comparison of Potential Interfaces for Batched BLAS Computations,”</a>
