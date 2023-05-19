@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-05-17" />
+  <meta name="dcterms.date" content="2023-05-19" />
   <title>mdarray: An Owning Multidimensional Array Analog of mdspan</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ Owning Multidimensional Array Analog of <code>mdspan</code></h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-05-17</td>
+    <td>2023-05-19</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -507,7 +507,8 @@ combinations</a></li>
 </ul></li>
 <li><a href="#move-behavior" id="toc-move-behavior"><span class="toc-section-number">5</span> Move Behavior</a></li>
 <li><a href="#wording" id="toc-wording"><span class="toc-section-number">6</span> Wording</a></li>
-<li><a href="#references" id="toc-references"><span class="toc-section-number">7</span> References</a></li>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">7</span> Acknowledgements</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">8</span> References</a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
@@ -533,6 +534,8 @@ with <code>mapping().required_span_size()</code>.</li>
 <li>work around the fact that <code>data()</code> and
 <code>pointer</code> is not a thing required by contiguous container
 requirements …</li>
+<li>fix <code>to_mdspan</code> and <code>mdspan</code> conversion
+operator</li>
 </ul>
 <h2 data-number="1.2" id="p1684r4-2023-01-mailing"><span class="header-section-number">1.2</span> P1684R4: 2023-01 Mailing<a href="#p1684r4-2023-01-mailing" class="self-link"></a></h2>
 <h4 data-number="1.2.0.1" id="changes-from-r3"><span class="header-section-number">1.2.0.1</span> Changes from R3<a href="#changes-from-r3" class="self-link"></a></h4>
@@ -603,7 +606,7 @@ create a multi dimensional array for use:</p>
 <p><strong>C++23:</strong></p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a mapping so one knows how many </span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// elements the buffer needs to have</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>dextents<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;</span> map<span class="op">(</span>N,M<span class="op">)</span>;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">2</span><span class="op">&gt;&gt;</span> map<span class="op">(</span>N,M<span class="op">)</span>;</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Create the underlying data object</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>vector<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;</span> buffer<span class="op">(</span>map<span class="op">.</span>required_span_size<span class="op">())</span>;</span>
@@ -612,7 +615,7 @@ create a multi dimensional array for use:</p>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>mdspan matrix<span class="op">(</span>buffer<span class="op">.</span>data<span class="op">()</span>, N, M<span class="op">)</span>;</span></code></pre></div>
 <p><strong>This Work:</strong></p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">&lt;</span><span class="dt">double</span>, dextents<span class="op">&lt;</span><span class="dv">3</span>,<span class="dv">3</span><span class="op">&gt;&gt;</span> matrix<span class="op">(</span>N,M<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">&lt;</span><span class="dt">double</span>, dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">2</span><span class="op">&gt;&gt;</span> matrix<span class="op">(</span>N,M<span class="op">)</span>;</span></code></pre></div>
 <p>In addition, especially for arrays with small, compile-time extents,
 <code>mdarray</code>’s owning semantics make fewer demands on
 interprocedural analysis for optimization. In particular, the lack of
@@ -680,7 +683,7 @@ underlying data.</p>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> mdarray <span class="op">{</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">/* ... */</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// also in mdspan:</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// also in mdspan as data_handle_type:</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> pointer <span class="op">=</span> <span class="co">/* ... */</span>;</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// only in mdarray:</span></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> const_pointer <span class="op">=</span> <span class="co">/* ... */</span>;</span>
@@ -1282,16 +1285,18 @@ different from having unused elements somewhere else in the
 container.</p>
 <h1 data-number="4" id="constructor-overload-set-considerations"><span class="header-section-number">4</span> Constructor Overload Set
 Considerations<a href="#constructor-overload-set-considerations" class="self-link"></a></h1>
-<p>There are numerous options of how to design the constructor overlaod
-set for <code>mdarray</code>. Compared to other containers and container
-adaptors the situation is more complicated, due to the combinatorical
-nature of having the layout mapping arguments with the common set of
-container arguments (values, allocators, ranges etc.).</p>
+<p>As discussed before, there are numerous options of how to design the
+constructor overlaod set for <code>mdarray</code>. Compared to other
+containers and container adaptors the situation is more complicated, due
+to the combinatorical nature of having the layout mapping arguments with
+the common set of container arguments (values, allocators, ranges
+etc.).</p>
 <p>A prior version of this paper had well over 40 constructor overloads.
 The current version still has on the order of 20, but we believe that it
 is the best compromise between complexity and usability. We put the
 emphasis on easy usability in most common cases, while preserving
-clarity of behavior. There are two alternatives we considered:</p>
+clarity of behavior. There are two alternatives we considered based on
+received feedback:</p>
 <ul>
 <li>A minimal approach just providing the extents/mapping overloads and
 versions of it which take a container</li>
@@ -1303,7 +1308,8 @@ constructors from mdspan in addition to the combinations listed
 here.</p>
 <h2 data-number="4.1" id="current-argument-combinations"><span class="header-section-number">4.1</span> Current Argument combinations<a href="#current-argument-combinations" class="self-link"></a></h2>
 <p>This set is almost the same as in the previous revision of the paper,
-however we changed the order for constructors taking a container, so
+however we removed an overload taking a container and integrals, which
+allowed us to change the order for constructors taking a container, so
 that the extents or mapping argument is always first.</p>
 <ul>
 <li>Integrals</li>
@@ -1323,7 +1329,7 @@ that the extents or mapping argument is always first.</p>
 <p>Note that this set does not include a constructor from iterators or
 ranges these can be written by passing in an immediate constructed
 container:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>some_mdarray_t a<span class="op">(</span>extents<span class="op">{...}</span>, vector<span class="op">{</span>begin, end<span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">&lt;...&gt;</span> a<span class="op">(</span>extents<span class="op">{...}</span>, vector<span class="op">{</span>begin, end<span class="op">})</span>;</span></code></pre></div>
 <h2 data-number="4.2" id="minimal-alternative"><span class="header-section-number">4.2</span> Minimal Alternative<a href="#minimal-alternative" class="self-link"></a></h2>
 <p>A question which came up is whether, it would be sufficient to always
 wrap things in a container and pass that in, for example for the use
@@ -1354,8 +1360,8 @@ by providing a constructor with variadic templates:</p>
 <li>Integrals</li>
 <li>extents</li>
 <li>mapping</li>
-<li>extents + container_ctor_args</li>
-<li>mapping + container_ctor_args</li>
+<li>extents + container-ctor-args</li>
+<li>mapping + container-ctor-args</li>
 </ul>
 <p>However, using this approach results in some awkward and hard to
 understand situations. To begin with, the constructor actually has two
@@ -1943,7 +1949,7 @@ an observer of the underlying container’s size.</p>
 <span id="cb29-184"><a href="#cb29-184" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-185"><a href="#cb29-185" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> Layout, <span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
 <span id="cb29-186"><a href="#cb29-186" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">(</span><span class="kw">const</span> mdspan<span class="op">&lt;</span>ElementType, Extents, Layout, Accessor<span class="op">&gt;&amp;)</span></span>
-<span id="cb29-187"><a href="#cb29-187" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdarray<span class="op">&lt;</span>ElementType, Extents, Layout<span class="op">&gt;</span>;</span>
+<span id="cb29-187"><a href="#cb29-187" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdarray<span class="op">&lt;</span>remove_cv_t<span class="op">&lt;</span>ElementType<span class="op">&gt;</span>, Extents, Layout<span class="op">&gt;</span>;</span>
 <span id="cb29-188"><a href="#cb29-188" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-189"><a href="#cb29-189" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> <span class="op">...</span> Extents, <span class="kw">class</span> Container, <span class="kw">class</span> Alloc<span class="op">&gt;</span></span>
 <span id="cb29-190"><a href="#cb29-190" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">(</span><span class="kw">const</span> extents<span class="op">&lt;</span>IndexType, Extents<span class="op">...&gt;&amp;</span>, <span class="kw">const</span> Container<span class="op">&amp;</span>, <span class="kw">const</span> Alloc<span class="op">&amp;)</span></span>
@@ -1963,7 +1969,7 @@ an observer of the underlying container’s size.</p>
 <span id="cb29-204"><a href="#cb29-204" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-205"><a href="#cb29-205" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> Layout, <span class="kw">class</span> Accessor, <span class="kw">class</span> Alloc<span class="op">&gt;</span></span>
 <span id="cb29-206"><a href="#cb29-206" aria-hidden="true" tabindex="-1"></a>mdarray<span class="op">(</span><span class="kw">const</span> mdspan<span class="op">&lt;</span>ElementType, Extents, Layout, Accessor<span class="op">&gt;&amp;</span>, <span class="kw">const</span> Alloc<span class="op">&amp;)</span></span>
-<span id="cb29-207"><a href="#cb29-207" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdarray<span class="op">&lt;</span>ElementType, Extents, Layout<span class="op">&gt;</span>;</span></code></pre></div>
+<span id="cb29-207"><a href="#cb29-207" aria-hidden="true" tabindex="-1"></a>  <span class="op">-&gt;</span> mdarray<span class="op">&lt;</span>remove_cv_t<span class="op">&lt;</span>ElementType<span class="op">&gt;</span>, Extents, Layout<span class="op">&gt;</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em></p>
 <ul>
@@ -2215,6 +2221,40 @@ otherwise direct-non-list-initializes <code>ctr_</code> with
 <em><code>value-to-array</code></em><code>&lt;element_type, size(declval&lt;container_type&gt;())&gt;()</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, <span class="kw">const</span> container_type<span class="op">&amp;</span> c<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">14</a></span>
+<em>Constraints:</em>
+<code>is_constructible_v&lt;mapping_type, const extents_type&amp;&gt;</code>
+is <code>true</code>, and</p>
+<p><span class="marginalizedparent"><a class="marginalized">15</a></span>
+<em>Preconditions:</em>
+<code>c.size() &gt;= mapping_type(ext).required_span_size()</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">16</a></span>
+<em>Effects:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(16.1)</a></span>
+Direct-non-list-initializes <em><code>map_</code></em> with
+<code>ext</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(16.2)</a></span>
+Direct-non-list-initializes <code>ctr_</code> with
+<code>c</code>.</p></li>
+</ul>
+<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> container_type<span class="op">&amp;</span> c<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">17</a></span>
+<em>Preconditions:</em>
+<code>c.size() &gt;= m.required_span_size()</code> is
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">18</a></span>
+<em>Effects:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.1)</a></span>
+Direct-non-list-initializes <em><code>map_</code></em> with
+<code>m</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.2)</a></span>
+Direct-non-list-initializes <code>ctr_</code> with
+<code>c</code>.</p></li>
+</ul>
+<div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, container_type<span class="op">&amp;&amp;</span> c<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">19</a></span>
 <em>Constraints:</em>
 <code>is_constructible_v&lt;mapping_type, const extents_type&amp;&gt;</code>
@@ -2231,9 +2271,9 @@ Direct-non-list-initializes <em><code>map_</code></em> with
 <code>ext</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(21.2)</a></span>
 Direct-non-list-initializes <code>ctr_</code> with
-<code>c</code>.</p></li>
+<code>std::move(c)</code>.</p></li>
 </ul>
-<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, <span class="kw">const</span> container_type<span class="op">&amp;</span> c<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, container_type<span class="op">&amp;&amp;</span> c<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">22</a></span>
 <em>Preconditions:</em>
 <code>c.size() &gt;= m.required_span_size()</code> is
@@ -2246,40 +2286,6 @@ Direct-non-list-initializes <em><code>map_</code></em> with
 <code>m</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(23.2)</a></span>
 Direct-non-list-initializes <code>ctr_</code> with
-<code>c</code>.</p></li>
-</ul>
-<div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, container_type<span class="op">&amp;&amp;</span> c<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">27</a></span>
-<em>Constraints:</em>
-<code>is_constructible_v&lt;mapping_type, const extents_type&amp;&gt;</code>
-is <code>true</code>, and</p>
-<p><span class="marginalizedparent"><a class="marginalized">28</a></span>
-<em>Preconditions:</em>
-<code>c.size() &gt;= mapping_type(ext).required_span_size()</code> is
-<code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">29</a></span>
-<em>Effects:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(29.1)</a></span>
-Direct-non-list-initializes <em><code>map_</code></em> with
-<code>ext</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(29.2)</a></span>
-Direct-non-list-initializes <code>ctr_</code> with
-<code>std::move(c)</code>.</p></li>
-</ul>
-<div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> mapping_type<span class="op">&amp;</span> m, container_type<span class="op">&amp;&amp;</span> c<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">30</a></span>
-<em>Preconditions:</em>
-<code>c.size() &gt;= m.required_span_size()</code> is
-<code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">31</a></span>
-<em>Effects:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(31.1)</a></span>
-Direct-non-list-initializes <em><code>map_</code></em> with
-<code>m</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(31.2)</a></span>
-Direct-non-list-initializes <code>ctr_</code> with
 <code>std::move(c)</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb40"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="kw">class</span> OtherExtents,</span>
@@ -2287,42 +2293,42 @@ Direct-non-list-initializes <code>ctr_</code> with
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(</span><em>see below</em><span class="op">)</span></span>
 <span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> mdarray<span class="op">&lt;</span>OtherElementType, OtherExtents, </span>
 <span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>                                OtherLayoutPolicy, OtherContainer<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">32</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">24</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(32.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(24.1)</a></span>
 <code>is_constructible_v&lt;Container, const OtherContainer&amp;&gt;</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(32.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(24.2)</a></span>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">33</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">25</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(33.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(25.1)</a></span>
 <code>is_constructible_v&lt;mapping_type, const OtherLayoutPolicy::template mapping&lt;OtherExtents&gt;&amp;&gt;</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(33.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(25.2)</a></span>
 <code>is_constructible_v&lt;container_type, OtherContainer&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">34</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">26</a></span>
 <em>Preconditions:</em> For each rank index <code>r</code> of
 <code>extents_type</code>,
 <code>static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)</code>
 is <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">35</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">27</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(35.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(27.1)</a></span>
 Direct-non-list-initializes <code>ctr_</code> with
 <code>other.ctr_</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(35.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(27.2)</a></span>
 Direct-non-list-initializes <em><code>map_</code></em> with
 <code>other.</code><em><code>map_</code></em>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">36</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">28</a></span>
 <em>Remarks:</em> The expression inside <code>explicit</code> is:</p>
 <div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>  <span class="op">!</span>is_convertible_v<span class="op">&lt;</span><span class="kw">const</span> <span class="kw">typename</span> OtherLayoutPolicy<span class="op">::</span>mapping_type<span class="op">&amp;</span>, mapping_type<span class="op">&gt;</span> <span class="op">||</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">!</span>is_convertible_v<span class="op">&lt;</span><span class="kw">const</span> OtherContainer<span class="op">&amp;</span>, Container<span class="op">&gt;</span></span></code></pre></div>
@@ -2331,58 +2337,55 @@ Direct-non-list-initializes <em><code>map_</code></em> with
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span><span class="op">(</span><em>see below</em><span class="op">)</span></span>
 <span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdarray<span class="op">(</span><span class="kw">const</span> mdspan<span class="op">&lt;</span>OtherElementType, OtherExtents,</span>
 <span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>                                   OtherLayoutPolicy, Accessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">37</a></span>
-<em>Mandates:</em></p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(37.1)</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">29</a></span>
+<em>Mandates:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
-<code>true</code>.</li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">38</a></span>
+<code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">30</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(38.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.1)</a></span>
 <code>is_constructible_v&lt;value_type, Accessor::reference&gt;</code>
 is <code>true</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(38.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.2)</a></span>
 <code>is_assignable_v&lt;Accessor::reference, value_type&gt;</code> is
 <code>true</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(38.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.3)</a></span>
 <code>is_default_constructible_v&lt;value_type&gt;</code> is
 <code>true</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(38.4)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.4)</a></span>
 <code>is_constructible_v&lt;mapping_type, const OtherLayoutPolicy::template mapping&lt;OtherExtents&gt;&amp;&gt;</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(38.5)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.5)</a></span> if
 <code>container_type</code> is not a specialization of
 <code>array</code>,
 <code>is_constructible_v&lt;container_type, size_t&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">39</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">31</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(39.1)</a></span> For
+<li><p><span class="marginalizedparent"><a class="marginalized">(31.1)</a></span> For
 each rank index <code>r</code> of <code>extents_type</code>,
 <code>static_extent(r) == dynamic_extent || static_extent(r) == other.extent(r)</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(39.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(31.2)</a></span> if
 <code>container_type</code> is a specialization of <code>array</code>,
 then
 <code>container_type().size() &gt;= other.mapping().required_span_size()</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">40</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">32</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(40.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(32.1)</a></span>
 Direct-non-list-initializes <em><code>map_</code></em> with
 <code>other.mapping()</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(40.2)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(32.2)</a></span> If
 <code>is_constructible_v&lt;container_type, size_t&gt;</code> is
 <code>true</code>, direct-non-list-initializes <code>ctr_</code> with
 <code>container_type(other.mapping().required_span_size())</code>,
 otherwise default constructs <em><code>ctr_</code></em>; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(40.3)</a></span> For
+<li><p><span class="marginalizedparent"><a class="marginalized">(32.3)</a></span> For
 all unique multidimensional indices <code>i...</code> in
 <code>other.extents()</code>, assigns <code>other[i...]</code> to
 <code>ctr_[</code><em><code>map_</code></em><code>(i...)]</code>.</p></li>
@@ -2846,48 +2849,37 @@ is <code>true</code>.</p></li>
 <em>Preconditions:</em>
 <code>container_size() &gt;=</code><em><code>map_</code></em><code>.required_span_size()</code>
 is <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Returns:</em>
 <code>mdspan(container_data(),</code><em><code>map_</code></em>)`</p>
 <div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherAccessorType<span class="op">&gt;</span></span>
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">&lt;</span>element_type, extents_type, layout_type, OtherAccessorType<span class="op">&gt;</span></span>
 <span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>      to_mdspan<span class="op">(</span><span class="kw">const</span> OtherAccessorType<span class="op">&amp;</span> a <span class="op">=</span> default_accessor<span class="op">&lt;</span>element_type<span class="op">&gt;())</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
-<em>Constraints:</em></p>
-<ul>
-<li><p>[11.1]{pnum}
-<code>is_assignable_v&lt;mdspan&lt;element_type, extents_type, layout_type&gt;, mdspan&lt;OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType&gt;&gt;</code>
-is <code>true</code>.</p></li>
-<li><p>[11.2]{pnum} <code>is_same_v&lt;pointer, element_type*&gt;</code>
-is <code>true</code>.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
-<em>Preconditions:</em>
-<code>container_size() &gt;=</code><em><code>map_</code></em><code>.required_span_size()</code>
-is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
-<em>Returns:</em>
-<code>mdspan(container_data(),</code><em><code>map_</code></em><code>, a)</code></p>
-<div class="sourceCode" id="cb64"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherAccessorType<span class="op">&gt;</span></span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">&lt;</span><span class="kw">const</span> element_type, extents_type, layout_type, OtherAccessorType<span class="op">&gt;</span></span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>      to_mdspan<span class="op">(</span><span class="kw">const</span> OtherAccessorType<span class="op">&amp;</span> a <span class="op">=</span> default_accessor<span class="op">&lt;</span><span class="kw">const</span> element_type<span class="op">&gt;())</span> <span class="kw">const</span>;</span></code></pre></div>
+<em>Constraints:</em>
+<code>is_assignable_v&lt;pointer, typename OtherAccessorType::data_handle_type&gt;</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">15</a></span>
-<em>Constraints:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(15.1)</a></span>
-<code>is_assignable_v&lt;mdspan&lt;const element_type, extents_type, layout_type&gt;, mdspan&lt;const element_type, extents_type, layout_type, OtherAccessorType&gt;&gt;</code>
-is <code>true</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(15.2)</a></span>
-<code>is_same_v&lt;const_pointer, const element_type*&gt;</code> is
-<code>true</code>.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Preconditions:</em>
 <code>container_size() &gt;=</code><em><code>map_</code></em><code>.required_span_size()</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
 <em>Returns:</em>
-<code>mdspan(container_data(),</code><em><code>map_</code></em><code>, a)</code></p>
+<code>mdspan&lt;element_type, extents_type, layout_type, OtherAccessorType&gt;(container_data(),</code><em><code>map_</code></em><code>, a)</code></p>
+<div class="sourceCode" id="cb64"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherAccessorType<span class="op">&gt;</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mdspan<span class="op">&lt;</span><span class="kw">const</span> element_type, extents_type, layout_type, OtherAccessorType<span class="op">&gt;</span></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>      to_mdspan<span class="op">(</span><span class="kw">const</span> OtherAccessorType<span class="op">&amp;</span> a <span class="op">=</span> default_accessor<span class="op">&lt;</span><span class="kw">const</span> element_type<span class="op">&gt;())</span> <span class="kw">const</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">17</a></span>
+<em>Constraints:</em>
+<code>is_assignable_v&lt;const_pointer, typename OtherAccessorType::data_handle_type&gt;</code>
+is <code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">18</a></span>
+<em>Preconditions:</em>
+<code>container_size() &gt;=</code><em><code>map_</code></em><code>.required_span_size()</code>
+is <code>true</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">19</a></span>
+<em>Returns:</em>
+<code>mdspan&lt;const element_type, extents_type, layout_type, OtherAccessorType&gt;(container_data(),</code><em><code>map_</code></em><code>, a)</code></p>
 <p><br /></p>
 <p>Add to <code>mdspan</code> deduction guides</p>
 <div class="sourceCode" id="cb65"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> Layout, <span class="kw">class</span> Container<span class="op">&gt;</span></span>
@@ -2896,7 +2888,16 @@ is <code>true</code>.</p>
 <span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>declval<span class="op">&lt;</span>mdarray<span class="op">&lt;</span>ElementType, Extents, Layout, Container<span class="op">&gt;&gt;().</span>to_mdspan<span class="op">())::</span>extens_type,</span>
 <span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>declval<span class="op">&lt;</span>mdarray<span class="op">&lt;</span>ElementType, Extents, Layout, Container<span class="op">&gt;&gt;().</span>to_mdspan<span class="op">())::</span>layout_type,</span>
 <span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>declval<span class="op">&lt;</span>mdarray<span class="op">&lt;</span>ElementType, Extents, Layout, Container<span class="op">&gt;&gt;().</span>to_mdspan<span class="op">())::</span>accessor_type<span class="op">&gt;</span>;</span></code></pre></div>
-<h1 data-number="7" id="references"><span class="header-section-number">7</span> References<a href="#references" class="self-link"></a></h1>
+<h1 data-number="7" id="acknowledgements"><span class="header-section-number">7</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<p>Sandia National Laboratories is a multimission laboratory managed and
+operated by National Technology and Engineering Solutions of Sandia,
+LLC., a wholly owned subsidiary of Honeywell International, Inc., for
+the U.S. Department of Energy’s National Nuclear Security Administration
+under contract DE-NA-0003525.</p>
+<p>This work was supported by the Exascale Computing Project
+(17-SC-20-SC), a collaborative effort of the U.S. Department of Energy
+Office of Science and the National Nuclear Security Administration.</p>
+<h1 data-number="8" id="references"><span class="header-section-number">8</span> References<a href="#references" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body" role="doc-bibliography">
 <div id="ref-P1684R0" class="csl-entry" role="doc-biblioentry">
 <div class="csl-left-margin">[P1684R0] </div><div class="csl-right-inline">David Hollman, Christian Trott, Mark Hoemmen,
