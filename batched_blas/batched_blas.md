@@ -2,7 +2,7 @@
 title: "Extending Linear Algebra Support to Batched Operations"
 document: P2901R0
 date: today
-audience: SG1, SG6, LEWGI
+audience: SG6, SG19, LEWGI
 author:
   - name: Mark Hoemmen 
     email: <mhoemmen@nvidia.com>
@@ -31,8 +31,10 @@ that would be needed for batched linear algebra.
 # Motivation
 
 "Batched" linear algebra functions solve
-many independent linear algebra problems all at once, in a single function call.
-For example, a "batched GEMM" computes multiple matrix-matrix multiplies at once.
+many independent linear algebra problems all at once,
+in a single function call.
+For example, a "batched GEMM" computes
+multiple matrix-matrix multiplies at once.
 Batched linear algebra interfaces have the following advantages.
 
 * By exposing the user's intent to solve many problems at once,
@@ -69,7 +71,8 @@ It is possible to use existing non-batched libraries,
 like the BLAS and LAPACK, to solve many small linear algebra problems.
 However, high-performance implementations of batched linear algebra
 are not just parallel loops over non-batched function calls.
-First, non-batched libraries were designed to solve one large problem at a time.
+First, non-batched libraries were designed to solve
+one large problem at a time.
 For example, they check input arguments for consistency on every call,
 which could take longer than the actual algorithm for a tiny matrix.
 Batched libraries can and do amortize these checks.
@@ -119,7 +122,8 @@ input argument for all the output arguments in the batch.
 
 ## Summary of interface choices
 
-This first version of the proposal does not give wording.
+This first version of the proposal does not give complete wording.
+(See, however, the "Wording sketch" section near the end.)
 This is because the actual wording would be extremely verbose,
 and we want to focus at this level of review
 on how this proposal naturally extends P1673.
@@ -198,10 +202,13 @@ Furthermore, optimizing the fixed case well is a prerequisite
 for high-performance variable and group implementations.
 Thus, we focus for now on the fixed case.
 
-Relton et al. 2016 further subdivides the fixed interface into three options,
-depending on how the interface represents each batch argument.
+Relton et al. 2016 further subdivides the fixed interface
+into three options, depending on how the interface
+represents each batch argument.
 
-a. "P2P" (pointer to pointer): each batch argument is an array of pointers.
+a. "P2P" (pointer to pointer): each batch argument
+    is an array of arrays (each element of the outer array
+    is a pointer to an element of the batch).
 
 b. "Strided": each batch argument is packed into a single array,
     with a fixed element stride (space)
@@ -209,8 +216,8 @@ b. "Strided": each batch argument is packed into a single array,
 
 c. "Interleaved": for example for a batched matrix $A$,
     given that the leftmost extent is the batched extent,
-    then the elements $A_{1,i,j}, A_{2,i,j}, ..., A_{K,i,j}$,
-    i.e. `i, j` element of all the matrices in a batch
+    then the elements `A[0,i,j]`, `A[2,i,j]`, $\dots$, `A[K-1,i,j]`,
+    i.e., the `i, j` elements of all the matrices in a batch
     are stored contiguously.  (This can be generalized,
     for example, to some fixed SIMD width number of problems
     (such as 8) having their `i, j` elements stored contiguously.)
@@ -222,9 +229,11 @@ and its [CUTLASS library](https://developer.nvidia.com/blog/cutlass-fast-linear-
 supports many variations of strided and interleaved.
 
 The P2P interface would require extra packing and unpacking of pointers,
-and therefore extra overhead.  In practice, users often want to represent
-a batch as a "pre-packed" array with a particular layout,
-so the P2P interface would make them waste time and code.
+and therefore extra overhead.  In practice,
+users often want to represent a batch
+as a "pre-packed" array with a particular layout.
+If they only had a P2P interface,
+they would waste time and code setting up the array of pointers.
 Even though P2P could be used for the fixed interface,
 it is more useful for the variable or group interface.
 Thus, we exclude the P2P option for now.
@@ -233,7 +242,7 @@ The `mdspan` class lets us naturally combine "strided" and "interleaved"
 into a single interface by using different, possibly custom mdspan layouts.
 Each batch parameter would become a single `mdspan`,
 with an extra rank representing the batch mode
-(the index of a problem within the batch).  
+(the index of a problem within the batch).
 
 ### Representing scaling factors (alpha and beta)
 
@@ -412,10 +421,9 @@ We also do not want to add such layouts to the Standard Library,
 as we think broadcast parameters
 have a natural representation without them.
 
-
 # Wording Sketch
 
-In P1673 the wording for individual functions is very simple:
+Here is an example of the wording for non-batched functions in P1673.
 
 ```c++
 template<class ExecutionPolicy,
@@ -423,16 +431,23 @@ template<class ExecutionPolicy,
  in-vector InVec,
  out-vector OutVec>
 void matrix_vector_product(ExecutionPolicy&& exec,
-		   InMat A,
-		   InVec x,
-		   OutVec y);
+  InMat A,
+  InVec x,
+  OutVec y);
 ```
 
 *Effects:* Computes $y = Ax$
 
-This wording relies on exposition only concepts _`in-matrix`_, _`in-vector`_ and _`out-vector`_ given by:
+This wording relies on exposition-only concepts
+_`in-matrix`_, _`in-vector`_, and _`out-vector`_,
+given by the following.
 
 ```c++
+template<class T>
+concept @_in-matrix_@ = // exposition only
+  @_is-mdspan_@<T>::value &&
+  T::rank() == 2;
+
 template<class T>
 concept @_in-vector_@ = // exposition only
 @_is-mdspan_@<T>::value &&
@@ -446,10 +461,16 @@ is_assignable_v<typename T::reference, typename T::element_type> &&
 T::is_always_unique();
 ```
 
-We propose adding new overloads of the function with new exposition only concepts, accounting for broadcasting of input arguments:
+We propose supporting the batched case by adding new overloads
+of the function with new exposition-only concepts.
+These concepts account for possible broadcasting of input arguments.
 
 ```c++
 template<class T>
+concept @_batched-in-matrix_@ = // exposition only
+@_is-mdspan_@<T>::value &&
+(T::rank() == 2 || T::rank() == 3);
+
 concept @_batched-in-vector_@ = // exposition only
 @_is-mdspan_@<T>::value &&
 (T::rank() == 1 || T::rank() == 2);
@@ -462,60 +483,148 @@ is_assignable_v<typename T::reference, typename T::element_type> &&
 T::is_always_unique();
 ```
 
-The batched _`batched-out-***`_ and _`batched-inout-***`_ concepts strictly increase the rank requirement by one, _`in-***`_ concepts allow the original rank and one higher.
+The concepts _`batched-out-***`_ and _`batched-inout-***`_
+strictly increase the rank requirement by one,
+while the input concepts _`in-***`_ permit
+either the original non-batched rank (for broadcasting)
+or one rank higher.
 
-In addition to these new exposition only concepts we need some helper functions:
+In addition to these new exposition-only concepts,
+we will need some exposition-only helper functions.
+We emphasize that high-performance implementations
+likely will not just be a parallel loop over calls to these functions.
 
 ```c++
 template<@_batched-in-vector_@ InVec>
-requires(InVec::rank()==1)
-auto get_batch_vector(InVec v, int /*batch*/) { return v; }
+requires(InVec::rank() == 1)
+auto @_get_batch_vector_@(InVec v,
+  typename InVec::index_type /* batch */) {
+  return v;
+}
 
 template<@_batched-in-vector_@ InVec>
-requires(InVec::rank()==2)
-auto get_batch_vector(InVec v, int batch) { return submdspan(v, batch, full_extent); }
+requires(InVec::rank() == 2)
+auto @_get_batch_vector_@(InVec v, typename InVec::index_type batch) {
+  return submdspan(v, batch, full_extent);
+}
 
 template<@_batched-out-vector_@ OutVec>
-auto get_batch_vector(OutVec v, int batch) { return submdspan(v, batch, full_extent); }
+auto @_get_batch_vector_@(OutVec v, typename OutVec::index_type batch) {
+  return submdspan(v, batch, full_extent);
+}
 ```
 
-With those functions (and their equivalents for matrices) we can now define the batched overload for `matrix_vector_product`:
+With those functions (and their equivalents for matrices)
+we can now define the batched overload for `matrix_vector_product`.
 
 ```c++
 template<class ExecutionPolicy,
  @_batched-in-matrix_@ InMat,
  @_batched-in-vector_@ InVec,
  @_batched-out-vector_@ OutVec>
-void matrix_vector_product(ExecutionPolicy&& exec,
-		   InMat A,
-		   InVec x,
-		   OutVec y);
+void matrix_vector_product(
+  ExecutionPolicy&& exec,
+  InMat A,
+  InVec x,
+  OutVec y);
 ```
 
-*Preconditions:* `(y.extent(0) == x.extent(0) || x.rank() == 1) && (y.extent(0) == A.extent(0) || A.rank()==2)` is `true`.
+*Preconditions:* `(y.extent(0) == x.extent(0) || x.rank() == 1) && (y.extent(0) == A.extent(0) || A.rank() == 2)` is `true`.
 
-*Effects:* Equivalent to calling `matrix_vector_product(get_batch_matrix(A, i), get_batch_vector(x,  i), get_batch_vector(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
+*Effects:* Equivalent to calling `matrix_vector_product(`_`get_batch_matrix`_`(A, i), `_`get_batch_vector`_`(x,  i), `_`get_batch_vector`_`(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
 
-This leaves the question of having calls with separate scaling factor per subobject.
-To support that we add an additional overload taking a rank-1 `mdspan` with the scaling factors:
+This leaves the question of overloads
+with a separate scaling factor per subobject.
+To support that, we would add an additional overload
+taking a rank-1 `mdspan` with the scaling factors.
 
 ```c++
 template<class ExecutionPolicy,
- @_in-vector_@ Alphas,
- @_batched-in-matrix_@ InMat,
- @_batched-in-vector_@ InVec,
- @_batched-out-vector_@ OutVec>
-void matrix_vector_product(ExecutionPolicy&& exec,
-		   Alphas alphas,
-		   InMat A,
-		   InVec x,
-		   OutVec y);
+  @_in-vector_@ Alphas,
+  @_batched-in-matrix_@ InMat,
+  @_batched-in-vector_@ InVec,
+  @_batched-out-vector_@ OutVec>
+void matrix_vector_product(
+  ExecutionPolicy&& exec,
+  Alphas alphas,
+  InMat A,
+  InVec x,
+  OutVec y);
 ```
 
 *Preconditions:* `(y.extent(0) == alphas.extent(0)) && (y.extent(0) == x.extent(0) || x.rank() == 1) && (y.extent(0) == A.extent(0) || A.rank()==2)` is `true`.
 
-*Effects:* Equivalent to calling `matrix_vector_product(scaled(alphas[i],get_batch_matrix(A, i)), get_batch_vector(x,  i), get_batch_vector(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
+*Effects:* Equivalent to calling `matrix_vector_product(scaled(alphas[i],`_`get_batch_matrix`_`(A, i)), `_`get_batch_vector`_`(x,  i), `_`get_batch_vector`_`(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$.
 
+The fact that the output `mdspan` for the batched case
+always has one higher rank,
+resolves any possible ambiguity between the non-batched overloads
+(that never take scaling factor parameters,
+as scaling factors always come in through the result of `scaled`)
+and the batched overloads (that either take no scaling factors,
+or take all the scaling factors explicitly as `mdspan`).
+For example, here is a non-batched updating
+`matrix_vector_product` overload.
+
+```c++
+template<class ExecutionPolicy,
+         @_in-matrix_@ InMat,
+         @_in-vector_@ InVec1,
+         @_in-vector_@ InVec2,
+         @_out-vector_@ OutVec>
+void matrix_vector_product(ExecutionPolicy&& exec,
+                           InMat A,
+                           InVec1 x,
+                           InVec2 y,
+                           OutVec z);
+```
+
+It has five parameters, and the last has rank 1.
+Here is a batched overwriting overload.
+Note that it only takes `alphas`, not `betas`,
+because `betas` would only apply to the updating case.
+
+```c++
+template<class ExecutionPolicy,
+  @_in-vector_@ Alphas,
+  @_batched-in-matrix_@ InMat,
+  @_batched-in-vector_@ InVec,
+  @_batched-out-vector_@ OutVec>
+void matrix_vector_product(
+  ExecutionPolicy&& exec,
+  Alphas alphas,
+  InMat A,
+  InVec x,
+  OutVec y);
+```
+
+While it also takes five parameters, the last parameter has rank 2,
+so overload resolution is not ambiguous beteween them.
+Finally, here is a batched updating overload.
+
+```c++
+template<class ExecutionPolicy,
+  @_in-vector_@ Alphas,
+  @_batched-in-matrix_@ InMat,
+  @_batched-in-vector_@ InVec1,
+  @_in-vector_@ Betas,
+  @_batched-in-vector_@ InVec2,
+  @_batched-out-vector_@ OutVec>
+void matrix_vector_product(
+  ExecutionPolicy&& exec,
+  Alphas alphas,
+  InMat A,
+  InVec1 x,
+  Betas betas,
+  InVec2 y,
+  OutVec z);
+```
+
+It takes seven parameters, and the last parameter always has rank 2.
+Functions either take no explicit scaling factors,
+or all of the scaling factors that they need to take,
+so we do not need to consider cases where
+either `alphas` or `betas` are omitted, but not both.
 
 # References
 
