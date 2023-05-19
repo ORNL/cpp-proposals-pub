@@ -454,36 +454,27 @@ Support to Batched Operations</h1>
 Mailing</a></li>
 </ul></li>
 <li><a href="#abstract" id="toc-abstract"><span class="toc-section-number">2</span> Abstract</a></li>
-<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">3</span> Motivation</a>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">3</span> Motivation</a></li>
+<li><a href="#design-discussion" id="toc-design-discussion"><span class="toc-section-number">4</span> Design discussion</a>
 <ul>
-<li><a href="#what-is-batched-linear-algebra" id="toc-what-is-batched-linear-algebra"><span class="toc-section-number">3.1</span> What is batched linear
-algebra?</a></li>
-<li><a href="#why-we-should-extend-support-to-batched-linear-algebra" id="toc-why-we-should-extend-support-to-batched-linear-algebra"><span class="toc-section-number">3.2</span> Why we should extend support to
-batched linear algebra</a></li>
-</ul></li>
-<li><a href="#existing-practice" id="toc-existing-practice"><span class="toc-section-number">4</span> Existing Practice</a>
+<li><a href="#summary-of-interface-choices" id="toc-summary-of-interface-choices"><span class="toc-section-number">4.1</span> Summary of interface
+choices</a></li>
+<li><a href="#discussion-of-interface-choices" id="toc-discussion-of-interface-choices"><span class="toc-section-number">4.2</span> Discussion of interface
+choices</a>
 <ul>
-<li><a href="#vendor-libraries" id="toc-vendor-libraries"><span class="toc-section-number">4.1</span> Vendor Libraries</a></li>
-<li><a href="#open-source-practice" id="toc-open-source-practice"><span class="toc-section-number">4.2</span> Open Source Practice</a></li>
-</ul></li>
-<li><a href="#design-discussion" id="toc-design-discussion"><span class="toc-section-number">5</span> Design discussion</a>
-<ul>
-<li><a href="#interface-options" id="toc-interface-options"><span class="toc-section-number">5.1</span> Interface options</a>
-<ul>
-<li><a href="#representing-dimensions-and-strides" id="toc-representing-dimensions-and-strides"><span class="toc-section-number">5.1.1</span> Representing dimensions and
+<li><a href="#representing-dimensions-and-strides" id="toc-representing-dimensions-and-strides"><span class="toc-section-number">4.2.1</span> Representing dimensions and
 strides</a></li>
-<li><a href="#representing-scaling-factors-alpha-and-beta" id="toc-representing-scaling-factors-alpha-and-beta"><span class="toc-section-number">5.1.2</span> Representing scaling factors
+<li><a href="#representing-scaling-factors-alpha-and-beta" id="toc-representing-scaling-factors-alpha-and-beta"><span class="toc-section-number">4.2.2</span> Representing scaling factors
 (alpha and beta)</a></li>
-<li><a href="#conjugate-transpose-and-triangle-arguments" id="toc-conjugate-transpose-and-triangle-arguments"><span class="toc-section-number">5.1.3</span> Conjugate, transpose, and
+<li><a href="#conjugate-transpose-and-triangle-arguments" id="toc-conjugate-transpose-and-triangle-arguments"><span class="toc-section-number">4.2.3</span> Conjugate, transpose, and
 triangle arguments</a></li>
-<li><a href="#representing-the-result-of-a-reduction-dot-product-or-norm" id="toc-representing-the-result-of-a-reduction-dot-product-or-norm"><span class="toc-section-number">5.1.4</span> Representing the result of a
+<li><a href="#representing-the-result-of-a-reduction-dot-product-or-norm" id="toc-representing-the-result-of-a-reduction-dot-product-or-norm"><span class="toc-section-number">4.2.4</span> Representing the result of a
 reduction (dot product or norm)</a></li>
-<li><a href="#representing-broadcast-parameters" id="toc-representing-broadcast-parameters"><span class="toc-section-number">5.1.5</span> Representing broadcast
+<li><a href="#representing-broadcast-parameters" id="toc-representing-broadcast-parameters"><span class="toc-section-number">4.2.5</span> Representing broadcast
 parameters</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#suggested-poll-questions" id="toc-suggested-poll-questions"><span class="toc-section-number">6</span> Suggested poll questions</a></li>
-<li><a href="#references" id="toc-references"><span class="toc-section-number">7</span> References</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">5</span> References</a></li>
 </ul>
 </div>
 <h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
@@ -499,8 +490,6 @@ solving multiple independent problems all at once. The initial version
 of this proposal discusses the interface changes to P1673 that would be
 needed for batched linear algebra.</p>
 <h1 data-number="3" id="motivation"><span class="header-section-number">3</span> Motivation<a href="#motivation" class="self-link"></a></h1>
-<h2 data-number="3.1" id="what-is-batched-linear-algebra"><span class="header-section-number">3.1</span> What is batched linear
-algebra?<a href="#what-is-batched-linear-algebra" class="self-link"></a></h2>
 <p>“Batched” linear algebra functions solve many independent linear
 algebra problems all at once, in a single function call. For example, a
 “batched GEMM” computes multiple matrix-matrix multiplies at once.
@@ -513,30 +502,41 @@ of representing each problem as an argument of a function call.</p></li>
 <li><p>They are useful for many different fields, including machine
 learning, science, and engineering. For a long list of applications that
 benefit, see Dongarra 2018.</p></li>
-<li><p>Hardware vendors such as NVIDIA, Intel, and AMD currently offer
-optimized software libraries to support batched linear algebra, and
-hardware features to accelerate it.</p></li>
+<li><p>Hardware vendors such as <a href="https://docs.nvidia.com/cuda/cublas/index.html">NVIDIA</a>, <a href="https://rocblas.readthedocs.io/en/rocm-5.5.0/">AMD</a>, and <a href="https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-c/2023-1/overview.html">Intel</a>
+currently offer optimized software libraries to support batched linear
+algebra, and hardware features to accelerate it.</p></li>
+<li><p>Open-source libraries such as <a href="https://icl.utk.edu/magma/">MAGMA</a> and <a href="https://github.com/kokkos/kokkos-kernels">Kokkos</a> offer
+cross-platform batched linear algebra functionality.</p></li>
 <li><p>There is an ongoing <a href="http://icl.utk.edu/bblas/">interface
 standardization effort</a>, in which we participate.</p></li>
 </ul>
-<p>It’s possible to use existing non-batched libraries, like the BLAS
-and LAPACK, to solve small linear algebra problems. However, these
+<p>It is possible to use existing non-batched libraries, like the BLAS
+and LAPACK, to solve many small linear algebra problems. However,
+high-performance implementations of batched linear algebra are not just
+parallel loops over non-batched function calls. First, non-batched
 libraries were designed to solve one large problem at a time. For
 example, they check input arguments for consistency on every call, which
 could take longer than the actual algorithm for a tiny matrix. Batched
-libraries can and do amortize these checks. These libraries also take
-each array input and output as a pointer, run-time dimensions, and
-run-time strides. Some problems are small enough that each problem’s
-data takes no more space than a pointer to the data. Our non-batched
-linear algebra library proposal P1673 can use mdspan’s layout mapping to
-encode dimensions and/or strides as compile-time constants, but
-<code>mdspan</code> still requires a run-time pointer or data handle.
-Batching up multiple inputs into a single <code>mdspan</code> amortizes
-the overhead of representing each problem.</p>
+libraries can and do amortize these checks. Second, non-batched
+libraries take each array input and output as a pointer with run-time
+dimensions and run-time strides. Some problems are small enough that
+each problem’s data takes no more space than a pointer to the data, and
+the problems’ dimensions and strides may be known at compile time. Our
+non-batched linear algebra library proposal P1673 can use mdspan’s
+layout mapping to encode dimensions and/or strides as compile-time
+constants, but <code>mdspan</code> still requires a run-time pointer or
+data handle. Batching up multiple inputs into a single
+<code>mdspan</code> amortizes the overhead of representing each problem.
+Third, batched interfaces open up new implementation possibilities, such
+as interleaving multiple inputs to improve vectorization. Interleaving
+means that contiguous segments of memory may contain data from multiple
+independent problems. Even if nested C++17 parallel algorithms worked
+perfectly when wrapping non-batched functions, this could not easily
+optimize for this case.</p>
 <p>The interface of batched linear algebra operations matters a lot for
 performance, but may constrain generality. For example, requiring a
 specific data layout and constraining all matrices to have the same
-dimensions makes vectorization easier, but applications in sparse
+dimensions may make parallelization easier, but applications in sparse
 multifrontal matrix factorizations may produce dense matrices of
 different dimensions. Vendors have different interfaces with different
 levels of generality. For a survey of different interface options, see
@@ -552,21 +552,54 @@ extent will refer to the batch dimension. Input arguments may also have
 an additional rank to match; if they do not, the function will use
 (“broadcast”) the same input argument for all the output arguments in
 the batch.</p>
-<h2 data-number="3.2" id="why-we-should-extend-support-to-batched-linear-algebra"><span class="header-section-number">3.2</span> Why we should extend support to
-batched linear algebra<a href="#why-we-should-extend-support-to-batched-linear-algebra" class="self-link"></a></h2>
-<p>High-performance implementation is not just a parallel loop over
-non-batched function calls.</p>
-<p>SIMD interleaved layout – even if nested C++17 parallel algorithms
-worked perfectly, they could not optimize this case, because the layout
-crosses multiple independent problems.</p>
-<h1 data-number="4" id="existing-practice"><span class="header-section-number">4</span> Existing Practice<a href="#existing-practice" class="self-link"></a></h1>
-<h2 data-number="4.1" id="vendor-libraries"><span class="header-section-number">4.1</span> Vendor Libraries<a href="#vendor-libraries" class="self-link"></a></h2>
-<p>mkl blah blah, cublas blah blah, rocblas blah blah</p>
-<h2 data-number="4.2" id="open-source-practice"><span class="header-section-number">4.2</span> Open Source Practice<a href="#open-source-practice" class="self-link"></a></h2>
-<p>KokkosKernels blah blah, BLAS proposal blah blah, Magma??</p>
-<h1 data-number="5" id="design-discussion"><span class="header-section-number">5</span> Design discussion<a href="#design-discussion" class="self-link"></a></h1>
-<h2 data-number="5.1" id="interface-options"><span class="header-section-number">5.1</span> Interface options<a href="#interface-options" class="self-link"></a></h2>
-<h3 data-number="5.1.1" id="representing-dimensions-and-strides"><span class="header-section-number">5.1.1</span> Representing dimensions and
+<h1 data-number="4" id="design-discussion"><span class="header-section-number">4</span> Design discussion<a href="#design-discussion" class="self-link"></a></h1>
+<h2 data-number="4.1" id="summary-of-interface-choices"><span class="header-section-number">4.1</span> Summary of interface choices<a href="#summary-of-interface-choices" class="self-link"></a></h2>
+<p>This first version of the proposal does not give wording. This is
+because the actual wording would be extremely verbose, and we want to
+focus at this level of review on how this proposal naturally extends
+P1673. It does so in the following ways.</p>
+<p>P1673’s functions (those with BLAS equivalents) can be divided into
+two categories:</p>
+<ol type="1">
+<li><p>“reduction-like,” including dot products and norms, that take one
+or more input <code>mdspan</code> arguments (representing vector(s) or a
+matrix) and return a single scalar value; and</p></li>
+<li><p>“not-reduction-like,” which take input and output (or
+input/output) <code>mdspan</code> and return <code>void</code>.</p></li>
+</ol>
+<p>For not-reduction-like functions, their batched versions have the
+same name and take the same number of arguments. We distinguish them by
+the output (or input/output) <code>mdspan</code>, which has one extra
+rank in the batched case. The input <code>mdspan</code> may also have
+this extra rank. The leftmost extent of the <code>mdspan</code> with an
+extra rank is the “batch extent”; it represents the index of an object
+(scalar, vector, or matrix) in a batch. All <code>mdspan</code> with the
+extra rank must have the same extent. Those input <code>mdspan</code>
+without the extra rank are “broadcast parameters,” that are repeated for
+all the elements in the batch.</p>
+<p>For reduction-like functions, their batched versions have the same
+name, but return <code>void</code> instead of the scalar result type,
+and take an additional rank-1 <code>mdspan</code> output parameter (at
+the end of the function, which is the convention for output
+<code>mdspan</code> parameters). Each of the one or more input
+<code>mdspan</code> may also have at least one extra rank. As with the
+non-reduction-like functions, the leftmost extent is the batch
+extent.</p>
+<p>Both cases effectively add a “problem index” to each
+<code>mdspan</code> parameter of the non-batched case. All the problems
+must have the same dimensions, and the data from different problems are
+packed into the same <code>mdspan</code>. For example, with a
+matrix-vector multiply <span class="math inline"><em>y</em> = <em>A</em><em>x</em></span>, the
+different <span class="math inline"><em>x</em></span> input are packed
+into a rank-2 <code>mdspan</code> (or rank-1, if this is a “broadcast”
+input) the different <span class="math inline"><em>A</em></span> input
+are packed into a rank-3 <code>mdspan</code> (or rank-2, if this is a
+“broadcast” input), and the different <span class="math inline"><em>y</em></span> output are packed into a rank-2
+<code>mdspan</code>.</p>
+<p>The following section explains the more subtle design choices.</p>
+<h2 data-number="4.2" id="discussion-of-interface-choices"><span class="header-section-number">4.2</span> Discussion of interface
+choices<a href="#discussion-of-interface-choices" class="self-link"></a></h2>
+<h3 data-number="4.2.1" id="representing-dimensions-and-strides"><span class="header-section-number">4.2.1</span> Representing dimensions and
 strides<a href="#representing-dimensions-and-strides" class="self-link"></a></h3>
 <p>For a summary of C interface options, see Relton et al. 2016. This
 technical report establishes vocabulary to describe different kinds of
@@ -575,11 +608,11 @@ how to represent the dimensions and strides of the vector and matrix
 input(s) and output. We collectively call the dimensions and strides the
 “metadata.” Relton et al. identify three main options.</p>
 <ol type="1">
-<li><p>“Fixed”: same metadata for all the problems; packed data</p></li>
-<li><p>“Variable”: different metadata for all the problems; “array of
-problems”</p></li>
-<li><p>“Group”: “array of fixed” (multiple instances of fixed; each
-instance may have different metadata from the other instances)</p></li>
+<li><p>“Fixed”: same metadata for all the problems</p></li>
+<li><p>“Variable”: “array of problems”; each problem has its own
+metadata, which may differ</p></li>
+<li><p>“Group”: “array of fixed”; multiple instances of fixed, where
+each instance may have different metadata</p></li>
 </ol>
 <p>Allowing the metadata to vary for different problems makes
 parallelization and vectorization more challenging. Furthermore,
@@ -596,8 +629,10 @@ pointers.</p></li>
 with a fixed element stride (space) between the start of each input in
 the batch.</p></li>
 <li><p>“Interleaved”: for example, if the batch index is <code>k</code>,
-then the <code>i, j</code> element of all the problems (or, possibly
-only SIMD width number of problems) are stored contiguously.</p></li>
+then the <code>i, j</code> element of all the matrices in a batch are
+stored contiguously. (This can be generalized, for example, to some
+fixed SIMD width number of problems (such as 8) having their
+<code>i, j</code> elements stored contiguously.)</p></li>
 </ol>
 <p>Different vendors offer different options. For example, NVIDIA’s <a href="https://docs.nvidia.com/cuda/cublas/index.html">cuBLAS</a>
 includes both P2P (<code>*Batched</code>) and strided
@@ -614,10 +649,7 @@ group interface. Thus, we exclude the P2P option for now.</p>
 custom mdspan layouts. Each batch parameter would become a single
 <code>mdspan</code>, with an extra rank representing the batch mode (the
 index of a problem within the batch).</p>
-<p>We may want to add new layouts that bake more information into the
-layout at compile time. We may also wish to add
-<code>aligned_accessor</code>.</p>
-<h3 data-number="5.1.2" id="representing-scaling-factors-alpha-and-beta"><span class="header-section-number">5.1.2</span> Representing scaling factors
+<h3 data-number="4.2.2" id="representing-scaling-factors-alpha-and-beta"><span class="header-section-number">4.2.2</span> Representing scaling factors
 (alpha and beta)<a href="#representing-scaling-factors-alpha-and-beta" class="self-link"></a></h3>
 <p>Some BLAS functions take scaling factors. For example, a single
 matrix-matrix multiply computes
@@ -625,26 +657,45 @@ matrix-matrix multiply computes
 <code>B</code>, and <code>C</code> and scalars <code>alpha</code> and
 <code>beta</code>. Batched linear algebra has a design choice: should
 the different problems in a batch use the same or different scaling
-factors?</p>
-<p>P1673 expresses scaling factors with an accessor
-<code>accessor_scaled</code>, that users access mainly by calling the
-<code>scaled</code> function. For example, <code>scaled(alpha, A)</code>
-represents the product of the (scalar) scaling factor <code>alpha</code>
-and the matrix <code>A</code>.</p>
+factors? Different vendor libraries make different choices. For example,
+the <code>*StridedBatched*</code> functions in NVIDIA’s cuBLAS take an
+array of scaling factors, one element for each problem. Intel’s oneMKL’s
+“group” interface uses the same scaling factor(s) for all the problems
+in a single fixed group, but let the scaling factor(s) vary for
+different groups.</p>
+<p>P1673 expresses scaling factors for the non-batched case with an
+accessor <code>accessor_scaled</code>, that users access mainly by
+calling the <code>scaled</code> function. For example,
+<code>scaled(alpha, A)</code> represents the product of the (scalar)
+scaling factor <code>alpha</code> and the matrix <code>A</code>, as an
+<code>mdspan</code> that defers this multiplication until the actual
+kernel.</p>
 <p>If we want to use the same scaling factor for all the problems in a
 batch, we can use <code>accessor_scaled</code> and <code>scaled</code>
 without interface changes. However, if we want to use a different
-scaling factor for each problem, we would either need to let
-<code>accessor_scaled</code> hold an <code>mdspan</code> of the scaling
-factors, or change all the function interfaces to take separate
-<code>mdspan</code> parameters for the scaling factors. We favor
-changing <code>accessor_scaled</code>, as it would maintain interface
-consistency. We could also retain the existing
-<code>accessor_scaled</code> that holds a scalar, so that
-<code>scaled</code> could take either a single scaling factor or an
-<code>mdspan</code> of scaling factors. This would be consistent with
-the “broadcast” approach described elsewhere in this proposal.</p>
-<h3 data-number="5.1.3" id="conjugate-transpose-and-triangle-arguments"><span class="header-section-number">5.1.3</span> Conjugate, transpose, and
+scaling factor for each problem, our only choice is to change all the
+function interface to take additional separate <code>mdspan</code>
+parameters for the scaling factors.</p>
+<p>One may wonder why we couldn’t just change the <code>scaled</code>
+function to take an <code>mdspan</code> of scaling factors. The issue is
+that the <code>scaled</code> function needs to return a single
+<code>mdspan</code> that represents the deferred multiplication. Only an
+<code>mdspan</code>’s accessor can affect the elements of the
+<code>mdspan</code> by deferring a multiplication in this way. However,
+by the time <code>mdspan::operator[]</code> reaches the accessor, the
+index information from the layout mapping about which scaling factor to
+apply would no longer be available. If we made <code>scaled</code>
+return something other than an <code>mdspan</code> and generalized the
+function to take arguments more generic than <code>mdspan</code>, then
+that would violate the design principle expressed in P1673, that the
+only generality allowed for vector or matrix arguments is the generality
+that <code>mdspan</code> itself offers. P1673 is not a general linear
+algebra library (e.g., it’s not for sparse linear algebra); it’s a C++
+BLAS interface.</p>
+<p>Note that for applying a single scaling factor to all the elements of
+a batch, the existing <code>scaled</code> function works just fine. (We
+would only need to allow rank-3 <code>mdspan</code> arguments.)</p>
+<h3 data-number="4.2.3" id="conjugate-transpose-and-triangle-arguments"><span class="header-section-number">4.2.3</span> Conjugate, transpose, and
 triangle arguments<a href="#conjugate-transpose-and-triangle-arguments" class="self-link"></a></h3>
 <p>Dongarra 2018 proposes that the different problems in a batch could
 take different conjugate, transpose, triangle, or
@@ -654,10 +705,10 @@ arguments actually changes the algorithm in a way that this not always
 amenable to optimizations like vectorization. For these reason, we
 require that all the problems in a batch have the same conjugate,
 transpose, triangle, and diagonal-interpretation arguments.</p>
-<h3 data-number="5.1.4" id="representing-the-result-of-a-reduction-dot-product-or-norm"><span class="header-section-number">5.1.4</span> Representing the result of a
+<h3 data-number="4.2.4" id="representing-the-result-of-a-reduction-dot-product-or-norm"><span class="header-section-number">4.2.4</span> Representing the result of a
 reduction (dot product or norm)<a href="#representing-the-result-of-a-reduction-dot-product-or-norm" class="self-link"></a></h3>
 <p>The Batched BLAS interface specification (Dongarra 2018) omits
-“reduction”-like operations – dot products and norms – that return a
+“reduction-like” operations – dot products and norms – that return a
 single value.</p>
 <p>The original P1673 design had reductions write to an output reference
 (or rank-0 mdspan), with the intent that this could be generalized to an
@@ -723,7 +774,7 @@ followed by an elementwise square root. However, the result would be
 more prone to underflow or overflow, since the batched dot product would
 be working with squares of elements.</p></li>
 </ol>
-<h3 data-number="5.1.5" id="representing-broadcast-parameters"><span class="header-section-number">5.1.5</span> Representing broadcast
+<h3 data-number="4.2.5" id="representing-broadcast-parameters"><span class="header-section-number">4.2.5</span> Representing broadcast
 parameters<a href="#representing-broadcast-parameters" class="self-link"></a></h3>
 <p>If the output <code>mdspan</code> has an extra rank, then we assume
 that users want to do a batched computation, and we treat the leftmost
@@ -749,13 +800,7 @@ proposal. However, we consider nonunique layouts an expert mdspan
 feature that is more challenging for users to implement. We also do not
 want to add such layouts to the Standard Library, as we think broadcast
 parameters have a natural representation without them.</p>
-<h1 data-number="6" id="suggested-poll-questions"><span class="header-section-number">6</span> Suggested poll questions<a href="#suggested-poll-questions" class="self-link"></a></h1>
-<ol type="1">
-<li>Should broadcast input parameters be represented by
-<code>mdspan</code> with one less rank (than the batched case would
-normally require), or by some other method?</li>
-</ol>
-<h1 data-number="7" id="references"><span class="header-section-number">7</span> References<a href="#references" class="self-link"></a></h1>
+<h1 data-number="5" id="references"><span class="header-section-number">5</span> References<a href="#references" class="self-link"></a></h1>
 <ul>
 <li><p>Samuel D. Relton, Pedro Valero-Lara, and Mawussi Zounon, <a href="http://www.nlafet.eu/wp-content/uploads/2016/01/NLAFET-WN5-Relton-ValeroLara-Zounon-161111.pdf">“A
 Comparison of Potential Interfaces for Batched BLAS Computations,”</a>
