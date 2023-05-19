@@ -405,10 +405,115 @@ We also do not want to add such layouts to the Standard Library,
 as we think broadcast parameters
 have a natural representation without them.
 
+
+# Wording Sketch
+
+In P1673 the wording for individual functions is very simple:
+
+```c++
+template<class ExecutionPolicy,
+ in-matrix InMat,
+ in-vector InVec,
+ out-vector OutVec>
+void matrix_vector_product(ExecutionPolicy&& exec,
+		   InMat A,
+		   InVec x,
+		   OutVec y);
+```
+
+*Effects:* Computes $y = Ax$
+
+This wording relies on exposition only concepts _`in-matrix`_, _`in-vector`_ and _`out-vector`_ given by:
+
+```c++
+template<class T>
+concept @_in-vector_@ = // exposition only
+@_is-mdspan_@<T>::value &&
+T::rank() == 1;
+
+template<class T>
+concept @_out-vector_@ = // exposition only
+@_is-mdspan_@<T>::value &&
+T::rank() == 1 &&
+is_assignable_v<typename T::reference, typename T::element_type> &&
+T::is_always_unique();
+```
+
+We propose adding new overloads of the function with new exposition only concepts, accounting for broadcasting of input arguments:
+
+```c++
+template<class T>
+concept @_batched-in-vector_@ = // exposition only
+@_is-mdspan_@<T>::value &&
+(T::rank() == 1 || T::rank() == 2);
+
+template<class T>
+concept @_batched-out-vector_@ = // exposition only
+@_is-mdspan_@<T>::value &&
+T::rank() == 2 &&
+is_assignable_v<typename T::reference, typename T::element_type> &&
+T::is_always_unique();
+```
+
+The batched _`batched-out-***`_ and _`batched-inout-***`_ concepts strictly increase the rank requirement by one, _`in-***`_ concepts allow the original rank and one higher.
+
+In addition to these new exposition only concepts we need some helper functions:
+
+```c++
+template<@_batched-in-vector_@ InVec>
+requires(InVec::rank()==1)
+auto get_batch(InVec v, int /*batch*/) { return v; }
+
+template<@_batched-in-vector_@ InVec>
+requires(InVec::rank()==2)
+auto get_batch(InVec v, int batch) { return submdspan(v, batch, full_extent); }
+
+template<@_batched-out-vector_@ OutVec>
+auto get_batch(OutVec v, int batch) { return submdspan(v, batch, full_extent); }
+```
+
+With those functions we can now define the batched overload for `matrix_vector_product`:
+
+```c++
+template<class ExecutionPolicy,
+ @_batched-in-matrix_@ InMat,
+ @_batched-in-vector_@ InVec,
+ @_batched-out-vector_@ OutVec>
+void matrix_vector_product(ExecutionPolicy&& exec,
+		   InMat A,
+		   InVec x,
+		   OutVec y);
+```
+
+*Preconditions:* `A.extent(0) == x.extent(0) && A.extent(0) == y.extent(0)` is `true`.
+
+*Effects:* Equivalent to calling `matrix_vector_product(get_batch(A, i), get_batch(x,  i), get_batch(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
+
+This leaves the question of having calls with separate scaling factor per subobject.
+To support that we add an additional overload taking a rank-1 `mdspan` with the scaling factors:
+
+```c++
+template<class ExecutionPolicy,
+ @_in-vector_@ Alphas,
+ @_batched-in-matrix_@ InMat,
+ @_batched-in-vector_@ InVec,
+ @_batched-out-vector_@ OutVec>
+void matrix_vector_product(ExecutionPolicy&& exec,
+		   Alphas alphas,
+		   InMat A,
+		   InVec x,
+		   OutVec y);
+```
+
+*Preconditions:* `A.extent(0) == x.extent(0) && A.extent(0) == y.extent(0) && A.extent(0) == alphas.extent(0)` is `true`.
+
+*Effects:* Equivalent to calling `matrix_vector_product(scaled(alphas[i],get_batch(A, i)), get_batch(x,  i), get_batch(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
+
+
 # References
 
 * Samuel D. Relton, Pedro Valero-Lara, and Mawussi Zounon,
-    ["A Comparison of Potential Interfaces for Batched BLAS Computations,"](http://www.nlafet.eu/wp-content/uploads/2016/01/NLAFET-WN5-Relton-ValeroLara-Zounon-161111.pdf) NLAFET Working Note 5, August 2016.
+["A Comparison of Potential Interfaces for Batched BLAS Computations,"](http://www.nlafet.eu/wp-content/uploads/2016/01/NLAFET-WN5-Relton-ValeroLara-Zounon-161111.pdf) NLAFET Working Note 5, August 2016.
 
 * Jack Dongarra, Iain Duff, Mark Gates, Azzam Haidar, Sven Hammarling, Nicholas J. Higham, Jonathan Hogg, Pedro Valero Lara, Piotr Luszczek, Mawussi Zounon, Samuel D. Relton, Stanimire Tomov, Timothy Costa, and Sarah Knepper,
     ["Batched BLAS (Basic Linear Algebra Subprograms) 2018 Specification,"](https://www.icl.utk.edu/files/publications/2018/icl-utk-1170-2018.pdf)
