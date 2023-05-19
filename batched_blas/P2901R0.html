@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="dcterms.date" content="2023-05-18" />
+  <title>Extending Linear Algebra Support to Batched Operations</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+</style>
+  <style>
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f6f8fa; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #008000; font-style: italic; } 
+code span.cv { color: #008000; font-style: italic; } 
+code span.do { color: #008000; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #008000; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #af1915; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #008000; font-weight: bold; } 
+code.diff {color: #898887}
+code.diff span.va {color: #6.0e28}
+code.diff span.st {color: #bf0303}
+</style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+
+div#refs p { padding-left: 32px; text-indent: -32px; }
+</style>
+  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Extending Linear Algebra
+Support to Batched Operations</h1>
+
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #: </td>
+    <td>P2901R0</td>
+  </tr>
+  <tr>
+    <td>Date: </td>
+    <td>2023-05-18</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project: </td>
+    <td>Programming Language C++<br>
+      SG1, SG6, LEWGI<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to: </td>
+    <td>
+      Mark Hoemmen<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
+      Kim Liegeois<br>&lt;<a href="mailto:knliege@sandia.gov" class="email">knliege@sandia.gov</a>&gt;<br>
+      Christian Trott<br>&lt;<a href="mailto:crtrott@sandia.gov" class="email">crtrott@sandia.gov</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision History</a>
+<ul>
+<li><a href="#initial-version-2023-05-mailing" id="toc-initial-version-2023-05-mailing"><span class="toc-section-number">1.1</span> Initial Version 2023-05
+Mailing</a></li>
+</ul></li>
+<li><a href="#abstract" id="toc-abstract"><span class="toc-section-number">2</span> Abstract</a></li>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">3</span> Motivation</a>
+<ul>
+<li><a href="#what-is-batched-linear-algebra" id="toc-what-is-batched-linear-algebra"><span class="toc-section-number">3.1</span> What is batched linear
+algebra?</a></li>
+<li><a href="#why-we-should-extend-support-to-batched-linear-algebra" id="toc-why-we-should-extend-support-to-batched-linear-algebra"><span class="toc-section-number">3.2</span> Why we should extend support to
+batched linear algebra</a></li>
+</ul></li>
+<li><a href="#existing-practice" id="toc-existing-practice"><span class="toc-section-number">4</span> Existing Practice</a>
+<ul>
+<li><a href="#vendor-libraries" id="toc-vendor-libraries"><span class="toc-section-number">4.1</span> Vendor Libraries</a></li>
+<li><a href="#open-source-practice" id="toc-open-source-practice"><span class="toc-section-number">4.2</span> Open Source Practice</a></li>
+</ul></li>
+<li><a href="#design-discussion" id="toc-design-discussion"><span class="toc-section-number">5</span> Design discussion</a>
+<ul>
+<li><a href="#interface-options" id="toc-interface-options"><span class="toc-section-number">5.1</span> Interface options</a>
+<ul>
+<li><a href="#representing-dimensions-and-strides" id="toc-representing-dimensions-and-strides"><span class="toc-section-number">5.1.1</span> Representing dimensions and
+strides</a></li>
+<li><a href="#representing-scaling-factors-alpha-and-beta" id="toc-representing-scaling-factors-alpha-and-beta"><span class="toc-section-number">5.1.2</span> Representing scaling factors
+(alpha and beta)</a></li>
+<li><a href="#conjugate-transpose-and-triangle-arguments" id="toc-conjugate-transpose-and-triangle-arguments"><span class="toc-section-number">5.1.3</span> Conjugate, transpose, and
+triangle arguments</a></li>
+<li><a href="#representing-the-result-of-a-reduction-dot-product-or-norm" id="toc-representing-the-result-of-a-reduction-dot-product-or-norm"><span class="toc-section-number">5.1.4</span> Representing the result of a
+reduction (dot product or norm)</a></li>
+<li><a href="#representing-broadcast-parameters" id="toc-representing-broadcast-parameters"><span class="toc-section-number">5.1.5</span> Representing broadcast
+parameters</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#suggested-poll-questions" id="toc-suggested-poll-questions"><span class="toc-section-number">6</span> Suggested poll questions</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">7</span> References</a></li>
+</ul>
+</div>
+<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
+<h2 data-number="1.1" id="initial-version-2023-05-mailing"><span class="header-section-number">1.1</span> Initial Version 2023-05
+Mailing<a href="#initial-version-2023-05-mailing" class="self-link"></a></h2>
+<ul>
+<li>Initial version for SG review</li>
+</ul>
+<h1 data-number="2" id="abstract"><span class="header-section-number">2</span> Abstract<a href="#abstract" class="self-link"></a></h1>
+<p>We propose extending P1673 (“A free function linear algebra interface
+based on the BLAS”) to support “batched” linear algebra, that is,
+solving multiple independent problems all at once. The initial version
+of this proposal discusses the interface changes to P1673 that would be
+needed for batched linear algebra.</p>
+<h1 data-number="3" id="motivation"><span class="header-section-number">3</span> Motivation<a href="#motivation" class="self-link"></a></h1>
+<h2 data-number="3.1" id="what-is-batched-linear-algebra"><span class="header-section-number">3.1</span> What is batched linear
+algebra?<a href="#what-is-batched-linear-algebra" class="self-link"></a></h2>
+<p>“Batched” linear algebra functions solve many independent linear
+algebra problems all at once, in a single function call. For example, a
+“batched GEMM” computes multiple matrix-matrix multiplies at once.
+Batched linear algebra interfaces have the following advantages.</p>
+<ul>
+<li><p>By exposing the user’s intent to solve many problems at once,
+they expose much more potential parallelism and vectorization than a
+single very small problem has (Dongarra 2018), and amortize the overhead
+of representing each problem as an argument of a function call.</p></li>
+<li><p>They are useful for many different fields, including machine
+learning, science, and engineering. For a long list of applications that
+benefit, see Dongarra 2018.</p></li>
+<li><p>Hardware vendors such as NVIDIA, Intel, and AMD currently offer
+optimized software libraries to support batched linear algebra, and
+hardware features to accelerate it.</p></li>
+<li><p>There is an ongoing <a href="http://icl.utk.edu/bblas/">interface
+standardization effort</a>, in which we participate.</p></li>
+</ul>
+<p>It’s possible to use existing non-batched libraries, like the BLAS
+and LAPACK, to solve small linear algebra problems. However, these
+libraries were designed to solve one large problem at a time. For
+example, they check input arguments for consistency on every call, which
+could take longer than the actual algorithm for a tiny matrix. Batched
+libraries can and do amortize these checks. These libraries also take
+each array input and output as a pointer, run-time dimensions, and
+run-time strides. Some problems are small enough that each problem’s
+data takes no more space than a pointer to the data. Our non-batched
+linear algebra library proposal P1673 can use mdspan’s layout mapping to
+encode dimensions and/or strides as compile-time constants, but
+<code>mdspan</code> still requires a run-time pointer or data handle.
+Batching up multiple inputs into a single <code>mdspan</code> amortizes
+the overhead of representing each problem.</p>
+<p>The interface of batched linear algebra operations matters a lot for
+performance, but may constrain generality. For example, requiring a
+specific data layout and constraining all matrices to have the same
+dimensions makes vectorization easier, but applications in sparse
+multifrontal matrix factorizations may produce dense matrices of
+different dimensions. Vendors have different interfaces with different
+levels of generality. For a survey of different interface options, see
+Relton et al. 2016. This proposal briefly summarizes different interface
+options and explains why we chose what we did.</p>
+<p>The <code>mdspan</code> data structure makes it easy to represent a
+batch of linear algebra objects, and to optimize their data layout. With
+few exceptions, the extension of P1673 to support batched operations
+will not require new function names or interface changes. Only the
+requirements on functions will change. Output arguments can have an
+additional rank, representing the batch mode. If so, then the leftmost
+extent will refer to the batch dimension. Input arguments may also have
+an additional rank to match; if they do not, the function will use
+(“broadcast”) the same input argument for all the output arguments in
+the batch.</p>
+<h2 data-number="3.2" id="why-we-should-extend-support-to-batched-linear-algebra"><span class="header-section-number">3.2</span> Why we should extend support to
+batched linear algebra<a href="#why-we-should-extend-support-to-batched-linear-algebra" class="self-link"></a></h2>
+<p>High-performance implementation is not just a parallel loop over
+non-batched function calls.</p>
+<p>SIMD interleaved layout – even if nested C++17 parallel algorithms
+worked perfectly, they could not optimize this case, because the layout
+crosses multiple independent problems.</p>
+<h1 data-number="4" id="existing-practice"><span class="header-section-number">4</span> Existing Practice<a href="#existing-practice" class="self-link"></a></h1>
+<h2 data-number="4.1" id="vendor-libraries"><span class="header-section-number">4.1</span> Vendor Libraries<a href="#vendor-libraries" class="self-link"></a></h2>
+<p>mkl blah blah, cublas blah blah, rocblas blah blah</p>
+<h2 data-number="4.2" id="open-source-practice"><span class="header-section-number">4.2</span> Open Source Practice<a href="#open-source-practice" class="self-link"></a></h2>
+<p>KokkosKernels blah blah, BLAS proposal blah blah, Magma??</p>
+<h1 data-number="5" id="design-discussion"><span class="header-section-number">5</span> Design discussion<a href="#design-discussion" class="self-link"></a></h1>
+<h2 data-number="5.1" id="interface-options"><span class="header-section-number">5.1</span> Interface options<a href="#interface-options" class="self-link"></a></h2>
+<h3 data-number="5.1.1" id="representing-dimensions-and-strides"><span class="header-section-number">5.1.1</span> Representing dimensions and
+strides<a href="#representing-dimensions-and-strides" class="self-link"></a></h3>
+<p>For a summary of C interface options, see Relton et al. 2016. This
+technical report establishes vocabulary to describe different kinds of
+batched BLAS interfaces. The most important interface design choice is
+how to represent the dimensions and strides of the vector and matrix
+input(s) and output. We collectively call the dimensions and strides the
+“metadata.” Relton et al. identify three main options.</p>
+<ol type="1">
+<li><p>“Fixed”: same metadata for all the problems; packed data</p></li>
+<li><p>“Variable”: different metadata for all the problems; “array of
+problems”</p></li>
+<li><p>“Group”: “array of fixed” (multiple instances of fixed; each
+instance may have different metadata from the other instances)</p></li>
+</ol>
+<p>Allowing the metadata to vary for different problems makes
+parallelization and vectorization more challenging. Furthermore,
+optimizing the fixed case well is a prerequisite for high-performance
+variable and group implementations. Thus, we focus for now on the fixed
+case.</p>
+<p>Relton et al. 2016 further subdivides the fixed interface into three
+options, depending on how the interface represents each batch
+argument.</p>
+<ol type="a">
+<li><p>“P2P” (pointer to pointer): each batch argument is an array of
+pointers.</p></li>
+<li><p>“Strided”: each batch argument is packed into a single array,
+with a fixed element stride (space) between the start of each input in
+the batch.</p></li>
+<li><p>“Interleaved”: for example, if the batch index is <code>k</code>,
+then the <code>i, j</code> element of all the problems (or, possibly
+only SIMD width number of problems) are stored contiguously.</p></li>
+</ol>
+<p>Different vendors offer different options. For example, NVIDIA’s <a href="https://docs.nvidia.com/cuda/cublas/index.html">cuBLAS</a>
+includes both P2P (<code>*Batched</code>) and strided
+(<code>*StridedBatched</code>) operations, and its <a href="https://developer.nvidia.com/blog/cutlass-fast-linear-algebra-in-cuda-c/">CUTLASS
+library</a> supports many variations of strided and interleaved.</p>
+<p>The P2P interface would require extra packing and unpacking of
+pointers, and therefore extra overhead. In practice, users often want to
+represent a batch as a “pre-packed” array with a particular layout, so
+they waste time and code with the P2P interface. Even though P2P could
+be used for the fixed interface, it is more useful for the variable or
+group interface. Thus, we exclude the P2P option for now.</p>
+<p>The <code>mdspan</code> class lets us naturally combine “strided” and
+“interleaved” into a single interface by using different, possibly
+custom mdspan layouts. Each batch parameter would become a single
+<code>mdspan</code>, with an extra rank representing the batch mode (the
+index of a problem within the batch).</p>
+<p>We may want to add new layouts that bake more information into the
+layout at compile time. We may also wish to add
+<code>aligned_accessor</code>.</p>
+<h3 data-number="5.1.2" id="representing-scaling-factors-alpha-and-beta"><span class="header-section-number">5.1.2</span> Representing scaling factors
+(alpha and beta)<a href="#representing-scaling-factors-alpha-and-beta" class="self-link"></a></h3>
+<p>Some BLAS functions take scaling factors. For example, a single
+matrix-matrix multiply computes
+<code>C = beta * C + alpha * A * B</code> for matrices <code>A</code>,
+<code>B</code>, and <code>C</code> and scalars <code>alpha</code> and
+<code>beta</code>. Batched linear algebra has a design choice: should
+the different problems in a batch use the same or different scaling
+factors?</p>
+<p>P1673 expresses scaling factors with an accessor
+<code>accessor_scaled</code>, that users access mainly by calling the
+<code>scaled</code> function. For example, <code>scaled(alpha, A)</code>
+represents the product of the (scalar) scaling factor <code>alpha</code>
+and the matrix <code>A</code>.</p>
+<p>If we want to use the same scaling factor for all the problems in a
+batch, we can use <code>accessor_scaled</code> and <code>scaled</code>
+without interface changes. However, if we want to use a different
+scaling factor for each problem, we would either need to let
+<code>accessor_scaled</code> hold an <code>mdspan</code> of the scaling
+factors, or change all the function interfaces to take separate
+<code>mdspan</code> parameters for the scaling factors. We favor
+changing <code>accessor_scaled</code>, as it would maintain interface
+consistency. We could also retain the existing
+<code>accessor_scaled</code> that holds a scalar, so that
+<code>scaled</code> could take either a single scaling factor or an
+<code>mdspan</code> of scaling factors. This would be consistent with
+the “broadcast” approach described elsewhere in this proposal.</p>
+<h3 data-number="5.1.3" id="conjugate-transpose-and-triangle-arguments"><span class="header-section-number">5.1.3</span> Conjugate, transpose, and
+triangle arguments<a href="#conjugate-transpose-and-triangle-arguments" class="self-link"></a></h3>
+<p>Dongarra 2018 proposes that the different problems in a batch could
+take different conjugate, transpose, triangle, or
+diagonal-interpretation (explicit or implicit unit) arguments. However,
+not all vendor libraries support this. Furthermore, changing these
+arguments actually changes the algorithm in a way that this not always
+amenable to optimizations like vectorization. For these reason, we
+require that all the problems in a batch have the same conjugate,
+transpose, triangle, and diagonal-interpretation arguments.</p>
+<h3 data-number="5.1.4" id="representing-the-result-of-a-reduction-dot-product-or-norm"><span class="header-section-number">5.1.4</span> Representing the result of a
+reduction (dot product or norm)<a href="#representing-the-result-of-a-reduction-dot-product-or-norm" class="self-link"></a></h3>
+<p>The Batched BLAS interface specification (Dongarra 2018) omits
+“reduction”-like operations – dot products and norms – that return a
+single value.</p>
+<p>The original P1673 design had reductions write to an output reference
+(or rank-0 mdspan), with the intent that this could be generalized to an
+output rank-1 (the batch mode) mdspan. LEWG and previous Study Groups
+asked P1673 authors to make reductions look like
+<code>std::reduce</code>: returning a value, instead of writing to an
+output argument. This interface is easier to understand and more
+consistent with the Standard Library for the non-batched case. However,
+it means that the batched interface cannot be made fully consistent with
+the non-batched interface. (This is because we do not permit P1673 or
+its extensions to allocate and return arrays of elements. It is an
+essential feature of P1673, as it was of the BLAS and LAPACK, that it
+can be implemented and used without dynamic memory allocation.
+Implementations may still choose to do dynamic memory allocation
+internally, but they are not required to do so.)</p>
+<p>This gives us two design options.</p>
+<ol type="1">
+<li><p>Overload reduction functions for the batched case to return
+<code>void</code> and take an output <code>mdspan</code>.</p></li>
+<li><p>Omit reductions from the batched interface.</p></li>
+</ol>
+<p>We favor the second approach: adding overloads of P1673
+reduction-like functions that return <code>void</code> and write the
+reduction results to an output <code>mdspan</code>. This has the
+disadvantage that the batched and non-batched versions of the same
+function would no longer take the same number of arguments. However,
+there should be no ambiguity between the two cases.</p>
+<p>The Batched BLAS interface proposal (Dongarra 2018) takes the second
+option: it simply omits batched reductions. In some cases, users could
+replace the missing features with other functions. For example, a
+batched dot product <span class="math inline"><em>x</em><sup><em>T</em></sup><em>y</em><sub>1</sub></span>,
+<span class="math inline"><em>x</em><sup><em>T</em></sup><em>y</em><sub>2</sub></span>,
+<span class="math inline">…</span>, <span class="math inline"><em>x</em><sup><em>T</em></sup><em>y</em><sub><em>K</em></sub></span>
+could be expressed as a non-batched matrix-vector product, and a batched
+dot product <span class="math inline"><em>x</em><sub>1</sub><sup><em>T</em></sup><em>y</em><sub>1</sub></span>,
+<span class="math inline"><em>x</em><sub>2</sub><sup><em>T</em></sup><em>y</em><sub>2</sub></span>,
+<span class="math inline">…</span>, <span class="math inline"><em>x</em><sub><em>K</em></sub><sup><em>T</em></sup><em>y</em><sub><em>K</em></sub></span>
+could be expressed as a batched matrix multiply, where each problem in
+the batch is 1 by <span class="math inline"><em>N</em></span> times 1 by
+<span class="math inline"><em>N</em></span> (where <span class="math inline"><em>N</em></span> is the number of elements in each
+vector). However, this approach has four issues.</p>
+<ol type="1">
+<li><p>The authors’ experience is that special cases of more general
+BLAS functions (e.g., 1 by <span class="math inline"><em>N</em></span>
+times 1 by <span class="math inline"><em>N</em></span> matrix
+multiplies) may not perform as well as more specialized BLAS functions
+(e.g, dot products).</p></li>
+<li><p>Some reduction functions cannot naturally be represented this
+way. The max-norm (or index of the max absolute value, which is what the
+BLAS computes) is an example.</p></li>
+<li><p>Other reduction functions could be represented with existing
+operations, but doing so efficiently may be difficult. For example, a
+batched 1-norm could be represented as the dot product of an elementwise
+absolute value of a matrix, with a vector whose elements are all the
+value 1. One could represent the elementwise absolute value lazily with
+an accessor, and a vector of all ones efficiently with a nonunique
+layout. However, the resulting code might not be efficient.</p></li>
+<li><p>Even if some batched reduction functions could be represented
+with existing operations, doing so may sacrifice accuracy or correctness
+guarantees due to rounding error. For example, the batched 2-norm could
+be represented as a batched dot product of each vector by itself,
+followed by an elementwise square root. However, the result would be
+more prone to underflow or overflow, since the batched dot product would
+be working with squares of elements.</p></li>
+</ol>
+<h3 data-number="5.1.5" id="representing-broadcast-parameters"><span class="header-section-number">5.1.5</span> Representing broadcast
+parameters<a href="#representing-broadcast-parameters" class="self-link"></a></h3>
+<p>If the output <code>mdspan</code> has an extra rank, then we assume
+that users want to do a batched computation, and we treat the leftmost
+extent as the batch extent (the index of a problem in the batch). Any
+input <code>mdspan</code> with an extra rank also has its leftmost
+extent treated as the batch extent.</p>
+<p>Users may want to repeat a single input for all the problems in a
+batch. For example, users may want to perform matrix-vector multiply
+with the same matrix, but different input and output vectors. We call
+the repeated single input a “broadcast” parameter. This feature
+minimizes storage requirements and overhead. Output (or input/output)
+<code>mdspan</code> cannot be broadcast.</p>
+<p>We represent broadcast input parameters as an input
+<code>mdspan</code> without the extra batch extent. That is, the input’s
+rank is the same as it would have been in the non-batched case. This
+interpretation is unambiguous for all P1673 functions.</p>
+<p>We could have chosen to express broadcast parameters by requiring
+that they have the “extra” batch extent, but using a nonunique layout:
+for example, a strided layout with stride zero in the batch mode.
+(<code>layout_stride</code> does not permit this, but general strided
+layouts can have zero strides.) Users can still do this with our
+proposal. However, we consider nonunique layouts an expert mdspan
+feature that is more challenging for users to implement. We also do not
+want to add such layouts to the Standard Library, as we think broadcast
+parameters have a natural representation without them.</p>
+<h1 data-number="6" id="suggested-poll-questions"><span class="header-section-number">6</span> Suggested poll questions<a href="#suggested-poll-questions" class="self-link"></a></h1>
+<ol type="1">
+<li>Should broadcast input parameters be represented by
+<code>mdspan</code> with one less rank (than the batched case would
+normally require), or by some other method?</li>
+</ol>
+<h1 data-number="7" id="references"><span class="header-section-number">7</span> References<a href="#references" class="self-link"></a></h1>
+<ul>
+<li><p>Samuel D. Relton, Pedro Valero-Lara, and Mawussi Zounon, <a href="http://www.nlafet.eu/wp-content/uploads/2016/01/NLAFET-WN5-Relton-ValeroLara-Zounon-161111.pdf">“A
+Comparison of Potential Interfaces for Batched BLAS Computations,”</a>
+NLAFET Working Note 5, August 2016.</p></li>
+<li><p>Jack Dongarra, Iain Duff, Mark Gates, Azzam Haidar, Sven
+Hammarling, Nicholas J. Higham, Jonathan Hogg, Pedro Valero Lara, Piotr
+Luszczek, Mawussi Zounon, Samuel D. Relton, Stanimire Tomov, Timothy
+Costa, and Sarah Knepper, <a href="https://www.icl.utk.edu/files/publications/2018/icl-utk-1170-2018.pdf">“Batched
+BLAS (Basic Linear Algebra Subprograms) 2018 Specification,”</a> July
+2018.</p></li>
+</ul>
+</div>
+</div>
+</body>
+</html>
