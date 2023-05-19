@@ -525,3 +525,9 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 * Jack Dongarra, Iain Duff, Mark Gates, Azzam Haidar, Sven Hammarling, Nicholas J. Higham, Jonathan Hogg, Pedro Valero Lara, Piotr Luszczek, Mawussi Zounon, Samuel D. Relton, Stanimire Tomov, Timothy Costa, and Sarah Knepper,
     ["Batched BLAS (Basic Linear Algebra Subprograms) 2018 Specification,"](https://www.icl.utk.edu/files/publications/2018/icl-utk-1170-2018.pdf)
     July 2018.
+
+# Acknowledgements
+
+Sandia National Laboratories is a multimission laboratory managed and operated by National Technology and Engineering Solutions of Sandia, LLC., a wholly owned subsidiary of Honeywell International, Inc., for the U.S. Department of Energy’s National Nuclear Security Administration under contract DE-NA-0003525.
+
+This work was supported by the Exascale Computing Project (17-SC-20-SC), a collaborative effort of the U.S. Department of Energy Office of Science and the National Nuclear Security Administration.
