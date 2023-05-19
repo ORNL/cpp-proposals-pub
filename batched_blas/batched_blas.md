@@ -30,10 +30,9 @@ that would be needed for batched linear algebra.
 
 # Motivation
 
-## What is batched linear algebra?
-
 "Batched" linear algebra functions solve
-many independent linear algebra problems all at once, in a single function call.  For example, a "batched GEMM" computes multiple matrix-matrix multiplies at once.
+many independent linear algebra problems all at once, in a single function call.
+For example, a "batched GEMM" computes multiple matrix-matrix multiplies at once.
 Batched linear algebra interfaces have the following advantages.
 
 * By exposing the user's intent to solve many problems at once,
@@ -46,37 +45,53 @@ Batched linear algebra interfaces have the following advantages.
     including machine learning, science, and engineering.
     For a long list of applications that benefit, see Dongarra 2018.
 
-* Hardware vendors such as NVIDIA, Intel, and AMD
+* Hardware vendors such as [NVIDIA](https://docs.nvidia.com/cuda/cublas/index.html),
+    [AMD](https://rocblas.readthedocs.io/en/rocm-5.5.0/), and
+    [Intel](https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-c/2023-1/overview.html)
     currently offer optimized software libraries
     to support batched linear algebra,
     and hardware features to accelerate it.
+
+* Open-source libraries such as [MAGMA](https://icl.utk.edu/magma/)
+    and [Kokkos](https://github.com/kokkos/kokkos-kernels)
+    offer cross-platform batched linear algebra functionality.
 
 * There is an ongoing
     <a href="http://icl.utk.edu/bblas/">interface standardization effort</a>,
     in which we participate.
 
-It's possible to use existing non-batched libraries,
-like the BLAS and LAPACK, to solve small linear algebra problems.
-However, these libraries were designed to solve one large problem at a time.
+It is possible to use existing non-batched libraries,
+like the BLAS and LAPACK, to solve many small linear algebra problems.
+However, high-performance implementations of batched linear algebra
+are not just parallel loops over non-batched function calls.
+First, non-batched libraries were designed to solve one large problem at a time.
 For example, they check input arguments for consistency on every call,
 which could take longer than the actual algorithm for a tiny matrix.
 Batched libraries can and do amortize these checks.
-These libraries also take each array input and output as a pointer,
-run-time dimensions, and run-time strides.
+Second, non-batched libraries take each array input and output
+as a pointer with run-time dimensions and run-time strides.
 Some problems are small enough that each problem's data
-takes no more space than a pointer to the data.
+takes no more space than a pointer to the data,
+and the problems' dimensions and strides may be known at compile time.
 Our non-batched linear algebra library proposal P1673
 can use mdspan's layout mapping
 to encode dimensions and/or strides as compile-time constants,
 but `mdspan` still requires a run-time pointer or data handle.
 Batching up multiple inputs into a single `mdspan`
 amortizes the overhead of representing each problem.
+Third, batched interfaces open up new implementation possibilities,
+such as interleaving multiple inputs to improve vectorization.
+Interleaving means that contiguous segments of memory
+may contain data from multiple independent problems.
+Even if nested C++17 parallel algorithms worked perfectly
+when wrapping non-batched functions,
+this could not easily optimize for this case.
 
 The interface of batched linear algebra operations
 matters a lot for performance, but may constrain generality.
 For example, requiring a specific data layout
 and constraining all matrices to have the same dimensions
-makes vectorization easier,
+may make parallelization easier,
 but applications in sparse multifrontal matrix factorizations
 may produce dense matrices of different dimensions.
 Vendors have different interfaces with different levels of generality.
@@ -95,25 +110,64 @@ Input arguments may also have an additional rank to match;
 if they do not, the function will use ("broadcast") the same
 input argument for all the output arguments in the batch.
 
-## Why we should extend support to batched linear algebra
-
-High-performance implementation is not just a parallel loop over non-batched function calls.
-
-SIMD interleaved layout -- even if nested C++17 parallel algorithms worked perfectly, they could not optimize this case, because the layout crosses multiple independent problems.
-
-# Existing Practice
-
-## Vendor Libraries
-
-mkl blah blah, cublas blah blah, rocblas blah blah
-
-## Open Source Practice
-
-KokkosKernels blah blah, BLAS proposal blah blah, Magma??
-
 # Design discussion
 
-## Interface options
+## Summary of interface choices
+
+This first version of the proposal does not give wording.
+This is because the actual wording would be extremely verbose,
+and we want to focus at this level of review
+on how this proposal naturally extends P1673.
+It does so in the following ways.
+
+P1673's functions (those with BLAS equivalents)
+can be divided into two categories:
+
+1. "reduction-like," including dot products and norms,
+    that take one or more input `mdspan` arguments
+    (representing vector(s) or a matrix)
+    and return a single scalar value; and
+
+2. "not-reduction-like," which take input and output
+    (or input/output) `mdspan` and return `void`.
+
+For not-reduction-like functions, their batched versions
+have the same name and take the same number of arguments.
+We distinguish them by the output (or input/output) `mdspan`,
+which has one extra rank in the batched case.
+The input `mdspan` may also have this extra rank.
+The leftmost extent of the `mdspan` with an extra rank
+is the "batch extent"; it represents the index of an object
+(scalar, vector, or matrix) in a batch.
+All `mdspan` with the extra rank must have the same extent.
+Those input `mdspan` without the extra rank
+are "broadcast parameters," that are repeated
+for all the elements in the batch.
+
+For reduction-like functions, their batched versions
+have the same name, but return `void` instead of the scalar result type,
+and take an additional rank-1 `mdspan` output parameter
+(at the end of the function, which is the convention
+for output `mdspan` parameters).
+Each of the one or more input `mdspan`
+may also have at least one extra rank.
+As with the non-reduction-like functions,
+the leftmost extent is the batch extent.
+
+Both cases effectively add a "problem index"
+to each `mdspan` parameter of the non-batched case.
+All the problems must have the same dimensions,
+and the data from different problems are packed into the same `mdspan`.
+For example, with a matrix-vector multiply $y = A x$,
+the different $x$ input are packed into a rank-2 `mdspan`
+(or rank-1, if this is a "broadcast" input)
+the different $A$ input are packed into a rank-3 `mdspan`
+(or rank-2, if this is a "broadcast" input),
+and the different $y$ output are packed into a rank-2 `mdspan`.
+
+The following section explains the more subtle design choices.
+
+## Discussion of interface choices
 
 ### Representing dimensions and strides
 
@@ -125,11 +179,13 @@ the dimensions and strides of the vector and matrix input(s) and output.
 We collectively call the dimensions and strides the "metadata."
 Relton et al. identify three main options.
 
-1. "Fixed": same metadata for all the problems; packed data
+1. "Fixed": same metadata for all the problems
 
-2. "Variable": different metadata for all the problems; "array of problems"
+2. "Variable": "array of problems";
+    each problem has its own metadata, which may differ
 
-3. "Group": "array of fixed" (multiple instances of fixed; each instance may have different metadata from the other instances)
+3. "Group": "array of fixed"; multiple instances of fixed,
+    where each instance may have different metadata
 
 Allowing the metadata to vary for different problems
 makes parallelization and vectorization more challenging.
@@ -142,9 +198,15 @@ depending on how the interface represents each batch argument.
 
 a. "P2P" (pointer to pointer): each batch argument is an array of pointers.
 
-b. "Strided": each batch argument is packed into a single array, with a fixed element stride (space) between the start of each input in the batch.
+b. "Strided": each batch argument is packed into a single array,
+    with a fixed element stride (space)
+    between the start of each input in the batch.
 
-c. "Interleaved": for example, if the batch index is `k`, then the `i, j` element of all the problems (or, possibly only SIMD width number of problems) are stored contiguously.
+c. "Interleaved": for example, if the batch index is `k`,
+    then the `i, j` element of all the matrices in a batch
+    are stored contiguously.  (This can be generalized,
+    for example, to some fixed SIMD width number of problems
+    (such as 8) having their `i, j` elements stored contiguously.)
 
 Different vendors offer different options.  For example,
 NVIDIA's [cuBLAS](https://docs.nvidia.com/cuda/cublas/index.html) 
@@ -166,8 +228,6 @@ Each batch parameter would become a single `mdspan`,
 with an extra rank representing the batch mode
 (the index of a problem within the batch).  
 
-We may want to add new layouts that bake more information into the layout at compile time.  We may also wish to add `aligned_accessor`.
-
 ### Representing scaling factors (alpha and beta)
 
 Some BLAS functions take scaling factors.
@@ -177,26 +237,48 @@ for matrices `A`, `B`, and `C` and scalars `alpha` and `beta`.
 Batched linear algebra has a design choice:
 should the different problems in a batch
 use the same or different scaling factors?
+Different vendor libraries make different choices.
+For example, the `*StridedBatched*` functions in NVIDIA's cuBLAS
+take an array of scaling factors, one element for each problem.
+Intel's oneMKL's "group" interface uses the same scaling factor(s)
+for all the problems in a single fixed group,
+but let the scaling factor(s) vary for different groups.
 
-P1673 expresses scaling factors with an accessor `accessor_scaled`,
+P1673 expresses scaling factors for the non-batched case
+with an accessor `accessor_scaled`,
 that users access mainly by calling the `scaled` function.
 For example, `scaled(alpha, A)` represents the product
-of the (scalar) scaling factor `alpha` and the matrix `A`.
+of the (scalar) scaling factor `alpha` and the matrix `A`,
+as an `mdspan` that defers this multiplication until the actual kernel.
 
 If we want to use the same scaling factor for all the problems in a batch,
 we can use `accessor_scaled` and `scaled` without interface changes.
 However, if we want to use a different scaling factor for each problem,
-we would either need to let `accessor_scaled`
-hold an `mdspan` of the scaling factors,
-or change all the function interfaces
-to take separate `mdspan` parameters for the scaling factors.
-We favor changing `accessor_scaled`,
-as it would maintain interface consistency.
-We could also retain the existing `accessor_scaled` that holds a scalar,
-so that `scaled` could take either a single scaling factor
-or an `mdspan` of scaling factors.
-This would be consistent with the "broadcast" approach
-described elsewhere in this proposal.
+our only choice is to change all the function interface
+to take additional separate `mdspan` parameters for the scaling factors.
+
+One may wonder why we couldn't just change the `scaled` function
+to take an `mdspan` of scaling factors.
+The issue is that the `scaled` function needs to return a single `mdspan`
+that represents the deferred multiplication.
+Only an `mdspan`'s accessor can affect the elements of the `mdspan`
+by deferring a multiplication in this way.
+However, by the time `mdspan::operator[]` reaches the accessor,
+the index information from the layout mapping
+about which scaling factor to apply would no longer be available.
+If we made `scaled` return something other than an `mdspan`
+and generalized the function to take arguments more generic than `mdspan`,
+then that would violate the design principle expressed in P1673,
+that the only generality allowed for vector or matrix arguments
+is the generality that `mdspan` itself offers.
+P1673 is not a general linear algebra library
+(e.g., it's not for sparse linear algebra);
+it's a C++ BLAS interface.
+
+Note that for applying a single scaling factor
+to all the elements of a batch,
+the existing `scaled` function works just fine.
+(We would only need to allow rank-3 `mdspan` arguments.)
 
 ### Conjugate, transpose, and triangle arguments
 
@@ -213,7 +295,9 @@ and diagonal-interpretation arguments.
 
 ### Representing the result of a reduction (dot product or norm)
 
-The Batched BLAS interface specification (Dongarra 2018) omits "reduction"-like operations -- dot products and norms -- that return a single value.
+The Batched BLAS interface specification (Dongarra 2018)
+omits "reduction-like" operations -- dot products and norms
+-- that return a single value.
 
 The original P1673 design had reductions write to an output reference
 (or rank-0 mdspan), with the intent that this could be generalized
@@ -320,10 +404,6 @@ that is more challenging for users to implement.
 We also do not want to add such layouts to the Standard Library,
 as we think broadcast parameters
 have a natural representation without them.
-
-# Suggested poll questions
-
-1. Should broadcast input parameters be represented by `mdspan` with one less rank (than the batched case would normally require), or by some other method?
 
 # References
 
