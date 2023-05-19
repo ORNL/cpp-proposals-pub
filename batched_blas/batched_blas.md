@@ -40,6 +40,11 @@ Batched linear algebra interfaces have the following advantages.
     than a single very small problem has (Dongarra 2018),
     and amortize the overhead of representing each problem
     as an argument of a function call.
+    Furthermore, depending on how the interface represents each
+    batch argument, as discussed later, solving many similar problems
+    at once can improve the memory access pattern,
+    reuse common data memory read (see "broadcast" later in this text),
+    and reuse potential common computation.
 
 * They are useful for many different fields,
     including machine learning, science, and engineering.
@@ -202,8 +207,10 @@ b. "Strided": each batch argument is packed into a single array,
     with a fixed element stride (space)
     between the start of each input in the batch.
 
-c. "Interleaved": for example, if the batch index is `k`,
-    then the `i, j` element of all the matrices in a batch
+c. "Interleaved": for example for a batched matrix $A$,
+    given that the leftmost extent is the batched extent,
+    then the elements $A_{1,i,j}, A_{2,i,j}, ..., A_{K,i,j}$,
+    i.e. `i, j` element of all the matrices in a batch
     are stored contiguously.  (This can be generalized,
     for example, to some fixed SIMD width number of problems
     (such as 8) having their `i, j` elements stored contiguously.)
@@ -217,7 +224,7 @@ supports many variations of strided and interleaved.
 The P2P interface would require extra packing and unpacking of pointers,
 and therefore extra overhead.  In practice, users often want to represent
 a batch as a "pre-packed" array with a particular layout,
-so they waste time and code with the P2P interface.
+so the P2P interface would make them waste time and code.
 Even though P2P could be used for the fixed interface,
 it is more useful for the variable or group interface.
 Thus, we exclude the P2P option for now.
@@ -323,7 +330,7 @@ This gives us two design options.
 
 2. Omit reductions from the batched interface.
 
-We favor the second approach:
+We favor the first approach:
 adding overloads of P1673 reduction-like functions that return `void`
 and write the reduction results to an output `mdspan`.
 This has the disadvantage that the batched and non-batched versions
