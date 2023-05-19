@@ -462,17 +462,17 @@ In addition to these new exposition only concepts we need some helper functions:
 ```c++
 template<@_batched-in-vector_@ InVec>
 requires(InVec::rank()==1)
-auto get_batch(InVec v, int /*batch*/) { return v; }
+auto get_batch_vector(InVec v, int /*batch*/) { return v; }
 
 template<@_batched-in-vector_@ InVec>
 requires(InVec::rank()==2)
-auto get_batch(InVec v, int batch) { return submdspan(v, batch, full_extent); }
+auto get_batch_vector(InVec v, int batch) { return submdspan(v, batch, full_extent); }
 
 template<@_batched-out-vector_@ OutVec>
-auto get_batch(OutVec v, int batch) { return submdspan(v, batch, full_extent); }
+auto get_batch_vector(OutVec v, int batch) { return submdspan(v, batch, full_extent); }
 ```
 
-With those functions we can now define the batched overload for `matrix_vector_product`:
+With those functions (and their equivalents for matrices) we can now define the batched overload for `matrix_vector_product`:
 
 ```c++
 template<class ExecutionPolicy,
@@ -485,9 +485,9 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 		   OutVec y);
 ```
 
-*Preconditions:* `A.extent(0) == x.extent(0) && A.extent(0) == y.extent(0)` is `true`.
+*Preconditions:* `(y.extent(0) == x.extent(0) || x.rank() == 1) && (y.extent(0) == A.extent(0) || A.rank()==2)` is `true`.
 
-*Effects:* Equivalent to calling `matrix_vector_product(get_batch(A, i), get_batch(x,  i), get_batch(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
+*Effects:* Equivalent to calling `matrix_vector_product(get_batch_matrix(A, i), get_batch_vector(x,  i), get_batch_vector(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
 
 This leaves the question of having calls with separate scaling factor per subobject.
 To support that we add an additional overload taking a rank-1 `mdspan` with the scaling factors:
@@ -505,9 +505,9 @@ void matrix_vector_product(ExecutionPolicy&& exec,
 		   OutVec y);
 ```
 
-*Preconditions:* `A.extent(0) == x.extent(0) && A.extent(0) == y.extent(0) && A.extent(0) == alphas.extent(0)` is `true`.
+*Preconditions:* `(y.extent(0) == alphas.extent(0)) && (y.extent(0) == x.extent(0) || x.rank() == 1) && (y.extent(0) == A.extent(0) || A.rank()==2)` is `true`.
 
-*Effects:* Equivalent to calling `matrix_vector_product(scaled(alphas[i],get_batch(A, i)), get_batch(x,  i), get_batch(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
+*Effects:* Equivalent to calling `matrix_vector_product(scaled(alphas[i],get_batch_matrix(A, i)), get_batch_vector(x,  i), get_batch_vector(y, i))` for each `i` in the range of $[$ 0,`A.extent(0)`$)$. 
 
 
 # References
