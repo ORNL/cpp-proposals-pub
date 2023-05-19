@@ -224,7 +224,7 @@ supports many variations of strided and interleaved.
 The P2P interface would require extra packing and unpacking of pointers,
 and therefore extra overhead.  In practice, users often want to represent
 a batch as a "pre-packed" array with a particular layout,
-so they do not waste time and code with the P2P interface.
+so the P2P interface would make them waste time and code.
 Even though P2P could be used for the fixed interface,
 it is more useful for the variable or group interface.
 Thus, we exclude the P2P option for now.
