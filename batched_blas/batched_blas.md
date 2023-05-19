@@ -2,7 +2,7 @@
 title: "Extending Linear Algebra Support to Batched Operations"
 document: P2901R0
 date: today
-audience: SG1, SG6, LEWGI
+audience: SG6, SG19, LEWGI
 author:
   - name: Mark Hoemmen 
     email: <mhoemmen@nvidia.com>
