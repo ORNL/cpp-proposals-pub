@@ -217,7 +217,7 @@ supports many variations of strided and interleaved.
 The P2P interface would require extra packing and unpacking of pointers,
 and therefore extra overhead.  In practice, users often want to represent
 a batch as a "pre-packed" array with a particular layout,
-so they waste time and code with the P2P interface.
+so they do not waste time and code with the P2P interface.
 Even though P2P could be used for the fixed interface,
 it is more useful for the variable or group interface.
 Thus, we exclude the P2P option for now.
@@ -323,7 +323,7 @@ This gives us two design options.
 
 2. Omit reductions from the batched interface.
 
-We favor the second approach:
+We favor the first approach:
 adding overloads of P1673 reduction-like functions that return `void`
 and write the reduction results to an output `mdspan`.
 This has the disadvantage that the batched and non-batched versions
