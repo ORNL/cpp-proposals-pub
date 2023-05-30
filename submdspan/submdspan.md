@@ -1,7 +1,7 @@
 
 ---
 title: "`Submdspan`"
-document: P2630
+document: D2630
 date: today
 audience: LEWG
 author:
