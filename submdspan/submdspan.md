@@ -544,11 +544,11 @@ For performance and preservation of compile-time knowledge, we also require the 
 
 [1]{.pnum} Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
 
-## Modify first sentence in pargraph 3 of [contents] (16.4.2.2) to be:
+## Modify first sentence in paragraph 3 of [contents] (16.4.2.2) to be:
 
 Whenever an unqualified name other than `swap`, `make_error_code`, `make_error_condition`, or `submdspan_mapping` is used in the specification of a declaration D in [support] through [thread], [depr], or [mdspan.submdspan], its meaning is established as-if by performing unqualified name lookup ([basic.lookup.unqual]) in the context of D.
 
-## Modify last sentence in pargraph 3 of [contents] (16.4.2.2) to be:
+## Modify last sentence in paragraph 3 of [contents] (16.4.2.2) to be:
 
 The meanings of the unqualified names `make_error_code`, `make_error_condition`, and `submdspan_mapping` are established as-if by performing argument-dependent lookup ([basic.lookup.argdep]).
 
@@ -594,6 +594,7 @@ The meanings of the unqualified names `make_error_code`, `make_error_condition`,
 ## Add at the end of the `layout_right:mapping` definition in [mdspan.layout.right.overview] after the `private:` access specificer:
 
 ```c++
+  // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
@@ -602,6 +603,7 @@ The meanings of the unqualified names `make_error_code`, `make_error_condition`,
 ## Add at the end of the `layout_stride::mapping` definition in [mdspan.layout.stride.overview] after the `private:` access specificer:
 
 ```c++
+  // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
@@ -618,21 +620,23 @@ The meanings of the unqualified names `make_error_code`, `make_error_condition`,
 
 [2]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument:
 
-  * [2.1]{.pnum} let `index_type` be `decltype(src)::index_type` if the function has a parameter named `src`, otherwise
+  * [2.1]{.pnum} let `index_type` be 
+    
+    * `decltype(src)::index_type` if the function has a parameter named `src`, otherwise
 
-  * [2.2]{.pnum} let `index_type` be the same type as the functions template argument `IndexType`;
+    * the same type as the functions template argument `IndexType`;
 
-  * [2.3]{.pnum} let `rank` be the number of elements in `slices`;
+  * [2.2]{.pnum} let `rank` be the number of elements in `slices`;
 
-  * [2.4]{.pnum} let $s_k$ be the $k$-th element of `slices`;
+  * [2.3]{.pnum} let $s_k$ be the $k$-th element of `slices`;
   
-  * [2.5]{.pnum} let $S_k$ be the type of $s_k$; and
+  * [2.4]{.pnum} let $S_k$ be the type of $s_k$; and
 
-  * [2.6]{.pnum} let  _`map-rank`_ be an `array<size_t, rank>` such that for each `k` in the range of $[0,$ `rank`$)$, _`map-rank`_`[k]` equals:
+  * [2.5]{.pnum} let  _`map-rank`_ be an `array<size_t, rank>` such that for each `k` in the range of $[0,$ `rank`$)$, _`map-rank`_`[k]` equals:
 
-    * `dynamic_extent` if `is_convertible_v<`$S_k$`, index_type>` is `true`, or else
+    * `dynamic_extent` if `is_convertible_v<`$S_k$`, index_type>` is `true`, otherwise
 
-    * the number of types $S_j$ with $j < k$ such that `is_convertible_v<`$S_j$`, index_type>` is `false`.
+    * the number of types $S_j$ with $j < k$.
 
 
 <b>24.7.3.7.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
@@ -740,7 +744,8 @@ constexpr auto @_last_@_(size_t k, const Extents& src, SliceSpecifiers... slices
 
 ```c++
 template<class IndexType, size_t N, class ... SliceSpecifiers>
-constexpr array<IndexType, sizeof...(SliceSpecifiers)> @_src-indices_@(const array<IndexType, N>& indices, SliceSpecifiers ... slices);
+constexpr array<IndexType, sizeof...(SliceSpecifiers)>
+  @_src-indices_@(const array<IndexType, N>& indices, SliceSpecifiers ... slices);
 ```
 
 [10]{.pnum} *Mandates:* `IndexType` is a signed or unsigned integer type.
