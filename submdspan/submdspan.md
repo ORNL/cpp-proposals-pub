@@ -573,10 +573,13 @@ The meanings of the unqualified names `make_error_code`, `make_error_condition`,
       SliceSpecifiers...slices) -> @_see below_@;
 
   template<typename T>
-  concept @_integral-constant-like_@ =       // @_exposition only_@
-         is_integral_v<decltype(T::value)>
-      && !is_same_v<bool, remove_const_t<decltype(T::value)>>
-      && T() == T::value;
+  concept @_integral-constant-like_@ =                                     // @_exposition only_@
+    is_integral_v<decltype(T::value)> &&
+    !is_same_v<bool, remove_const_t<decltype(T::value)>> &&
+    convertible_to<T, decltype(T::value)> &&
+    equality_comparable_with<T, decltype(T::value)> &&
+    bool_constant<T() == T::value>::value &&
+    bool_constant<static_cast<decltype(T::value)>(T()) == T::value>::value;
 ```
 
 ## Add at the end of the `layout_left::mapping` definition in [mdspan.layout.left.overview] after the `private:` access specificer:
