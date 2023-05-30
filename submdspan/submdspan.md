@@ -544,6 +544,14 @@ For performance and preservation of compile-time knowledge, we also require the 
 
 [1]{.pnum} Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
 
+## Modify first sentence in pargraph 3 of [contents] (16.4.2.2) to be:
+
+Whenever an unqualified name other than `swap`, `make_error_code`, `make_error_condition`, or `submdspan_mapping` is used in the specification of a declaration D in [support] through [thread], [depr], or [mdspan.submdspan], its meaning is established as-if by performing unqualified name lookup ([basic.lookup.unqual]) in the context of D.
+
+## Modify last sentence in pargraph 3 of [contents] (16.4.2.2) to be:
+
+The meanings of the unqualified names `make_error_code`, `make_error_condition`, and `submdspan_mapping` are established as-if by performing argument-dependent lookup ([basic.lookup.argdep]).
+
 ## Add inside namespace std at the end of synopsis in subsection 24.7.3.2 [mdspan.syn]
 
 ```c++
@@ -596,7 +604,6 @@ For performance and preservation of compile-time knowledge, we also require the 
 
 [1]{.pnum} The `submdspan` facilities create a new `mdspan` viewing a subset of elements of an existing input `mdspan` `src`.
    The subset viewed by the created `mdspan` is determined by the `SliceSpecifier` arguments.
-
 
 [2]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument:
 
