@@ -19,6 +19,11 @@ toc: true
 
 # Revision History
 
+## Revision 4: 
+
+- Implement feedback from LWG
+
+
 ## Revision 3: Mailing 2023-03
 
 - Add feature test macro
@@ -539,17 +544,10 @@ For performance and preservation of compile-time knowledge, we also require the 
 
 [1]{.pnum} Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
 
-## Add subsection 22.7.X [mdspan.submdspan] with the following
-
-<b>24.7.� submdspan [mdspan.submdspan]</b>
-
-<b>24.7.�.1 overview [mdspan.submdspan.overview]</b>
-
-[1]{.pnum} The `submdspan` facilities create a new `mdspan` from an existing input `mdspan`.
-   The new `mdspan`'s elements refer to a subset of the elements of the input `mdspan`.
+## Add inside namespace std at the end of synopsis in subsection 24.7.3.2 [mdspan.syn]
 
 ```c++
-namespace std {
+  // [mdspan.submdspan], submdspan creation
   template<class OffsetType, class LengthType, class StrideType>
     struct strided_slice;
 
@@ -560,6 +558,20 @@ namespace std {
     constexpr auto submdspan_extents(const extents<IndexType, Extents...>&,
                                      SliceSpecifiers ...);
 
+  template<class ElementType, class Extents, class LayoutPolicy,
+           class AccessorPolicy, class... SliceSpecifiers>
+    constexpr auto submdspan(
+      const mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src,
+      SliceSpecifiers...slices) -> @_see below_@;
+
+  template<typename T>
+  concept @_integral-constant-like_@ =       // @_exposition only_@
+         is_integral_v<decltype(T::value)>
+      && !is_same_v<bool, remove_const_t<decltype(T::value)>>
+      && T() == T::value;
+```
+
+```c++
   template<class E, class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
       const layout_left::mapping<E>& src, 
@@ -574,31 +586,19 @@ namespace std {
     constexpr auto submdspan_mapping(
       const layout_stride::mapping<E>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
-
-  // [mdspan.submdspan], submdspan creation
-  template<class ElementType, class Extents, class LayoutPolicy,
-           class AccessorPolicy, class... SliceSpecifiers>
-    constexpr auto submdspan(
-      const mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src,
-      SliceSpecifiers...slices) -> @_see below_@;
-
-  template<typename T>
-  concept @_integral-constant-like_@ =       // @_exposition only_@
-         std::is_integral_v<decltype(T::value)>
-      && !std::is_same_v<bool, std::remove_const_t<decltype(T::value)>>
-      && T() == T::value;
-}
 ```
 
+## Add subsection 24.7.3.7 [mdspan.submdspan] with the following
 
-[2]{.pnum} The `SliceSpecifier` template argument(s)
-   and the corresponding value(s) of the arguments of `submdspan` after `src`
-   determine the subset of `src` that the `mdspan` returned by `submdspan` views.
+<b>24.7.3.7 submdspan [mdspan.submdspan]</b>
 
-[3]{.pnum} Invocations of `submdspan_mapping` shown in subclause ([mdspan.submdspan]) select a function call via overload resolution
-on a candidate set that includes the lookup set found by argument dependent lookup ([basic.lookup.argdep]).
+<b>24.7.3.7.1 overview [mdspan.submdspan.overview]</b>
 
-[4]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument:
+[1]{.pnum} The `submdspan` facilities create a new `mdspan` viewing a subset of elements of an existing input `mdspan` `src`.
+   The subset viewed by the created `mdspan` is determined by the `SliceSpecifier` arguments.
+
+
+[2]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument:
 
   * [4.1]{.pnum} let `rank` be the number of elements in `slices`;
 
@@ -613,7 +613,7 @@ on a candidate set that includes the lookup set found by argument dependent look
     * the number of $S_j$ with $j < k$ such that `is_convertible_v<`$S_j$`, size_t>` is `false`.
 
 
-<b>24.7.�.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
+<b>24.7.3.7.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
 
 [1]{.pnum} `strided_slice` represents a set of `extent` regularly spaced integer indices.
    The indices start at `offset`, and increase by increments of `stride`.
@@ -644,7 +644,7 @@ Indices are selected from the half-open interval [1, 1 + 10).
 <i>- end note]</i>
 
 
-<b>24.7.�.3 `submdspan_mapping_result` [mdspan.submdspan.submdspan_mapping_result]</b>
+<b>24.7.3.7.3 `submdspan_mapping_result` [mdspan.submdspan.submdspan_mapping_result]</b>
 
 [1]{.pnum} Specializations of `submdspan_mapping_result` are returned by overloads of `submdspan_mapping`.
 
@@ -661,7 +661,7 @@ struct submdspan_mapping_result {
 
 [3]{.pnum} `LayoutMapping` shall meet the layout mapping requirements.
 
-<b>24.7.�.4 Exposition-only helpers [mdspan.submdspan.helpers]</b>
+<b>24.7.3.7.4 Exposition-only helpers [mdspan.submdspan.helpers]</b>
 
 ```c++
 template<class T>
@@ -730,7 +730,7 @@ constexpr array<IndexType, sizeof...(SliceSpecifiers)> @_src-indices_@(const arr
   * [11.2]{.pnum} _`first`_`_<IndexType>(k, slices...) + indices[`_`map-rank`_`[k]]`.
 
 
-<b>24.7.�.4 `submdspan_extents` function [mdspan.submdspan.extents]</b>
+<b>24.7.3.7.4 `submdspan_extents` function [mdspan.submdspan.extents]</b>
 
 ```c++
 template<class IndexType, class ... Extents, class ... SliceSpecifiers>
@@ -783,20 +783,23 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
   * [5.2]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals _`last_`_`(k, src_exts, slices...) - `_`first`_`_<IndexType>(k, slices...)`.
 
-<b>24.7.�.5 Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]</b>
+<b>24.7.3.7.5 Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]</b>
 
 ```c++
-  template<class Extents, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
+  template<class Extents>
+  template<class... SliceSpecifiers>
+    constexpr auto layout_left::mapping<Extents>::submdspan_mapping(
       const layout_left::mapping<Extents>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 
-  template<class Extents, class... SliceSpecifiers>
+  template<class Extents>
+  template<class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
       const layout_right::mapping<Extents>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
 
-  template<class Extents, class... SliceSpecifiers>
+  template<class Extents>
+  template<class... SliceSpecifiers>
     constexpr auto submdspan_mapping(
       const layout_stride::mapping<Extents>& src, 
       SliceSpecifiers ... slices) -> @_see below_@;
@@ -864,7 +867,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
    * [9.4]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
 
-<b>24.7.�.6 `submdspan` function [mdspan.submdspan.submdspan]</b>
+<b>24.7.3.7.6 `submdspan` function [mdspan.submdspan.submdspan]</b>
 
 ```c++
 // [mdspan.submdspan], submdspan creation
@@ -878,6 +881,9 @@ template<class ElementType, class Extents, class LayoutPolicy,
 [1]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
 
 [2]{.pnum} Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.
+<i>[Note: </i> This invocation of `submdspan_mapping` selects a function call via overload resolution
+on a candidate set that includes the lookup set found by argument dependent lookup ([basic.lookup.argdep]).
+<i>- end note]</i>
 
 [3]{.pnum} *Constraints:*
 
