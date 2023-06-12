@@ -815,17 +815,17 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
 ```c++
   template<class Extents, class... SliceSpecifiers>
-  constexpr auto mapping::submdspan_mapping(
+  constexpr auto submdspan_mapping(
     const layout_left::mapping<Extents>& src,
     SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class Extents, class... SliceSpecifiers>
-  constexpr auto mapping::submdspan_mapping(
+  constexpr auto submdspan_mapping(
     const layout_right::mapping<Extents>& src,
     SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class Extents, class... SliceSpecifiers>
-  constexpr auto mapping::submdspan_mapping(
+  constexpr auto submdspan_mapping(
     const layout_stride::mapping<Extents>& src,
     SliceSpecifiers ... slices) -> @_see below_@;
 ```
