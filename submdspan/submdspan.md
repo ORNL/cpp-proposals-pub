@@ -546,11 +546,12 @@ For performance and preservation of compile-time knowledge, we also require the 
 
 ## Modify first sentence in paragraph 3 of [contents] (16.4.2.2) to be:
 
-Whenever an unqualified name other than `swap`, `make_error_code`, `make_error_condition`, or `submdspan_mapping` is used in the specification of a declaration D in [support] through [thread], [depr], or [mdspan.submdspan], its meaning is established as-if by performing unqualified name lookup ([basic.lookup.unqual]) in the context of D.
+Whenever an unqualified name other than `swap`{.rm}, `make_error_code`, [or]{.rm} `make_error_condition`[, or `submdspan_mapping`]{.add} 
+is used in the specification of a declaration D in [support] through [thread] [,]{.add} [or]{.rm} [depr] [, or [mdspan.submdspan]]{.add}, its meaning is established as-if by performing unqualified name lookup ([basic.lookup.unqual]) in the context of D.
 
 ## Modify last sentence in paragraph 3 of [contents] (16.4.2.2) to be:
 
-The meanings of the unqualified names `make_error_code`, `make_error_condition`, and `submdspan_mapping` are established as-if by performing argument-dependent lookup ([basic.lookup.argdep]).
+The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `make_error_condition`[, and `submdspan_mapping`]{.add} are established as-if by performing argument-dependent lookup ([basic.lookup.argdep]).
 
 ## Add inside namespace std at the end of synopsis in subsection 24.7.3.2 [mdspan.syn]
 
