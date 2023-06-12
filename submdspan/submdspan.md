@@ -1,7 +1,7 @@
 
 ---
 title: "`Submdspan`"
-document: P2630
+document: D2630
 date: today
 audience: LEWG
 author:
@@ -18,6 +18,11 @@ toc: true
 
 
 # Revision History
+
+## Revision 4: 
+
+- Implement feedback from LWG
+
 
 ## Revision 3: Mailing 2023-03
 
@@ -539,17 +544,18 @@ For performance and preservation of compile-time knowledge, we also require the 
 
 [1]{.pnum} Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
 
-## Add subsection 22.7.X [mdspan.submdspan] with the following
+## Modify first sentence in paragraph 3 of [contents] (16.4.2.2) to be:
 
-<b>24.7.� submdspan [mdspan.submdspan]</b>
+Whenever an unqualified name other than `swap`, `make_error_code`, `make_error_condition`, or `submdspan_mapping` is used in the specification of a declaration D in [support] through [thread], [depr], or [mdspan.submdspan], its meaning is established as-if by performing unqualified name lookup ([basic.lookup.unqual]) in the context of D.
 
-<b>24.7.�.1 overview [mdspan.submdspan.overview]</b>
+## Modify last sentence in paragraph 3 of [contents] (16.4.2.2) to be:
 
-[1]{.pnum} The `submdspan` facilities create a new `mdspan` from an existing input `mdspan`.
-   The new `mdspan`'s elements refer to a subset of the elements of the input `mdspan`.
+The meanings of the unqualified names `make_error_code`, `make_error_condition`, and `submdspan_mapping` are established as-if by performing argument-dependent lookup ([basic.lookup.argdep]).
+
+## Add inside namespace std at the end of synopsis in subsection 24.7.3.2 [mdspan.syn]
 
 ```c++
-namespace std {
+  // [mdspan.submdspan], submdspan creation
   template<class OffsetType, class LengthType, class StrideType>
     struct strided_slice;
 
@@ -560,22 +566,6 @@ namespace std {
     constexpr auto submdspan_extents(const extents<IndexType, Extents...>&,
                                      SliceSpecifiers ...);
 
-  template<class E, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
-      const layout_left::mapping<E>& src, 
-      SliceSpecifiers ... slices) -> @_see below_@;
-
-  template<class E, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
-      const layout_right::mapping<E>& src, 
-      SliceSpecifiers ... slices) -> @_see below_@;
-
-  template<class E, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
-      const layout_stride::mapping<E>& src, 
-      SliceSpecifiers ... slices) -> @_see below_@;
-
-  // [mdspan.submdspan], submdspan creation
   template<class ElementType, class Extents, class LayoutPolicy,
            class AccessorPolicy, class... SliceSpecifiers>
     constexpr auto submdspan(
@@ -583,37 +573,73 @@ namespace std {
       SliceSpecifiers...slices) -> @_see below_@;
 
   template<typename T>
-  concept @_integral-constant-like_@ =       // @_exposition only_@
-         std::is_integral_v<decltype(T::value)>
-      && !std::is_same_v<bool, std::remove_const_t<decltype(T::value)>>
-      && T() == T::value;
-}
+  concept @_integral-constant-like_@ =                                     // @_exposition only_@
+    is_integral_v<decltype(T::value)> &&
+    !is_same_v<bool, remove_const_t<decltype(T::value)>> &&
+    convertible_to<T, decltype(T::value)> &&
+    equality_comparable_with<T, decltype(T::value)> &&
+    bool_constant<T() == T::value>::value &&
+    bool_constant<static_cast<decltype(T::value)>(T()) == T::value>::value;
 ```
 
+## Add at the end of the `layout_left::mapping` definition in [mdspan.layout.left.overview] after the `private:` access specificer:
 
-[2]{.pnum} The `SliceSpecifier` template argument(s)
-   and the corresponding value(s) of the arguments of `submdspan` after `src`
-   determine the subset of `src` that the `mdspan` returned by `submdspan` views.
+```c++
+  // [mdspan.submdspan.mapping], submdspan mapping specialization
+  template<class... SliceSpecifiers>
+    friend constexpr auto submdspan_mapping(
+      const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+```
 
-[3]{.pnum} Invocations of `submdspan_mapping` shown in subclause ([mdspan.submdspan]) select a function call via overload resolution
-on a candidate set that includes the lookup set found by argument dependent lookup ([basic.lookup.argdep]).
+## Add at the end of the `layout_right:mapping` definition in [mdspan.layout.right.overview] after the `private:` access specificer:
 
-[4]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument:
+```c++
+  // [mdspan.submdspan.mapping], submdspan mapping specialization
+  template<class... SliceSpecifiers>
+    friend constexpr auto submdspan_mapping(
+      const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+```
 
-  * [4.1]{.pnum} let `rank` be the number of elements in `slices`;
+## Add at the end of the `layout_stride::mapping` definition in [mdspan.layout.stride.overview] after the `private:` access specificer:
 
-  * [4.2]{.pnum} let $s_k$ be the $k$-th element of `slices`;
+```c++
+  // [mdspan.submdspan.mapping], submdspan mapping specialization
+  template<class... SliceSpecifiers>
+    friend constexpr auto submdspan_mapping(
+      const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+```
+
+## Add subsection 24.7.3.7 [mdspan.submdspan] with the following
+
+<b>24.7.3.7 submdspan [mdspan.submdspan]</b>
+
+<b>24.7.3.7.1 overview [mdspan.submdspan.overview]</b>
+
+[1]{.pnum} The `submdspan` facilities create a new `mdspan` viewing a subset of elements of an existing input `mdspan`.
+   The subset viewed by the created `mdspan` is determined by the `SliceSpecifier` arguments.
+
+[2]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument:
+
+  * [2.1]{.pnum} let `index_type` be 
+    
+    * `decltype(src)::index_type` if the function has a parameter named `src`, otherwise
+
+    * the same type as the functions template argument `IndexType`;
+
+  * [2.2]{.pnum} let `rank` be the number of elements in `slices`;
+
+  * [2.3]{.pnum} let $s_k$ be the $k$-th element of `slices`;
   
-  * [4.3]{.pnum} let $S_k$ be the type of $s_k$; and
+  * [2.4]{.pnum} let $S_k$ be the type of $s_k$; and
 
-  * [4.4]{.pnum} let  _`map-rank`_ be an `array<size_t, rank>` such that for each `k` in the range of $[0,$ `rank`$)$, _`map-rank`_`[k]` equals:
+  * [2.5]{.pnum} let  _`map-rank`_ be an `array<size_t, rank>` such that for each `k` in the range of $[0,$ `rank`$)$, _`map-rank`_`[k]` equals:
 
-    * `dynamic_extent` if `is_convertible_v<`$S_k$`, size_t>` is `true`, or else
+    * `dynamic_extent` if `is_convertible_v<`$S_k$`, index_type>` is `true`, otherwise
 
-    * the number of $S_j$ with $j < k$ such that `is_convertible_v<`$S_j$`, size_t>` is `false`.
+    * the number of types $S_j$ with $j < k$.
 
 
-<b>24.7.�.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
+<b>24.7.3.7.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
 
 [1]{.pnum} `strided_slice` represents a set of `extent` regularly spaced integer indices.
    The indices start at `offset`, and increase by increments of `stride`.
@@ -644,7 +670,7 @@ Indices are selected from the half-open interval [1, 1 + 10).
 <i>- end note]</i>
 
 
-<b>24.7.�.3 `submdspan_mapping_result` [mdspan.submdspan.submdspan_mapping_result]</b>
+<b>24.7.3.7.3 `submdspan_mapping_result` [mdspan.submdspan.submdspan_mapping_result]</b>
 
 [1]{.pnum} Specializations of `submdspan_mapping_result` are returned by overloads of `submdspan_mapping`.
 
@@ -661,7 +687,7 @@ struct submdspan_mapping_result {
 
 [3]{.pnum} `LayoutMapping` shall meet the layout mapping requirements.
 
-<b>24.7.�.4 Exposition-only helpers [mdspan.submdspan.helpers]</b>
+<b>24.7.3.7.4 Exposition-only helpers [mdspan.submdspan.helpers]</b>
 
 ```c++
 template<class T>
@@ -695,7 +721,7 @@ constexpr IndexType @_first_@_(size_t k, SliceSpecifiers... slices);
 
 ```c++
 template<class Extents, class ... SliceSpecifiers>
-constexpr auto @_last_@_(size_t k, const Extents& ext, SliceSpecifiers... slices);
+constexpr auto @_last_@_(size_t k, const Extents& src, SliceSpecifiers... slices);
 ```
 
 [5]{.pnum} *Mandates:* `Extents` is a specialization of `extents`.
@@ -710,7 +736,7 @@ constexpr auto @_last_@_(size_t k, const Extents& ext, SliceSpecifiers... slices
 
    * [7.3]{.pnum} otherwise, if _`is-strided-slice`_`<`$S_k$`>::value` is `true`, then $s_k$`.offset + `$s_k$`.extent`;
 
-   * [7.4]{.pnum} otherwise, `ext.extent(k)`.
+   * [7.4]{.pnum} otherwise, `src.extent(k)`.
 
 [8]{.pnum} *Preconditions:* $λ_k$ is representable as a value of type `index_type`.
 
@@ -718,7 +744,8 @@ constexpr auto @_last_@_(size_t k, const Extents& ext, SliceSpecifiers... slices
 
 ```c++
 template<class IndexType, size_t N, class ... SliceSpecifiers>
-constexpr array<IndexType, sizeof...(SliceSpecifiers)> @_src-indices_@(const array<IndexType, N>& indices, SliceSpecifiers ... slices);
+constexpr array<IndexType, sizeof...(SliceSpecifiers)>
+  @_src-indices_@(const array<IndexType, N>& indices, SliceSpecifiers ... slices);
 ```
 
 [10]{.pnum} *Mandates:* `IndexType` is a signed or unsigned integer type.
@@ -730,18 +757,18 @@ constexpr array<IndexType, sizeof...(SliceSpecifiers)> @_src-indices_@(const arr
   * [11.2]{.pnum} _`first`_`_<IndexType>(k, slices...) + indices[`_`map-rank`_`[k]]`.
 
 
-<b>24.7.�.4 `submdspan_extents` function [mdspan.submdspan.extents]</b>
+<b>24.7.3.7.4 `submdspan_extents` function [mdspan.submdspan.extents]</b>
 
 ```c++
 template<class IndexType, class ... Extents, class ... SliceSpecifiers>
-auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpecifiers ... slices);
+auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifiers ... slices);
 ```
 
 [1]{.pnum} *Constraints:*
 
    * [1.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-[2]{.pnum} *Mandates:* For each rank index `k` of `src_exts.extents()`, *exactly one* of the following is `true`:
+[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
 
    * [2.1]{.pnum} `is_convertible_v<`$S_k$`, IndexType>`,
 
@@ -751,15 +778,15 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
    * [2.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
 
-[3]{.pnum} *Preconditions:* For each rank index `k` of `src_exts.extents()`, *all* of the following are `true`:
+[3]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, *all* of the following are `true`:
 
    * [3.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,
  
    * [3.2]{.pnum} `0 <= `_`first`_`_<IndexType>(k, slices...)`,
 
-   * [3.3]{.pnum} _`first`_`_<IndexType>(k, slices...) <= `_`last_`_`(k, src_exts, slices...)`, and
+   * [3.3]{.pnum} _`first`_`_<IndexType>(k, slices...) <= `_`last_`_`(k, src, slices...)`, and
 
-   * [3.4]{.pnum} _`last_`_`(k, src_exts, slices...) <= src_exts.extent(k)`.
+   * [3.4]{.pnum} _`last_`_`(k, src, slices...) <= src.extent(k)`.
 
 [4]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
 
@@ -781,71 +808,73 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
   * [5.1]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent == 0 ? 0 : 1 + (`$s_k$`.extent - 1) / `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`, otherwise
 
-  * [5.2]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals _`last_`_`(k, src_exts, slices...) - `_`first`_`_<IndexType>(k, slices...)`.
+  * [5.2]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals _`last_`_`(k, src, slices...) - `_`first`_`_<IndexType>(k, slices...)`.
 
-<b>24.7.�.5 Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]</b>
+<b>24.7.3.7.5 Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]</b>
 
 ```c++
   template<class Extents, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
-      const layout_left::mapping<Extents>& src, 
-      SliceSpecifiers ... slices) -> @_see below_@;
+  constexpr auto mapping::submdspan_mapping(
+    const layout_left::mapping<Extents>& src,
+    SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class Extents, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
-      const layout_right::mapping<Extents>& src, 
-      SliceSpecifiers ... slices) -> @_see below_@;
+  constexpr auto mapping::submdspan_mapping(
+    const layout_right::mapping<Extents>& src,
+    SliceSpecifiers ... slices) -> @_see below_@;
 
   template<class Extents, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
-      const layout_stride::mapping<Extents>& src, 
-      SliceSpecifiers ... slices) -> @_see below_@;
+  constexpr auto mapping::submdspan_mapping(
+    const layout_stride::mapping<Extents>& src,
+    SliceSpecifiers ... slices) -> @_see below_@;
 ```
 
-[1]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
+[1]{.pnum} Overloads of `submdspan_mapping` in this subclause are to be implemented as hidden friends of their respective layout policy mappings.
 
-[2]{.pnum} *Constraints:*
+[2]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
 
-   * [2.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
+[3]{.pnum} *Constraints:*
 
-[3]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
+   * [3.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-   * [3.1]{.pnum} `is_convertible_v<`$S_k$`, index_type>`,
+[4]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
 
-   * [3.2]{.pnum} `is_convertible_v<`$S_k$`, tuple<index_type, index_type>>`,
+   * [4.1]{.pnum} `is_convertible_v<`$S_k$`, index_type>`,
 
-   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
+   * [4.2]{.pnum} `is_convertible_v<`$S_k$`, tuple<index_type, index_type>>`,
 
-   * [3.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
+   * [4.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
-[4]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, *all* of the following are `true`:
+   * [4.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
 
-   * [4.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,  
+[5]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, *all* of the following are `true`:
 
-   * [4.2]{.pnum} `0 <= `_`first`_`_<index_type>(k, slices...)`,
+   * [5.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,
 
-   * [4.3]{.pnum} _`first`_`_<index_type>(r, slices...) <= `_`last_`_`(k, src.extents(), slices...)`, and
+   * [5.2]{.pnum} `0 <= `_`first`_`_<index_type>(k, slices...)`,
 
-   * [4.4]{.pnum} _`last_`_`(k, src.extents(), slices...) <= src.extent(k)`.
+   * [5.3]{.pnum} _`first`_`_<index_type>(r, slices...) <= `_`last_`_`(k, src.extents(), slices...)`, and
+
+   * [5.4]{.pnum} _`last_`_`(k, src.extents(), slices...) <= src.extent(k)`.
 
 
-[5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(src.extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
+[6]{.pnum} Let `sub_ext` be the result of `submdspan_extents(src.extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that for each rank index `k` of `src.extents()` for which _`map-rank`_`[k]` is not `dynamic_extent` `sub_strides[`_`map-rank`_`[k]]` equals:
+[7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that for each rank index `k` of `src.extents()` for which _`map-rank`_`[k]` is not `dynamic_extent` `sub_strides[`_`map-rank`_`[k]]` equals:
 
-   * [6.1]{.pnum} `src.stride(k) * `$s_k$`.stride` if _`is-strided-slice`_`<`$S_k$`>::value` is `true`; otherwise
+   * [7.1]{.pnum} `src.stride(k) * `$s_k$`.stride` if _`is-strided-slice`_`<`$S_k$`>::value` is `true`; otherwise
 
-   * [6.2]{.pnum} `src.stride(k)`.
+   * [7.2]{.pnum} `src.stride(k)`.
 
-[7]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
+[8]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
 
-[8]{.pnum} Let `offset` be a value of type `size_t` equal to `map(`_`first`_`_<index_type>(P, slices...)...)`.
+[9]{.pnum} Let `offset` be a value of type `size_t` equal to `map(`_`first`_`_<index_type>(P, slices...)...)`.
 
-[9]{.pnum} *Returns:*
+[10]{.pnum} *Returns:*
 
-   * [9.1]{.pnum} `submdspan_mapping_result{src, 0}`, if `Extents::rank()==0` is `true`; otherwise
+   * [10.1]{.pnum} `submdspan_mapping_result{src, 0}`, if `Extents::rank()==0` is `true`; otherwise
 
-   * [9.2]{.pnum} `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
+   * [10.2]{.pnum} `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
 
       * `decltype(src)::layout_type` is `layout_left`; and
 
@@ -853,7 +882,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
       * for `k` equal to `SubExtents::rank()-1`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-   * [9.3]{.pnum} `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
+   * [10.3]{.pnum} `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
 
       *  `decltype(src)::layout_type` is `layout_right`; and
 
@@ -861,10 +890,10 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src_exts, SliceSpec
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-   * [9.4]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
+   * [10.4]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
 
-<b>24.7.�.6 `submdspan` function [mdspan.submdspan.submdspan]</b>
+<b>24.7.3.7.6 `submdspan` function [mdspan.submdspan.submdspan]</b>
 
 ```c++
 // [mdspan.submdspan], submdspan creation
@@ -878,6 +907,9 @@ template<class ElementType, class Extents, class LayoutPolicy,
 [1]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
 
 [2]{.pnum} Let `sub_map_offset` be the result of `submdspan_mapping(src.mapping(), slices...)`.
+<i>[Note: </i> This invocation of `submdspan_mapping` selects a function call via overload resolution
+on a candidate set that includes the lookup set found by argument dependent lookup ([basic.lookup.argdep]).
+<i>- end note]</i>
 
 [3]{.pnum} *Constraints:*
 
