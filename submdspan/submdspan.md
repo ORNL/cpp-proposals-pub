@@ -22,6 +22,11 @@ toc: true
 ## Revision 4: 
 
 - Implement feedback from LWG
+- Make `submdspan_mapping` a hidden friend
+- Add wording to library introduction that `submdspan_mapping` is called via ADL
+- Make hidden friend call exposition-only implementation detail functions
+- Removed is-strided-slice and replace with $S_k$ is a specialization of `strided_slice`
+- Add `[[no_unique_address]]` and default initialization to `strided_slice` and `submdspan_mapping_result` members
 
 
 ## Revision 3: Mailing 2023-03
@@ -588,8 +593,14 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 ```c++
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    friend constexpr auto submdspan_mapping(
+    constexpr auto @_submdspan-mapping-impl_@(
       const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+
+  template<class... SliceSpecifiers>
+    friend constexpr auto submdspan_mapping(
+      const mapping& src, SliceSpecifiers ... slices) {
+        return @_submdspan-mapping-impl_@(src, slices...);
+    }
 ```
 
 ## Add at the end of the `layout_right:mapping` definition in [mdspan.layout.right.overview] after the `private:` access specificer:
@@ -597,8 +608,14 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 ```c++
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    friend constexpr auto submdspan_mapping(
+    constexpr auto @_submdspan-mapping-impl_@(
       const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+
+  template<class... SliceSpecifiers>
+    friend constexpr auto submdspan_mapping(
+      const mapping& src, SliceSpecifiers ... slices) {
+        return @_submdspan-mapping-impl_@(src, slices...);
+    }
 ```
 
 ## Add at the end of the `layout_stride::mapping` definition in [mdspan.layout.stride.overview] after the `private:` access specificer:
@@ -606,8 +623,14 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 ```c++
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    friend constexpr auto submdspan_mapping(
+    constexpr auto @_submdspan-mapping-impl_@(
       const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+
+  template<class... SliceSpecifiers>
+    friend constexpr auto submdspan_mapping(
+      const mapping& src, SliceSpecifiers ... slices) {
+        return @_submdspan-mapping-impl_@(src, slices...);
+    }
 ```
 
 ## Add subsection 24.7.3.7 [mdspan.submdspan] with the following
@@ -652,9 +675,9 @@ struct strided_slice {
   using extent_type = ExtentType;
   using stride_type = StrideType;
 
-  OffsetType offset;
-  ExtentType extent;
-  StrideType stride;
+  [[no_unique_address]] OffsetType offset{};
+  [[no_unique_address]] ExtentType extent{};
+  [[no_unique_address]] StrideType stride{};
 };
 ```
 
@@ -663,7 +686,7 @@ struct strided_slice {
 
 [3]{.pnum} *Mandates:*
 
-  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or satisfy _`integral-constant-like`_.
+  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or model _`integral-constant-like`_.
 
 <i>[Note: </i>
 `strided_slice{.offset=1, .extent=10, .stride=3}` indicates the indices 1, 4, 7, and 10.
@@ -678,8 +701,8 @@ Indices are selected from the half-open interval [1, 1 + 10).
 ```c++
 template<class LayoutMapping>
 struct submdspan_mapping_result {
-  LayoutMapping mapping;
-  size_t offset;
+  [[no_unique_address]] LayoutMapping mapping = LayoutMapping();
+  [[no_unique_address]] size_t offset{};
 };
 ```
 
@@ -689,15 +712,6 @@ struct submdspan_mapping_result {
 [3]{.pnum} `LayoutMapping` shall meet the layout mapping requirements.
 
 <b>24.7.3.7.4 Exposition-only helpers [mdspan.submdspan.helpers]</b>
-
-```c++
-template<class T>
-struct @_is-strided-slice_@: false_type {};
-
-template<class OffsetType, class ExtentType, class StrideType>
-struct @_is-strided-slice_@<strided_slice<OffsetType, ExtentType, StrideType>>: true_type {};
-```
-
 
 ```c++
 template<class IndexType, class ... SliceSpecifiers>
@@ -712,7 +726,7 @@ constexpr IndexType @_first_@_(size_t k, SliceSpecifiers... slices);
 
    * [2.2]{.pnum} otherwise, if `is_convertible_v<`$S_k$`, tuple<IndexType, IndexType>>` is `true`, then `get<0>(` $s_k$ `)`;
 
-   * [2.3]{.pnum} otherwise, if _`is-strided-slice`_`<`$S_k$`>::value` is `true`, then $s_k$`.offset`;
+   * [2.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`;
 
    * [2.4]{.pnum} otherwise, `0`.
 
@@ -735,7 +749,7 @@ constexpr auto @_last_@_(size_t k, const Extents& src, SliceSpecifiers... slices
 
    * [7.2]{.pnum} otherwise, if `is_convertible_v<`$S_k$`, tuple<index_type, index_type>>` is `true`, then `get<1>(` $s_k$ `)`;
 
-   * [7.3]{.pnum} otherwise, if _`is-strided-slice`_`<`$S_k$`>::value` is `true`, then $s_k$`.offset + `$s_k$`.extent`;
+   * [7.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`, then $s_k$`.offset + `$s_k$`.extent`;
 
    * [7.4]{.pnum} otherwise, `src.extent(k)`.
 
@@ -777,7 +791,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [2.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
-   * [2.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
+   * [2.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 
 [3]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, *all* of the following are `true`:
 
@@ -814,23 +828,24 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 <b>24.7.3.7.5 Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]</b>
 
 ```c++
-  template<class Extents, class... SliceSpecifiers>
-  constexpr auto submdspan_mapping(
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(
     const layout_left::mapping<Extents>& src,
     SliceSpecifiers ... slices) -> @_see below_@;
 
-  template<class Extents, class... SliceSpecifiers>
-  constexpr auto submdspan_mapping(
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_right::mapping<Extents>::@_submdspan-mapping-impl_@(
     const layout_right::mapping<Extents>& src,
     SliceSpecifiers ... slices) -> @_see below_@;
 
-  template<class Extents, class... SliceSpecifiers>
-  constexpr auto submdspan_mapping(
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_stride::mapping<Extents>::@_submdspan-mapping-impl_@(
     const layout_stride::mapping<Extents>& src,
     SliceSpecifiers ... slices) -> @_see below_@;
 ```
-
-[1]{.pnum} Overloads of `submdspan_mapping` in this subclause are to be implemented as hidden friends of their respective layout policy mappings.
 
 [2]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
 
@@ -846,7 +861,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [4.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
-   * [4.4]{.pnum} _`is-strided-slice`_`<`$S_k$`>::value`.
+   * [4.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 
 [5]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, *all* of the following are `true`:
 
@@ -863,7 +878,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
 [7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that for each rank index `k` of `src.extents()` for which _`map-rank`_`[k]` is not `dynamic_extent` `sub_strides[`_`map-rank`_`[k]]` equals:
 
-   * [7.1]{.pnum} `src.stride(k) * `$s_k$`.stride` if _`is-strided-slice`_`<`$S_k$`>::value` is `true`; otherwise
+   * [7.1]{.pnum} `src.stride(k) * `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`; otherwise
 
    * [7.2]{.pnum} `src.stride(k)`.
 
@@ -930,7 +945,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
      * `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
-     * _`is-strided-slice`_`<`$S_k$`>::value`.
+     * $S_k$ is a specialization of `strided_slice`.
 
 
 [5]{.pnum} *Preconditions:* 
