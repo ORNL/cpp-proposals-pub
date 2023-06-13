@@ -718,7 +718,7 @@ Indices are selected from the half-open interval [1, 1 + 10).
 template<class LayoutMapping>
 struct submdspan_mapping_result {
   [[no_unique_address]] LayoutMapping mapping = LayoutMapping();
-  [[no_unique_address]] size_t offset{};
+  size_t offset{};
 };
 ```
 
@@ -799,7 +799,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [1.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
+[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
 
    * [2.1]{.pnum} `is_convertible_v<`$S_k$`, IndexType>`,
 
@@ -809,10 +809,14 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [2.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 
-[3]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, *all* of the following are `true`:
+[3]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, all of the following are `true`:
 
-   * [3.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,
- 
+   * [3.1]{.pnum} if $S_k$ is a specialization of `strided_slice`
+
+      * $s_k$`.extent == 0` is `true`, or
+
+      * $s_k$`.stride > 0` is `true`,
+
    * [3.2]{.pnum} `0 <= `_`first`_`_<IndexType, k>(slices...)`,
 
    * [3.3]{.pnum} _`first`_`_<IndexType, k>(slices...) <= `_`last_<k>`_`(src, slices...)`, and
@@ -866,7 +870,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [3.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-[4]{.pnum} *Mandates:* For each rank index `k` of `extents()`, *exactly one* of the following is `true`:
+[4]{.pnum} *Mandates:* For each rank index `k` of `extents()`, exactly one of the following is `true`:
 
    * [4.1]{.pnum} `is_convertible_v<`$S_k$`, index_type>`,
 
@@ -876,9 +880,13 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [4.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 
-[5]{.pnum} *Preconditions:* For each rank index `k` of `extents()`, *all* of the following are `true`:
+[5]{.pnum} *Preconditions:* For each rank index `k` of `extents()`, all of the following are `true`:
 
-   * [5.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,
+   * [5.1]{.pnum} if $S_k$ is a specialization of `strided_slice`
+
+      * $s_k$`.extent == 0` is `true`, or
+
+      * $s_k$`.stride > 0` is `true`,
 
    * [5.2]{.pnum} `0 <= `_`first`_`_<index_type, k>(slices...)`,
 
@@ -949,7 +957,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
    * [4.1]{.pnum} `is_same_v<decltype(sub_map_offset.extents()), decltype(submdspan_extents(src.mapping(), slices...))>` is `true`, and
 
-   * [4.2]{.pnum} For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
+   * [4.2]{.pnum} For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
 
      * `is_convertible_v<`$S_k$`, index_type>`,
 
@@ -964,7 +972,11 @@ on a candidate set that includes the lookup set found by argument dependent look
 
    * [5.1]{.pnum} For each rank index `k` of `src.extents()`, *all* of the following are `true`:
 
-      * if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,  
+      * if $S_k$ is a specialization of `strided_slice`
+
+         * $s_k$`.extent == 0` is `true`, or
+
+         * $s_k$`.stride > 0` is `true`,
 
       * `0 <= `_`first`_`_<index_type, k>(slices...)`,
 
