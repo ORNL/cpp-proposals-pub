@@ -588,20 +588,12 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
     bool_constant<T() == T::value>::value &&
     bool_constant<static_cast<decltype(T::value)>(T()) == T::value>::value;
 
-  template<typename IndexType, typename T>
-  concept @_index-like_@ =                             // @_exposition only_@
-    !is_same_v<bool, remove_const_t<T>> &&
-    is_convertible_v<T, IndexType>
 
   template<typename IndexType, typename T>
   concept @_index-pair-like_@ =                        // @_exposition only_@
     @_pair-like_@<T> &&
-    @_index-like_@<IndexType, tuple_element_t<0,T>> &&
-    @_index-like_@<IndexType, tuple_element_t<1,T>> &&
-    !is_same_v<bool, remove_const_t<tuple_element_t<0,T>>> &&
-    !is_same_v<bool, remove_const_t<tuple_element_t<1,T>>> &&
-
-
+    is_convertible_v<tuple_element_t<0,T>, IndexType> &&
+    is_convertible_v<tuple_element_t<1,T>, IndexType>;
 ```
 
 ## Add at the end of the `layout_left::mapping` definition in [mdspan.layout.left.overview] after the `private:` access specificer:
@@ -727,6 +719,16 @@ struct submdspan_mapping_result {
 
 <b>24.7.3.7.4 Exposition-only helpers [mdspan.submdspan.helpers]</b>
 
+
+```c++
+template<class T>
+T @_de-ice_@(T val) { return val; }
+
+template<@_integral-constant-like_@ T>
+auto @_de-ice_@(T) { return T::value; }
+```
+
+
 ```c++
 template<class IndexType, size_t k, class ... SliceSpecifiers>
 constexpr IndexType @_first_@_(SliceSpecifiers... slices);
@@ -827,17 +829,17 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
        * `Extents::static_extent(k)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-       * `tuple_element_t<1, `$S_k$`>() - tuple_element_t<0, `$S_k$`>()` if $S_k$ satisfies _`index-pair-like`_, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` satisfy _`integral-constant-like`_; otherwise
+       * _`de-ice`_`(tuple_element_t<1, `$S_k$`>()) - ` _`de-ice`_`(tuple_element_t<0, `$S_k$`>())` if $S_k$ satisfies _`index-pair-like`_, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` satisfy _`integral-constant-like`_; otherwise
 
        * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` satisfies _`integral-constant-like`_, for which `extent_type()` equals zero; otherwise
 
-       *  `1 + (`$S_k$`::extent_type() - 1) / `$S_k$`::stride_type()` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` satisfy _`integral-constant-like`_; otherwise
+       *  `1 + (` _`de-ice`_`(`$S_k$`::extent_type()) - 1) / `_`de-ice`_`(`$S_k$`::stride_type())` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` satisfy _`integral-constant-like`_; otherwise
 
        * `dynamic_extent`.
 
 [5]{.pnum} *Returns:* A value of type `SubExtents` `ext` such that for each `k` for which _`map-rank`_`[k] != dynamic_extent` is `true`:
 
-  * [5.1]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent == 0 ? 0 : 1 + (`$s_k$`.extent - 1) / `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`, otherwise
+  * [5.1]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / `_`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice`, otherwise
 
   * [5.2]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals _`last_<k>`_`(src, slices...) - `_`first`_`_<IndexType, k>(slices...)`.
 
