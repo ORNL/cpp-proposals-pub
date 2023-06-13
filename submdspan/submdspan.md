@@ -700,9 +700,7 @@ struct strided_slice {
 [2]{.pnum} `strided_slice` has the data members and special members specified above.
            It has no base classes or members other than those specified.
 
-[3]{.pnum} *Mandates:*
-
-  * `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or model _`integral-constant-like`_.
+[3]{.pnum} *Mandates:* `OffsetType`, `ExtentType`, and `StrideType` are signed or unsigned integer types, or model _`integral-constant-like`_.
 
 <i>[Note: </i>
 `strided_slice{.offset=1, .extent=10, .stride=3}` indicates the indices 1, 4, 7, and 10.
@@ -792,12 +790,10 @@ constexpr array<IndexType, sizeof...(SliceSpecifiers)>
 
 ```c++
 template<class IndexType, class ... Extents, class ... SliceSpecifiers>
-auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifiers ... slices);
+constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifiers ... slices);
 ```
 
-[1]{.pnum} *Constraints:*
-
-   * [1.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
+[1]{.pnum} *Constraints:* `sizeof...(slices)` equals `Extents::rank()`,
 
 [2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
 
@@ -825,7 +821,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
 [4]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
 
-  * [4.1]{.pnum} `SubExtents::rank()` equals the number of $k$ such that `is_convertible_v<`$S_k$`, size_t>` is `false`; and
+  * [4.1]{.pnum} `SubExtents::rank()` equals the number of $k$ such that `is_convertible_v<`$S_k$`, IndexType>` is `false`; and
 
   * [4.2]{.pnum} for all rank index `k` of `Extents` such that _`map-rank`_`[k] != dynamic_extent` is `true`, `SubExtents::static_extent(`_`map-rank`_`[k])` equals:
 
@@ -839,7 +835,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
        * `dynamic_extent`.
 
-[5]{.pnum} *Returns:* a value of type `SubExtents` `ext` such that for each `k` for which _`map-rank`_`[k] != dynamic_extent` is `true`:
+[5]{.pnum} *Returns:* A value of type `SubExtents` `ext` such that for each `k` for which _`map-rank`_`[k] != dynamic_extent` is `true`:
 
   * [5.1]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent == 0 ? 0 : 1 + (`$s_k$`.extent - 1) / `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`, otherwise
 
@@ -866,9 +862,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
 [2]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
 
-[3]{.pnum} *Constraints:*
-
-   * [3.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
+[3]{.pnum} *Constraints:* `sizeof...(slices)` equals `Extents::rank()`,
 
 [4]{.pnum} *Mandates:* For each rank index `k` of `extents()`, exactly one of the following is `true`:
 
@@ -897,7 +891,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
 [6]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-[7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that for each rank index `k` of `extents()` for which _`map-rank`_`[k]` is not `dynamic_extent` `sub_strides[`_`map-rank`_`[k]]` equals:
+[7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index `k` of `extents()` for which _`map-rank`_`[k]` is not `dynamic_extent`, `sub_strides[`_`map-rank`_`[k]]` equals:
 
    * [7.1]{.pnum} `stride(k) * `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` is smaller than $s_k$`.extent`; otherwise
 
@@ -905,7 +899,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
 [8]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
 
-[9]{.pnum} Let `offset` be a value of type `size_t` equal to `map(`_`first`_`_<index_type>(P, slices...)...)`.
+[9]{.pnum} Let `offset` be a value of type `size_t` equal to `map(`_`first`_`_<index_type, P>(P, slices...)...)`.
 
 [10]{.pnum} *Returns:*
 
@@ -915,17 +909,21 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
       * `layout_type` is `layout_left`; and
 
-      * for each `k` in the range $[0,$ `SubExtents::rank()-1`$)$, $S_k$ is `full_extent_t`; and
+      * for each `k` in the range $[0,$ `SubExtents::rank()-1`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
       * for `k` equal to `SubExtents::rank()-1`, _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
+
+      <i>[Note: </i> If above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
 
    * [10.3]{.pnum} `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
 
       *  `layout_type` is `layout_right`; and
 
-      * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents.rank()`$)$, $S_k$ is `full_extent_t`; and
+      * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents.rank()`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
+
+      <i>[Note: </i> If above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
 
    * [10.4]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -991,7 +989,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
 <i>[Note: </i>
 Conditions 5.2 and 5.3 make it so that it is not valid to call `submdspan` with layout mappings, for which an overload of `submdspan_mapping`,
-does not return a mapping, which maps to the algorithmicly expected indices, given the slice specifiers.
+does not return a mapping, which maps to the algorithmically expected indices, given the slice specifiers.
 <i>- end note]</i>
 
 [5]{.pnum} *Effects:* Equivalent to
