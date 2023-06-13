@@ -28,7 +28,7 @@ toc: true
 - Removed is-strided-slice and replace with $S_k$ is a specialization of `strided_slice`
 - Add `[[no_unique_address]]` and default initialization to `strided_slice` and `submdspan_mapping_result` members
 - Make `k` a template parameter for both `first_` and `last_`
-
+- Add stuff LWG asked for
 
 ## Revision 3: Mailing 2023-03
 
@@ -801,7 +801,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
    * [2.1]{.pnum} `is_convertible_v<`$S_k$`, IndexType>`,
 
-   * [2.2]{.pnum} `_`index-pair-like`_`<IndexType, `$S_k$`>` is satisfied,
+   * [2.2]{.pnum} _`index-pair-like`_`<IndexType, `$S_k$`>` is satisfied,
 
    * [2.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
@@ -895,7 +895,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index `k` of `extents()` for which _`map-rank`_`[k]` is not `dynamic_extent`, `sub_strides[`_`map-rank`_`[k]]` equals:
 
-   * [7.1]{.pnum} `stride(k) * `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` is smaller than $s_k$`.extent`; otherwise
+   * [7.1]{.pnum} `stride(k) * `_`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` is smaller than $s_k$`.extent`; otherwise
 
    * [7.2]{.pnum} `stride(k)`.
 
@@ -925,7 +925,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-      <i>[Note: </i> If above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
+      <i>[Note: </i> If above conditions are true, all $S_k$ with `k` smaller than `Extens::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
    * [10.4]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
