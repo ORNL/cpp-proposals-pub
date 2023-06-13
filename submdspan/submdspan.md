@@ -610,12 +610,12 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto @_submdspan-mapping-impl_@(
-      const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+      SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers ... slices) {
-        return @_submdspan-mapping-impl_@(src, slices...);
+        return src.@_submdspan-mapping-impl_@(slices...);
     }
 ```
 
@@ -625,12 +625,12 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto @_submdspan-mapping-impl_@(
-      const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+      SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers ... slices) {
-        return @_submdspan-mapping-impl_@(src, slices...);
+        return src.@_submdspan-mapping-impl_@(slices...);
     }
 ```
 
@@ -640,12 +640,12 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto @_submdspan-mapping-impl_@(
-      const mapping& src, SliceSpecifiers ... slices) -> @_see below_@;
+      SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers ... slices) {
-        return @_submdspan-mapping-impl_@(src, slices...);
+        return src.@_submdspan-mapping-impl_@(slices...);
     }
 ```
 
@@ -847,20 +847,17 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(
-    const layout_left::mapping<Extents>& src,
-    SliceSpecifiers ... slices) -> @_see below_@;
+    SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_right::mapping<Extents>::@_submdspan-mapping-impl_@(
-    const layout_right::mapping<Extents>& src,
-    SliceSpecifiers ... slices) -> @_see below_@;
+    SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_stride::mapping<Extents>::@_submdspan-mapping-impl_@(
-    const layout_stride::mapping<Extents>& src,
-    SliceSpecifiers ... slices) -> @_see below_@;
+    SliceSpecifiers ... slices) const -> @_see below_@;
 ```
 
 [2]{.pnum} Let `index_type` name the type `typename Extents::index_type`.
@@ -869,7 +866,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [3.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`,
 
-[4]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, *exactly one* of the following is `true`:
+[4]{.pnum} *Mandates:* For each rank index `k` of `extents()`, *exactly one* of the following is `true`:
 
    * [4.1]{.pnum} `is_convertible_v<`$S_k$`, index_type>`,
 
@@ -879,24 +876,24 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [4.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 
-[5]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, *all* of the following are `true`:
+[5]{.pnum} *Preconditions:* For each rank index `k` of `extents()`, *all* of the following are `true`:
 
    * [5.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,
 
    * [5.2]{.pnum} `0 <= `_`first`_`_<index_type, k>(slices...)`,
 
-   * [5.3]{.pnum} _`first`_`_<index_type, k>(slices...) <= `_`last_<k>`_`(src.extents(), slices...)`, and
+   * [5.3]{.pnum} _`first`_`_<index_type, k>(slices...) <= `_`last_<k>`_`(extents(), slices...)`, and
 
-   * [5.4]{.pnum} _`last_<k>`_`(src.extents(), slices...) <= src.extent(k)`.
+   * [5.4]{.pnum} _`last_<k>`_`(extents(), slices...) <= extent(k)`.
 
 
-[6]{.pnum} Let `sub_ext` be the result of `submdspan_extents(src.extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
+[6]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
-[7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that for each rank index `k` of `src.extents()` for which _`map-rank`_`[k]` is not `dynamic_extent` `sub_strides[`_`map-rank`_`[k]]` equals:
+[7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that for each rank index `k` of `extents()` for which _`map-rank`_`[k]` is not `dynamic_extent` `sub_strides[`_`map-rank`_`[k]]` equals:
 
-   * [7.1]{.pnum} `src.stride(k) * `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`; otherwise
+   * [7.1]{.pnum} `stride(k) * `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`; otherwise
 
-   * [7.2]{.pnum} `src.stride(k)`.
+   * [7.2]{.pnum} `stride(k)`.
 
 [8]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
 
@@ -904,11 +901,11 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
 [10]{.pnum} *Returns:*
 
-   * [10.1]{.pnum} `submdspan_mapping_result{src, 0}`, if `Extents::rank()==0` is `true`; otherwise
+   * [10.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank()==0` is `true`; otherwise
 
    * [10.2]{.pnum} `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
 
-      * `decltype(src)::layout_type` is `layout_left`; and
+      * `layout_type` is `layout_left`; and
 
       * for each `k` in the range $[0,$ `SubExtents::rank()-1`$)$, $S_k$ is `full_extent_t`; and
 
@@ -916,7 +913,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [10.3]{.pnum} `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
 
-      *  `decltype(src)::layout_type` is `layout_right`; and
+      *  `layout_type` is `layout_right`; and
 
       * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents.rank()`$)$, $S_k$ is `full_extent_t`; and
 
