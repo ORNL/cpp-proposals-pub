@@ -831,7 +831,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
        * `Extents::static_extent(k)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-       * `tuple_element<1, `$S_k$`>() - tuple_element<0, `$S_k$`>()` if $S_k$ is a `tuple` of two types satisfying _`integral-constant-like`_; otherwise
+       * `tuple_element_t<1, `$S_k$`>() - tuple_element_t<0, `$S_k$`>()` if $S_k$ satisfies _`index-pair-like`_, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` satisfy _`integral-constant-like`_; otherwise
 
        * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` satisfies _`integral-constant-like`_, for which `extent_type()` equals zero; otherwise
 
@@ -899,7 +899,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
 [7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()` such that for each rank index `k` of `extents()` for which _`map-rank`_`[k]` is not `dynamic_extent` `sub_strides[`_`map-rank`_`[k]]` equals:
 
-   * [7.1]{.pnum} `stride(k) * `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`; otherwise
+   * [7.1]{.pnum} `stride(k) * `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` is smaller than $s_k$`.extent`; otherwise
 
    * [7.2]{.pnum} `stride(k)`.
 
