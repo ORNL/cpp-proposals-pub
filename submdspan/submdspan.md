@@ -27,6 +27,7 @@ toc: true
 - Make hidden friend call exposition-only implementation detail functions
 - Removed is-strided-slice and replace with $S_k$ is a specialization of `strided_slice`
 - Add `[[no_unique_address]]` and default initialization to `strided_slice` and `submdspan_mapping_result` members
+- Make `k` a template parameter for both `first_` and `last_`
 
 
 ## Revision 3: Mailing 2023-03
@@ -714,8 +715,8 @@ struct submdspan_mapping_result {
 <b>24.7.3.7.4 Exposition-only helpers [mdspan.submdspan.helpers]</b>
 
 ```c++
-template<class IndexType, class ... SliceSpecifiers>
-constexpr IndexType @_first_@_(size_t k, SliceSpecifiers... slices);
+template<class IndexType, size_t k, class ... SliceSpecifiers>
+constexpr IndexType @_first_@_(SliceSpecifiers... slices);
 ```
 
 [1]{.pnum} *Mandates:* `IndexType` is a signed or unsigned integer type.
@@ -735,8 +736,8 @@ constexpr IndexType @_first_@_(size_t k, SliceSpecifiers... slices);
 [4]{.pnum} *Returns:* `extents<IndexType>::`_`index-cast`_`(` $φ_k$ `)`.
 
 ```c++
-template<class Extents, class ... SliceSpecifiers>
-constexpr auto @_last_@_(size_t k, const Extents& src, SliceSpecifiers... slices);
+template<size_t k, class Extents, class ... SliceSpecifiers>
+constexpr auto @_last_@_(const Extents& src, SliceSpecifiers... slices);
 ```
 
 [5]{.pnum} *Mandates:* `Extents` is a specialization of `extents`.
@@ -765,11 +766,11 @@ constexpr array<IndexType, sizeof...(SliceSpecifiers)>
 
 [10]{.pnum} *Mandates:* `IndexType` is a signed or unsigned integer type.
 
-[11]{.pnum} *Returns:* an `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that `src_idx[k]` equals
+[11]{.pnum} *Returns:* an `array<IndexType, sizeof...(SliceSpecifiers)>` `src_idx` such that for each `k` in the range of $[$ 0, `sizeof...(SliceSpecifiers)` $)$ `src_idx[k]` equals
 
-  * [11.1]{.pnum} _`first`_`_<IndexType>(k, slices...)` for each `k` where _`map-rank`_`[k]` equals `dynamic_extent`, otherwise
+  * [11.1]{.pnum} _`first`_`_<IndexType, k>(slices...)` for each `k` where _`map-rank`_`[k]` equals `dynamic_extent`, otherwise
 
-  * [11.2]{.pnum} _`first`_`_<IndexType>(k, slices...) + indices[`_`map-rank`_`[k]]`.
+  * [11.2]{.pnum} _`first`_`_<IndexType, k>(slices...) + indices[`_`map-rank`_`[k]]`.
 
 
 <b>24.7.3.7.4 `submdspan_extents` function [mdspan.submdspan.extents]</b>
@@ -797,11 +798,11 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [3.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,
  
-   * [3.2]{.pnum} `0 <= `_`first`_`_<IndexType>(k, slices...)`,
+   * [3.2]{.pnum} `0 <= `_`first`_`_<IndexType, k>(slices...)`,
 
-   * [3.3]{.pnum} _`first`_`_<IndexType>(k, slices...) <= `_`last_`_`(k, src, slices...)`, and
+   * [3.3]{.pnum} _`first`_`_<IndexType, k>(slices...) <= `_`last_<k>`_`(src, slices...)`, and
 
-   * [3.4]{.pnum} _`last_`_`(k, src, slices...) <= src.extent(k)`.
+   * [3.4]{.pnum} _`last_<k>`_`(src, slices...) <= src.extent(k)`.
 
 [4]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
 
@@ -823,7 +824,7 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
   * [5.1]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent == 0 ? 0 : 1 + (`$s_k$`.extent - 1) / `$s_k$`.stride` if $S_k$ is a specialization of `strided_slice`, otherwise
 
-  * [5.2]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals _`last_`_`(k, src, slices...) - `_`first`_`_<IndexType>(k, slices...)`.
+  * [5.2]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals _`last_<k>`_`(src, slices...) - `_`first`_`_<IndexType, k>(slices...)`.
 
 <b>24.7.3.7.5 Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]</b>
 
@@ -867,11 +868,11 @@ auto submdspan_extents(const extents<IndexType, Extents...>& src, SliceSpecifier
 
    * [5.1]{.pnum} if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,
 
-   * [5.2]{.pnum} `0 <= `_`first`_`_<index_type>(k, slices...)`,
+   * [5.2]{.pnum} `0 <= `_`first`_`_<index_type, k>(slices...)`,
 
-   * [5.3]{.pnum} _`first`_`_<index_type>(r, slices...) <= `_`last_`_`(k, src.extents(), slices...)`, and
+   * [5.3]{.pnum} _`first`_`_<index_type, k>(slices...) <= `_`last_<k>`_`(src.extents(), slices...)`, and
 
-   * [5.4]{.pnum} _`last_`_`(k, src.extents(), slices...) <= src.extent(k)`.
+   * [5.4]{.pnum} _`last_<k>`_`(src.extents(), slices...) <= src.extent(k)`.
 
 
 [6]{.pnum} Let `sub_ext` be the result of `submdspan_extents(src.extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
@@ -954,11 +955,11 @@ on a candidate set that includes the lookup set found by argument dependent look
 
       * if $S_k$ is a specialization of `strided_slice` and $s_k$`.extent == 0` is `false`, $s_k$`.stride > 0` is `true`,  
 
-      * `0 <= `_`first`_`_<index_type>(k, slices...)`,
+      * `0 <= `_`first`_`_<index_type, k>(slices...)`,
 
-      * _`first`_`_<index_type>(k, slices...) <= `_`last_`_`(k, src.extents(), slices...)`, and
+      * _`first`_`_<index_type, k>(slices...) <= `_`last_<k>`_`(src.extents(), slices...)`, and
 
-      * _`last_`_`(k, src.extents(), slices...) <= src.extent(k)`;
+      * _`last_<k>`_`(src.extents(), slices...) <= src.extent(k)`;
 
    * [5.2]{.pnum} `sub_map_offset.mapping.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
 
