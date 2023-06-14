@@ -915,7 +915,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * for `k` equal to `SubExtents::rank()-1`, _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-      <i>[Note: </i> If above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
+      <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
 
    * [10.3]{.pnum} `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
 
@@ -925,7 +925,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-      <i>[Note: </i> If above conditions are true, all $S_k$ with `k` smaller than `Extens::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
+      <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` smaller than `Extens::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
    * [10.4]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
