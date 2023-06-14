@@ -955,9 +955,11 @@ on a candidate set that includes the lookup set found by argument dependent look
 
 [4]{.pnum} *Mandates:* 
 
-   * [4.1]{.pnum} `is_same_v<decltype(sub_map_offset.extents()), decltype(submdspan_extents(src.mapping(), slices...))>` is `true`, and
+   * [4.1]{.pnum} `decltype(submdspan_mapping(src.mapping(), slices...))` is a specialization of `submdspan_mapping_result`.
 
-   * [4.2]{.pnum} For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
+   * [4.2]{.pnum} `is_same_v<decltype(sub_map_offset.mapping().extents()), decltype(submdspan_extents(src.mapping(), slices...))>` is `true`, and
+
+   * [4.3]{.pnum} For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
 
      * `is_convertible_v<`$S_k$`, index_type>`,
 
