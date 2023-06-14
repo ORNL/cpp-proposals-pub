@@ -901,7 +901,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [8]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
 
-[9]{.pnum} Let `offset` be a value of type `size_t` equal to `map(`_`first`_`_<index_type, P>(P, slices...)...)`.
+[9]{.pnum} Let `offset` be a value of type `size_t` equal to `map(`_`first`_`_<index_type, P>(slices...)...)`.
 
 [10]{.pnum} *Returns:*
 
