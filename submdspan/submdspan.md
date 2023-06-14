@@ -761,11 +761,11 @@ constexpr auto @_last_@_(const Extents& src, SliceSpecifiers... slices);
 
 [7]{.pnum} Let $λ_k$ denote the following value:
 
-   * [7.1]{.pnum} if `is_convertible_v<`$S_k$`, index_type>` is `true`, then $s_k$` + 1`;
+   * [7.1]{.pnum} if `is_convertible_v<`$S_k$`, index_type>` is `true`, then _`de-ice`_`(`$s_k$`) + 1`;
 
    * [7.2]{.pnum} otherwise, if _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied, then `get<1>(` $s_k$ `)`;
 
-   * [7.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`, then $s_k$`.offset + `$s_k$`.extent`;
+   * [7.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`, then _`de-ice`_`(`$s_k$`.offset) + `_`de-ice`_`(`$s_k$`.extent)`;
 
    * [7.4]{.pnum} otherwise, `src.extent(k)`.
 
@@ -829,11 +829,11 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
        * `Extents::static_extent(k)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-       * _`de-ice`_`(tuple_element_t<1, `$S_k$`>()) - ` _`de-ice`_`(tuple_element_t<0, `$S_k$`>())` if $S_k$ satisfies _`index-pair-like`_, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` satisfy _`integral-constant-like`_; otherwise
+       * _`de-ice`_`(tuple_element_t<1, `$S_k$`>()) - ` _`de-ice`_`(tuple_element_t<0, `$S_k$`>())` if $S_k$ satisfies _`index-pair-like`_, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` model _`integral-constant-like`_; otherwise
 
-       * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` satisfies _`integral-constant-like`_, for which `extent_type()` equals zero; otherwise
+       * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` models _`integral-constant-like`_, for which `extent_type()` equals zero; otherwise
 
-       *  `1 + (` _`de-ice`_`(`$S_k$`::extent_type()) - 1) / `_`de-ice`_`(`$S_k$`::stride_type())` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` satisfy _`integral-constant-like`_; otherwise
+       *  `1 + (` _`de-ice`_`(`$S_k$`::extent_type()) - 1) / `_`de-ice`_`(`$S_k$`::stride_type())` if $S_k$ is a specialization of `strided_slice`, whose `extent_type` and `stride_type` model _`integral-constant-like`_; otherwise
 
        * `dynamic_extent`.
 
