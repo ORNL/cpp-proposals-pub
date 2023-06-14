@@ -1155,8 +1155,8 @@ in the range of <span class="math inline">[0,</span>
 <em><code>map-rank</code></em><code>[k]</code> equals:</p>
 <ul>
 <li><p><code>dynamic_extent</code> if
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>
-is <code>true</code>, otherwise</p></li>
+<code>convertible_to&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>
+is modelled, otherwise</p></li>
 <li><p>the number of types <span class="math inline"><em>S</em><sub><em>j</em></sub></span> with <span class="math inline"><em>j</em> &lt; <em>k</em></span>.</p></li>
 </ul></li>
 </ul>
@@ -1209,10 +1209,10 @@ requirements.</p>
 <p><b>24.7.3.7.4 Exposition-only helpers
 [mdspan.submdspan.helpers]</b></p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>T <em>de-ice</em><span class="op">(</span>T val<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> val; <span class="op">}</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> T <em>de-ice</em><span class="op">(</span>T val<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> val; <span class="op">}</span></span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>integral-constant-like</em> T<span class="op">&gt;</span></span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> <em>de-ice</em><span class="op">(</span>T<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> T<span class="op">::</span>value; <span class="op">}</span></span></code></pre></div>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> <em>de-ice</em><span class="op">(</span>T<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> T<span class="op">::</span>value; <span class="op">}</span></span></code></pre></div>
 <div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> k, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> IndexType <em>first</em>_<span class="op">(</span>SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
@@ -1223,8 +1223,8 @@ Let <span class="math inline"><em>φ</em><sub><em>k</em></sub></span>
 denote the following value:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> if
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, IndexType&gt;</code>
-is <code>true</code>, then <span class="math inline"><em>s</em><sub><em>k</em></sub></span>;</p></li>
+<code>convertible_to&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, IndexType&gt;</code>
+is modelled, then <span class="math inline"><em>s</em><sub><em>k</em></sub></span>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 otherwise, if
 <em><code>index-pair-like</code></em><code>&lt;IndexType,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
@@ -1257,8 +1257,8 @@ Let <span class="math inline"><em>λ</em><sub><em>k</em></sub></span>
 denote the following value:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span> if
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>
-is <code>true</code>, then <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>+ 1</code>;</p></li>
+<code>convertible_to&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>
+is modelled, then <em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>) + 1</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
 otherwise, if
 <em><code>index-pair-like</code></em><code>&lt;index_type,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
@@ -1266,7 +1266,8 @@ is satisfied, then <code>get&lt;1&gt;(</code> <span class="math inline"><em>s</e
 <code>)</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
 otherwise, if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code>, then <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.offset +</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent</code>;</p></li>
+specialization of <code>strided_slice</code>, then
+<em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.offset) +</code><em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent)</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.4)</a></span>
 otherwise, <code>src.extent(k)</code>.</p></li>
 </ul>
@@ -1312,7 +1313,8 @@ for each <code>k</code> where
 <code>true</code>:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, IndexType&gt;</code>,</p></li>
+<code>convertible_to&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, IndexType&gt;</code>
+is modelled,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 <em><code>index-pair-like</code></em><code>&lt;IndexType,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
 is satisfied,</p></li>
@@ -1351,8 +1353,8 @@ such that:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
 <code>SubExtents::rank()</code> equals the number of <span class="math inline"><em>k</em></span> such that
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, IndexType&gt;</code>
-is <code>false</code>; and</p></li>
+<code>convertible_to&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, IndexType&gt;</code>
+is not modelled; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> for
 all rank index <code>k</code> of <code>Extents</code> such that
 <em><code>map-rank</code></em><code>[k] != dynamic_extent</code> is
@@ -1369,17 +1371,17 @@ if <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
 satisfies <em><code>index-pair-like</code></em>, and both
 <code>tuple_element_t&lt;0,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
 and <code>tuple_element_t&lt;1,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
-satisfy <em><code>integral-constant-like</code></em>; otherwise</p></li>
+model <em><code>integral-constant-like</code></em>; otherwise</p></li>
 <li><p><code>0</code>, if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
 specialization of <code>strided_slice</code>, whose
-<code>extent_type</code> satisfies
+<code>extent_type</code> models
 <em><code>integral-constant-like</code></em>, for which
 <code>extent_type()</code> equals zero; otherwise</p></li>
 <li><p><code>1 + (</code>
 <em><code>de-ice</code></em><code>(</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>::extent_type()) - 1) /</code><em><code>de-ice</code></em><code>(</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>::stride_type())</code>
 if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
 specialization of <code>strided_slice</code>, whose
-<code>extent_type</code> and <code>stride_type</code> satisfy
+<code>extent_type</code> and <code>stride_type</code> model
 <em><code>integral-constant-like</code></em>; otherwise</p></li>
 <li><p><code>dynamic_extent</code>.</p></li>
 </ul></li>
@@ -1428,7 +1430,8 @@ Let <code>index_type</code> name the type
 <code>true</code>:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>,</p></li>
+<code>convertible_to&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>
+is modelled,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
 <em><code>index-pair-like</code></em><code>&lt;index_type,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
 is satisfied,</p></li>
@@ -1488,7 +1491,7 @@ Let <code>P</code> be a parameter pack such that
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 Let <code>offset</code> be a value of type <code>size_t</code> equal to
-<code>map(</code><em><code>first</code></em><code>_&lt;index_type, P&gt;(P, slices...)...)</code>.</p>
+<code>map(</code><em><code>first</code></em><code>_&lt;index_type, P&gt;(slices...)...)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Returns:</em></p>
 <ul>
@@ -1508,7 +1511,7 @@ and</p></li>
 is satisfied or <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>; otherwise</p></li>
 </ul>
-<p><i>[Note: </i> If above conditions are true, all <span class="math inline"><em>S</em><sub><em>k</em></sub></span> with
+<p><i>[Note: </i> If the above conditions are true, all <span class="math inline"><em>S</em><sub><em>k</em></sub></span> with
 <code>k</code> larger than <code>SubExtents::rank()-1</code> are
 convertible to <code>index_type</code>. <i>- end note]</i></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(10.3)</a></span>
@@ -1526,9 +1529,9 @@ and</p></li>
 is satisfied or <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>; otherwise</p></li>
 </ul>
-<p><i>[Note: </i> If above conditions are true, all <span class="math inline"><em>S</em><sub><em>k</em></sub></span> with
+<p><i>[Note: </i> If the above conditions are true, all <span class="math inline"><em>S</em><sub><em>k</em></sub></span> with
 <code>k</code> smaller than
-<code>Extens::rank()-SubExtents::rank()</code> are convertible to
+<code>Extents::rank()-SubExtents::rank()</code> are convertible to
 <code>index_type</code>. <i>- end note]</i></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(10.4)</a></span>
 <code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</p></li>
@@ -1555,23 +1558,27 @@ note]</i></p>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
-<code>sizeof...(slices)</code> equals
-<code>Extents::rank()</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-<code>submdspan_mapping(src.mapping(), slices...)</code> is well
-formed.</p></li>
+<code>sizeof...(slices)</code> equals <code>Extents::rank()</code>,
+and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> the
+expression <code>submdspan_mapping(src.mapping(), slices...)</code> is
+well-formed.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Mandates:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>is_same_v&lt;decltype(sub_map_offset.extents()), decltype(submdspan_extents(src.mapping(), slices...))&gt;</code>
+<code>decltype(submdspan_mapping(src.mapping(), slices...))</code> is a
+specialization of <code>submdspan_mapping_result</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<code>is_same_v&lt;decltype(sub_map_offset.mapping().extents()), decltype(submdspan_extents(src.mapping(), slices...))&gt;</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> For
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> For
 each rank index <code>k</code> of <code>src.extents()</code>, exactly
 one of the following is <code>true</code>:</p>
 <ul>
-<li><p><code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>,</p></li>
+<li><p><code>convertible_to&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>
+is modelled,</p></li>
 <li><p><em><code>index-pair-like</code></em><code>&lt;index_type,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
 is satisfied,</p></li>
 <li><p><code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>,
