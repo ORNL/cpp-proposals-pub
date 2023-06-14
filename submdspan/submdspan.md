@@ -666,7 +666,7 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 
   * [2.5]{.pnum} let  _`map-rank`_ be an `array<size_t, rank>` such that for each `k` in the range of $[0,$ `rank`$)$, _`map-rank`_`[k]` equals:
 
-    * `dynamic_extent` if `is_convertible_v<`$S_k$`, index_type>` is `true`, otherwise
+    * `dynamic_extent` if `convertible_to<`$S_k$`, index_type>` is modelled, otherwise
 
     * the number of types $S_j$ with $j < k$.
 
@@ -738,7 +738,7 @@ constexpr IndexType @_first_@_(SliceSpecifiers... slices);
 
 [2]{.pnum} Let $φ_k$ denote the following value:
 
-   * [2.1]{.pnum} if `is_convertible_v<`$S_k$`, IndexType>` is `true`, then $s_k$;
+   * [2.1]{.pnum} if `convertible_to<`$S_k$`, IndexType>` is modelled, then $s_k$;
 
    * [2.2]{.pnum} otherwise, if _`index-pair-like`_`<IndexType, `$S_k$`>` is satisfied, then `get<0>(` $s_k$ `)`;
 
@@ -761,7 +761,7 @@ constexpr auto @_last_@_(const Extents& src, SliceSpecifiers... slices);
 
 [7]{.pnum} Let $λ_k$ denote the following value:
 
-   * [7.1]{.pnum} if `is_convertible_v<`$S_k$`, index_type>` is `true`, then _`de-ice`_`(`$s_k$`) + 1`;
+   * [7.1]{.pnum} if `convertible_to<`$S_k$`, index_type>` is modelled, then _`de-ice`_`(`$s_k$`) + 1`;
 
    * [7.2]{.pnum} otherwise, if _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied, then `get<1>(` $s_k$ `)`;
 
@@ -799,7 +799,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
 
-   * [2.1]{.pnum} `is_convertible_v<`$S_k$`, IndexType>`,
+   * [2.1]{.pnum} `convertible_to<`$S_k$`, IndexType>` is modelled,
 
    * [2.2]{.pnum} _`index-pair-like`_`<IndexType, `$S_k$`>` is satisfied,
 
@@ -823,7 +823,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [4]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
 
-  * [4.1]{.pnum} `SubExtents::rank()` equals the number of $k$ such that `is_convertible_v<`$S_k$`, IndexType>` is `false`; and
+  * [4.1]{.pnum} `SubExtents::rank()` equals the number of $k$ such that `convertible_to<`$S_k$`, IndexType>` is not modelled; and
 
   * [4.2]{.pnum} for all rank index `k` of `Extents` such that _`map-rank`_`[k] != dynamic_extent` is `true`, `SubExtents::static_extent(`_`map-rank`_`[k])` equals:
 
@@ -868,7 +868,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [4]{.pnum} *Mandates:* For each rank index `k` of `extents()`, exactly one of the following is `true`:
 
-   * [4.1]{.pnum} `is_convertible_v<`$S_k$`, index_type>`,
+   * [4.1]{.pnum} `convertible_to<`$S_k$`, index_type>` is modelled,
 
    * [4.2]{.pnum} _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied,
 
@@ -961,7 +961,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
    * [4.3]{.pnum} For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
 
-     * `is_convertible_v<`$S_k$`, index_type>`,
+     * `convertible_to<`$S_k$`, index_type>` is modelled,
 
      * _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied,
 
