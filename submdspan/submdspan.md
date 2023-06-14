@@ -722,10 +722,10 @@ struct submdspan_mapping_result {
 
 ```c++
 template<class T>
-T @_de-ice_@(T val) { return val; }
+constexpr T @_de-ice_@(T val) { return val; }
 
 template<@_integral-constant-like_@ T>
-auto @_de-ice_@(T) { return T::value; }
+constexpr auto @_de-ice_@(T) { return T::value; }
 ```
 
 
