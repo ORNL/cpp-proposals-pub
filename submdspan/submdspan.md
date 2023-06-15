@@ -740,13 +740,13 @@ constexpr IndexType @_first_@_(SliceSpecifiers... slices);
 
 [2]{.pnum} Let $φ_k$ denote the following value:
 
-   * [2.1]{.pnum} if $S_k$ models `convertible_to<IndexType>`, then $s_k$;
+   * [2.1]{.pnum} $s_k$ if $S_k$ models `convertible_to<IndexType>`; otherwise
 
-   * [2.2]{.pnum} otherwise, if $S_k$ models _`index-pair-like`_`<IndexType>`, then `get<0>(` $s_k$ `)`;
+   * [2.2]{.pnum} `get<0>(` $s_k$ `)` if $S_k$ models _`index-pair-like`_`<IndexType>`; otherwise
 
-   * [2.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`, then _`de-ice`_`(`$s_k$`.offset)`;
+   * [2.3]{.pnum} _`de-ice`_`(`$s_k$`.offset)` if $S_k$ is a specialization of `strided_slice`; otherwise
 
-   * [2.4]{.pnum} otherwise, `0`.
+   * [2.4]{.pnum} `0`.
 
 [3]{.pnum} *Preconditions:* $φ_k$ is representable as a value of type `IndexType`.
 
@@ -763,13 +763,13 @@ constexpr auto @_last_@_(const Extents& src, SliceSpecifiers... slices);
 
 [7]{.pnum} Let $λ_k$ denote the following value:
 
-   * [7.1]{.pnum} if $S_k$ models `convertible_to<index_type>`, then _`de-ice`_`(`$s_k$`) + 1`;
+   * [7.1]{.pnum} _`de-ice`_`(`$s_k$`) + 1` if $S_k$ models `convertible_to<index_type>`; otherwise
 
-   * [7.2]{.pnum} otherwise, if $S_k$ models _`index-pair-like`_`<index_type>`, then `get<1>(` $s_k$ `)`;
+   * [7.2]{.pnum} `get<1>(` $s_k$ `)` if $S_k$ models _`index-pair-like`_`<index_type>`; otherwise
 
-   * [7.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`, then _`de-ice`_`(`$s_k$`.offset) + `_`de-ice`_`(`$s_k$`.extent)`;
+   * [7.3]{.pnum} _`de-ice`_`(`$s_k$`.offset) + `_`de-ice`_`(`$s_k$`.extent)` if $S_k$ is a specialization of `strided_slice`; otherwise
 
-   * [7.4]{.pnum} otherwise, `src.extent(k)`.
+   * [7.4]{.pnum} `src.extent(k)`.
 
 [8]{.pnum} *Preconditions:* $λ_k$ is representable as a value of type `index_type`.
 
@@ -864,7 +864,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [3]{.pnum} *Constraints:* `sizeof...(slices)` equals `Extents::rank()`,
 
-[4]{.pnum} *Mandates:* For each rank index `k` of `extents()`, exactly one of the following is `true`:
+[4]{.pnum} *Mandates:* For each rank index `k` of `extents()`, exactly one of the following is true:
 
    * [4.1]{.pnum} $S_k$ models `convertible_to<index_type>`,
 
