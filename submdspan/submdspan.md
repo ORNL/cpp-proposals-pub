@@ -994,8 +994,7 @@ on a candidate set that includes the lookup set found by argument dependent look
      `sub_map_offset.mapping(I...) + sub_map_offset.offset == src.mapping()(`_`src-indices`_`(array{I...}, slices ...))` is `true`.
 
 <i>[Note: </i>
-Conditions 5.2 and 5.3 make it so that it is not valid to call `submdspan` with layout mappings, for which an overload of `submdspan_mapping`,
-does not return a mapping, which maps to the algorithmically expected indices, given the slice specifiers.
+Conditions 5.2 and 5.3 ensure that the mapping returned by `submdspan_mapping` matches the algorithmically expected index-mapping given the slice specifiers.
 <i>- end note]</i>
 
 [5]{.pnum} *Effects:* Equivalent to
