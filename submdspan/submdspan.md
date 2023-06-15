@@ -653,10 +653,12 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 [2]{.pnum} For each function defined in subsection [mdspan.submdspan] that takes a parameter pack named `slices` as an argument:
 
   * [2.1]{.pnum} let `index_type` be 
+
+    * `M::index_type` if a function is a member of a class `M`, otherwise
     
     * `remove_reference_t<decltype(src)>::index_type` if the function has a parameter named `src`, otherwise
 
-    * the same type as the functions template argument `IndexType`;
+    * the same type as the function's template argument `IndexType`;
 
   * [2.2]{.pnum} let `rank` be the number of elements in `slices`;
 
