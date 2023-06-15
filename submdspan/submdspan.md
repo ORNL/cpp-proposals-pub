@@ -579,7 +579,7 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
       const mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>& src,
       SliceSpecifiers...slices) -> @_see below_@;
 
-  template<typename T>
+  template<class T>
   concept @_integral-constant-like_@ =                                     // @_exposition only_@
     is_integral_v<decltype(T::value)> &&
     !is_same_v<bool, remove_const_t<decltype(T::value)>> &&
@@ -589,11 +589,11 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
     bool_constant<static_cast<decltype(T::value)>(T()) == T::value>::value;
 
 
-  template<typename IndexType, typename T>
+  template<class T, class IndexType>
   concept @_index-pair-like_@ =                        // @_exposition only_@
     @_pair-like_@<T> &&
-    is_convertible_v<tuple_element_t<0,T>, IndexType> &&
-    is_convertible_v<tuple_element_t<1,T>, IndexType>;
+    convertible_to<tuple_element_t<0,T>, IndexType> &&
+    convertible_to<tuple_element_t<1,T>, IndexType>;
 ```
 
 ## Add at the end of the `layout_left::mapping` definition in [mdspan.layout.left.overview] after the `private:` access specificer:
@@ -740,7 +740,7 @@ constexpr IndexType @_first_@_(SliceSpecifiers... slices);
 
    * [2.1]{.pnum} if $S_k$ models `convertible_to<IndexType>`, then $s_k$;
 
-   * [2.2]{.pnum} otherwise, if _`index-pair-like`_`<IndexType, `$S_k$`>` is satisfied, then `get<0>(` $s_k$ `)`;
+   * [2.2]{.pnum} otherwise, if $S_k$ models _`index-pair-like`_`<IndexType>`, then `get<0>(` $s_k$ `)`;
 
    * [2.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`;
 
@@ -763,7 +763,7 @@ constexpr auto @_last_@_(const Extents& src, SliceSpecifiers... slices);
 
    * [7.1]{.pnum} if $S_k$ models `convertible_to<index_type>`, then _`de-ice`_`(`$s_k$`) + 1`;
 
-   * [7.2]{.pnum} otherwise, if _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied, then `get<1>(` $s_k$ `)`;
+   * [7.2]{.pnum} otherwise, if $S_k$ models _`index-pair-like`_`<index_type>`, then `get<1>(` $s_k$ `)`;
 
    * [7.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`, then _`de-ice`_`(`$s_k$`.offset) + `_`de-ice`_`(`$s_k$`.extent)`;
 
@@ -801,7 +801,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
    * [2.1]{.pnum} $S_k$ models `convertible_to<IndexType>`,
 
-   * [2.2]{.pnum} _`index-pair-like`_`<IndexType, `$S_k$`>` is satisfied,
+   * [2.2]{.pnum} $S_k$ models _`index-pair-like`_`<IndexType>`,
 
    * [2.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
@@ -829,7 +829,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
        * `Extents::static_extent(k)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-       * _`de-ice`_`(tuple_element_t<1, `$S_k$`>()) - ` _`de-ice`_`(tuple_element_t<0, `$S_k$`>())` if $S_k$ satisfies _`index-pair-like`_, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` model _`integral-constant-like`_; otherwise
+       * _`de-ice`_`(tuple_element_t<1, `$S_k$`>()) - ` _`de-ice`_`(tuple_element_t<0, `$S_k$`>())` if $S_k$ models _`index-pair-like`_`<IndexType>`, and both `tuple_element_t<0, `$S_k$`>` and `tuple_element_t<1, `$S_k$`>` model _`integral-constant-like`_; otherwise
 
        * `0`, if $S_k$ is a specialization of `strided_slice`, whose `extent_type` models _`integral-constant-like`_, for which `extent_type()` equals zero; otherwise
 
@@ -870,7 +870,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
    * [4.1]{.pnum} $S_k$ models `convertible_to<index_type>`,
 
-   * [4.2]{.pnum} _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied,
+   * [4.2]{.pnum} $S_k$ models _`index-pair-like`_`<index_type>`,
 
    * [4.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
@@ -913,7 +913,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * for each `k` in the range $[0,$ `SubExtents::rank()-1`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for `k` equal to `SubExtents::rank()-1`, _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
+      * for `k` equal to `SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
       <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
 
@@ -923,7 +923,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents.rank()`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for `k` equal to `Extents::rank()-SubExtents::rank()`, _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
+      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
       <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` smaller than `Extents::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
@@ -963,7 +963,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
      * $S_k$ models `convertible_to<index_type>`,
 
-     * _`index-pair-like`_`<index_type, `$S_k$`>` is satisfied,
+     * $S_k$ models _`index-pair-like`_`<index_type>`,
 
      * `is_convertible_v<`$S_k$`, full_extent_t>`, or
 
