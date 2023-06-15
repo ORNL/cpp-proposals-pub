@@ -601,7 +601,7 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 ```c++
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    constexpr auto @_submdspan-mapping-impl_@(
+    constexpr auto @_submdspan-mapping-impl_@(                  // @_exposition only_@
       SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
@@ -616,7 +616,7 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 ```c++
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    constexpr auto @_submdspan-mapping-impl_@(
+    constexpr auto @_submdspan-mapping-impl_@(                 // @_exposition only_@
       SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
@@ -631,7 +631,7 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 ```c++
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    constexpr auto @_submdspan-mapping-impl_@(
+    constexpr auto @_submdspan-mapping-impl_@(                 // @_exposition only_@
       SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
@@ -848,17 +848,17 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 ```c++
   template<class Extents>
   template<class... SliceSpecifiers>
-  constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(
+  constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
     SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class Extents>
   template<class... SliceSpecifiers>
-  constexpr auto layout_right::mapping<Extents>::@_submdspan-mapping-impl_@(
+  constexpr auto layout_right::mapping<Extents>::@_submdspan-mapping-impl_@(   // @_exposition only_@
     SliceSpecifiers ... slices) const -> @_see below_@;
 
   template<class Extents>
   template<class... SliceSpecifiers>
-  constexpr auto layout_stride::mapping<Extents>::@_submdspan-mapping-impl_@(
+  constexpr auto layout_stride::mapping<Extents>::@_submdspan-mapping-impl_@(  // @_exposition only_@
     SliceSpecifiers ... slices) const -> @_see below_@;
 ```
 
