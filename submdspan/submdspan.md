@@ -805,7 +805,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
    * [2.2]{.pnum} $S_k$ models _`index-pair-like`_`<IndexType>`
 
-   * [2.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`
+   * [2.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>` is `true`
 
    * [2.4]{.pnum} $S_k$ is a specialization of `strided_slice`
 
@@ -870,7 +870,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
    * [3.2]{.pnum} $S_k$ models _`index-pair-like`_`<index_type>`,
 
-   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
+   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, or
 
    * [3.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 
