@@ -799,29 +799,25 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [1]{.pnum} *Constraints:* `sizeof...(slices)` equals `Extents::rank()`,
 
-[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
+[2]{.pnum} *Mandates:* For each rank index `k` of `src.extents()`, exactly one of the following is true:
 
-   * [2.1]{.pnum} $S_k$ models `convertible_to<IndexType>`,
+   * [2.1]{.pnum} $S_k$ models `convertible_to<IndexType>`
 
-   * [2.2]{.pnum} $S_k$ models _`index-pair-like`_`<IndexType>`,
+   * [2.2]{.pnum} $S_k$ models _`index-pair-like`_`<IndexType>`
 
-   * [2.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`, or
+   * [2.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>`
 
-   * [2.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
+   * [2.4]{.pnum} $S_k$ is a specialization of `strided_slice`
 
-[3]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, all of the following are `true`:
+[3]{.pnum} *Preconditions:* For each rank index `k` of `src.extents()`, all of the following are true:
 
-   * [3.1]{.pnum} if $S_k$ is a specialization of `strided_slice`
+   * [3.1]{.pnum}  if $S_k$ is a specialization of `strided_slice`
 
-      * $s_k$`.extent == 0` is `true`, or
+      * $s_k$`.extent` $= 0$, or
 
-      * $s_k$`.stride > 0` is `true`,
+      * $s_k$`.stride` $\gt 0$,
 
-   * [3.2]{.pnum} `0 <= `_`first`_`_<IndexType, k>(slices...)`,
-
-   * [3.3]{.pnum} _`first`_`_<IndexType, k>(slices...) <= `_`last_<k>`_`(src, slices...)`, and
-
-   * [3.4]{.pnum} _`last_<k>`_`(src, slices...) <= src.extent(k)`.
+   * [3.2]{.pnum} $0 \le$ _`first`_`_<IndexType, k>(slices...)` $\le$ _`last_<k>`_`(src, slices...)` $\le$ `src.extent(k)`;
 
 [4]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
 
@@ -878,19 +874,15 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
    * [4.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 
-[5]{.pnum} *Preconditions:* For each rank index `k` of `extents()`, all of the following are `true`:
+[5]{.pnum} *Preconditions:* For each rank index `k` of `extents()`, all of the following are true:
 
-   * [5.1]{.pnum} if $S_k$ is a specialization of `strided_slice`
+   * [5.1]{.pnum}  if $S_k$ is a specialization of `strided_slice`
 
-      * $s_k$`.extent == 0` is `true`, or
+      * $s_k$`.extent` $= 0$, or
 
-      * $s_k$`.stride > 0` is `true`,
+      * $s_k$`.stride` $\gt 0$,
 
-   * [5.2]{.pnum} `0 <= `_`first`_`_<index_type, k>(slices...)`,
-
-   * [5.3]{.pnum} _`first`_`_<index_type, k>(slices...) <= `_`last_<k>`_`(extents(), slices...)`, and
-
-   * [5.4]{.pnum} _`last_<k>`_`(extents(), slices...) <= extent(k)`.
+   * [5.2]{.pnum} $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(extents(), slices...)` $\le$ `extents().extent(k)`;
 
 
 [6]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
