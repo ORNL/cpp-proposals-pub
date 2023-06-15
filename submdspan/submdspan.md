@@ -742,7 +742,7 @@ constexpr IndexType @_first_@_(SliceSpecifiers... slices);
 
    * [2.2]{.pnum} otherwise, if $S_k$ models _`index-pair-like`_`<IndexType>`, then `get<0>(` $s_k$ `)`;
 
-   * [2.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`;
+   * [2.3]{.pnum} otherwise, if $S_k$ is a specialization of `strided_slice`, then _`de-ice`_`(`$s_k$`.offset)`;
 
    * [2.4]{.pnum} otherwise, `0`.
 
