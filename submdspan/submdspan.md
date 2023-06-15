@@ -897,13 +897,13 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [7]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index `k` of `extents()` for which _`map-rank`_`[k]` is not `dynamic_extent`, `sub_strides[`_`map-rank`_`[k]]` equals:
 
-   * [7.1]{.pnum} `stride(k) * `_`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` is smaller than $s_k$`.extent`; otherwise
+   * [7.1]{.pnum} `stride(k) * `_`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` $\lt s_k$`.extent`; otherwise
 
    * [7.2]{.pnum} `stride(k)`.
 
 [8]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
 
-[9]{.pnum} Let `offset` be a value of type `size_t` equal to `map(`_`first`_`_<index_type, P>(slices...)...)`.
+[9]{.pnum} Let `offset` be a value of type `size_t` equal to `(*this)(`_`first`_`_<index_type, P>(slices...)...)`.
 
 [10]{.pnum} *Returns:*
 
@@ -927,7 +927,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
-      <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` smaller than `Extents::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
+      <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` $\lt$ `Extents::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
    * [10.4]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -959,34 +959,30 @@ on a candidate set that includes the lookup set found by argument dependent look
 
    * [4.1]{.pnum} `decltype(submdspan_mapping(src.mapping(), slices...))` is a specialization of `submdspan_mapping_result`.
 
-   * [4.2]{.pnum} `is_same_v<decltype(sub_map_offset.mapping().extents()), decltype(submdspan_extents(src.mapping(), slices...))>` is `true`, and
+   * [4.2]{.pnum} `is_same_v<remove_cvref_t<decltype(sub_map_offset.mapping.extents())>, decltype(submdspan_extents(src.mapping(), slices...))>` is `true`, and
 
-   * [4.3]{.pnum} For each rank index `k` of `src.extents()`, exactly one of the following is `true`:
+   * [4.3]{.pnum} For each rank index `k` of `src.extents()`, exactly one of the following is true:
 
-     * $S_k$ models `convertible_to<index_type>`,
+     * $S_k$ models `convertible_to<index_type>`
 
-     * $S_k$ models _`index-pair-like`_`<index_type>`,
+     * $S_k$ models _`index-pair-like`_`<index_type>`
 
-     * `is_convertible_v<`$S_k$`, full_extent_t>`, or
+     * `is_convertible_v<`$S_k$`, full_extent_t>` is `true`
 
-     * $S_k$ is a specialization of `strided_slice`.
+     * $S_k$ is a specialization of `strided_slice`
 
 
 [5]{.pnum} *Preconditions:* 
 
-   * [5.1]{.pnum} For each rank index `k` of `src.extents()`, all of the following are `true`:
+   * [5.1]{.pnum} For each rank index `k` of `src.extents()`, all of the following are true:
 
       * if $S_k$ is a specialization of `strided_slice`
 
-         * $s_k$`.extent == 0` is `true`, or
+         * $s_k$`.extent` $= 0$, or
 
-         * $s_k$`.stride > 0` is `true`,
+         * $s_k$`.stride` $\gt 0$,
 
-      * `0 <= `_`first`_`_<index_type, k>(slices...)`,
-
-      * _`first`_`_<index_type, k>(slices...) <= `_`last_<k>`_`(src.extents(), slices...)`, and
-
-      * _`last_<k>`_`(src.extents(), slices...) <= src.extent(k)`;
+      * $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(src.extents(), slices...)` $\le$ `src.extent(k)`;
 
    * [5.2]{.pnum} `sub_map_offset.mapping.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
 
