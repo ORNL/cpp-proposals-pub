@@ -951,7 +951,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
    * [3.1]{.pnum} `sizeof...(slices)` equals `Extents::rank()`, and
 
-   * [3.2]{.pnum} the expression `submdspan_mapping(src.mapping(), slices...)` is well-formed.
+   * [3.2]{.pnum} the expression `submdspan_mapping(src.mapping(), slices...)` is well-formed when treated as an unevaluated operand.
 
 [4]{.pnum} *Mandates:* 
 
