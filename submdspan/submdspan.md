@@ -974,7 +974,7 @@ on a candidate set that includes the lookup set found by argument dependent look
 
 [5]{.pnum} *Preconditions:* 
 
-   * [5.1]{.pnum} For each rank index `k` of `src.extents()`, *all* of the following are `true`:
+   * [5.1]{.pnum} For each rank index `k` of `src.extents()`, all of the following are `true`:
 
       * if $S_k$ is a specialization of `strided_slice`
 
