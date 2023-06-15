@@ -1024,12 +1024,12 @@ void zero_2d(mdspan<T,E,L,A> a) {
 template<class T, class E, class L, class A>
 void zero_surface(mdspan<T,E,L,A> grid3d) {
   static_assert(grid3d.rank() == 3);
-  zero_2d(submdspan(a, 0, full_extent, full_extent));
-  zero_2d(submdspan(a, full_extent, 0, full_extent));
-  zero_2d(submdspan(a, full_extent, full_extent, 0));
-  zero_2d(submdspan(a, a.extent(0)-1, full_extent, full_extent));
-  zero_2d(submdspan(a, full_extent, a.extent(1)-1, full_extent));
-  zero_2d(submdspan(a, full_extent, full_extent, a.extent(2)-1));
+  zero_2d(submdspan(grid3d, 0, full_extent, full_extent));
+  zero_2d(submdspan(grid3d, full_extent, 0, full_extent));
+  zero_2d(submdspan(grid3d, full_extent, full_extent, 0));
+  zero_2d(submdspan(grid3d, a.extent(0)-1, full_extent, full_extent));
+  zero_2d(submdspan(grid3d, full_extent, a.extent(1)-1, full_extent));
+  zero_2d(submdspan(grid3d, full_extent, full_extent, a.extent(2)-1));
 }
 ```
 <i>- end example\]</i>
