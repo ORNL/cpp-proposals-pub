@@ -923,7 +923,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       *  `layout_type` is `layout_right`; and
 
-      * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents.rank()`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents::rank()`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
