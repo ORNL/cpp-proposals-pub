@@ -866,13 +866,13 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
 [3]{.pnum} *Mandates:* For each rank index `k` of `extents()`, exactly one of the following is true:
 
-   * [3.1]{.pnum} $S_k$ models `convertible_to<index_type>`,
+   * [3.1]{.pnum} $S_k$ models `convertible_to<index_type>`
 
-   * [3.2]{.pnum} $S_k$ models _`index-pair-like`_`<index_type>`,
+   * [3.2]{.pnum} $S_k$ models _`index-pair-like`_`<index_type>`
 
-   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, or
+   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>` is `true`
 
-   * [3.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
+   * [3.4]{.pnum} $S_k$ is a specialization of `strided_slice`
 
 [4]{.pnum} *Preconditions:* For each rank index `k` of `extents()`, all of the following are true:
 
