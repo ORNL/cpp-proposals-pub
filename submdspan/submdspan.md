@@ -553,7 +553,7 @@ For performance and preservation of compile-time knowledge, we also require the 
 ## Modify first sentence in paragraph 3 of [contents] (16.4.2.2) to be:
 
 Whenever an unqualified name other than `swap`{.rm}, `make_error_code`, [or]{.rm} `make_error_condition`[, or `submdspan_mapping`]{.add} 
-is used in the specification of a declaration D in [support] through [thread] [,]{.add} [or]{.rm} [depr] [, or [mdspan.submdspan]]{.add}, its meaning is established as-if by performing unqualified name lookup ([basic.lookup.unqual]) in the context of D.
+is used in the specification of a declaration D in [support] through [thread] or [depr], its meaning is established as-if by performing unqualified name lookup ([basic.lookup.unqual]) in the context of D.
 
 ## Modify last sentence in paragraph 3 of [contents] (16.4.2.2) to be:
 
@@ -654,7 +654,7 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 
   * [2.1]{.pnum} let `index_type` be 
 
-    * `M::index_type` if a function is a member of a class `M`, otherwise
+    * `M::index_type` if the function is a member of a class `M`, otherwise
     
     * `remove_reference_t<decltype(src)>::index_type` if the function has a parameter named `src`, otherwise
 
@@ -670,7 +670,7 @@ The meanings of the unqualified names `make_error_code`[,]{.add} [and]{.rm} `mak
 
     * `dynamic_extent` if $S_k$ models `convertible_to<index_type>`, otherwise
 
-    * the number of types $S_j$ with $j < k$.
+    * the number of types $S_j$ with $j < k$ that do not model `convertible_to<index_type>`.
 
 
 <b>24.7.3.7.2 `strided_slice` [mdspan.submdspan.strided_slice]</b>
@@ -815,9 +815,9 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * $s_k$`.extent` $= 0$, or
 
-      * $s_k$`.stride` $\gt 0$,
+      * $s_k$`.stride` $\gt 0$
 
-   * [3.2]{.pnum} $0 \le$ _`first`_`_<IndexType, k>(slices...)` $\le$ _`last_<k>`_`(src, slices...)` $\le$ `src.extent(k)`;
+   * [3.2]{.pnum} $0 \le$ _`first`_`_<IndexType, k>(slices...)` $\le$ _`last_<k>`_`(src, slices...)` $\le$ `src.extent(k)`
 
 [4]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
 
@@ -835,7 +835,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
        * `dynamic_extent`.
 
-[5]{.pnum} *Returns:* A value of type `SubExtents` `ext` such that for each `k` for which _`map-rank`_`[k] != dynamic_extent` is `true`:
+[5]{.pnum} *Returns:* A value `ext` of type `SubExtents` such that for each `k` for which _`map-rank`_`[k] != dynamic_extent` is `true`:
 
   * [5.1]{.pnum} `ext.extent(`_`map-rank`_`[k])` equals $s_k$`.extent == 0 ? 0 : 1 + (`_`de-ice`_`(`$s_k$`.extent) - 1) / `_`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice`, otherwise
 
@@ -880,9 +880,9 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * $s_k$`.extent` $= 0$, or
 
-      * $s_k$`.stride` $\gt 0$,
+      * $s_k$`.stride` $\gt 0$
 
-   * [4.2]{.pnum} $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(extents(), slices...)` $\le$ `extents().extent(k)`;
+   * [4.2]{.pnum} $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(extents(), slices...)` $\le$ `extents().extent(k)`
 
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
@@ -917,7 +917,7 @@ constexpr auto submdspan_extents(const extents<IndexType, Extents...>& src, Slic
 
       * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents::rank()`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` is satisfied or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
+      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
 
       <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` $\lt$ `Extents::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
@@ -972,9 +972,9 @@ on a candidate set that includes the lookup set found by argument dependent look
 
          * $s_k$`.extent` $= 0$, or
 
-         * $s_k$`.stride` $\gt 0$,
+         * $s_k$`.stride` $\gt 0$
 
-      * $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(src.extents(), slices...)` $\le$ `src.extent(k)`;
+      * $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(src.extents(), slices...)` $\le$ `src.extent(k)`
 
    * [5.2]{.pnum} `sub_map_offset.mapping.extents() == submdspan_extents(src.mapping(), slices...)` is `true`; and
 
@@ -982,7 +982,7 @@ on a candidate set that includes the lookup set found by argument dependent look
      `sub_map_offset.mapping(I...) + sub_map_offset.offset == src.mapping()(`_`src-indices`_`(array{I...}, slices ...))` is `true`.
 
 <i>[Note: </i>
-Conditions 5.2 and 5.3 ensure that the mapping returned by `submdspan_mapping` matches the algorithmically expected index-mapping given the slice specifiers.
+These conditions ensure that the mapping returned by `submdspan_mapping` matches the algorithmically expected index-mapping given the slice specifiers.
 <i>- end note]</i>
 
 [5]{.pnum} *Effects:* Equivalent to
@@ -1019,9 +1019,9 @@ void zero_surface(mdspan<T,E,L,A> grid3d) {
   zero_2d(submdspan(grid3d, 0, full_extent, full_extent));
   zero_2d(submdspan(grid3d, full_extent, 0, full_extent));
   zero_2d(submdspan(grid3d, full_extent, full_extent, 0));
-  zero_2d(submdspan(grid3d, a.extent(0)-1, full_extent, full_extent));
-  zero_2d(submdspan(grid3d, full_extent, a.extent(1)-1, full_extent));
-  zero_2d(submdspan(grid3d, full_extent, full_extent, a.extent(2)-1));
+  zero_2d(submdspan(grid3d, grid3d.extent(0)-1, full_extent, full_extent));
+  zero_2d(submdspan(grid3d, full_extent, grid3d.extent(1)-1, full_extent));
+  zero_2d(submdspan(grid3d, full_extent, full_extent, grid3d.extent(2)-1));
 }
 ```
 <i>- end example\]</i>
