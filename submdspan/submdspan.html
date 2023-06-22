@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-06-13" />
+  <meta name="dcterms.date" content="2023-06-16" />
   <title>Submdspan</title>
   <style>
       code{white-space: pre-wrap;}
@@ -420,11 +420,11 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>D2630</td>
+    <td>P2630R4</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-06-13</td>
+    <td>2023-06-16</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -520,6 +520,7 @@ specialization of <code>strided_slice</code></li>
 members</li>
 <li>Make <code>k</code> a template parameter for both
 <code>first_</code> and <code>last_</code></li>
+<li>Add stuff LWG asked for</li>
 </ul>
 <h2 data-number="1.2" id="revision-3-mailing-2023-03"><span class="header-section-number">1.2</span> Revision 3: Mailing 2023-03<a href="#revision-3-mailing-2023-03" class="self-link"></a></h2>
 <ul>
@@ -1028,9 +1029,9 @@ paragraph 3 of [contents] (16.4.2.2) to be:<a href="#modify-first-sentence-in-pa
 <code>make_error_code</code>, <span class="rm" style="color: #bf0303"><del>or</del></span>
 <code>make_error_condition</code><span class="add" style="color: #00AA00"><ins>, or
 <span><code>submdspan_mapping</code></span></ins></span> is used in the
-specification of a declaration D in [support] through [thread] <span class="add" style="color: #00AA00"><ins>,</ins></span> <span class="rm" style="color: #bf0303"><del>or</del></span> [depr] <span class="add" style="color: #00AA00"><ins>, or [mdspan.submdspan]</ins></span>, its
-meaning is established as-if by performing unqualified name lookup
-([basic.lookup.unqual]) in the context of D.</p>
+specification of a declaration D in [support] through [thread] or
+[depr], its meaning is established as-if by performing unqualified name
+lookup ([basic.lookup.unqual]) in the context of D.</p>
 <h2 data-number="3.2" id="modify-last-sentence-in-paragraph-3-of-contents-16.4.2.2-to-be"><span class="header-section-number">3.2</span> Modify last sentence in
 paragraph 3 of [contents] (16.4.2.2) to be:<a href="#modify-last-sentence-in-paragraph-3-of-contents-16.4.2.2-to-be" class="self-link"></a></h2>
 <p>The meanings of the unqualified names
@@ -1058,27 +1059,34 @@ end of synopsis in subsection 24.7.3.2 [mdspan.syn]<a href="#add-inside-namespac
 <span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;&amp;</span> src,</span>
 <span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...</span>slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
 <span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> T<span class="op">&gt;</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
 <span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">concept</span> <em>integral-constant-like</em> <span class="op">=</span>                                     <span class="co">// <em>exposition only</em></span></span>
 <span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    is_integral_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>T<span class="op">::</span>value<span class="op">)&gt;</span> <span class="op">&amp;&amp;</span></span>
 <span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">!</span>is_same_v<span class="op">&lt;</span><span class="dt">bool</span>, remove_const_t<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>T<span class="op">::</span>value<span class="op">)&gt;&gt;</span> <span class="op">&amp;&amp;</span></span>
 <span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    convertible_to<span class="op">&lt;</span>T, <span class="kw">decltype</span><span class="op">(</span>T<span class="op">::</span>value<span class="op">)&gt;</span> <span class="op">&amp;&amp;</span></span>
 <span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>    equality_comparable_with<span class="op">&lt;</span>T, <span class="kw">decltype</span><span class="op">(</span>T<span class="op">::</span>value<span class="op">)&gt;</span> <span class="op">&amp;&amp;</span></span>
 <span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>    bool_constant<span class="op">&lt;</span>T<span class="op">()</span> <span class="op">==</span> T<span class="op">::</span>value<span class="op">&gt;::</span>value <span class="op">&amp;&amp;</span></span>
-<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>    bool_constant<span class="op">&lt;</span><span class="kw">static_cast</span><span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>T<span class="op">::</span>value<span class="op">)&gt;(</span>T<span class="op">())</span> <span class="op">==</span> T<span class="op">::</span>value<span class="op">&gt;::</span>value;</span></code></pre></div>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>    bool_constant<span class="op">&lt;</span><span class="kw">static_cast</span><span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>T<span class="op">::</span>value<span class="op">)&gt;(</span>T<span class="op">())</span> <span class="op">==</span> T<span class="op">::</span>value<span class="op">&gt;::</span>value;</span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T, <span class="kw">class</span> IndexType<span class="op">&gt;</span></span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">concept</span> <em>index-pair-like</em> <span class="op">=</span>                        <span class="co">// <em>exposition only</em></span></span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>    <em>pair-like</em><span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a>    convertible_to<span class="op">&lt;</span>tuple_element_t<span class="op">&lt;</span><span class="dv">0</span>,T<span class="op">&gt;</span>, IndexType<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a>    convertible_to<span class="op">&lt;</span>tuple_element_t<span class="op">&lt;</span><span class="dv">1</span>,T<span class="op">&gt;</span>, IndexType<span class="op">&gt;</span>;</span></code></pre></div>
 <h2 data-number="3.4" id="add-at-the-end-of-the-layout_leftmapping-definition-in-mdspan.layout.left.overview-after-the-private-access-specificer"><span class="header-section-number">3.4</span> Add at the end of the
 <code>layout_left::mapping</code> definition in
 [mdspan.layout.left.overview] after the <code>private:</code> access
 specificer:<a href="#add-at-the-end-of-the-layout_leftmapping-definition-in-mdspan.layout.left.overview-after-the-private-access-specificer" class="self-link"></a></h2>
 <div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan.mapping], submdspan mapping specialization</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span> src, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span>                  <span class="co">// <em>exposition only</em></span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
 <span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
 <span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan_mapping<span class="op">(</span></span>
 <span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span> src, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <em>submdspan-mapping-impl</em><span class="op">(</span>src, slices<span class="op">...)</span>;</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> src<span class="op">.</span><em>submdspan-mapping-impl</em><span class="op">(</span>slices<span class="op">...)</span>;</span>
 <span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
 <h2 data-number="3.5" id="add-at-the-end-of-the-layout_rightmapping-definition-in-mdspan.layout.right.overview-after-the-private-access-specificer"><span class="header-section-number">3.5</span> Add at the end of the
 <code>layout_right:mapping</code> definition in
@@ -1086,13 +1094,13 @@ specificer:<a href="#add-at-the-end-of-the-layout_leftmapping-definition-in-mdsp
 specificer:<a href="#add-at-the-end-of-the-layout_rightmapping-definition-in-mdspan.layout.right.overview-after-the-private-access-specificer" class="self-link"></a></h2>
 <div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan.mapping], submdspan mapping specialization</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span> src, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span>                 <span class="co">// <em>exposition only</em></span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan_mapping<span class="op">(</span></span>
 <span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span> src, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <em>submdspan-mapping-impl</em><span class="op">(</span>src, slices<span class="op">...)</span>;</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> src<span class="op">.</span><em>submdspan-mapping-impl</em><span class="op">(</span>slices<span class="op">...)</span>;</span>
 <span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
 <h2 data-number="3.6" id="add-at-the-end-of-the-layout_stridemapping-definition-in-mdspan.layout.stride.overview-after-the-private-access-specificer"><span class="header-section-number">3.6</span> Add at the end of the
 <code>layout_stride::mapping</code> definition in
@@ -1100,13 +1108,13 @@ specificer:<a href="#add-at-the-end-of-the-layout_rightmapping-definition-in-mds
 specificer:<a href="#add-at-the-end-of-the-layout_stridemapping-definition-in-mdspan.layout.stride.overview-after-the-private-access-specificer" class="self-link"></a></h2>
 <div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan.mapping], submdspan mapping specialization</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span> src, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span>                 <span class="co">// <em>exposition only</em></span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
 <span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
 <span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan_mapping<span class="op">(</span></span>
 <span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span> src, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <em>submdspan-mapping-impl</em><span class="op">(</span>src, slices<span class="op">...)</span>;</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> src<span class="op">.</span><em>submdspan-mapping-impl</em><span class="op">(</span>slices<span class="op">...)</span>;</span>
 <span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
 <h2 data-number="3.7" id="add-subsection-24.7.3.7-mdspan.submdspan-with-the-following"><span class="header-section-number">3.7</span> Add subsection 24.7.3.7
 [mdspan.submdspan] with the following<a href="#add-subsection-24.7.3.7-mdspan.submdspan-with-the-following" class="self-link"></a></h2>
@@ -1124,9 +1132,12 @@ parameter pack named <code>slices</code> as an argument:</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> let
 <code>index_type</code> be</p>
 <ul>
-<li><p><code>decltype(src)::index_type</code> if the function has a
-parameter named <code>src</code>, otherwise</p></li>
-<li><p>the same type as the functions template argument
+<li><p><code>M::index_type</code> if the function is a member of a class
+<code>M</code>, otherwise</p></li>
+<li><p><code>remove_reference_t&lt;decltype(src)&gt;::index_type</code>
+if the function has a parameter named <code>src</code>,
+otherwise</p></li>
+<li><p>the same type as the function’s template argument
 <code>IndexType</code>;</p></li>
 </ul></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> let
@@ -1146,10 +1157,10 @@ in the range of <span class="math inline">[0,</span>
 <code>rank</code><span class="math inline">)</span>,
 <em><code>map-rank</code></em><code>[k]</code> equals:</p>
 <ul>
-<li><p><code>dynamic_extent</code> if
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>
-is <code>true</code>, otherwise</p></li>
-<li><p>the number of types <span class="math inline"><em>S</em><sub><em>j</em></sub></span> with <span class="math inline"><em>j</em> &lt; <em>k</em></span>.</p></li>
+<li><p><code>dynamic_extent</code> if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<code>convertible_to&lt;index_type&gt;</code>, otherwise</p></li>
+<li><p>the number of types <span class="math inline"><em>S</em><sub><em>j</em></sub></span> with <span class="math inline"><em>j</em> &lt; <em>k</em></span> that do not model
+<code>convertible_to&lt;index_type&gt;</code>.</p></li>
 </ul></li>
 </ul>
 <p><b>24.7.3.7.2 <code>strided_slice</code>
@@ -1174,12 +1185,9 @@ regularly spaced integer indices. The indices start at
 specified above. It has no base classes or members other than those
 specified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Mandates:</em></p>
-<ul>
-<li><code>OffsetType</code>, <code>ExtentType</code>, and
+<em>Mandates:</em> <code>OffsetType</code>, <code>ExtentType</code>, and
 <code>StrideType</code> are signed or unsigned integer types, or model
-<em><code>integral-constant-like</code></em>.</li>
-</ul>
+<em><code>integral-constant-like</code></em>.</p>
 <p><i>[Note: </i>
 <code>strided_slice{.offset=1, .extent=10, .stride=3}</code> indicates
 the indices 1, 4, 7, and 10. Indices are selected from the half-open
@@ -1192,7 +1200,7 @@ overloads of <code>submdspan_mapping</code>.</p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutMapping<span class="op">&gt;</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> submdspan_mapping_result <span class="op">{</span></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">no_unique_address</span><span class="op">]]</span> LayoutMapping mapping <span class="op">=</span> LayoutMapping<span class="op">()</span>;</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">[[</span><span class="at">no_unique_address</span><span class="op">]]</span> <span class="dt">size_t</span> offset<span class="op">{}</span>;</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">size_t</span> offset<span class="op">{}</span>;</span>
 <span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <code>submdspan_mapping_result</code> has the data members and special
@@ -1203,8 +1211,13 @@ those specified.</p>
 requirements.</p>
 <p><b>24.7.3.7.4 Exposition-only helpers
 [mdspan.submdspan.helpers]</b></p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> k, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> IndexType <em>first</em>_<span class="op">(</span>SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> T <em>de-ice</em><span class="op">(</span>T val<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> val; <span class="op">}</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>integral-constant-like</em> T<span class="op">&gt;</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> <em>de-ice</em><span class="op">(</span>T<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> T<span class="op">::</span>value; <span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> k, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> IndexType <em>first</em>_<span class="op">(</span>SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Mandates:</em> <code>IndexType</code> is a signed or unsigned
 integer type.</p>
@@ -1212,18 +1225,21 @@ integer type.</p>
 Let <span class="math inline"><em>φ</em><sub><em>k</em></sub></span>
 denote the following value:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> if
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, IndexType&gt;</code>
-is <code>true</code>, then <span class="math inline"><em>s</em><sub><em>k</em></sub></span>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
+<span class="math inline"><em>s</em><sub><em>k</em></sub></span> if
+<span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<code>convertible_to&lt;IndexType&gt;</code>; otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-otherwise, if <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;IndexType, IndexType&gt;&gt;</code>
-is <code>true</code>, then <code>get&lt;0&gt;(</code> <span class="math inline"><em>s</em><sub><em>k</em></sub></span>
-<code>)</code>;</p></li>
+<code>get&lt;0&gt;(</code> <span class="math inline"><em>s</em><sub><em>k</em></sub></span>
+<code>)</code> if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<em><code>index-pair-like</code></em><code>&lt;IndexType&gt;</code>;
+otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-otherwise, if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code>;</p></li>
+<em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.offset)</code>
+if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
+specialization of <code>strided_slice</code>; otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-otherwise, <code>0</code>.</p></li>
+<code>0</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Preconditions:</em> <span class="math inline"><em>φ</em><sub><em>k</em></sub></span> is
@@ -1233,8 +1249,8 @@ representable as a value of type <code>IndexType</code>.</p>
 <code>extents&lt;IndexType&gt;::</code><em><code>index-cast</code></em><code>(</code>
 <span class="math inline"><em>φ</em><sub><em>k</em></sub></span>
 <code>)</code>.</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> k, <span class="kw">class</span> Extents, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> <em>last</em>_<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;</span> src, SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> k, <span class="kw">class</span> Extents, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> <em>last</em>_<span class="op">(</span><span class="kw">const</span> Extents<span class="op">&amp;</span> src, SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Mandates:</em> <code>Extents</code> is a specialization of
 <code>extents</code>.</p>
@@ -1245,18 +1261,21 @@ Let <code>index_type</code> name the type
 Let <span class="math inline"><em>λ</em><sub><em>k</em></sub></span>
 denote the following value:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span> if
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>
-is <code>true</code>, then <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>+ 1</code>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
+<em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>) + 1</code>
+if <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
+models <code>convertible_to&lt;index_type&gt;</code>; otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-otherwise, if <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;index_type, index_type&gt;&gt;</code>
-is <code>true</code>, then <code>get&lt;1&gt;(</code> <span class="math inline"><em>s</em><sub><em>k</em></sub></span>
-<code>)</code>;</p></li>
+<code>get&lt;1&gt;(</code> <span class="math inline"><em>s</em><sub><em>k</em></sub></span>
+<code>)</code> if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code>;
+otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.3)</a></span>
-otherwise, if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code>, then <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.offset +</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent</code>;</p></li>
+<em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.offset) +</code><em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent)</code>
+if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
+specialization of <code>strided_slice</code>; otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.4)</a></span>
-otherwise, <code>src.extent(k)</code>.</p></li>
+<code>src.extent(k)</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Preconditions:</em> <span class="math inline"><em>λ</em><sub><em>k</em></sub></span> is
@@ -1266,9 +1285,9 @@ representable as a value of type <code>index_type</code>.</p>
 <code>Extents::</code><em><code>index-cast</code></em><code>(</code>
 <span class="math inline"><em>λ</em><sub><em>k</em></sub></span>
 <code>)</code>.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> N, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> array<span class="op">&lt;</span>IndexType, <span class="kw">sizeof</span><span class="op">...(</span>SliceSpecifiers<span class="op">)&gt;</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <em>src-indices</em><span class="op">(</span><span class="kw">const</span> array<span class="op">&lt;</span>IndexType, N<span class="op">&gt;&amp;</span> indices, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> N, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> array<span class="op">&lt;</span>IndexType, <span class="kw">sizeof</span><span class="op">...(</span>SliceSpecifiers<span class="op">)&gt;</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <em>src-indices</em><span class="op">(</span><span class="kw">const</span> array<span class="op">&lt;</span>IndexType, N<span class="op">&gt;&amp;</span> indices, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Mandates:</em> <code>IndexType</code> is a signed or unsigned
 integer type.</p>
@@ -1289,56 +1308,54 @@ for each <code>k</code> where
 </ul>
 <p><b>24.7.3.7.4 <code>submdspan_extents</code> function
 [mdspan.submdspan.extents]</b></p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="kw">class</span> <span class="op">...</span> Extents, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> submdspan_extents<span class="op">(</span><span class="kw">const</span> extents<span class="op">&lt;</span>IndexType, Extents<span class="op">...&gt;&amp;</span> src, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="kw">class</span> <span class="op">...</span> Extents, <span class="kw">class</span> <span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> submdspan_extents<span class="op">(</span><span class="kw">const</span> extents<span class="op">&lt;</span>IndexType, Extents<span class="op">...&gt;&amp;</span> src, SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Constraints:</em></p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>sizeof...(slices)</code> equals <code>Extents::rank()</code>,</li>
-</ul>
+<em>Constraints:</em> <code>sizeof...(slices)</code> equals
+<code>Extents::rank()</code>,</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em> For each rank index <code>k</code> of
-<code>src.extents()</code>, <em>exactly one</em> of the following is
-<code>true</code>:</p>
+<code>src.extents()</code>, exactly one of the following is true:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, IndexType&gt;</code>,</p></li>
+<span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<code>convertible_to&lt;IndexType&gt;</code></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;IndexType, IndexType&gt;&gt;</code>,</p></li>
+<span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<em><code>index-pair-like</code></em><code>&lt;IndexType&gt;</code></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>,
-or</p></li>
+<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+is <code>true</code></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
 <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code>.</p></li>
+specialization of <code>strided_slice</code></p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Preconditions:</em> For each rank index <code>k</code> of
-<code>src.extents()</code>, <em>all</em> of the following are
-<code>true</code>:</p>
+<code>src.extents()</code>, all of the following are true:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> if
 <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code> and <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent == 0</code>
-is <code>false</code>, <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride &gt; 0</code>
-is <code>true</code>,</p></li>
+specialization of <code>strided_slice</code></p>
+<ul>
+<li><p><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent</code>
+<span class="math inline"> = 0</span>, or</p></li>
+<li><p><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride</code>
+<span class="math inline"> &gt; 0</span></p></li>
+</ul></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-<code>0 &lt;=</code><em><code>first</code></em><code>_&lt;IndexType, k&gt;(slices...)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
-<em><code>first</code></em><code>_&lt;IndexType, k&gt;(slices...) &lt;=</code><em><code>last_&lt;k&gt;</code></em><code>(src, slices...)</code>,
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.4)</a></span>
-<em><code>last_&lt;k&gt;</code></em><code>(src, slices...) &lt;= src.extent(k)</code>.</p></li>
+<span class="math inline">0≤</span>
+<em><code>first</code></em><code>_&lt;IndexType, k&gt;(slices...)</code>
+<span class="math inline">≤</span>
+<em><code>last_&lt;k&gt;</code></em><code>(src, slices...)</code> <span class="math inline">≤</span> <code>src.extent(k)</code></p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 Let <code>SubExtents</code> be a specialization of <code>extents</code>
 such that:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>SubExtents::rank()</code> equals the number of <span class="math inline"><em>k</em></span> such that
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, size_t&gt;</code>
-is <code>false</code>; and</p></li>
+<code>SubExtents::rank()</code> equals the number of <span class="math inline"><em>k</em></span> such that <span class="math inline"><em>S</em><sub><em>k</em></sub></span> does not
+model <code>convertible_to&lt;IndexType&gt;</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> for
 all rank index <code>k</code> of <code>Extents</code> such that
 <em><code>map-rank</code></em><code>[k] != dynamic_extent</code> is
@@ -1349,32 +1366,37 @@ equals:</p>
 <li><p><code>Extents::static_extent(k)</code> if
 <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>; otherwise</p></li>
-<li><p><code>tuple_element&lt;1,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;() - tuple_element&lt;0,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;()</code>
-if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-<code>tuple</code> of two types satisfying
-<em><code>integral-constant-like</code></em>; otherwise</p></li>
+<li><p><em><code>de-ice</code></em><code>(tuple_element_t&lt;1,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;()) -</code>
+<em><code>de-ice</code></em><code>(tuple_element_t&lt;0,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;())</code>
+if <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
+models
+<em><code>index-pair-like</code></em><code>&lt;IndexType&gt;</code>, and
+both <code>tuple_element_t&lt;0,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
+and <code>tuple_element_t&lt;1,</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>&gt;</code>
+model <em><code>integral-constant-like</code></em>; otherwise</p></li>
 <li><p><code>0</code>, if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
 specialization of <code>strided_slice</code>, whose
-<code>extent_type</code> satisfies
+<code>extent_type</code> models
 <em><code>integral-constant-like</code></em>, for which
 <code>extent_type()</code> equals zero; otherwise</p></li>
-<li><p><code>1 + (</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>::extent_type() - 1) /</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>::stride_type()</code>
+<li><p><code>1 + (</code>
+<em><code>de-ice</code></em><code>(</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>::extent_type()) - 1) /</code><em><code>de-ice</code></em><code>(</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>::stride_type())</code>
 if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
 specialization of <code>strided_slice</code>, whose
-<code>extent_type</code> and <code>stride_type</code> satisfy
+<code>extent_type</code> and <code>stride_type</code> model
 <em><code>integral-constant-like</code></em>; otherwise</p></li>
 <li><p><code>dynamic_extent</code>.</p></li>
 </ul></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Returns:</em> a value of type <code>SubExtents</code>
-<code>ext</code> such that for each <code>k</code> for which
+<em>Returns:</em> A value <code>ext</code> of type
+<code>SubExtents</code> such that for each <code>k</code> for which
 <em><code>map-rank</code></em><code>[k] != dynamic_extent</code> is
 <code>true</code>:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
 <code>ext.extent(</code><em><code>map-rank</code></em><code>[k])</code>
-equals <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent == 0 ? 0 : 1 + (</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent - 1) /</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride</code>
+equals <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent == 0 ? 0 : 1 + (</code><em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent) - 1) /</code><em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride)</code>
 if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
 specialization of <code>strided_slice</code>, otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
@@ -1384,136 +1406,146 @@ equals
 </ul>
 <p><b>24.7.3.7.5 Layout specializations of
 <code>submdspan_mapping</code> [mdspan.submdspan.mapping]</b></p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> layout_left<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;::</span><em>submdspan-mapping-impl</em><span class="op">(</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> layout_left<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;&amp;</span> src,</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
-<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;::</span><em>submdspan-mapping-impl</em><span class="op">(</span></span>
-<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;&amp;</span> src,</span>
-<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
-<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
-<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;::</span><em>submdspan-mapping-impl</em><span class="op">(</span></span>
-<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;&amp;</span> src,</span>
-<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a>    SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> layout_left<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;::</span><em>submdspan-mapping-impl</em><span class="op">(</span>    <span class="co">// <em>exposition only</em></span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;::</span><em>submdspan-mapping-impl</em><span class="op">(</span>   <span class="co">// <em>exposition only</em></span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>Extents<span class="op">&gt;::</span><em>submdspan-mapping-impl</em><span class="op">(</span>  <span class="co">// <em>exposition only</em></span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>    SliceSpecifiers <span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> <em>see below</em>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 Let <code>index_type</code> name the type
 <code>typename Extents::index_type</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Constraints:</em> <code>sizeof...(slices)</code> equals
+<code>Extents::rank()</code>,</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Constraints:</em></p>
+<em>Mandates:</em> For each rank index <code>k</code> of
+<code>extents()</code>, exactly one of the following is true:</p>
 <ul>
-<li><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
-<code>sizeof...(slices)</code> equals <code>Extents::rank()</code>,</li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<code>convertible_to&lt;index_type&gt;</code></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
+<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+is <code>true</code></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.4)</a></span>
+<span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
+specialization of <code>strided_slice</code></p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Mandates:</em> For each rank index <code>k</code> of
-<code>src.extents()</code>, <em>exactly one</em> of the following is
-<code>true</code>:</p>
+<em>Preconditions:</em> For each rank index <code>k</code> of
+<code>extents()</code>, all of the following are true:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;index_type, index_type&gt;&gt;</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>,
-or</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> if
 <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code>.</p></li>
+specialization of <code>strided_slice</code></p>
+<ul>
+<li><p><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent</code>
+<span class="math inline"> = 0</span>, or</p></li>
+<li><p><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride</code>
+<span class="math inline"> &gt; 0</span></p></li>
+</ul></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<span class="math inline">0≤</span>
+<em><code>first</code></em><code>_&lt;index_type, k&gt;(slices...)</code>
+<span class="math inline">≤</span>
+<em><code>last_&lt;k&gt;</code></em><code>(extents(), slices...)</code>
+<span class="math inline">≤</span>
+<code>extents().extent(k)</code></p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Preconditions:</em> For each rank index <code>k</code> of
-<code>src.extents()</code>, <em>all</em> of the following are
-<code>true</code>:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> if
-<span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code> and <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent == 0</code>
-is <code>false</code>, <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride &gt; 0</code>
-is <code>true</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
-<code>0 &lt;=</code><em><code>first</code></em><code>_&lt;index_type, k&gt;(slices...)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
-<em><code>first</code></em><code>_&lt;index_type, k&gt;(slices...) &lt;=</code><em><code>last_&lt;k&gt;</code></em><code>(src.extents(), slices...)</code>,
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span>
-<em><code>last_&lt;k&gt;</code></em><code>(src.extents(), slices...) &lt;= src.extent(k)</code>.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 Let <code>sub_ext</code> be the result of
-<code>submdspan_extents(src.extents(), slices...)</code> and let
+<code>submdspan_extents(extents(), slices...)</code> and let
 <code>SubExtents</code> be <code>decltype(sub_ext)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 Let <code>sub_strides</code> be an
-<code>array&lt;SubExtents::index_type, SubExtents::rank()</code> such
-that for each rank index <code>k</code> of <code>src.extents()</code>
+<code>array&lt;SubExtents::index_type, SubExtents::rank()&gt;</code>
+such that for each rank index <code>k</code> of <code>extents()</code>
 for which <em><code>map-rank</code></em><code>[k]</code> is not
-<code>dynamic_extent</code>
+<code>dynamic_extent</code>,
 <code>sub_strides[</code><em><code>map-rank</code></em><code>[k]]</code>
 equals:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
-<code>src.stride(k) *</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride</code>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
+<code>stride(k) *</code><em><code>de-ice</code></em><code>(</code><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride)</code>
 if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code>; otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-<code>src.stride(k)</code>.</p></li>
+specialization of <code>strided_slice</code> and <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride</code>
+<span class="math inline"> &lt; <em>s</em><sub><em>k</em></sub></span><code>.extent</code>;
+otherwise</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
+<code>stride(k)</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 Let <code>P</code> be a parameter pack such that
 <code>is_same_v&lt;make_index_sequence&lt;rank()&gt;, index_sequence&lt;P...&gt;&gt;</code>
 is <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 Let <code>offset</code> be a value of type <code>size_t</code> equal to
-<code>map(</code><em><code>first</code></em><code>_&lt;index_type&gt;(P, slices...)...)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
+<code>(*this)(</code><em><code>first</code></em><code>_&lt;index_type, P&gt;(slices...)...)</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Returns:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.1)</a></span>
-<code>submdspan_mapping_result{src, 0}</code>, if
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
+<code>submdspan_mapping_result{*this, 0}</code>, if
 <code>Extents::rank()==0</code> is <code>true</code>; otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
 <code>submdspan_mapping_result{layout_left::mapping(sub_ext), offset}</code>,
 if</p>
 <ul>
-<li><p><code>decltype(src)::layout_type</code> is
-<code>layout_left</code>; and</p></li>
-<li><p>for each <code>k</code> in the range <span class="math inline">[0,</span> <code>SubExtents::rank()-1</code><span class="math inline">)</span>, <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is
-<code>full_extent_t</code>; and</p></li>
+<li><p><code>layout_type</code> is <code>layout_left</code>;
+and</p></li>
+<li><p>for each <code>k</code> in the range <span class="math inline">[0,</span> <code>SubExtents::rank()-1</code><span class="math inline">)</span>, <code>is_convertible_v&lt;</code> <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
+<code>, full_extent_t&gt;</code> is <code>true</code>; and</p></li>
 <li><p>for <code>k</code> equal to <code>SubExtents::rank()-1</code>,
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;index_type, index_type&gt;&gt; || is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+<span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
+<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>; otherwise</p></li>
-</ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.3)</a></span>
+</ul>
+<p><i>[Note: </i> If the above conditions are true, all <span class="math inline"><em>S</em><sub><em>k</em></sub></span> with
+<code>k</code> larger than <code>SubExtents::rank()-1</code> are
+convertible to <code>index_type</code>. <i>- end note]</i></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
 <code>submdspan_mapping_result{layout_right::mapping(sub_ext), offset}</code>,
 if</p>
 <ul>
-<li><p><code>decltype(src)::layout_type</code> is
-<code>layout_right</code>; and</p></li>
+<li><p><code>layout_type</code> is <code>layout_right</code>;
+and</p></li>
 <li><p>for each <code>k</code> in the range <span class="math inline">[</span>
-<code>Extents::rank() - SubExtents::rank()+1, Extents.rank()</code><span class="math inline">)</span>, <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is
-<code>full_extent_t</code>; and</p></li>
+<code>Extents::rank() - SubExtents::rank()+1, Extents::rank()</code><span class="math inline">)</span>, <code>is_convertible_v&lt;</code> <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
+<code>, full_extent_t&gt;</code> is <code>true</code>; and</p></li>
 <li><p>for <code>k</code> equal to
-<code>Extents::rank()-SubExtents::rank()</code>,
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;index_type, index_type&gt;&gt; || is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+<code>Extents::rank()-SubExtents::rank()</code>, <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
+<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>; otherwise</p></li>
-</ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(10.4)</a></span>
+</ul>
+<p><i>[Note: </i> If the above conditions are true, all <span class="math inline"><em>S</em><sub><em>k</em></sub></span> with
+<code>k</code> <span class="math inline">&lt;</span>
+<code>Extents::rank()-SubExtents::rank()</code> are convertible to
+<code>index_type</code>. <i>- end note]</i></p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.4)</a></span>
 <code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</p></li>
 </ul>
 <p><b>24.7.3.7.6 <code>submdspan</code> function
 [mdspan.submdspan.submdspan]</b></p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [mdspan.submdspan], submdspan creation</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy,</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan<span class="op">(</span></span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;&amp;</span> src,</span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    SliceSpecifiers<span class="op">...</span>slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [mdspan.submdspan], submdspan creation</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan<span class="op">(</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;&amp;</span> src,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    SliceSpecifiers<span class="op">...</span>slices<span class="op">)</span> <span class="op">-&gt;</span> <em>see below</em>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 Let <code>index_type</code> name the type
 <code>typename Extents::index_type</code>.</p>
@@ -1528,45 +1560,56 @@ note]</i></p>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
-<code>sizeof...(slices)</code> equals
-<code>Extents::rank()</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-<code>submdspan_mapping(src.mapping(), slices...)</code> is well
-formed.</p></li>
+<code>sizeof...(slices)</code> equals <code>Extents::rank()</code>,
+and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> the
+expression <code>submdspan_mapping(src.mapping(), slices...)</code> is
+well-formed when treated as an unevaluated operand.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Mandates:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>is_same_v&lt;decltype(sub_map_offset.extents()), decltype(submdspan_extents(src.mapping(), slices...))&gt;</code>
+<code>decltype(submdspan_mapping(src.mapping(), slices...))</code> is a
+specialization of <code>submdspan_mapping_result</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<code>is_same_v&lt;remove_cvref_t&lt;decltype(sub_map_offset.mapping.extents())&gt;, decltype(submdspan_extents(src.mapping(), slices...))&gt;</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> For
-each rank index <code>k</code> of <code>src.extents()</code>,
-<em>exactly one</em> of the following is <code>true</code>:</p>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> For
+each rank index <code>k</code> of <code>src.extents()</code>, exactly
+one of the following is true:</p>
 <ul>
-<li><p><code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, index_type&gt;</code>,</p></li>
-<li><p><code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, tuple&lt;index_type, index_type&gt;&gt;</code>,</p></li>
-<li><p><code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>,
-or</p></li>
 <li><p><span class="math inline"><em>S</em><sub><em>k</em></sub></span>
-is a specialization of <code>strided_slice</code>.</p></li>
+models <code>convertible_to&lt;index_type&gt;</code></p></li>
+<li><p><span class="math inline"><em>S</em><sub><em>k</em></sub></span>
+models
+<em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code></p></li>
+<li><p><code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+is <code>true</code></p></li>
+<li><p><span class="math inline"><em>S</em><sub><em>k</em></sub></span>
+is a specialization of <code>strided_slice</code></p></li>
 </ul></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Preconditions:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> For
-each rank index <code>k</code> of <code>src.extents()</code>,
-<em>all</em> of the following are <code>true</code>:</p>
+each rank index <code>k</code> of <code>src.extents()</code>, all of the
+following are true:</p>
 <ul>
 <li><p>if <span class="math inline"><em>S</em><sub><em>k</em></sub></span> is a
-specialization of <code>strided_slice</code> and <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent == 0</code>
-is <code>false</code>, <span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride &gt; 0</code>
-is <code>true</code>,</p></li>
-<li><p><code>0 &lt;=</code><em><code>first</code></em><code>_&lt;index_type, k&gt;(slices...)</code>,</p></li>
-<li><p><em><code>first</code></em><code>_&lt;index_type, k&gt;(slices...) &lt;=</code><em><code>last_&lt;k&gt;</code></em><code>(src.extents(), slices...)</code>,
-and</p></li>
-<li><p><em><code>last_&lt;k&gt;</code></em><code>(src.extents(), slices...) &lt;= src.extent(k)</code>;</p></li>
+specialization of <code>strided_slice</code></p>
+<ul>
+<li><p><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.extent</code>
+<span class="math inline"> = 0</span>, or</p></li>
+<li><p><span class="math inline"><em>s</em><sub><em>k</em></sub></span><code>.stride</code>
+<span class="math inline"> &gt; 0</span></p></li>
+</ul></li>
+<li><p><span class="math inline">0≤</span>
+<em><code>first</code></em><code>_&lt;index_type, k&gt;(slices...)</code>
+<span class="math inline">≤</span>
+<em><code>last_&lt;k&gt;</code></em><code>(src.extents(), slices...)</code>
+<span class="math inline">≤</span> <code>src.extent(k)</code></p></li>
 </ul></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 <code>sub_map_offset.mapping.extents() == submdspan_extents(src.mapping(), slices...)</code>
@@ -1577,17 +1620,15 @@ each integer pack <code>I</code> which is a multidimensional index in
 <code>sub_map_offset.mapping(I...) + sub_map_offset.offset == src.mapping()(</code><em><code>src-indices</code></em><code>(array{I...}, slices ...))</code>
 is <code>true</code>.</p></li>
 </ul>
-<p><i>[Note: </i> Conditions 5.2 and 5.3 make it so that it is not valid
-to call <code>submdspan</code> with layout mappings, for which an
-overload of <code>submdspan_mapping</code>, does not return a mapping,
-which maps to the algorithmicly expected indices, given the slice
-specifiers. <i>- end note]</i></p>
+<p><i>[Note: </i> These conditions ensure that the mapping returned by
+<code>submdspan_mapping</code> matches the algorithmically expected
+index-mapping given the slice specifiers. <i>- end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects:</em> Equivalent to</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> sub_map_offset <span class="op">=</span> submdspan_mapping<span class="op">(</span>src<span class="op">.</span>mapping<span class="op">()</span>, args<span class="op">...)</span>;</span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> mdspan<span class="op">(</span>src<span class="op">.</span>accessor<span class="op">().</span>offset<span class="op">(</span>src<span class="op">.</span>data<span class="op">()</span>, sub_map_offset<span class="op">.</span>offset<span class="op">)</span>,</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>                sub_map_offset<span class="op">.</span>mapping,</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>                AccessorPolicy<span class="op">::</span>offset_policy<span class="op">(</span>src<span class="op">.</span>accessor<span class="op">()))</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> sub_map_offset <span class="op">=</span> submdspan_mapping<span class="op">(</span>src<span class="op">.</span>mapping<span class="op">()</span>, args<span class="op">...)</span>;</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> mdspan<span class="op">(</span>src<span class="op">.</span>accessor<span class="op">().</span>offset<span class="op">(</span>src<span class="op">.</span>data<span class="op">()</span>, sub_map_offset<span class="op">.</span>offset<span class="op">)</span>,</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>                sub_map_offset<span class="op">.</span>mapping,</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>                AccessorPolicy<span class="op">::</span>offset_policy<span class="op">(</span>src<span class="op">.</span>accessor<span class="op">()))</span>;</span></code></pre></div>
 <p><i>[Example:</i></p>
 <p>Given a rank-3 <code>mdspan</code> <code>grid3d</code> representing a
 three-dimensional grid of regularly spaced points in a rectangular
@@ -1595,127 +1636,27 @@ prism, the function <code>zero_surface</code> sets all elements on the
 surface of the 3-dimensional shape to zero. It does so by reusing a
 function <code>zero_2d</code> that takes a rank-2
 <code>mdspan</code>.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co">// zero out all elements in an mdspan</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T, <span class="kw">class</span> E, <span class="kw">class</span> L, <span class="kw">class</span> A<span class="op">&gt;</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> zero_2d<span class="op">(</span>mdspan<span class="op">&lt;</span>T,E,L,A<span class="op">&gt;</span> a<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>a<span class="op">.</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">2</span><span class="op">)</span>;</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i<span class="op">=</span><span class="dv">0</span>; i<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; i<span class="op">++)</span></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> j<span class="op">=</span><span class="dv">0</span>; j<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)</span>; j<span class="op">++)</span></span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>      a<span class="op">[</span>i,j<span class="op">]</span> <span class="op">=</span> <span class="dv">0</span>;</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a><span class="co">// zero out just the surface</span></span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T, <span class="kw">class</span> E, <span class="kw">class</span> L, <span class="kw">class</span> A<span class="op">&gt;</span></span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> zero_surface<span class="op">(</span>mdspan<span class="op">&lt;</span>T,E,L,A<span class="op">&gt;</span> grid3d<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>grid3d<span class="op">.</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="op">)</span>;</span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>a, <span class="dv">0</span>, full_extent, full_extent<span class="op">))</span>;</span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>a, full_extent, <span class="dv">0</span>, full_extent<span class="op">))</span>;</span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>a, full_extent, full_extent, <span class="dv">0</span><span class="op">))</span>;</span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>a, a<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)-</span><span class="dv">1</span>, full_extent, full_extent<span class="op">))</span>;</span>
-<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>a, full_extent, a<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)-</span><span class="dv">1</span>, full_extent<span class="op">))</span>;</span>
-<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>a, full_extent, full_extent, a<span class="op">.</span>extent<span class="op">(</span><span class="dv">2</span><span class="op">)-</span><span class="dv">1</span><span class="op">))</span>;</span>
-<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">// zero out all elements in an mdspan</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T, <span class="kw">class</span> E, <span class="kw">class</span> L, <span class="kw">class</span> A<span class="op">&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> zero_2d<span class="op">(</span>mdspan<span class="op">&lt;</span>T,E,L,A<span class="op">&gt;</span> a<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>a<span class="op">.</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">2</span><span class="op">)</span>;</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> i<span class="op">=</span><span class="dv">0</span>; i<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; i<span class="op">++)</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span><span class="op">(</span><span class="dt">int</span> j<span class="op">=</span><span class="dv">0</span>; j<span class="op">&lt;</span>a<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)</span>; j<span class="op">++)</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>      a<span class="op">[</span>i,j<span class="op">]</span> <span class="op">=</span> <span class="dv">0</span>;</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co">// zero out just the surface</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T, <span class="kw">class</span> E, <span class="kw">class</span> L, <span class="kw">class</span> A<span class="op">&gt;</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> zero_surface<span class="op">(</span>mdspan<span class="op">&lt;</span>T,E,L,A<span class="op">&gt;</span> grid3d<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>grid3d<span class="op">.</span>rank<span class="op">()</span> <span class="op">==</span> <span class="dv">3</span><span class="op">)</span>;</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>grid3d, <span class="dv">0</span>, full_extent, full_extent<span class="op">))</span>;</span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>grid3d, full_extent, <span class="dv">0</span>, full_extent<span class="op">))</span>;</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>grid3d, full_extent, full_extent, <span class="dv">0</span><span class="op">))</span>;</span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>grid3d, grid3d<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)-</span><span class="dv">1</span>, full_extent, full_extent<span class="op">))</span>;</span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>grid3d, full_extent, grid3d<span class="op">.</span>extent<span class="op">(</span><span class="dv">1</span><span class="op">)-</span><span class="dv">1</span>, full_extent<span class="op">))</span>;</span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>  zero_2d<span class="op">(</span>submdspan<span class="op">(</span>grid3d, full_extent, full_extent, grid3d<span class="op">.</span>extent<span class="op">(</span><span class="dv">2</span><span class="op">)-</span><span class="dv">1</span><span class="op">))</span>;</span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p><i>- end example]</i></p>
-<!---
-[5]{.pnum} *Remarks:*
-
-   * [5.1]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
-  
-      * `SubExtents::rank()` equals the number of $k$ such that `is_convertible_v<`$S_k$`, size_t>` is `false`.
-
-      * For all rank index `k` of `Extents` such that _`map-rank`_`[k] != dynamic_extent` is `true` `SubExtents::static_extent(`_`map-rank`_`[k])` equals:
-
-         * `Extents::static_extent(k)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, otherwise 
-
-         * `dynamic_extent`.
-
-   * [5.2]{.pnum} Let `SubMapping` be the `decltype(submdspan_mapping(src.mapping(),slices...))`.
-
-   * [5.3]{.pnum} If `SubMapping::extents_type` is not `SubExtents` the program is illformed. 
-
-   * [5.3]{.pnum} The return type is `mdspan<ElementType, SubExtents, typename SubMapping::layout_type, typename AccessorPolicy::offset_policy>`.
-
-
-
-[3]{.pnum} Let `sub` be the return value of `submdspan(src, slices...)`,
-let $s_k$ be the $k$-th element of `slices`, and
-let $S_k$ be the type of the $k$-th element of `slices`.
-
-[4]{.pnum} Let _`map-rank`_ be an `array<size_t, Extents::rank()>`
-such that for each rank index `j` of `Extents` _`map-rank`_`[j]` equals:
-
-   * [4.1]{.pnum} `dynamic_extent` if `is_convertible_v<`$S_j$`, size_t>` is `true`, or else
-
-   * [4.2]{.pnum} the number of $S_k$ with $k < j$ such that `is_convertible_v<`$S_k$`, size_t>` is `false`.
-
-[5]{.pnum} Let _`first`_ and _`last`_ be `array<size_t, Extents::rank()>`.
-For each rank index `r` of `src.extents()`,
-define the values of _`first`_`[r]` and _`last`_`[r]` as follows:
-
-   * [5.1]{.pnum} if `is_convertible_v<`$S_r$`, size_t>` is `true`,
-  then _`first`_`[r]` equals $s_r$, and
-  _`last`_`[r]` equals _`first`_`[r]` + 1;
-
-   * [5.2]{.pnum} otherwise, if `is_convertible_v<`$S_r$`, tuple<size_t, size_t>>` is `true`,
-  then _`first`_`[r]` equals `get<0>(t)`, and _`last`_`[r]` equals `get<1>(t)`,
-  where `t` is the result of converting $s_r$ to `tuple<size_t, size_t>`;
-
-   * [5.3]{.pnum} otherwise, _`first`_`[r]` equals `0`, and _`last`_`[r]` equals `src.extent(r)`.
-
-
-
-[9]{.pnum} *Effects:*
-
-   * [9.1]{.pnum} Direct-non-list-initializes `sub.`_`acc_`_ with `src.accessor()`.
-
-   * [9.2]{.pnum} Let `sub_offset` be `apply(src.mapping(), `_`first`_`)` if _`first`_`[r] < src.extent(r)` for all rank index `r` of `src.extents()`, and
-                  `src.mapping().required_span_size()` otherwise. 
-                  Direct-non-list-initializes `sub.`_`ptr_`_ with `src.accessor().offset(src.data(), sub_offset)`.
-                  <i>[Note:</i> The condition protects against applying invalid indices to the source mapping in cases such as `submdspan(a, tuple{a.extent(0), a.extent(0)})`, where
-                      _`first`_`[0] ==` _`last`_`[0]` and _`last`_`[0] == src.extent(0)`. <i>- end note]</i> 
-
-[10]{.pnum} *Postconditions:*
-
-   * [10.1]{.pnum} For $0\:\le$ `k` < `Extents::rank()`, if _`map-rank`_`[k] != dynamic_extent` is `true`, then
-     `sub.extent(`_`map-rank`_`[k])` equals _`last`_`[k] - `_`first`_`[k]`.
-   
-   * [10.2]{.pnum} Let `j` be a multidimensional index in `sub.extents()`, let `J` be `array{static_cast<size_t>(j)...}`, let `I` be `array<size_t, decltype(src)::rank()>` such that
-     `I[k] == `_`first`_`[k] + (`_`map-rank`_`[k]==dynamic_extent?0:J[`_`map-rank`_`[k]])` is `true`, then `sub[J]` and `src[I]` refer to the same element.
-
-   * [10.3]{.pnum} If `src.is_strided()` is `true`, then `sub.is_strided()` is `true`.
-
-   * [10.4]{.pnum} If `src.is_unique()` is `true`, then `sub.is_unique()` is `true`.
-
-[11]{.pnum} *Remarks:* 
-
-   * [11.1]{.pnum} Let `SubExtents` be a specialization of `extents` such that:
-  
-      * `SubExtents::rank()` equals the number of $k$ such that `is_convertible_v<`$S_k$`, size_t>` is `false`.
-
-      * For all rank index `k` of `Extents` such that _`map-rank`_`[k] != dynamic_extent` is `true` `SubExtents::static_extent(`_`map-rank`_`[k])` equals:
-
-         * `Extents::static_extent(k)` if `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, otherwise 
-
-         * `dynamic_extent`.
-
-   * [11.2]{.pnum} Let `SubLayout` be a type that meets the requirements of layout mapping policy and:
-
-      * if `LayoutPolicy` is not one of `layout_left`, `layout_right`, `layout_stride`, then `SubLayout` is implementation defined, otherwise
-     
-      * if `SubExtents::rank()` is `0`, then `SubLayout` is `LayoutPolicy`, otherwise
-
-      * if `LayoutPolicy` is `layout_left`, `is_convertible_v<`$S_k$`, full_extent_t>` is `true` for all
-    $k$ in the range $[0,$`SubExtents::rank()-1`$)$, and `is_convertible_v<`$S_k$`, size_t>` is `false` for $k$ equal `SubExtents::rank()-1`, then
-    `SubLayout` is `layout_left`, otherwise
-      
-      * if `LayoutPolicy` is `layout_right`, `is_convertible_v<`$S_k$`, full_extent_t>` is `true` for all
-    $k$ in the range $[$`Extents::rank()-SubExtents::rank()+1`$,$ `Extents::rank()`$)$ and `is_convertible_v<`$S_k$`, size_t>` is `false` for $k$ equal `Extents::rank()-SubExtents::rank()`, then
-    `SubLayout` is `layout_right`, otherwise
-    
-      * `SubLayout` is `layout_stride`.
-
-   * [11.3]{.pnum} The return type is `mdspan<ElementType, SubExtents, SubLayout, typename Accesssor::offset_policy>`.
--->
 </div>
 </div>
 </body>
