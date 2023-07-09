@@ -2,7 +2,7 @@
 ---
 title: Padded mdspan layouts
 document: P2642
-date: 2023-01-15
+date: 2023-07-09
 audience: LEWG
 author:
   - name: Mark Hoemmen (NVIDIA)
@@ -82,6 +82,12 @@ Revision 2 to be submitted 2023-01-15.
       to the list of the layouts in the expression inside `explicit`
 
   * Reformat from Bikeshed to Pandoc
+
+## Revision 3
+
+Revision 3 to be submitted sometime after 2023-07-09.
+
+* Update P2630 (`submdspan`) revision number to R3.
 
 # Proposed changes and justification
 
@@ -676,7 +682,7 @@ because the base case matrices are always `layout_stride`.
 On discovering this, the author of these functions
 might be tempted to write a custom layout for "BLAS-compatible" matrices.
 However, the current version of the `submdspan` proposal
-<a href="https://wg21.link/p2630r2">P2630R2</a>
+<a href="https://wg21.link/p2630">P2630</a>
 forces `partition` to return four `layout_stride` mdspan
 if given a `layout_left` (or `layout_right`) input mdspan.
 This would, in turn, force users of `recursive_matrix_product`
@@ -887,8 +893,8 @@ C++26 / IS.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P2630R2.
-> (This proposal is a "rebase" atop the changes proposed by P2630R2.)
+> First, apply all wording from P2630R3.
+> (This proposal is a "rebase" atop the changes proposed by P2630R3.)
 
 > Add the following feature test macro to *[version.syn]*,
 > replacing YYYYMML with the integer literal
