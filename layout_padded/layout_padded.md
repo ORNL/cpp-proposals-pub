@@ -89,6 +89,22 @@ Revision 3 to be submitted sometime after 2023-07-09.
 
 * Update P2630 (`submdspan`) revision number to R3.
 
+* Change layout mapping requirements so that a layout mapping's `extents()`
+    member function can return either `extents_type` or `const extents_type&`,
+    instead of just `const extents_type&`.
+    This lets `extents()` return a temporary.
+    The padded layout mappings in this proposal need to do this
+    so that they only need to store the "inner" extents,
+    not their actual extents.
+    (Lifetime extension doesn't apply to a temporary
+    bound to a return value of a function in a return statement,
+    so a return type of `const extents_type&`
+    would always result in a dangling reference.
+    See e.g., [this Compiler Explorer example](https://godbolt.org/z/KeYdTozbP),
+    which segfaults.)
+    Storing the actual `extents(``) return value instead of the inner extents
+    would either waste storage (2x extents) or complicate the wording.
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
@@ -919,6 +935,16 @@ struct layout_right_padded {
   class mapping;
 };
 ```
+
+> Change paragraph 6 of *[mdspan.layout.reqmnts]*,
+> which specifies the return type of `m.extents()`,
+> from
+
+*Result*: `const typename M​::​extents_type&`
+
+> to
+
+*Result*: Either `const typename M::extents_type&` or `typename M::extents_type`.
 
 > After paragraph 1 of *[mdspan.layout.policy.overview]*,
 > add the following paragraph 2:
