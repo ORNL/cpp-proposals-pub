@@ -89,6 +89,8 @@ Revision 3 to be submitted sometime after 2023-07-09.
 
 * Update P2630 (`submdspan`) revision number to R3.
 
+* Add references to P2897 (`aligned_accessor`).
+
 * Change layout mapping requirements so that a layout mapping's `extents()`
     member function can return either `extents_type` or `const extents_type&`,
     instead of just `const extents_type&`.
@@ -198,8 +200,9 @@ The BLAS and algorithms that use it
 (such as the blocked algorithms in LAPACK)
 depend on this ability to operate on contiguous submatrices
 with the same layout as their parent.
-For this reason, we can replace the `layout_blas_general` layout in
-<a href="https://wg21.link/p1673">P1673</a>
+For this reason, we have replaced the `layout_blas_general` layout
+in earlier versions of our
+<a href="https://wg21.link/p1673">P1673</a> proposal
 with `layout_left_padded` and `layout_right_padded`.
 Making most effective use of the new layouts in code that uses P1673
 calls for integrating them with `submdspan`.
@@ -743,7 +746,7 @@ This can enable use of hardware features
 that require overaligned memory access.
 
 The following `aligned_accessor` class template
-(which this proposal does *not* propose to add to the C++ Standard Library)
+(proposed in our separate proposal [P2897](https://wg21.link/p2897))
 uses the C++ Standard Library function `assume_aligned`
 to decorate pointer access.
 
@@ -855,7 +858,7 @@ The most benefit comes not just from knowing the padding stride at compile time,
 but also from knowing that one dimension always uses stride-one (contiguous) storage.
 Putting these two pieces of information together
 lets users apply compiler annotations like `assume_aligned`,
-as in the above `aligned_accessor` example.
+as in `aligned_accessor` (<a href="https://wg21.link/p2897">P2897</a>).
 Knowing that one dimension always uses contiguous storage
 also tells users that they can pass the mdspan's data
 directly into C or Fortran libraries like the BLAS or LAPACK.
@@ -868,7 +871,7 @@ fully at compile time.  The reference mdspan implementation has
 that demonstrate this by using the result of a layout mapping evaluation
 in a context where it needs to be known at compile time.
 
-Third, the performance benefit of storing <it>some</it> strides
+Third, the performance benefit of storing _some_ strides
 as compile-time constants goes down as the rank increases,
 because most of the strides would end up depending on run-time values anyway.
 Strided mdspan generally come from a subview
@@ -885,7 +888,7 @@ would end up depending on that run-time extent anyway.
 The larger the rank, the more strides get "touched" by run-time information.
 
 Fourth, a strided mdspan that can represent layouts as general as `layout_stride`,
-but has entirely compile-time extents *and* strides,
+but has entirely compile-time extents _and_ strides,
 could be useful for supporting features of a specific computer architecture.
 However, these hardware features would probably have limitations
 that would prevent them from supporting general strided layouts anyway.
