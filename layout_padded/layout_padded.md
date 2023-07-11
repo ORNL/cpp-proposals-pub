@@ -400,6 +400,96 @@ for some less performance-critical algorithms,
 as a way to minimize algorithm instantiations
 for different layouts.
 
+### Design change from R2 to R3: `extents()` return type
+
+In revisions of this proposal up to and including R2,
+the new layout mappings' `extents()` member functions
+both had return type `extents_type`.
+That is, they both returned by value.
+We did this deliberately,
+so that we could specify the layout mappings
+in terms of the behavior of `layout_left::mapping`
+resp. `layout_right::mapping` with a padded `extents` object,
+without needing to store the "original" `extents`.
+However, we realized after the publication of R2
+that this does not respect
+the existing layout mapping requirements in
+paragraph 6 of *[mdspan.layout.reqmnts]*.
+This specifies the return type of `m.extents()`
+for every layout mapping as `const extents_type&`.
+That is, `extents()` must always return by const reference.
+
+We considered changing the layout mapping requirements
+to permit layout mappings to return
+either `extents_type` or `const extents_type&`.
+However, we realized that *[mdspan.mdspan]* specifies
+mdspan's `extent(r)` member function
+(which returns a single integral extent)
+as `return `_`map_`_`.extents().extent(r)`.
+Letting a layout mapping's `extents()`
+create and return a temporary
+could make mdspan's `extent(r)` unexpectedly expensive.
+It should be always be cheap
+to get a single extent from an mdspan,
+because it's a common multidimensional array idiom
+to write nested `for` loops over each extent.
+
+Our specification in *[mdspan.mdspan]*
+of mdspan's `extent(r)` as
+`return `_`map_`_`.extents().extent(r)`
+was also deliberate.  It expresses two design choices.
+First, requiring the mdspan to get its extents
+from the layout mapping (that is,
+specifying `extents()` as `return `_`map_`_`.extents()`)
+ensures that an mdspan is nothing more that the composition
+of its data handle, layout mapping, and accessor.
+The layout mapping controls the extents;
+an mdspan cannot have "its own extents"
+that differ from those in its layout mapping.
+Second, not including `extents(r)` in the layout mapping
+means that a layout mapping also cannot have
+"its own extents" that differ from what `extents()` returns.
+Those two choices mean that the following code is well formed
+and does not trigger an `assert` for any mdspan `x`.
+
+```c++
+// An mdspan's extents are its mapping's extents.
+using mapping_type = decltype(x)::mapping_type;
+using extents_type = mapping_type::extents_type;
+static_assert(std::is_same_v<decltype(x)::extents_type, extents_type>);
+assert(x.extents() == x.mapping().extents());
+
+// A mapping's extent(r) must agree with its extents().
+auto e = [&] <size_t... Indices> (std::index_sequence<Indices...>) {
+    using index_type = extents_type::index_type;
+    return extents<index_type, x.static_extent(Indices)...>{
+      x.mapping().extent(Indices)...
+    };
+  } (std::make_index_sequence<x.rank()>());
+static_assert(std::is_same_v<decltype(e), extents_type>);
+assert(e == x.mapping().extents());
+```
+
+All these design choices add up to the padded layout mappings
+needing to return `const extents_type&` from `extents()`.
+This means that we cannot use R2's wording approach
+of having `extents()` return a temporary `extents` object.
+(Lifetime extension does not apply to a temporary
+created in and returned from a `return` statement.)
+Our wording fix in subsequent revisions is minimal:
+we add a new exposition-only `extents_type extents_`
+to both of the padded layout mappings.
+However, this is not meant to suggest
+that implementations should take this approach.
+Instead of following the wording by using a nested
+`layout_left::mapping` resp. `layout_right::mapping`
+with a padded extents object,
+they could just reimplement the padded mappings
+as special cases of `layout_stride`.
+That way, each mapping would only store one `extents` object,
+the actual `extents_type`
+to which `extents()` returns a const reference.
+
 ## Integration with `submdspan`
 
 We propose changing `submdspan`
