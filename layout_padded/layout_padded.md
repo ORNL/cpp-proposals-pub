@@ -104,6 +104,7 @@ Revision 3 to be submitted sometime after 2023-07-09.
     which segfaults.)
     Storing the actual `extents(``) return value instead of the inner extents
     would either waste storage (2x extents) or complicate the wording.
+    Thanks to Oliver Lee (oliverzlee@gmail.com) for an excellent discussion.
 
 # Proposed changes and justification
 
