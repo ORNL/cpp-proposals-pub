@@ -414,9 +414,8 @@ We considered changing the layout mapping requirements
 to permit layout mappings to return
 either `extents_type` or `const extents_type&`.
 However, we realized that *[mdspan.mdspan]* specifies
-mdspan's `extent(r)` member function
-(which returns a single integral extent)
-as `return `_`map_`_`.extents().extent(r)`.
+that mdspan's `extent(r)` member function
+returns _`map_`_`.extents().extent(r)`.
 Letting a layout mapping's `extents()`
 create and return a temporary
 could make mdspan's `extent(r)` unexpectedly expensive.
@@ -425,13 +424,12 @@ to get a single extent from an mdspan,
 because it's a common multidimensional array idiom
 to write nested `for` loops over each extent.
 
-Our specification in *[mdspan.mdspan]*
-of mdspan's `extent(r)` as
-`return `_`map_`_`.extents().extent(r)`
+Our specification in *[mdspan.mdspan]* that mdspan's
+`extent(r)` returns _`map_`_`.extents().extent(r)`
 was also deliberate.  It expresses two design choices.
-First, requiring the mdspan to get its extents
-from the layout mapping (that is,
-specifying `extents()` as `return `_`map_`_`.extents()`)
+First, requiring mdspan to get its extents
+from its layout mapping (that is, specifying
+mdspan's `extents()` to return _`map_`_`.extents()`)
 ensures that an mdspan is nothing more that the composition
 of its data handle, layout mapping, and accessor.
 The layout mapping controls the extents;
@@ -468,8 +466,8 @@ of having `extents()` return a temporary `extents` object.
 (Lifetime extension does not apply to a temporary
 created in and returned from a `return` statement.)
 Our wording fix in subsequent revisions is minimal:
-we add a new exposition-only `extents_type extents_`
-to both of the padded layout mappings.
+we add a new exposition-only _`actual-extents`_ member
+of type `extents_type` to both of the padded mappings.
 However, this is not meant to suggest
 that implementations should take this approach.
 Instead of following the wording by using a nested
@@ -477,9 +475,8 @@ Instead of following the wording by using a nested
 with a padded extents object,
 they could just reimplement the padded mappings
 as special cases of `layout_stride`.
-That way, each mapping would only store one `extents` object,
-the actual `extents_type`
-to which `extents()` returns a const reference.
+That way, each mapping would only store one `extents_type` object,
+and `extents()` would return a const reference to that object.
 
 ## Integration with `submdspan`
 
@@ -832,26 +829,17 @@ uses the C++ Standard Library function `assume_aligned`
 to decorate pointer access.
 
 ```c++
-template<class ElementType, std::size_t byte_alignment>
+template<class ElementType, size_t byte_alignment>
 struct aligned_accessor {
-  // Even if a pointer p is aligned, p + i might not be.
-  using offset_policy = std::default_accessor<ElementType>;
+  using offset_policy = default_accessor<ElementType>;
 
   using element_type = ElementType;
   using reference = ElementType&;
-  // Some implementations might have an easier time optimizing
-  // if this class applies an attribute to the pointer type.
-  // Examples of attributes include
-  // __declspec(align_value(byte_alignment))
-  // and
-  // __attribute__((align_value(byte_alignment))).
   using data_handle_type = ElementType*;
 
   constexpr aligned_accessor() noexcept = default;
 
-  // A feature of default_accessor that permits
-  // conversion from nonconst to const.
-  template<class OtherElementType, std::size_t other_byte_alignment>
+  template<class OtherElementType, size_t other_byte_alignment>
   requires (
     std::is_convertible_v<OtherElementType(*)[], element_type(*)[]> &&
     other_byte_alignment == byte_alignment)
@@ -907,9 +895,8 @@ and/or assume that the padding element
 at the end of each column is accessible memory.
 
 ```c++
-constexpr std::size_t element_alignment = 8;
-constexpr std::size_t byte_alignment =
-  element_alignment * sizeof(float);
+constexpr size_t element_alignment = 8;
+constexpr size_t byte_alignment = element_alignment * sizeof(float);
 
 using layout_type = layout_left_padded<element_alignment>;
 layout_type::mapping mapping{dextents<int, 2>{15, 17}};
