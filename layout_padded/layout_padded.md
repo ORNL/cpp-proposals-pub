@@ -99,6 +99,9 @@ Revision 3 to be submitted sometime after 2023-07-09.
     so that `extents()` can return a valid reference.
     Thanks to Oliver Lee (oliverzlee@gmail.com) for an excellent discussion!
 
+* Add design discussion requested by LEWG on 2023/03/28
+    relating to the results of the two polls.
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
@@ -911,7 +914,9 @@ mdspan m{allocation.get(), mapping, accessor_type{}};
 auto m_sub = submdspan(m, tuple{0, 11}, tuple{1, 13}); 
 ```
 
-## Alternatives
+## Design alternatives
+
+### Strided layout with compile-time strides
 
 We considered a variant of `layout_stride` that could encode
 any combination of compile-time or run-time strides in the layout type.
@@ -964,6 +969,112 @@ For example, they might require strides to be a power of two,
 or they might be limited to specific ranges of extents or strides.
 These limitations would call for custom implementation-specific layouts,
 not something as general as a "compile-time `layout_stride`."
+
+### LEWG R2 polls discussion
+
+LEWG's 2023 took two polls in its review of Revision 2 of this proposal on 2023/03/28.
+Both polls resulted in the status quo design,
+but LEWG asked us to add to the next revision
+a discussion of the questions they posed.
+We do so in the following sections.
+
+### Nest the new policies in corresponding existing ones
+
+LEWG polled on the following question,
+with no votes in favor and thus no consensus for change.
+All coauthors present voted against.
+
+> The proposed tagged type (`layout_left_padded`)
+> should be a nested type (`layout_left::padded`).
+
+The following will explain the context and why the authors oppose this change.
+
+The suggestion was that we should change
+`layout_left_padded<padding_stride>` and `layout_right_padded<padding_stride>`
+from separate layout policies (the status quo) to nested types
+`layout_left::padded<padding_stride>` resp. `layout_right::padded<padding_stride>`.
+
+The issue with this change is that it is "morphologically confused,"
+to borrow the words of one LEWG reviewer.
+The layout mapping policy requirements *[mdspan.layout.policy.reqmts]*
+specify a shape (morphology) of two levels of types.
+The outer type `MP` is the layout mapping policy,
+which represents a family of layout mappings
+parameterized by `extents` type `E`.
+The inner type is the layout mapping `MP::mapping<E>`.
+Nesting a policy inside another policy,
+as in `layout_left::padded`, would break this rule that
+"the policy is on the outside, and the mapping is on the inside."
+
+Note also that the `padding_stride` template parameter
+must live outside the mapping.  Otherwise, it wouldn't be possible
+to construct the mapping from just an `extents` object.
+
+### Layout mapping conversion customization point
+
+LEWG polled on the following question,
+with no votes in favor and thus no consensus for change.
+One coauthor voted neutral and two coauthors voted weakly against.
+
+> An `assume_layout` customization point should be provided for layout conversions.
+
+The following will explain the context and why the authors oppose this change.
+
+The status quo design includes converting constructors
+between some mappings, e.g.,
+from `layout_left_padded::mapping<E1>` to `layout_left::mapping<E2>`.
+These constructors are conditionally `explicit`
+if there are nontrivial preconditions.
+This design matches the existing mdspan mapping conversions,
+e.g., from `layout_stride::mapping<E1>` to `layout_left::mapping<E2>`.
+The intent is that implicit conversions express and permit "type erasure,"
+that is, going from information expressed in a compile-time type
+to information expressed in a member variable or some other way.
+Type erasure here includes three kinds of conversions.
+
+1. From a more restrictive mapping to a less restrictive mapping
+    (e.g., from `layout_left::mapping<E>` to `layout_stride::mapping<E>`)
+
+2. From a mapping with static extents
+    to a mapping with dynamic extents
+    (e.g., from `layout_left::mapping<extents<int, 2, 3>>` to
+    `layout_left::mapping<extents<int, dynamic_extent, 3>>`)
+
+3. Both (changing the mapping and the extents)
+
+Conversion in the opposite direction of type erasure
+generally imposes nontrivial preconditions, so it is explicit.
+We permit explicit conversions because
+they let users potentially improve performance
+by expressing their assumptions in the type system.
+If users didn't have explicit conversions,
+they would likely end up reimplementing them
+in a possibly less safe way.
+
+LEWG reflector discussion suggested a more general approach to conversions.
+Instead of conditionally explicit constructors,
+conversions with nontrivial preconditions
+(e.g., from `layout_stride` to `layout_left_padded` to `layout_left`)
+would use an `assume_layout` customization point.
+This would have the following advantages.
+
+1. Users could implement conversion from their custom layout mapping
+    to a Standard layout mapping.
+
+2. Adding a new layout to the Standard would not require
+    adding converting constructors to all the existing mappings.
+
+However, introducing a customization point would complicate the design.
+The benefit of this complication would be low,
+since most custom or new layout mappings likely
+could not be converted to existing layout mappings.
+For example, tiled layouts or space-filling (Hilbert) curve layouts
+are not strided in general, so they could not be converted
+to anything in the current Standard or this proposal.
+In the words of one LEWG reviewer,
+most layouts are "on [their] own little planet."
+LEWG discussion expressed a strong preference for not overengineering the design
+by offering a conversion customization point when most conversions don't make sense.
 
 ## Implementation experience
 
