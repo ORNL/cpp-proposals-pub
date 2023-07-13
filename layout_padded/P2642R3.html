@@ -495,7 +495,17 @@ and <code>layout_right</code> cases</a></li>
 checks</a></li>
 <li><a href="#overaligned-access" id="toc-overaligned-access"><span class="toc-section-number">3.4.2</span> Overaligned access</a></li>
 </ul></li>
-<li><a href="#alternatives" id="toc-alternatives"><span class="toc-section-number">3.5</span> Alternatives</a></li>
+<li><a href="#design-alternatives" id="toc-design-alternatives"><span class="toc-section-number">3.5</span> Design alternatives</a>
+<ul>
+<li><a href="#strided-layout-with-compile-time-strides" id="toc-strided-layout-with-compile-time-strides"><span class="toc-section-number">3.5.1</span> Strided layout with compile-time
+strides</a></li>
+<li><a href="#lewg-r2-polls-discussion" id="toc-lewg-r2-polls-discussion"><span class="toc-section-number">3.5.2</span> LEWG R2 polls
+discussion</a></li>
+<li><a href="#nest-the-new-policies-in-corresponding-existing-ones" id="toc-nest-the-new-policies-in-corresponding-existing-ones"><span class="toc-section-number">3.5.3</span> Nest the new policies in
+corresponding existing ones</a></li>
+<li><a href="#layout-mapping-conversion-customization-point" id="toc-layout-mapping-conversion-customization-point"><span class="toc-section-number">3.5.4</span> Layout mapping conversion
+customization point</a></li>
+</ul></li>
 <li><a href="#implementation-experience" id="toc-implementation-experience"><span class="toc-section-number">3.6</span> Implementation experience</a></li>
 <li><a href="#desired-ship-vehicle" id="toc-desired-ship-vehicle"><span class="toc-section-number">3.7</span> Desired ship vehicle</a></li>
 </ul></li>
@@ -595,6 +605,8 @@ layout mappings to include an exposition-only
 <em><code>actual-extents</code></em> member, so that
 <code>extents()</code> can return a valid reference. Thanks to Oliver
 Lee (oliverzlee@gmail.com) for an excellent discussion!</p></li>
+<li><p>Add design discussion requested by LEWG on 2023/03/28 relating to
+the results of the two polls.</p></li>
 </ul>
 <h1 data-number="3" id="proposed-changes-and-justification"><span class="header-section-number">3</span> Proposed changes and
 justification<a href="#proposed-changes-and-justification" class="self-link"></a></h1>
@@ -1313,7 +1325,9 @@ element at the end of each column is accessible memory.</p>
 <span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="co">// m_sub has the same layout as m,</span></span>
 <span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="co">// and each column of m_sub has the same overalignment.</span></span>
 <span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> m_sub <span class="op">=</span> submdspan<span class="op">(</span>m, tuple<span class="op">{</span><span class="dv">0</span>, <span class="dv">11</span><span class="op">}</span>, tuple<span class="op">{</span><span class="dv">1</span>, <span class="dv">13</span><span class="op">})</span>; </span></code></pre></div>
-<h2 data-number="3.5" id="alternatives"><span class="header-section-number">3.5</span> Alternatives<a href="#alternatives" class="self-link"></a></h2>
+<h2 data-number="3.5" id="design-alternatives"><span class="header-section-number">3.5</span> Design alternatives<a href="#design-alternatives" class="self-link"></a></h2>
+<h3 data-number="3.5.1" id="strided-layout-with-compile-time-strides"><span class="header-section-number">3.5.1</span> Strided layout with
+compile-time strides<a href="#strided-layout-with-compile-time-strides" class="self-link"></a></h3>
 <p>We considered a variant of <code>layout_stride</code> that could
 encode any combination of compile-time or run-time strides in the layout
 type. This could, for example, use the same mechanism that
@@ -1366,6 +1380,100 @@ to be a power of two, or they might be limited to specific ranges of
 extents or strides. These limitations would call for custom
 implementation-specific layouts, not something as general as a
 “compile-time <code>layout_stride</code>.”</p>
+<h3 data-number="3.5.2" id="lewg-r2-polls-discussion"><span class="header-section-number">3.5.2</span> LEWG R2 polls discussion<a href="#lewg-r2-polls-discussion" class="self-link"></a></h3>
+<p>LEWG’s 2023 took two polls in its review of Revision 2 of this
+proposal on 2023/03/28. Both polls resulted in the status quo design,
+but LEWG asked us to add to the next revision a discussion of the
+questions they posed. We do so in the following sections.</p>
+<h3 data-number="3.5.3" id="nest-the-new-policies-in-corresponding-existing-ones"><span class="header-section-number">3.5.3</span> Nest the new policies in
+corresponding existing ones<a href="#nest-the-new-policies-in-corresponding-existing-ones" class="self-link"></a></h3>
+<p>LEWG polled on the following question, with no votes in favor and
+thus no consensus for change. All coauthors present voted against.</p>
+<blockquote>
+<p>The proposed tagged type (<code>layout_left_padded</code>) should be
+a nested type (<code>layout_left::padded</code>).</p>
+</blockquote>
+<p>The following will explain the context and why the authors oppose
+this change.</p>
+<p>The suggestion was that we should change
+<code>layout_left_padded&lt;padding_stride&gt;</code> and
+<code>layout_right_padded&lt;padding_stride&gt;</code> from separate
+layout policies (the status quo) to nested types
+<code>layout_left::padded&lt;padding_stride&gt;</code> resp.
+<code>layout_right::padded&lt;padding_stride&gt;</code>.</p>
+<p>The issue with this change is that it is “morphologically confused,”
+to borrow the words of one LEWG reviewer. The layout mapping policy
+requirements <em>[mdspan.layout.policy.reqmts]</em> specify a shape
+(morphology) of two levels of types. The outer type <code>MP</code> is
+the layout mapping policy, which represents a family of layout mappings
+parameterized by <code>extents</code> type <code>E</code>. The inner
+type is the layout mapping <code>MP::mapping&lt;E&gt;</code>. Nesting a
+policy inside another policy, as in <code>layout_left::padded</code>,
+would break this rule that “the policy is on the outside, and the
+mapping is on the inside.”</p>
+<p>Note also that the <code>padding_stride</code> template parameter
+must live outside the mapping. Otherwise, it wouldn’t be possible to
+construct the mapping from just an <code>extents</code> object.</p>
+<h3 data-number="3.5.4" id="layout-mapping-conversion-customization-point"><span class="header-section-number">3.5.4</span> Layout mapping conversion
+customization point<a href="#layout-mapping-conversion-customization-point" class="self-link"></a></h3>
+<p>LEWG polled on the following question, with no votes in favor and
+thus no consensus for change. One coauthor voted neutral and two
+coauthors voted weakly against.</p>
+<blockquote>
+<p>An <code>assume_layout</code> customization point should be provided
+for layout conversions.</p>
+</blockquote>
+<p>The following will explain the context and why the authors oppose
+this change.</p>
+<p>The status quo design includes converting constructors between some
+mappings, e.g., from <code>layout_left_padded::mapping&lt;E1&gt;</code>
+to <code>layout_left::mapping&lt;E2&gt;</code>. These constructors are
+conditionally <code>explicit</code> if there are nontrivial
+preconditions. This design matches the existing mdspan mapping
+conversions, e.g., from <code>layout_stride::mapping&lt;E1&gt;</code> to
+<code>layout_left::mapping&lt;E2&gt;</code>. The intent is that implicit
+conversions express and permit “type erasure,” that is, going from
+information expressed in a compile-time type to information expressed in
+a member variable or some other way. Type erasure here includes three
+kinds of conversions.</p>
+<ol type="1">
+<li><p>From a more restrictive mapping to a less restrictive mapping
+(e.g., from <code>layout_left::mapping&lt;E&gt;</code> to
+<code>layout_stride::mapping&lt;E&gt;</code>)</p></li>
+<li><p>From a mapping with static extents to a mapping with dynamic
+extents (e.g., from
+<code>layout_left::mapping&lt;extents&lt;int, 2, 3&gt;&gt;</code> to
+<code>layout_left::mapping&lt;extents&lt;int, dynamic_extent, 3&gt;&gt;</code>)</p></li>
+<li><p>Both (changing the mapping and the extents)</p></li>
+</ol>
+<p>Conversion in the opposite direction of type erasure generally
+imposes nontrivial preconditions, so it is explicit. We permit explicit
+conversions because they let users potentially improve performance by
+expressing their assumptions in the type system. If users didn’t have
+explicit conversions, they would likely end up reimplementing them in a
+possibly less safe way.</p>
+<p>LEWG reflector discussion suggested a more general approach to
+conversions. Instead of conditionally explicit constructors, conversions
+with nontrivial preconditions (e.g., from <code>layout_stride</code> to
+<code>layout_left_padded</code> to <code>layout_left</code>) would use
+an <code>assume_layout</code> customization point. This would have the
+following advantages.</p>
+<ol type="1">
+<li><p>Users could implement conversion from their custom layout mapping
+to a Standard layout mapping.</p></li>
+<li><p>Adding a new layout to the Standard would not require adding
+converting constructors to all the existing mappings.</p></li>
+</ol>
+<p>However, introducing a customization point would complicate the
+design. The benefit of this complication would be low, since most custom
+or new layout mappings likely could not be converted to existing layout
+mappings. For example, tiled layouts or space-filling (Hilbert) curve
+layouts are not strided in general, so they could not be converted to
+anything in the current Standard or this proposal. In the words of one
+LEWG reviewer, most layouts are “on [their] own little planet.” LEWG
+discussion expressed a strong preference for not overengineering the
+design by offering a conversion customization point when most
+conversions don’t make sense.</p>
 <h2 data-number="3.6" id="implementation-experience"><span class="header-section-number">3.6</span> Implementation experience<a href="#implementation-experience" class="self-link"></a></h2>
 <p>Pull request
 <a href="https://github.com/kokkos/mdspan/pull/180">180</a> in the
