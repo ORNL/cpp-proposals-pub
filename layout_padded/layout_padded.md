@@ -102,6 +102,9 @@ Revision 3 to be submitted sometime after 2023-07-09.
 * Add design discussion requested by LEWG on 2023/03/28
     relating to the results of the two polls.
 
+* Add design discussion about `required_span_size()`
+    of rank-1 padded layout mdspan.
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
@@ -200,7 +203,43 @@ in earlier versions of our
 with `layout_left_padded` and `layout_right_padded`.
 Making most effective use of the new layouts in code that uses P1673
 calls for integrating them with `submdspan`.
-This is why we propose the following changes as well.
+This is why we include `submdspan` integration in this proposal.
+
+### Consider rank-1 case as `submdspan` of rank-2
+
+One review asked why `required_span_size()` of
+`layout_right_padded<4>::mapping<extents<size_t, 1, 3>>`
+is 4 instead of 3.  We made that choice for the following reasons.
+
+1. Overalignment should imply correct SIMD access as well as pointer alignment
+
+2. Consistency of the rank-1 case with `submdspan` of a rank-2 mdspan
+
+Regarding (1), an important design goal is use with explicit SIMD instructions.
+This means that we need to be able to access groups of 4 elements at a time.
+This is also consistent with `assume_aligned<N, T>`.
+That doesn't just return a pointer `p` such that
+`reinterpret_cast<uintptr_t>(p)` is divisible by `N`;
+it returns a pointer to an object of type `T` whose alignment is at least `N` bytes.
+`layout_right_padded<4>::mapping<extents<size_t, M, 3>>`
+for `M` in [1, 4] means "assume that each row is a `T[4]`
+with byte alignment `4 * sizeof(T)`."
+
+Regarding (2), the idea is that the rank-2 or more case
+(with more than one row, column, etc.)
+controls the behavior of the rank-1 case.
+The rank-1 (or rank-2 but single row or column) case
+should act like a `submdspan` of the rank-2 case.
+It helps to understand that we intend to support the BLAS and LAPACK.
+For example, `layout_left_padded<4>::mapping<extents<size_t, 3, 3>>` means
+"a view of the top 3 rows of a 4 x 3 matrix" (LDA = 4, M = 3, N = 3,
+where LDA is a BLAS abbreviation meaning "leading dimension [of the matrix] A").
+(This example switches to `layout_left_padded`
+just because the Fortran BLAS only supports column-major order,
+but the analogous idea applies to the `layout_right_padded` case
+that the C BLAS also supports.)
+Taking a `submdspan` of the leftmost column results in a rank-1 mdspan
+with a `required_span_size()` of 4 elements.
 
 ### Design change from R0 to R1
 
