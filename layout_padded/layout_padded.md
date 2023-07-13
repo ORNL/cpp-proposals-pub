@@ -2,7 +2,7 @@
 ---
 title: Padded mdspan layouts
 document: P2642
-date: 2023-07-09
+date: 2023-07-13
 audience: LEWG
 author:
   - name: Mark Hoemmen (NVIDIA)
@@ -104,6 +104,8 @@ Revision 3 to be submitted sometime after 2023-07-09.
 
 * Add design discussion about `required_span_size()`
     of rank-1 padded layout mdspan.
+
+* Update implementation experience with new pull request number.
 
 # Proposed changes and justification
 
@@ -1117,11 +1119,9 @@ by offering a conversion customization point when most conversions don't make se
 
 ## Implementation experience
 
-Pull request <a href="https://github.com/kokkos/mdspan/pull/180">180</a>
+Pull request <a href="https://github.com/kokkos/mdspan/pull/237">237</a>
 in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a>
-implements most of this proposal.
-Next steps are to add constructors to the existing layout mappings,
-and to add `submdspan` support for the new layouts.
+implements all of this proposal except `submdspan` support.
 
 ## Desired ship vehicle
 
