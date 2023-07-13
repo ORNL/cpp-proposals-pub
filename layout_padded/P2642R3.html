@@ -468,17 +468,19 @@ changes</a></li>
 <code>layout_stride</code></a></li>
 <li><a href="#new-layouts-unify-two-use-cases" id="toc-new-layouts-unify-two-use-cases"><span class="toc-section-number">3.2.2</span> New layouts unify two use
 cases</a></li>
-<li><a href="#design-change-from-r0-to-r1" id="toc-design-change-from-r0-to-r1"><span class="toc-section-number">3.2.3</span> Design change from R0 to
+<li><a href="#consider-rank-1-case-as-submdspan-of-rank-2" id="toc-consider-rank-1-case-as-submdspan-of-rank-2"><span class="toc-section-number">3.2.3</span> Consider rank-1 case as
+<code>submdspan</code> of rank-2</a></li>
+<li><a href="#design-change-from-r0-to-r1" id="toc-design-change-from-r0-to-r1"><span class="toc-section-number">3.2.4</span> Design change from R0 to
 R1</a></li>
-<li><a href="#padding-stride-equality-for-layout-mapping-conversions" id="toc-padding-stride-equality-for-layout-mapping-conversions"><span class="toc-section-number">3.2.4</span> Padding stride equality for
+<li><a href="#padding-stride-equality-for-layout-mapping-conversions" id="toc-padding-stride-equality-for-layout-mapping-conversions"><span class="toc-section-number">3.2.5</span> Padding stride equality for
 layout mapping conversions</a></li>
-<li><a href="#new-layout-mapping-constructors-in-r2" id="toc-new-layout-mapping-constructors-in-r2"><span class="toc-section-number">3.2.5</span> New layout mapping constructors
+<li><a href="#new-layout-mapping-constructors-in-r2" id="toc-new-layout-mapping-constructors-in-r2"><span class="toc-section-number">3.2.6</span> New layout mapping constructors
 in R2</a></li>
-<li><a href="#conversion-from-layout_left-to-layout_left_padded" id="toc-conversion-from-layout_left-to-layout_left_padded"><span class="toc-section-number">3.2.6</span> Conversion from
+<li><a href="#conversion-from-layout_left-to-layout_left_padded" id="toc-conversion-from-layout_left-to-layout_left_padded"><span class="toc-section-number">3.2.7</span> Conversion from
 <code>layout_left</code> to <code>layout_left_padded</code></a></li>
-<li><a href="#conversion-from-layout_stride-to-layout_left_padded" id="toc-conversion-from-layout_stride-to-layout_left_padded"><span class="toc-section-number">3.2.7</span> Conversion from
+<li><a href="#conversion-from-layout_stride-to-layout_left_padded" id="toc-conversion-from-layout_stride-to-layout_left_padded"><span class="toc-section-number">3.2.8</span> Conversion from
 <code>layout_stride</code> to <code>layout_left_padded</code></a></li>
-<li><a href="#design-change-from-r2-to-r3-extents-return-type" id="toc-design-change-from-r2-to-r3-extents-return-type"><span class="toc-section-number">3.2.8</span> Design change from R2 to R3:
+<li><a href="#design-change-from-r2-to-r3-extents-return-type" id="toc-design-change-from-r2-to-r3-extents-return-type"><span class="toc-section-number">3.2.9</span> Design change from R2 to R3:
 <code>extents()</code> return type</a></li>
 </ul></li>
 <li><a href="#integration-with-submdspan" id="toc-integration-with-submdspan"><span class="toc-section-number">3.3</span> Integration with
@@ -607,6 +609,8 @@ layout mappings to include an exposition-only
 Lee (oliverzlee@gmail.com) for an excellent discussion!</p></li>
 <li><p>Add design discussion requested by LEWG on 2023/03/28 relating to
 the results of the two polls.</p></li>
+<li><p>Add design discussion about <code>required_span_size()</code> of
+rank-1 padded layout mdspan.</p></li>
 </ul>
 <h1 data-number="3" id="proposed-changes-and-justification"><span class="header-section-number">3</span> Proposed changes and
 justification<a href="#proposed-changes-and-justification" class="self-link"></a></h1>
@@ -697,9 +701,45 @@ earlier versions of our <a href="https://wg21.link/p1673">P1673</a>
 proposal with <code>layout_left_padded</code> and
 <code>layout_right_padded</code>. Making most effective use of the new
 layouts in code that uses P1673 calls for integrating them with
-<code>submdspan</code>. This is why we propose the following changes as
-well.</p>
-<h3 data-number="3.2.3" id="design-change-from-r0-to-r1"><span class="header-section-number">3.2.3</span> Design change from R0 to R1<a href="#design-change-from-r0-to-r1" class="self-link"></a></h3>
+<code>submdspan</code>. This is why we include <code>submdspan</code>
+integration in this proposal.</p>
+<h3 data-number="3.2.3" id="consider-rank-1-case-as-submdspan-of-rank-2"><span class="header-section-number">3.2.3</span> Consider rank-1 case as
+<code>submdspan</code> of rank-2<a href="#consider-rank-1-case-as-submdspan-of-rank-2" class="self-link"></a></h3>
+<p>One review asked why <code>required_span_size()</code> of
+<code>layout_right_padded&lt;4&gt;::mapping&lt;extents&lt;size_t, 1, 3&gt;&gt;</code>
+is 4 instead of 3. We made that choice for the following reasons.</p>
+<ol type="1">
+<li><p>Overalignment should imply correct SIMD access as well as pointer
+alignment</p></li>
+<li><p>Consistency of the rank-1 case with <code>submdspan</code> of a
+rank-2 mdspan</p></li>
+</ol>
+<p>Regarding (1), an important design goal is use with explicit SIMD
+instructions. This means that we need to be able to access groups of 4
+elements at a time. This is also consistent with
+<code>assume_aligned&lt;N, T&gt;</code>. That doesn’t just return a
+pointer <code>p</code> such that
+<code>reinterpret_cast&lt;uintptr_t&gt;(p)</code> is divisible by
+<code>N</code>; it returns a pointer to an object of type <code>T</code>
+whose alignment is at least <code>N</code> bytes.
+<code>layout_right_padded&lt;4&gt;::mapping&lt;extents&lt;size_t, M, 3&gt;&gt;</code>
+for <code>M</code> in [1, 4] means “assume that each row is a
+<code>T[4]</code> with byte alignment <code>4 * sizeof(T)</code>.”</p>
+<p>Regarding (2), the idea is that the rank-2 or more case (with more
+than one row, column, etc.) controls the behavior of the rank-1 case.
+The rank-1 (or rank-2 but single row or column) case should act like a
+<code>submdspan</code> of the rank-2 case. It helps to understand that
+we intend to support the BLAS and LAPACK. For example,
+<code>layout_left_padded&lt;4&gt;::mapping&lt;extents&lt;size_t, 3, 3&gt;&gt;</code>
+means “a view of the top 3 rows of a 4 x 3 matrix” (LDA = 4, M = 3, N =
+3, where LDA is a BLAS abbreviation meaning “leading dimension [of the
+matrix] A”). (This example switches to <code>layout_left_padded</code>
+just because the Fortran BLAS only supports column-major order, but the
+analogous idea applies to the <code>layout_right_padded</code> case that
+the C BLAS also supports.) Taking a <code>submdspan</code> of the
+leftmost column results in a rank-1 mdspan with a
+<code>required_span_size()</code> of 4 elements.</p>
+<h3 data-number="3.2.4" id="design-change-from-r0-to-r1"><span class="header-section-number">3.2.4</span> Design change from R0 to R1<a href="#design-change-from-r0-to-r1" class="self-link"></a></h3>
 <p>A design change from R0 to R1 of this paper makes this overalignment
 case easier to use and more like the existing
 <code>std::assume_aligned</code> interface. In R0 of this paper, the
@@ -741,7 +781,7 @@ whatever the extent may be.” R0 had no way to express that use case with
 a compile-time input padding stride. This is important for hardware
 features and compiler optimizations that require overalignment of
 multidimensional arrays.</p>
-<h3 data-number="3.2.4" id="padding-stride-equality-for-layout-mapping-conversions"><span class="header-section-number">3.2.4</span> Padding stride equality for
+<h3 data-number="3.2.5" id="padding-stride-equality-for-layout-mapping-conversions"><span class="header-section-number">3.2.5</span> Padding stride equality for
 layout mapping conversions<a href="#padding-stride-equality-for-layout-mapping-conversions" class="self-link"></a></h3>
 <p><code>layout_left_padded&lt;padding_stride&gt;::mapping&lt;Extents&gt;</code>
 has a converting constructor from
@@ -785,7 +825,7 @@ were well formed (it is not, in this proposal). Again,
 gives <code>m_new</code> the expected original padding stride of 12.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>layout_left_padded<span class="op">&lt;</span><span class="dv">4</span><span class="op">&gt;::</span>mapping m_orig<span class="op">{</span>extents<span class="op">{</span><span class="dv">9</span>, <span class="dv">2</span><span class="op">}}</span>;</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>layout_left_padded<span class="op">&lt;</span>dynamic_extent<span class="op">&gt;::</span>mapping m_new<span class="op">(</span>m_orig<span class="op">)</span>;</span></code></pre></div>
-<h3 data-number="3.2.5" id="new-layout-mapping-constructors-in-r2"><span class="header-section-number">3.2.5</span> New layout mapping
+<h3 data-number="3.2.6" id="new-layout-mapping-constructors-in-r2"><span class="header-section-number">3.2.6</span> New layout mapping
 constructors in R2<a href="#new-layout-mapping-constructors-in-r2" class="self-link"></a></h3>
 <p>R2 of this proposal adds new constructors to
 <code>layout_{left,right}_padded::mapping</code>. First, it adds default
@@ -807,7 +847,7 @@ constructor from each of the following.</p>
 <li><p><code>layout_right::mapping&lt;OtherExtents&gt;</code></p></li>
 <li><p><code>layout_stride::mapping&lt;OtherExtents&gt;</code></p></li>
 </ul>
-<h3 data-number="3.2.6" id="conversion-from-layout_left-to-layout_left_padded"><span class="header-section-number">3.2.6</span> Conversion from
+<h3 data-number="3.2.7" id="conversion-from-layout_left-to-layout_left_padded"><span class="header-section-number">3.2.7</span> Conversion from
 <code>layout_left</code> to <code>layout_left_padded</code><a href="#conversion-from-layout_left-to-layout_left_padded" class="self-link"></a></h3>
 <p>The converting constructor from <code>layout_left::mapping</code> to
 <code>layout_left_padded::mapping</code> exists by analogy with the
@@ -839,7 +879,7 @@ to store the column stride. The converting constructor from
 easily convert from the less general <code>layout_left</code> to the
 slightly more general <code>layout_left_padded</code> that a C++ BLAS or
 LAPACK wrapper would naturally use.</p>
-<h3 data-number="3.2.7" id="conversion-from-layout_stride-to-layout_left_padded"><span class="header-section-number">3.2.7</span> Conversion from
+<h3 data-number="3.2.8" id="conversion-from-layout_stride-to-layout_left_padded"><span class="header-section-number">3.2.8</span> Conversion from
 <code>layout_stride</code> to <code>layout_left_padded</code><a href="#conversion-from-layout_stride-to-layout_left_padded" class="self-link"></a></h3>
 <p>The converting constructor from <code>layout_stride::mapping</code>
 to <code>layout_left_padded::mapping</code> exists by analogy with the
@@ -855,7 +895,7 @@ layout mappings in the Standard and this proposal. It’s like a
 <code>layout_stride::mapping</code> for some less performance-critical
 algorithms, as a way to minimize algorithm instantiations for different
 layouts.</p>
-<h3 data-number="3.2.8" id="design-change-from-r2-to-r3-extents-return-type"><span class="header-section-number">3.2.8</span> Design change from R2 to R3:
+<h3 data-number="3.2.9" id="design-change-from-r2-to-r3-extents-return-type"><span class="header-section-number">3.2.9</span> Design change from R2 to R3:
 <code>extents()</code> return type<a href="#design-change-from-r2-to-r3-extents-return-type" class="self-link"></a></h3>
 <p>In revisions of this proposal up to and including R2, the new layout
 mappings’ <code>extents()</code> member functions both had return type
@@ -1978,33 +2018,33 @@ Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <em>Constraints:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">19</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">18</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(19.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.1)</a></span> If
 <code>extents_type::rank() &gt; 1</code> is <code>true</code> and
 <code>padding_stride == dynamic_extent</code> is <code>false</code>,
 then <code>other.stride(1)</code> equals the least multiple of
 <code>padding_stride</code> greater than or equal to
 <code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(0))</code>;
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(19.2)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.2)</a></span> If
 <code>extents_type::rank() &gt; 0</code> is <code>true</code>, then
 <code>other.stride(0)</code> equals 1;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(19.3)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.3)</a></span> If
 <code>extents_type::rank() &gt; 2</code> is <code>true</code>, and then
 for all <code>r</code> in the range <span class="math inline">[</span>
 <code>2, extents_type::rank()</code><span class="math inline">)</span>,
 <code>other.stride(r)</code> equals
 <code>other.extents().</code><em><code>fwd-prod-of-extents(r)</code></em><code>/ other.extents().extent(0) * other.stride(1)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(19.4)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.4)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">20</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">19</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(20.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(19.1)</a></span>
 Direct-non-list-initializes <em><code>inner-mapping</code></em>
 with:</p>
 <ul>
@@ -2013,44 +2053,44 @@ with:</p>
 <li><p><code>other.stride(1), other.extents().extent(P_left)...</code>;
 and</p></li>
 </ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(20.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(19.2)</a></span> if
 <code>extents_type::rank()</code> is zero, value-initializes
 <em><code>unpadded-extent</code></em>; else, direct-non-list-initializes
 <em><code>unpadded-extent</code></em> with
 <code>other.extents().extent(0)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(20.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(19.3)</a></span>
 Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <code>other.extents()</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_left_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">21</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">20</a></span>
 <em>Constraints:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">22</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">21</a></span>
 <em>Mandates:</em>
 <code>padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride</code>
 is <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">23</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">22</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(23.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(22.1)</a></span> If
 <code>extents_type::rank() &gt; 1</code> is <code>true</code> and
 <code>padding_stride</code> does not equal <code>dynamic_extent</code>,
 then <code>other.stride(1)</code> equals the least multiple of
 <code>padding_stride</code> greater than or equal to
 <code>extents_type::</code><em><code>index-cast</code></em><code>(other.extent(0))</code>;
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(23.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(22.2)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">24</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">23</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(24.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(23.1)</a></span>
 Direct-non-list-initializes <em><code>inner-mapping</code></em>
 with:</p>
 <ul>
@@ -2059,47 +2099,47 @@ with:</p>
 <li><p><code>other.stride(1), other.extents().extent(P_left)...</code>;
 and</p></li>
 </ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(24.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(23.2)</a></span> if
 <code>extents_type::rank()</code> is zero, value-initializes
 <em><code>unpadded-extent</code></em>; else, direct-non-list-initializes
 <em><code>unpadded-extent</code></em> with
 <code>other.extents().extent(0)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(24.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(23.3)</a></span>
 Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <code>other.extents()</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">25</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">24</a></span>
 <em>Remarks:</em> The expression inside <code>explicit</code> is
 equivalent to:
 <code>extents_type::rank() &gt; 1 &amp;&amp; (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)</code>.</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_right_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">26</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">25</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(26.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(25.1)</a></span>
 <code>extents_type::rank()</code> equals zero or one,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(26.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(25.2)</a></span>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">27</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">26</a></span>
 <em>Precondition:</em> <code>other.required_span_size()</code> is
 representable as a value of type <code>index_type</code>
 (<em>[basic.fundamental]</em>).</p>
-<p><span class="marginalizedparent"><a class="marginalized">28</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">27</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(28.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(27.1)</a></span>
 Direct-non-list-initializes <em><code>inner-mapping</code></em> with
 <code>other.extents()</code>; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(28.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(27.2)</a></span> if
 <code>extents_type::rank()</code> is zero, value-initializes
 <em><code>unpadded-extent</code></em>; else, direct-non-list-initializes
 <em><code>unpadded-extent</code></em> with
 <code>other.extents().extent(0)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(28.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(27.3)</a></span>
 Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <code>other.extents()</code>.</p></li>
 </ul>
@@ -2108,34 +2148,34 @@ or rank-1 case, so the padding stride does not affect either the
 constraints or the preconditions. <i>– end note]</i></p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> std<span class="op">::</span>array<span class="op">&lt;</span>index_type, extents_type<span class="op">::</span>rank<span class="op">()&gt;</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  strides<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">30</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">28</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
 <em><code>inner-mapping</code></em><code>.strides();</code>.</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">31</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">29</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
 <em><code>inner-mapping</code></em><code>.required_span_size();</code>.</p>
 <div class="sourceCode" id="cb40"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> idxs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">32</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">30</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(32.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.1)</a></span>
 <code>sizeof...(Indices) == Extents::rank()</code> is
 <code>true</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(32.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.2)</a></span>
 <code>(is_convertible_v&lt;Indices, index_type&gt; &amp;&amp; ...)</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(32.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.3)</a></span>
 <code>(is_nothrow_constructible&lt;index_type, Indices&gt; &amp;&amp; ...)</code>
 is <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">33</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">31</a></span>
 <em>Precondition:</em>
 <code>extents_type::</code><em><code>index-cast</code></em><code>(idxs)</code>
 is a multidimensional index in <code>extents()</code>
 (<em>[mdspan.overview]</em>).</p>
-<p><span class="marginalizedparent"><a class="marginalized">34</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">32</a></span>
 <em>Effects:</em> Let P be a parameter pack such that
 <code>is_same_v&lt;index_sequence_for&lt;Indices...&gt;, index_sequence&lt;P...&gt;&gt;</code>
 is <code>true</code>. Equivalent to:
@@ -2144,51 +2184,51 @@ is <code>true</code>. Equivalent to:
 <code>return</code><em><code>inner-mapping</code></em><code>(idxs...);</code>,
 but only after the Precondition has been applied. <i>– end note]</i></p>
 <div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">35</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">33</a></span>
 <em>Returns:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(35.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(33.1)</a></span> If
 <code>extents_type::rank()</code> equals zero or one, then
 <code>true</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(35.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(33.2)</a></span>
 else, if neither
 <em><code>inner-mapping-type</code></em><code>::static_extent(0)</code>
 nor <code>extents_type::static_extent(0)</code> equal
 <code>dynamic_extent</code>, then
 <em><code>inner-mapping-type</code></em><code>::static_extent(0) == extents_type::static_extent(0)</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(35.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(33.3)</a></span>
 otherwise, <code>false</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">36</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">34</a></span>
 <em>Returns:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(36.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(34.1)</a></span> If
 <code>extents_type::rank()</code> equals zero, then
 <code>true</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(36.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(34.2)</a></span>
 else,
 <em><code>inner-mapping</code></em><code>.extent(0) ==</code><em><code>unpadded-extent</code></em><code>.extent(0)</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb43"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">37</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">35</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
 <em><code>inner-mapping</code></em><code>.stride(r);</code>.</p>
 <div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span></span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> mapping<span class="op">&amp;</span> x,</span>
 <span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="kw">typename</span> layout_left_padding<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">38</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">36</a></span>
 <em>Constraints:</em>
 <code>OtherExtents::rank() == extents_type::rank()</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">39</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">37</a></span>
 <em>Returns:</em> <code>true</code> if</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(39.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(37.1)</a></span>
 <code>x.extents() == y.extents()</code> is <code>true</code>;
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(39.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(37.2)</a></span> if
 <code>extents_type::rank() &gt; 1</code> is <code>true</code>, then
 <code>x.stride(1) == y.stride(1)</code> is <code>true</code>.</p></li>
 </ul>
@@ -2504,32 +2544,32 @@ Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <em>Constraints:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">19</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">18</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(19.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.1)</a></span> If
 <code>extents_type::rank() &gt; 1</code> is <code>true</code> and
 <code>padding_stride == dynamic_extent</code> is <code>false</code>,
 then <code>other.stride(extens_type::rank()-2)</code> equals the least
 multiple of <code>padding_stride</code> greater than or equal to
 <code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(extents_type()::rank()-1))</code>;
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(19.2)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.2)</a></span> If
 <code>extents_type::rank() &gt; 0</code> is <code>true</code>, then
 <code>other.stride(extents_type::rank() - 1)</code> equals 1;
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(19.3)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.3)</a></span> If
 <code>extents_type::rank() &gt; 2</code> is <code>true</code>, then for
 all <code>r</code> in the range <span class="math inline">[</span><code>0, extents_type::rank()-2</code><span class="math inline">)</span>, <code>other.stride(r)</code> equals
 <code>extents().</code><em><code>rev-prod-of-extents</code></em><code>(r) / other.extents().extent(extents_type::rank()-1) * other.stride(extens_type::rank()-1)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(19.4)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(18.4)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">20</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">19</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(20.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(19.1)</a></span>
 Direct-non-list-initializes <em><code>inner-mapping</code></em>
 with:</p>
 <ul>
@@ -2538,44 +2578,44 @@ with:</p>
 <li><p><code>other.extents().extent(P_right)..., other.stride(extents_type::rank() - 2)</code>;
 and</p></li>
 </ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(20.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(19.2)</a></span> if
 <code>extents_type::rank()</code> is zero, value-initializes
 <em><code>unpadded-extent</code></em>; else, direct-non-list-initializes
 <em><code>unpadded-extent</code></em> with
 <code>other.extents().extent(extents_type::rank() - 1)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(20.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(19.3)</a></span>
 Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <code>other.extents()</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb54"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
 <span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_right_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">21</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">20</a></span>
 <em>Constraints:</em>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">22</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">21</a></span>
 <em>Mandates:</em>
 <code>padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride</code>
 is <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">23</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">22</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(23.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(22.1)</a></span> If
 <code>extents_type::rank() &gt; 1</code> is <code>true</code> and
 <code>padding_stride</code> does not equal <code>dynamic_extent</code>,
 then <code>other.stride(extents_type::rank() - 2)</code> equals the
 least multiple of <code>padding_stride</code> greater than or equal to
 <code>extents_type::</code><em><code>index-cast</code></em><code>(other.extent(OtherExtents::rank() - 1))</code>;
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(23.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(22.2)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">24</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">23</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(24.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(23.1)</a></span>
 Direct-non-list-initializes <em><code>inner-mapping</code></em>
 with:</p>
 <ul>
@@ -2584,47 +2624,47 @@ with:</p>
 <li><p><code>other.extents().extent(P_right)..., other.stride(extents_type::rank() - 2)</code>;
 and</p></li>
 </ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(24.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(23.2)</a></span> if
 <code>extents_type::rank()</code> is zero, value-initializes
 <em><code>unpadded-extent</code></em>; else, direct-non-list-initializes
 <em><code>unpadded-extent</code></em> with
 <code>other.extents().extent(extents_type::rank() - 1)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(24.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(23.3)</a></span>
 Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <code>other.extents()</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">25</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">24</a></span>
 <em>Remarks:</em> The expression inside <code>explicit</code> is
 equivalent to:
 <code>extents_type::rank() &gt; 1 &amp;&amp; (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)</code>.</p>
 <div class="sourceCode" id="cb55"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
 <span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_left_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">26</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">25</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(26.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(25.1)</a></span>
 <code>extents_type::rank()</code> equals zero or one, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(26.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(25.2)</a></span>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">27</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">26</a></span>
 <em>Preconditions:</em> <code>other.required_span_size()</code> is
 representable as a value of type <code>index_type</code>
 (<strong>[basic.fundamental]</strong>).</p>
-<p><span class="marginalizedparent"><a class="marginalized">28</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">27</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(28.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(27.1)</a></span>
 Direct-non-list-initializes <em><code>inner-mapping</code></em> with
 <code>other.extents()</code>; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(28.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(27.2)</a></span> if
 <code>extents_type::rank()</code> is zero, value-initializes
 <em><code>unpadded-extent</code></em>; else, initializes
 <em><code>unpadded-extent</code></em> with
 <code>other.extents().extent(0)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(28.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(27.3)</a></span>
 Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <code>other.extents()</code>.</p></li>
 </ul>
@@ -2633,34 +2673,34 @@ or rank-1 case, so the padding stride does not affect either the
 constraints or the preconditions. <i>– end note]</i></p>
 <div class="sourceCode" id="cb56"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> std<span class="op">::</span>array<span class="op">&lt;</span>index_type, extents_type<span class="op">::</span>rank<span class="op">()&gt;</span></span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  strides<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">30</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">28</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
 <em><code>inner-mapping</code></em><code>.strides();</code>.</p>
 <div class="sourceCode" id="cb57"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">31</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">29</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
 <em><code>inner-mapping</code></em><code>.required_span_size();</code>.</p>
 <div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> idxs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">32</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">30</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(32.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.1)</a></span>
 <code>sizeof...(Indices) == Extents::rank()</code> is
 <code>true</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(32.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.2)</a></span>
 <code>(is_convertible_v&lt;Indices, index_type&gt; &amp;&amp; ...)</code>
 is <code>true</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(32.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(30.3)</a></span>
 <code>(is_nothrow_constructible&lt;index_type, Indices&gt; &amp;&amp; ...)</code>
 is <code>true</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">33</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">31</a></span>
 <em>Precondition:</em>
 <code>extents_type::</code><em><code>index-cast</code></em><code>(i)</code>
 is a multidimensional index in <code>extents()</code>
 (<em>[mdspan.overview]</em>).</p>
-<p><span class="marginalizedparent"><a class="marginalized">34</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">32</a></span>
 <em>Effects:</em> Let <code>P</code> be a parameter pack such that
 <code>is_same_v&lt;index_sequence_for&lt;Indices...&gt;, index_sequence&lt;P...&gt;&gt;</code>
 is <code>true</code>. Equivalent to:
@@ -2669,51 +2709,51 @@ is <code>true</code>. Equivalent to:
 <code>return</code><em><code>inner-mapping</code></em><code>(idxs...);</code>,
 but only after the Precondition has been applied. <i>– end note]</i></p>
 <div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">35</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">33</a></span>
 <em>Returns:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(35.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(33.1)</a></span> If
 <code>extents_type::rank()</code> equals zero or one, then
 <code>true</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(35.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(33.2)</a></span>
 else, if neither
 <em><code>inner-mapping-type</code></em><code>::static_extent(extents_type::rank() - 1)</code>
 nor <code>extents_type::static_extent(extents_type::rank() - 1)</code>
 equal <code>dynamic_extent</code>, then
 <em><code>inner-mapping-type</code></em><code>::static_extent(extents_type::rank() - 1) == extents_type::static_extent(extents_type::rank() - 1)</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(35.3)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(33.3)</a></span>
 otherwise, <code>false</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb60"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">36</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">34</a></span>
 <em>Returns:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(36.1)</a></span> If
+<li><p><span class="marginalizedparent"><a class="marginalized">(34.1)</a></span> If
 <code>extents_type::rank()</code> equals zero, then
 <code>true</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(36.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(34.2)</a></span>
 else,
 <em><code>inner-mapping</code></em><code>.extent(extents_type::rank() - 1) ==</code><em><code>unpadded-extent</code></em><code>.extent(extents_type::rank() - 1)</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb61"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">37</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">35</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
 <em><code>inner-mapping</code></em><code>.stride(r);</code>.</p>
 <div class="sourceCode" id="cb62"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span></span>
 <span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> mapping<span class="op">&amp;</span> x,</span>
 <span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="kw">typename</span> layout_right_padding<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">38</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">36</a></span>
 <em>Constraints:</em>
 <code>OtherExtents::rank() == extents_type::rank()</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">39</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">37</a></span>
 <em>Returns:</em> <code>true</code> if</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(39.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(37.1)</a></span>
 <code>x.extents() == y.extents()</code> is <code>true</code>;
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(39.2)</a></span> if
+<li><p><span class="marginalizedparent"><a class="marginalized">(37.2)</a></span> if
 <code>extents_type::rank() &gt; 1</code> is <code>true</code>, then
 <code>x.stride(extents_type::rank() - 2) == y.stride(extents_type::rank() - 2)</code>
 is <code>true</code>.</p></li>
