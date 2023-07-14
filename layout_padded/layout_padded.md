@@ -11,6 +11,8 @@ author:
     email: <crtrott@sandia.gov>
   - name: Damien Lebrun-Grandie (Oak Ridge National Laboratory)
     email: <lebrungrandt@ornl.gov>
+  - name: Nicolas Morales (Sandia National Laboratories)
+    email: <nmmoral@sandia.gov>
   - name: Malte Förster (NVIDIA)
     email: <mfoerster@nvidia.com>
   - name: Jiaming Yuan (NVIDIA)
@@ -118,6 +120,8 @@ Revision 3 to be submitted sometime after 2023-07-09.
     public member to the mapping.  Another approach would have been
     to introduce an exposition-only trait, but we think
     the public member would be more generally useful.
+
+* Add Nic Morales as a coauthor.
 
 # Proposed changes and justification
 
