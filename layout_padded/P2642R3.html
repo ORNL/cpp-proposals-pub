@@ -438,6 +438,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
       Mark Hoemmen (NVIDIA)<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
       Christian Trott (Sandia National Laboratories)<br>&lt;<a href="mailto:crtrott@sandia.gov" class="email">crtrott@sandia.gov</a>&gt;<br>
       Damien Lebrun-Grandie (Oak Ridge National Laboratory)<br>&lt;<a href="mailto:lebrungrandt@ornl.gov" class="email">lebrungrandt@ornl.gov</a>&gt;<br>
+      Nicolas Morales (Sandia National Laboratories)<br>&lt;<a href="mailto:nmmoral@sandia.gov" class="email">nmmoral@sandia.gov</a>&gt;<br>
       Malte Förster (NVIDIA)<br>&lt;<a href="mailto:mfoerster@nvidia.com" class="email">mfoerster@nvidia.com</a>&gt;<br>
       Jiaming Yuan (NVIDIA)<br>&lt;<a href="mailto:jiamingy@nvidia.com" class="email">jiamingy@nvidia.com</a>&gt;<br>
     </td>
@@ -613,6 +614,17 @@ the results of the two polls.</p></li>
 rank-1 padded layout mdspan.</p></li>
 <li><p>Update implementation experience with new pull request
 number.</p></li>
+<li><p>Change converting constructors from
+<code>layout_{left,right}_padded&lt;ps&gt;::mapping&lt;OE&gt;</code>,
+and <code>operator==</code> taking that type, to use a constraint
+instead of overloading. This helps with type deduction in practice. As a
+result, we needed a way to get the <code>padding_stride</code> template
+argument of a mapping. We found it easiest to do this by adding a
+<code>static constexpr size_t padding_stride</code> public member to the
+mapping. Another approach would have been to introduce an
+exposition-only trait, but we think the public member would be more
+generally useful.</p></li>
+<li><p>Add Nic Morales as a coauthor.</p></li>
 </ul>
 <h1 data-number="3" id="proposed-changes-and-justification"><span class="header-section-number">3</span> Proposed changes and
 justification<a href="#proposed-changes-and-justification" class="self-link"></a></h1>
@@ -1568,9 +1580,9 @@ declaration, between the constructor converting from
 constructor converting from
 <code>layout_stride::mapping&lt;OtherExtents&gt;</code>:</p>
 </blockquote>
-<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_left_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span><span class="kw">typename</span> LayoutLeftPaddedMapping<span class="op">::</span>extents_type, extents_type<span class="op">&gt;)</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <blockquote>
 <p>In Section � <em>[mdspan.layout.left.cons]</em> (“Constructors”), add
 the following between the constructor converting from
@@ -1580,26 +1592,32 @@ the following between the constructor converting from
 paragraph 9 before this proposal), then renumber the following
 paragraphs in that section accordingly.</p>
 </blockquote>
-<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_left_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span><span class="kw">typename</span> LayoutLeftPaddedMapping<span class="op">::</span>extents_type, extents_type<span class="op">&gt;)</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
-<em>Constraints:</em>
-<code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
-<code>true</code>.</p>
+<em>Constraints:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
+<code>@_is-layout-left-padded-mapping-of_@&lt;LayoutLeftPaddedMapping&gt;</code>
+is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
+<code>is_constructible_v&lt;extents_type, typename LayoutLeftPaddedMapping::extents_type&gt;</code>
+is <code>true</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Mandates:</em> If</p>
 <ul>
 <li><p><code>Extents::rank()</code> is greater than one,</p></li>
 <li><p><code>Extents::static_extent(0)</code> does not equal
 <code>dynamic_extent</code>,</p></li>
-<li><p><code>OtherExtents::static_extent(0)</code> does not equal
-<code>dynamic_extent</code>, and</p></li>
-<li><p><code>other_padding_stride</code> does not equal
-<code>dynamic_extent</code>,</p></li>
+<li><p><code>LayoutLeftPaddedMapping::extents_type::static_extent(0)</code>
+does not equal <code>dynamic_extent</code>, and</p></li>
+<li><p><code>LayoutLeftPaddedMapping::padding_stride</code> does not
+equal <code>dynamic_extent</code>,</p></li>
 </ul>
 <p>then <code>Extents::static_extent(0)</code> is a multiple of
-<code>other_padding_stride</code>.</p>
+<code>LayoutLeftPaddedMapping::padding_stride</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -1621,9 +1639,9 @@ class declaration, between the constructor converting from
 constructor converting from
 <code>layout_stride::mapping&lt;OtherExtents&gt;</code>.</p>
 </blockquote>
-<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_right_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span><span class="kw">typename</span> LayoutRightPaddedMapping<span class="op">::</span>extents_type, extents_type<span class="op">&gt;)</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <blockquote>
 <p>In Section � <em>[mdspan.layout.right.cons]</em> (“Constructors”),
 add the following between the constructor converting from
@@ -1633,26 +1651,32 @@ add the following between the constructor converting from
 paragraph 9 before this proposal), then renumber the following
 paragraphs in that section accordingly.</p>
 </blockquote>
-<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_right_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span><span class="kw">typename</span> LayoutRightPaddedMapping<span class="op">::</span>extents_type, extents_type<span class="op">&gt;)</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
-<em>Constraints:</em>
-<code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
-<code>true</code>.</p>
+<em>Constraints:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
+<code>@_is-layout-right-padded-mapping-of_@&lt;LayoutRightPaddedMapping&gt;</code>
+is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
+<code>is_constructible_v&lt;extents_type, typename LayoutRightPaddedMapping::extents_type&gt;</code>
+is <code>true</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Mandates:</em> If</p>
 <ul>
 <li><p><code>Extents::rank()</code> is greater than one,</p></li>
 <li><p><code>Extents::static_extent(Extents::rank() - 1)</code> does not
 equal <code>dynamic_extent</code>,</p></li>
-<li><p><code>OtherExtents::static_extent(Extents::rank() - 1)</code>
+<li><p><code>LayoutRightPaddedMapping::extents_type::static_extent(Extents::rank() - 1)</code>
 does not equal <code>dynamic_extent</code>, and</p></li>
-<li><p><code>other_padding_stride</code> does not equal
-<code>dynamic_extent</code>,</p></li>
+<li><p><code>LayoutRightPaddedMapping::padding_stride</code> does not
+equal <code>dynamic_extent</code>,</p></li>
 </ul>
 <p>then <code>Extents::static_extent(Extents::rank() - 1)</code> is a
-multiple of <code>other_padding_stride</code>.</p>
+multiple of <code>LayoutRightPaddedMapping::padding_stride</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -1726,85 +1750,86 @@ run-time argument of <code>layout_left_padded::mapping</code>’s
 constructor. The padding stride is the least multiple of the input
 padding stride value greater than or equal to
 <code>extent(0)</code>.</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> padding_stride<span class="op">&gt;</span></span>
+<div class="sourceCode" id="cb27"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> input_padding_stride<span class="op">&gt;</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> layout_left_padded<span class="op">&lt;</span>padding_stride<span class="op">&gt;::</span>mapping <span class="op">{</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> layout_left_padded<span class="op">&lt;</span>input_padding_stride<span class="op">&gt;::</span>mapping <span class="op">{</span></span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> extents_type <span class="op">=</span> Extents;</span>
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> index_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>index_type;</span>
 <span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> size_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>size_type;</span>
 <span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> rank_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>rank_type;</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> layout_type <span class="op">=</span> layout_left_padded<span class="op">&lt;</span>padding_stride<span class="op">&gt;</span>;</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>actual-padding-stride</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>inner-extents-type</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>unpadded-extent-type</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>inner-mapping-type</em> <span class="op">=</span></span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    layout_left<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span><em>inner-extents-type</em><span class="op">&gt;</span>; <span class="co">// exposition only</span></span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>  <em>inner-mapping-type</em> <em>inner-mapping</em>; <span class="co">// exposition only</span></span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>  <em>unpadded-extent-type</em> <em>unpadded-extent</em>; <span class="co">// exposition only</span></span>
-<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>  extents_type <em>actual-extents</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
-<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
-<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><em>actual-padding-stride</em> <span class="op">!=</span> dynamic_extent<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
-<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><em>actual-padding-stride</em> <span class="op">==</span> dynamic_extent<span class="op">)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>  mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext<span class="op">)</span>;</span>
-<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Size<span class="op">&gt;</span></span>
-<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, Size padding_value<span class="op">)</span>;</span>
-<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb27-38"><a href="#cb27-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_left<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
-<span id="cb27-40"><a href="#cb27-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-41"><a href="#cb27-41" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb27-42"><a href="#cb27-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span>extents_type<span class="op">::</span>rank<span class="op">()</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
-<span id="cb27-43"><a href="#cb27-43" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
-<span id="cb27-44"><a href="#cb27-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-45"><a href="#cb27-45" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb27-46"><a href="#cb27-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
-<span id="cb27-47"><a href="#cb27-47" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_left_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
-<span id="cb27-48"><a href="#cb27-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-49"><a href="#cb27-49" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb27-50"><a href="#cb27-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb27-51"><a href="#cb27-51" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_right_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-52"><a href="#cb27-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-53"><a href="#cb27-53" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
-<span id="cb27-54"><a href="#cb27-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>actual-extents</em>;</span>
-<span id="cb27-55"><a href="#cb27-55" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb27-56"><a href="#cb27-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-57"><a href="#cb27-57" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> std<span class="op">::</span>array<span class="op">&lt;</span>index_type, extents_type<span class="op">::</span>rank<span class="op">()&gt;</span></span>
-<span id="cb27-58"><a href="#cb27-58" aria-hidden="true" tabindex="-1"></a>    strides<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-59"><a href="#cb27-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-60"><a href="#cb27-60" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-61"><a href="#cb27-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-62"><a href="#cb27-62" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
-<span id="cb27-63"><a href="#cb27-63" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> idxs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-64"><a href="#cb27-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-65"><a href="#cb27-65" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
-<span id="cb27-66"><a href="#cb27-66" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-67"><a href="#cb27-67" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
-<span id="cb27-68"><a href="#cb27-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-69"><a href="#cb27-69" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
-<span id="cb27-70"><a href="#cb27-70" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-71"><a href="#cb27-71" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
-<span id="cb27-72"><a href="#cb27-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-73"><a href="#cb27-73" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-74"><a href="#cb27-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-75"><a href="#cb27-75" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb27-76"><a href="#cb27-76" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span></span>
-<span id="cb27-77"><a href="#cb27-77" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span>,</span>
-<span id="cb27-78"><a href="#cb27-78" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> <span class="kw">typename</span> layout_left_padding<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb27-79"><a href="#cb27-79" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> padding_stride <span class="op">=</span> padding_stride;</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> layout_type <span class="op">=</span> layout_left_padded<span class="op">&lt;</span>padding_stride<span class="op">&gt;</span>;</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>actual-padding-stride</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>inner-extents-type</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>unpadded-extent-type</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>inner-mapping-type</em> <span class="op">=</span></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>    layout_left<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span><em>inner-extents-type</em><span class="op">&gt;</span>; <span class="co">// exposition only</span></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>  <em>inner-mapping-type</em> <em>inner-mapping</em>; <span class="co">// exposition only</span></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>  <em>unpadded-extent-type</em> <em>unpadded-extent</em>; <span class="co">// exposition only</span></span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>  extents_type <em>actual-extents</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><em>actual-padding-stride</em> <span class="op">!=</span> dynamic_extent<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><em>actual-padding-stride</em> <span class="op">==</span> dynamic_extent<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>  mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext<span class="op">)</span>;</span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Size<span class="op">&gt;</span></span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, Size padding_value<span class="op">)</span>;</span>
+<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-38"><a href="#cb27-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
+<span id="cb27-40"><a href="#cb27-40" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_left<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
+<span id="cb27-41"><a href="#cb27-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-42"><a href="#cb27-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb27-43"><a href="#cb27-43" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span>extents_type<span class="op">::</span>rank<span class="op">()</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb27-44"><a href="#cb27-44" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
+<span id="cb27-45"><a href="#cb27-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-46"><a href="#cb27-46" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb27-47"><a href="#cb27-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
+<span id="cb27-48"><a href="#cb27-48" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;)</span>;</span>
+<span id="cb27-49"><a href="#cb27-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-50"><a href="#cb27-50" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb27-51"><a href="#cb27-51" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span><span class="kw">typename</span> LayoutRightPaddedMapping<span class="op">::</span>extents_type, extents_type<span class="op">&gt;)</span></span>
+<span id="cb27-52"><a href="#cb27-52" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-53"><a href="#cb27-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-54"><a href="#cb27-54" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
+<span id="cb27-55"><a href="#cb27-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>actual-extents</em>;</span>
+<span id="cb27-56"><a href="#cb27-56" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb27-57"><a href="#cb27-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-58"><a href="#cb27-58" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> std<span class="op">::</span>array<span class="op">&lt;</span>index_type, extents_type<span class="op">::</span>rank<span class="op">()&gt;</span></span>
+<span id="cb27-59"><a href="#cb27-59" aria-hidden="true" tabindex="-1"></a>    strides<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-60"><a href="#cb27-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-61"><a href="#cb27-61" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-62"><a href="#cb27-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-63"><a href="#cb27-63" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
+<span id="cb27-64"><a href="#cb27-64" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> idxs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-65"><a href="#cb27-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-66"><a href="#cb27-66" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb27-67"><a href="#cb27-67" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-68"><a href="#cb27-68" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb27-69"><a href="#cb27-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-70"><a href="#cb27-70" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb27-71"><a href="#cb27-71" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-72"><a href="#cb27-72" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb27-73"><a href="#cb27-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-74"><a href="#cb27-74" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-75"><a href="#cb27-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-76"><a href="#cb27-76" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb27-77"><a href="#cb27-77" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span></span>
+<span id="cb27-78"><a href="#cb27-78" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span>,</span>
+<span id="cb27-79"><a href="#cb27-79" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb27-80"><a href="#cb27-80" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 Throughout this section, let <code>P_left</code> be the following size
 <code>extents_type::rank()</code> parameter pack of
@@ -2063,16 +2088,20 @@ and</p></li>
 Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <code>other.extents()</code>.</p></li>
 </ul>
-<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_left_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">20</a></span>
-<em>Constraints:</em>
-<code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
-<code>true</code>.</p>
+<em>Constraints:</em></p>
+<ul>
+<li><p><em><code>is-layout-left-padded-mapping-of</code></em><code>&lt;LayoutLeftPaddedMapping&gt;</code>
+is <code>true</code>, and</p></li>
+<li><p><code>is_constructible_v&lt;extents_type, typename LayoutLeftPaddedMapping::extents_type&gt;</code>
+is <code>true</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">21</a></span>
 <em>Mandates:</em>
-<code>padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride</code>
+<code>padding_stride == dynamic_extent || LayoutLeftPaddedMapping::padding_stride == dynamic_extent || padding_stride == LayoutLeftPaddedMapping::padding_stride</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">22</a></span>
 <em>Preconditions:</em></p>
@@ -2112,18 +2141,20 @@ Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <p><span class="marginalizedparent"><a class="marginalized">24</a></span>
 <em>Remarks:</em> The expression inside <code>explicit</code> is
 equivalent to:
-<code>extents_type::rank() &gt; 1 &amp;&amp; (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)</code>.</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_right_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<code>extents_type::rank() &gt; 1 &amp;&amp; (padding_stride == dynamic_extent || LayoutLeftPaddedMapping::padding_stride == dynamic_extent)</code>.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span><span class="kw">typename</span> LayoutRightPaddedMapping<span class="op">::</span>extents_type, extents_type<span class="op">&gt;)</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">25</a></span>
 <em>Constraints:</em></p>
 <ul>
+<li><p><em><code>is-layout-right-padded-mapping-of</code></em><code>&lt;LayoutRightPaddedMapping&gt;</code>
+is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(25.1)</a></span>
-<code>extents_type::rank()</code> equals zero or one,</p></li>
+<code>extents_type::rank()</code> equals zero or one, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(25.2)</a></span>
-<code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
-<code>true</code>.</p></li>
+<code>is_constructible_v&lt;extents_type, typename LayoutRightPaddedMapping::extents_type&gt;</code>
+is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">26</a></span>
 <em>Precondition:</em> <code>other.required_span_size()</code> is
@@ -2215,14 +2246,18 @@ else,
 <p><span class="marginalizedparent"><a class="marginalized">35</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
 <em><code>inner-mapping</code></em><code>.stride(r);</code>.</p>
-<div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span></span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> mapping<span class="op">&amp;</span> x,</span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="kw">typename</span> layout_left_padding<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">36</a></span>
-<em>Constraints:</em>
-<code>OtherExtents::rank() == extents_type::rank()</code> is
-<code>true</code>.</p>
+<em>Constraints:</em></p>
+<ul>
+<li><p><em><code>is-layout-left-padded-mapping-of</code></em><code>&lt;LayoutLeftPaddedMapping&gt;</code>
+is <code>true</code>, and</p></li>
+<li><p><code>LayoutLeftPaddedMapping::extents_type::rank() == extents_type::rank()</code>
+is <code>true</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">37</a></span>
 <em>Returns:</em> <code>true</code> if</p>
 <ul>
@@ -2246,85 +2281,86 @@ run-time argument of <code>layout_right_padded::mapping</code>’s
 constructor. The padding stride is the least multiple of the input
 padding stride value greater than or equal to
 <code>extent(rank() - 1)</code>.</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> padding_stride<span class="op">&gt;</span></span>
+<div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> input_padding_stride<span class="op">&gt;</span></span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> layout_right_padded<span class="op">&lt;</span>padding_stride<span class="op">&gt;::</span>mapping <span class="op">{</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> layout_right_padded<span class="op">&lt;</span>input_padding_stride<span class="op">&gt;::</span>mapping <span class="op">{</span></span>
 <span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
 <span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> extents_type <span class="op">=</span> Extents;</span>
 <span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> index_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>index_type;</span>
 <span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> size_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>size_type;</span>
 <span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> rank_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>rank_type;</span>
-<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> layout_type <span class="op">=</span> layout_right_padded<span class="op">&lt;</span>padding_stride<span class="op">&gt;</span>;</span>
-<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>actual-padding-stride</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
-<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>inner-extents-type</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
-<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>unpadded-extent-type</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
-<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>inner-mapping-type</em> <span class="op">=</span></span>
-<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>      layout_right<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span><em>inner-extents-type</em><span class="op">&gt;</span>; <span class="co">// exposition only</span></span>
-<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>  <em>inner-mapping-type</em> <em>inner-mapping</em>; <span class="co">// exposition only</span></span>
-<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>  <em>unpadded-extent-type</em> <em>unpadded-extent</em>; <span class="co">// exposition only</span></span>
-<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>  extents_type <em>actual-extents</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
-<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
-<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><em>actual-padding-stride</em> <span class="op">!=</span> dynamic_extent<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
-<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><em>actual-padding-stride</em> <span class="op">==</span> dynamic_extent<span class="op">)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a>  mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext<span class="op">)</span>;</span>
-<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-34"><a href="#cb45-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Size<span class="op">&gt;</span></span>
-<span id="cb45-35"><a href="#cb45-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, Size padding_value<span class="op">)</span>;</span>
-<span id="cb45-36"><a href="#cb45-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-37"><a href="#cb45-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb45-38"><a href="#cb45-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb45-39"><a href="#cb45-39" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
-<span id="cb45-40"><a href="#cb45-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-41"><a href="#cb45-41" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb45-42"><a href="#cb45-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span>extents_type<span class="op">::</span>rank<span class="op">()</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
-<span id="cb45-43"><a href="#cb45-43" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
-<span id="cb45-44"><a href="#cb45-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-45"><a href="#cb45-45" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb45-46"><a href="#cb45-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
-<span id="cb45-47"><a href="#cb45-47" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_right_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span>
-<span id="cb45-48"><a href="#cb45-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-49"><a href="#cb45-49" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb45-50"><a href="#cb45-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb45-51"><a href="#cb45-51" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_left_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-52"><a href="#cb45-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-53"><a href="#cb45-53" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
-<span id="cb45-54"><a href="#cb45-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>actual-extents</em>;</span>
-<span id="cb45-55"><a href="#cb45-55" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb45-56"><a href="#cb45-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-57"><a href="#cb45-57" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> std<span class="op">::</span>array<span class="op">&lt;</span>index_type, extents_type<span class="op">::</span>rank<span class="op">()&gt;</span></span>
-<span id="cb45-58"><a href="#cb45-58" aria-hidden="true" tabindex="-1"></a>    strides<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-59"><a href="#cb45-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-60"><a href="#cb45-60" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-61"><a href="#cb45-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-62"><a href="#cb45-62" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
-<span id="cb45-63"><a href="#cb45-63" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> idxs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-64"><a href="#cb45-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-65"><a href="#cb45-65" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
-<span id="cb45-66"><a href="#cb45-66" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-67"><a href="#cb45-67" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
-<span id="cb45-68"><a href="#cb45-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-69"><a href="#cb45-69" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
-<span id="cb45-70"><a href="#cb45-70" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-71"><a href="#cb45-71" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
-<span id="cb45-72"><a href="#cb45-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-73"><a href="#cb45-73" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-74"><a href="#cb45-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-75"><a href="#cb45-75" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb45-76"><a href="#cb45-76" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span></span>
-<span id="cb45-77"><a href="#cb45-77" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span>,</span>
-<span id="cb45-78"><a href="#cb45-78" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> <span class="kw">typename</span> layout_right_padding<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb45-79"><a href="#cb45-79" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> padding_stride <span class="op">=</span> input_padding_stride;</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> layout_type <span class="op">=</span> layout_right_padded<span class="op">&lt;</span>padding_stride<span class="op">&gt;</span>;</span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>actual-padding-stride</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>inner-extents-type</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>unpadded-extent-type</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> <em>inner-mapping-type</em> <span class="op">=</span></span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>      layout_right<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span><em>inner-extents-type</em><span class="op">&gt;</span>; <span class="co">// exposition only</span></span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>  <em>inner-mapping-type</em> <em>inner-mapping</em>; <span class="co">// exposition only</span></span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>  <em>unpadded-extent-type</em> <em>unpadded-extent</em>; <span class="co">// exposition only</span></span>
+<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>  extents_type <em>actual-extents</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
+<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
+<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><em>actual-padding-stride</em> <span class="op">!=</span> dynamic_extent<span class="op">)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">()</span> </span>
+<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">requires</span><span class="op">(</span><em>actual-padding-stride</em> <span class="op">==</span> dynamic_extent<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a>  mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext<span class="op">)</span>;</span>
+<span id="cb45-34"><a href="#cb45-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-35"><a href="#cb45-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Size<span class="op">&gt;</span></span>
+<span id="cb45-36"><a href="#cb45-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, Size padding_value<span class="op">)</span>;</span>
+<span id="cb45-37"><a href="#cb45-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-38"><a href="#cb45-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb45-39"><a href="#cb45-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
+<span id="cb45-40"><a href="#cb45-40" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_right<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
+<span id="cb45-41"><a href="#cb45-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-42"><a href="#cb45-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb45-43"><a href="#cb45-43" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span>extents_type<span class="op">::</span>rank<span class="op">()</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb45-44"><a href="#cb45-44" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
+<span id="cb45-45"><a href="#cb45-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-46"><a href="#cb45-46" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb45-47"><a href="#cb45-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
+<span id="cb45-48"><a href="#cb45-48" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;)</span>;</span>
+<span id="cb45-49"><a href="#cb45-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-50"><a href="#cb45-50" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb45-51"><a href="#cb45-51" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span><span class="kw">typename</span> LayoutLeftPaddedMapping<span class="op">::</span>extents_type, extents_type<span class="op">&gt;)</span></span>
+<span id="cb45-52"><a href="#cb45-52" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-53"><a href="#cb45-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-54"><a href="#cb45-54" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
+<span id="cb45-55"><a href="#cb45-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <em>actual-extents</em>;</span>
+<span id="cb45-56"><a href="#cb45-56" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb45-57"><a href="#cb45-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-58"><a href="#cb45-58" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> std<span class="op">::</span>array<span class="op">&lt;</span>index_type, extents_type<span class="op">::</span>rank<span class="op">()&gt;</span></span>
+<span id="cb45-59"><a href="#cb45-59" aria-hidden="true" tabindex="-1"></a>    strides<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-60"><a href="#cb45-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-61"><a href="#cb45-61" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-62"><a href="#cb45-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-63"><a href="#cb45-63" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
+<span id="cb45-64"><a href="#cb45-64" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> idxs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-65"><a href="#cb45-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-66"><a href="#cb45-66" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb45-67"><a href="#cb45-67" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-68"><a href="#cb45-68" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb45-69"><a href="#cb45-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-70"><a href="#cb45-70" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb45-71"><a href="#cb45-71" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-72"><a href="#cb45-72" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <span class="kw">true</span>; <span class="op">}</span></span>
+<span id="cb45-73"><a href="#cb45-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-74"><a href="#cb45-74" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-75"><a href="#cb45-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-76"><a href="#cb45-76" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb45-77"><a href="#cb45-77" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span></span>
+<span id="cb45-78"><a href="#cb45-78" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span>,</span>
+<span id="cb45-79"><a href="#cb45-79" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb45-80"><a href="#cb45-80" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 Throughout this section, let <code>P_right</code> be the following size
 <code>extents_type::rank()</code> parameter pack of
@@ -2588,16 +2624,16 @@ and</p></li>
 Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <code>other.extents()</code>.</p></li>
 </ul>
-<div class="sourceCode" id="cb54"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<div class="sourceCode" id="cb54"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_right_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">20</a></span>
 <em>Constraints:</em>
-<code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
-<code>true</code>.</p>
+<code>is_constructible_v&lt;extents_type, typename LayoutRightPaddedMapping::extents_type&gt;</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">21</a></span>
 <em>Mandates:</em>
-<code>padding_stride == dynamic_extent || other_padding_stride == dynamic_extent || padding_stride == other_padding_stride</code>
+<code>padding_stride == dynamic_extent || LayoutRightPaddedMapping::padding_stride == dynamic_extent || padding_stride == LayoutRightPaddedMapping::padding_stride</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">22</a></span>
 <em>Preconditions:</em></p>
@@ -2637,18 +2673,21 @@ Direct-non-list-initializes <em><code>actual-extents</code></em> with
 <p><span class="marginalizedparent"><a class="marginalized">24</a></span>
 <em>Remarks:</em> The expression inside <code>explicit</code> is
 equivalent to:
-<code>extents_type::rank() &gt; 1 &amp;&amp; (padding_stride == dynamic_extent || other_padding_stride == dynamic_extent)</code>.</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> layout_left_padded<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<code>extents_type::rank() &gt; 1 &amp;&amp; (padding_stride == dynamic_extent || LayoutRightPaddedMapping::padding_stride == dynamic_extent)</code>.</p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span><span class="kw">typename</span> LayoutLeftPaddedMapping<span class="op">::</span>extents_type, extents_type<span class="op">&gt;)</span></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>    mapping<span class="op">(</span><span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;</span> other<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">25</a></span>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(25.1)</a></span>
-<code>extents_type::rank()</code> equals zero or one, and</p></li>
+<em><code>is-layout-left-padded-mapping-of</code></em><code>&lt;LayoutLeftPaddedMapping&gt;</code>
+is <code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(25.2)</a></span>
-<code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
-<code>true</code>.</p></li>
+<code>extents_type::rank()</code> equals zero or one, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(25.3)</a></span>
+<code>is_constructible_v&lt;extents_type, typename LayoutLeftPaddedMapping::extents_type&gt;</code>
+is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">26</a></span>
 <em>Preconditions:</em> <code>other.required_span_size()</code> is
@@ -2740,14 +2779,18 @@ else,
 <p><span class="marginalizedparent"><a class="marginalized">35</a></span>
 <em>Effects:</em> Equivalent to <code>return</code>
 <em><code>inner-mapping</code></em><code>.stride(r);</code>.</p>
-<div class="sourceCode" id="cb62"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> other_padding_stride, <span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<div class="sourceCode" id="cb62"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span>LayoutRightPaddedMapping<span class="op">&gt;</span></span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span> <span class="kw">operator</span><span class="op">==(</span></span>
 <span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> mapping<span class="op">&amp;</span> x,</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> <span class="kw">typename</span> layout_right_padding<span class="op">&lt;</span>other_padding_stride<span class="op">&gt;::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">36</a></span>
-<em>Constraints:</em>
-<code>OtherExtents::rank() == extents_type::rank()</code> is
-<code>true</code>.</p>
+<em>Constraints:</em></p>
+<ul>
+<li><p><em><code>is-layout-right-padded-mapping</code></em><code>&lt;LayoutRightPaddedMapping&gt;</code>
+is <code>true</code>, and</p></li>
+<li><p><code>LayoutRightPaddedMapping::extents_type::rank() == extents_type::rank()</code>
+is <code>true</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">37</a></span>
 <em>Returns:</em> <code>true</code> if</p>
 <ul>
