@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-08-01" />
+  <meta name="dcterms.date" content="2023-08-02" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-08-01</td>
+    <td>2023-08-02</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -661,11 +661,13 @@ Numbering</a></li>
 [linalg.tags]</a></li>
 <li><a href="#layouts-for-packed-matrix-types-linalg.layouts" id="toc-layouts-for-packed-matrix-types-linalg.layouts"><span class="toc-section-number">28.9.6</span> Layouts for packed matrix types
 [linalg.layouts]</a></li>
-<li><a href="#scaled-in-place-transformation-linalg.scaled" id="toc-scaled-in-place-transformation-linalg.scaled"><span class="toc-section-number">28.9.7</span> Scaled in-place transformation
+<li><a href="#math-helper-functions-linalg.math_helpers" id="toc-math-helper-functions-linalg.math_helpers"><span class="toc-section-number">28.9.7</span> Math helper functions
+[linalg.math_helpers]</a></li>
+<li><a href="#scaled-in-place-transformation-linalg.scaled" id="toc-scaled-in-place-transformation-linalg.scaled"><span class="toc-section-number">28.9.8</span> Scaled in-place transformation
 [linalg.scaled]</a></li>
-<li><a href="#conjugated-in-place-transformation-linalg.conj" id="toc-conjugated-in-place-transformation-linalg.conj"><span class="toc-section-number">28.9.8</span> Conjugated in-place
+<li><a href="#conjugated-in-place-transformation-linalg.conj" id="toc-conjugated-in-place-transformation-linalg.conj"><span class="toc-section-number">28.9.9</span> Conjugated in-place
 transformation [linalg.conj]</a></li>
-<li><a href="#transpose-in-place-transformation-linalg.transp" id="toc-transpose-in-place-transformation-linalg.transp"><span class="toc-section-number">28.9.9</span> Transpose in-place
+<li><a href="#transpose-in-place-transformation-linalg.transp" id="toc-transpose-in-place-transformation-linalg.transp"><span class="toc-section-number">28.9.10</span> Transpose in-place
 transformation [linalg.transp]</a></li>
 </ul></li>
 <li><a href="#conjugate-transpose-transform-linalg.conj_transp" id="toc-conjugate-transpose-transform-linalg.conj_transp"><span class="toc-section-number">28.10</span> Conjugate transpose transform
@@ -675,11 +677,11 @@ transformation [linalg.transp]</a></li>
 traits [linalg.concepts]</a></li>
 <li><a href="#algorithm-requirements-based-on-template-parameter-name-linalg.algs.reqs" id="toc-algorithm-requirements-based-on-template-parameter-name-linalg.algs.reqs"><span class="toc-section-number">28.10.2</span> Algorithm Requirements based
 on template parameter name [linalg.algs.reqs]</a></li>
-<li><a href="#blas-1-functions-linalg.algs.blas1" id="toc-blas-1-functions-linalg.algs.blas1"><span class="toc-section-number">28.10.3</span> BLAS 1 functions
+<li><a href="#blas-1-algorithms-linalg.algs.blas1" id="toc-blas-1-algorithms-linalg.algs.blas1"><span class="toc-section-number">28.10.3</span> BLAS 1 algorithms
 [linalg.algs.blas1]</a></li>
-<li><a href="#blas-2-functions-linalg.algs.blas2" id="toc-blas-2-functions-linalg.algs.blas2"><span class="toc-section-number">28.10.4</span> BLAS 2 functions
+<li><a href="#blas-2-algorithms-linalg.algs.blas2" id="toc-blas-2-algorithms-linalg.algs.blas2"><span class="toc-section-number">28.10.4</span> BLAS 2 algorithms
 [linalg.algs.blas2]</a></li>
-<li><a href="#blas-3-functions-linalg.algs.blas3" id="toc-blas-3-functions-linalg.algs.blas3"><span class="toc-section-number">28.10.5</span> BLAS 3 functions
+<li><a href="#blas-3-algorithms-linalg.algs.blas3" id="toc-blas-3-algorithms-linalg.algs.blas3"><span class="toc-section-number">28.10.5</span> BLAS 3 algorithms
 [linalg.algs.blas3]</a></li>
 </ul></li>
 </ul></li>
@@ -1291,7 +1293,7 @@ simplification of <em>[linalg.reqs.val]</em>.</p></li>
 <li><p>add converting, default and copy ctor to
 <code>scaled_accessor</code></p></li>
 <li><p>rename <code>accessor_conjugate</code> to
-<code>conjugate_accessor</code></p></li>
+<code>conjugated_accessor</code></p></li>
 <li><p>rename <code>accessor_scaled</code> to
 <code>scaled_accessor</code></p></li>
 <li><p>fix example for <code>scaled</code></p></li>
@@ -1305,6 +1307,9 @@ preconditions and apply it to gemv</p></li>
 <li><p>remove <em><code>proxy-reference</code></em> ,
 <em><code>scaled_scalar</code></em> and
 <em><code>conjugated_scalar</code></em></p></li>
+<li><p>Redo <code>conjugated</code> to simply rely on deduction guide
+for <code>mdspan</code></p></li>
+<li><p>fix numbering via dummy sections</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -4276,7 +4281,7 @@ Numbering<a href="#dummy-heading-to-align-wording-numbering-17" class="self-link
 <h2 data-number="28.7" id="dummy-heading-to-align-wording-numbering-18"><span class="header-section-number">28.7</span> Dummy Heading To Align Wording
 Numbering<a href="#dummy-heading-to-align-wording-numbering-18" class="self-link"></a></h2>
 <p>The preceding headings just push the automatic numbering of the
-document generator so that “Wording is in the place of 28.8 Numbers</p>
+document generator so that “Wording” is in the place of 28.8 Numbers</p>
 <h2 data-number="28.8" id="wording"><span class="header-section-number">28.8</span> Wording<a href="#wording" class="self-link"></a></h2>
 <blockquote>
 <p>Text in blockquotes is not proposed wording, but rather instructions
@@ -4367,9 +4372,9 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>  ScalingFactor scaling_factor,</span>
 <span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span>ElementType, Extents, Layout, Accessor<span class="op">&gt;</span> x<span class="op">)</span>;</span>
 <span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.conj.conjugate_accessor], class template conjugate_accessor</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.conj.conjugated_accessor], class template conjugated_accessor</span></span>
 <span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
-<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> conjugate_accessor;</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> conjugated_accessor;</span>
 <span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.conj.conjugated], conjugated in-place transformation</span></span>
 <span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType,</span>
@@ -4435,7 +4440,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T<span class="op">&gt;</span></span>
 <span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a><span class="kw">concept</span> <em>inout-object</em>; <span class="op">=</span> <span class="co">// exposition only</span></span>
 <span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1], BLAS-1 Functions</span></span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1], BLAS 1 algorithms</span></span>
 <span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.givens.lartg], compute Givens rotation</span></span>
 <span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a></span>
@@ -6422,9 +6427,123 @@ were symmetric. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
 <em>Returns:</em> 1 if <code>extent(0)</code> is less than 2, else
 0.</p>
-<h3 data-number="28.9.7" id="scaled-in-place-transformation-linalg.scaled"><span class="header-section-number">28.9.7</span> Scaled in-place
+<h3 data-number="28.9.7" id="math-helper-functions-linalg.math_helpers"><span class="header-section-number">28.9.7</span> Math helper functions
+[linalg.math_helpers]<a href="#math-helper-functions-linalg.math_helpers" class="self-link"></a></h3>
+<h4 data-number="28.9.7.1" id="exposition-only-function-object-abs-if-needed-linalg.math_helpers.abs"><span class="header-section-number">28.9.7.1</span> Exposition-only function
+object <em><code>abs-if-needed</code></em> [linalg.math_helpers.abs]<a href="#exposition-only-function-object-abs-if-needed-linalg.math_helpers.abs" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+The name <em><code>abs-if-needed</code></em> denotes an exposition-only
+function object. The expression
+<em><code>abs-if-needed</code></em><code>(E)</code> for subexpression
+<code>E</code> whose type is <code>T</code> is expression-equivalent
+to:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
+<code>E</code> if <code>value_type</code> is an unsigned
+integer;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
+otherwise, <code>abs(E)</code>, if that expression is valid, with
+overload resolution performed in a context that includes the declaration
+<code>template&lt;class T&gt; T abs(T) = delete;</code>. If the function
+selected by overload resolution does not return the absolute value of
+its input, the program is ill-formed, no diagnostic required.</p></li>
+</ul>
+<h4 data-number="28.9.7.2" id="exposition-only-function-object-conj-if-needed-linalg.math_helpers.conj"><span class="header-section-number">28.9.7.2</span> Exposition-only function
+object <em><code>conj-if-needed</code></em> [linalg.math_helpers.conj]<a href="#exposition-only-function-object-conj-if-needed-linalg.math_helpers.conj" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+The name <em><code>conj-if-needed</code></em> denotes an exposition-only
+function object. The expression
+<em><code>conj-if-needed</code></em><code>(E)</code> for subexpression
+<code>E</code> whose type is <code>T</code> is expression-equivalent
+to:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
+<code>E</code>, if <code>T</code> is an arithmetic type;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
+else, <code>conj(E)</code>, if that expression is valid with overload
+resolution performed in a context that includes the declaration
+<code>template&lt;class T&gt; T conj(const T&amp;) = delete;</code> and
+does not include a declaration of
+<code>linalg::</code><em><code>conj-if-needed</code></em>; if the
+function selected by overload resolution does not return the complex
+conjugate of its input, the program is ill-formed, no diagnostic
+required;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
+else, <code>E</code>.</p></li>
+</ul>
+<!--
+The special case for arithmetic types
+preserves the type of its argument, unlike `std::conj`.
+The `conj(E)` case invokes `conj` via unqualified lookup.
+The `E` case presumes that a type without a `conj` function is noncomplex,
+so that the conjugate is the identity.
+-->
+<h4 data-number="28.9.7.3" id="exposition-only-function-object-real-if-needed-linalg.math_helpers.real"><span class="header-section-number">28.9.7.3</span> Exposition-only function
+object <em><code>real-if-needed</code></em> [linalg.math_helpers.real]<a href="#exposition-only-function-object-real-if-needed-linalg.math_helpers.real" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+The name <em><code>real-if-needed</code></em> denotes an exposition-only
+function object. The expression
+<em><code>real-if-needed</code></em><code>(E)</code> for subexpression
+<code>E</code> whose type is <code>T</code> is expression-equivalent
+to:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
+<code>E</code>, if <code>T</code> is an arithmetic type;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
+else, <code>real(E)</code>, if that expression is valid with overload
+resolution performed in a context that includes the declaration
+<code>template&lt;class T&gt; T real(const T&amp;) = delete;</code> and
+does not include a declaration of
+<code>linalg::</code><em><code>real-if-needed</code></em>; if the
+function selected by overload resolution does not return the real part
+of its input, the program is ill-formed, no diagnostic
+required;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
+else, <code>E</code>.</p></li>
+</ul>
+<!--
+The special case for arithmetic types
+preserves the type of its argument, unlike `std::real`.
+The `real(E)` case invokes `real` via unqualified lookup.
+The `E` case presumes that a type without a `real` function is noncomplex,
+so that taking the real part is the identity.
+-->
+<!--
+_`real-if-needed`_ and _`imag-if-needed`_
+exist so that `vector_abs_sum` will behave the same
+for custom complex types as for std::complex.
+-->
+<h4 data-number="28.9.7.4" id="exposition-only-function-object-imag-if-needed-linalg.math_helpers.imag"><span class="header-section-number">28.9.7.4</span> Exposition-only function
+object <em><code>imag-if-needed</code></em> [linalg.math_helpers.imag]<a href="#exposition-only-function-object-imag-if-needed-linalg.math_helpers.imag" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+The name <em><code>imag-if-needed</code></em> denotes an exposition-only
+function object. The expression
+<em><code>imag-if-needed</code></em><code>(E)</code> for subexpression
+<code>E</code> whose type is <code>T</code> is expression-equivalent
+to:</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
+<code>E</code>, if <code>T</code> is an arithmetic type;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
+else, <code>imag(E)</code>, if that expression is valid with overload
+resolution performed in a context that includes the declaration
+<code>template&lt;class T&gt; T imag(const T&amp;) = delete;</code> and
+does not include a declaration of
+<code>linalg::</code><em><code>imag-if-needed</code></em>; if the
+function selected by overload resolution does not return the imaginary
+part of its input, the program is ill-formed, no diagnostic
+required;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
+else, <code>T{}</code>.</p></li>
+</ul>
+<!--
+The `E` case presumes that a type without an `imag` function is noncomplex,
+so that taking the real part is zero,
+which we represent as a value-initialized T.
+-->
+<h3 data-number="28.9.8" id="scaled-in-place-transformation-linalg.scaled"><span class="header-section-number">28.9.8</span> Scaled in-place
 transformation [linalg.scaled]<a href="#scaled-in-place-transformation-linalg.scaled" class="self-link"></a></h3>
-<h4 data-number="28.9.7.1" id="introduction-linalg.scaled.intro"><span class="header-section-number">28.9.7.1</span> Introduction
+<h4 data-number="28.9.8.1" id="introduction-linalg.scaled.intro"><span class="header-section-number">28.9.8.1</span> Introduction
 [linalg.scaled.intro]<a href="#introduction-linalg.scaled.intro" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The <code>scaled</code> function takes a value <code>alpha</code> and an
@@ -6461,119 +6580,7 @@ run-time value(s) of the relevant BLAS function arguments
 (e.g., `ALPHA` and/or `BETA`),
 by calling `scaled_accessor::scaling_factor`.
 -->
-<h4 data-number="28.9.7.2" id="exposition-only-function-object-abs-if-needed-linalg.scaled.abs"><span class="header-section-number">28.9.7.2</span> Exposition-only function
-object <em><code>abs-if-needed</code></em> [linalg.scaled.abs]<a href="#exposition-only-function-object-abs-if-needed-linalg.scaled.abs" class="self-link"></a></h4>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The name <em><code>abs-if-needed</code></em> denotes an exposition-only
-function object. The expression
-<em><code>abs-if-needed</code></em><code>(E)</code> for subexpression
-<code>E</code> whose type is <code>T</code> is expression-equivalent
-to:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>E</code> if <code>value_type</code> is an unsigned
-integer;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-otherwise, <code>abs(E)</code>, if that expression is valid, with
-overload resolution performed in a context that includes the declaration
-<code>template&lt;class T&gt; T abs(T) = delete;</code>. If the function
-selected by overload resolution does not return the absolute value of
-its input, the program is ill-formed, no diagnostic required.</p></li>
-</ul>
-<h4 data-number="28.9.7.3" id="exposition-only-function-object-conj-if-needed-linalg.scaled.conj"><span class="header-section-number">28.9.7.3</span> Exposition-only function
-object <em><code>conj-if-needed</code></em> [linalg.scaled.conj]<a href="#exposition-only-function-object-conj-if-needed-linalg.scaled.conj" class="self-link"></a></h4>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The name <em><code>conj-if-needed</code></em> denotes an exposition-only
-function object. The expression
-<em><code>conj-if-needed</code></em><code>(E)</code> for subexpression
-<code>E</code> whose type is <code>T</code> is expression-equivalent
-to:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>E</code>, if <code>T</code> is an arithmetic type;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-else, <code>conj(E)</code>, if that expression is valid with overload
-resolution performed in a context that includes the declaration
-<code>template&lt;class T&gt; T conj(const T&amp;) = delete;</code> and
-does not include a declaration of
-<code>linalg::</code><em><code>conj-if-needed</code></em>; if the
-function selected by overload resolution does not return the complex
-conjugate of its input, the program is ill-formed, no diagnostic
-required;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
-else, <code>E</code>.</p></li>
-</ul>
-<!--
-The special case for arithmetic types
-preserves the type of its argument, unlike `std::conj`.
-The `conj(E)` case invokes `conj` via unqualified lookup.
-The `E` case presumes that a type without a `conj` function is noncomplex,
-so that the conjugate is the identity.
--->
-<h4 data-number="28.9.7.4" id="exposition-only-function-object-real-if-needed-linalg.scaled.real"><span class="header-section-number">28.9.7.4</span> Exposition-only function
-object <em><code>real-if-needed</code></em> [linalg.scaled.real]<a href="#exposition-only-function-object-real-if-needed-linalg.scaled.real" class="self-link"></a></h4>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The name <em><code>real-if-needed</code></em> denotes an exposition-only
-function object. The expression
-<em><code>real-if-needed</code></em><code>(E)</code> for subexpression
-<code>E</code> whose type is <code>T</code> is expression-equivalent
-to:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>E</code>, if <code>T</code> is an arithmetic type;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-else, <code>real(E)</code>, if that expression is valid with overload
-resolution performed in a context that includes the declaration
-<code>template&lt;class T&gt; T real(const T&amp;) = delete;</code> and
-does not include a declaration of
-<code>linalg::</code><em><code>real-if-needed</code></em>; if the
-function selected by overload resolution does not return the real part
-of its input, the program is ill-formed, no diagnostic
-required;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
-else, <code>E</code>.</p></li>
-</ul>
-<!--
-The special case for arithmetic types
-preserves the type of its argument, unlike `std::real`.
-The `real(E)` case invokes `real` via unqualified lookup.
-The `E` case presumes that a type without a `real` function is noncomplex,
-so that taking the real part is the identity.
--->
-<!--
-_`real-if-needed`_ and _`imag-if-needed`_
-exist so that `vector_abs_sum` will behave the same
-for custom complex types as for std::complex.
--->
-<h4 data-number="28.9.7.5" id="exposition-only-function-object-imag-if-needed-linalg.scaled.imag"><span class="header-section-number">28.9.7.5</span> Exposition-only function
-object <em><code>imag-if-needed</code></em> [linalg.scaled.imag]<a href="#exposition-only-function-object-imag-if-needed-linalg.scaled.imag" class="self-link"></a></h4>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The name <em><code>imag-if-needed</code></em> denotes an exposition-only
-function object. The expression
-<em><code>imag-if-needed</code></em><code>(E)</code> for subexpression
-<code>E</code> whose type is <code>T</code> is expression-equivalent
-to:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>E</code>, if <code>T</code> is an arithmetic type;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-else, <code>imag(E)</code>, if that expression is valid with overload
-resolution performed in a context that includes the declaration
-<code>template&lt;class T&gt; T imag(const T&amp;) = delete;</code> and
-does not include a declaration of
-<code>linalg::</code><em><code>imag-if-needed</code></em>; if the
-function selected by overload resolution does not return the imaginary
-part of its input, the program is ill-formed, no diagnostic
-required;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
-else, <code>T{}</code>.</p></li>
-</ul>
-<!--
-The `E` case presumes that a type without an `imag` function is noncomplex,
-so that taking the real part is zero,
-which we represent as a value-initialized T.
--->
-<h4 data-number="28.9.7.6" id="class-template-scaled_accessor-linalg.scaled.scaled_accessor"><span class="header-section-number">28.9.7.6</span> Class template
+<h4 data-number="28.9.8.2" id="class-template-scaled_accessor-linalg.scaled.scaled_accessor"><span class="header-section-number">28.9.8.2</span> Class template
 <code>scaled_accessor</code> [linalg.scaled.scaled_accessor]<a href="#class-template-scaled_accessor-linalg.scaled.scaled_accessor" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The class template <code>scaled_accessor</code> is an
@@ -6583,28 +6590,28 @@ product of a fixed value (the “scaling factor”) and its nested
 implementation of <code>scaled</code>
 <strong>[linalg.scaled.scaled]</strong>.</p>
 <div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ScalingFactor,</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> NestedAccessor<span class="op">&gt;</span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> scaled_accessor <span class="op">{</span></span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> element_type <span class="op">=</span> add_const_t<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>declval<span class="op">&lt;</span>ScalingFactor<span class="op">&gt;()</span> <span class="op">*</span> declval<span class="op">&lt;</span>Accessor<span class="op">::</span>element_type<span class="op">&gt;())&gt;</span>;</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> element_type <span class="op">=</span> add_const_t<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>declval<span class="op">&lt;</span>ScalingFactor<span class="op">&gt;()</span> <span class="op">*</span> declval<span class="op">&lt;</span>NestedAccessor<span class="op">::</span>element_type<span class="op">&gt;())&gt;</span>;</span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference <span class="op">=</span> remove_const_t<span class="op">&lt;</span>element_type<span class="op">&gt;</span>;</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> data_handle_type <span class="op">=</span> Accessor<span class="op">::</span>data_handle_type;</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> offset_policy <span class="op">=</span> scaled_accessor<span class="op">&lt;</span>ScalingFactor, Accessor<span class="op">::</span>offset_policy<span class="op">&gt;</span>;</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> data_handle_type <span class="op">=</span> NestedAccessor<span class="op">::</span>data_handle_type;</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> offset_policy <span class="op">=</span> scaled_accessor<span class="op">&lt;</span>ScalingFactor, NestedAccessor<span class="op">::</span>offset_policy<span class="op">&gt;</span>;</span>
 <span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> scaled_accessor<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> scaled_accessor<span class="op">(</span><span class="kw">const</span> scaled_accessor<span class="op">&amp;)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherScalingFactor, <span class="kw">class</span> OtherNestedAccessor<span class="op">&gt;</span></span>
 <span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> scaled_accessor<span class="op">(</span><span class="kw">const</span> scaled_accessor<span class="op">&lt;</span>OtherScalingFactor, OtherNestedAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> scaled_accessor<span class="op">(</span><span class="kw">const</span> ScalingFactor<span class="op">&amp;</span> s, <span class="kw">const</span> Accessor<span class="op">&amp;</span> a<span class="op">)</span>;</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> scaled_accessor<span class="op">(</span><span class="kw">const</span> ScalingFactor<span class="op">&amp;</span> s, <span class="kw">const</span> NestedAccessor<span class="op">&amp;</span> a<span class="op">)</span>;</span>
 <span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
 <span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> offset_policy<span class="op">::</span>data_handle_type offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
 <span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> ScalingFactor scaling_factor<span class="op">()</span> <span class="kw">const</span>;</span>
-<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> Accessor<span class="op">&amp;</span> nested_accessor<span class="op">()</span> <span class="kw">const</span>;</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> NestedAccessor<span class="op">&amp;</span> nested_accessor<span class="op">()</span> <span class="kw">const</span>;</span>
 <span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
 <span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>  ScalingFactor <em>scaling-factor</em>; <span class="co">// exposition only</span></span>
-<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>  Accessor <em>nested-accessor</em>; <span class="co">// exposition only</span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>  NestedAccessor <em>nested-accessor</em>; <span class="co">// exposition only</span></span>
 <span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
 <span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ScalingFactor, <span class="kw">class</span> ValueType<span class="op">&gt;</span></span>
@@ -6621,10 +6628,10 @@ implementation of <code>scaled</code>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 <code>ScalingFactor</code> models <code>semiregular</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>Accessor</code> meets the accessor policy requirements
+<code>NestedAccessor</code> meets the accessor policy requirements
 <strong>[mdspan.accessor.reqmts]</strong>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-<em><code>scalable</code></em><code>&lt;ScalingFactor, typename Accessor::element_type&gt;</code>
+<em><code>scalable</code></em><code>&lt;ScalingFactor, typename NestedAccessor::element_type&gt;</code>
 is <code>true</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherScalingFactor, <span class="kw">class</span> OtherNestedAccessor<span class="op">&gt;</span></span>
@@ -6633,10 +6640,10 @@ is <code>true</code>.</p></li>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
-<code>is_constructible_v&lt;</code><em><code>nested-accessor</code></em><code>, const OtherNestedAccessor&amp;&gt;</code>
+<code>is_constructible_v&lt;NestedAccessor, const OtherNestedAccessor&amp;&gt;</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-<code>is_constructible_v&lt;ScalingFactor, OtherScalingFactor&gt;</code>
+<code>is_constructible_v&lt;ScalingFactor, const OtherScalingFactor&amp;&gt;</code>
 is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
@@ -6649,7 +6656,7 @@ Direct non-list-initializes <em><code>scaling-factor</code></em> with
 direct non-list-initializes <em><code>nested-accessor</code></em> with
 <code>other.nested_accessor()</code>.</p></li>
 </ul>
-<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> scaled_accessor<span class="op">(</span><span class="kw">const</span> ScalingFactor<span class="op">&amp;</span> s, <span class="kw">const</span> Accessor<span class="op">&amp;</span> a<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> scaled_accessor<span class="op">(</span><span class="kw">const</span> ScalingFactor<span class="op">&amp;</span> s, <span class="kw">const</span> NestedAccessor<span class="op">&amp;</span> a<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -6663,7 +6670,7 @@ direct non-list-initializes <em><code>nested-accessor</code></em> with
 <div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em>
-<code>scaling_factor() * Accessor::element_type(</code>
+<code>scaling_factor() * NestedAccessor::element_type(</code>
 <em><code>nested-accessor</code></em><code>.access(p, i))</code></p>
 <div class="sourceCode" id="cb23"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> offset_policy<span class="op">::</span>data_handle_type</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
@@ -6676,7 +6683,7 @@ direct non-list-initializes <em><code>nested-accessor</code></em> with
 <div class="sourceCode" id="cb25"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">const</span> Accessor<span class="op">&amp;</span> nested_accessor<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Returns:</em> <em><code>nested-accessor</code></em></p>
-<h4 data-number="28.9.7.7" id="scaled-linalg.scaled.scaled"><span class="header-section-number">28.9.7.7</span> <code>scaled</code>
+<h4 data-number="28.9.8.3" id="scaled-linalg.scaled.scaled"><span class="header-section-number">28.9.8.3</span> <code>scaled</code>
 [linalg.scaled.scaled]<a href="#scaled-linalg.scaled.scaled" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The <code>scaled</code> function takes a scaling factor
@@ -6718,9 +6725,9 @@ would overflow `int`.
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>–<em>end example</em>]</p>
-<h3 data-number="28.9.8" id="conjugated-in-place-transformation-linalg.conj"><span class="header-section-number">28.9.8</span> Conjugated in-place
+<h3 data-number="28.9.9" id="conjugated-in-place-transformation-linalg.conj"><span class="header-section-number">28.9.9</span> Conjugated in-place
 transformation [linalg.conj]<a href="#conjugated-in-place-transformation-linalg.conj" class="self-link"></a></h3>
-<h4 data-number="28.9.8.1" id="introduction-linalg.conj.intro"><span class="header-section-number">28.9.8.1</span> Introduction
+<h4 data-number="28.9.9.1" id="introduction-linalg.conj.intro"><span class="header-section-number">28.9.9.1</span> Introduction
 [linalg.conj.intro]<a href="#introduction-linalg.conj.intro" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The <code>conjugated</code> function takes an <code>mdspan</code>
@@ -6731,35 +6738,35 @@ are the complex conjugates of the corresponding elements of
 <!--
 An implementation could dispatch to a function in the BLAS library,
 by noticing that the `Accessor` type of an `mdspan` input
-has type `conjugate_accessor`,
+has type `conjugated_accessor`,
 and that its nested `Accessor` type is compatible with the BLAS library.
 If so, it could set the corresponding `TRANS*` BLAS function argument accordingly
 and call the BLAS function.
 -->
-<h4 data-number="28.9.8.2" id="class-template-conjugate_accessor-linalg.conj.conjugate_accessor"><span class="header-section-number">28.9.8.2</span> Class template
-<code>conjugate_accessor</code> [linalg.conj.conjugate_accessor]<a href="#class-template-conjugate_accessor-linalg.conj.conjugate_accessor" class="self-link"></a></h4>
+<h4 data-number="28.9.9.2" id="class-template-conjugated_accessor-linalg.conj.conjugated_accessor"><span class="header-section-number">28.9.9.2</span> Class template
+<code>conjugated_accessor</code> [linalg.conj.conjugated_accessor]<a href="#class-template-conjugated_accessor-linalg.conj.conjugated_accessor" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The class template <code>conjugate_accessor</code> is an
+The class template <code>conjugated_accessor</code> is an
 <code>mdspan</code> accessor policy whose reference type represents the
 complex conjugate of its nested <code>mdspan</code> accessor’s
 reference. It is part of the implementation of <code>conjugated</code>
 <strong>[linalg.conj.conjugated]</strong>.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> conjugate_accessor <span class="op">{</span></span>
+<div class="sourceCode" id="cb28"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> NestedAccessor<span class="op">&gt;</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> conjugated_accessor <span class="op">{</span></span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  Accessor <em>nested-accessor</em>; <span class="co">// exposition only</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  NestedAccessor <em>nested-accessor</em>; <span class="co">// exposition only</span></span>
 <span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> element_type <span class="op">=</span> <span class="kw">decltype</span><span class="op">(</span><em>conj-if-needed</em><span class="op">(</span>declval<span class="op">&lt;</span>Accessor<span class="op">::</span>element_type<span class="op">&gt;()))</span>;</span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference <span class="op">=</span> element_type;</span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> data_handle_type <span class="op">=</span> <span class="kw">typename</span> Accessor<span class="op">::</span>data_handle_type;</span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> offset_policy <span class="op">=</span> conjugate_accessor<span class="op">&lt;</span>Accessor<span class="op">::</span>offset_policy<span class="op">&gt;</span>;</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> element_type <span class="op">=</span> add_const_t<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span><em>conj-if-needed</em><span class="op">(</span>declval<span class="op">&lt;</span>NestedAccessor<span class="op">::</span>element_type<span class="op">&gt;()))&gt;</span>;</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference <span class="op">=</span> remove_const_t<span class="op">&lt;</span>element_type<span class="op">&gt;</span>;</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> data_handle_type <span class="op">=</span> <span class="kw">typename</span> NestedAccessor<span class="op">::</span>data_handle_type;</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> offset_policy <span class="op">=</span> conjugated_accessor<span class="op">&lt;</span>NestedAccessor<span class="op">::</span>offset_policy<span class="op">&gt;</span>;</span>
 <span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> conjugate_accessor<span class="op">(</span><span class="kw">const</span> Accessor<span class="op">&amp;</span> acc<span class="op">)</span>;</span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> conjugate_accessor<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> conjugate_accessor<span class="op">(</span><span class="kw">const</span> scaled_accessor<span class="op">&amp;)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> conjugated_accessor<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> scaled_accessor<span class="op">&amp;)</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> NestedAccessor<span class="op">&amp;</span> acc<span class="op">)</span>;</span>
 <span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherScalingFactor, <span class="kw">class</span> OtherNestedAccessor<span class="op">&gt;</span></span>
-<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> conjugate_accessor<span class="op">(</span><span class="kw">const</span> conjugate_accessor<span class="op">&lt;</span>OtherNestedAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> conjugated_accessor<span class="op">&lt;</span>OtherNestedAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span>
 <span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span></span>
 <span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span>reference<span class="op">(</span><em>nested-accessor</em><span class="op">.</span>access<span class="op">(</span>p, i<span class="op">))))</span>;</span>
@@ -6777,22 +6784,19 @@ reference. It is part of the implementation of <code>conjugated</code>
 <code>is_copy_constructible_v&lt;element_type&gt;</code> is
 <code>true</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>Accessor</code> meets the accessor policy requirements
+<code>NestedAccessor</code> meets the accessor policy requirements
 <strong>[mdspan.accessor.reqmts]</strong>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<em><code>scalable</code></em><code>&lt;ScalingFactor, typename Accessor::element_type&gt;</code>
-is <code>true</code>.</p></li>
 </ul>
-<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> conjugate_accessor<span class="op">(</span><span class="kw">const</span> Accessor<span class="op">&amp;</span> acc<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> NestedAccessor<span class="op">&amp;</span> acc<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Direct non-list-initializes
 <em><code>nested-accessor</code></em> with <code>acc</code>.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherScalingFactor, <span class="kw">class</span> OtherNestedAccessor<span class="op">&gt;</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> conjugate_accessor<span class="op">(</span><span class="kw">const</span> conjugate_accessor<span class="op">&lt;</span>OtherScalingFactor, OtherNestedAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> conjugated_accessor<span class="op">&lt;</span>OtherScalingFactor, OtherNestedAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Constraints:</em>
-<code>is_constructible_v&lt;</code><em><code>nested-accessor</code></em><code>, const OtherNestedAccessor&amp;&gt;</code>
-is <code>true</code>, and</p>
+<code>is_constructible_v&lt;NestedAccessor, const OtherNestedAccessor&amp;&gt;</code>
+is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects:</em> direct non-list-initializes
 <em><code>nested-accessor</code></em> with
@@ -6801,17 +6805,17 @@ is <code>true</code>, and</p>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span>reference<span class="op">(</span><em>nested-accessor</em><span class="op">.</span>access<span class="op">(</span>p, i<span class="op">))))</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em>
-<em><code>conj-if-needed</code></em><code>(</code><em><code>nested-accessor</code></em><code>.access(p, i))</code></p>
+<em><code>conj-if-needed</code></em><code>(NestedAccessor::element_type(</code><em><code>nested-accessor</code></em><code>.access(p, i)))</code></p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span></span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span><em>nested-accessor</em><span class="op">.</span>offset<span class="op">(</span>p, i<span class="op">)))</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Returns:</em>
 <em><code>nested-accessor</code></em><code>.offset(p, i)</code></p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">const</span> Accessor<span class="op">&amp;</span> nested_accessor<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">const</span> NestedAccessor<span class="op">&amp;</span> nested_accessor<span class="op">()</span> <span class="kw">const</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Returns:</em> <em><code>nested-accessor</code></em></p>
-<h4 data-number="28.9.8.3" id="conjugated-linalg.conj.conjugated"><span class="header-section-number">28.9.8.3</span> <code>conjugated</code>
+<h4 data-number="28.9.9.3" id="conjugated-linalg.conj.conjugated"><span class="header-section-number">28.9.9.3</span> <code>conjugated</code>
 [linalg.conj.conjugated]<a href="#conjugated-linalg.conj.conjugated" class="self-link"></a></h4>
 <div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType,</span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Extents,</span>
@@ -6820,59 +6824,15 @@ is <code>true</code>, and</p>
 <span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span> conjugated<span class="op">(</span></span>
 <span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span>ElementType, Extents, Layout, Accessor<span class="op">&gt;</span> a<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-Let <code>R</code> be
-<code>mdspan&lt;ReturnElementType, Extents, Layout, ReturnAccessor&gt;</code>,
-where</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>ReturnElementType</code> is</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1.1)</a></span> if
-<code>Accessor</code> is
-<code>conjugate_accessor&lt;NestedAccessor&gt;</code> for some
-<code>NestedAccessor</code>, then
-<code>typename NestedAccessor::element_type</code> <i>[Note:</i>
-conjugation is self-annihilating <i>– end note]</i>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1.2)</a></span>
-else if <code>remove_cv_t&lt;ElementType&gt;</code> is an arithmetic
-type, then <code>ElementType</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1.3)</a></span>
-else
-<code>conjugate_accessor&lt;Accessor&gt;::element_type</code>;</p></li>
-</ul></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span> and
-<code>ReturnAccessor</code> is:</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2.1)</a></span> if
-<code>Accessor</code> is
-<code>conjugate_accessor&lt;NestedAccessor&gt;</code> for some
-<code>NestedAccessor</code>, then <code>NestedAccessor</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2.2)</a></span>
-else if <code>remove_cv_t&lt;ElementType&gt;</code> is an arithmetic
-type, then <code>Accessor</code> <i>[Note:</i> this reduces nesting in
-cases where conjugation is known to be the identity <i>– end
-note]</i>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2.3)</a></span>
-else <code>conjugate_accessor&lt;Accessor&gt;</code>.</p></li>
-</ul></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>R(a.data(), a.mapping(), a.nested_accessor())</code> if
-<code>Accessor</code> is
-<code>conjugate_accessor&lt;NestedAccessor&gt;</code>.</p></li>
+<code>mdspan(a.data_handle(), a.mapping(), a.accessor().nested_accessor())</code>
+if <code>Accessor</code> is a specialization of
+<code>conjugated_accessor</code>; otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-Otherwise, <code>R(a.data(), a.mapping(), a.accessor())</code> if
-<code>remove_cv_t&lt;ElementType&gt;</code> is an arithmetic
-type.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-Otherwise,
-<code>R(a.data(), a.mapping(), ReturnAccessor(a.accessor()))</code>.</p></li>
+<code>mdspan(a.data_handle(), a.mapping(), conjugated_accessor(a.accessor()))</code>.</p></li>
 </ul>
-<p><i>[Note:</i> The elements of the returned <code>mdspan</code> are
-read only. <i>– end note]</i>;</p>
 <p>[<em>Example:</em></p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test_conjugated_complex<span class="op">(</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span>complex<span class="op">&lt;</span><span class="dt">double</span><span class="op">&gt;</span>, extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">10</span><span class="op">&gt;&gt;</span> a<span class="op">)</span></span>
@@ -6900,9 +6860,9 @@ read only. <i>– end note]</i>;</p>
 <span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>–<em>end example</em>]</p>
-<h3 data-number="28.9.9" id="transpose-in-place-transformation-linalg.transp"><span class="header-section-number">28.9.9</span> Transpose in-place
+<h3 data-number="28.9.10" id="transpose-in-place-transformation-linalg.transp"><span class="header-section-number">28.9.10</span> Transpose in-place
 transformation [linalg.transp]<a href="#transpose-in-place-transformation-linalg.transp" class="self-link"></a></h3>
-<h4 data-number="28.9.9.1" id="introduction-linalg.transp.intro"><span class="header-section-number">28.9.9.1</span> Introduction
+<h4 data-number="28.9.10.1" id="introduction-linalg.transp.intro"><span class="header-section-number">28.9.10.1</span> Introduction
 [linalg.transp.intro]<a href="#introduction-linalg.transp.intro" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <code>layout_transpose</code> is an <code>mdspan</code> layout mapping
@@ -6912,7 +6872,7 @@ unique <code>mdspan</code> layout mapping policy.</p>
 The <code>transposed</code> function takes an <code>mdspan</code>
 representing a matrix, and returns a new <code>mdspan</code>
 representing the transpose of the input matrix.</p>
-<h4 data-number="28.9.9.2" id="layout_transpose-linalg.transp.layout_transpose"><span class="header-section-number">28.9.9.2</span>
+<h4 data-number="28.9.10.2" id="layout_transpose-linalg.transp.layout_transpose"><span class="header-section-number">28.9.10.2</span>
 <code>layout_transpose</code> [linalg.transp.layout_transpose]<a href="#layout_transpose-linalg.transp.layout_transpose" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <code>layout_transpose</code> is an <code>mdspan</code> layout mapping
@@ -7103,7 +7063,7 @@ comparable, and</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">23</a></span>
 <em>Returns:</em> <em><code>nested-mapping</code></em>
 <code>== m.</code> <em><code>nested-mapping</code></em></p>
-<h4 data-number="28.9.9.3" id="transposed-linalg.transp.transposed"><span class="header-section-number">28.9.9.3</span> <code>transposed</code>
+<h4 data-number="28.9.10.3" id="transposed-linalg.transp.transposed"><span class="header-section-number">28.9.10.3</span> <code>transposed</code>
 [linalg.transp.transposed]<a href="#transposed-linalg.transp.transposed" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The <code>transposed</code> function takes a rank-2 <code>mdspan</code>
@@ -7483,8 +7443,8 @@ is specified. <i>[Note:</i> See
 <code>BinaryDivideOp</code> template parameters are a binary function
 object (<strong>[function.objects]</strong>).</p></li>
 </ul>
-<h3 data-number="28.10.3" id="blas-1-functions-linalg.algs.blas1"><span class="header-section-number">28.10.3</span> BLAS 1 functions
-[linalg.algs.blas1]<a href="#blas-1-functions-linalg.algs.blas1" class="self-link"></a></h3>
+<h3 data-number="28.10.3" id="blas-1-algorithms-linalg.algs.blas1"><span class="header-section-number">28.10.3</span> BLAS 1 algorithms
+[linalg.algs.blas1]<a href="#blas-1-algorithms-linalg.algs.blas1" class="self-link"></a></h3>
 <h4 data-number="28.10.3.1" id="complexity-linalg.algs.blas1.complexity"><span class="header-section-number">28.10.3.1</span> Complexity
 [linalg.algs.blas1.complexity]<a href="#complexity-linalg.algs.blas1.complexity" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
@@ -8303,8 +8263,8 @@ one-parameter overload is equivalent to
 <code>return matrix_inf_norm(A, T{});</code>, and the two-parameter
 overload is equivalent to
 <code>return matrix_inf_norm(exec, A, T{});</code>.</p>
-<h3 data-number="28.10.4" id="blas-2-functions-linalg.algs.blas2"><span class="header-section-number">28.10.4</span> BLAS 2 functions
-[linalg.algs.blas2]<a href="#blas-2-functions-linalg.algs.blas2" class="self-link"></a></h3>
+<h3 data-number="28.10.4" id="blas-2-algorithms-linalg.algs.blas2"><span class="header-section-number">28.10.4</span> BLAS 2 algorithms
+[linalg.algs.blas2]<a href="#blas-2-algorithms-linalg.algs.blas2" class="self-link"></a></h3>
 <h4 data-number="28.10.4.1" id="general-matrix-vector-product-linalg.algs.blas2.gemv"><span class="header-section-number">28.10.4.1</span> General matrix-vector
 product [linalg.algs.blas2.gemv]<a href="#general-matrix-vector-product-linalg.algs.blas2.gemv" class="self-link"></a></h4>
 <h5 data-number="28.10.4.1.1" id="common-linalg.algs.blas2.gemv.common"><span class="header-section-number">28.10.4.1.1</span> Common
@@ -9389,8 +9349,8 @@ neither <code>A.static_extent(0)</code> nor
 with <code>mdspan</code> parameters perform a count of
 <code>mdspan</code> array accesses and arithmetic operations that is
 linear in <code>x.extent(0)</code> times <code>y.extent(0)</code>.</p>
-<h3 data-number="28.10.5" id="blas-3-functions-linalg.algs.blas3"><span class="header-section-number">28.10.5</span> BLAS 3 functions
-[linalg.algs.blas3]<a href="#blas-3-functions-linalg.algs.blas3" class="self-link"></a></h3>
+<h3 data-number="28.10.5" id="blas-3-algorithms-linalg.algs.blas3"><span class="header-section-number">28.10.5</span> BLAS 3 algorithms
+[linalg.algs.blas3]<a href="#blas-3-algorithms-linalg.algs.blas3" class="self-link"></a></h3>
 <h4 data-number="28.10.5.1" id="general-matrix-matrix-product-linalg.algs.blas3.gemm"><span class="header-section-number">28.10.5.1</span> General matrix-matrix
 product [linalg.algs.blas3.gemm]<a href="#general-matrix-matrix-product-linalg.algs.blas3.gemm" class="self-link"></a></h4>
 <h5 data-number="28.10.5.1.1" id="common-linalg.algs.blas3.gemm.common"><span class="header-section-number">28.10.5.1.1</span> Common
