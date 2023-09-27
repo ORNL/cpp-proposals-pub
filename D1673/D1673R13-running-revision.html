@@ -6052,22 +6052,23 @@ Within all the functions in [linalg], any calls to <code>abs</code>,
 <code>conj</code>, <code>imag</code>, and <code>real</code> are
 unqualified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-Two <code>mdspan</code> <code>x</code> and <code>y</code> <em>alias</em>
-each other, if they have the same extents <code>e</code>, and for any
-pack of integers <code>i</code> which is a multidimensional index in
-<code>e</code>, <code>x[i...]</code> and <code>y[i...]</code> refer to
-the same element. <i>[Note:</i> This means that the two
-<code>mdspan</code> view the same elements in the same order. <i>– end
-note]</i></p>
+Two <code>mdspan</code> objects <code>x</code> and <code>y</code>
+<em>alias</em> each other, if they have the same extents <code>e</code>,
+and for every pack of integers <code>i</code> which is a
+multidimensional index in <code>e</code>, <code>x[i...]</code> and
+<code>y[i...]</code> refer to the same element. <i>[Note:</i> This means
+that <code>x</code> and <code>y</code> view the same elements in the
+same order. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
-Two <code>mdspan</code> <code>x</code> and <code>y</code>
+Two <code>mdspan</code> objects <code>x</code> and <code>y</code>
 <em>overlap</em> each other, if for some pack of integers <code>i</code>
 that is a multidimensional index in <code>x.extents()</code>, there
 exists a pack of integers <code>j</code> that is a multidimensional
 index in <code>y.extents()</code>, such that <code>x[i...]</code> and
 <code>y[j...]</code> refer to the same element. <i>[Note:</i> Aliasing
-is a special case of overlapping. Two <code>mdspan</code> that do not
-overlap also do not alias each other. <i>– end note]</i></p>
+is a special case of overlapping. If <code>x</code> and <code>y</code>
+do not overlap, then they also do not alias each other. <i>– end
+note]</i></p>
 <h3 data-number="28.9.4" id="requirements-linalg.reqs"><span class="header-section-number">28.9.4</span> Requirements [linalg.reqs]<a href="#requirements-linalg.reqs" class="self-link"></a></h3>
 <h4 data-number="28.9.4.1" id="linear-algebra-value-types-linalg.reqs.val"><span class="header-section-number">28.9.4.1</span> Linear algebra value types
 [linalg.reqs.val]<a href="#linear-algebra-value-types-linalg.reqs.val" class="self-link"></a></h4>
