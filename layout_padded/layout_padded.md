@@ -1162,12 +1162,12 @@ C++26 / IS.
 > after `struct layout_stride;`, add the following:
 
 ```c++
-template<size_t padding_stride = dynamic_extent>
+template<size_t PaddingValue = dynamic_extent>
 struct layout_left_padded {
   template<class Extents>
   class mapping;
 };
-template<size_t padding_stride = dynamic_extent>
+template<size_t PaddingValue = dynamic_extent>
 struct layout_right_padded {
   template<class Extents>
   class mapping;
@@ -1433,15 +1433,13 @@ public:
       const LayoutLeftPaddedMapping&) noexcept;
 };
 ```
+[2]{.pnum} Throughout this section, let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
 
-[2]{.pnum} Throughout this section, let `P_left` be the following
-size `extents_type::rank()` parameter pack of `size_t`:
+  * [2.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
 
-* [2.1]{.pnum} If `extents_type::rank()` equals zero or one,
-    then the empty parameter pack;
+  * [2.2]{.pnum} `size_t(0)`, if `extents_type::rank()` equals one; otherwise
 
-* [2.2]{.pnum} else, the parameter pack
-    `size_t(1)`, `size_t(2)`, ..., `extents_type::rank() - 1`.
+  * [2.3]{.pnum} the parameter pack `size_t(0)`, `size_t(1)`, ..., `extents_type::rank() - 1`.
 
 [3]{.pnum} *Mandates:* If
 
@@ -1646,7 +1644,7 @@ template<class LayoutRightPaddedMapping>
 
 [25]{.pnum} *Constraints:*
 
-* [25.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true` or _`is-mapping-of-layout-right`_`<LayoutRightPaddedMapping>` is `true,
+* [25.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_right, LayoutRightPaddedMapping>` is `true,
 
 * [25.2]{.pnum} `extents_type::rank()` equals zero or one, and
 
@@ -1670,18 +1668,18 @@ constexpr array<index_type, extents_type::rank()>
   strides() const noexcept;
 ```
 
-[29]{.pnum} *Effects:* Equivalent to
-`return array<index_type, extents_type::rank()>({stride(P_left)...})`.
+[29]{.pnum} *Returns:* `array<index_type, extents_type::rank()>({stride(P_rank)...})`.
 
 ```c++
 constexpr index_type required_span_size() const noexcept;
 ```
 
-[30]{.pnum} *Effects:* 
+[30]{.pnum} *Returns:*
 
-  * returns `0` if the multidimensional index space _`extents_`_ is empty, otherwise
+  * `0` if the multidimensional index space _`extents_`_ is empty, otherwise
  
-  * returns `*this((`_`extents_`_`(P_left)-1)...) + 1`
+  * `*this(((extents_(P_rank) - index_type(1))...)) + 1`
+```
 
 ```c++
 template<class... Indices>
@@ -1699,11 +1697,8 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 [32]{.pnum} *Precondition:* `extents_type::`_`index-cast`_`(idxs)`
 is a multidimensional index in `extents()` (*[mdspan.overview]*).
 
-[33]{.pnum} *Effects:*
-Let P be a parameter pack such that
-`is_same_v<index_sequence_for<Indices...>, index_sequence<P...>>`
-is `true`.  Equivalent to:
-`return ((static_cast<index_type>(idxs) * stride(P)) + ... + 0);`.
+[33]{.pnum} *Returns:*
+`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0);`.
 
 ```c++
 static constexpr bool is_always_exhaustive() noexcept;
@@ -1733,13 +1728,13 @@ constexpr index_type stride(rank_type r) const noexcept;
 
 [36]{.pnum} *Preconditions:* `r` is smaller than `extents_type::rank()`.
 
-[36]{.pnum} *Effects:*
+[36]{.pnum} *Returns:*
 
-  * if `r` equals `0` returns `1`, otherwise
+  * `1`, if `r` equals `0`; otherwise
 
-  * if `r` equals `1` returns _`stride-1`_`.extent(0)`, otherwise
+  * _`stride-1`_`.extent(0)`, if `r` equals `1`; otherwise
 
-  * returns the product of _`stride-1`_`.extent(0)` and all values _`extents_`_`.extent(k)` with `k` in the range of $[1,$ `r` $)$.
+  * the product of _`stride-1`_`.extent(0)` and all values _`extents_`_`.extent(k)` with `k` in the range of $[1,$ `r` $)$.
 
 ```c++
 template<class LayoutLeftPaddedMapping>
