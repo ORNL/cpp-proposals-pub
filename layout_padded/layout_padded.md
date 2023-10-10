@@ -1503,7 +1503,8 @@ is representable as a value of type `index_type`.
 
   * [9.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`, and
 
-  * [9.2]{.pnum} if _`static-padding-stride`_ is not equal to `dynamic_extent` direct-non-list-initialized _`stride-1`_ with `ext.extent(0)`.
+  * [9.2]{.pnum} if _`static-padding-stride`_ is not equal to `dynamic_extent`,
+      direct-non-list-initializes _`stride-1`_ with `ext.extent(0)`.
 
 ```c++
 template<class OtherIndexType>
@@ -1533,7 +1534,8 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
   * [9.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`, and
 
-  * [9.2]{.pnum} if _`static-padding-stride`_ is equal to `dynamic_extent` direct-non-list-initialized _`stride-1`_ with the least multiple of `pad` greater than or equal to `ext.extent(0)`.
+  * [9.2]{.pnum} if _`static-padding-stride`_ is equal to `dynamic_extent`,
+      direct-non-list-initializes _`stride-1`_ with the least multiple of `pad` greater than or equal to `ext.extent(0)`.
 
 ```c++
 template<class OtherExtents>
@@ -1629,7 +1631,8 @@ template<class LayoutLeftPaddedMapping>
 
   * [19.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`, and
 
-  * [19.2]{.pnum} is `static-padding-stride` is equal to `dynamic_extent` direct-non-list-initializes _`stride-1`_ with `other.stride(1)`;
+  * [19.2]{.pnum} if `static-padding-stride` is equal to `dynamic_extent`,
+      direct-non-list-initializes _`stride-1`_ with `other.stride(1)`.
 
 [24]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to:
@@ -1653,7 +1656,7 @@ template<class LayoutRightPaddedMapping>
 is representable as a value of type `index_type`
 (*[basic.fundamental]*).
 
-[27]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`, and
+[27]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`.
 
 [28]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to: `! is_convertible_v<typename LayoutRightPaddedMapping::extents_type, extents_type>`.
@@ -1676,7 +1679,7 @@ constexpr index_type required_span_size() const noexcept;
 
 [30]{.pnum} *Effects:* 
 
-  * returns `0` if the multi-dimensional index space _`extents_`_ is empty, otherwise
+  * returns `0` if the multidimensional index space _`extents_`_ is empty, otherwise
  
   * returns `*this((`_`extents_`_`(P_left)-1)...) + 1`
 
