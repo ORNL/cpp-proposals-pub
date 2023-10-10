@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-09-25" />
+  <meta name="dcterms.date" content="2023-10-10" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -14,7 +14,7 @@ div.column{display: inline-block; vertical-align: top; width: 50%;}
 </style>
   <style>
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -406,7 +406,7 @@ code.sourceCode > span { display: inline; }
 
 div#refs p { padding-left: 32px; text-indent: -32px; }
 </style>
-  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  <link rel="icon" href="https://isocpp.org/favicon.ico" />
   <!--[if lt IE 9]>
     <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
   <![endif]-->
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-09-25</td>
+    <td>2023-10-10</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1234,9 +1234,9 @@ for <code>std::complex</code>.</p></li>
 <li><p>Fix two design issues with <code>idx_abs_max</code>.</p>
 <ol type="1">
 <li><p>For the complex case, make it behave like the BLAS’s ICAMAX or
-IZAMAX, by using <em><code>abs-if-needed</code></em> <code>(</code>
+IZAMAX, by using <em><code>abs-if-needed</code></em><code>(</code>
 <em><code>real-if-needed</code></em> <code>(z[k])) +</code>
-<em><code>abs-if-needed</code></em> <code>(</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>imag-if-needed</code></em> <code>(z[k]))</code> as the element
 absolute value definition for complex numbers, instead of
 <code>abs(z[k])</code>.</p></li>
@@ -1292,6 +1292,10 @@ simplification of <em>[linalg.reqs.val]</em>.</p></li>
 <code>conjugated_accessor</code></p></li>
 <li><p>rename <code>accessor_scaled</code> to
 <code>scaled_accessor</code></p></li>
+<li><p>rename <code>givens_rotation_setup</code> to
+<code>setup_givens_rotation</code></p></li>
+<li><p>rename <code>givens_rotation_apply</code> to
+<code>apply_givens_rotation</code></p></li>
 <li><p>fix example for <code>scaled</code></p></li>
 <li><p>implement helper functions for algorithm mandates and
 preconditions and apply it to gemv</p></li>
@@ -1311,6 +1315,8 @@ Replace “shall view a disjoint set of elements of” wording (was
 [linalg.concepts] 3 in R12) with “shall not overlap.” “Alias” retains
 its R12 meaning (view the same elements in the same order). This lets us
 retain existing use of “alias” in describing algorithms.</p></li>
+<li><p>rename <code>idx_abs_max</code> to
+<code>vector_idx_abs_max</code></p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -1553,7 +1559,7 @@ Our name(s)
 xLARTG
 </td>
 <td>
-<code>givens_rotation_setup</code>
+<code>setup_givens_rotation</code>
 </td>
 </tr>
 <tr>
@@ -1561,7 +1567,7 @@ xLARTG
 xROT
 </td>
 <td>
-<code>givens_rotation_apply</code>
+<code>apply_givens_rotation</code>
 </td>
 </tr>
 <tr>
@@ -1641,7 +1647,7 @@ xASUM
 xIAMAX
 </td>
 <td>
-<code>idx_abs_max</code>
+<code>vector_idx_abs_max</code>
 </td>
 </tr>
 <tr>
@@ -2948,7 +2954,7 @@ additional cost of preventing undue underflow or overflow (as
 </ul>
 <p>The resulting functions are not actually norms in the mathematical
 sense, so their names <code>vector_abs_sum</code> and
-<code>idx_abs_max</code> do not include the word “norm.”</p>
+<code>vector_idx_abs_max</code> do not include the word “norm.”</p>
 <p>For matrices, we use the magnitude because the only reason LAPACK
 ever actually <em>computes</em> matrix 1-norms or infinity-norms is for
 estimating the condition number of a matrix. For this case, LAPACK
@@ -3003,17 +3009,18 @@ complex number <span class="math inline"><em>z</em></span>, instead of
 the “2-norm” <span class="math inline">|<em>z</em>|</span>, gives a
 tighter error bound.</p>
 <p>This is why P1673’s <code>vector_abs_sum</code> (vector 1-norm) and
-<code>idx_abs_max</code> (vector infinity-norm) functions use <span class="math inline">|ℜ(<em>z</em>)| + |ℑ(<em>z</em>)|</span> instead of
-<span class="math inline">|<em>z</em>|</span> for the “absolute value”
-of each vector element.</p>
+<code>vector_idx_abs_max</code> (vector infinity-norm) functions use
+<span class="math inline">|ℜ(<em>z</em>)| + |ℑ(<em>z</em>)|</span>
+instead of <span class="math inline">|<em>z</em>|</span> for the
+“absolute value” of each vector element.</p>
 <p>One disadvantage of these definitions is that the resulting
 quantities are not actually norms. This is because they do not preserve
 scaling factors. For magnitude, <span class="math inline">|<em>α</em><em>z</em>|</span> equals <span class="math inline">|<em>α</em>||<em>z</em>|</span> for any real number
 <span class="math inline"><em>α</em></span> and complex number <span class="math inline"><em>z</em></span>. However, <span class="math inline">|<em>α</em>ℜ(<em>z</em>)| + |<em>α</em>ℑ(<em>z</em>)|</span>
 does not equal <span class="math inline"><em>α</em>(|ℜ(<em>z</em>)|+|ℑ(<em>z</em>)|)</span>
 in general. As a result, the names of the functions
-<code>vector_abs_sum</code> and <code>idx_abs_max</code> do not include
-the word “norm.”</p>
+<code>vector_abs_sum</code> and <code>vector_idx_abs_max</code> do not
+include the word “norm.”</p>
 <h3 data-number="10.6.3" id="matrices"><span class="header-section-number">10.6.3</span> Matrices<a href="#matrices" class="self-link"></a></h3>
 <p>The 1-norm <span class="math inline">∥<em>A</em>∥<sub>1</sub></span>
 of a matrix <span class="math inline"><em>A</em></span> is <span class="math inline"><em>m</em><em>a</em><em>x</em><sub>∥<em>x</em>∥<sub>1</sub></sub>∥<em>A</em><em>x</em>∥<sub>1</sub></span>
@@ -4446,29 +4453,29 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.givens.lartg], compute Givens rotation</span></span>
 <span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> givens_rotation_setup_result <span class="op">{</span></span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> setup_givens_rotation_result <span class="op">{</span></span>
 <span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a>  Real c;</span>
 <span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>  Real s;</span>
 <span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a>  Real r;</span>
 <span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
 <span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> givens_rotation_setup_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span> <span class="op">{</span></span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> setup_givens_rotation_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span> <span class="op">{</span></span>
 <span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a>  Real c;</span>
 <span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> s;</span>
 <span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> r;</span>
 <span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
 <span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup_result<span class="op">&lt;</span>Real<span class="op">&gt;</span></span>
-<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>Real a, Real b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation_result<span class="op">&lt;</span>Real<span class="op">&gt;</span></span>
+<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation<span class="op">(</span>Real a, Real b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span></span>
-<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span></span>
+<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.givens.rot], apply computed Givens rotation</span></span>
 <span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-vector</em> InOutVec1,</span>
 <span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
 <span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> givens_rotation_apply<span class="op">(</span></span>
+<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
 <span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
 <span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
 <span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
@@ -4477,7 +4484,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec1,</span>
 <span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
 <span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> givens_rotation_apply<span class="op">(</span></span>
+<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
 <span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
 <span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
@@ -4486,7 +4493,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-vector</em> InOutVec1,</span>
 <span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
 <span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> givens_rotation_apply<span class="op">(</span></span>
+<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
 <span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
 <span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
 <span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
@@ -4495,7 +4502,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec1,</span>
 <span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
 <span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> givens_rotation_apply<span class="op">(</span></span>
+<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
 <span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
 <span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
@@ -4669,10 +4676,10 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-351"><a href="#cb7-351" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.iamax],</span></span>
 <span id="cb7-352"><a href="#cb7-352" aria-hidden="true" tabindex="-1"></a><span class="co">// index of maximum absolute value of vector elements</span></span>
 <span id="cb7-353"><a href="#cb7-353" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec<span class="op">&gt;</span></span>
-<span id="cb7-354"><a href="#cb7-354" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> InVec<span class="op">::</span>extents_type idx_abs_max<span class="op">(</span>InVec v<span class="op">)</span>;</span>
+<span id="cb7-354"><a href="#cb7-354" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> InVec<span class="op">::</span>extents_type vector_idx_abs_max<span class="op">(</span>InVec v<span class="op">)</span>;</span>
 <span id="cb7-355"><a href="#cb7-355" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-356"><a href="#cb7-356" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec<span class="op">&gt;</span></span>
-<span id="cb7-357"><a href="#cb7-357" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> InVec<span class="op">::</span>extents_type idx_abs_max<span class="op">(</span></span>
+<span id="cb7-357"><a href="#cb7-357" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> InVec<span class="op">::</span>extents_type vector_idx_abs_max<span class="op">(</span></span>
 <span id="cb7-358"><a href="#cb7-358" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-359"><a href="#cb7-359" aria-hidden="true" tabindex="-1"></a>  InVec v<span class="op">)</span>;</span>
 <span id="cb7-360"><a href="#cb7-360" aria-hidden="true" tabindex="-1"></a></span>
@@ -7483,27 +7490,26 @@ product of extents of any <code>mdspan</code> parameter.</p>
 <h5 data-number="28.9.13.2.1" id="compute-givens-rotation-linalg.algs.blas1.givens.lartg"><span class="header-section-number">28.9.13.2.1</span> Compute Givens rotation
 [linalg.algs.blas1.givens.lartg]<a href="#compute-givens-rotation-linalg.algs.blas1.givens.lartg" class="self-link"></a></h5>
 <div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup_result<span class="op">&lt;</span>Real<span class="op">&gt;</span></span>
-<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>Real a, Real b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation_result<span class="op">&lt;</span>Real<span class="op">&gt;</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation<span class="op">(</span>Real a, Real b<span class="op">)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span></span>
-<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>givens_rotation_setup<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span></span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-This function computes the plane (Givens) rotation represented by the
-two values <code>c</code> and <code>s</code> such that the 2x2 system of
-equations <i>[Note:</i> use of monospaced text in this equation does not
+This function computes the Givens plane rotation represented by the two
+values <code>c</code> and <code>s</code> such that the 2x2 system of
+equations</p>
+<p><i>[Note:</i> use of monospaced text in this equation does not
 indicate C++ code <i>– end note]</i></p>
 <div class="sourceCode" id="cb69"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>[c        s]   [a]   [r]</span>
 <span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>[          ] * [ ] = [ ]</span>
 <span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>[-conj(s) c]   [b]   [0]</span></code></pre></div>
-<p>holds, where <code>c</code> is always a real scalar, and
-<code>c*c +</code> <em><code>abs-if-needed</code></em>
-<code>(s) *</code> <em><code>abs-if-needed</code></em> <code>(s)</code>
-equals one. That is, <code>c</code> and <code>s</code> represent a 2 x 2
-matrix, that when multiplied by the right by the input vector whose
-components are <code>a</code> and <code>b</code>, produces a result
-vector whose first component <code>r</code> is the Euclidean norm of the
-input vector, and whose second component as zero.</p>
+<p>holds, where <code>c</code> is always a real scalar, and <span class="math inline"><em>c</em><sup>2</sup> + |<em>s</em>|<sup>2</sup> = 1</span>.</p>
+<p>That is, <code>c</code> and <code>s</code> represent a 2 x 2 matrix,
+that when multiplied by the right by the input vector whose components
+are <code>a</code> and <code>b</code>, produces a result vector whose
+first component <code>r</code> is the Euclidean norm of the input
+vector, and whose second component as zero.</p>
 <p><i>[Note:</i> This function corresponds to the LAPACK function
 <code>xLARTG</code>. <i>– end note]</i></p>
 <!--
@@ -7512,21 +7518,21 @@ The BLAS variant `xROTG` takes four arguments -- `a`, `b`, `c`, and
 `xLARTG`'s interface because it separates input and output, and to
 encourage following `xLARTG`'s more careful implementation.
 
-`givens_rotation_setup` has an overload for complex numbers,
+`setup_givens_rotation` has an overload for complex numbers,
 because the output argument `c` (cosine) is a signed magnitude.
 -->
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em> <code>{c, s, r}</code>, where <code>c</code> and
-<code>s</code> form the plane (Givens) rotation corresponding to the
-input <code>a</code> and <code>b</code>, and <code>r</code> is the
-Euclidean norm of the two-component vector formed by <code>a</code> and
+<code>s</code> form the Givens plane rotation corresponding to the input
+<code>a</code> and <code>b</code>, and <code>r</code> is the Euclidean
+norm of the two-component vector formed by <code>a</code> and
 <code>b</code>.</p>
 <h5 data-number="28.9.13.2.2" id="apply-a-computed-givens-rotation-to-vectors-linalg.algs.blas1.givens.rot"><span class="header-section-number">28.9.13.2.2</span> Apply a computed Givens
 rotation to vectors [linalg.algs.blas1.givens.rot]<a href="#apply-a-computed-givens-rotation-to-vectors-linalg.algs.blas1.givens.rot" class="self-link"></a></h5>
 <div class="sourceCode" id="cb70"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-vector</em> InOutVec1,</span>
 <span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
 <span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> givens_rotation_apply<span class="op">(</span></span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
 <span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
 <span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
 <span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
@@ -7536,7 +7542,7 @@ rotation to vectors [linalg.algs.blas1.givens.rot]<a href="#apply-a-computed-giv
 <span id="cb70-11"><a href="#cb70-11" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec1,</span>
 <span id="cb70-12"><a href="#cb70-12" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
 <span id="cb70-13"><a href="#cb70-13" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb70-14"><a href="#cb70-14" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> givens_rotation_apply<span class="op">(</span></span>
+<span id="cb70-14"><a href="#cb70-14" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
 <span id="cb70-15"><a href="#cb70-15" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb70-16"><a href="#cb70-16" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
 <span id="cb70-17"><a href="#cb70-17" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
@@ -7546,7 +7552,7 @@ rotation to vectors [linalg.algs.blas1.givens.rot]<a href="#apply-a-computed-giv
 <span id="cb70-21"><a href="#cb70-21" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-vector</em> InOutVec1,</span>
 <span id="cb70-22"><a href="#cb70-22" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
 <span id="cb70-23"><a href="#cb70-23" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb70-24"><a href="#cb70-24" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> givens_rotation_apply<span class="op">(</span></span>
+<span id="cb70-24"><a href="#cb70-24" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
 <span id="cb70-25"><a href="#cb70-25" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
 <span id="cb70-26"><a href="#cb70-26" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
 <span id="cb70-27"><a href="#cb70-27" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
@@ -7556,7 +7562,7 @@ rotation to vectors [linalg.algs.blas1.givens.rot]<a href="#apply-a-computed-giv
 <span id="cb70-31"><a href="#cb70-31" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec1,</span>
 <span id="cb70-32"><a href="#cb70-32" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
 <span id="cb70-33"><a href="#cb70-33" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb70-34"><a href="#cb70-34" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> givens_rotation_apply<span class="op">(</span></span>
+<span id="cb70-34"><a href="#cb70-34" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
 <span id="cb70-35"><a href="#cb70-35" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb70-36"><a href="#cb70-36" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
 <span id="cb70-37"><a href="#cb70-37" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
@@ -7567,7 +7573,7 @@ rotation to vectors [linalg.algs.blas1.givens.rot]<a href="#apply-a-computed-giv
 <!--
 `c` and `s` form a plane (Givens) rotation.
 Users normally would compute `c` and `s`
-using `givens_rotation_setup`,
+using `setup_givens_rotation`,
 but they are not required to do this.
 
 For `i` in the domains of both `x` and `y`,
@@ -7610,8 +7616,7 @@ elements [linalg.algs.blas1.swap]<a href="#swap-matrix-or-vector-elements-linalg
 <em>Constraints:</em> <code>x.rank()</code> equals
 <code>y.rank()</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Mandates:</em> For all <code>r</code> in 0, 1, …,
-<code>x.rank()</code> - 1,
+<em>Mandates:</em> For all <code>r</code> in the range <span class="math inline">[</span> 0, <code>x.rank()</code><span class="math inline">)</span>,
 <em><code>compatible-static-extents</code></em><code>&lt;InOutObj1, InOutObj2&gt;(r, r)</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
@@ -7657,8 +7662,7 @@ matrix or vector into another [linalg.algs.blas1.copy]<a href="#copy-elements-of
 <em>Constraints:</em> <code>x.rank()</code> equals
 <code>y.rank()</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Mandates:</em> For all <code>r</code> in 0, 1, …,
-<code>x.rank()</code> - 1,
+<em>Mandates:</em> For all <code>r</code> in the range <span class="math inline">[</span> 0, <code>x.rank()</code><span class="math inline">)</span>,
 <em><code>compatible-static-extents</code></em><code>&lt;InObj, OutObj&gt;(r, r)</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
@@ -7694,13 +7698,9 @@ elementwise [linalg.algs.blas1.add]<a href="#add-vectors-or-matrices-elementwise
 <em><code>possibly-addable</code></em><code>&lt;InObj1, InObj2, OutObj&gt;()</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Preconditions:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
-<code>x.extents()</code> equals <code>z.extents()</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-<code>y.extents()</code> equals <code>z.extents()</code>.</p></li>
-</ul>
+<em>Preconditions:</em>
+<em><code>addable</code></em><code>(x,y,z)</code> is
+<code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>x</em> + <em>y</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
@@ -7711,7 +7711,7 @@ vectors [linalg.algs.blas1.dot]<a href="#dot-product-of-two-vectors-linalg.algs.
 <h5 data-number="28.9.13.7.1" id="common-linalg.algs.blas1.dot.common"><span class="header-section-number">28.9.13.7.1</span> Common
 [linalg.algs.blas1.dot.common]<a href="#common-linalg.algs.blas1.dot.common" class="self-link"></a></h5>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The following mandates and preconditions apply to all functions in
+The following elements apply to all functions in
 [linalg.algs.blas1.dot].</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em>
@@ -7725,8 +7725,6 @@ product of two vectors [linalg.algs.blas1.dot.dotu]<a href="#nonconjugated-dot-p
 <p><i>[Note:</i> The functions in this section correspond to the BLAS
 functions <code>xDOT</code> (for real element types) and
 <code>xDOTU</code> (for complex element types). <i>– end note]</i></p>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-Nonconjugated dot product with specified result type</p>
 <div class="sourceCode" id="cb75"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2,</span>
 <span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Scalar<span class="op">&gt;</span></span>
@@ -7741,6 +7739,9 @@ Nonconjugated dot product with specified result type</p>
 <span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a>           InVec1 v1,</span>
 <span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a>           InVec2 v2,</span>
 <span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a>           Scalar init<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+These functions compute a non-conjugated dot product with an explicitly
+specified result type.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em> Let <code>N</code> be <code>v1.extent(0)</code>.</p>
 <ul>
@@ -7753,11 +7754,12 @@ Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Remarks:</em> If <code>InVec1::value_type</code>,
-<code>InVec2::value_type</code>, and <code>T</code> are all
+<code>InVec2::value_type</code>, and <code>Scalar</code> are all
 floating-point types or specializations of <code>complex</code>, and if
-<code>T</code> has higher precision than <code>InVec1::value_type</code>
-or <code>InVec2::value_type</code>, then intermediate terms in the sum
-use <code>T</code>’s precision or greater.</p>
+<code>Scalar</code> has higher precision than
+<code>InVec1::value_type</code> or <code>InVec2::value_type</code>, then
+intermediate terms in the sum use <code>Scalar</code>’s precision or
+greater.</p>
 <!--
 Like `reduce`, `dot` applies binary `operator+` in an
 unspecified order.  This may yield a nondeterministic result for
@@ -7770,8 +7772,6 @@ Users can get `xDOTC` behavior by giving the first argument
 as the result of `conjugated`.
 Alternately, they can use the shortcut `dotc` below.
 -->
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-Nonconjugated dot product with default result type</p>
 <div class="sourceCode" id="cb76"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dot<span class="op">(</span>InVec1 v1,</span>
@@ -7782,9 +7782,12 @@ Nonconjugated dot product with default result type</p>
 <span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dot<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb76-9"><a href="#cb76-9" aria-hidden="true" tabindex="-1"></a>         InVec1 v1,</span>
 <span id="cb76-10"><a href="#cb76-10" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+These functions compute a non-conjugated dot product with a default
+result type.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Let <code>T</code> be
-<code>decltype(declval&lt;InVec1::value_type&gt;() * declval&lt;InVec2::value_type&gt;())</code>.
+<code>decltype(declval&lt;typename InVec1::value_type&gt;() * declval&lt;typename InVec2::value_type&gt;())</code>.
 Then, the two-parameter overload is equivalent to
 <code>return dot(v1, v2, T{});</code>, and the three-parameter overload
 is equivalent to <code>return dot(exec, v1, v2, T{});</code>.</p>
@@ -7796,8 +7799,6 @@ functions <code>xDOT</code> (for real element types) and
 `dotc` exists to give users reasonable default inner product behavior
 for both real and complex element types.
 --></p>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-Conjugated dot product with specified result type</p>
 <div class="sourceCode" id="cb77"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2,</span>
 <span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Scalar<span class="op">&gt;</span></span>
@@ -7812,6 +7813,9 @@ Conjugated dot product with specified result type</p>
 <span id="cb77-12"><a href="#cb77-12" aria-hidden="true" tabindex="-1"></a>            InVec1 v1,</span>
 <span id="cb77-13"><a href="#cb77-13" aria-hidden="true" tabindex="-1"></a>            InVec2 v2,</span>
 <span id="cb77-14"><a href="#cb77-14" aria-hidden="true" tabindex="-1"></a>            Scalar init<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+These functions compute a conjugated dot product with an explicit
+specified result type.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> The three-argument overload is equivalent to
 <code>return dot(conjugated(v1), v2, init);</code>. The four-argument
@@ -7831,7 +7835,7 @@ Conjugated dot product with default result type</p>
 <span id="cb78-10"><a href="#cb78-10" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Let <code>T</code> be
-<code>decltype(</code><em><code>conj-if-needed</code></em><code>(declval&lt;typename InVec1::value_type&gt;()]) * declval&lt;typename InVec2::value_type&gt;())</code>.
+<code>decltype(</code><em><code>conj-if-needed</code></em><code>(declval&lt;typename InVec1::value_type&gt;()) * declval&lt;typename InVec2::value_type&gt;())</code>.
 Then, the two-parameter overload is equivalent to
 <code>return dotc(v1, v2, T{});</code>, and the three-parameter overload
 is equivalent to <code>return dotc(exec, v1, v2, T{});</code>.</p>
@@ -7857,46 +7861,30 @@ a vector’s elements [linalg.algs.blas1.ssq]<a href="#scaled-sum-of-squares-of-
 <p><i>[Note:</i> These functions correspond to the LAPACK function
 <code>xLASSQ</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>T</code> meets both the <em>Cpp17MoveConstructible</em> and
-<em>Cpp17LessThanComparable</em> requirements, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;())</code> is convertible to
-<code>T</code>.</p></li>
-</ul>
+<em>Mandates:</em>
+<code>decltype(</code><em><code>abs-if-needed</code></em><code>(declval&lt;typename InVec::value_type&gt;()))</code>
+is convertible to <code>Scalar</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Effects:</em> Returns two values:</p>
+<em>Effects:</em> Returns a value <code>result</code> such that</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>scaling_factor</code>: the maximum of
-<code>init.scaling_factor</code> and <em><code>abs-if-needed</code></em>
-<code>(x[i])</code> for all <code>i</code> in the domain of
-<code>v</code>; and</p></li>
+<code>result.scaling_factor</code> is the maximum of
+<code>init.scaling_factor</code> and
+<em><code>abs-if-needed</code></em><code>(x[i])</code> for all
+<code>i</code> in the domain of <code>v</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>scaled_sum_of_squares</code>: a value such that
-<code>scaling_factor * scaling_factor * scaled_sum_of_squares</code>
-equals the sum of squares of <em><code>abs-if-needed</code></em>
-<code>(x[i])</code> for all <code>i</code> in the domain of
-<code>v</code>, plus
+<code>result.scaling_factor * result.scaling_factor * result.scaled_sum_of_squares</code>
+equals the sum of squares of
+<em><code>abs-if-needed</code></em><code>(x[i])</code> for all
+<code>i</code> in the domain of <code>v</code>, plus
 <code>init.scaling_factor * init.scaling_factor * init.scaled_sum_of_squares</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Remarks:</em> If <code>InVec::value_type</code> is either a
-floating-point type or <code>complex&lt;R&gt;</code> for some
-floating-point type <code>R</code>, and if <code>T</code> is a
-floating-point type, then</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> if
-<code>T</code> has higher precision than <code>InVec::value_type</code>,
-then intermediate terms in the sum use <code>T</code>’s precision or
-greater; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> any
-guarantees regarding overflow and underflow of
-<code>vector_sum_of_squares</code> are implementation-defined.</p></li>
-</ul>
+<em>Remarks:</em> If <code>InVec::value_type</code>, and
+<code>Scalar</code> are all floating-point types or specializations of
+<code>complex</code>, and if <code>Scalar</code> has higher precision
+than <code>InVec::value_type</code>, then intermediate terms in the sum
+use <code>Scalar</code>’s precision or greater.</p>
 <h4 data-number="28.9.13.9" id="euclidean-norm-of-a-vector-linalg.algs.blas1.nrm2"><span class="header-section-number">28.9.13.9</span> Euclidean norm of a
 vector [linalg.algs.blas1.nrm2]<a href="#euclidean-norm-of-a-vector-linalg.algs.blas1.nrm2" class="self-link"></a></h4>
 <h5 data-number="28.9.13.9.1" id="euclidean-norm-with-specified-result-type"><span class="header-section-number">28.9.13.9.1</span> Euclidean norm with
@@ -7914,33 +7902,22 @@ specified result type<a href="#euclidean-norm-with-specified-result-type" class=
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xNRM2</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em> <code>init +</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;()) *</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;())</code> is convertible to
-<code>T</code>.</p>
+<em>Mandates:</em> <code>decltype(init +</code>
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InVec::value_type&gt;()) *</code>
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InVec::value_type&gt;()))</code>
+is convertible to <code>Scalar</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em> The square root of the sum of squares of
 (<code>init</code> and the absolute values of the elements of
 <code>v</code>). <i>[Note:</i> For <code>init</code> equal to zero, this
 is the Euclidean norm (also called 2-norm) of the vector
-<code>v</code>.</p>
-<p>This description does not imply a recommended implementation for
-floating-point types. See <em>Remarks</em> below. <i>– end note]</i></p>
+<code>v</code>.<i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Remarks:</em> If <code>InVec::value_type</code> is a floating-point
-type or a specialization of <code>complex</code>, and if <code>T</code>
-is a floating-point type, then</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> if
-<code>T</code> has higher precision than <code>InVec::value_type</code>,
-then intermediate terms in the sum use <code>T</code>’s precision or
-greater; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> any
-guarantees regarding overflow and underflow of
-<code>vector_two_norm</code> are implementation-defined.</p></li>
-</ul>
+<em>Remarks:</em> If <code>InVec::value_type</code>, and
+<code>Scalar</code> are all floating-point types or specializations of
+<code>complex</code>, and if <code>Scalar</code> has higher precision
+than <code>InVec::value_type</code>, then intermediate terms in the sum
+use <code>Scalar</code>’s precision or greater.</p>
 <p><i>[Note:</i> A suggested implementation of this function for
 floating-point types <code>T</code> would use the
 <code>scaled_sum_of_squares</code> result from
@@ -7956,11 +7933,9 @@ default result type<a href="#euclidean-norm-with-default-result-type" class="sel
 <span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a>                     InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;()) *</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;()))</code>. Then, the
-one-parameter overload is equivalent to
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InVec::value_type&gt;()) *</code>
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InVec::value_type&gt;()))</code>.
+Then, the one-parameter overload is equivalent to
 <code>return vector_two_norm(v, T{});</code>, and the two-parameter
 overload is equivalent to
 <code>return vector_two_norm(exec, v, T{});</code>.</p>
@@ -7988,23 +7963,14 @@ approximation of the one-norm serves just as well as the actual
 one-norm for many linear algebra algorithms in practice.
 -->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>decltype(init +</code> <em><code>abs-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;()))</code> is convertible to
-<code>T</code>, if <code>InVec::value_type</code> is an arithmetic
-type.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-Otherwise, <code>decltype(init +</code>
-<em><code>abs-if-needed</code></em> <code>(</code>
+<em>Mandates:</em> <code>decltype(init +</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>real-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;())) +</code>
-<em><code>abs-if-needed</code></em> <code>(</code>
+<code>(declval&lt;typename InVec::value_type&gt;())) +</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>imag-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;())))</code> is convertible to
-<code>T</code>.</p></li>
-</ul>
+<code>(declval&lt;typename InVec::value_type&gt;())))</code> is
+convertible to <code>Scalar</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em> Let <code>N</code> be <code>v.extent(0)</code>.</p>
 <ul>
@@ -8012,27 +7978,27 @@ Otherwise, <code>decltype(init +</code>
 <code>init</code> if <code>N</code> is zero.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
 Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
-<code>init</code>, <em><code>abs-if-needed</code></em>
-<code>(v[0])</code>, …, <em><code>abs-if-needed</code></em>
-<code>(v[N-1])</code>), if <code>InVec::value_type</code> is an
-arithmetic type.</p></li>
+<code>init</code>,
+<em><code>abs-if-needed</code></em><code>(v[0])</code>, …,
+<em><code>abs-if-needed</code></em><code>(v[N-1])</code>), if
+<code>InVec::value_type</code> is an arithmetic type.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
-<code>init</code>, <em><code>abs-if-needed</code></em> <code>(</code>
+<code>init</code>, <em><code>abs-if-needed</code></em><code>(</code>
 <em><code>real-if-needed</code></em> <code>(v[0])) +</code>
-<em><code>abs-if-needed</code></em> <code>(</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>imag-if-needed</code></em> <code>(v[0]))</code>, …,
-<em><code>abs-if-needed</code></em> <code>(</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>real-if-needed</code></em> <code>(v[N-1])) +</code>
-<em><code>abs-if-needed</code></em> <code>(</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>imag-if-needed</code></em> <code>(v[N-1]))</code>).</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Remarks:</em> If <code>InVec::value_type</code> is a floating-point
-type or a specialization of <code>complex</code>, if <code>T</code> is a
-floating-point type, and if <code>T</code> has higher precision than
-<code>InVec::value_type</code>, then intermediate terms in the sum use
-<code>T</code>’s precision or greater.</p>
+<em>Remarks:</em> If <code>InVec::value_type</code> and
+<code>Scalar</code> are all floating-point types or specializations of
+<code>complex</code>, and if <code>Scalar</code> has higher precision
+than <code>InVec::value_type</code>, then intermediate terms in the sum
+use <code>Scalar</code>’s precision or greater.</p>
 <h5 data-number="28.9.13.10.2" id="sum-of-absolute-values-with-default-result-type"><span class="header-section-number">28.9.13.10.2</span> Sum of absolute values
 with default result type<a href="#sum-of-absolute-values-with-default-result-type" class="self-link"></a></h5>
 <div class="sourceCode" id="cb83"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec<span class="op">&gt;</span></span>
@@ -8050,30 +8016,24 @@ and the two-parameter overload is equivalent to
 <h4 data-number="28.9.13.11" id="index-of-maximum-absolute-value-of-vector-elements-linalg.algs.blas1.iamax"><span class="header-section-number">28.9.13.11</span> Index of maximum
 absolute value of vector elements [linalg.algs.blas1.iamax]<a href="#index-of-maximum-absolute-value-of-vector-elements-linalg.algs.blas1.iamax" class="self-link"></a></h4>
 <div class="sourceCode" id="cb84"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec<span class="op">&gt;</span></span>
-<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> InVec<span class="op">::</span>size_type idx_abs_max<span class="op">(</span>InVec v<span class="op">)</span>;</span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> InVec<span class="op">::</span>size_type vector_idx_abs_max<span class="op">(</span>InVec v<span class="op">)</span>;</span>
 <span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec<span class="op">&gt;</span></span>
-<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> InVec<span class="op">::</span>size_type idx_abs_max<span class="op">(</span></span>
+<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a><span class="kw">typename</span> InVec<span class="op">::</span>size_type vector_idx_abs_max<span class="op">(</span></span>
 <span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb84-8"><a href="#cb84-8" aria-hidden="true" tabindex="-1"></a>  InVec v<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>IxAMAX</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>InVec::value_type</code> is <em>Cpp17LessThanComparable</em>, if
-<code>InVec::value_type</code> is an arithmetic type.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-Otherwise, <code>decltype(</code> <em><code>abs-if-needed</code></em>
-<code>(</code> <em><code>real-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;())) +</code>
-<em><code>abs-if-needed</code></em> <code>(</code>
+<em>Mandates:</em> <code>decltype(</code>
+<em><code>abs-if-needed</code></em><code>(</code>
+<em><code>real-if-needed</code></em>
+<code>(declval&lt;typename InVec::value_type&gt;())) +</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>imag-if-needed</code></em>
-<code>(declval&lt;InVec::value_type&gt;())))</code> is
-<em>Cpp17LessThanComparable</em>.</p></li>
-</ul>
+<code>(declval&lt;typename InVec::value_type&gt;())))</code> is
+<em>Cpp17LessThanComparable</em>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em></p>
 <ul>
@@ -8087,9 +8047,9 @@ element of <code>v</code> having largest absolute value, if
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 Otherwise, the index (in the domain of <code>v</code>) of the first
 element <code>v_e</code> of <code>v</code> for which
-<em><code>abs-if-needed</code></em> <code>(</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>real-if-needed</code></em> <code>(v_e)) +</code>
-<em><code>abs-if-needed</code></em> <code>(</code>
+<em><code>abs-if-needed</code></em><code>(</code>
 <em><code>imag-if-needed</code></em> <code>(v_e))</code> has the largest
 value.</p></li>
 </ul>
@@ -8110,32 +8070,22 @@ specified result type<a href="#frobenius-norm-with-specified-result-type" class=
 <span id="cb85-11"><a href="#cb85-11" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
 <span id="cb85-12"><a href="#cb85-12" aria-hidden="true" tabindex="-1"></a>  Scalar init<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em> <code>init +</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InMat::value_type&gt;()) *</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InMat::value_type&gt;())</code> is convertible to
-<code>T</code>.</p>
+<em>Mandates:</em> <code>decltype(init +</code>
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()) *</code>
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()))</code>
+is convertible to <code>Scalar</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em> The square root of the sum of squares of
 <code>init</code> and the absolute values of the elements of
 <code>A</code>. <i>[Note:</i> For <code>init</code> equal to zero, this
-is the Frobenius norm of the matrix <code>A</code>.</p>
-<p>This description does not imply a recommended implementation for
-floating-point types. See <em>Remarks</em> below. <i>– end note]</i></p>
+is the Frobenius norm of the matrix <code>A</code>. <i>– end
+note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Remarks:</em> If <code>InMat::value_type</code> is a floating-point
-type or <code>complex&lt;R&gt;</code> for some floating-point type
-<code>R</code>, and if <code>T</code> is a floating-point type, then</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> if
-<code>T</code> has higher precision than
-<code>InMatype::value_type</code>, then intermediate terms in the sum
-use <code>T</code>’s precision or greater; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> any
-guarantees regarding overflow and underflow of
-<code>matrix_frob_norm</code> are implementation-defined.</p></li>
-</ul>
+<em>Remarks:</em> If <code>InMat::value_type</code> and
+<code>Scalar</code> are all floating-point types or specializations of
+<code>complex</code>, and if <code>Scalar</code> has higher precision
+than <code>InMat::value_type</code>, then intermediate terms in the sum
+use <code>Scalar</code>’s precision or greater.</p>
 <h5 data-number="28.9.13.12.2" id="frobenius-norm-with-default-result-type"><span class="header-section-number">28.9.13.12.2</span> Frobenius norm with
 default result type<a href="#frobenius-norm-with-default-result-type" class="self-link"></a></h5>
 <div class="sourceCode" id="cb86"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat<span class="op">&gt;</span></span>
@@ -8146,17 +8096,11 @@ default result type<a href="#frobenius-norm-with-default-result-type" class="sel
 <span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> matrix_frob_norm<span class="op">(</span></span>
 <span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
-<!-- TODO (mfh 2023/02/16)
-What if that product of absolute values is an expression template?
-Is it even our job to worry about that?
--->
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InMat::value_type&gt;()) *</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InMat::value_type&gt;()))</code>, Then, the
-one-parameter overload is equivalent to
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()) *</code>
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()))</code>,
+Then, the one-parameter overload is equivalent to
 <code>return matrix_frob_norm(A, T{});</code>, and the two-parameter
 overload is equivalent to
 <code>return matrix_frob_norm(exec, A, T{});</code>.</p>
@@ -8177,9 +8121,9 @@ specified result type<a href="#one-norm-with-specified-result-type" class="self-
 <span id="cb87-11"><a href="#cb87-11" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
 <span id="cb87-12"><a href="#cb87-12" aria-hidden="true" tabindex="-1"></a>  Scalar init<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em> <em><code>abs-if-needed</code></em>
-<code>(declval&lt;InMat::value_type&gt;())</code> is convertible to
-<code>T</code>.</p>
+<em>Mandates:</em>
+<code>decltype(</code><em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()))</code>
+is convertible to <code>Scalar</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em></p>
 <ul>
@@ -8193,12 +8137,11 @@ Otherwise, the sum of <code>init</code> and the one norm of the matrix
 maximum over all columns of <code>A</code>, of the sum of the absolute
 values of the elements of the column. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Remarks:</em> If <code>InMat::value_type</code> is a floating-point
-type or <code>complex&lt;R&gt;</code> for some floating-point type
-<code>R</code>, if <code>T</code> is a floating-point type, and if
-<code>T</code> has higher precision than <code>InMat::value_type</code>,
-then intermediate terms in each sum use <code>T</code>’s precision or
-greater.</p>
+<em>Remarks:</em> If <code>InMat::value_type</code> and
+<code>Scalar</code> are all floating-point types or specializations of
+<code>complex</code>, and if <code>Scalar</code> has higher precision
+than <code>InMat::value_type</code>, then intermediate terms in the sum
+use <code>Scalar</code>’s precision or greater.</p>
 <h5 data-number="28.9.13.13.2" id="one-norm-with-default-result-type"><span class="header-section-number">28.9.13.13.2</span> One norm with default
 result type<a href="#one-norm-with-default-result-type" class="self-link"></a></h5>
 <div class="sourceCode" id="cb88"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat<span class="op">&gt;</span></span>
@@ -8211,9 +8154,8 @@ result type<a href="#one-norm-with-default-result-type" class="self-link"></a></
 <span id="cb88-8"><a href="#cb88-8" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InMat::value_type&gt;())</code>. Then, the
-one-parameter overload is equivalent to
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;())</code>.
+Then, the one-parameter overload is equivalent to
 <code>return matrix_one_norm(A, T{});</code>, and the two-parameter
 overload is equivalent to
 <code>return matrix_one_norm(exec, A, T{});</code>.</p>
@@ -8234,9 +8176,9 @@ specified result type<a href="#infinity-norm-with-specified-result-type" class="
 <span id="cb89-11"><a href="#cb89-11" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
 <span id="cb89-12"><a href="#cb89-12" aria-hidden="true" tabindex="-1"></a>  Scalar init<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Mandates:</em> <em><code>abs-if-needed</code></em>
-<code>(declval&lt;InMat::value_type&gt;())</code> is convertible to
-<code>T</code>.</p>
+<em>Mandates:</em>
+<code>decltype(</code><em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()))</code>
+is convertible to <code>Scalar</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em></p>
 <ul>
@@ -8250,12 +8192,11 @@ matrix <code>A</code>.</p></li>
 maximum over all rows of <code>A</code>, of the sum of the absolute
 values of the elements of the row. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Remarks:</em> If <code>InMat::value_type</code> is a floating-point
-type or <code>complex&lt;R&gt;</code> for some floating-point type
-<code>R</code>, if <code>T</code> is a floating-point type, and if
-<code>T</code> has higher precision than <code>InMat::value_type</code>,
-then intermediate terms in each sum use <code>T</code>’s precision or
-greater.</p>
+<em>Remarks:</em> If <code>InMat::value_type</code> and
+<code>Scalar</code> are all floating-point types or specializations of
+<code>complex</code>, and if <code>Scalar</code> has higher precision
+than <code>InMat::value_type</code>, then intermediate terms in the sum
+use <code>Scalar</code>’s precision or greater.</p>
 <h5 data-number="28.9.13.14.2" id="infinity-norm-with-default-result-type"><span class="header-section-number">28.9.13.14.2</span> Infinity norm with
 default result type<a href="#infinity-norm-with-default-result-type" class="self-link"></a></h5>
 <div class="sourceCode" id="cb90"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat<span class="op">&gt;</span></span>
@@ -8268,9 +8209,8 @@ default result type<a href="#infinity-norm-with-default-result-type" class="self
 <span id="cb90-8"><a href="#cb90-8" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
-<em><code>abs-if-needed</code></em>
-<code>(declval&lt;InMat::value_type&gt;())</code>. Then, the
-one-parameter overload is equivalent to
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;())</code>.
+Then, the one-parameter overload is equivalent to
 <code>return matrix_inf_norm(A, T{});</code>, and the two-parameter
 overload is equivalent to
 <code>return matrix_inf_norm(exec, A, T{});</code>.</p>
@@ -8394,49 +8334,35 @@ product [linalg.algs.blas2.symv]<a href="#symmetric-matrix-vector-product-linalg
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The following elements apply to all functions in this section.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>A.extent(1)</code> equals <code>x.extent(0)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>A.extent(0)</code> equals <code>y.extent(0)</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-<code>y.extent(0)</code> equals <code>z.extent(0)</code> (for those
-overloads that take a <code>z</code> parameter).</p></li>
-</ul>
+<em>Constraints:</em> If <code>InMat</code> has
+<code>layout_blas_packed</code> layout, then the layout’s
+<code>Triangle</code> template argument has the same type as the
+function’s <code>Triangle</code> template argument.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Constraints:</em></p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> If
-<code>InMat</code> has <code>layout_blas_packed</code> layout, then the
-layout’s <code>Triangle</code> template argument has the same type as
-the function’s <code>Triangle</code> template argument.</li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> If
-neither <code>A.static_extent(0)</code> nor
-<code>A.static_extent(1)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals
-<code>A.static_extent(1)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> If
-neither <code>A.static_extent(1)</code> nor
-<code>x.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(1)</code> equals
-<code>x.static_extent(0)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> If
-neither <code>A.static_extent(0)</code> nor
-<code>y.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals
-<code>y.static_extent(0)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span> If
-neither <code>y.static_extent(0)</code> nor
-<code>z.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>y.static_extent(0)</code> equals <code>z.static_extent(0)</code>
-(for those overloads that take a <code>z</code> parameter).</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(A)&gt;(0, 1)</code>
+is <code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<em><code>possibly-multiplyable</code></em><code>&lt;decltype(A), decltype(x), decltype(y)&gt;()</code>
+is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
+<em><code>possibly-addable</code></em><code>&lt;decltype(x),decltype(y),decltype(z)&gt;()</code>
+is <code>true</code> for those overloads that take a <code>z</code>
+parameter.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Preconditions:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<em><code>multiplyable</code></em><code>(A,x,y)</code> is
+<code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
+<em><code>addable</code></em><code>(x,y,z)</code> is <code>true</code>
+for those overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> All algorithms in [linalg.algs.blas2.symv] with
@@ -8506,49 +8432,35 @@ product [linalg.algs.blas2.hemv]<a href="#hermitian-matrix-vector-product-linalg
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The following elements apply to all functions in this section.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>A.extent(1)</code> equals <code>x.extent(0)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>A.extent(0)</code> equals <code>y.extent(0)</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-<code>y.extent(0)</code> equals <code>z.extent(0)</code> (for those
-overloads that take a <code>z</code> parameter).</p></li>
-</ul>
+<em>Constraints:</em> If <code>InMat</code> has
+<code>layout_blas_packed</code> layout, then the layout’s
+<code>Triangle</code> template argument has the same type as the
+function’s <code>Triangle</code> template argument.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Constraints:</em></p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> If
-<code>InMat</code> has <code>layout_blas_packed</code> layout, then the
-layout’s <code>Triangle</code> template argument has the same type as
-the function’s <code>Triangle</code> template argument.</li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> If
-neither <code>A.static_extent(0)</code> nor
-<code>A.static_extent(1)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals
-<code>A.static_extent(1)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> If
-neither <code>A.static_extent(1)</code> nor
-<code>x.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(1)</code> equals
-<code>x.static_extent(0)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> If
-neither <code>A.static_extent(0)</code> nor
-<code>y.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals
-<code>y.static_extent(0)</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span> If
-neither <code>y.static_extent(0)</code> nor
-<code>z.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>y.static_extent(0)</code> equals <code>z.static_extent(0)</code>
-(for those overloads that take a <code>z</code> parameter).</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(A)&gt;(0, 1)</code>
+is <code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<em><code>possibly-multiplyable</code></em><code>&lt;decltype(A), decltype(x), decltype(y)&gt;()</code>
+is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
+<em><code>possibly-addable</code></em><code>&lt;decltype(x),decltype(y),decltype(z)&gt;()</code>
+is <code>true</code> for those overloads that take a <code>z</code>
+parameter.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Preconditions:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<em><code>multiplyable</code></em><code>(A,x,y)</code> is
+<code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
+<em><code>addable</code></em><code>(x,y,z)</code> is <code>true</code>
+for those overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> All algorithms in [linalg.algs.blas2.hemv] with
@@ -8616,48 +8528,41 @@ product [linalg.algs.blas2.trmv]<a href="#triangular-matrix-vector-product-linal
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The following elements apply to all functions in this section.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>A.extent(0)</code> equals <code>y.extent(0)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-<code>A.extent(1)</code> equals <code>x.extent(0)</code> (for those
-overloads that take an <code>x</code> parameter).</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
-<code>y.extent(0)</code> equals <code>z.extent(0)</code> (for those
-overloads that take a <code>z</code> parameter).</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Constraints:</em> if <code>InMat</code> has
+<em>Constraints:</em> If <code>InMat</code> has
 <code>layout_blas_packed</code> layout, then the layout’s
 <code>Triangle</code> template argument has the same type as the
 function’s <code>Triangle</code> template argument.</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> if
-neither <code>A.static_extent(0)</code> nor
-<code>A.static_extent(1)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals
-<code>A.static_extent(1)</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> if
-neither <code>A.static_extent(0)</code> nor
-<code>y.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals
-<code>y.static_extent(0)</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> if
-neither <code>A.static_extent(1)</code> nor
-<code>x.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(1)</code> equals <code>x.static_extent(0)</code>
-(for those overloads that take an <code>x</code> parameter);
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span> if
-neither <code>y.static_extent(0)</code> nor
-<code>z.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>y.static_extent(0)</code> equals <code>z.static_extent(0)</code>
-(for those overloads that take a <code>z</code> parameter).</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(A)&gt;(0, 1)</code>
+is <code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(y)&gt;(0, 0)</code>
+is <code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(x)&gt;(0, 0)</code>
+is <code>true</code> for those overloads that take an <code>x</code>
+parameter, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.4)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(z)&gt;(0, 0)</code>
+is <code>true</code> for those overloads that take a <code>z</code>
+parameter.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Preconditions:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<code>A.extent(0)</code> equals <code>y.extent(0)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
+<code>A.extent(0)</code> equals <code>x.extent(0)</code> for those
+overloads that take an <code>x</code> parameter, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span>
+<code>A.extent(0)</code> equals <code>z.extent(0)</code> for those
+overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> For all algorithms in [linalg.algs.blas2.trmv] with
@@ -8729,14 +8634,6 @@ parallelization. However, other <code>ExecutionPolicy</code>-specific
 optimizations, such as vectorization, are still possible. <i>– end
 note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em> <code>A.extent(1)</code> equals
-<code>y.extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Mandates:</em> If neither <code>A.static_extent(1)</code> nor
-<code>y.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(1)</code> equals
-<code>y.static_extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>y</em></span>.</p>
 <h5 data-number="28.9.14.4.4" id="updating-triangular-matrix-vector-product-linalg.algs.blas2.trmv.up"><span class="header-section-number">28.9.14.4.4</span> Updating triangular
 matrix-vector product [linalg.algs.blas2.trmv.up]<a href="#updating-triangular-matrix-vector-product-linalg.algs.blas2.trmv.up" class="self-link"></a></h5>
@@ -8780,31 +8677,34 @@ system [linalg.algs.blas2.trsv]<a href="#solve-a-triangular-linear-system-linalg
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The following elements apply to all functions in this section.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>A.extent(0)</code> equals <code>A.extent(1)</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>A.extent(1)</code> equals <code>b.extent(0)</code>.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Constraints:</em> if <code>InMat</code> has
+<em>Constraints:</em> If <code>InMat</code> has
 <code>layout_blas_packed</code> layout, then the layout’s
 <code>Triangle</code> template argument has the same type as the
 function’s <code>Triangle</code> template argument.</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> if
-neither <code>A.static_extent(0)</code> nor
-<code>A.static_extent(1)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals <code>A.static_extent(1)</code>;
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> if
-neither <code>A.static_extent(1)</code> nor
-<code>b.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(1)</code> equals
-<code>b.static_extent(0)</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(A)&gt;(0, 1)</code>
+is <code>true</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(b)&gt;(0, 0)</code>
+is <code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
+<em><code>compatible-static-extents</code></em><code>&lt;decltype(A), decltype(x)&gt;(0, 0)</code>
+is <code>true</code> for those overloads that take an <code>x</code>
+parameter.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<em>Preconditions:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<code>A.extent(0)</code> equals <code>A.extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<code>A.extent(0)</code> equals <code>b.extent(0)</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
+<code>A.extent(0)</code> equals <code>x.extent(0)</code> for those
+overloads that take an <code>x</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> For all algorithms in [linalg.algs.blas2.trsv] with
@@ -8852,14 +8752,6 @@ solve [linalg.algs.blas2.trsv.not-in-place]<a href="#not-in-place-triangular-sol
 <span id="cb101-27"><a href="#cb101-27" aria-hidden="true" tabindex="-1"></a>  OutVec x,</span>
 <span id="cb101-28"><a href="#cb101-28" aria-hidden="true" tabindex="-1"></a>  BinaryDivideOp divide<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em> <code>A.extent(0)</code> equals
-<code>x.extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Mandates:</em> If neither <code>A.static_extent(0)</code> nor
-<code>x.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals
-<code>x.static_extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>x</em>′</span>
 such that <span class="math inline"><em>b</em> = <em>A</em><em>x</em>′</span>, and
 assigns each element of <span class="math inline"><em>x</em>′</span> to
@@ -8876,7 +8768,7 @@ the corresponding element of <code>x</code>. If no such <span class="math inline
 <span id="cb102-9"><a href="#cb102-9" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb102-10"><a href="#cb102-10" aria-hidden="true" tabindex="-1"></a>  InVec b,</span>
 <span id="cb102-11"><a href="#cb102-11" aria-hidden="true" tabindex="-1"></a>  OutVec x<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> Equivalent to</p>
 <div class="sourceCode" id="cb103"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>A, t, d, b, x,</span>
 <span id="cb103-2"><a href="#cb103-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_ii, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> b_i<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> A_ii <span class="op">/</span> b_i; <span class="op">})</span>;</span></code></pre></div>
@@ -8893,7 +8785,7 @@ the corresponding element of <code>x</code>. If no such <span class="math inline
 <span id="cb104-11"><a href="#cb104-11" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb104-12"><a href="#cb104-12" aria-hidden="true" tabindex="-1"></a>  InVec b,</span>
 <span id="cb104-13"><a href="#cb104-13" aria-hidden="true" tabindex="-1"></a>  OutVec x<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Equivalent to</p>
 <div class="sourceCode" id="cb105"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>,</span>
 <span id="cb105-2"><a href="#cb105-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, b, x,</span>
@@ -8929,14 +8821,6 @@ parallelization. However, other <code>ExecutionPolicy</code>-specific
 optimizations, such as vectorization, are still possible. <i>– end
 note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<em>Preconditions:</em> <code>A.extent(0)</code> equals
-<code>b.extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Mandates:</em> If neither <code>A.static_extent(0)</code> nor
-<code>b.static_extent(0)</code> equals <code>dynamic_extent</code>, then
-<code>A.static_extent(0)</code> equals
-<code>b.static_extent(0)</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>x</em>′</span>
 such that <span class="math inline"><em>b</em> = <em>A</em><em>x</em>′</span>, and
 assigns each element of <span class="math inline"><em>x</em>′</span> to
@@ -8951,7 +8835,7 @@ the corresponding element of <code>b</code>. If no such <span class="math inline
 <span id="cb107-7"><a href="#cb107-7" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb107-8"><a href="#cb107-8" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb107-9"><a href="#cb107-9" aria-hidden="true" tabindex="-1"></a>  InOutVec b<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Effects:</em> Equivalent to</p>
 <div class="sourceCode" id="cb108"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb108-1"><a href="#cb108-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>A, t, d, b,</span>
 <span id="cb108-2"><a href="#cb108-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_ii, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> b_i<span class="op">){</span> <span class="cf">return</span> A_ii <span class="op">/</span> b_i; <span class="op">})</span>;</span></code></pre></div>
@@ -8966,7 +8850,7 @@ the corresponding element of <code>b</code>. If no such <span class="math inline
 <span id="cb109-9"><a href="#cb109-9" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb109-10"><a href="#cb109-10" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb109-11"><a href="#cb109-11" aria-hidden="true" tabindex="-1"></a>  InOutVec b<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Equivalent to</p>
 <div class="sourceCode" id="cb110"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>,</span>
 <span id="cb110-2"><a href="#cb110-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, b,</span>
