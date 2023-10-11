@@ -1162,12 +1162,22 @@ C++26 / IS.
 > after `struct layout_stride;`, add the following:
 
 ```c++
-template<size_t PaddingValue = dynamic_extent>
+template<size_t PaddingValue = dynamic_extent> 
+struct layout_left_padded;
+template<size_t PaddingValue = dynamic_extent> 
+struct layout_right_padded;
+```
+
+> In *[mdspan.layout.policy.overview]*,
+> add the following to the code block after the `layout_stride` definition:
+
+```c++
+template<size_t PaddingValue>
 struct layout_left_padded {
   template<class Extents>
   class mapping;
 };
-template<size_t PaddingValue = dynamic_extent>
+template<size_t PaddingValue>
 struct layout_right_padded {
   template<class Extents>
   class mapping;
