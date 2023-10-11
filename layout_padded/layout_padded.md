@@ -1389,40 +1389,29 @@ public:
   constexpr mapping()
     requires(@_static-padding-stride_@ == dynamic_extent) noexcept;
       : mapping(extents_type{}) {}
-
   constexpr mapping(const mapping&) noexcept = default;
-
   constexpr mapping(const extents_type& ext);
-
   template<class OtherIndexType>
     constexpr mapping(const extents_type& ext, OtherIndexType padding_value);
 
   template<class OtherExtents>
     constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
       mapping(const layout_left::mapping<OtherExtents>&);
-
   template<class OtherExtents>
     constexpr explicit(extents_type::rank() > 0)
       mapping(const layout_stride::mapping<OtherExtents>&);
-
   template<class LayoutLeftPaddedMapping>
     constexpr explicit( /* see below */ )
       mapping(const LayoutLeftPaddedMapping&);
-
   template<class LayoutRightPaddedMapping>
     constexpr explicit( /* see below */ )
       mapping(const LayoutRightPaddedMapping&) noexcept;
 
   constexpr mapping& operator=(const mapping&) noexcept = default;
 
-
   // [mdspan.layout.leftpadded.obs], observers
-  constexpr const extents_type& extents() const noexcept {
-    return @_extents__@;
-  }
-
-  constexpr std::array<index_type, extents_type::rank()>
-    strides() const noexcept;
+  constexpr const extents_type& extents() const noexcept { return @_extents\__@; }
+  constexpr array<index_type, extents_type::rank()> strides() const noexcept;
 
   constexpr index_type required_span_size() const noexcept;
 
@@ -1446,10 +1435,22 @@ public:
 
 private:
   extents<index_type, @_static-padding-stride_@> @_stride-1_@{}; // exposition only
-  extents_type @_extents__@{}; // exposition only
+  extents_type @_extents\__@{}; // exposition only
+
+  // [mdspan.submdspan.mapping], submdspan mapping specialization
+  template<class... SliceSpecifiers>
+    constexpr auto submdspan-mapping-impl(                    // exposition only
+      SliceSpecifiers... slices) const -> see below;
+
+  template<class... SliceSpecifiers>
+    friend constexpr auto submdspan_mapping(
+      const mapping& src, SliceSpecifiers... slices) {
+        return src.submdspan-mapping-impl(slices...);
+  }
 };
 ```
-[2]{.pnum} Throughout this section, let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
+
+[2]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
 
   * [2.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
 
@@ -1476,25 +1477,20 @@ and is representable as a value of type `index_type`.
 static constexpr size_t @_static-padding-stride_@ = /* see-below */; // exposition only
 ```
 
-[4]{.pnum}
+[4]{.pnum} The value is
 
-  * [4.1]{.pnum } If `extents_type::rank()`
-      equals zero or one, then `0`.
+  * [4.1]{.pnum } `0`, if `extents_type::rank()`
+      equals zero or one; otherwise
 
-  * [4.2]{.pnum } Else, if
-
-    * `padding_value` does not equal `dynamic_extent` and
-
-    * `extents_type::static_extent(0)` does not equal `dynamic_extent`,
-
-    then the `size_t` value which is
+  * [4.2]{.pnum } the `size_t` value which is
     the least multiple of `padding_value`
     that is greater than or equal to
-    `extents_type::static_extent(0)`.
+    `extents_type::static_extent(0)`, if
+      `padding_value` does not equal `dynamic_extent` and `extents_type::static_extent(0)` does not equal `dynamic_extent`; otherwise
 
-  * [4.3]{.pnum } Otherwise, `dynamic_extent`.
+  * [4.3]{.pnum } `dynamic_extent`.
 
-### Overview [mdspan.layout.leftpadded.cons]
+### Constructors [mdspan.layout.leftpadded.cons]
 
 ```c++
 constexpr mapping() 
