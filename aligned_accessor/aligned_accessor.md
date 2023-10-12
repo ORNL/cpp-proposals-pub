@@ -32,10 +32,20 @@ toc: true
 
 * Revision 1 (pre-Kona) to be submitted 2023-10-15
 
-    * Change `gcd` converting constructor Constraint to a Mandate
+    * Implement changes requested by LEWG review on 2023/10/10
 
-    * Add Example in the wording section that uses `is_sufficiently_aligned`
-        to check the pointer overalignment precondition
+        * Change `gcd` converting constructor Constraint to a Mandate
+
+        * Add Example in the wording section that uses `is_sufficiently_aligned`
+            to check the pointer overalignment precondition
+
+        * Add Example in the wording section that uses `aligned_alloc`
+            to create an overaligned allocation,
+            to show that `aligned_accessor` exists as part of a system
+
+    * Add more design discussion based on LEWG review on 2023/10/10
+
+        * Explain why we do not include an `aligned_mdspan` alias
 
 # Purpose of this paper
 
@@ -46,7 +56,8 @@ We think it belongs in the Standard Library for two reasons.
 First, it would serve as a common vocabulary type
 for interfaces that take `mdspan` to declare
 their minimum alignment requirements.
-Second, it extends to `mdspan` accesses the optimizations that compilers can perform to pointers decorated with `assume_aligned`.
+Second, it extends to `mdspan` accesses the optimizations
+that compilers can perform to pointers decorated with `assume_aligned`.
 
 `aligned_accessor` is analogous to
 the various `atomic_accessor_*` templates proposed by P2689.
@@ -134,6 +145,61 @@ A similar question came up in the "properties" proposal P0900, which we quote he
 
 For these reasons, we have made `aligned_accessor` stand-alone,
 instead of having it modify another user-provided accessor.
+
+## We do not define an alias for aligned mdspan
+
+In LEWG's 2023/10/10 review of R0,
+participants observed that this proposal's examples define
+an example-specific type alias for `mdspan` with `aligned_accessor`.
+They asked whether our proposal should include a _standard_ alias `aligned_mdspan`.
+We do not _object_ to such an alias, but we do not find it very useful,
+for the following reasons.
+
+1. Users of `mdspan` commonly define their own type aliases
+    whose names have meaningful names for their applications.
+
+2. It would not save much typing.
+
+Examples may define aliases to make them more concise.
+One of them in this proposal defines the following alias
+for an `mdspan` of `float` with alignment `byte_alignment`.
+```c++
+template<size_t byte_alignment>
+using aligned_mdspan = std::mdspan<float, std::dextents<int, 1>,
+  std::layout_right, std::aligned_accessor<float, byte_alignment>>;
+```
+This lets the example use `aligned_mdspan<32>` and `aligned_mdspan<16>`.
+
+The above alias is specific to a particular example.
+A _general_ version of alias would look like this.
+```c++
+template<class ElementType, class Extents, class Layout, size_t byte_alignment>
+using aligned_mdspan = std::mdspan<ElementType, Extents, Layout,
+  std::aligned_accessor<ElementType, byte_alignment>>;
+```
+This alias would save _some_ typing.
+However, mdspan "power users" rarely type out all the template arguments.
+First, they can rely on CTAD to create `mdspan`s, and `auto` to return them.
+Second, users commonly already define their own aliases
+whose names have an application-specific meaning.
+They define these aliases _once_ and use them throughout the application.
+For instance, users might define the following.
+```c++
+template<class ElementType>
+using vector_t = std::mdspan<ElementType, std::dextents<int, 1>, std::layout_left>;
+template<class ElementType>
+using matrix_t = std::mdspan<ElementType, std::dextents<int, 2>, std::layout_left>;
+
+template<class ElementType, size_t byte_alignment>
+using aligned_vector_t = std::mdspan<ElementType, std::dextents<int, 1>, std::layout_left, 
+  std::aligned_accessor<ElementType, byte_alignment>>;
+template<class ElementType, size_t byte_alignment>
+using aligned_matrix_t = std::mdspan<ElementType, std::dextents<int, 2>, std::layout_left, 
+  std::aligned_accessor<ElementType, byte_alignment>>;
+```
+Such users may never type the characters "`mdspan`" again.
+For this reason, while we do not object to an `aligned_mdspan` alias,
+we do not find the proliferation of aliases particularly ergonomic.
 
 # Implementation
 
@@ -324,6 +390,67 @@ void compute(float* p, size_t number_of_elements)
   else {
     compute_without_requiring_overalignment(mdspan{p, mapping});
   }
+}
+```
+--*end example*]
+
+[*Example:*
+The following example shows how users can fulfill the preconditions of `aligned_accessor`
+by using existing C++ Standard Library functionality to create overaligned allocations.
+First, the `allocate_overaligned` helper function uses `aligned_alloc`
+to create an overaligned allocation.
+
+```c++
+template<class ElementType>
+struct delete_with_free {
+  void operator()(ElementType* p) const {
+    std::free(p);
+  }
+};
+
+template<class ElementType>
+using allocation = std::unique_ptr<ElementType[], delete_with_free<ElementType>>;
+
+template<class ElementType, size_t byte_alignment>
+allocation<ElementType> allocate_overaligned(const size_t num_elements)
+{
+  const size_t num_bytes = num_elements * sizeof(ElementType);
+  void* ptr = std::aligned_alloc(byte_alignment, num_bytes);
+  return {ptr, delete_with_free<ElementType>{}};
+}
+```
+
+Second, this example presumes that some third-party library provides functions
+requiring arrays of `float` to have 32-byte alignment.
+
+```c++
+template<size_t byte_alignment>
+using aligned_mdspan = std::mdspan<float, std::dextents<int, 1>,
+  std::layout_right, std::aligned_accessor<float, byte_alignment>>;
+
+extern void vectorized_axpy(aligned_mdspan<32> y, float alpha, aligned_mdspan<32> x);
+extern float vectorized_norm(aligned_mdspan<32> y);
+```
+
+Third and finally, the user's function `user_function` would begin
+by allocating "raw" overaligned arrays with `allocate_overaligned`.
+It would then create aligned `mdspan` with them,
+and pass the resulting `mdspan` into the third-party library's functions.
+
+```c++
+float user_function(size_t num_elements, float alpha)
+{
+  constexpr size_t max_byte_alignment = 32;
+  auto x_alloc = allocate_overaligned<float, max_byte_alignment>(num_elements);
+  auto y_alloc = allocate_overaligned<float, max_byte_alignment>(num_elements);
+
+  aligned_mdspan<max_byte_alignment> x(x_alloc.get());
+  aligned_mdspan<max_byte_alignment> y(y_alloc.get());
+
+  // ... fill the elements of x and y ...
+
+  vectorized_axpy(y, alpha, x);
+  return vectorized_norm(y);
 }
 ```
 --*end example*]
