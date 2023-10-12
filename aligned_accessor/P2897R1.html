@@ -485,8 +485,11 @@ Laboratories)</p></li>
 <li><p>Revision 0 (pre-Varna) to be submitted 2023-05-19</p></li>
 <li><p>Revision 1 (pre-Kona) to be submitted 2023-10-15</p>
 <ul>
-<li>Change <code>gcd</code> converting constructor Constraint to a
-Mandate</li>
+<li><p>Change <code>gcd</code> converting constructor Constraint to a
+Mandate</p></li>
+<li><p>Add Example in the wording section that uses
+<code>is_sufficiently_aligned</code> to check the pointer overalignment
+precondition</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -763,6 +766,30 @@ is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Returns</em>: <code>true</code> if <code>X</code> has alignment at
 least <code>byte_alignment</code>, else <code>false</code>.</p>
+<p>[<em>Example:</em> The following function <code>compute</code> uses
+<code>is_sufficiently_aligned</code> to check whether an arbitrary
+pointer <code>float* p</code> has sufficient alignment to be used with
+<code>aligned_accessor&lt;float, 4 * sizeof(float)&gt;</code>. If so,
+the function dispatches to a function
+<code>compute_using_fourfold_overalignment</code> that requires fourfold
+overalignment of arrays, but can therefore use hardware-specific
+instructions, such as four-wide SIMD (Single Instruction Multiple Data)
+instructions. Otherwise, <code>compute</code> dispatches to a possibly
+less optimized function
+<code>compute_without_requiring_overalignment</code> that has no
+overalignment requirement.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> compute<span class="op">(</span><span class="dt">float</span><span class="op">*</span> p, <span class="dt">size_t</span> number_of_elements<span class="op">)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> mapping <span class="op">=</span> layout_right<span class="op">::</span>mapping<span class="op">{</span>number_of_elements<span class="op">}</span>;</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> accessor <span class="op">=</span> aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span> <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;{}</span>;</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(</span>accessor<span class="op">.</span>is_sufficiently_aligned<span class="op">(</span>p<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    compute_using_fourfold_overalignment<span class="op">(</span>mdspan<span class="op">{</span>p, mapping, accessor<span class="op">})</span>;</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    compute_without_requiring_overalignment<span class="op">(</span>mdspan<span class="op">{</span>p, mapping<span class="op">})</span>;</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>–<em>end example</em>]</p>
 </div>
 </div>
 </body>

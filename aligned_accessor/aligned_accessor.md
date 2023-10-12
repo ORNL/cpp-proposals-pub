@@ -34,6 +34,9 @@ toc: true
 
     * Change `gcd` converting constructor Constraint to a Mandate
 
+    * Add Example in the wording section that uses `is_sufficiently_aligned`
+        to check the pointer overalignment precondition
+
 # Purpose of this paper
 
 We propose adding `aligned_accessor` to the C++ Standard Library.
@@ -298,3 +301,29 @@ constexpr static bool is_sufficiently_aligned(data_handle_type p);
 [7]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
 
 [8]{.pnum} *Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
+
+[*Example:*
+The following function `compute` uses `is_sufficiently_aligned` to check
+whether an arbitrary pointer `float* p` has sufficient alignment
+to be used with `aligned_accessor<float, 4 * sizeof(float)>`.
+If so, the function dispatches to a function `compute_using_fourfold_overalignment`
+that requires fourfold overalignment of arrays,
+but can therefore use hardware-specific instructions,
+such as four-wide SIMD (Single Instruction Multiple Data) instructions.
+Otherwise, `compute` dispatches to a possibly less optimized function
+`compute_without_requiring_overalignment` that has no overalignment requirement.
+
+```c++
+void compute(float* p, size_t number_of_elements)
+{
+  auto mapping = layout_right::mapping{number_of_elements};
+  auto accessor = aligned_accessor<float, 4 * sizeof(float)>{};
+  if (accessor.is_sufficiently_aligned(p)) {
+    compute_using_fourfold_overalignment(mdspan{p, mapping, accessor});
+  }
+  else {
+    compute_without_requiring_overalignment(mdspan{p, mapping});
+  }
+}
+```
+--*end example*]
