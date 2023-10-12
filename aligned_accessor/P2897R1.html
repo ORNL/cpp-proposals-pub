@@ -462,6 +462,8 @@ nestable</a></li>
 <code>default_accessor</code></a></li>
 <li><a href="#we-do-not-define-an-alias-for-aligned-mdspan" id="toc-we-do-not-define-an-alias-for-aligned-mdspan"><span class="toc-section-number">5.3</span> We do not define an alias for
 aligned mdspan</a></li>
+<li><a href="#mdspan-construction-safety" id="toc-mdspan-construction-safety"><span class="toc-section-number">5.4</span> mdspan construction
+safety</a></li>
 </ul></li>
 <li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">6</span> Implementation</a></li>
 <li><a href="#example" id="toc-example"><span class="toc-section-number">7</span> Example</a></li>
@@ -513,8 +515,10 @@ explanation in the design discussion section.</p></li>
 </ul></li>
 <li><p>Add more design discussion based on LEWG review on 2023/10/10</p>
 <ul>
-<li>Explain why we do not include an <code>aligned_mdspan</code>
-alias</li>
+<li><p>Explain why we do not include an <code>aligned_mdspan</code>
+alias</p></li>
+<li><p>Explain <code>aligned_accessor</code> construction
+safety</p></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -736,62 +740,171 @@ users might define the following.</p>
 For this reason, while we do not object to an
 <code>aligned_mdspan</code> alias, we do not find the proliferation of
 aliases particularly ergonomic.</p>
+<h2 data-number="5.4" id="mdspan-construction-safety"><span class="header-section-number">5.4</span> mdspan construction safety<a href="#mdspan-construction-safety" class="self-link"></a></h2>
+<p>LEWG’s 2023/10/10 review of R0 expressed concern that
+<code>mdspan</code>’s constructor has no way to check
+<code>aligned_accessor</code>’s alignment requirements. Users can call
+<code>aligned_accessor</code>’s <code>is_sufficiently_aligned(p)</code>
+<code>static</code> member function with a pointer <code>p</code> to
+check this themselves, before constructing the <code>mdspan</code>.
+However, <code>mdspan</code>’s constructor generally has no way to check
+whether its accessor finds the caller’s data handle acceptable.</p>
+<p>This is true for any accessor type, not just for
+<code>aligned_accessor</code>. It is a design feature of
+<code>mdspan</code> that accessors can be stateless. Even if they have
+state, they do not need to be constructed with or store the data handle.
+As a result, an accessor might not see a data handle until
+<code>access</code> or <code>offset</code> is called. Both of those
+member functions are performance critical, so they cannot afford an
+extra branch on every call. Compare to <code>vector::operator[]</code>,
+which has preconditions but is not required to perform bounds checks.
+Using exceptions in the manner of <code>vector::at</code> could reduce
+performance and would also make <code>mdspan</code> unusable in a
+freestanding or no-exceptions context.</p>
+<p>Note that <code>aligned_accessor</code> does not introduce any
+<em>additional</em> preconditions beyond those of the existing C++
+Standard Library feature <code>assume_aligned</code>. In the words of
+one LEWG reviewer, <code>aligned_accessor</code> is not any more
+“pointy” than <code>assume_aligned</code>; it just passes the point
+through without “blunting” it.</p>
+<p>Before submitting R0 of this paper, we considered an approach
+specific to <code>aligned_accessor</code>, that would wrap the pointer
+in a special data handle type. The data handle type would have an
+<code>explicit</code> constructor taking a raw pointer, with a
+precondition that the raw pointer have sufficient alignment. The
+constructor would be <code>explicit</code>, because it would have a
+precondition. This design would force the precondition back to
+<code>mdspan</code> construction time. Users would have to construct the
+<code>mdspan</code> like this.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>element_type<span class="op">*</span> raw_pointer <span class="op">=</span> get_pointer_from_somewhere<span class="op">()</span>;</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> acc_type <span class="op">=</span> aligned_accessor<span class="op">&lt;</span>element_type, byte_alignment<span class="op">&gt;</span>;</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>mdspan x<span class="op">{</span>acc_type<span class="op">::</span>data_handle_type<span class="op">{</span>raw_pointer<span class="op">}</span>, mapping, acc_type<span class="op">{}}</span>;</span></code></pre></div>
+<p>We rejected this approach in favor of
+<code>is_sufficiently_aligned</code> for the following reasons. First,
+wrapping the pointer in a custom data handle class would make every
+<code>access</code> or <code>offset</code> call need to reach through
+the data handle’s interface, instead of just taking the raw pointer
+directly. The <code>access</code> function, and to some extent also
+<code>offset</code>, need to be as fast as possible. Their performance
+depends on compilers being able to optimize through function calls. The
+authors of <code>mdspan</code> carefully balanced generality with
+function call depth and other code complexity factors that may hinder
+compilers from optimizing. Performance of <code>aligned_accessor</code>
+matters as much or even more than performance of
+<code>default_accessor</code>, because <code>aligned_accessor</code>
+exists to communicate optimization potential. Second, the alignment
+precondition would still exist. Requiring the data handle type to throw
+an exception if the pointer is not sufficiently aligned would make
+<code>mdspan</code> unusable in a freestanding or no-exceptions context.
+Third, users should not have to pay for unneeded checks. The two
+examples in the wording express the two most common cases. If users get
+a pointer from a function like <code>aligned_alloc</code>, then they
+already know its alignment, because they asked for it. If users are
+computing alignment at run time to dispatch to a more optimized code
+path, then they know alignment before dispatch. In both cases, users
+already know the alignment before constructing the
+<code>mdspan</code>.</p>
+<p>An LEWG poll on 2023/10/10, “[b]lock <code>aligned_accessor</code>
+progressing until we have a way of checking alignment requirements
+during <code>mdspan</code> construction,” resulted in no consensus.
+Attendance was 14.</p>
+<table>
+<tr>
+<th>
+Strongly Favor
+</th>
+<th>
+Weakly Favor
+</th>
+<th>
+Neutral
+</th>
+<th>
+Weakly Against
+</th>
+<th>
+Strongly Against
+</th>
+</tr>
+<tr>
+<th>
+0
+</th>
+<th>
+1
+</th>
+<th>
+1
+</th>
+<th>
+2
+</th>
+<th>
+2
+</th>
+</tr>
+</table>
+<p>LEWG expressed an (unpolled) interest that we explore
+<code>mdspan</code> safety in subsequent work after the fall 2023 Kona
+WG21 meeting. LEWG recognized that this is a general issue with
+<code>mdspan</code> and asked us to explore safety in a way that is not
+specific to <code>aligned_accessor</code>.</p>
 <h1 data-number="6" id="implementation"><span class="header-section-number">6</span> Implementation<a href="#implementation" class="self-link"></a></h1>
 <p>We have tested an implementation of this proposal with the <a href="https://github.com/kokkos/mdspan/">reference mdspan
 implementation</a>.</p>
 <h1 data-number="7" id="example"><span class="header-section-number">7</span> Example<a href="#example" class="self-link"></a></h1>
-<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> aligned_mdspan <span class="op">=</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">1</span><span class="op">&gt;</span>, std<span class="op">::</span>layout_right, std<span class="op">::</span>aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, byte_alignment<span class="op">&gt;&gt;</span>;</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Interfaces that require 32-byte alignment,</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">// because they want to do 8-wide SIMD of float.</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> vectorized_axpy<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y, <span class="dt">float</span> alpha, aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> x<span class="op">)</span>;</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">float</span> vectorized_norm<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y<span class="op">)</span>;</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Interfaces that require 16-byte alignment,</span></span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">// because they want to do 4-wide SIMD of float.</span></span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> fill_x<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">16</span><span class="op">&gt;</span> x<span class="op">)</span>;</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> fill_y<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">16</span><span class="op">&gt;</span> y<span class="op">)</span>;</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">// Helper functions for making overaligned array allocations.</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> delete_raw <span class="op">{</span></span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span> <span class="kw">operator</span><span class="op">()(</span>ElementType<span class="op">*</span> p<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>free<span class="op">(</span>p<span class="op">)</span>;</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> allocation <span class="op">=</span> std<span class="op">::</span>unique_ptr<span class="op">&lt;</span>ElementType<span class="op">[]</span>, delete_raw<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, std<span class="op">::</span><span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
-<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>allocation<span class="op">&lt;</span>ElementType<span class="op">&gt;</span> allocate_raw<span class="op">(</span><span class="kw">const</span> std<span class="op">::</span><span class="dt">size_t</span> num_elements<span class="op">)</span></span>
-<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> std<span class="op">::</span><span class="dt">size_t</span> num_bytes <span class="op">=</span> num_elements <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>ElementType<span class="op">)</span>;</span>
-<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span><span class="op">*</span> ptr <span class="op">=</span> std<span class="op">::</span>aligned_alloc<span class="op">(</span>byte_alignment, num_bytes<span class="op">)</span>;</span>
-<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>ptr, delete_raw<span class="op">&lt;</span>ElementType<span class="op">&gt;{}}</span>;</span>
-<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> user_function<span class="op">(</span><span class="dt">size_t</span> num_elements, <span class="dt">float</span> alpha<span class="op">)</span></span>
-<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Code using the above two interfaces needs to allocate to the max alignment.</span></span>
-<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Users could also query aligned_accessor::byte_alignment</span></span>
-<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>  <span class="co">// for the various interfaces and take the max.</span></span>
-<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">size_t</span> max_byte_alignment <span class="op">=</span> <span class="dv">32</span>;</span>
-<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> x_alloc <span class="op">=</span> allocate_raw<span class="op">&lt;</span><span class="dt">float</span>, max_byte_alignment<span class="op">&gt;(</span>num_elements<span class="op">)</span>;</span>
-<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> y_alloc <span class="op">=</span> allocate_raw<span class="op">&lt;</span><span class="dt">float</span>, max_byte_alignment<span class="op">&gt;(</span>num_elements<span class="op">)</span>;</span>
-<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span>max_byte_alignment<span class="op">&gt;</span> x<span class="op">(</span>x_alloc<span class="op">.</span>get<span class="op">())</span>;</span>
-<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span>max_byte_alignment<span class="op">&gt;</span> y<span class="op">(</span>y_alloc<span class="op">.</span>get<span class="op">())</span>;</span>
-<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>  fill_x<span class="op">(</span>x<span class="op">)</span>; <span class="co">// automatic conversion from 32-byte aligned to 16-byte aligned</span></span>
-<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>  fill_y<span class="op">(</span>y<span class="op">)</span>; <span class="co">// automatic conversion again</span></span>
-<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>  vectorized_axpy<span class="op">(</span>y, alpha, x<span class="op">)</span>;</span>
-<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> vectorized_norm<span class="op">(</span>y<span class="op">)</span>;</span>
-<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> aligned_mdspan <span class="op">=</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">1</span><span class="op">&gt;</span>, std<span class="op">::</span>layout_right, std<span class="op">::</span>aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, byte_alignment<span class="op">&gt;&gt;</span>;</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Interfaces that require 32-byte alignment,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">// because they want to do 8-wide SIMD of float.</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> vectorized_axpy<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y, <span class="dt">float</span> alpha, aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> x<span class="op">)</span>;</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">float</span> vectorized_norm<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y<span class="op">)</span>;</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co">// Interfaces that require 16-byte alignment,</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">// because they want to do 4-wide SIMD of float.</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> fill_x<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">16</span><span class="op">&gt;</span> x<span class="op">)</span>;</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> fill_y<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">16</span><span class="op">&gt;</span> y<span class="op">)</span>;</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co">// Helper functions for making overaligned array allocations.</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> delete_raw <span class="op">{</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span> <span class="kw">operator</span><span class="op">()(</span>ElementType<span class="op">*</span> p<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>free<span class="op">(</span>p<span class="op">)</span>;</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> allocation <span class="op">=</span> std<span class="op">::</span>unique_ptr<span class="op">&lt;</span>ElementType<span class="op">[]</span>, delete_raw<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, std<span class="op">::</span><span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>allocation<span class="op">&lt;</span>ElementType<span class="op">&gt;</span> allocate_raw<span class="op">(</span><span class="kw">const</span> std<span class="op">::</span><span class="dt">size_t</span> num_elements<span class="op">)</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> std<span class="op">::</span><span class="dt">size_t</span> num_bytes <span class="op">=</span> num_elements <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>ElementType<span class="op">)</span>;</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span><span class="op">*</span> ptr <span class="op">=</span> std<span class="op">::</span>aligned_alloc<span class="op">(</span>byte_alignment, num_bytes<span class="op">)</span>;</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>ptr, delete_raw<span class="op">&lt;</span>ElementType<span class="op">&gt;{}}</span>;</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> user_function<span class="op">(</span><span class="dt">size_t</span> num_elements, <span class="dt">float</span> alpha<span class="op">)</span></span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Code using the above two interfaces needs to allocate to the max alignment.</span></span>
+<span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Users could also query aligned_accessor::byte_alignment</span></span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a>  <span class="co">// for the various interfaces and take the max.</span></span>
+<span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">size_t</span> max_byte_alignment <span class="op">=</span> <span class="dv">32</span>;</span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> x_alloc <span class="op">=</span> allocate_raw<span class="op">&lt;</span><span class="dt">float</span>, max_byte_alignment<span class="op">&gt;(</span>num_elements<span class="op">)</span>;</span>
+<span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> y_alloc <span class="op">=</span> allocate_raw<span class="op">&lt;</span><span class="dt">float</span>, max_byte_alignment<span class="op">&gt;(</span>num_elements<span class="op">)</span>;</span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span>max_byte_alignment<span class="op">&gt;</span> x<span class="op">(</span>x_alloc<span class="op">.</span>get<span class="op">())</span>;</span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span>max_byte_alignment<span class="op">&gt;</span> y<span class="op">(</span>y_alloc<span class="op">.</span>get<span class="op">())</span>;</span>
+<span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>  fill_x<span class="op">(</span>x<span class="op">)</span>; <span class="co">// automatic conversion from 32-byte aligned to 16-byte aligned</span></span>
+<span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a>  fill_y<span class="op">(</span>y<span class="op">)</span>; <span class="co">// automatic conversion again</span></span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a>  vectorized_axpy<span class="op">(</span>y, alpha, x<span class="op">)</span>;</span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> vectorized_norm<span class="op">(</span>y<span class="op">)</span>;</span>
+<span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <h1 data-number="8" id="wording"><span class="header-section-number">8</span> Wording<a href="#wording" class="self-link"></a></h1>
 <blockquote>
 <p>Text in blockquotes is not proposed wording, but rather instructions
@@ -799,7 +912,7 @@ for generating proposed wording. The � character is used to denote a
 placeholder section number which the editor shall determine.</p>
 <p>In <em>[version.syn]</em>, add</p>
 </blockquote>
-<div class="sourceCode" id="cb10"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_aligned_accessor </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_aligned_accessor </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
 <blockquote>
 <p>Adjust the placeholder value as needed so as to denote this
 proposal’s date of adoption.</p>
@@ -807,9 +920,9 @@ proposal’s date of adoption.</p>
 <strong>[mdspan.syn]</strong>, after <code>class default_accessor</code>
 and before <code>class mdspan</code>, add the following.</p>
 </blockquote>
-<div class="sourceCode" id="cb11"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [mdspan.accessor.aligned], class template aligned_accessor</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> aligned_accessor;</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [mdspan.accessor.aligned], class template aligned_accessor</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> aligned_accessor;</span></code></pre></div>
 <blockquote>
 <p>At the end of <strong>[mdspan.accessor.default]</strong> and before
 <strong>[mdspan.mdspan]</strong>, add all the material that follows.</p>
@@ -819,36 +932,36 @@ and before <code>class mdspan</code>, add the following.</p>
 <p><b> � Class template <code>aligned_accessor</code>
 [mdspan.accessor.aligned] </b></p>
 <p><b> �.1 Overview [mdspan.accessor.aligned.overview] </b></p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> the_byte_alignment<span class="op">&gt;</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> aligned_accessor <span class="op">{</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> offset_policy <span class="op">=</span> default_accessor<span class="op">&lt;</span>ElementType<span class="op">&gt;</span>;</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> element_type <span class="op">=</span> ElementType;</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference <span class="op">=</span> ElementType<span class="op">&amp;</span>;</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> data_handle_type <span class="op">=</span> ElementType<span class="op">*</span>;</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> byte_alignment <span class="op">=</span> the_byte_alignment;</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> aligned_accessor<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="dt">size_t</span> other_byte_alignment<span class="op">&gt;</span></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      aligned_accessor<span class="op">&lt;</span>OtherElementType, other_byte_alignment<span class="op">&gt;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span> <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>      default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span>;</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">operator</span> default_accessor<span class="op">&lt;</span>element_type<span class="op">&gt;()</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">{}</span>;</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">static</span> <span class="dt">bool</span> is_sufficiently_aligned<span class="op">(</span>data_handle_type p<span class="op">)</span>;</span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> the_byte_alignment<span class="op">&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> aligned_accessor <span class="op">{</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> offset_policy <span class="op">=</span> default_accessor<span class="op">&lt;</span>ElementType<span class="op">&gt;</span>;</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> element_type <span class="op">=</span> ElementType;</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> reference <span class="op">=</span> ElementType<span class="op">&amp;</span>;</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> data_handle_type <span class="op">=</span> ElementType<span class="op">*</span>;</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> byte_alignment <span class="op">=</span> the_byte_alignment;</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> aligned_accessor<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="dt">size_t</span> other_byte_alignment<span class="op">&gt;</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>      aligned_accessor<span class="op">&lt;</span>OtherElementType, other_byte_alignment<span class="op">&gt;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">explicit</span> <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>      default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">operator</span> default_accessor<span class="op">&lt;</span>element_type<span class="op">&gt;()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">{}</span>;</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>    offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">static</span> <span class="dt">bool</span> is_sufficiently_aligned<span class="op">(</span>data_handle_type p<span class="op">)</span>;</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Mandates</em>:</p>
 <ul>
@@ -873,9 +986,9 @@ for an object <code>p</code> of type <code>data_handle_type</code> and
 an object of type <code>aligned_accessor</code> if and only if <span class="math inline">[</span><code>p</code>, <code>p</code> + <span class="math inline"><em>n</em>)</span> is a valid range.</p>
 <h2 data-number="8.2" id="members-mdspan.accessor.aligned.members"><span class="header-section-number">8.2</span> Members
 [mdspan.accessor.aligned.members]<a href="#members-mdspan.accessor.aligned.members" class="self-link"></a></h2>
-<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="dt">size_t</span> other_byte_alignment<span class="op">&gt;</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    aligned_accessor<span class="op">&lt;</span>OtherElementType, other_byte_alignment<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType, <span class="dt">size_t</span> other_byte_alignment<span class="op">&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    aligned_accessor<span class="op">&lt;</span>OtherElementType, other_byte_alignment<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Constraints</em>:
 <code>is_convertible_v&lt;OtherElementType(*)[], element_type(*)[]&gt;</code>
@@ -884,14 +997,14 @@ is <code>true</code>.</p>
 <em>Mandates</em>:
 <code>gcd(other_byte_alignment, byte_alignment) == byte_alignment</code>
 is <code>true</code>.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherElementType<span class="op">&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> <span class="kw">constexpr</span> aligned_accessor<span class="op">(</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    default_accessor<span class="op">&lt;</span>OtherElementType<span class="op">&gt;)</span> <span class="kw">noexcept</span> <span class="op">{}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Constraints</em>:
 <code>is_convertible_v&lt;OtherElementType(*)[], element_type(*)[]&gt;</code>
 is <code>true</code>.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Preconditions</em>: <code>p</code> points to an object
 <code>X</code> of a type similar (<strong>[conv.qual]</strong>) to
@@ -900,8 +1013,8 @@ is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects</em>: Equivalent to:
 <code>return assume_aligned&lt;byte_alignment&gt;(p)[i];</code></p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Preconditions</em>: <code>p</code> points to an object
 <code>X</code> of a type similar (<strong>[conv.qual]</strong>) to
@@ -909,7 +1022,7 @@ is <code>true</code>.</p>
 <code>byte_alignment</code> (<strong>[basic.align]</strong>).</p>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Effects</em>: Equivalent to: <code>return p + i;</code></p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">static</span> <span class="dt">bool</span> is_sufficiently_aligned<span class="op">(</span>data_handle_type p<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">static</span> <span class="dt">bool</span> is_sufficiently_aligned<span class="op">(</span>data_handle_type p<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Preconditions</em>: <code>p</code> points to an object
 <code>X</code> of a type similar (<strong>[conv.qual]</strong>) to
@@ -930,78 +1043,78 @@ instructions. Otherwise, <code>compute</code> dispatches to a possibly
 less optimized function
 <code>compute_without_requiring_overalignment</code> that has no
 overalignment requirement.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>compute_using_fourfold_overalignment<span class="op">(</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">1</span><span class="op">&gt;</span>, std<span class="op">::</span>layout_right,</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span> <span class="op">*</span> <span class="kw">alignof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;&gt;</span> x<span class="op">)</span>;</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>compute_without_requiring_overalignment<span class="op">(</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">1</span><span class="op">&gt;&gt;</span> x<span class="op">)</span>;</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> compute<span class="op">(</span>std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">1</span><span class="op">&gt;&gt;</span> x<span class="op">)</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> accessor <span class="op">=</span> aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span> <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;{}</span>;</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> x_handle <span class="op">=</span> x<span class="op">.</span>data_handle<span class="op">()</span>;</span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(</span>accessor<span class="op">.</span>is_sufficiently_aligned<span class="op">(</span>x_handle<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    compute_using_fourfold_overalignment<span class="op">(</span>mdspan<span class="op">{</span>x_handle, x<span class="op">.</span>mapping<span class="op">()</span>, accessor<span class="op">})</span>;</span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    compute_without_requiring_overalignment<span class="op">(</span>x<span class="op">)</span>;</span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>compute_using_fourfold_overalignment<span class="op">(</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">1</span><span class="op">&gt;</span>, std<span class="op">::</span>layout_right,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span> <span class="op">*</span> <span class="kw">alignof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;&gt;</span> x<span class="op">)</span>;</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>compute_without_requiring_overalignment<span class="op">(</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">1</span><span class="op">&gt;&gt;</span> x<span class="op">)</span>;</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> compute<span class="op">(</span>std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">1</span><span class="op">&gt;&gt;</span> x<span class="op">)</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> accessor <span class="op">=</span> aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">4</span> <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;{}</span>;</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> x_handle <span class="op">=</span> x<span class="op">.</span>data_handle<span class="op">()</span>;</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(</span>accessor<span class="op">.</span>is_sufficiently_aligned<span class="op">(</span>x_handle<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    compute_using_fourfold_overalignment<span class="op">(</span>mdspan<span class="op">{</span>x_handle, x<span class="op">.</span>mapping<span class="op">()</span>, accessor<span class="op">})</span>;</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>    compute_without_requiring_overalignment<span class="op">(</span>x<span class="op">)</span>;</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>–<em>end example</em>]</p>
 <p>[<em>Example:</em> The following example shows how users can fulfill
 the preconditions of <code>aligned_accessor</code> by using existing C++
 Standard Library functionality to create overaligned allocations. First,
 the <code>allocate_overaligned</code> helper function uses
 <code>aligned_alloc</code> to create an overaligned allocation.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> delete_with_free <span class="op">{</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span> <span class="kw">operator</span><span class="op">()(</span>ElementType<span class="op">*</span> p<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>free<span class="op">(</span>p<span class="op">)</span>;</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> allocation <span class="op">=</span> std<span class="op">::</span>unique_ptr<span class="op">&lt;</span>ElementType<span class="op">[]</span>, delete_with_free<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>allocation<span class="op">&lt;</span>ElementType<span class="op">&gt;</span> allocate_overaligned<span class="op">(</span><span class="kw">const</span> <span class="dt">size_t</span> num_elements<span class="op">)</span></span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="dt">size_t</span> num_bytes <span class="op">=</span> num_elements <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>ElementType<span class="op">)</span>;</span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span><span class="op">*</span> ptr <span class="op">=</span> std<span class="op">::</span>aligned_alloc<span class="op">(</span>byte_alignment, num_bytes<span class="op">)</span>;</span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>ptr, delete_with_free<span class="op">&lt;</span>ElementType<span class="op">&gt;{}}</span>;</span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> delete_with_free <span class="op">{</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span> <span class="kw">operator</span><span class="op">()(</span>ElementType<span class="op">*</span> p<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    std<span class="op">::</span>free<span class="op">(</span>p<span class="op">)</span>;</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> allocation <span class="op">=</span> std<span class="op">::</span>unique_ptr<span class="op">&lt;</span>ElementType<span class="op">[]</span>, delete_with_free<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span>;</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>allocation<span class="op">&lt;</span>ElementType<span class="op">&gt;</span> allocate_overaligned<span class="op">(</span><span class="kw">const</span> <span class="dt">size_t</span> num_elements<span class="op">)</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="dt">size_t</span> num_bytes <span class="op">=</span> num_elements <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span>ElementType<span class="op">)</span>;</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span><span class="op">*</span> ptr <span class="op">=</span> std<span class="op">::</span>aligned_alloc<span class="op">(</span>byte_alignment, num_bytes<span class="op">)</span>;</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>ptr, delete_with_free<span class="op">&lt;</span>ElementType<span class="op">&gt;{}}</span>;</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Second, this example presumes that some third-party library provides
 functions requiring arrays of <code>float</code> to have 32-byte
 alignment.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> aligned_mdspan <span class="op">=</span> std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">1</span><span class="op">&gt;</span>,</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>layout_right, std<span class="op">::</span>aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, byte_alignment<span class="op">&gt;&gt;</span>;</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> vectorized_axpy<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y, <span class="dt">float</span> alpha, aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> x<span class="op">)</span>;</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">float</span> vectorized_norm<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> aligned_mdspan <span class="op">=</span> std<span class="op">::</span>mdspan<span class="op">&lt;</span><span class="dt">float</span>, std<span class="op">::</span>dextents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">1</span><span class="op">&gt;</span>,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>layout_right, std<span class="op">::</span>aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, byte_alignment<span class="op">&gt;&gt;</span>;</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> vectorized_axpy<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y, <span class="dt">float</span> alpha, aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> x<span class="op">)</span>;</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">float</span> vectorized_norm<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y<span class="op">)</span>;</span></code></pre></div>
 <p>Third and finally, the user’s function <code>user_function</code>
 would begin by allocating “raw” overaligned arrays with
 <code>allocate_overaligned</code>. It would then create aligned
 <code>mdspan</code> with them, and pass the resulting
 <code>mdspan</code> into the third-party library’s functions.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> user_function<span class="op">(</span><span class="dt">size_t</span> num_elements, <span class="dt">float</span> alpha<span class="op">)</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">size_t</span> max_byte_alignment <span class="op">=</span> <span class="dv">32</span>;</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> x_alloc <span class="op">=</span> allocate_overaligned<span class="op">&lt;</span><span class="dt">float</span>, max_byte_alignment<span class="op">&gt;(</span>num_elements<span class="op">)</span>;</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> y_alloc <span class="op">=</span> allocate_overaligned<span class="op">&lt;</span><span class="dt">float</span>, max_byte_alignment<span class="op">&gt;(</span>num_elements<span class="op">)</span>;</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span>max_byte_alignment<span class="op">&gt;</span> x<span class="op">(</span>x_alloc<span class="op">.</span>get<span class="op">())</span>;</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span>max_byte_alignment<span class="op">&gt;</span> y<span class="op">(</span>y_alloc<span class="op">.</span>get<span class="op">())</span>;</span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... fill the elements of x and y ...</span></span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  vectorized_axpy<span class="op">(</span>y, alpha, x<span class="op">)</span>;</span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> vectorized_norm<span class="op">(</span>y<span class="op">)</span>;</span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span> user_function<span class="op">(</span><span class="dt">size_t</span> num_elements, <span class="dt">float</span> alpha<span class="op">)</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">size_t</span> max_byte_alignment <span class="op">=</span> <span class="dv">32</span>;</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> x_alloc <span class="op">=</span> allocate_overaligned<span class="op">&lt;</span><span class="dt">float</span>, max_byte_alignment<span class="op">&gt;(</span>num_elements<span class="op">)</span>;</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> y_alloc <span class="op">=</span> allocate_overaligned<span class="op">&lt;</span><span class="dt">float</span>, max_byte_alignment<span class="op">&gt;(</span>num_elements<span class="op">)</span>;</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span>max_byte_alignment<span class="op">&gt;</span> x<span class="op">(</span>x_alloc<span class="op">.</span>get<span class="op">())</span>;</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span>max_byte_alignment<span class="op">&gt;</span> y<span class="op">(</span>y_alloc<span class="op">.</span>get<span class="op">())</span>;</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... fill the elements of x and y ...</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  vectorized_axpy<span class="op">(</span>y, alpha, x<span class="op">)</span>;</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> vectorized_norm<span class="op">(</span>y<span class="op">)</span>;</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>–<em>end example</em>]</p>
 </div>
 </div>

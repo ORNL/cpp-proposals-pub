@@ -58,6 +58,8 @@ toc: true
 
         * Explain why we do not include an `aligned_mdspan` alias
 
+        * Explain `aligned_accessor` construction safety
+
 # Purpose of this paper
 
 We propose adding `aligned_accessor` to the C++ Standard Library.
@@ -281,6 +283,108 @@ using aligned_matrix_t = std::mdspan<ElementType, std::dextents<int, 2>, std::la
 Such users may never type the characters "`mdspan`" again.
 For this reason, while we do not object to an `aligned_mdspan` alias,
 we do not find the proliferation of aliases particularly ergonomic.
+
+## mdspan construction safety
+
+LEWG's 2023/10/10 review of R0 expressed concern that
+`mdspan`'s constructor has no way to check
+`aligned_accessor`'s alignment requirements.
+Users can call `aligned_accessor`'s `is_sufficiently_aligned(p)`
+`static` member function with a pointer `p` to check this themselves,
+before constructing the `mdspan`.
+However, `mdspan`'s constructor generally has no way to check
+whether its accessor finds the caller's data handle acceptable.
+
+This is true for any accessor type, not just for `aligned_accessor`.
+It is a design feature of `mdspan` that accessors can be stateless.
+Even if they have state,
+they do not need to be constructed with or store the data handle.
+As a result, an accessor might not see a data handle
+until `access` or `offset` is called.
+Both of those member functions are performance critical,
+so they cannot afford an extra branch on every call.
+Compare to `vector::operator[]`, which has preconditions
+but is not required to perform bounds checks.
+Using exceptions in the manner of `vector::at`
+could reduce performance and would also make `mdspan` unusable
+in a freestanding or no-exceptions context.
+
+Note that `aligned_accessor` does not introduce any _additional_ preconditions
+beyond those of the existing C++ Standard Library feature `assume_aligned`.
+In the words of one LEWG reviewer, `aligned_accessor` is not any more "pointy"
+than `assume_aligned`; it just passes the point through without "blunting" it.
+
+Before submitting R0 of this paper,
+we considered an approach specific to `aligned_accessor`,
+that would wrap the pointer in a special data handle type.
+The data handle type would have an `explicit` constructor taking a raw pointer,
+with a precondition that the raw pointer have sufficient alignment.
+The constructor would be `explicit`, because it would have a precondition.
+This design would force the precondition back to `mdspan` construction time.
+Users would have to construct the `mdspan` like this.
+
+```c++
+element_type* raw_pointer = get_pointer_from_somewhere();
+using acc_type = aligned_accessor<element_type, byte_alignment>;
+mdspan x{acc_type::data_handle_type{raw_pointer}, mapping, acc_type{}};
+```
+
+We rejected this approach in favor of `is_sufficiently_aligned`
+for the following reasons.
+First, wrapping the pointer in a custom data handle class
+would make every `access` or `offset` call
+need to reach through the data handle's interface,
+instead of just taking the raw pointer directly.
+The `access` function, and to some extent also `offset`,
+need to be as fast as possible.  Their performance depends
+on compilers being able to optimize through function calls.
+The authors of `mdspan` carefully balanced generality
+with function call depth and other code complexity factors
+that may hinder compilers from optimizing.
+Performance of `aligned_accessor` matters as much or even more than
+performance of `default_accessor`, because `aligned_accessor` exists
+to communicate optimization potential.
+Second, the alignment precondition would still exist.
+Requiring the data handle type to throw an exception
+if the pointer is not sufficiently aligned
+would make `mdspan` unusable in a freestanding or no-exceptions context.
+Third, users should not have to pay for unneeded checks.
+The two examples in the wording express the two most common cases.
+If users get a pointer from a function like `aligned_alloc`,
+then they already know its alignment, because they asked for it.
+If users are computing alignment at run time
+to dispatch to a more optimized code path,
+then they know alignment before dispatch.
+In both cases, users already know the alignment
+before constructing the `mdspan`.
+
+An LEWG poll on 2023/10/10,
+"[b]lock `aligned_accessor` progressing until we have
+a way of checking alignment requirements during `mdspan` construction,"
+resulted in no consensus.  Attendance was 14.
+
+<table>
+  <tr>
+    <th> Strongly Favor </th>
+    <th> Weakly Favor </th>
+    <th> Neutral </th>
+    <th> Weakly Against </th>
+    <th> Strongly Against </th>
+  </tr>
+  <tr>
+    <th> 0 </th>
+    <th> 1 </th>
+    <th> 1 </th>
+    <th> 2 </th>
+    <th> 2 </th>
+  </tr>
+</table>
+
+LEWG expressed an (unpolled) interest that we explore `mdspan` safety
+in subsequent work after the fall 2023 Kona WG21 meeting.
+LEWG recognized that this is a general issue with `mdspan`
+and asked us to explore safety
+in a way that is not specific to `aligned_accessor`.
 
 # Implementation
 
