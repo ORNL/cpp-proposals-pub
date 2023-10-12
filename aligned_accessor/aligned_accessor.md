@@ -1,7 +1,7 @@
 
 ---
 title: "`aligned_accessor`: An mdspan accessor expressing pointer overalignment"
-document: P2897R0
+document: P2897R1
 date: today
 audience: LEWG
 author:
@@ -29,6 +29,10 @@ toc: true
 # Revision history
 
 * Revision 0 (pre-Varna) to be submitted 2023-05-19
+
+* Revision 1 (pre-Kona) to be submitted 2023-10-15
+
+    * Change `gcd` converting constructor Constraint to a Mandate
 
 # Purpose of this paper
 
@@ -266,34 +270,31 @@ template<class OtherElementType, size_t other_byte_alignment>
     aligned_accessor<OtherElementType, other_byte_alignment>) noexcept {}
 ```
 
-[1]{.pnum} *Constraints*:
+[1]{.pnum} *Constraints*: `is_convertible_v<OtherElementType(*)[], element_type(*)[]>` is `true`.
 
-* [1.1]{.pnum} `is_convertible_v<OtherElementType(*)[], element_type(*)[]>` is `true`, and
-
-* [1.2]{.pnum} `gcd(other_byte_alignment, byte_alignment) == byte_alignment` is `true`.
+[2]{.pnum} *Mandates*: `gcd(other_byte_alignment, byte_alignment) == byte_alignment` is `true`.
 
 ```c++
 constexpr reference access(data_handle_type p, size_t i) const noexcept;
 ```
 
-[2]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
+[3]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
 
-[3]{.pnum} *Effects*: Equivalent to: `return assume_aligned<byte_alignment>(p)[i];`
+[4]{.pnum} *Effects*: Equivalent to: `return assume_aligned<byte_alignment>(p)[i];`
 
 ```c++
 constexpr typename offset_policy::data_handle_type
   offset(data_handle_type p, size_t i) const noexcept;
 ```
 
-[4]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
+[5]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
 
-[5]{.pnum} *Effects*: Equivalent to: `return p + i;`
+[6]{.pnum} *Effects*: Equivalent to: `return p + i;`
 
 ```c++
 constexpr static bool is_sufficiently_aligned(data_handle_type p);
 ```
 
-[6]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
+[7]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
 
-[7]{.pnum} *Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
-
+[8]{.pnum} *Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
