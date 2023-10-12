@@ -43,6 +43,17 @@ toc: true
             to create an overaligned allocation,
             to show that `aligned_accessor` exists as part of a system
 
+        * Add an `explicit` constructor from default_accessor,
+            so that users can type `aligned_mdspan y{x}`
+            instead of `aligned_mdspan y{x.data_handle(), x.mapping()}`.
+            Add an explanation in the design discussion section.
+
+    * Implement other wording changes
+
+        * Add to `aligned_accessor`'s Mandates that
+            `byte_alignment >= alignof(ElementType)` is `true`.
+            This prevents construction of an invalid `aligned_accessor` object.
+
     * Add more design discussion based on LEWG review on 2023/10/10
 
         * Explain why we do not include an `aligned_mdspan` alias
@@ -145,6 +156,76 @@ A similar question came up in the "properties" proposal P0900, which we quote he
 
 For these reasons, we have made `aligned_accessor` stand-alone,
 instead of having it modify another user-provided accessor.
+
+## Explicit constructor from `default_accessor`
+
+LEWG's 2023/10/10 review of R0 pointed out that in R0,
+`aligned_accessor` lacks an `explicit` constructor from `default_accessor`.
+Having that constructor would make it easier for users
+to create an aligned `mdspan` from an unaligned `mdspan`.
+Making it `explicit` would prevent implicit conversion.
+Thus, we have decided to add this `explicit` constructor in R1.
+
+Without the `explicit` constructor,
+users must do this to convert from nonaligned to aligned `mdspan`.
+```c++
+void compute_with_aligned(
+  std::mdspan<float, std::dextent<int, 2>, std::layout_left> matrix)
+{
+  const std::size_t byte_alignment = 4 * alignof(float);
+  using aligned_matrix_t = std::mdspan<float, std::dextent<int, 2>,
+    std::layout_left, std::aligned_accessor<float, byte_alignment>>;
+
+  aligned_matrix_t aligned_matrix{matrix.data_handle(), matrix.mapping()};
+  // ... use aligned_matrix ...
+}
+```
+
+Another option would be to use
+constructor template argument deduction (CTAD),
+as in the following.
+```c++
+void compute_with_aligned(
+  std::mdspan<float, std::dextent<int, 2>, std::layout_left> matrix)
+{
+  const std::size_t byte_alignment = 4 * alignof(float);
+
+  std::mdspan aligned_matrix{matrix.data_handle(), matrix.mapping(),
+    std::aligned_accessor<float, byte_alignment>{}};
+  // ... use aligned_matrix ...
+}
+```
+However, `mdspan` users commonly define their own type aliases for `mdspan`,
+with application-specific names that make code more self-documenting.
+The `aligned_matrix_t` definition above is an an example.
+Such users would not normally rely on CTAD
+for conversion from a less specific to a more specific `mdspan`.
+
+Adding an `explicit` constructor from `default_accessor`
+lets users get the same effect more concisely.
+```c++
+void compute_with_aligned(std::mdspan<float, std::dextent<int, 2>, std::layout_left> matrix)
+{
+  const std::size_t byte_alignment = 4 * alignof(float);
+  using aligned_mdspan = std::mdspan<float, std::dextent<int, 2>,
+    std::layout_left, std::aligned_accessor<float, byte_alignment>>;
+
+  aligned_mdspan aligned_matrix{matrix};
+  // ... use aligned_matrix ...
+}
+```
+The `explicit` constructor does not decrease safety,
+in the sense that users were always allowed to convert
+from an `mdspan` with `default_accessor`
+to an `mdspan` with `aligned_accessor`.
+Before, users could perform this conversion by typing the following.
+```c++
+aligned_matrix_t aligned_matrix{matrix.data_handle(), matrix.mapping()};
+```
+Now, users can do the same thing with fewer characters.
+```c++
+aligned_matrix_t aligned_matrix{matrix};
+```
 
 ## We do not define an alias for aligned mdspan
 
@@ -308,6 +389,10 @@ struct aligned_accessor {
     constexpr aligned_accessor(
       aligned_accessor<OtherElementType, other_byte_alignment>) noexcept;
 
+  template<class OtherElementType>
+    explicit constexpr aligned_accessor(
+      default_accessor<OtherElementType>) noexcept;
+
   constexpr operator default_accessor<element_type>() const {
     return {};
   }
@@ -321,7 +406,11 @@ struct aligned_accessor {
 };
 ```
 
-[1]{.pnum} *Mandates*: `byte_alignment` is a power of two.
+[1]{.pnum} *Mandates*:
+
+* [1.1]{.pnum} `byte_alignment` is a power of two, and
+
+* [1.2]{.pnum} `byte_alignment >= alignof(ElementType)` is `true`.
 
 [2]{.pnum} `aligned_accessor` meets the accessor policy requirements.
 
@@ -344,33 +433,42 @@ template<class OtherElementType, size_t other_byte_alignment>
 [2]{.pnum} *Mandates*: `gcd(other_byte_alignment, byte_alignment) == byte_alignment` is `true`.
 
 ```c++
+template<class OtherElementType>
+  explicit constexpr aligned_accessor(
+    default_accessor<OtherElementType>) noexcept {};
+```
+
+[3]{.pnum} *Constraints*: `is_convertible_v<OtherElementType(*)[], element_type(*)[]>` is `true`.
+
+```c++
 constexpr reference access(data_handle_type p, size_t i) const noexcept;
 ```
 
-[3]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
+[4]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**).
 
-[4]{.pnum} *Effects*: Equivalent to: `return assume_aligned<byte_alignment>(p)[i];`
+[5]{.pnum} *Effects*: Equivalent to: `return assume_aligned<byte_alignment>(p)[i];`
 
 ```c++
 constexpr typename offset_policy::data_handle_type
   offset(data_handle_type p, size_t i) const noexcept;
 ```
 
-[5]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**). 
+[6]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**).
 
-[6]{.pnum} *Effects*: Equivalent to: `return p + i;`
+[7]{.pnum} *Effects*: Equivalent to: `return p + i;`
 
 ```c++
 constexpr static bool is_sufficiently_aligned(data_handle_type p);
 ```
 
-[7]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
+[8]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
 
-[8]{.pnum} *Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
+[9]{.pnum} *Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
 
 [*Example:*
 The following function `compute` uses `is_sufficiently_aligned` to check
-whether an arbitrary pointer `float* p` has sufficient alignment
+whether a given `mdspan` with `default_accessor`
+has a data handle with sufficient alignment
 to be used with `aligned_accessor<float, 4 * sizeof(float)>`.
 If so, the function dispatches to a function `compute_using_fourfold_overalignment`
 that requires fourfold overalignment of arrays,
@@ -380,15 +478,25 @@ Otherwise, `compute` dispatches to a possibly less optimized function
 `compute_without_requiring_overalignment` that has no overalignment requirement.
 
 ```c++
-void compute(float* p, size_t number_of_elements)
+extern void
+compute_using_fourfold_overalignment(
+  std::mdspan<float, std::dextents<size_t, 1>, std::layout_right,
+    std::aligned_accessor<float, 4 * alignof(float)>> x);
+
+extern void
+compute_without_requiring_overalignment(
+  std::mdspan<float, std::dextents<size_t, 1>> x);
+
+void compute(std::mdspan<float, std::dextents<size_t, 1>> x)
 {
-  auto mapping = layout_right::mapping{number_of_elements};
   auto accessor = aligned_accessor<float, 4 * sizeof(float)>{};
-  if (accessor.is_sufficiently_aligned(p)) {
-    compute_using_fourfold_overalignment(mdspan{p, mapping, accessor});
+  auto x_handle = x.data_handle();
+
+  if (accessor.is_sufficiently_aligned(x_handle)) {
+    compute_using_fourfold_overalignment(mdspan{x_handle, x.mapping(), accessor});
   }
   else {
-    compute_without_requiring_overalignment(mdspan{p, mapping});
+    compute_without_requiring_overalignment(x);
   }
 }
 ```
