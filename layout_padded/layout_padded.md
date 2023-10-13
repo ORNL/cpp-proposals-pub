@@ -5,10 +5,10 @@ document: P2642
 date: 2023-07-13
 audience: LEWG
 author:
-  - name: Mark Hoemmen (NVIDIA)
-    email: <mhoemmen@nvidia.com>
   - name: Christian Trott (Sandia National Laboratories)
     email: <crtrott@sandia.gov>
+  - name: Mark Hoemmen (NVIDIA)
+    email: <mhoemmen@nvidia.com>
   - name: Damien Lebrun-Grandie (Oak Ridge National Laboratory)
     email: <lebrungrandt@ornl.gov>
   - name: Nicolas Morales (Sandia National Laboratories)
