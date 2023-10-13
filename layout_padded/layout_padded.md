@@ -1383,7 +1383,7 @@ private:
   static constexpr size_t @_static-padding-stride_@ = /* see-below */; // exposition only
 
 public:
-  // [mdspan.layout.leftpadded.const], constructors
+  // [mdspan.layout.leftpadded.cons], constructors
   constexpr mapping() 
     requires(@_static-padding-stride_@ != dynamic_extent) noexcept = default;
   constexpr mapping()
@@ -1801,7 +1801,7 @@ private:
     extents_type::static_extent(@_rank\__@ - 1);
 
 public:
-  // [mdspan.layout.rightpadded.const], constructors
+  // [mdspan.layout.rightpadded.cons], constructors
   constexpr mapping() 
     requires(@_static-padding-stride_@ != dynamic_extent) noexcept = default;
   constexpr mapping()
