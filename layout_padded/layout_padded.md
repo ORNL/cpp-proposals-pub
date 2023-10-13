@@ -123,6 +123,18 @@ Revision 3 to be submitted sometime after 2023-07-09.
 
 * Add Nic Morales as a coauthor.
 
+## Revision 4
+
+* bring wording in-line with layouts in the ISO C++ standard draft
+
+* redo submdspan wording
+
+  * in particular redo the specialization section for `submdspan_mapping`
+
+  * split by layout type
+
+  * pull common items for all layouts into a *Common* subsection
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
