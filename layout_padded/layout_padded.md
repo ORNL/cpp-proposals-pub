@@ -2,13 +2,13 @@
 ---
 title: Padded mdspan layouts
 document: P2642
-date: 2023-07-13
+date: 2023-10-13
 audience: LEWG
 author:
-  - name: Mark Hoemmen (NVIDIA)
-    email: <mhoemmen@nvidia.com>
   - name: Christian Trott (Sandia National Laboratories)
     email: <crtrott@sandia.gov>
+  - name: Mark Hoemmen (NVIDIA)
+    email: <mhoemmen@nvidia.com>
   - name: Damien Lebrun-Grandie (Oak Ridge National Laboratory)
     email: <lebrungrandt@ornl.gov>
   - name: Nicolas Morales (Sandia National Laboratories)
@@ -122,6 +122,18 @@ Revision 3 to be submitted sometime after 2023-07-09.
     the public member would be more generally useful.
 
 * Add Nic Morales as a coauthor.
+
+## Revision 4
+
+* bring wording in-line with layouts in the ISO C++ standard draft
+
+* redo submdspan wording
+
+  * in particular redo the specialization section for `submdspan_mapping`
+
+  * split by layout type
+
+  * pull common items for all layouts into a *Common* subsection
 
 # Proposed changes and justification
 
@@ -2191,76 +2203,176 @@ template<class LayoutRightPaddedMapping>
 
 ## Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]
 
-> At the top of Section � [mdspan.submdspan.mapping] ("Layout specializations of `submdspan_mapping`"), before paragraph 1, add the following to the end of the synopsis of specializations.
+> Replace Section � [mdspan.submdspan.mapping] ("Layout specializations of `submdspan_mapping`"), with:
+
+<b>24.7.3.7.6 Specialization of `submdspan_mapping` [mdspan.submdspan.mapping]</b>
+
+<b>24.7.3.7.6.1 Common [mdspan.submdspan.mapping.common]</b>
+
+[1]{.pnum} The following elements apply to all functions in [mdspan.submdspan.mapping].
+
+[2]{.pnum} *Constraints:* `sizeof...(slices)` equals `extents_type::rank()`,
+
+[3]{.pnum} *Mandates:* For each rank index `k` of `extents()`, exactly one of the following is true:
+
+   * [3.1]{.pnum} $S_k$ models `convertible_to<index_type>`
+
+   * [3.2]{.pnum} $S_k$ models _`index-pair-like`_`<index_type>`
+
+   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>` is `true`
+
+   * [3.4]{.pnum} $S_k$ is a specialization of `strided_slice`
+
+[4]{.pnum} *Preconditions:* For each rank index `k` of `extents()`, all of the following are true:
+
+   * [4.1]{.pnum}  if $S_k$ is a specialization of `strided_slice`
+
+      * $s_k$`.extent` $= 0$, or
+
+      * $s_k$`.stride` $\gt 0$; and
+
+   * [4.2]{.pnum} $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(extents(), slices...)` $\le$ `extents.extent(k)`.
+
+[5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
+
+[6]{.pnum} Let `sub_strides` be an `array<SubExtents::index_type, SubExtents::rank()>` such that for each rank index `k` of `extents()` for which _`map-rank`_`[k]` is not `dynamic_extent`, `sub_strides[`_`map-rank`_`[k]]` equals:
+
+   * [6.1]{.pnum} `stride(k) * `_`de-ice`_`(`$s_k$`.stride)` if $S_k$ is a specialization of `strided_slice` and $s_k$`.stride` $\lt s_k$`.extent`;
+
+   * [6.2]{.pnum} otherwise, `stride(k)`.
+
+[7]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
+
+[8]{.pnum} Let `offset` be a value of type `size_t` equal to `(*this)(`_`first`_`_<index_type, P>(slices...)...)`.
+
+<b>24.7.3.7.6.2 `layout_left` specialization of `submdspan_mapping` [mdspan.submdspan.mapping.left]</b>
 
 ```c++
-  template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
-      const layout_left_padded<padding_stride>::template mapping<Extents>& src, 
-      SliceSpecifiers ... slices) -> /* see below */;
-
-  template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
-    constexpr auto submdspan_mapping(
-      const layout_right_padded<padding_stride>::template mapping<Extents>& src, 
-      SliceSpecifiers ... slices) -> /* see below */;
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
+    SliceSpecifiers ... slices) const -> @_see below_@;
 ```
 
-> In paragraph 7 (the "Returns" clause) of Section � [mdspan.submdspan.mapping] ("Layout specializations of `submdspan_mapping`"), replace (7.3) (the `layout_stride` fall-back return type) with the following.
+[1]{.pnum} *Returns:*
 
-[9.4]{.pnum} `submdspan_mapping_result{layout_left_padded<Extents::static_extent(0)>::mapping(sub_ext, src.extent(0)), offset}` if
+   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank()==0` is `true`;
 
-  * `decltype(src)::layout_type` is `layout_left`; and
+   * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
 
-  * for each `k` in the range $[$`1, SubExtents::rank()-1`$)$, $S_k$ is `full_extent_t`; and
-  
-  * `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>>` is `true`; and
+      * for each `k` in the range $[0,$ `SubExtents::rank()-1`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-  * for `k` equal to `SubExtents::rank()-1`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
+      * for `k` equal to `SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
-[9.5]{.pnum} `submdspan_mapping_result{layout_right_padded<Extents::static_extent(0)>::template mapping(sub_ext, src.extent(0)), offset}` if
+      <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
 
-  * `decltype(src)::layout_type` is `layout_right`; and
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<Extents::static_extent(0)>::mapping(sub_ext, extent(0)), offset}` if
 
-  * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, $S_k$ is `full_extent_t`; and
-  
-  * for `k` equal to `Extents::rank() - 1` `is_convertible_v<` $S_k$ `, tuple<index_type, index_type>>` is `true`; and
+      * $S_0$ models _`index-pair-like`_`<index_type>`; and
 
-  * for `k` equal to `SubExtents::rank() - SubExtents::rank()`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
+      * for each `k` in the range $[$`1, SubExtents::rank()-1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
 
-[9.6]{.pnum} `submdspan_mapping_result{layout_left_padded<dynamic_extent>::mapping(sub_ext, src.extent(0)), offset}` if
+      * for `k` equal to `SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
-  * `decltype(src)::layout_type` is a specialization of `layout_left_padded`; and
+   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
-  * for each `k` in the range $[$`1, SubExtents::rank()-1`$)$, $S_k$ is `full_extent_t`; and
-  
-  * `is_convertible_v<` $S_0$ `, tuple<index_type, index_type>> || is_convertible_v<`$S_0$`, full_extent_t>` is `true`; and
 
-  * for `k` equal to `SubExtents::rank()-1`, `is_convertible_v<`$S_k$`, tuple<index_type, index_type>> || is_convertible_v<`$S_k$`, full_extent_t>` is `true`; otherwise
-
-[9.7]{.pnum} `submdspan_mapping_result{layout_right_padded<dynamic_extent>::template mapping(sub_ext, src.extent(0)), offset}` if
-
-  * `decltype(src)::layout_type` is a specialization of `layout_right_padded`; and
-
-  * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, $S_k$ is `full_extent_t`; and
-  
-  * for `k` equal to `Extents::rank() - 1` `is_convertible_v<` $S_k$ `, tuple<index_type, index_type>> || is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
-
-  * for `k` equal to `SubExtents::rank() - SubExtents::rank()`, `is_convertible_v<S_k, tuple<index_type, index_type>> || is_convertible_v<S_k, full_extent_t>` is `true`; otherwise
-
-[9.8]{.pnum} `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
-
-## Layout specializations of `submdspan_offset` [mdspan.submdspan.offset]
-
-> At the top of Section � [mdspan.submdspan.offset] ("Layout specializations of `submdspan_offset`"), before paragraph 1, add the following to the end of the synopsis of specializations.  (Note that all the specializations of `submdspan_offset` share the same wording.)
+<b>24.7.3.7.6.3 `layout_right` specialization of `submdspan_mapping` [mdspan.submdspan.mapping.right]</b>
 
 ```c++
-  template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
-    constexpr size_t submdspan_offset(
-      const layout_left_padded<padding_stride>::template mapping<Extents>& src, 
-      SliceSpecifiers ... slices);
-
-  template<class Extents, std::size_t padding_stride, class... SliceSpecifiers>
-    constexpr size_t submdspan_offset(
-      const layout_right_padded<padding_stride>::template mapping<Extents>& src, 
-      SliceSpecifiers ... slices);
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_right::mapping<Extents>::@_submdspan-mapping-impl_@(   // @_exposition only_@
+    SliceSpecifiers ... slices) const -> @_see below_@;
 ```
+
+[1]{.pnum} *Returns:*
+
+   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank()==0` is `true`;
+
+   * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
+
+      * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents::rank()`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
+
+      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+
+      <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` $\lt$ `Extents::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
+
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<Extents::static_extent(Extents::rank()-1)>::template mapping(sub_ext, extent(Extents::rank() - 1)), offset}` if
+
+      * for `k` equal to `Extents::rank() - 1` $S_k$ models _`index-pair-like`_`<index_type>`; and
+
+      * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+  
+      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+
+   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
+
+
+<b>24.7.3.7.6.4 `layout_stride` specialization of `submdspan_mapping` [mdspan.submdspan.mapping.stride]</b>
+
+```c++
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_stride::mapping<Extents>::@_submdspan-mapping-impl_@(  // @_exposition only_@
+    SliceSpecifiers ... slices) const -> @_see below_@;
+```
+
+[1]{.pnum} *Returns:*
+
+   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank()==0` is `true`;
+
+   * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
+
+<b>24.7.3.7.6.5 `layout_left_padded` specialization of `submdspan_mapping` [mdspan.submdspan.mapping.leftpadded]</b>
+
+```c++
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_left_padded::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
+    SliceSpecifiers ... slices) const -> @_see below_@;
+```
+
+[1]{.pnum} *Returns:*
+
+   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank()==0` is `true`;
+
+   * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<padding_value>::mapping(sub_ext), offset}`, if `Extents::rank()==1` is `true`;
+
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<padding_value>::mapping(sub_ext, stride(1)), offset}` if
+
+      * $S_0$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_0$`, full_extent_t>` is `true`; and
+
+      * for each `k` in the range $[$`1, SubExtents::rank()-1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+
+      * for `k` equal to `SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+
+   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
+
+<b>24.7.3.7.6.6 `layout_right_padded` specialization of `submdspan_mapping` [mdspan.submdspan.mapping.rightpadded]</b>
+
+```c++
+  template<class Extents>
+  template<class... SliceSpecifiers>
+  constexpr auto layout_right_padded::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
+    SliceSpecifiers ... slices) const -> @_see below_@;
+```
+
+[1]{.pnum} *Returns:*
+
+   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank() == 0` is `true`;
+
+   * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<padding_value>::mapping(sub_ext), offset}`, if `Extents::rank() == 1` is `true`;
+
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<padding_value>::mapping(sub_ext, stride(Extents::rank() - 1)), offset}` if
+
+      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_0$`, full_extent_t>` is `true`; and
+
+      * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+
+      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+
+   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
+
+
+
