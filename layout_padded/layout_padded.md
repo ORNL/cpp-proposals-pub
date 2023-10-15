@@ -2,7 +2,7 @@
 ---
 title: Padded mdspan layouts
 document: P2642
-date: 2023-07-13
+date: 2023-10-13
 audience: LEWG
 author:
   - name: Christian Trott (Sandia National Laboratories)
@@ -2209,7 +2209,7 @@ template<class LayoutRightPaddedMapping>
 
 <b>24.7.3.7.6.1 Common [mdspan.submdspan.mapping.common]</b>
 
-[1]{.pnum} The following elements apply to all functions in [mdspan.submdspan.impl].
+[1]{.pnum} The following elements apply to all functions in [mdspan.submdspan.mapping].
 
 [2]{.pnum} *Constraints:* `sizeof...(slices)` equals `extents_type::rank()`,
 
@@ -2229,9 +2229,9 @@ template<class LayoutRightPaddedMapping>
 
       * $s_k$`.extent` $= 0$, or
 
-      * $s_k$`.stride` $\gt 0$
+      * $s_k$`.stride` $\gt 0$; and
 
-   * [4.2]{.pnum} $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(extents(), slices...)` $\le$ `extents.extent(k)`
+   * [4.2]{.pnum} $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(extents(), slices...)` $\le$ `extents.extent(k)`.
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
