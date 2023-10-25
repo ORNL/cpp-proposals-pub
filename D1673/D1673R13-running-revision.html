@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-10-18" />
+  <meta name="dcterms.date" content="2023-10-25" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-10-18</td>
+    <td>2023-10-25</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -8192,12 +8192,11 @@ overload is equivalent to
 [linalg.algs.blas2]<a href="#blas-2-algorithms-linalg.algs.blas2" class="self-link"></a></h3>
 <h4 data-number="28.9.14.1" id="general-matrix-vector-product-linalg.algs.blas2.gemv"><span class="header-section-number">28.9.14.1</span> General matrix-vector
 product [linalg.algs.blas2.gemv]<a href="#general-matrix-vector-product-linalg.algs.blas2.gemv" class="self-link"></a></h4>
-<h5 data-number="28.9.14.1.1" id="common-linalg.algs.blas2.gemv.common"><span class="header-section-number">28.9.14.1.1</span> Common
-[linalg.algs.blas2.gemv.common]<a href="#common-linalg.algs.blas2.gemv.common" class="self-link"></a></h5>
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xGEMV</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The following elements apply to all functions in this section.</p>
+The following elements apply to all functions in
+[linalg.algs.blas2.gemv].</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em></p>
 <ul>
@@ -8220,12 +8219,9 @@ parameter.</p></li>
 for those overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Complexity:</em> All algorithms in [linalg.algs.blas2.gemv] with
-<code>mdspan</code> parameters perform a count of <code>mdspan</code>
-array accesses and arithmetic operations that is linear in
-<code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
-<h5 data-number="28.9.14.1.2" id="overwriting-matrix-vector-product"><span class="header-section-number">28.9.14.1.2</span> Overwriting
-matrix-vector product<a href="#overwriting-matrix-vector-product" class="self-link"></a></h5>
+<em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
+<code>x.extent(0)</code> <span class="math inline">*</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb91"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec,</span>
 <span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a>         <em>out-vector</em> OutVec<span class="op">&gt;</span></span>
@@ -8241,7 +8237,9 @@ matrix-vector product<a href="#overwriting-matrix-vector-product" class="self-li
 <span id="cb91-13"><a href="#cb91-13" aria-hidden="true" tabindex="-1"></a>                           InMat A,</span>
 <span id="cb91-14"><a href="#cb91-14" aria-hidden="true" tabindex="-1"></a>                           InVec x,</span>
 <span id="cb91-15"><a href="#cb91-15" aria-hidden="true" tabindex="-1"></a>                           OutVec y<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+This functions performs an overwriting matrix-vector product.</p>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>x</em></span>.</p>
 <p>[<em>Example:</em></p>
 <div class="sourceCode" id="cb92"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> num_rows <span class="op">=</span> <span class="dv">5</span>;</span>
@@ -8267,15 +8265,13 @@ matrix-vector product<a href="#overwriting-matrix-vector-product" class="self-li
 <span id="cb92-21"><a href="#cb92-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
 <span id="cb92-22"><a href="#cb92-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb92-23"><a href="#cb92-23" aria-hidden="true" tabindex="-1"></a><span class="co">// z = 7.0 times the transpose of A, times y</span></span>
-<span id="cb92-24"><a href="#cb92-24" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scaled_matvec_2<span class="op">(</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span>, num_rows, num_cols<span class="op">&gt;&gt;</span> A,</span>
+<span id="cb92-24"><a href="#cb92-24" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> scaled_transposed_matvec<span class="op">(</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span>, num_rows, num_cols<span class="op">&gt;&gt;</span> A,</span>
 <span id="cb92-25"><a href="#cb92-25" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="dt">double</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span>, num_rows<span class="op">&gt;&gt;</span> y,</span>
 <span id="cb92-26"><a href="#cb92-26" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="dt">double</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span>, num_cols<span class="op">&gt;&gt;</span> z<span class="op">)</span></span>
 <span id="cb92-27"><a href="#cb92-27" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
 <span id="cb92-28"><a href="#cb92-28" aria-hidden="true" tabindex="-1"></a>  matrix_vector_product<span class="op">(</span>scaled<span class="op">(</span><span class="fl">7.0</span>, transposed<span class="op">(</span>A<span class="op">))</span>, y, z<span class="op">)</span>;</span>
 <span id="cb92-29"><a href="#cb92-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>–<em>end example</em>]</p>
-<h5 data-number="28.9.14.1.3" id="updating-matrix-vector-product"><span class="header-section-number">28.9.14.1.3</span> Updating matrix-vector
-product<a href="#updating-matrix-vector-product" class="self-link"></a></h5>
 <div class="sourceCode" id="cb93"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
 <span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2,</span>
@@ -8295,18 +8291,19 @@ product<a href="#updating-matrix-vector-product" class="self-link"></a></h5>
 <span id="cb93-17"><a href="#cb93-17" aria-hidden="true" tabindex="-1"></a>                           InVec1 x,</span>
 <span id="cb93-18"><a href="#cb93-18" aria-hidden="true" tabindex="-1"></a>                           InVec2 y,</span>
 <span id="cb93-19"><a href="#cb93-19" aria-hidden="true" tabindex="-1"></a>                           OutVec z<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+This functions performs an updating matrix-vector product.</p>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Remarks:</em> <code>y</code> may alias <code>z</code>.</p>
 <h4 data-number="28.9.14.2" id="symmetric-matrix-vector-product-linalg.algs.blas2.symv"><span class="header-section-number">28.9.14.2</span> Symmetric matrix-vector
 product [linalg.algs.blas2.symv]<a href="#symmetric-matrix-vector-product-linalg.algs.blas2.symv" class="self-link"></a></h4>
-<h5 data-number="28.9.14.2.1" id="common-linalg.algs.blas2.symv.common"><span class="header-section-number">28.9.14.2.1</span> Common
-[linalg.algs.blas2.symv.common]<a href="#common-linalg.algs.blas2.symv.common" class="self-link"></a></h5>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
 <code>xSYMV</code> and <code>xSPMV</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The following elements apply to all functions in this section.</p>
+The following elements apply to all functions in
+[linalg.algs.blas2.symv].</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Constraints:</em> If <code>InMat</code> has
 <code>layout_blas_packed</code> layout, then the layout’s
@@ -8339,12 +8336,9 @@ parameter.</p></li>
 for those overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> All algorithms in [linalg.algs.blas2.symv] with
-<code>mdspan</code> parameters perform a count of <code>mdspan</code>
-array accesses and arithmetic operations that is linear in
-<code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
-<h5 data-number="28.9.14.2.2" id="overwriting-symmetric-matrix-vector-product"><span class="header-section-number">28.9.14.2.2</span> Overwriting symmetric
-matrix-vector product<a href="#overwriting-symmetric-matrix-vector-product" class="self-link"></a></h5>
+<em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
+<code>x.extent(0)</code> <span class="math inline">*</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb94"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb94-2"><a href="#cb94-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb94-3"><a href="#cb94-3" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec,</span>
@@ -8364,10 +8358,11 @@ matrix-vector product<a href="#overwriting-symmetric-matrix-vector-product" clas
 <span id="cb94-17"><a href="#cb94-17" aria-hidden="true" tabindex="-1"></a>                                     Triangle t,</span>
 <span id="cb94-18"><a href="#cb94-18" aria-hidden="true" tabindex="-1"></a>                                     InVec x,</span>
 <span id="cb94-19"><a href="#cb94-19" aria-hidden="true" tabindex="-1"></a>                                     OutVec y<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+This function performs an overwriting symmetric matrix-vector product
+accessing the elements specified by <code>t</code> [linalg.general].</p>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>x</em></span>.</p>
-<h5 data-number="28.9.14.2.3" id="updating-symmetric-matrix-vector-product"><span class="header-section-number">28.9.14.2.3</span> Updating symmetric
-matrix-vector product<a href="#updating-symmetric-matrix-vector-product" class="self-link"></a></h5>
 <div class="sourceCode" id="cb95"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb95-3"><a href="#cb95-3" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
@@ -8393,18 +8388,20 @@ matrix-vector product<a href="#updating-symmetric-matrix-vector-product" class="
 <span id="cb95-23"><a href="#cb95-23" aria-hidden="true" tabindex="-1"></a>  InVec1 x,</span>
 <span id="cb95-24"><a href="#cb95-24" aria-hidden="true" tabindex="-1"></a>  InVec2 y,</span>
 <span id="cb95-25"><a href="#cb95-25" aria-hidden="true" tabindex="-1"></a>  OutVec z<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+This function performs an updating symmetric matrix-vector product
+accessing the elements specified by <code>t</code> [linalg.general].</p>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Remarks:</em> <code>y</code> and <code>z</code> may alias.</p>
 <h4 data-number="28.9.14.3" id="hermitian-matrix-vector-product-linalg.algs.blas2.hemv"><span class="header-section-number">28.9.14.3</span> Hermitian matrix-vector
 product [linalg.algs.blas2.hemv]<a href="#hermitian-matrix-vector-product-linalg.algs.blas2.hemv" class="self-link"></a></h4>
-<h5 data-number="28.9.14.3.1" id="common-linalg.algs.blas2.hemv.common"><span class="header-section-number">28.9.14.3.1</span> Common
-[linalg.algs.blas2.hemv.common]<a href="#common-linalg.algs.blas2.hemv.common" class="self-link"></a></h5>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
 <code>xHEMV</code> and <code>xHPMV</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The following elements apply to all functions in this section.</p>
+The following elements apply to all functions in
+[linalg.algs.blas2.hemv].</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Constraints:</em> If <code>InMat</code> has
 <code>layout_blas_packed</code> layout, then the layout’s
@@ -8437,12 +8434,9 @@ parameter.</p></li>
 for those overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> All algorithms in [linalg.algs.blas2.hemv] with
-<code>mdspan</code> parameters perform a count of <code>mdspan</code>
-array accesses and arithmetic operations that is linear in
-<code>x.extent(0)</code> times <code>A.extent(1)</code>.</p>
-<h5 data-number="28.9.14.3.2" id="overwriting-hermitian-matrix-vector-product"><span class="header-section-number">28.9.14.3.2</span> Overwriting Hermitian
-matrix-vector product<a href="#overwriting-hermitian-matrix-vector-product" class="self-link"></a></h5>
+<em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
+<code>x.extent(0)</code> <span class="math inline">*</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb96"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb96-2"><a href="#cb96-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb96-3"><a href="#cb96-3" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec,</span>
@@ -8462,10 +8456,11 @@ matrix-vector product<a href="#overwriting-hermitian-matrix-vector-product" clas
 <span id="cb96-17"><a href="#cb96-17" aria-hidden="true" tabindex="-1"></a>                                     Triangle t,</span>
 <span id="cb96-18"><a href="#cb96-18" aria-hidden="true" tabindex="-1"></a>                                     InVec x,</span>
 <span id="cb96-19"><a href="#cb96-19" aria-hidden="true" tabindex="-1"></a>                                     OutVec y<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+This function performs an overwriting hermitian matrix-vector product
+accessing the elements specified by <code>t</code> [linalg.general].</p>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>x</em></span>.</p>
-<h5 data-number="28.9.14.3.3" id="updating-hermitian-matrix-vector-product"><span class="header-section-number">28.9.14.3.3</span> Updating Hermitian
-matrix-vector product<a href="#updating-hermitian-matrix-vector-product" class="self-link"></a></h5>
 <div class="sourceCode" id="cb97"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb97-3"><a href="#cb97-3" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
@@ -8489,18 +8484,20 @@ matrix-vector product<a href="#updating-hermitian-matrix-vector-product" class="
 <span id="cb97-21"><a href="#cb97-21" aria-hidden="true" tabindex="-1"></a>                                     InVec1 x,</span>
 <span id="cb97-22"><a href="#cb97-22" aria-hidden="true" tabindex="-1"></a>                                     InVec2 y,</span>
 <span id="cb97-23"><a href="#cb97-23" aria-hidden="true" tabindex="-1"></a>                                     OutVec z<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+This function performs an updating hermitian matrix-vector product
+accessing the elements specified by <code>t</code> [linalg.general].</p>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Remarks:</em> <code>y</code> and <code>z</code> may alias.</p>
 <h4 data-number="28.9.14.4" id="triangular-matrix-vector-product-linalg.algs.blas2.trmv"><span class="header-section-number">28.9.14.4</span> Triangular matrix-vector
 product [linalg.algs.blas2.trmv]<a href="#triangular-matrix-vector-product-linalg.algs.blas2.trmv" class="self-link"></a></h4>
-<h5 data-number="28.9.14.4.1" id="common-linalg.algs.blas2.trmv.common"><span class="header-section-number">28.9.14.4.1</span> Common
-[linalg.algs.blas2.trmv.common]<a href="#common-linalg.algs.blas2.trmv.common" class="self-link"></a></h5>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
 <code>xTRMV</code> and <code>xTPMV</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-The following elements apply to all functions in this section.</p>
+The following elements apply to all functions in
+[linalg.algs.blas2.trmv].</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Constraints:</em> If <code>InMat</code> has
 <code>layout_blas_packed</code> layout, then the layout’s
@@ -8538,23 +8535,6 @@ overloads that take an <code>x</code> parameter, and</p></li>
 <code>A.extent(0)</code> equals <code>z.extent(0)</code> for those
 overloads that take a <code>z</code> parameter.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Complexity:</em> For all algorithms in [linalg.algs.blas2.trmv] with
-<code>mdspan</code> parameters,</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-those overloads that take an <code>x</code> parameter perform a count of
-<code>mdspan</code> array accesses and arithmetic operations that is
-linear in <code>x.extent(0)</code> times
-<code>A.extent(1)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span> and
-those overloads that do not take an <code>x</code> parameter perform a
-count of <code>mdspan</code> array accesses and arithmetic operations
-that is linear in <code>y.extent(0)</code> times
-<code>A.extent(1)</code>.</p></li>
-</ul>
-<h5 data-number="28.9.14.4.2" id="overwriting-triangular-matrix-vector-product-linalg.algs.blas2.trmv.ov"><span class="header-section-number">28.9.14.4.2</span> Overwriting triangular
-matrix-vector product [linalg.algs.blas2.trmv.ov]<a href="#overwriting-triangular-matrix-vector-product-linalg.algs.blas2.trmv.ov" class="self-link"></a></h5>
 <div class="sourceCode" id="cb98"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb98-3"><a href="#cb98-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -8579,10 +8559,16 @@ matrix-vector product [linalg.algs.blas2.trmv.ov]<a href="#overwriting-triangula
 <span id="cb98-22"><a href="#cb98-22" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb98-23"><a href="#cb98-23" aria-hidden="true" tabindex="-1"></a>  InVec x,</span>
 <span id="cb98-24"><a href="#cb98-24" aria-hidden="true" tabindex="-1"></a>  OutVec y<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+This function performs an overwriting triangular matrix-vector product
+taking into account the <code>Triangle</code> and
+<code>DiagonalStorage</code> parameters [linalg.general].</p>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>x</em></span>.</p>
-<h5 data-number="28.9.14.4.3" id="in-place-triangular-matrix-vector-product-linalg.algs.blas2.trmv.in-place"><span class="header-section-number">28.9.14.4.3</span> In-place triangular
-matrix-vector product [linalg.algs.blas2.trmv.in-place]<a href="#in-place-triangular-matrix-vector-product-linalg.algs.blas2.trmv.in-place" class="self-link"></a></h5>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
+<code>x.extent(0)</code> <span class="math inline">*</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb99"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -8603,14 +8589,20 @@ matrix-vector product [linalg.algs.blas2.trmv.in-place]<a href="#in-place-triang
 <span id="cb99-18"><a href="#cb99-18" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
 <span id="cb99-19"><a href="#cb99-19" aria-hidden="true" tabindex="-1"></a>  DiagonalStorage d,</span>
 <span id="cb99-20"><a href="#cb99-20" aria-hidden="true" tabindex="-1"></a>  InOutVec y<span class="op">)</span>;</span></code></pre></div>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+This function performs an in-place triangular matrix-vector product
+taking into account the <code>Triangle</code> and
+<code>DiagonalStorage</code> parameters [linalg.general].</p>
 <p><i>[Note:</i> Performing this operation in place hinders
-parallelization. However, other <code>ExecutionPolicy</code>-specific
+parallelization. However, other <code>ExecutionPolicy</code> specific
 optimizations, such as vectorization, are still possible. <i>– end
 note]</i></p>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>y</em></span>.</p>
-<h5 data-number="28.9.14.4.4" id="updating-triangular-matrix-vector-product-linalg.algs.blas2.trmv.up"><span class="header-section-number">28.9.14.4.4</span> Updating triangular
-matrix-vector product [linalg.algs.blas2.trmv.up]<a href="#updating-triangular-matrix-vector-product-linalg.algs.blas2.trmv.up" class="self-link"></a></h5>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
+<em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
+<code>y.extent(0)</code> <span class="math inline">*</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb100"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb100-3"><a href="#cb100-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -8638,10 +8630,18 @@ matrix-vector product [linalg.algs.blas2.trmv.up]<a href="#updating-triangular-m
 <span id="cb100-25"><a href="#cb100-25" aria-hidden="true" tabindex="-1"></a>                                      InVec1 x,</span>
 <span id="cb100-26"><a href="#cb100-26" aria-hidden="true" tabindex="-1"></a>                                      InVec2 y,</span>
 <span id="cb100-27"><a href="#cb100-27" aria-hidden="true" tabindex="-1"></a>                                      OutVec z<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span> This
+function performs an updating triangular matrix-vector product taking
+into account the <code>Triangle</code> and <code>DiagonalStorage</code>
+parameters [linalg.general].</p>
+<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Remarks:</em> <code>y</code> and <code>z</code> may alias.</p>
+<p><span class="marginalizedparent"><a class="marginalized">14</a></span>
+<em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
+<code>x.extent(0)</code> <span class="math inline">*</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <h4 data-number="28.9.14.5" id="solve-a-triangular-linear-system-linalg.algs.blas2.trsv"><span class="header-section-number">28.9.14.5</span> Solve a triangular linear
 system [linalg.algs.blas2.trsv]<a href="#solve-a-triangular-linear-system-linalg.algs.blas2.trsv" class="self-link"></a></h4>
 <h5 data-number="28.9.14.5.1" id="common-linalg.algs.blas2.trsv.common"><span class="header-section-number">28.9.14.5.1</span> Common
