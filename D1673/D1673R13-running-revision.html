@@ -659,8 +659,8 @@ Numbering</a></li>
 [linalg.reqs]</a></li>
 <li><a href="#tag-classes-linalg.tags" id="toc-tag-classes-linalg.tags"><span class="toc-section-number">28.9.5</span> Tag classes
 [linalg.tags]</a></li>
-<li><a href="#layouts-for-packed-matrix-types-linalg.layouts" id="toc-layouts-for-packed-matrix-types-linalg.layouts"><span class="toc-section-number">28.9.6</span> Layouts for packed matrix types
-[linalg.layouts]</a></li>
+<li><a href="#layouts-for-packed-matrix-types-linalg.layout.packed" id="toc-layouts-for-packed-matrix-types-linalg.layout.packed"><span class="toc-section-number">28.9.6</span> Layouts for packed matrix types
+[linalg.layout.packed]</a></li>
 <li><a href="#exposition-only-helpers-linalg.helpers" id="toc-exposition-only-helpers-linalg.helpers"><span class="toc-section-number">28.9.7</span> Exposition-only helpers
 [linalg.helpers]</a></li>
 <li><a href="#scaled-in-place-transformation-linalg.scaled" id="toc-scaled-in-place-transformation-linalg.scaled"><span class="toc-section-number">28.9.8</span> Scaled in-place transformation
@@ -4371,7 +4371,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> explicit_diagonal_t;</span>
 <span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="kw">inline</span> <span class="kw">constexpr</span> explicit_diagonal_t explicit_diagonal;</span>
 <span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.layouts.packed], class template layout_blas_packed</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.layout.packed], class template layout_blas_packed</span></span>
 <span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Triangle,</span>
 <span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> StorageOrder<span class="op">&gt;</span></span>
 <span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> layout_blas_packed;</span>
@@ -6224,7 +6224,7 @@ note]</i></p></li>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The storage order tags describe the order of elements in an
 <code>mdspan</code> with <code>layout_blas_packed</code>
-(<em>[linalg.layouts.packed]</em>) layout.</p>
+(<em>[linalg.layout.packed]</em>) layout.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> column_major_t <span class="op">{</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> column_major_t<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
@@ -6290,10 +6290,10 @@ unit diagonal is to be assumed ([linalg.general]).</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 The <code>explicit_diagonal_t</code> tag indicates that an explicit
 diagonal is used ([linalg.general]).</p>
-<h3 data-number="28.9.6" id="layouts-for-packed-matrix-types-linalg.layouts"><span class="header-section-number">28.9.6</span> Layouts for packed matrix
-types [linalg.layouts]<a href="#layouts-for-packed-matrix-types-linalg.layouts" class="self-link"></a></h3>
-<h4 data-number="28.9.6.1" id="layout_blas_packed-linalg.layouts.packed"><span class="header-section-number">28.9.6.1</span>
-<code>layout_blas_packed</code> [linalg.layouts.packed]<a href="#layout_blas_packed-linalg.layouts.packed" class="self-link"></a></h4>
+<h3 data-number="28.9.6" id="layouts-for-packed-matrix-types-linalg.layout.packed"><span class="header-section-number">28.9.6</span> Layouts for packed matrix
+types [linalg.layout.packed]<a href="#layouts-for-packed-matrix-types-linalg.layout.packed" class="self-link"></a></h3>
+<h4 data-number="28.9.6.1" id="overview-linalg.layout.packed.overview"><span class="header-section-number">28.9.6.1</span> Overview
+[linalg.layout.packed.overview]<a href="#overview-linalg.layout.packed.overview" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <code>layout_blas_packed</code> is an <code>mdspan</code> layout mapping
 policy that represents a square matrix that stores only the entries in
@@ -6329,7 +6329,7 @@ and Triangular Packed (TP) matrix types. <i>– end note]</i></p>
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> rank_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>rank_type;</span>
 <span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> layout_type <span class="op">=</span> layout_blas_packed<span class="op">&lt;</span>Triangle, StorageOrder<span class="op">&gt;</span>;</span>
 <span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.layouts.packed.cons], constructors</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// [linalg.layout.packed.cons], constructors</span></span>
 <span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
@@ -6339,7 +6339,7 @@ and Triangular Packed (TP) matrix types. <i>– end note]</i></p>
 <span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.layouts.packed.obs], observers</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">// [linalg.layout.packed.obs], observers</span></span>
 <span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <em>extents_</em>; <span class="op">}</span></span>
 <span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
@@ -6372,7 +6372,7 @@ and Triangular Packed (TP) matrix types. <i>– end note]</i></p>
 <span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>        <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&amp;</span>, <span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>  <span class="kw">private</span><span class="op">:</span></span>
-<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>      extents_type <em>extents_</em><span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>    extents_type <em>extents_</em><span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
 <span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
@@ -6402,6 +6402,8 @@ a value of type <code>typename Extents​::​index_type</code>. <span class="ma
 trivially copyable type that models <code>regular</code> for each
 <code>T</code>, <code>SO</code>, and <code>E</code>.</p></li>
 </ul>
+<h4 data-number="28.9.6.2" id="constructors-linalg.layout.packed.cons"><span class="header-section-number">28.9.6.2</span> Constructors
+[linalg.layout.packed.cons]<a href="#constructors-linalg.layout.packed.cons" class="self-link"></a></h4>
 <div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> e<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Preconditions:</em></p>
@@ -6430,6 +6432,8 @@ representable as a value of type <code>index_type</code>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>.</p>
+<h4 data-number="28.9.6.3" id="observers-linalg.layout.packed.obs"><span class="header-section-number">28.9.6.3</span> Observers
+[linalg.layout.packed.obs]<a href="#observers-linalg.layout.packed.obs" class="self-link"></a></h4>
 <div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Returns:</em>
