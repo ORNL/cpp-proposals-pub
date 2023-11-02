@@ -1332,6 +1332,14 @@ updates</p></li>
 <li><p>Remove any wording (e.g., for <code>transposed</code>) that
 depends on P2642 (padded mdspan layouts). We can restore and correct
 that wording later.</p></li>
+<li><p>Fix [linalg.algs.reqs] 1 by changing “type requirements” to
+“Constraints.” Add the Constraint that ExecutionPolicy is an execution
+policy. Remove the requirement that the algorithms that take
+<code>ExecutionPolicy</code> are parallel algorithms, because that would
+be circular with <strong>[algorithms.parallel]</strong> 2 (“A
+<em>parallel algorithm</em> is a function template listed in this
+document with a template parameter named
+<code>ExecutionPolicy</code>”).</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -7468,18 +7476,17 @@ based on template parameter name [linalg.algs.reqs]<a href="#algorithm-requireme
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 Throughout [linalg.algs.blas1], [linalg.algs.blas2], and
 [linalg.algs.blas3], where the template parameters are not constrained,
-the names of template parameters are used to express type
-requirements.</p>
+the names of template parameters are used to express the following
+Constraints. <!--
+See **[algorithms.requirements]** 4 for this phrasing.
+--></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-Algorithms that have a template parameter named
-<code>ExecutionPolicy</code> are parallel algorithms
-<strong>[algorithms.parallel.defns]</strong>. <i>[Note:</i> EDITORIAL:
-Should we hoist this wording so that it applies to both this proposal
-and the existing parallel algorithms? <i>– end note]</i></p></li>
+<code>is_execution_policy&lt;ExecutionPolicy&gt;::value</code> is
+<code>true</code> (<strong>[execpol.type]</strong>).</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
 <code>Real</code> is any type such that <code>complex&lt;Real&gt;</code>
-is specified [complex.numbers.general].</p></li>
+is specified (<strong>[complex.numbers.general]</strong>).</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
 <code>Triangle</code> is either <code>upper_triangle_t</code> or
 <code>lower_triangle_t</code>.</p></li>
@@ -7491,6 +7498,9 @@ is specified [complex.numbers.general].</p></li>
 <code>BinaryDivideOp</code> template parameters are a binary function
 object (<strong>[function.objects]</strong>).</p></li>
 </ul>
+<p><i>[Note:</i> Function templates that have a template parameter named
+<code>ExecutionPolicy</code> are parallel algorithms
+(<strong>[algorithms.parallel.defns]</strong>). <i>– end note]</i></p>
 <h3 data-number="28.9.13" id="blas-1-algorithms-linalg.algs.blas1"><span class="header-section-number">28.9.13</span> BLAS 1 algorithms
 [linalg.algs.blas1]<a href="#blas-1-algorithms-linalg.algs.blas1" class="self-link"></a></h3>
 <h4 data-number="28.9.13.1" id="complexity-linalg.algs.blas1.complexity"><span class="header-section-number">28.9.13.1</span> Complexity
