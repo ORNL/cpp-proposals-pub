@@ -1319,6 +1319,9 @@ retain existing use of “alias” in describing algorithms.</p></li>
 <code>vector_idx_abs_max</code></p></li>
 <li><p>make “may alias” a transitive verb phrase, and put all such
 wording expressions in the form “Output may alias Input”</p></li>
+<li><p>fix <code>matrix_rank_1_update*</code> wording (rename template
+parameters to <code>InOutMat</code>, and fix Effects so that the
+algorithms are updating; use new “Computes” wording)</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -8621,7 +8624,9 @@ parallelization. However, other <code>ExecutionPolicy</code> specific
 optimizations, such as vectorization, are still possible. <i>– end
 note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
-<em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>y</em></span>.</p>
+<em>Effects:</em> Computes a vector <span class="math inline"><em>y</em>′</span> such that <span class="math inline"><em>y</em>′ = <em>A</em><em>y</em></span>, and
+assigns each element of <span class="math inline"><em>y</em>′</span> to
+the corresponding element of <span class="math inline"><em>y</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
 <code>y.extent(0)</code> <span class="math inline">*</span>
@@ -8854,7 +8859,7 @@ update of a matrix [linalg.algs.blas2.rank1]<a href="#rank-1-outer-product-updat
 <span id="cb111-4"><a href="#cb111-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> matrix_rank_1_update<span class="op">(</span></span>
 <span id="cb111-5"><a href="#cb111-5" aria-hidden="true" tabindex="-1"></a>  InVec1 x,</span>
 <span id="cb111-6"><a href="#cb111-6" aria-hidden="true" tabindex="-1"></a>  InVec2 y,</span>
-<span id="cb111-7"><a href="#cb111-7" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span>;</span>
+<span id="cb111-7"><a href="#cb111-7" aria-hidden="true" tabindex="-1"></a>  InOutMat A<span class="op">)</span>;</span>
 <span id="cb111-8"><a href="#cb111-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb111-9"><a href="#cb111-9" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb111-10"><a href="#cb111-10" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
@@ -8864,7 +8869,7 @@ update of a matrix [linalg.algs.blas2.rank1]<a href="#rank-1-outer-product-updat
 <span id="cb111-14"><a href="#cb111-14" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb111-15"><a href="#cb111-15" aria-hidden="true" tabindex="-1"></a>  InVec1 x,</span>
 <span id="cb111-16"><a href="#cb111-16" aria-hidden="true" tabindex="-1"></a>  InVec2 y,</span>
-<span id="cb111-17"><a href="#cb111-17" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span>;</span></code></pre></div>
+<span id="cb111-17"><a href="#cb111-17" aria-hidden="true" tabindex="-1"></a>  InOutMat A<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 These functions perform a nonsymmetric nonconjugated rank-1 update.</p>
 <p><i>[Note:</i> This function corresponds to the BLAS functions
@@ -8879,7 +8884,9 @@ is <code>true</code>.</p>
 <em><code>multipliable</code></em><code>(A,y,x)</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Effects:</em> Computes <span class="math inline"><em>A</em> = <em>x</em><em>y</em><sup><em>T</em></sup></span>.</p>
+<em>Effects:</em> Computes a matrix <span class="math inline"><em>A</em>′</span> such that <span class="math inline"><em>A</em>′ = <em>A</em> + <em>x</em><em>y</em><sup><em>T</em></sup></span>,
+and assigns each element of <span class="math inline"><em>A</em>′</span>
+to the corresponding element of <span class="math inline"><em>A</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
 <code>x.extent(0)</code> <span class="math inline">*</span>
@@ -8895,7 +8902,7 @@ as the result of `conjugated`.  Alternately, they can use the shortcut
 <span id="cb112-4"><a href="#cb112-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> matrix_rank_1_update_c<span class="op">(</span></span>
 <span id="cb112-5"><a href="#cb112-5" aria-hidden="true" tabindex="-1"></a>  InVec1 x,</span>
 <span id="cb112-6"><a href="#cb112-6" aria-hidden="true" tabindex="-1"></a>  InVec2 y,</span>
-<span id="cb112-7"><a href="#cb112-7" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span>;</span>
+<span id="cb112-7"><a href="#cb112-7" aria-hidden="true" tabindex="-1"></a>  InOutMat A<span class="op">)</span>;</span>
 <span id="cb112-8"><a href="#cb112-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb112-9"><a href="#cb112-9" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb112-10"><a href="#cb112-10" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
@@ -8905,7 +8912,7 @@ as the result of `conjugated`.  Alternately, they can use the shortcut
 <span id="cb112-14"><a href="#cb112-14" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb112-15"><a href="#cb112-15" aria-hidden="true" tabindex="-1"></a>  InVec1 x,</span>
 <span id="cb112-16"><a href="#cb112-16" aria-hidden="true" tabindex="-1"></a>  InVec2 y,</span>
-<span id="cb112-17"><a href="#cb112-17" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span>;</span></code></pre></div>
+<span id="cb112-17"><a href="#cb112-17" aria-hidden="true" tabindex="-1"></a>  InOutMat A<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 These functions perform a nonsymmetric conjugated rank-1 update.</p>
 <p><i>[Note:</i> This function corresponds to the BLAS functions
