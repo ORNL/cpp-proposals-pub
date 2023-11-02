@@ -7033,12 +7033,12 @@ reference. It is part of the implementation of <code>conjugated</code>
 <span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
 <span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>    offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span></span>
-<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>      <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span><em>nested-accessor</em><span class="op">.</span>offset<span class="op">(</span>p, i<span class="op">)))</span>;</span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>      <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span><em>nested-accessor_</em><span class="op">.</span>offset<span class="op">(</span>p, i<span class="op">)))</span>;</span>
 <span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> Accessor<span class="op">&amp;</span> nested_accessor<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <em>nested-accessor</em>; <span class="op">}</span></span>
+<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">const</span> Accessor<span class="op">&amp;</span> nested_accessor<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span> <span class="op">{</span> <span class="cf">return</span> <em>nested-accessor_</em>; <span class="op">}</span></span>
 <span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a>  NestedAccessor <em>nested-accessor</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
+<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a>  NestedAccessor <em>nested-accessor_</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
 <span id="cb40-24"><a href="#cb40-24" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em></p>
@@ -7058,7 +7058,7 @@ reference. It is part of the implementation of <code>conjugated</code>
 <div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> NestedAccessor<span class="op">&amp;</span> acc<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em> Direct non-list-initializes
-<em><code>nested-accessor</code></em> with <code>acc</code>.</p>
+<em><code>nested-accessor_</code></em> with <code>acc</code>.</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherScalingFactor, <span class="kw">class</span> OtherNestedAccessor<span class="op">&gt;</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(!</span>is_convertible_v<span class="op">&lt;</span>OtherNestedAccessor, NestedAccessor<span class="op">&gt;&gt;)</span></span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> conjugated_accessor<span class="op">&lt;</span>OtherScalingFactor, OtherNestedAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
@@ -7068,22 +7068,22 @@ reference. It is part of the implementation of <code>conjugated</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects:</em> direct non-list-initializes
-<em><code>nested-accessor</code></em> with
+<em><code>nested-accessor_</code></em> with
 <code>other.nested_accessor()</code>.</p>
 <div class="sourceCode" id="cb43"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span>reference<span class="op">(</span><em>nested-accessor</em><span class="op">.</span>access<span class="op">(</span>p, i<span class="op">))))</span>;</span></code></pre></div>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span>reference<span class="op">(</span><em>nested-accessor_</em><span class="op">.</span>access<span class="op">(</span>p, i<span class="op">))))</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em>
-<em><code>conj-if-needed</code></em><code>(NestedAccessor::element_type(</code><em><code>nested-accessor</code></em><code>.access(p, i)))</code></p>
+<em><code>conj-if-needed</code></em><code>(NestedAccessor::element_type(</code><em><code>nested-accessor_</code></em><code>.access(p, i)))</code></p>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Remarks:</em> The exception specification is equivalent to:</p>
-<div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">noexcept</span><span class="op">(</span><em>conj-if-needed</em><span class="op">(</span>NestedAccessor<span class="op">::</span>element_type<span class="op">(</span><em>nested-accessor</em><span class="op">.</span>access<span class="op">(</span>p, i<span class="op">)))</span></span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">noexcept</span><span class="op">(</span><em>conj-if-needed</em><span class="op">(</span>NestedAccessor<span class="op">::</span>element_type<span class="op">(</span><em>nested-accessor_</em><span class="op">.</span>access<span class="op">(</span>p, i<span class="op">)))</span></span></code></pre></div>
 <div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">typename</span> offset_policy<span class="op">::</span>data_handle_type</span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  offset<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span><em>nested-accessor</em><span class="op">.</span>offset<span class="op">(</span>p, i<span class="op">)))</span>;</span></code></pre></div>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span><em>nested-accessor_</em><span class="op">.</span>offset<span class="op">(</span>p, i<span class="op">)))</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Returns:</em>
-<em><code>nested-accessor</code></em><code>.offset(p, i)</code></p>
+<em><code>nested-accessor_</code></em><code>.offset(p, i)</code></p>
 <h4 data-number="28.9.9.3" id="conjugated-linalg.conj.conjugated"><span class="header-section-number">28.9.9.3</span> <code>conjugated</code>
 [linalg.conj.conjugated]<a href="#conjugated-linalg.conj.conjugated" class="self-link"></a></h4>
 <div class="sourceCode" id="cb46"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType,</span>
