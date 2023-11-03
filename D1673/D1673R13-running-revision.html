@@ -585,6 +585,16 @@ feedback</a></li>
 </ul></li>
 <li><a href="#support-for-division-with-noncommutative-multiplication" id="toc-support-for-division-with-noncommutative-multiplication"><span class="toc-section-number">10.10</span> Support for division with
 noncommutative multiplication</a></li>
+<li><a href="#packed-layouts-triangle-must-match-functions-triangle" id="toc-packed-layouts-triangle-must-match-functions-triangle"><span class="toc-section-number">10.11</span> Packed layout’s Triangle must
+match function’s Triangle</a>
+<ul>
+<li><a href="#summary-3" id="toc-summary-3"><span class="toc-section-number">10.11.1</span> Summary</a></li>
+<li><a href="#when-do-packed-formats-show-up-in-practice" id="toc-when-do-packed-formats-show-up-in-practice"><span class="toc-section-number">10.11.2</span> When do packed formats show up
+in practice?</a></li>
+<li><a href="#what-the-blas-does" id="toc-what-the-blas-does"><span class="toc-section-number">10.11.3</span> What the BLAS does</a></li>
+<li><a href="#p1673s-interpretation-of-the-blas" id="toc-p1673s-interpretation-of-the-blas"><span class="toc-section-number">10.11.4</span> P1673’s interpretation of the
+BLAS</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#future-work" id="toc-future-work"><span class="toc-section-number">11</span> Future work</a>
 <ul>
@@ -4037,6 +4047,312 @@ thus leading to Way (1)’s issues.</p></li>
 tempted to use <code>[](const auto&amp; y) { return 1 / y; }</code> as
 the inverse function, thus leading back to Way (1)’s issues.</p></li>
 </ul>
+<h2 data-number="10.11" id="packed-layouts-triangle-must-match-functions-triangle"><span class="header-section-number">10.11</span> Packed layout’s Triangle must
+match function’s Triangle<a href="#packed-layouts-triangle-must-match-functions-triangle" class="self-link"></a></h2>
+<h3 data-number="10.11.1" id="summary-3"><span class="header-section-number">10.11.1</span> Summary<a href="#summary-3" class="self-link"></a></h3>
+<ul>
+<li><p>P1673 <code>symmetric_*</code>, <code>hermitian_*</code>, and
+<code>triangular_*</code> functions always take <code>Triangle</code>
+(and <code>DiagonalStorage</code>, if applicable) parameters so that the
+functions always have the same signature, regardless of
+<code>mdspan</code> layout.</p></li>
+<li><p>For symmetric or Hermitian algorithms, mismatching the mdspan
+layout’s Triangle and the function’s Triangle would have no
+effect.</p></li>
+<li><p>For triangular algorithms, mismatch would have an effect that
+users likely would not want. (It means “use the other triangle,” which
+is zero.) Thus, it’s reasonable to make mismatch an error.</p></li>
+<li><p>In practice, users aren’t likely to encounter a triangular packed
+matrix in isolation. Such matrices usually occur in context of symmetric
+or Hermitian packed matrices. A common user error might thus be
+mismatching the Triangles for both symmetric or Hermitian functions, and
+triangular functions. The first is harmless; the second is likely an
+error.</p></li>
+<li><p>Therefore, we recommend</p>
+<ol type="1">
+<li><p>retaining the <code>Triangle</code> (and
+<code>DiagonalStorage</code>, if applicable) parameters;</p></li>
+<li><p>making it a Mandate that the layout’s <code>Triangle</code> match
+the function’s <code>Triangle</code> parameter, for <em>all</em> the
+functions (not just the <code>triangular_*</code> ones).</p></li>
+</ol></li>
+</ul>
+<h3 data-number="10.11.2" id="when-do-packed-formats-show-up-in-practice"><span class="header-section-number">10.11.2</span> When do packed formats show
+up in practice?<a href="#when-do-packed-formats-show-up-in-practice" class="self-link"></a></h3>
+<p>Users aren’t likely to encounter a triangular packed matrix in
+isolation. It generally comes as an in-place transformation (e.g.,
+factorization) of a symmetric or Hermitian packed matrix. For example,
+LAPACK’s <code>DSPTRF</code> (Double-precision Symmetric Packed
+TRiangular Factorization) computes a symmetric <span class="math inline"><em>L</em><em>D</em><em>L</em><sup><em>T</em></sup></span>
+(or <span class="math inline"><em>U</em><em>D</em><em>U</em><sup><em>T</em></sup></span>)
+factorization in place, overwriting the input symmetric packed matrix
+<span class="math inline"><em>A</em></span>. LAPACK’s
+<code>DSPTRS</code> (Double-precision Symmetric Packed TRiangular Solve)
+then uses the result of <code>DSPTRF</code> to solve a linear system.
+<code>DSPTRF</code> overwrites <span class="math inline"><em>A</em></span> with the triangle <span class="math inline"><em>L</em></span> (if <span class="math inline"><em>A</em></span> uses lower triangle storage, or
+<span class="math inline"><em>U</em></span>, if <span class="math inline"><em>A</em></span> uses upper triangle storage). This
+is an idiom for which the BLAS was designed: factorizations typically
+overwrite their input, and thus reinterpret the input’s “data structure”
+on the fly.</p>
+<h3 data-number="10.11.3" id="what-the-blas-does"><span class="header-section-number">10.11.3</span> What the BLAS does<a href="#what-the-blas-does" class="self-link"></a></h3>
+<p>For a summary of the BLAS’ packed storage formats, please refer to
+the <a href="https://www.netlib.org/lapack/lug/node123.html">“Packed
+Storage”</a> section of the <em>LAPACK Users’ Guide</em>, Third Edition
+(1999).</p>
+<p>BLAS routines for packed storage have only a single argument,
+<code>UPLO</code>. This describes both whether the caller is storing the
+upper or lower triangle, and the triangle of the matrix on which the
+routine will operate. (Packed BLAS formats always store the diagonal
+explicitly; they don’t have the analog of <code>DiagonalStorage</code>.)
+An example of a BLAS triangular packed routine is <code>DTPMV</code>,
+Double-precision (D) Triangular Packed (TP) Matrix-Vector (MV)
+product.</p>
+<p>BLAS packed formats don’t represent metadata explicitly; the caller
+is responsible for knowing whether they are storing the upper or lower
+triangle. Getting the <code>UPLO</code> argument wrong makes the matrix
+wrong. For example, suppose that the matrix is 4 x 4, and the user’s
+array input for the matrix is [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]. If the
+user is storing the upper triangle (in column-major order, as the
+Fortran BLAS requires), then the matrix looks like this.</p>
+<table>
+<tr>
+<td>
+1
+</td>
+<td>
+2
+</td>
+<td>
+4
+</td>
+<td>
+7
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+3
+</td>
+<td>
+5
+</td>
+<td>
+8
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+</td>
+<td>
+6
+</td>
+<td>
+9
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+10
+</td>
+</tr>
+</table>
+<p>Mismatching the <code>UPLO</code> argument (by passing in
+<code>&#39;Lower triangle&#39;</code> instead of <code>&#39;Upper triangle&#39;</code>)
+would result in an entirely wrong matrix – not even the transpose. Note
+how the diagonal elements differ, for instance.</p>
+<table>
+<tr>
+<td>
+1
+</td>
+<td>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+2
+</td>
+<td>
+5
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+3
+</td>
+<td>
+6
+</td>
+<td>
+8
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+4
+</td>
+<td>
+7
+</td>
+<td>
+9
+</td>
+<td>
+10
+</td>
+</tr>
+</table>
+<p>This would be incorrect for triangular, symmetric, or Hermitian
+matrices.</p>
+<h3 data-number="10.11.4" id="p1673s-interpretation-of-the-blas"><span class="header-section-number">10.11.4</span> P1673’s interpretation of
+the BLAS<a href="#p1673s-interpretation-of-the-blas" class="self-link"></a></h3>
+<p>P1673 offers packed formats that encode the <code>Triangle</code>.
+This means that the <code>mdspan</code> alone conveys the data
+structure. P1673 retains the function’s separate <code>Triangle</code>
+parameter so that the function’s signature doesn’t change based on the
+<code>mdspan</code>’s layout. P1673 requires that the function’s
+Triangle match the mdspan’s Triangle.</p>
+<p>If P1673 were to permit mismatching the two Triangles, how would the
+function reasonably interpret the user’s intent? For triangular matrices
+with explicit diagonal, mismatch would mean multiplying by or solving
+with a zero triangle matrix. For triangular matrices with implicit unit
+diagonal, mismatch would mean multiplying by or solving with a diagonal
+matrix of ones – that is, the identity matrix. Users wouldn’t want to do
+either one of those.</p>
+<p>For symmetric matrices, mismatch has no effect; the
+<code>mdspan</code> layout’s <code>Triangle</code> rules. For example,
+the lower triangle of an upper triangle storage format is just the upper
+triangle again. For Hermitian matrices, again, mismatch has no effect.
+For example, suppose that the following is the lower triangle
+representation of a complex-valued Hermitian matrix (where <span class="math inline"><em>i</em></span> is the imaginary unit).</p>
+<table>
+<tr>
+<td>
+<span class="math inline">1 + 1<em>i</em></span>
+</td>
+<td>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<span class="math inline">2 + 2<em>i</em></span>
+</td>
+<td>
+<span class="math inline">4 + 4<em>i</em></span>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<span class="math inline">3 + 3<em>i</em></span>
+</td>
+<td>
+<span class="math inline">5 + 5<em>i</em></span>
+</td>
+<td>
+<span class="math inline">6 + 6<em>i</em></span>
+</td>
+</tr>
+</table>
+<p>If the user asks the function to operate on the upper triangle of
+this matrix, that would imply the following.</p>
+<table>
+<tr>
+<td>
+<span class="math inline">1 + 1<em>i</em></span>
+</td>
+<td>
+<span class="math inline">2 − 2<em>i</em></span>
+</td>
+<td>
+<span class="math inline">3 − 3<em>i</em></span>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+<span class="math inline">4 + 4<em>i</em></span>
+</td>
+<td>
+<span class="math inline">5 − 5<em>i</em></span>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+</td>
+<td>
+<span class="math inline">6 + 6<em>i</em></span>
+</td>
+</tr>
+</table>
+<p>(Note that the imaginary parts now have negative sign. The matrix is
+Hermitian, so <code>A[j,i]</code> equals <code>conj(A[i,j])</code>.)
+That’s just the “other triangle” of the matrix. These are Hermitian
+algorithms, so they will interpret the “other triangle of the other
+triangle” in a way that restores the original matrix. Even though the
+user never stores the original matrix, it would look like this
+mathematically.</p>
+<table>
+<tr>
+<td>
+<span class="math inline">1 + 1<em>i</em></span>
+</td>
+<td>
+<span class="math inline">2 − 2<em>i</em></span>
+</td>
+<td>
+<span class="math inline">3 − 3<em>i</em></span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="math inline">2 + 2<em>i</em></span>
+</td>
+<td>
+<span class="math inline">4 + 4<em>i</em></span>
+</td>
+<td>
+<span class="math inline">5 − 5<em>i</em></span>
+</td>
+</tr>
+<tr>
+<td>
+<span class="math inline">3 + 3<em>i</em></span>
+</td>
+<td>
+<span class="math inline">5 + 5<em>i</em></span>
+</td>
+<td>
+<span class="math inline">6 + 6<em>i</em></span>
+</td>
+</tr>
+</table>
 <h1 data-number="11" id="future-work"><span class="header-section-number">11</span> Future work<a href="#future-work" class="self-link"></a></h1>
 <h2 data-number="11.1" id="batched-linear-algebra"><span class="header-section-number">11.1</span> Batched linear algebra<a href="#batched-linear-algebra" class="self-link"></a></h2>
 <p>We plan to write a separate proposal that will add “batched” versions
