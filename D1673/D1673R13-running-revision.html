@@ -1340,6 +1340,8 @@ be circular with <strong>[algorithms.parallel]</strong> 2 (“A
 <em>parallel algorithm</em> is a function template listed in this
 document with a template parameter named
 <code>ExecutionPolicy</code>”).</p></li>
+<li><p>make <code>layout_blas_packed::mapping::operator()</code> take
+exactly two parameters, rather than a pack</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6239,7 +6241,7 @@ note]</i></p></li>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The storage order tags describe the order of elements in an
 <code>mdspan</code> with <code>layout_blas_packed</code>
-(<em>[linalg.layout.packed]</em>) layout.</p>
+([linalg.layout.packed]) layout.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> column_major_t <span class="op">{</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span> column_major_t<span class="op">()</span> <span class="op">=</span> <span class="cf">default</span>;</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
@@ -6359,8 +6361,8 @@ and Triangular Packed (TP) matrix types. <i>– end note]</i></p>
 <span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
 <span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>      <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()</span> <span class="op">(</span>Indices<span class="op">...)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Index0, <span class="kw">class</span> Index1<span class="op">&gt;</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>      <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()</span> <span class="op">(</span>Index0 ind0, Index1 ind1<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span>
 <span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span> <span class="op">{</span></span>
 <span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> extents_type<span class="op">::</span>static_extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">!=</span> dynamic_extent <span class="op">&amp;&amp;</span></span>
@@ -6456,24 +6458,27 @@ representable as a value of type <code>index_type</code>
 <em><code>extents_</code></em><code>.extent(0) * (</code><em><code>extents_</code></em><code>.extent(0) + 1)/2</code>.
 <i>[Note:</i> For example, a 5 x 5 packed matrix only stores 15 matrix
 elements. <i>– end note]</i></p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> <span class="op">...</span> Indices<span class="op">&gt;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()</span> <span class="op">(</span>Indices<span class="op">...</span> k<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Index0, <span class="kw">class</span> Index1<span class="op">&gt;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()</span> <span class="op">(</span>Index0 ind0, Index1 ind1<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Constraints</em>:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.1)</a></span>
-<code>sizeof...(Indices)</code> equals <code>extents_type::rank()</code>
-is <code>true</code>,</p></li>
+<code>is_convertible_v&lt;Index0, index_type&gt;</code> is
+<code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span>
-<code>(is_convertible_v&lt;Indices, index_type&gt; &amp;&amp; ...)</code>
-is <code>true</code>, and</p></li>
+<code>is_convertible_v&lt;Index1, index_type&gt;</code> is
+<code>true</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.3)</a></span>
-<code>(is_nothrow_constructible_v&lt;index_type, Indices&gt;)</code> is
+<code>is_nothrow_constructible_v&lt;index_type, Index0&gt;</code> is
+<code>true</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(12.4)</a></span>
+<code>is_nothrow_constructible_v&lt;index_type, Index1&gt;</code> is
 <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Preconditions:</em>
-<code>extents_type::</code><em><code>index-cast</code></em><code>(k)</code>
+<code>extents_type::</code><em><code>index-cast</code></em><code>(ind0, ind1)</code>
 is a multidimensional index in <em><code>extents_</code></em>
 ([mdspan.overview]).</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
