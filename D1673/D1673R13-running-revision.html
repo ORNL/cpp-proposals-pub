@@ -1342,6 +1342,8 @@ document with a template parameter named
 <code>ExecutionPolicy</code>”).</p></li>
 <li><p>make <code>layout_blas_packed::mapping::operator()</code> take
 exactly two parameters, rather than a pack</p></li>
+<li><p>for default <code>BinaryDivideOp</code>, replace lambda with
+<code>divides&lt;void&gt;{}</code></p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -3979,12 +3981,15 @@ input. The binary callable would be optional, and ordinary binary
 <code>operator/</code> would be used as the default. This would imitate
 existing Standard Library algorithms like <code>reduce</code>, with its
 optional <code>BinaryOp</code> that defaults to addition. For
-mixed-precision computation, users would need to avoid
-<code>std::divides</code>, as its two parameters and its return type all
-have the same types. However, the obvious
-<code>[] (const auto&amp; x, const auto&amp; y) { return x / y; }</code>
-would work just fine. Way (4) also preserves the original rounding
-behavior for types with commutative multiplication.</p>
+mixed-precision computation, <code>std::divides&lt;void&gt;{}</code> or
+the equivalent
+<code>[](const auto&amp; x, const auto&amp; y) { return x / y; }</code>
+should work just fine. Users should avoid specifying <code>T</code>
+other than <code>void</code> in <code>std::divides&lt;T&gt;</code> for
+mixed-precision computation, as <code>std::divides&lt;T&gt;</code> would
+coerce both its arguments to <code>T</code> and then force the division
+result to be <code>T</code> as well. Way (4) also preserves the original
+rounding behavior for types with commutative multiplication.</p>
 <p>The main disadvantage of the other approaches is that they would
 change rounding behavior for floating-point types. They also require two
 operations – computing an inverse, and multiplication – rather than one.
@@ -8765,8 +8770,7 @@ the corresponding element of <code>x</code>. If no such <span class="math inline
 <span id="cb92-11"><a href="#cb92-11" aria-hidden="true" tabindex="-1"></a>  OutVec x<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Equivalent to</p>
-<div class="sourceCode" id="cb93"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>A, t, d, b, x,</span>
-<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> b_i, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_ii<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> b_i <span class="op">/</span> A_ii; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb93"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>A, t, d, b, x, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb94"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb94-2"><a href="#cb94-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat,</span>
 <span id="cb94-3"><a href="#cb94-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -8783,8 +8787,7 @@ the corresponding element of <code>x</code>. If no such <span class="math inline
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Effects:</em> Equivalent to</p>
 <div class="sourceCode" id="cb95"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>,</span>
-<span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, b, x,</span>
-<span id="cb95-3"><a href="#cb95-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> b_i, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_ii<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> b_i <span class="op">/</span> A_ii; <span class="op">})</span>;</span></code></pre></div>
+<span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, b, x, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb96"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb96-2"><a href="#cb96-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb96-3"><a href="#cb96-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -8837,8 +8840,7 @@ the corresponding element of <code>b</code>. If no such <span class="math inline
 <span id="cb97-9"><a href="#cb97-9" aria-hidden="true" tabindex="-1"></a>  InOutVec b<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb98"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>A, t, d, b,</span>
-<span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> b_i, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_ii<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> b_i <span class="op">/</span> A_ii; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb98"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>A, t, d, b, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb99"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat,</span>
 <span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -8853,8 +8855,7 @@ the corresponding element of <code>b</code>. If no such <span class="math inline
 <p><span class="marginalizedparent"><a class="marginalized">15</a></span>
 <em>Effects:</em> Equivalent to:</p>
 <div class="sourceCode" id="cb100"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_vector_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>,</span>
-<span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, b,</span>
-<span id="cb100-3"><a href="#cb100-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> b_i, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_ii<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> b_i <span class="op">/</span> A_ii; <span class="op">})</span>;</span></code></pre></div>
+<span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, b, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <h4 data-number="28.9.14.6" id="rank-1-outer-product-update-of-a-matrix-linalg.algs.blas2.rank1"><span class="header-section-number">28.9.14.6</span> Rank-1 (outer product)
 update of a matrix [linalg.algs.blas2.rank1]<a href="#rank-1-outer-product-update-of-a-matrix-linalg.algs.blas2.rank1" class="self-link"></a></h4>
 <div class="sourceCode" id="cb101"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -10057,8 +10058,7 @@ multiplicative inverse of <span class="math inline"><em>y</em></span>.
 <span id="cb124-11"><a href="#cb124-11" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb125"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_left_solve<span class="op">(</span>A, t, d, B, X,</span>
-<span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> X_elt, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_elt<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> X_elt <span class="op">/</span> A_elt; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb125"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_left_solve<span class="op">(</span>A, t, d, B, X, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb126"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb126-1"><a href="#cb126-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb126-2"><a href="#cb126-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
 <span id="cb126-3"><a href="#cb126-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -10074,8 +10074,8 @@ multiplicative inverse of <span class="math inline"><em>y</em></span>.
 <span id="cb126-13"><a href="#cb126-13" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb127"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_left_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>, A, t, d, B, X,</span>
-<span id="cb127-2"><a href="#cb127-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> X_elt, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_elt<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> X_elt <span class="op">/</span> A_elt; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb127"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_left_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>,</span>
+<span id="cb127-2"><a href="#cb127-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, B, X, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb128"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb128-1"><a href="#cb128-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
 <span id="cb128-2"><a href="#cb128-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb128-3"><a href="#cb128-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -10162,8 +10162,7 @@ multiplicative inverse of <span class="math inline"><em>y</em></span>.
 <span id="cb129-11"><a href="#cb129-11" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">15</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb130"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb130-1"><a href="#cb130-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_right_solve<span class="op">(</span>A, t, d, B, X,</span>
-<span id="cb130-2"><a href="#cb130-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> X_elt, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_elt<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> X_elt <span class="op">/</span> A_elt; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb130"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb130-1"><a href="#cb130-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_right_solve<span class="op">(</span>A, t, d, B, X, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb131"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb131-1"><a href="#cb131-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb131-2"><a href="#cb131-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat1,</span>
 <span id="cb131-3"><a href="#cb131-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -10179,8 +10178,8 @@ multiplicative inverse of <span class="math inline"><em>y</em></span>.
 <span id="cb131-13"><a href="#cb131-13" aria-hidden="true" tabindex="-1"></a>  OutMat X<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb132"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_right_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>, A, t, d, B, X,</span>
-<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> X_elt, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_elt<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> X_elt <span class="op">/</span> A_elt; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb132"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_right_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>,</span>
+<span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, B, X, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <h4 data-number="28.9.15.7" id="solve-multiple-triangular-linear-systems-in-place-linalg.algs.blas3.inplacetrsm"><span class="header-section-number">28.9.15.7</span> Solve multiple triangular
 linear systems in-place [linalg.algs.blas3.inplacetrsm]<a href="#solve-multiple-triangular-linear-systems-in-place-linalg.algs.blas3.inplacetrsm" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS function
@@ -10265,8 +10264,7 @@ the corresponding element of <code>B</code>. If so such <span class="math inline
 <span id="cb134-9"><a href="#cb134-9" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb135"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb135-1"><a href="#cb135-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_left_solve<span class="op">(</span>A, t, d, B,</span>
-<span id="cb135-2"><a href="#cb135-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> B_elt, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_elt<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> B_elt <span class="op">/</span> A_elt; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb135"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb135-1"><a href="#cb135-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_left_solve<span class="op">(</span>A, t, d, B, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb136"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb136-1"><a href="#cb136-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb136-2"><a href="#cb136-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat,</span>
 <span id="cb136-3"><a href="#cb136-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -10280,8 +10278,8 @@ the corresponding element of <code>B</code>. If so such <span class="math inline
 <span id="cb136-11"><a href="#cb136-11" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb137"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb137-1"><a href="#cb137-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_left_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>, A, t, d, B,</span>
-<span id="cb137-2"><a href="#cb137-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> B_elt, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_elt<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> B_elt <span class="op">/</span> A_elt; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb137"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb137-1"><a href="#cb137-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_left_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>,</span>
+<span id="cb137-2"><a href="#cb137-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, B, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb138"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb138-1"><a href="#cb138-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb138-2"><a href="#cb138-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb138-3"><a href="#cb138-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -10360,8 +10358,7 @@ the corresponding element of <code>B</code>. If so such <span class="math inline
 <span id="cb139-9"><a href="#cb139-9" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">15</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb140"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_right_solve<span class="op">(</span>A, t, d, B,</span>
-<span id="cb140-2"><a href="#cb140-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> B_elt, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_elt<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> B_elt <span class="op">/</span> A_elt; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb140"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb140-1"><a href="#cb140-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_right_solve<span class="op">(</span>A, t, d, B, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <div class="sourceCode" id="cb141"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb141-1"><a href="#cb141-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb141-2"><a href="#cb141-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat,</span>
 <span id="cb141-3"><a href="#cb141-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -10375,8 +10372,8 @@ the corresponding element of <code>B</code>. If so such <span class="math inline
 <span id="cb141-11"><a href="#cb141-11" aria-hidden="true" tabindex="-1"></a>  InOutMat B<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
 <em>Effects:</em> Equivalent to:</p>
-<div class="sourceCode" id="cb142"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb142-1"><a href="#cb142-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_right_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>, A, t, d, B,</span>
-<span id="cb142-2"><a href="#cb142-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">[](</span><span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> B_elt, <span class="kw">const</span> <span class="kw">auto</span><span class="op">&amp;</span> A_elt<span class="op">)</span> <span class="op">{</span> <span class="cf">return</span> B_elt <span class="op">/</span> A_elt; <span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb142"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb142-1"><a href="#cb142-1" aria-hidden="true" tabindex="-1"></a>triangular_matrix_matrix_right_solve<span class="op">(</span>std<span class="op">::</span>forward<span class="op">&lt;</span>ExecutionPolicy<span class="op">&gt;(</span>exec<span class="op">)</span>,</span>
+<span id="cb142-2"><a href="#cb142-2" aria-hidden="true" tabindex="-1"></a>  A, t, d, B, divides<span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;{})</span>;</span></code></pre></div>
 <h1 data-number="29" id="examples"><span class="header-section-number">29</span> Examples<a href="#examples" class="self-link"></a></h1>
 <h2 data-number="29.1" id="cholesky-factorization"><span class="header-section-number">29.1</span> Cholesky factorization<a href="#cholesky-factorization" class="self-link"></a></h2>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
