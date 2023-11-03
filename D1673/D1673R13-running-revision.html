@@ -1368,8 +1368,8 @@ Precondition would have been violated anyway)</p></li>
 <em><code>transpose-extents-t</code></em> to the new section
 [linalg.transp.helpers]. Redefine
 <em><code>transpose-extents-t</code></em> in terms of
-<em><code>transpose-extents</code></em> (via <code>decltype</code>),
-rather than the other way around.</p></li>
+<em><code>transpose-extents</code></em>, rather than the other way
+around.</p></li>
 <li><p>For <code>triangular_*</code>, <code>symmetric_*</code>, and
 <code>hermitian_*</code> functions that take a <code>Triangle</code>
 parameter and an <code>mdspan</code> with
@@ -1378,7 +1378,8 @@ layout’s <code>Triangle</code> match the function’s
 <code>Triangle</code> parameter, from a Constraint to a Mandate. This
 should not result in ambiguous overloads, since <code>Triangle</code> is
 already Constrained to be <code>upper_triangle_t</code> or
-<code>lower_triangle_t</code>.</p></li>
+<code>lower_triangle_t</code>. Add a nonwording section explaining this
+design choice.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -7529,34 +7530,12 @@ The exposition-only alias template
 type of <em><code>transpose-extents</code></em><code>(e)</code> for a
 given <code>extents</code> object <code>e</code> of type
 <code>InputExtents</code>.</p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> InputExtents<span class="op">&gt;</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span></span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><em>transpose-extents</em><span class="op">(</span><span class="kw">const</span> InputExtents<span class="op">&amp;</span> in<span class="op">)</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> IndexType, <span class="dt">size_t</span> InputExtent0, <span class="dt">size_t</span> InputExtent1<span class="op">&gt;</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> extents<span class="op">&lt;</span>IndexType, InputExtent1, InputExtent0<span class="op">&gt;</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><em>transpose-extents</em><span class="op">(</span><span class="kw">const</span> extents<span class="op">&lt;</span>IndexType, InputExtent0, InputExtent1<span class="op">&gt;&amp;</span> in<span class="op">)</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Mandates:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
-<code>InputExtents</code> is a specialization of <code>extents</code>,
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-<code>InputExtents::rank()</code> equals 2.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Returns:</em> An <code>extents</code> object <code>out</code> such
-that</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>out.static_extent(1)</code> equals
-<code>in.static_extent(0)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
-<code>out.static_extent(0)</code> equals
-<code>in.static_extent(1)</code>,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
-<code>out.extent(1)</code> equals <code>in.extent(0)</code>,
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span>
-<code>out.extent(0)</code> equals <code>in.extent(1)</code>.</p></li>
-</ul>
+<em>Returns:</em>
+<code>extents&lt;IndexType, InputExtent1, InputExtent0&gt;(in.extent(1), in.extent(0))</code></p>
 <div class="sourceCode" id="cb49"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> InputExtents<span class="op">&gt;</span></span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <em>transpose-extents-t</em> <span class="op">=</span></span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span><em>transpose-extents</em><span class="op">(</span>declval<span class="op">&lt;</span>InputExtents<span class="op">&gt;()))</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
