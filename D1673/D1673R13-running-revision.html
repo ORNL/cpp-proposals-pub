@@ -10038,8 +10038,11 @@ the corresponding element of <code>X</code>. If no such <span class="math inline
 <code>A.extent(0) * X.extent(1) * X.extent(1)</code> <span class="math inline">)</span></p>
 <p><i>[Note:</i> Since the triangular matrix is on the left, the desired
 <code>divide</code> implementation in the case of noncommutative
-multiplication would be mathematically equivalent to the product of (the
-inverse of the second argument) and the first argument, in that order.
+multiplication would be mathematically equivalent to <span class="math inline"><em>y</em><sup>−1</sup><em>x</em></span>, where
+<span class="math inline"><em>x</em></span> is the first argument and
+<span class="math inline"><em>y</em></span> is the second argument, and
+<span class="math inline"><em>y</em><sup>−1</sup></span> denotes the
+multiplicative inverse of <span class="math inline"><em>y</em></span>.
 <i>– end note]</i></p>
 <div class="sourceCode" id="cb124"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb124-1"><a href="#cb124-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
 <span id="cb124-2"><a href="#cb124-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -10138,6 +10141,14 @@ the corresponding element of <code>X</code>. If no such <span class="math inline
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
 <code>B.extent(0) * B.extent(1) * A.extent(1)</code> <span class="math inline">)</span></p>
+<p><i>[Note:</i> Since the triangular matrix is on the right, the
+desired <code>divide</code> implementation in the case of noncommutative
+multiplication would be mathematically equivalent to <span class="math inline"><em>x</em><em>y</em><sup>−1</sup></span>, where
+<span class="math inline"><em>x</em></span> is the first argument and
+<span class="math inline"><em>y</em></span> is the second argument, and
+<span class="math inline"><em>y</em><sup>−1</sup></span> denotes the
+multiplicative inverse of <span class="math inline"><em>y</em></span>.
+<i>– end note]</i></p>
 <div class="sourceCode" id="cb129"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb129-1"><a href="#cb129-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
 <span id="cb129-2"><a href="#cb129-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb129-3"><a href="#cb129-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -10240,11 +10251,6 @@ such that <span class="math inline"><em>A</em><em>X</em>′ = <em>B</em></sp
 assigns each element of <span class="math inline"><em>X</em>′</span> to
 the corresponding element of <code>B</code>. If so such <span class="math inline"><em>X</em>′</span> exists, then the elements of
 <code>B</code> are valid but unspecified.</p>
-<p><i>[Note:</i> Since the triangular matrix is on the left, the desired
-<code>divide</code> implementation in the case of noncommutative
-multiplication would be mathematically equivalent to the product of (the
-inverse of the second argument) and the first argument, in that order.
-<i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
 <code>A.extent(0) * A.extent(1) * B.extent(1)</code> <span class="math inline">)</span></p>
@@ -10340,11 +10346,6 @@ such that <span class="math inline"><em>X</em>′<em>A</em> = <em>B</em></sp
 assigns each element of <span class="math inline"><em>X</em>′</span> to
 the corresponding element of <code>B</code>. If so such <span class="math inline"><em>X</em>′</span> exists, then the elements of
 <code>B</code> are valid but unspecified.</p>
-<p><i>[Note:</i> Since the triangular matrix is on the right, the
-desired <code>divide</code> implementation in the case of noncommutative
-multiplication would be mathematically equivalent to the product of the
-first argument, and (the inverse of the second argument), in that order.
-<i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
 <code>A.extent(0) * A.extent(1) * B.extent(1)</code> <span class="math inline">)</span></p>
