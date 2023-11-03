@@ -1347,6 +1347,9 @@ exactly two parameters, rather than a pack</p></li>
 <li><p>add definitions of the “rows” and “columns” of a matrix to
 [linalg.general], so that [linalg.tags.order] can refer to rows and
 columns</p></li>
+<li><p><code>layout_blas_packed::mapping::operator()</code>: Pass input
+parameters through <em><code>index-cast</code></em> before using them in
+the formulas.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6501,13 +6504,16 @@ elements. <i>– end note]</i></p>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Preconditions:</em>
-<code>extents_type::</code><em><code>index-cast</code></em><code>(ind0, ind1)</code>
+<code>extents_type::</code><em><code>index-cast</code></em><code>(ind0), extents_type::</code><em><code>index-cast</code></em><code>(ind1)</code>
 is a multidimensional index in <em><code>extents_</code></em>
 ([mdspan.overview]).</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
 <em>Returns:</em> Let <code>N</code> equal <code>extent(0)</code>, let
-<code>i</code> be the zeroth element of <code>k</code>, and let
-<code>j</code> be the first element of <code>k</code>. Then</p>
+<code>i</code> be
+<code>extents_type::</code><em><code>index-cast</code></em><code>(ind0)</code>,
+and let <code>j</code> be
+<code>extents_type::</code><em><code>index-cast</code></em><code>(ind1)</code>.
+Then</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(14.1)</a></span>
 <code>(*this)(j, i)</code> if <code>i &gt; j</code> is
