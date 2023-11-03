@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-11-02" />
+  <meta name="dcterms.date" content="2023-11-03" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-11-02</td>
+    <td>2023-11-03</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1353,6 +1353,13 @@ the formulas.</p></li>
 <li><p>remove spurious return value from
 <code>layout_blas_packed::mapping::stride</code> (the case where the
 Precondition would have been violated anyway)</p></li>
+<li><p>Move exposition-only helpers
+<em><code>transpose-extents</code></em> and
+<em><code>transpose-extents-t</code></em> to the new section
+[linalg.transp.helpers]. Redefine
+<em><code>transpose-extents-t</code></em> in terms of
+<em><code>transpose-extents</code></em> (via <code>decltype</code>),
+rather than the other way around.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -4409,19 +4416,19 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.scaled.abs], exposition-only function object <em>abs-if-needed</em></span></span>
 <span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="co">/* see-below */</span> <em>abs-if-needed</em>;</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="co">/* <em>see-below</em> */</span> <em>abs-if-needed</em>;</span>
 <span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.scaled.conj], exposition-only function object <em>conj-if-needed</em></span></span>
 <span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co">/* see-below */</span> <em>conj-if-needed</em>;</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co">/* <em>see-below</em> */</span> <em>conj-if-needed</em>;</span>
 <span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.scaled.real], exposition-only function object <em>real-if-needed</em></span></span>
 <span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="co">/* see-below */</span> <em>real-if-needed</em>;</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="co">/* <em>see-below</em> */</span> <em>real-if-needed</em>;</span>
 <span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.scaled.imag], exposition-only function object <em>imag-if-needed</em></span></span>
 <span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="co">/* see-below */</span> <em>imag-if-needed</em>;</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="co">/* <em>see-below</em> */</span> <em>imag-if-needed</em>;</span>
 <span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.scaled.scaledaccessor], class template scaled_accessor</span></span>
 <span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
@@ -4435,7 +4442,7 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Extents,</span>
 <span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Layout,</span>
 <span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="co">/* see-below */</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="co">/* <em>see-below</em> */</span></span>
 <span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> scaled<span class="op">(</span></span>
 <span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>  ScalingFactor scaling_factor,</span>
 <span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span>ElementType, Extents, Layout, Accessor<span class="op">&gt;</span> x<span class="op">)</span>;</span>
@@ -4643,13 +4650,13 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-258"><a href="#cb7-258" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb7-259"><a href="#cb7-259" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb7-260"><a href="#cb7-260" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dot<span class="op">(</span>InVec1 v1,</span>
-<span id="cb7-261"><a href="#cb7-261" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-261"><a href="#cb7-261" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-262"><a href="#cb7-262" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-263"><a href="#cb7-263" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
 <span id="cb7-264"><a href="#cb7-264" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb7-265"><a href="#cb7-265" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dot<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-266"><a href="#cb7-266" aria-hidden="true" tabindex="-1"></a>         InVec1 v1,</span>
-<span id="cb7-267"><a href="#cb7-267" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-267"><a href="#cb7-267" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-268"><a href="#cb7-268" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-269"><a href="#cb7-269" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.dot.dotc],</span></span>
 <span id="cb7-270"><a href="#cb7-270" aria-hidden="true" tabindex="-1"></a><span class="co">// conjugated dot product of two vectors</span></span>
@@ -4670,13 +4677,13 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-285"><a href="#cb7-285" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb7-286"><a href="#cb7-286" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb7-287"><a href="#cb7-287" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dotc<span class="op">(</span>InVec1 v1,</span>
-<span id="cb7-288"><a href="#cb7-288" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-288"><a href="#cb7-288" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-289"><a href="#cb7-289" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-290"><a href="#cb7-290" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
 <span id="cb7-291"><a href="#cb7-291" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb7-292"><a href="#cb7-292" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dotc<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb7-293"><a href="#cb7-293" aria-hidden="true" tabindex="-1"></a>          InVec1 v1,</span>
-<span id="cb7-294"><a href="#cb7-294" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-294"><a href="#cb7-294" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-295"><a href="#cb7-295" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-296"><a href="#cb7-296" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.ssq],</span></span>
 <span id="cb7-297"><a href="#cb7-297" aria-hidden="true" tabindex="-1"></a><span class="co">// Scaled sum of squares of a vector&#39;s elements</span></span>
@@ -4708,11 +4715,11 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-323"><a href="#cb7-323" aria-hidden="true" tabindex="-1"></a>                       InVec v,</span>
 <span id="cb7-324"><a href="#cb7-324" aria-hidden="true" tabindex="-1"></a>                       Scalar init<span class="op">)</span>;</span>
 <span id="cb7-325"><a href="#cb7-325" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec<span class="op">&gt;</span></span>
-<span id="cb7-326"><a href="#cb7-326" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> vector_two_norm<span class="op">(</span>InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-326"><a href="#cb7-326" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> vector_two_norm<span class="op">(</span>InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-327"><a href="#cb7-327" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-328"><a href="#cb7-328" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec<span class="op">&gt;</span></span>
 <span id="cb7-329"><a href="#cb7-329" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> vector_two_norm<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-330"><a href="#cb7-330" aria-hidden="true" tabindex="-1"></a>                     InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-330"><a href="#cb7-330" aria-hidden="true" tabindex="-1"></a>                     InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-331"><a href="#cb7-331" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-332"><a href="#cb7-332" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.asum],</span></span>
 <span id="cb7-333"><a href="#cb7-333" aria-hidden="true" tabindex="-1"></a><span class="co">// sum of absolute values of vector elements</span></span>
@@ -4727,11 +4734,11 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-342"><a href="#cb7-342" aria-hidden="true" tabindex="-1"></a>                      InVec v,</span>
 <span id="cb7-343"><a href="#cb7-343" aria-hidden="true" tabindex="-1"></a>                      Scalar init<span class="op">)</span>;</span>
 <span id="cb7-344"><a href="#cb7-344" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec<span class="op">&gt;</span></span>
-<span id="cb7-345"><a href="#cb7-345" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> vector_abs_sum<span class="op">(</span>InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-345"><a href="#cb7-345" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> vector_abs_sum<span class="op">(</span>InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-346"><a href="#cb7-346" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-347"><a href="#cb7-347" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec<span class="op">&gt;</span></span>
 <span id="cb7-348"><a href="#cb7-348" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> vector_abs_sum<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-349"><a href="#cb7-349" aria-hidden="true" tabindex="-1"></a>                    InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-349"><a href="#cb7-349" aria-hidden="true" tabindex="-1"></a>                    InVec v<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-350"><a href="#cb7-350" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-351"><a href="#cb7-351" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.iamax],</span></span>
 <span id="cb7-352"><a href="#cb7-352" aria-hidden="true" tabindex="-1"></a><span class="co">// index of maximum absolute value of vector elements</span></span>
@@ -4758,12 +4765,12 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-373"><a href="#cb7-373" aria-hidden="true" tabindex="-1"></a>  Scalar init<span class="op">)</span>;</span>
 <span id="cb7-374"><a href="#cb7-374" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat<span class="op">&gt;</span></span>
 <span id="cb7-375"><a href="#cb7-375" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> matrix_frob_norm<span class="op">(</span></span>
-<span id="cb7-376"><a href="#cb7-376" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-376"><a href="#cb7-376" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-377"><a href="#cb7-377" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-378"><a href="#cb7-378" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat<span class="op">&gt;</span></span>
 <span id="cb7-379"><a href="#cb7-379" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> matrix_frob_norm<span class="op">(</span></span>
 <span id="cb7-380"><a href="#cb7-380" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-381"><a href="#cb7-381" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-381"><a href="#cb7-381" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-382"><a href="#cb7-382" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-383"><a href="#cb7-383" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.matonenorm],</span></span>
 <span id="cb7-384"><a href="#cb7-384" aria-hidden="true" tabindex="-1"></a><span class="co">// One norm of a matrix</span></span>
@@ -4781,12 +4788,12 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-396"><a href="#cb7-396" aria-hidden="true" tabindex="-1"></a>  Scalar init<span class="op">)</span>;</span>
 <span id="cb7-397"><a href="#cb7-397" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat<span class="op">&gt;</span></span>
 <span id="cb7-398"><a href="#cb7-398" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> matrix_one_norm<span class="op">(</span></span>
-<span id="cb7-399"><a href="#cb7-399" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-399"><a href="#cb7-399" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-400"><a href="#cb7-400" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-401"><a href="#cb7-401" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat<span class="op">&gt;</span></span>
 <span id="cb7-402"><a href="#cb7-402" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> matrix_one_norm<span class="op">(</span></span>
 <span id="cb7-403"><a href="#cb7-403" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-404"><a href="#cb7-404" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-404"><a href="#cb7-404" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-405"><a href="#cb7-405" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-406"><a href="#cb7-406" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas1.matinfnorm],</span></span>
 <span id="cb7-407"><a href="#cb7-407" aria-hidden="true" tabindex="-1"></a><span class="co">// Infinity norm of a matrix</span></span>
@@ -4804,12 +4811,12 @@ through <code>mdspan</code> [mdspan].</p>
 <span id="cb7-419"><a href="#cb7-419" aria-hidden="true" tabindex="-1"></a>  Scalar init<span class="op">)</span>;</span>
 <span id="cb7-420"><a href="#cb7-420" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat<span class="op">&gt;</span></span>
 <span id="cb7-421"><a href="#cb7-421" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> matrix_inf_norm<span class="op">(</span></span>
-<span id="cb7-422"><a href="#cb7-422" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-422"><a href="#cb7-422" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-423"><a href="#cb7-423" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb7-424"><a href="#cb7-424" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat<span class="op">&gt;</span></span>
 <span id="cb7-425"><a href="#cb7-425" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> matrix_inf_norm<span class="op">(</span></span>
 <span id="cb7-426"><a href="#cb7-426" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb7-427"><a href="#cb7-427" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb7-427"><a href="#cb7-427" aria-hidden="true" tabindex="-1"></a>  InMat A<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb7-428"><a href="#cb7-428" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-429"><a href="#cb7-429" aria-hidden="true" tabindex="-1"></a><span class="co">// [linalg.algs.blas2.gemv],</span></span>
 <span id="cb7-430"><a href="#cb7-430" aria-hidden="true" tabindex="-1"></a><span class="co">// general matrix-vector product</span></span>
@@ -7184,27 +7191,22 @@ policy that swaps the two indices, extents, and strides of any unique
 The <code>transposed</code> function takes an <code>mdspan</code>
 representing a matrix, and returns a new <code>mdspan</code>
 representing the transpose of the input matrix.</p>
-<h4 data-number="28.9.10.2" id="layout_transpose-linalg.transp.layout_transpose"><span class="header-section-number">28.9.10.2</span>
-<code>layout_transpose</code> [linalg.transp.layout_transpose]<a href="#layout_transpose-linalg.transp.layout_transpose" class="self-link"></a></h4>
+<h4 data-number="28.9.10.2" id="exposition-only-helpers-linalg.transp.helpers"><span class="header-section-number">28.9.10.2</span> Exposition-only helpers
+[linalg.transp.helpers]<a href="#exposition-only-helpers-linalg.transp.helpers" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-<code>layout_transpose</code> is an <code>mdspan</code> layout mapping
-policy that swaps the two indices, extents, and strides of any unique
-<code>mdspan</code> layout mapping policy.</p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> InputExtents<span class="op">&gt;</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <em>transpose-extents-t</em> <span class="op">=</span> <span class="co">/* see below */</span>; <span class="co">// exposition only</span></span></code></pre></div>
+The exposition-only <em><code>transpose-extents</code></em> function
+takes an <code>extents</code> object representing the extents of a
+matrix, and returns a new <code>extents</code> object representing the
+extents of the transpose of the matrix.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-For <code>InputExtents</code> a specialization of <code>extents</code>,
-<em><code>transpose-extents-t</code></em><code>&lt;InputExtents&gt;</code>
-names the <code>extents</code> type <code>OutputExtents</code> such
-that</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>InputExtents::static_extent(1)</code> equals
-<code>OutputExtents::static_extent(0)</code> and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>InputExtents::static_extent(0)</code> equals
-<code>OutputExtents::static_extent(1)</code>.</p></li>
-</ul>
+The exposition-only alias template
+<em><code>transpose-extents-t&lt;InputExtents&gt;</code></em> gives the
+type of <em><code>transpose-extents</code></em><code>(e)</code> for a
+given <code>extents</code> object <code>e</code> of type
+<code>InputExtents</code>.</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> InputExtents<span class="op">&gt;</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">auto</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><em>transpose-extents</em><span class="op">(</span><span class="kw">const</span> InputExtents<span class="op">&amp;</span> in<span class="op">)</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Mandates:</em></p>
 <ul>
@@ -7214,28 +7216,31 @@ and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
 <code>InputExtents::rank()</code> equals 2.</p></li>
 </ul>
-<div class="sourceCode" id="cb49"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> InputExtents<span class="op">&gt;</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <em>transpose-extents-t</em><span class="op">&lt;</span>InputExtents<span class="op">&gt;</span></span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><em>transpose-extents</em><span class="op">(</span><span class="kw">const</span> InputExtents<span class="op">&amp;</span> in<span class="op">)</span>; <span class="co">// exposition only</span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Mandates:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>InputExtents</code> is a specialization of <code>extents</code>,
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
-<code>InputExtents::rank()</code> equals 2.</p></li>
-</ul>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Returns:</em> An <code>extents</code> object <code>out</code> such
 that</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<code>out.static_extent(1)</code> equals
+<code>in.static_extent(0)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<code>out.static_extent(0)</code> equals
+<code>in.static_extent(1)</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
 <code>out.extent(1)</code> equals <code>in.extent(0)</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span>
 <code>out.extent(0)</code> equals <code>in.extent(1)</code>.</p></li>
 </ul>
+<div class="sourceCode" id="cb49"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> InputExtents<span class="op">&gt;</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> <em>transpose-extents-t</em> <span class="op">=</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span><em>transpose-extents</em><span class="op">(</span>declval<span class="op">&lt;</span>InputExtents<span class="op">&gt;()))</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
+<h4 data-number="28.9.10.3" id="layout_transpose-linalg.transp.layout_transpose"><span class="header-section-number">28.9.10.3</span>
+<code>layout_transpose</code> [linalg.transp.layout_transpose]<a href="#layout_transpose-linalg.transp.layout_transpose" class="self-link"></a></h4>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<code>layout_transpose</code> is an <code>mdspan</code> layout mapping
+policy that swaps the two indices, extents, and strides of any unique
+<code>mdspan</code> layout mapping policy.</p>
 <div class="sourceCode" id="cb50"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Layout<span class="op">&gt;</span></span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> layout_transpose <span class="op">{</span></span>
 <span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
@@ -7244,7 +7249,7 @@ and</p></li>
 <span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">private</span><span class="op">:</span></span>
 <span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> <em>nested-mapping-type</em> <span class="op">=</span></span>
 <span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">typename</span> Layout<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span></span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>        <em>transpose-extents-t</em><span class="op">&lt;</span>Extents<span class="op">&gt;&gt;</span>; <span class="co">// exposition only</span></span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>        <em>transpose-extents-t</em><span class="op">&lt;</span>Extents<span class="op">&gt;&gt;</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span><span class="op">:</span></span>
 <span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> extents_type <span class="op">=</span> Extents;</span>
@@ -7300,55 +7305,55 @@ and</p></li>
 <span id="cb50-62"><a href="#cb50-62" aria-hidden="true" tabindex="-1"></a>    <em>nested-mapping-type</em> <em>nested-mapping_</em>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb50-63"><a href="#cb50-63" aria-hidden="true" tabindex="-1"></a>    extents_type <em>extents_</em>;</span>
 <span id="cb50-64"><a href="#cb50-64" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <code>Layout</code> shall meet the <code>mdspan</code> layout mapping
 policy requirements.</p>
-<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
 <code>Extents</code> is a specialization of <code>extents</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(8.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
 <code>Extents::rank()</code> equals 2.</p></li>
 </ul>
 <div class="sourceCode" id="cb51"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="kw">explicit</span> mapping<span class="op">(</span><span class="kw">const</span> <em>nested-mapping-type</em><span class="op">&amp;</span> map<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
 Initializes <em><code>nested-mapping_</code></em> with <code>map</code>,
 and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
 initializes <em><code>extents_</code></em> with
 <em><code>transpose-extents</code></em><code>(map.extents())</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb52"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span><em>nested-mapping_</em><span class="op">.</span>stride<span class="op">(</span>r<span class="op">)))</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Constraints:</em> <code>is_always_strided()</code> is
 <code>true</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">11</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em> <em><code>nested-mapping_</code></em>
 <code>.stride(r == 0 ? 1 : 0)</code></p>
 <div class="sourceCode" id="cb53"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span></span>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&amp;</span> x, <span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> y<span class="op">)</span></span>
 <span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>      <span class="kw">noexcept</span><span class="op">(</span><span class="kw">noexcept</span><span class="op">(</span>x<span class="op">.</span><em>nested-mapping_</em> <span class="op">==</span> y<span class="op">.</span><em>nested-mapping_</em><span class="op">))</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Constraints:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(12.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span>
 <em><code>nested-mapping-type</code></em> and
 <code>decltype(y.</code><em><code>nested-mapping_</code></em><code>)</code>
 are equality comparable, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
 <code>x.rank()</code> equals <code>y.rank()</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">13</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Returns:</em> <code>x.</code><em><code>nested-mapping_</code></em>
 <code>== y.</code><em><code>nested-mapping_</code></em></p>
-<h4 data-number="28.9.10.3" id="transposed-linalg.transp.transposed"><span class="header-section-number">28.9.10.3</span> <code>transposed</code>
+<h4 data-number="28.9.10.4" id="transposed-linalg.transp.transposed"><span class="header-section-number">28.9.10.4</span> <code>transposed</code>
 [linalg.transp.transposed]<a href="#transposed-linalg.transp.transposed" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The <code>transposed</code> function takes a rank-2 <code>mdspan</code>
@@ -7835,13 +7840,13 @@ Alternately, they can use the shortcut `dotc` below.
 <div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dot<span class="op">(</span>InVec1 v1,</span>
-<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
 <span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dot<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>         InVec1 v1,</span>
-<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
+<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 These functions compute a non-conjugated dot product with a default
 result type.</p>
@@ -7887,13 +7892,13 @@ Conjugated dot product with default result type</p>
 <div class="sourceCode" id="cb68"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dotc<span class="op">(</span>InVec1 v1,</span>
-<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span>
 <span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
 <span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
 <span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dotc<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a>          InVec1 v1,</span>
-<span id="cb68-10"><a href="#cb68-10" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* see-below */</span>;</span></code></pre></div>
+<span id="cb68-10"><a href="#cb68-10" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span> <span class="op">-&gt;</span> <span class="co">/* <em>see-below</em> */</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Let <code>T</code> be
 <code>decltype(</code><em><code>conj-if-needed</code></em><code>(declval&lt;typename InVec1::value_type&gt;()) * declval&lt;typename InVec2::value_type&gt;())</code>.
