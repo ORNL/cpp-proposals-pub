@@ -1382,6 +1382,9 @@ already Constrained to be <code>upper_triangle_t</code> or
 design choice.</p></li>
 <li><p>Add <code>triangle_t</code> and <code>storage_order_t</code>
 public type aliases to <code>layout_blas_packed</code>.</p></li>
+<li><p>Fix <code>layout_blas_packed</code> requirements so that wording
+of <code>operator()</code> and other members doesn’t need to consider
+overflow.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6779,9 +6782,11 @@ of <code>extents_type::static_extent(0) == dynamic_extent</code>,
 <code>extents_type::static_extent(0) == extents_type::static_extent(1)</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.6)</a></span> if
-<code>Extents​::​rank_dynamic() == 0</code> is true, then the size of the
-multidimensional index space <code>Extents()</code> is representable as
-a value of type <code>typename Extents​::​index_type</code>.</p></li>
+<code>Extents::rank_dynamic() == 0</code> is <code>true</code>, let
+<span class="math inline"><em>N</em><sub><em>s</em></sub></span> be
+equal to <code>Extents::static_extent(0)</code>; then, <span class="math inline"><em>N</em><sub><em>s</em></sub> × (<em>N</em><sub><em>s</em></sub>+1)</span>
+is representable as a value of type
+<code>typename Extents::index_type</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <code>layout_blas_packed&lt;T, SO&gt;::mapping&lt;E&gt;</code> is a
@@ -6793,10 +6798,11 @@ trivially copyable type that models <code>regular</code> for each
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> The
-size of the multidimensional index space <code>e</code> is representable
-as a value of type <code>index_type</code> ([basic.fundamental]),
-and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> Let
+<span class="math inline"><em>N</em></span> be equal to
+<code>e.extent(0)</code>. Then, <span class="math inline"><em>N</em> × (<em>N</em>+1)</span> is representable
+as a value of type <code>index_type</code>
+([basic.fundamental]).</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
 <code>e.extent(0)</code> equals <code>e.extent(1)</code>.</p></li>
 </ul>
@@ -6811,9 +6817,9 @@ and</p></li>
 <code>is_constructible_v&lt;extents_type, OtherExtents&gt;</code> is
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
-<em>Preconditions:</em> <code>other.required_span_size()</code> is
-representable as a value of type <code>index_type</code>
-([basic.fundamental]).</p>
+<em>Preconditions:</em> Let <span class="math inline"><em>N</em></span>
+be <code>other.extents().extent(0)</code>. Then, <span class="math inline"><em>N</em> × (<em>N</em>+1)</span> is representable
+as a value of type <code>index_type</code> ([basic.fundamental]).</p>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Effects:</em> Direct-non-list-initializes
 <em><code>extents_</code></em> with <code>other.extents()</code>.</p>
@@ -6849,7 +6855,8 @@ elements. <i>– end note]</i></p>
 is a multidimensional index in <em><code>extents_</code></em>
 ([mdspan.overview]).</p>
 <p><span class="marginalizedparent"><a class="marginalized">14</a></span>
-<em>Returns:</em> Let <code>N</code> equal <code>extent(0)</code>, let
+<em>Returns:</em> Let <code>N</code> be
+<em><code>extents_</code></em><code>.extent(0)</code>, let
 <code>i</code> be
 <code>extents_type::</code><em><code>index-cast</code></em><code>(ind0)</code>,
 and let <code>j</code> be
