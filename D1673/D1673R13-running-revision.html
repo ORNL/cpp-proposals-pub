@@ -1350,6 +1350,9 @@ columns</p></li>
 <li><p><code>layout_blas_packed::mapping::operator()</code>: Pass input
 parameters through <em><code>index-cast</code></em> before using them in
 the formulas.</p></li>
+<li><p>remove spurious return value from
+<code>layout_blas_packed::mapping::stride</code> (the case where the
+Precondition would have been violated anyway)</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6563,8 +6566,7 @@ were symmetric. <i>– end note]</i></p>
 <code>r &lt; extents_type::rank()</code> is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
-<em>Returns:</em> 1 if <code>extent(0)</code> is less than 2, else
-0.</p>
+<em>Returns:</em> 1.</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&amp;</span> x, <span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> y<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
