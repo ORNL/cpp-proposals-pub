@@ -1344,6 +1344,9 @@ document with a template parameter named
 exactly two parameters, rather than a pack</p></li>
 <li><p>for default <code>BinaryDivideOp</code>, replace lambda with
 <code>divides&lt;void&gt;{}</code></p></li>
+<li><p>add definitions of the “rows” and “columns” of a matrix to
+[linalg.general], so that [linalg.tags.order] can refer to rows and
+columns</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6027,23 +6030,38 @@ computation is written to the elements of the function parameter
 <code>R</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+Some of the functions and types in [linalg] distinguish between the
+“rows” and the “columns” of a matrix. For a matrix <code>A</code> and a
+multidimensional index <code>i, j</code> in
+<code>A.extents()</code>,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
+<em>row</em> <code>i</code> of <code>A</code> is the set of elements
+<code>A[i, k1]</code> for all <code>k1</code> such that
+<code>i, k1</code> is in <code>A.extents()</code>; and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<em>column</em> <code>j</code> of <code>A</code> is the set of elements
+<code>A[k0, j]</code> for all <code>k0</code> such that
+<code>k0, j</code> is in <code>A.extents()</code>.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 Some of the functions in [linalg] distinguish between the “upper
 triangle,” “lower triangle,” and “diagonal” of a matrix.</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> The
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span> The
 <em>diagonal</em> is the set of all elements of <code>A</code> accessed
 by <code>A[i,i]</code> for 0 ≤ <code>i</code> &lt;
 min(<code>A.extent(0)</code>, <code>A.extent(1)</code>).</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> The
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> The
 <em>upper triangle</em> of a matrix <code>A</code> is the set of all
 elements of <code>A</code> accessed by <code>A[i,j]</code> with
 <code>i</code> ≤ <code>j</code>. It includes the diagonal.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span> The
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span> The
 <em>lower triangle</em> of <code>A</code> is the set of all elements of
 <code>A</code> accessed by <code>A[i,j]</code> with <code>i</code> ≥
 <code>j</code>. It includes the diagonal.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 For any function <code>F</code> that takes a parameter <code>t</code>,
 <code>t</code> applies to accesses to the previous parameter to the
 function. Let <code>m</code> be such an access-modified function
@@ -6082,7 +6100,7 @@ matrix element to be non-zero.</p>
 <span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>]</p>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 For any function <code>F</code> that takes a
 <code>DiagonalStorage d</code> parameter, <code>d</code> applies to
 accesses to the previous-of-the-previous parameter to the function. Let
@@ -6100,11 +6118,11 @@ does not have a two-sided multiplicative identity).</p></li>
 <p>Otherwise, if <code>d</code> specifies that an explicit diagonal is
 to be assumed, then <code>F</code> will access the diagonal of
 <code>m</code>.</p>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 Within all the functions in [linalg], any calls to <code>abs</code>,
 <code>conj</code>, <code>imag</code>, and <code>real</code> are
 unqualified.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 Two <code>mdspan</code> objects <code>x</code> and <code>y</code>
 <em>alias</em> each other, if they have the same extents <code>e</code>,
 and for every pack of integers <code>i</code> which is a
@@ -6112,7 +6130,7 @@ multidimensional index in <code>e</code>, <code>x[i...]</code> and
 <code>y[i...]</code> refer to the same element. <i>[Note:</i> This means
 that <code>x</code> and <code>y</code> view the same elements in the
 same order. <i>– end note]</i></p>
-<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 Two <code>mdspan</code> objects <code>x</code> and <code>y</code>
 <em>overlap</em> each other, if for some pack of integers <code>i</code>
 that is a multidimensional index in <code>x.extents()</code>, there
