@@ -1388,6 +1388,9 @@ overflow.</p></li>
 <li><p>Add <em><code>possibly-packed-inout-matrix</code></em> to the
 list of concepts in [linalg.helpers.concepts] 3 that forbid overlap
 unless explicitly permitted.</p></li>
+<li><p>Make sure that Complexity clauses use the math multiplication
+symbol instead of code-font multiplication. (The latter would cause
+unwarranted overflow issues, especially for BLAS 3 functions.)</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -8653,7 +8656,8 @@ for those overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>x.extent(0) * A.extent(1)</code> <span class="math inline">)</span></p>
+<code>x.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb79"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec,</span>
 <span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>         <em>out-vector</em> OutVec<span class="op">&gt;</span></span>
@@ -8768,7 +8772,8 @@ for those overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>x.extent(0) * A.extent(1)</code> <span class="math inline">)</span></p>
+<code>x.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb82"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec,</span>
@@ -8864,7 +8869,8 @@ for those overloads that take a <code>z</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>x.extent(0) * A.extent(1)</code> <span class="math inline">)</span></p>
+<code>x.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb84"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec,</span>
@@ -8995,7 +9001,8 @@ matrix <code>A</code> [linalg.general].</p>
 <em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>x</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>x.extent(0) * A.extent(1)</code> <span class="math inline">)</span></p>
+<code>x.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb87"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -9031,7 +9038,7 @@ assigns each element of <span class="math inline"><em>y</em>′</span> to
 the corresponding element of <span class="math inline"><em>y</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>y.extent(0)</code> <span class="math inline">*</span>
+<code>y.extent(0)</code> <span class="math inline">×</span>
 <code>A.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb88"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -9071,7 +9078,7 @@ parameters that apply to the triangular matrix <code>A</code>
 <em>Remarks:</em> <code>z</code> may alias <code>y</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">13</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>x.extent(0)</code> <span class="math inline">*</span>
+<code>x.extent(0)</code> <span class="math inline">×</span>
 <code>A.extent(1)</code> <span class="math inline">)</span></p>
 <h4 data-number="28.9.14.5" id="solve-a-triangular-linear-system-linalg.algs.blas2.trsv"><span class="header-section-number">28.9.14.5</span> Solve a triangular linear
 system [linalg.algs.blas2.trsv]<a href="#solve-a-triangular-linear-system-linalg.algs.blas2.trsv" class="self-link"></a></h4>
@@ -9148,7 +9155,7 @@ the corresponding element of <code>x</code>. If no such <span class="math inline
 <code>x</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(1)</code> <span class="math inline">*</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
 <code>b.extent(0)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb90"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb90-2"><a href="#cb90-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -9221,7 +9228,7 @@ the corresponding element of <code>b</code>. If no such <span class="math inline
 <code>b</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(1)</code> <span class="math inline">*</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
 <code>b.extent(0)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb95"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
@@ -9288,7 +9295,7 @@ and assigns each element of <span class="math inline"><em>A</em>′</span>
 to the corresponding element of <span class="math inline"><em>A</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>x.extent(0)</code> <span class="math inline">*</span>
+<code>x.extent(0)</code> <span class="math inline">×</span>
 <code>y.extent(0)</code> <span class="math inline">)</span></p>
 <!--
 Users can get `xGERC` behavior by giving the second argument
@@ -9364,7 +9371,7 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>x.extent(0)</code> <span class="math inline">*</span>
+<code>x.extent(0)</code> <span class="math inline">×</span>
 <code>x.extent(0)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb101"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec,</span>
 <span id="cb101-2"><a href="#cb101-2" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
@@ -9510,7 +9517,8 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>x.extent(0) * y.extent(0)</code> <span class="math inline">)</span></p>
+<code>x.extent(0)</code> <span class="math inline">×</span>
+<code>y.extent(0)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb105"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb105-2"><a href="#cb105-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2,</span>
 <span id="cb105-3"><a href="#cb105-3" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
@@ -9590,7 +9598,9 @@ is <code>true</code>.</p>
 <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * A.extent(1) * B.extent(1)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
+<code>B.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb107"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
 <span id="cb107-2"><a href="#cb107-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb107-3"><a href="#cb107-3" aria-hidden="true" tabindex="-1"></a>         <em>out-matrix</em> OutMat<span class="op">&gt;</span></span>
@@ -9671,7 +9681,9 @@ for those overloads that take an <code>E</code> parameter.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * A.extent(1) * B.extent(1)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
+<code>B.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb109"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb109-1"><a href="#cb109-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
 <span id="cb109-2"><a href="#cb109-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb109-3"><a href="#cb109-3" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
@@ -10103,7 +10115,9 @@ assigns each element of <span class="math inline"><em>C</em>′</span> to
 the corresponding element of <code>C</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * A.extent(1) * C.extent(0)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
+<code>C.extent(0)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb114"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb114-1"><a href="#cb114-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb114-2"><a href="#cb114-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb114-3"><a href="#cb114-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -10152,7 +10166,9 @@ assigns each element of <span class="math inline"><em>C</em>′</span> to
 the corresponding element of <code>C</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * A.extent(1) * C.extent(0)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
+<code>C.extent(0)</code> <span class="math inline">)</span></p>
 <h4 data-number="28.9.15.4" id="rank-k-update-of-a-symmetric-or-hermitian-matrix-linalg.algs.blas3.rankk"><span class="header-section-number">28.9.15.4</span> Rank-k update of a
 symmetric or Hermitian matrix [linalg.algs.blas3.rankk]<a href="#rank-k-update-of-a-symmetric-or-hermitian-matrix-linalg.algs.blas3.rankk" class="self-link"></a></h4>
 <p><i>[Note:</i> These functions correspond to the BLAS functions
@@ -10189,7 +10205,9 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * A.extent(1) * C.extent(0)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
+<code>C.extent(0)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb115"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Scalar,</span>
 <span id="cb115-2"><a href="#cb115-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat,</span>
 <span id="cb115-3"><a href="#cb115-3" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
@@ -10312,7 +10330,9 @@ is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * A.extent(1) * C.extent(0)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
+<code>C.extent(0)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb119"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb119-1"><a href="#cb119-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat1,</span>
 <span id="cb119-2"><a href="#cb119-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat2,</span>
 <span id="cb119-3"><a href="#cb119-3" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
@@ -10430,7 +10450,9 @@ the corresponding element of <code>X</code>. If no such <span class="math inline
 <code>X</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * X.extent(1) * X.extent(1)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>X.extent(1)</code> <span class="math inline">×</span>
+<code>X.extent(1)</code> <span class="math inline">)</span></p>
 <p><i>[Note:</i> Since the triangular matrix is on the left, the desired
 <code>divide</code> implementation in the case of noncommutative
 multiplication would be mathematically equivalent to <span class="math inline"><em>y</em><sup>−1</sup><em>x</em></span>, where
@@ -10533,7 +10555,9 @@ the corresponding element of <code>X</code>. If no such <span class="math inline
 <code>X</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>B.extent(0) * B.extent(1) * A.extent(1)</code> <span class="math inline">)</span></p>
+<code>B.extent(0)</code> <span class="math inline">×</span>
+<code>B.extent(1)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">)</span></p>
 <p><i>[Note:</i> Since the triangular matrix is on the right, the
 desired <code>divide</code> implementation in the case of noncommutative
 multiplication would be mathematically equivalent to <span class="math inline"><em>x</em><em>y</em><sup>−1</sup></span>, where
@@ -10644,7 +10668,9 @@ the corresponding element of <code>B</code>. If so such <span class="math inline
 <code>B</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * A.extent(1) * B.extent(1)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
+<code>B.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb132"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb132-2"><a href="#cb132-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb132-3"><a href="#cb132-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
@@ -10737,7 +10763,9 @@ the corresponding element of <code>B</code>. If so such <span class="math inline
 <code>B</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
-<code>A.extent(0) * A.extent(1) * B.extent(1)</code> <span class="math inline">)</span></p>
+<code>A.extent(0)</code> <span class="math inline">×</span>
+<code>A.extent(1)</code> <span class="math inline">×</span>
+<code>B.extent(1)</code> <span class="math inline">)</span></p>
 <div class="sourceCode" id="cb137"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb137-1"><a href="#cb137-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb137-2"><a href="#cb137-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
 <span id="cb137-3"><a href="#cb137-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DiagonalStorage,</span>
