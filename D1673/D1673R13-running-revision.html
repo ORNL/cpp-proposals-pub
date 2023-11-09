@@ -1428,9 +1428,8 @@ matrices or in a packed format.</p></li>
 overloading.</p></li>
 <li><p>The interface is designed in the spirit of the C++ Standard
 Library’s algorithms.</p></li>
-<li><p>It uses <code>mdspan</code> (P0009 and follow-on papers, which
-have been adopted into the C++23 draft), a multidimensional array view,
-to represent matrices and vectors.</p></li>
+<li><p>It uses <code>mdspan</code> (adopted into C++23), a
+multidimensional array view, to represent matrices and vectors.</p></li>
 <li><p>The interface permits optimizations for matrices and vectors with
 small compile-time dimensions; the standard BLAS interface does
 not.</p></li>
@@ -1445,10 +1444,9 @@ Chapter 4 of the
 Standard</a>.</p></li>
 <li><p>Like the C++ Standard Library’s algorithms, our operations take
 an optional execution policy argument. This is a hook to support
-parallel execution and hierarchical parallelism (through the proposed
-executor extensions to execution policies; see P1019R2).</p></li>
+parallel execution and hierarchical parallelism.</p></li>
 <li><p>Unlike the BLAS, our proposal can be expanded to support
-“batched” operations (see P1417R0) with almost no interface differences.
+“batched” operations (see P2901) with almost no interface differences.
 This will support machine learning and other applications that need to
 do many small matrix or vector operations at once.</p></li>
 </ul>
@@ -1507,10 +1505,11 @@ run-time dimensions arbitrarily.</p>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  linalg<span class="op">::</span>scaled<span class="op">(</span><span class="fl">0.5</span>, y<span class="op">)</span>, y<span class="op">)</span>;</span></code></pre></div>
 <p>This example illustrates the ability to perform mixed-precision
 computations, and the ability to compute on subviews of a matrix or
-vector by using <code>submdspan</code> (P2630). (<code>submdspan</code>
-was separated from the rest of P0009 as a way to avoid delaying the
-hopeful adoption of P0009 for C++23. The reference implementation of
-<code>mdspan</code> includes <code>submdspan</code>.)</p>
+vector by using <code>submdspan</code> (P2630, adopted into the C++26
+draft). (<code>submdspan</code> was separated from the rest of P0009 as
+a way to avoid delaying the adoption of P0009 into C++23. The reference
+implementation of <code>mdspan</code> includes
+<code>submdspan</code>.)</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> M <span class="op">=</span> <span class="dv">40</span>;</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> A_vec<span class="op">(</span>M<span class="op">*</span><span class="dv">8</span><span class="op">*</span><span class="dv">4</span><span class="op">)</span>;</span>
@@ -1581,9 +1580,13 @@ various value types that algorithms encounter;</p></li>
 <li><p>how we support for user-defined complex number types and address
 type preservation and domain issues with <code>std::abs</code>,
 <code>std::conj</code>, <code>std::real</code>, and
-<code>std::imag</code>; and,</p></li>
+<code>std::imag</code>;</p></li>
 <li><p>how we support division for triangular solves, for value types
-with noncommutative multiplication.</p></li>
+with noncommutative multiplication; and</p></li>
+<li><p>how we address consistency between
+<code>layout_blas_packed</code> having a <code>Triangle</code> template
+parameter, and functions also taking a <code>Triangle</code>
+parameter.</p></li>
 </ul>
 <p>Section <a href="#future-work"><span class="secno">11</span></a>
 lists future work, that is, ways future proposals could build on this
@@ -2134,8 +2137,9 @@ For history of the BLAS “levels” and a bibliography, see
 <a href="https://wg21.link/p1417">P1417</a>.</p>
 <p>We mention this here because some reviewers have asked how the
 algorithms in our proposal would coexist with the existing ranges
-algorithms in the C++ Standard Library. This question actually encloses
-two questions.</p>
+algorithms in the C++ Standard Library. (Ranges was a feature added to
+the C++ Standard Library in C++20.) This question actually encloses two
+questions.</p>
 <ol type="1">
 <li><p>Will our proposed algorithms syntactically collide with existing
 ranges algorithms?</p></li>
@@ -2191,7 +2195,7 @@ algorithms in this proposal in the context of the previous section’s
 four general criteria.</p>
 <p>Our proposal would add 61 new unique names to the C++ Standard
 Library. Of those, 16 are BLAS 1 algorithms, while 24 are BLAS 2 and 3
-algorithms. The 16 BLAS 1 algorithms fall into three categories:</p>
+algorithms. The 16 BLAS 1 algorithms fall into three categories.</p>
 <ol type="1">
 <li><p>Optimization hooks, like <code>copy</code>. As with
 <code>memcpy</code>, the fastest implementation may depend closely on
@@ -2384,12 +2388,12 @@ paper describing functions not in the Reference BLAS, see “An updated
 set of basic linear algebra subprograms (BLAS),” listed in “Other
 references” below.) For example, the BLAS Standard has</p>
 <ul>
-<li>several new dense functions, like a fused vector update and dot
-product;</li>
-<li>sparse linear algebra functions, like sparse matrix-vector multiply
-and an interface for constructing sparse matrices; and</li>
-<li>extended- and mixed-precision dense functions (though we subsume
-some of their functionality; see below).</li>
+<li><p>several new dense functions, like a fused vector update and dot
+product;</p></li>
+<li><p>sparse linear algebra functions, like sparse matrix-vector
+multiply and an interface for constructing sparse matrices; and</p></li>
+<li><p>extended- and mixed-precision dense functions (though we subsume
+some of their functionality; see below).</p></li>
 </ul>
 <p>Our proposal only includes core Reference BLAS functionality, for the
 following reasons:</p>
@@ -2416,9 +2420,9 @@ functionality<a href="#lapack-or-related-functionality" class="self-link"></a></
 library implements solvers for the following classes of mathematical
 problems:</p>
 <ul>
-<li>linear systems,</li>
-<li>linear least-squares problems, and</li>
-<li>eigenvalue and singular value problems.</li>
+<li><p>linear systems,</p></li>
+<li><p>linear least-squares problems, and</p></li>
+<li><p>eigenvalue and singular value problems.</p></li>
 </ul>
 <p>It also provides matrix factorizations and related linear algebra
 operations. LAPACK deliberately relies on the BLAS for good performance;
@@ -2775,9 +2779,10 @@ point. This lets our interface support layouts beyond what the BLAS
 Standard permits. The accessor extension point offers us a hook for
 future expansion to support heterogeneous memory spaces. (This is a key
 feature of <code>Kokkos::View</code>, the data structure that inspired
-<code>mdspan</code>.) In addition, using <code>mdspan</code> will make
-it easier for us to add an efficient “batched” interface in future
-proposals.</p>
+<code>mdspan</code>.) In addition, using <code>mdspan</code> has made it
+easier for us to propose an efficient “batched” interface in our
+separate proposal <a href="https://wg21.link/p2901">P2901</a>, with
+almost no interface differences.</p>
 <h3 data-number="10.2.5" id="generic-enough-to-replace-a-multidimensional-array-concept"><span class="header-section-number">10.2.5</span> Generic enough to replace a
 “multidimensional array concept”<a href="#generic-enough-to-replace-a-multidimensional-array-concept" class="self-link"></a></h3>
 <p>Our functions differ from the C++ Standard algorithms, in that they
@@ -4367,12 +4372,13 @@ mathematically.</p>
 </table>
 <h1 data-number="11" id="future-work"><span class="header-section-number">11</span> Future work<a href="#future-work" class="self-link"></a></h1>
 <h2 data-number="11.1" id="batched-linear-algebra"><span class="header-section-number">11.1</span> Batched linear algebra<a href="#batched-linear-algebra" class="self-link"></a></h2>
-<p>We plan to write a separate proposal that will add “batched” versions
-of linear algebra functions to this proposal. “Batched” linear algebra
-functions solve many independent problems all at once, in a single
-function call. For discussion, see Section 6.2 of our background paper
-<a href="https://wg21.link/p1417r0">P1417R0</a>. Batched interfaces have
-the following advantages:</p>
+<p>We have submitted a separate proposal,
+<a href="https://wg21.link/p2901">P2901</a>, that adds “batched”
+versions of linear algebra functions to this proposal. “Batched” linear
+algebra functions solve many independent problems all at once, in a
+single function call. For discussion, please see also Section 6.2 of our
+background paper <a href="https://wg21.link/p1417r0">P1417R0</a>.
+Batched interfaces have the following advantages.</p>
 <ul>
 <li><p>They expose more parallelism and vectorization opportunities for
 many small linear algebra operations.</p></li>
@@ -4395,14 +4401,13 @@ input argument for all the output arguments in the batch.</p>
 <h1 data-number="12" id="data-structures-and-utilities-borrowed-from-other-proposals"><span class="header-section-number">12</span> Data structures and utilities
 borrowed from other proposals<a href="#data-structures-and-utilities-borrowed-from-other-proposals" class="self-link"></a></h1>
 <h2 data-number="12.1" id="mdspan"><span class="header-section-number">12.1</span> <code>mdspan</code><a href="#mdspan" class="self-link"></a></h2>
-<p>This proposal depends on P0009 and follow-on papers that were voted
-into the current C++ Standard draft. P0009’s main class is
-<code>mdspan</code>, which is a “view” (in the sense of
-<code>span</code>) of a multidimensional array. The rank (number of
-dimensions) is fixed at compile time. Users may specify some dimensions
-at run time and others at compile time; the type of the
-<code>mdspan</code> expresses this. <code>mdspan</code> also has two
-customization points:</p>
+<p>This proposal depends on <code>mdspan</code>, a feature proposed by
+P0009 and follow-on papers, and voted into C++23. The
+<code>mdspan</code> class template views the elements of a
+multidimensional array. The rank (number of dimensions) is fixed at
+compile time. Users may specify some dimensions at run time and others
+at compile time; the type of the <code>mdspan</code> expresses this.
+<code>mdspan</code> also has two customization points:</p>
 <ul>
 <li><p><code>Layout</code> expresses the array’s memory layout: e.g.,
 row-major (C++ style), column-major (Fortran style), or strided. We use
@@ -4423,11 +4428,11 @@ layouts in this proposal<a href="#new-mdspan-layouts-in-this-proposal" class="se
 order to represent different matrix and vector data layouts. The current
 C++ Standard draft includes three layouts: <code>layout_left</code>,
 <code>layout_right</code>, and <code>layout_stride</code>.
-<a href="https://wg21.link/p2642r4">P2642R4</a> proposes two more:
+<a href="https://wg21.link/p2642">P2642</a> proposes two more:
 <code>layout_left_padded</code> and <code>layout_right_padded</code>.
 These two layouts represent exactly the data layout assumed by the
 General (GE) matrix type in the BLAS’ C and Fortran bindings. They have
-has two advantages:</p>
+has two advantages.</p>
 <ol type="1">
 <li><p>Unlike <code>layout_left</code> and <code>layout_right</code>,
 any “submatrix” (subspan of consecutive rows and consecutive columns) of
@@ -4482,13 +4487,14 @@ of the proposal:</p>
 implementation</a> written and maintained by the authors and others,
 and</p></li>
 <li><p>an implementation by NVIDIA, which was released as part of their
-HPC SDK, and which uses cuBLAS to accelerate many of the
-algorithms.</p></li>
+HPC SDK, and which uses NVIDIA libraries such as cuBLAS to accelerate
+many of the algorithms.</p></li>
 </ul>
 <p>This proposal depends on <code>mdspan</code> (adopted into C++23),
-<code>submdspan</code> (P2630), and (indirectly) on the padded
-<code>mdspan</code> layouts in P2642. The <a href="https://github.com/kokkos/mdspan/">reference implementation of
-<code>mdspan</code></a>, written and maintained by the authors and
+<code>submdspan</code> (P2630, adopted into the current C++ draft), and
+(indirectly) on the padded <code>mdspan</code> layouts in P2642. The
+<a href="https://github.com/kokkos/mdspan/">reference implementation of
+<code>mdspan</code>,</a> written and maintained by the authors and
 others, includes implementations of all these features.</p>
 <h1 data-number="14" id="interoperable-with-other-linear-algebra-proposals"><span class="header-section-number">14</span> Interoperable with other linear
 algebra proposals<a href="#interoperable-with-other-linear-algebra-proposals" class="self-link"></a></h1>
@@ -4529,11 +4535,6 @@ appreciate feedback from Davis Herring on constraints wording.</p>
 Schwartz, <a href="https://doi.org/10.1017/S0962492914000038">“Communication lower
 bounds and optimal algorithms for numerical linear algebra,”</a>,
 <em>Acta Numerica</em>, Vol. 23, May 2014, pp. 1-155.</p></li>
-<li><p>C. Trott, D. S. Hollman, D. Lebrun-Grande, M. Hoemmen, D.
-Sunderland, H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A.
-Iliopoulos, J. Michopoulos, and N. Liber, “<code>mdspan</code>,”
-<a href="https://wg21.link/p0009r16">P0009R16</a>, Mar. 2022. The
-authors anticipate release of R17 in the next mailing.</p></li>
 <li><p>G. Davidson, M. Hoemmen, D. S. Hollman, B. Steagall, and C.
 Trott, <a href="https://wg21.link/p1891r0">P1891R0</a>,
 Oct. 2019.</p></li>
@@ -4547,13 +4548,23 @@ Jan. 2019.</p></li>
 <li><p>M. Hoemmen, D. S. Hollman, C. Jabot, I. Muerte, and C. Trott,
 “Multidimensional subscript operator,”
 <a href="https://wg21.link/p2128r6">P2128R6</a>, Sep. 2021.</p></li>
-<li><p>C. Trott, D. S. Hollman, M. Hoemmen, and D. Sunderland,
-“<code>mdarray</code>: An Owning Multidimensional Array Analog of
-<code>mdspan</code>”, <a href="https://wg21.link/p1684r1">P1684R1</a>,
-Mar. 2022.</p></li>
+<li><p>M. Hoemmen, K. Liegeois, and C. Trott, “Extending Linear Algebra
+Support to Batched Operations,”
+<a href="https://wg21.link/p2901r0">P2901R0</a>, May 2023.</p></li>
 <li><p>D. S. Hollman, C. Kohlhoff, B. A. Lelbach, J. Hoberock, G. Brown,
 and M. Dominiak, “A General Property Customization Mechanism,”
 <a href="https://wg21.link/p1393r0">P1393R0</a>, Jan. 2019.</p></li>
+<li><p>C. Trott, D. S. Hollman, D. Lebrun-Grandie, M. Hoemmen, D.
+Sunderland, H. C. Edwards, B. A. Lelbach, M. Bianco, B. Sander, A.
+Iliopoulos, J. Michopoulos, and N. Liber, “<code>mdspan</code>,”
+<a href="https://wg21.link/p0009r18">P0009R18</a>, Jul. 2022.</p></li>
+<li><p>C. Trott, D. S. Hollman, M. Hoemmen, D. Sunderland, and D.
+Lebrun-Grandie, “<code>mdarray</code>: An Owning Multidimensional Array
+Analog of <code>mdspan</code>”,
+<a href="https://wg21.link/p1684r5">P1684R5</a>, May 2023.</p></li>
+<li><p>C. Trott, D. Lebrun-Grandie, M. Hoemmen, and N. Liber,
+“<code>submdspan</code>,”
+<a href="https://wg21.link/p2630r4">P2630R4</a>, Jul. 2023.</p></li>
 </ul>
 <h2 data-number="16.2" id="other-references"><span class="header-section-number">16.2</span> Other references<a href="#other-references" class="self-link"></a></h2>
 <ul>
@@ -4619,8 +4630,6 @@ Algorithms</em>, Second Edition, SIAM, 2022.</p></li>
 estimating the one-norm of a real or complex matrix, with applications
 to condition estimation,”</a> <em>ACM Transactions on Mathematical
 Software</em>, Vol. 14, No. 4, pp. 381-396, Dec. 1988.</p></li>
-<li><p>J. Hoberock, “Integrating Executors with Parallel Algorithms,”
-<a href="https://wg21.link/p1019r2">P1019R2</a>, Jan. 2019.</p></li>
 <li><p>N. A. Josuttis, “The C++ Standard Library: A Tutorial and
 Reference,” Addison-Wesley, 1999.</p></li>
 <li><p>M. Kretz, “Data-Parallel Vector Types &amp; Operations,”
