@@ -3066,7 +3066,7 @@ summing two real vectors separately. Thus, it is the logical
 generalization of the vector 1-norm.</p>
 <p>Annex A.1 of the BLAS Standard (p. 173) explains that this is also a
 performance optimization, to avoid the expense of one square root per
-vector element. Computing the magnitude is equivalent to two-argument
+vector element. Computing the magnitude is equivalent to two-parameter
 <code>hypot</code>. Thus, for the same reason, high-quality
 implementations of magnitude for floating-point arguments may do extra
 work besides the square root, to prevent undue underflow or
@@ -8137,9 +8137,9 @@ specified result type.</p>
 <em>Returns:</em> Let <code>N</code> be <code>v1.extent(0)</code>.</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>init</code> if <code>N</code> is zero.</p></li>
+<code>init</code> if <code>N</code> is zero;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
+otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
 <code>init</code>, <code>v1[0]*v2[0]</code>, …,
 <code>v1[N-1]*v2[N-1]</code>).</p></li>
 </ul>
@@ -8179,10 +8179,15 @@ result type.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Let <code>T</code> be
 <code>decltype(declval&lt;typename InVec1::value_type&gt;() * declval&lt;typename InVec2::value_type&gt;())</code>.
-Then, the two-parameter overload is equivalent to
-<code>return dot(v1, v2, T{});</code>, and the three-parameter overload
-is equivalent to
-<code>return dot(std::forward&lt;ExecutionPolicy&gt;(exec), v1, v2, T{});</code>.</p>
+Then,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> the
+two-parameter overload is equivalent to
+<code>return dot(v1, v2, T{});</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span> the
+three-parameter overload is equivalent to
+<code>return dot(std::forward&lt;ExecutionPolicy&gt;(exec), v1, v2, T{});</code>.</p></li>
+</ul>
 <h5 data-number="28.9.13.7.3" id="conjugated-dot-product-of-two-vectors-linalg.algs.blas1.dot.dotc"><span class="header-section-number">28.9.13.7.3</span> Conjugated dot product
 of two vectors [linalg.algs.blas1.dot.dotc]<a href="#conjugated-dot-product-of-two-vectors-linalg.algs.blas1.dot.dotc" class="self-link"></a></h5>
 <p><i>[Note:</i> The functions in this section correspond to the BLAS
@@ -8209,10 +8214,15 @@ for both real and complex element types.
 These functions compute a conjugated dot product with an explicit
 specified result type.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Effects:</em> The three-argument overload is equivalent to
-<code>return dot(conjugated(v1), v2, init);</code>. The four-argument
-overload is equivalent to
-<code>return dot(std::forward&lt;ExecutionPolicy&gt;(exec), conjugated(v1), v2, init);</code>.</p>
+<em>Effects:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> The
+three-parameter overload is equivalent to
+<code>return dot(conjugated(v1), v2, init);</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> the
+four-parameter overload is equivalent to
+<code>return dot(std::forward&lt;ExecutionPolicy&gt;(exec), conjugated(v1), v2, init);</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 Conjugated dot product with default result type</p>
 <div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
@@ -8228,10 +8238,15 @@ Conjugated dot product with default result type</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Let <code>T</code> be
 <code>decltype(</code><em><code>conj-if-needed</code></em><code>(declval&lt;typename InVec1::value_type&gt;()) * declval&lt;typename InVec2::value_type&gt;())</code>.
-Then, the two-parameter overload is equivalent to
-<code>return dotc(v1, v2, T{});</code>, and the three-parameter overload
-is equivalent to
-<code>return dotc(std::forward&lt;ExecutionPolicy&gt;(exec), v1, v2, T{});</code>.</p>
+Then,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
+two-parameter overload is equivalent to
+<code>return dotc(v1, v2, T{});</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+three-parameter overload is equivalent to
+<code>return dotc(std::forward&lt;ExecutionPolicy&gt;(exec), v1, v2, T{});</code>.</p></li>
+</ul>
 <h4 data-number="28.9.13.8" id="scaled-sum-of-squares-of-a-vectors-elements-linalg.algs.blas1.ssq"><span class="header-section-number">28.9.13.8</span> Scaled sum of squares of
 a vector’s elements [linalg.algs.blas1.ssq]<a href="#scaled-sum-of-squares-of-a-vectors-elements-linalg.algs.blas1.ssq" class="self-link"></a></h4>
 <div class="sourceCode" id="cb67"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Scalar<span class="op">&gt;</span></span>
@@ -8323,10 +8338,15 @@ floating-point types <code>T</code> would use the
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
 <em><code>abs-if-needed</code></em><code>(declval&lt;typename InVec::value_type&gt;()) *</code>
 <em><code>abs-if-needed</code></em><code>(declval&lt;typename InVec::value_type&gt;()))</code>.
-Then, the one-parameter overload is equivalent to
-<code>return vector_two_norm(v, T{});</code>, and the two-parameter
-overload is equivalent to
-<code>return vector_two_norm(std::forward&lt;ExecutionPolicy&gt;(exec), v, T{});</code>.</p>
+Then,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
+one-parameter overload is equivalent to
+<code>return vector_two_norm(v, T{});</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+two-parameter overload is equivalent to
+<code>return vector_two_norm(std::forward&lt;ExecutionPolicy&gt;(exec), v, T{});</code>.</p></li>
+</ul>
 <h4 data-number="28.9.13.10" id="sum-of-absolute-values-of-vector-elements-linalg.algs.blas1.asum"><span class="header-section-number">28.9.13.10</span> Sum of absolute values
 of vector elements [linalg.algs.blas1.asum]<a href="#sum-of-absolute-values-of-vector-elements-linalg.algs.blas1.asum" class="self-link"></a></h4>
 <div class="sourceCode" id="cb70"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec,</span>
@@ -8361,15 +8381,15 @@ convertible to <code>Scalar</code>.</p>
 <em>Returns:</em> Let <code>N</code> be <code>v.extent(0)</code>.</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>init</code> if <code>N</code> is zero.</p></li>
+<code>init</code> if <code>N</code> is zero;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
+otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
 <code>init</code>,
 <em><code>abs-if-needed</code></em><code>(v[0])</code>, …,
 <em><code>abs-if-needed</code></em><code>(v[N-1])</code>), if
-<code>InVec::value_type</code> is an arithmetic type.</p></li>
+<code>InVec::value_type</code> is an arithmetic type;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
-Otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
+otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
 <code>init</code>, <em><code>abs-if-needed</code></em><code>(</code>
 <em><code>real-if-needed</code></em> <code>(v[0])) +</code>
 <em><code>abs-if-needed</code></em><code>(</code>
@@ -8392,10 +8412,15 @@ use <code>Scalar</code>’s precision or greater.</p>
 <span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> vector_abs_sum<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec, InVec v<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Let <code>T</code> be
-<code>typename InVec::value_type</code>. Then, the one-parameter
-overload is equivalent to <code>return vector_abs_sum(v, T{});</code>,
-and the two-parameter overload is equivalent to
-<code>return vector_abs_sum(std::forward&lt;ExecutionPolicy&gt;(exec), v, T{});</code>.</p>
+<code>typename InVec::value_type</code>. Then,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
+one-parameter overload is equivalent to
+<code>return vector_abs_sum(v, T{});</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+two-parameter overload is equivalent to
+<code>return vector_abs_sum(std::forward&lt;ExecutionPolicy&gt;(exec), v, T{});</code>.</p></li>
+</ul>
 <h4 data-number="28.9.13.11" id="index-of-maximum-absolute-value-of-vector-elements-linalg.algs.blas1.iamax"><span class="header-section-number">28.9.13.11</span> Index of maximum
 absolute value of vector elements [linalg.algs.blas1.iamax]<a href="#index-of-maximum-absolute-value-of-vector-elements-linalg.algs.blas1.iamax" class="self-link"></a></h4>
 <div class="sourceCode" id="cb72"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec<span class="op">&gt;</span></span>
@@ -8424,13 +8449,13 @@ expression.</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
 <code>numeric_limits&lt;typename InVec::size_type&gt;::max()</code> if
-<code>v</code> has zero elements.</p></li>
+<code>v</code> has zero elements;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-Otherwise, the index of the first element of <code>v</code> having
+otherwise, the index of the first element of <code>v</code> having
 largest absolute value, if <code>InVec::value_type</code> is an
-arithmetic type.</p></li>
+arithmetic type;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
-Otherwise, the index of the first element <code>v_e</code> of
+otherwise, the index of the first element <code>v_e</code> of
 <code>v</code> for which
 <em><code>abs-if-needed</code></em><code>(</code>
 <em><code>real-if-needed</code></em> <code>(v_e)) +</code>
@@ -8479,10 +8504,15 @@ use <code>Scalar</code>’s precision or greater.</p>
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
 <em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()) *</code>
 <em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()))</code>,
-Then, the one-parameter overload is equivalent to
-<code>return matrix_frob_norm(A, T{});</code>, and the two-parameter
-overload is equivalent to
-<code>return matrix_frob_norm(std::forward&lt;ExecutionPolicy&gt;(exec), A, T{});</code>.</p>
+Then,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
+one-parameter overload is equivalent to
+<code>return matrix_frob_norm(A, T{});</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+two-parameter overload is equivalent to
+<code>return matrix_frob_norm(std::forward&lt;ExecutionPolicy&gt;(exec), A, T{});</code>.</p></li>
+</ul>
 <h4 data-number="28.9.13.13" id="one-norm-of-a-matrix-linalg.algs.blas1.matonenorm"><span class="header-section-number">28.9.13.13</span> One norm of a matrix
 [linalg.algs.blas1.matonenorm]<a href="#one-norm-of-a-matrix-linalg.algs.blas1.matonenorm" class="self-link"></a></h4>
 <div class="sourceCode" id="cb75"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
@@ -8505,9 +8535,9 @@ is convertible to <code>Scalar</code>.</p>
 <em>Returns:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>init</code> if <code>A.extent(1)</code> is zero.</p></li>
+<code>init</code> if <code>A.extent(1)</code> is zero;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-Otherwise, the sum of <code>init</code> and the one norm of the matrix
+otherwise, the sum of <code>init</code> and the one norm of the matrix
 <span class="math inline"><em>A</em></span>.</p></li>
 </ul>
 <p><i>[Note:</i> The one norm of the matrix <code>A</code> is the
@@ -8528,10 +8558,15 @@ use <code>Scalar</code>’s precision or greater.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
 <em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;())</code>.
-Then, the one-parameter overload is equivalent to
-<code>return matrix_one_norm(A, T{});</code>, and the two-parameter
-overload is equivalent to
-<code>return matrix_one_norm(std::forward&lt;ExecutionPolicy&gt;(exec), A, T{});</code>.</p>
+Then,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
+one-parameter overload is equivalent to
+<code>return matrix_one_norm(A, T{});</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+two-parameter overload is equivalent to
+<code>return matrix_one_norm(std::forward&lt;ExecutionPolicy&gt;(exec), A, T{});</code>.</p></li>
+</ul>
 <h4 data-number="28.9.13.14" id="infinity-norm-of-a-matrix-linalg.algs.blas1.matinfnorm"><span class="header-section-number">28.9.13.14</span> Infinity norm of a
 matrix [linalg.algs.blas1.matinfnorm]<a href="#infinity-norm-of-a-matrix-linalg.algs.blas1.matinfnorm" class="self-link"></a></h4>
 <div class="sourceCode" id="cb77"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
@@ -8554,9 +8589,9 @@ is convertible to <code>Scalar</code>.</p>
 <em>Returns:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>init</code> if <code>A.extent(0)</code> is zero.</p></li>
+<code>init</code> if <code>A.extent(0)</code> is zero;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-Otherwise, the sum of <code>init</code> and the infinity norm of the
+otherwise, the sum of <code>init</code> and the infinity norm of the
 matrix <code>A</code>.</p></li>
 </ul>
 <p><i>[Note:</i> The infinity norm of the matrix <code>A</code> is the
@@ -8577,10 +8612,15 @@ use <code>Scalar</code>’s precision or greater.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
 <em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;())</code>.
-Then, the one-parameter overload is equivalent to
-<code>return matrix_inf_norm(A, T{});</code>, and the two-parameter
-overload is equivalent to
-<code>return matrix_inf_norm(std::forward&lt;ExecutionPolicy&gt;(exec), A, T{});</code>.</p>
+Then,</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
+one-parameter overload is equivalent to
+<code>return matrix_inf_norm(A, T{});</code>, and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+two-parameter overload is equivalent to
+<code>return matrix_inf_norm(std::forward&lt;ExecutionPolicy&gt;(exec), A, T{});</code>.</p></li>
+</ul>
 <h3 data-number="28.9.14" id="blas-2-algorithms-linalg.algs.blas2"><span class="header-section-number">28.9.14</span> BLAS 2 algorithms
 [linalg.algs.blas2]<a href="#blas-2-algorithms-linalg.algs.blas2" class="self-link"></a></h3>
 <h4 data-number="28.9.14.1" id="general-matrix-vector-product-linalg.algs.blas2.gemv"><span class="header-section-number">28.9.14.1</span> General matrix-vector
