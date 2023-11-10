@@ -14,7 +14,7 @@ div.column{display: inline-block; vertical-align: top; width: 50%;}
 </style>
   <style>
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -7217,11 +7217,9 @@ by calling `scaled_accessor::scaling_factor`.
 <code>scaled_accessor</code> [linalg.scaled.scaledaccessor]<a href="#class-template-scaled_accessor-linalg.scaled.scaledaccessor" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The class template <code>scaled_accessor</code> is an
-<code>mdspan</code> accessor policy whose reference type represents the
-product of a fixed value (the “scaling factor”) and its nested
-<code>mdspan</code> accessor’s reference. It is part of the
-implementation of <code>scaled</code>
-<strong>[linalg.scaled.scaled]</strong>.</p>
+<code>mdspan</code> accessor policy which upon access produces scaled
+elements. reference. It is part of the implementation of
+<code>scaled</code> <strong>[linalg.scaled.scaled]</strong>.</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ScalingFactor,</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> NestedAccessor<span class="op">&gt;</span></span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> scaled_accessor <span class="op">{</span></span>
@@ -7324,7 +7322,7 @@ Let <code>SA</code> be
 <code>scaled_accessor&lt;ScalingFactor, Accessor&gt;</code></p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Returns:</em>
-<code>mdspan&lt;typename SA::element_type, Extents, Layout, SA&gt;(x.data(), x.mapping(), SA(alpha, x.accessor()))</code></p>
+<code>mdspan&lt;typename SA::element_type, Extents, Layout, SA&gt;(x.data_handle(), x.mapping(), SA(alpha, x.accessor()))</code></p>
 <!--
 Nested `scaled` expressions remain nested.
 An expression such as `scaled(alpha, scaled(beta, x))`
@@ -7368,9 +7366,8 @@ and call the BLAS function.
 <code>conjugated_accessor</code> [linalg.conj.conjugatedaccessor]<a href="#class-template-conjugated_accessor-linalg.conj.conjugatedaccessor" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The class template <code>conjugated_accessor</code> is an
-<code>mdspan</code> accessor policy whose reference type represents the
-complex conjugate of its nested <code>mdspan</code> accessor’s
-reference. It is part of the implementation of <code>conjugated</code>
+<code>mdspan</code> accessor policy which upon access produces conjugate
+elements. It is part of the implementation of <code>conjugated</code>
 <strong>[linalg.conj.conjugated]</strong>.</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> NestedAccessor<span class="op">&gt;</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> conjugated_accessor <span class="op">{</span></span>
@@ -7412,17 +7409,17 @@ and</p></li>
 </ul>
 <div class="sourceCode" id="cb40"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> NestedAccessor<span class="op">&amp;</span> acc<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Effects:</em> Direct non-list-initializes
+<em>Effects:</em> Direct-non-list-initializes
 <em><code>nested-accessor_</code></em> with <code>acc</code>.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherScalingFactor, <span class="kw">class</span> OtherNestedAccessor<span class="op">&gt;</span></span>
+<div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherNestedAccessor<span class="op">&gt;</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">explicit</span><span class="op">(!</span>is_convertible_v<span class="op">&lt;</span>OtherNestedAccessor, NestedAccessor<span class="op">&gt;&gt;)</span></span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> conjugated_accessor<span class="op">&lt;</span>OtherScalingFactor, OtherNestedAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> conjugated_accessor<span class="op">(</span><span class="kw">const</span> conjugated_accessor<span class="op">&lt;</span>OtherNestedAccessor<span class="op">&gt;&amp;</span> other<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Constraints:</em>
 <code>is_constructible_v&lt;NestedAccessor, const OtherNestedAccessor&amp;&gt;</code>
 is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Effects:</em> direct non-list-initializes
+<em>Effects:</em> Direct-non-list-initializes
 <em><code>nested-accessor_</code></em> with
 <code>other.nested_accessor()</code>.</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> reference access<span class="op">(</span>data_handle_type p, <span class="dt">size_t</span> i<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
@@ -7444,8 +7441,8 @@ is <code>true</code>.</p>
 <span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span>ElementType, Extents, Layout, Accessor<span class="op">&gt;</span> a<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 Let <code>A</code> be
-<code>decltype(a.accessor().nested_accessor())</code> if
-<code>Accessor</code> is a specialization of
+<code>remove_cvref_t&lt;decltype(a.accessor().nested_accessor())&gt;</code>
+if <code>Accessor</code> is a specialization of
 <code>conjugated_accessor</code>, and otherwise
 <code>conjugated_accessor&lt;Accessor&gt;</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -7529,60 +7526,62 @@ policy that swaps the two indices, extents, and strides of any
 <div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Layout<span class="op">&gt;</span></span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> layout_transpose <span class="op">{</span></span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> mapping <span class="op">{</span></span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">private</span><span class="op">:</span></span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> <em>nested-mapping-type</em> <span class="op">=</span></span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>      <span class="kw">typename</span> Layout<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span></span>
-<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>        <em>transpose-extents-t</em><span class="op">&lt;</span>Extents<span class="op">&gt;&gt;</span>; <span class="co">// <em>exposition only</em></span></span>
-<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span><span class="op">:</span></span>
-<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> extents_type <span class="op">=</span> Extents;</span>
-<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> index_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>index_type;</span>
-<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> size_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>size_type;</span>
-<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> rank_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>rank_type;</span>
-<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> layout_type <span class="op">=</span> layout_transpose;</span>
-<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span> mapping<span class="op">(</span><span class="kw">const</span> <em>nested-mapping-type</em><span class="op">&amp;)</span>;</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> nested_layout_type <span class="op">=</span> Layout;</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> mapping <span class="op">{</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">private</span><span class="op">:</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> <em>nested-mapping-type</em> <span class="op">=</span></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>      <span class="kw">typename</span> Layout<span class="op">::</span><span class="kw">template</span> mapping<span class="op">&lt;</span></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>        <em>transpose-extents-t</em><span class="op">&lt;</span>Extents<span class="op">&gt;&gt;</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span><span class="op">:</span></span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> extents_type <span class="op">=</span> Extents;</span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> index_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>index_type;</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> size_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>size_type;</span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> rank_type <span class="op">=</span> <span class="kw">typename</span> extents_type<span class="op">::</span>rank_type;</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">using</span> layout_type <span class="op">=</span> layout_transpose;</span>
 <span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
-<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>extents_</em>; <span class="op">}</span></span>
-<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span></span>
-<span id="cb48-24"><a href="#cb48-24" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">.</span>required_span_size<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb48-25"><a href="#cb48-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-26"><a href="#cb48-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Index0, <span class="kw">class</span> Index1<span class="op">&gt;</span></span>
-<span id="cb48-27"><a href="#cb48-27" aria-hidden="true" tabindex="-1"></a>      <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()(</span>Index0 ind0, Index1 ind1<span class="op">)</span> <span class="kw">const</span></span>
-<span id="cb48-28"><a href="#cb48-28" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">(</span>ind1, ind0<span class="op">)</span>; <span class="op">}</span></span>
-<span id="cb48-29"><a href="#cb48-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-30"><a href="#cb48-30" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">const</span> <em>nested-mapping-type</em><span class="op">&amp;</span> nested_mapping<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
-<span id="cb48-31"><a href="#cb48-31" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em>; <span class="op">}</span></span>
-<span id="cb48-32"><a href="#cb48-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-33"><a href="#cb48-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span></span>
-<span id="cb48-34"><a href="#cb48-34" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping-type</em><span class="op">::</span>is_always_unique<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb48-35"><a href="#cb48-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span></span>
-<span id="cb48-36"><a href="#cb48-36" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_type</em><span class="op">::</span>is_always_exhaustive<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb48-37"><a href="#cb48-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span></span>
-<span id="cb48-38"><a href="#cb48-38" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_type</em><span class="op">::</span>is_always_strided<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb48-39"><a href="#cb48-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-40"><a href="#cb48-40" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span></span>
-<span id="cb48-41"><a href="#cb48-41" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">.</span>is_unique<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb48-42"><a href="#cb48-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span></span>
-<span id="cb48-43"><a href="#cb48-43" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">.</span>is_exhaustive<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb48-44"><a href="#cb48-44" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span></span>
-<span id="cb48-45"><a href="#cb48-45" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">.</span>is_strided<span class="op">()</span>; <span class="op">}</span></span>
-<span id="cb48-46"><a href="#cb48-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-47"><a href="#cb48-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span>;</span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span> mapping<span class="op">(</span><span class="kw">const</span> <em>nested-mapping-type</em><span class="op">&amp;)</span>;</span>
+<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">const</span> extents_type<span class="op">&amp;</span> extents<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>extents_</em>; <span class="op">}</span></span>
+<span id="cb48-24"><a href="#cb48-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-25"><a href="#cb48-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> index_type required_span_size<span class="op">()</span> <span class="kw">const</span></span>
+<span id="cb48-26"><a href="#cb48-26" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">.</span>required_span_size<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb48-27"><a href="#cb48-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-28"><a href="#cb48-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Index0, <span class="kw">class</span> Index1<span class="op">&gt;</span></span>
+<span id="cb48-29"><a href="#cb48-29" aria-hidden="true" tabindex="-1"></a>      <span class="kw">constexpr</span> index_type <span class="kw">operator</span><span class="op">()(</span>Index0 ind0, Index1 ind1<span class="op">)</span> <span class="kw">const</span></span>
+<span id="cb48-30"><a href="#cb48-30" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">(</span>ind1, ind0<span class="op">)</span>; <span class="op">}</span></span>
+<span id="cb48-31"><a href="#cb48-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-32"><a href="#cb48-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">const</span> <em>nested-mapping-type</em><span class="op">&amp;</span> nested_mapping<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb48-33"><a href="#cb48-33" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em>; <span class="op">}</span></span>
+<span id="cb48-34"><a href="#cb48-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-35"><a href="#cb48-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_unique<span class="op">()</span> <span class="kw">noexcept</span></span>
+<span id="cb48-36"><a href="#cb48-36" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping-type</em><span class="op">::</span>is_always_unique<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb48-37"><a href="#cb48-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span></span>
+<span id="cb48-38"><a href="#cb48-38" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_type</em><span class="op">::</span>is_always_exhaustive<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb48-39"><a href="#cb48-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_strided<span class="op">()</span> <span class="kw">noexcept</span></span>
+<span id="cb48-40"><a href="#cb48-40" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_type</em><span class="op">::</span>is_always_strided<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb48-41"><a href="#cb48-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-42"><a href="#cb48-42" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_unique<span class="op">()</span> <span class="kw">const</span></span>
+<span id="cb48-43"><a href="#cb48-43" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">.</span>is_unique<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb48-44"><a href="#cb48-44" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span></span>
+<span id="cb48-45"><a href="#cb48-45" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">.</span>is_exhaustive<span class="op">()</span>; <span class="op">}</span></span>
+<span id="cb48-46"><a href="#cb48-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="dt">bool</span> is_strided<span class="op">()</span> <span class="kw">const</span></span>
+<span id="cb48-47"><a href="#cb48-47" aria-hidden="true" tabindex="-1"></a>      <span class="op">{</span> <span class="cf">return</span> <em>nested-mapping_</em><span class="op">.</span>is_strided<span class="op">()</span>; <span class="op">}</span></span>
 <span id="cb48-48"><a href="#cb48-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-49"><a href="#cb48-49" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
-<span id="cb48-50"><a href="#cb48-50" aria-hidden="true" tabindex="-1"></a>      <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span></span>
-<span id="cb48-51"><a href="#cb48-51" aria-hidden="true" tabindex="-1"></a>        <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&amp;</span> x, <span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> y<span class="op">)</span>;</span>
-<span id="cb48-52"><a href="#cb48-52" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
-<span id="cb48-53"><a href="#cb48-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-54"><a href="#cb48-54" aria-hidden="true" tabindex="-1"></a>  <span class="kw">private</span><span class="op">:</span></span>
-<span id="cb48-55"><a href="#cb48-55" aria-hidden="true" tabindex="-1"></a>    <em>nested-mapping-type</em> <em>nested-mapping_</em>; <span class="co">// <em>exposition only</em></span></span>
-<span id="cb48-56"><a href="#cb48-56" aria-hidden="true" tabindex="-1"></a>    extents_type <em>extents_</em>;</span>
-<span id="cb48-57"><a href="#cb48-57" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<span id="cb48-49"><a href="#cb48-49" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span>;</span>
+<span id="cb48-50"><a href="#cb48-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-51"><a href="#cb48-51" aria-hidden="true" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
+<span id="cb48-52"><a href="#cb48-52" aria-hidden="true" tabindex="-1"></a>      <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="dt">bool</span></span>
+<span id="cb48-53"><a href="#cb48-53" aria-hidden="true" tabindex="-1"></a>        <span class="kw">operator</span><span class="op">==(</span><span class="kw">const</span> mapping<span class="op">&amp;</span> x, <span class="kw">const</span> mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;</span> y<span class="op">)</span>;</span>
+<span id="cb48-54"><a href="#cb48-54" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
+<span id="cb48-55"><a href="#cb48-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-56"><a href="#cb48-56" aria-hidden="true" tabindex="-1"></a>  <span class="kw">private</span><span class="op">:</span></span>
+<span id="cb48-57"><a href="#cb48-57" aria-hidden="true" tabindex="-1"></a>    <em>nested-mapping-type</em> <em>nested-mapping_</em>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb48-58"><a href="#cb48-58" aria-hidden="true" tabindex="-1"></a>    extents_type <em>extents_</em>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb48-59"><a href="#cb48-59" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <code>Layout</code> shall meet the layout mapping policy requirements
 ([mdspan.layout.policy.reqmts]).</p>
@@ -7606,7 +7605,7 @@ and</p></li>
 initializes <em><code>extents_</code></em> with
 <em><code>transpose-extents</code></em><code>(map.extents())</code>.</p></li>
 </ul>
-<div class="sourceCode" id="cb50"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span></span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span><span class="dt">size_t</span> r<span class="op">)</span> <span class="kw">const</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -7625,10 +7624,10 @@ initializes <em><code>extents_</code></em> with
 <em>Constraints:</em> The expression
 <code>x.</code><em><code>nested-mapping_</code></em>
 <code>== y.</code><em><code>nested-mapping_</code></em> is well formed
-and its result is convertible to <code>bool</code></p>
+and its result is convertible to <code>bool</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Returns:</em> <code>x.</code><em><code>nested-mapping_</code></em>
-<code>== y.</code><em><code>nested-mapping_</code></em></p>
+<code>== y.</code><em><code>nested-mapping_</code></em>.</p>
 <h4 data-number="28.9.10.4" id="function-template-transposed-linalg.transp.transposed"><span class="header-section-number">28.9.10.4</span> Function template
 <code>transposed</code> [linalg.transp.transposed]<a href="#function-template-transposed-linalg.transp.transposed" class="self-link"></a></h4>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
@@ -7689,24 +7688,24 @@ otherwise, <code>layout_transpose&lt;Layout&gt;</code>.</p></li>
 <code>typename ReturnLayout::template mapping&lt;ReturnExtents&gt;</code>:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>R(a.data(), ReturnMapping(</code><em><code>transpose-extents</code></em><code>(a.mapping().extents())), a.accessor())</code>
+<code>R(a.data_handle(), ReturnMapping(</code><em><code>transpose-extents</code></em><code>(a.mapping().extents())), a.accessor())</code>
 if <code>Layout</code> is <code>layout_left</code>,
 <code>layout_right</code>, or a specialization of
 <code>layout_blas_packed</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
 otherwise,
-<code>R(a.data(), ReturnMapping(</code><em><code>transpose-extents</code></em><code>(a.mapping().extents()), array{a.mapping().stride(1), a.mapping().stride(0)}), a.accessor())</code>
+<code>R(a.data_handle(), ReturnMapping(</code><em><code>transpose-extents</code></em><code>(a.mapping().extents()), array{a.mapping().stride(1), a.mapping().stride(0)}), a.accessor())</code>
 if <code>Layout</code> is <code>layout_stride</code>;
 <!-- this reverses the strides as well as the extents --></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
 otherwise,
-<code>R(a.data(), a.mapping().nested_mapping(), a.accessor())</code> if
-<code>Layout</code> is a specialization of
+<code>R(a.data_handle(), a.mapping().nested_mapping(), a.accessor())</code>
+if <code>Layout</code> is a specialization of
 <code>layout_transpose</code>;
 <!-- getting the nested mapping untransposes the extents --></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.4)</a></span>
 otherwise,
-<code>R(a.data(), ReturnMapping(a.mapping()), a.accessor())</code>.</p></li>
+<code>R(a.data_handle(), ReturnMapping(a.mapping()), a.accessor())</code>.</p></li>
 </ul>
 <p>[<em>Example:</em></p>
 <div class="sourceCode" id="cb53"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> test_transposed<span class="op">(</span>mdspan<span class="op">&lt;</span><span class="dt">double</span>, extents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">&gt;&gt;</span> a<span class="op">)</span></span>
@@ -7810,9 +7809,6 @@ is specified (<strong>[complex.numbers.general]</strong>).</p></li>
 <code>DiagonalStorage</code> is either
 <code>implicit_unit_diagonal_t</code> or
 <code>explicit_diagonal_t</code>.</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
-<code>BinaryDivideOp</code> template parameters are a binary function
-object (<strong>[function.objects]</strong>).</p></li>
 </ul>
 <p><i>[Note:</i> Function templates that have a template parameter named
 <code>ExecutionPolicy</code> are parallel algorithms
@@ -7837,7 +7833,7 @@ product of extents of any <code>mdspan</code> parameter.</p>
 <span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation_result<span class="op">&lt;</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;&gt;</span></span>
 <span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>setup_givens_rotation<span class="op">(</span>complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> a, complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> b<span class="op">)</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
-This function computes the Givens plane rotation represented by the two
+These functions compute the Givens plane rotation represented by the two
 values <span class="math inline"><em>c</em></span> and <span class="math inline"><em>s</em></span> such that the 2 x 2 system of
 equations</p>
 <table>
@@ -7913,7 +7909,7 @@ when multiplied by the right by the input vector whose components are
 first component <span class="math inline"><em>r</em></span> is the
 Euclidean norm of the input vector, and whose second component as
 zero.</p>
-<p><i>[Note:</i> This function corresponds to the LAPACK function
+<p><i>[Note:</i> These functions correspond to the LAPACK function
 <code>xLARTG</code>. <i>– end note]</i></p>
 <!--
 The BLAS variant `xROTG` takes four arguments -- `a`, `b`, `c`, and
@@ -7940,37 +7936,35 @@ rotation to vectors [linalg.algs.blas1.givens.rot]<a href="#apply-a-computed-giv
 <span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
 <span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
 <span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>  Real s<span class="op">)</span>;</span>
-<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec1,</span>
-<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
-<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
-<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
-<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
-<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
-<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>  Real s<span class="op">)</span>;</span>
-<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-vector</em> InOutVec1,</span>
-<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
-<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
-<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
-<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
-<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
-<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> s<span class="op">)</span>;</span>
-<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb58-30"><a href="#cb58-30" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb58-31"><a href="#cb58-31" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec1,</span>
-<span id="cb58-32"><a href="#cb58-32" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
-<span id="cb58-33"><a href="#cb58-33" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
-<span id="cb58-34"><a href="#cb58-34" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
-<span id="cb58-35"><a href="#cb58-35" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
-<span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
-<span id="cb58-38"><a href="#cb58-38" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
-<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> s<span class="op">)</span>;</span></code></pre></div>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec1,</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>  Real s<span class="op">)</span>;</span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>inout-vector</em> InOutVec1,</span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
+<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
+<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
+<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
+<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
+<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> s<span class="op">)</span>;</span>
+<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec1,</span>
+<span id="cb58-30"><a href="#cb58-30" aria-hidden="true" tabindex="-1"></a>         <em>inout-vector</em> InOutVec2,</span>
+<span id="cb58-31"><a href="#cb58-31" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Real<span class="op">&gt;</span></span>
+<span id="cb58-32"><a href="#cb58-32" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> apply_givens_rotation<span class="op">(</span></span>
+<span id="cb58-33"><a href="#cb58-33" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb58-34"><a href="#cb58-34" aria-hidden="true" tabindex="-1"></a>  InOutVec1 x,</span>
+<span id="cb58-35"><a href="#cb58-35" aria-hidden="true" tabindex="-1"></a>  InOutVec2 y,</span>
+<span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>  Real c,</span>
+<span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span>Real<span class="op">&gt;</span> s<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>xROT</code>. <i>– end note]</i></p>
 <!--
@@ -7996,9 +7990,9 @@ is <code>true</code>.</p>
 <em>Preconditions:</em> <code>x.extent(0)</code> equals
 <code>y.extent(0)</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<em>Effects:</em> Applies the plane (Givens) rotation specified by
-<code>c</code> and <code>s</code> to the input vectors <code>x</code>
-and <code>y</code>, as if the rotation were a 2 x 2 matrix and the input
+<em>Effects:</em> Applies the plane rotation specified by <code>c</code>
+and <code>s</code> to the input vectors <code>x</code> and
+<code>y</code>, as if the rotation were a 2 x 2 matrix and the input
 vectors were successive rows of a matrix with two rows.</p>
 <h4 data-number="28.9.13.3" id="swap-matrix-or-vector-elements-linalg.algs.blas1.swap"><span class="header-section-number">28.9.13.3</span> Swap matrix or vector
 elements [linalg.algs.blas1.swap]<a href="#swap-matrix-or-vector-elements-linalg.algs.blas1.swap" class="self-link"></a></h4>
@@ -8111,8 +8105,9 @@ is <code>true</code>.</p>
 <code>y</code>.</p>
 <h4 data-number="28.9.13.7" id="dot-product-of-two-vectors-linalg.algs.blas1.dot"><span class="header-section-number">28.9.13.7</span> Dot product of two
 vectors [linalg.algs.blas1.dot]<a href="#dot-product-of-two-vectors-linalg.algs.blas1.dot" class="self-link"></a></h4>
-<h5 data-number="28.9.13.7.1" id="common-linalg.algs.blas1.dot.common"><span class="header-section-number">28.9.13.7.1</span> Common
-[linalg.algs.blas1.dot.common]<a href="#common-linalg.algs.blas1.dot.common" class="self-link"></a></h5>
+<p><i>[Note:</i> The functions in this section correspond to the BLAS
+functions <code>xDOT</code>, <code>xDOTU</code>, and <code>xDOTC</code>.
+<i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 The following elements apply to all functions in
 [linalg.algs.blas1.dot].</p>
@@ -8123,11 +8118,6 @@ is <code>true</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Preconditions:</em> <code>v1.extent(0)</code> equals
 <code>v2.extent(0)</code>.</p>
-<h5 data-number="28.9.13.7.2" id="nonconjugated-dot-product-of-two-vectors-linalg.algs.blas1.dot.dotu"><span class="header-section-number">28.9.13.7.2</span> Nonconjugated dot
-product of two vectors [linalg.algs.blas1.dot.dotu]<a href="#nonconjugated-dot-product-of-two-vectors-linalg.algs.blas1.dot.dotu" class="self-link"></a></h5>
-<p><i>[Note:</i> The functions in this section correspond to the BLAS
-functions <code>xDOT</code> (for real element types) and
-<code>xDOTU</code> (for complex element types). <i>– end note]</i></p>
 <div class="sourceCode" id="cb63"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2,</span>
 <span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Scalar<span class="op">&gt;</span></span>
@@ -8142,20 +8132,20 @@ functions <code>xDOT</code> (for real element types) and
 <span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>           InVec1 v1,</span>
 <span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>           InVec2 v2,</span>
 <span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a>           Scalar init<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 These functions compute a non-conjugated dot product with an explicitly
 specified result type.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Returns:</em> Let <code>N</code> be <code>v1.extent(0)</code>.</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
 <code>init</code> if <code>N</code> is zero;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 otherwise, <em>GENERALIZED_SUM</em>(<code>plus&lt;&gt;()</code>,
 <code>init</code>, <code>v1[0]*v2[0]</code>, …,
 <code>v1[N-1]*v2[N-1]</code>).</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Remarks:</em> If <code>InVec1::value_type</code>,
 <code>InVec2::value_type</code>, and <code>Scalar</code> are all
 floating-point types or specializations of <code>complex</code>, and if
@@ -8163,18 +8153,6 @@ floating-point types or specializations of <code>complex</code>, and if
 <code>InVec1::value_type</code> or <code>InVec2::value_type</code>, then
 intermediate terms in the sum use <code>Scalar</code>’s precision or
 greater.</p>
-<!--
-Like `reduce`, `dot` applies binary `operator+` in an
-unspecified order.  This may yield a nondeterministic result for
-non-associative or non-commutative `operator+` such as floating-point
-addition.  However, implementations may perform extra work to make the
-result deterministic.  They may do so for all `dot` overloads, or just
-for specific `ExecutionPolicy` types.
-
-Users can get `xDOTC` behavior by giving the first argument
-as the result of `conjugated`.
-Alternately, they can use the shortcut `dotc` below.
--->
 <div class="sourceCode" id="cb64"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dot<span class="op">(</span>InVec1 v1,</span>
@@ -8185,29 +8163,21 @@ Alternately, they can use the shortcut `dotc` below.
 <span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dot<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>         InVec1 v1,</span>
 <span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>         InVec2 v2<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 These functions compute a non-conjugated dot product with a default
 result type.</p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Let <code>T</code> be
 <code>decltype(declval&lt;typename InVec1::value_type&gt;() * declval&lt;typename InVec2::value_type&gt;())</code>.
 Then,</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(8.1)</a></span> the
 two-parameter overload is equivalent to
 <code>return dot(v1, v2, T{});</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(8.2)</a></span> the
 three-parameter overload is equivalent to
 <code>return dot(std::forward&lt;ExecutionPolicy&gt;(exec), v1, v2, T{});</code>.</p></li>
 </ul>
-<h5 data-number="28.9.13.7.3" id="conjugated-dot-product-of-two-vectors-linalg.algs.blas1.dot.dotc"><span class="header-section-number">28.9.13.7.3</span> Conjugated dot product
-of two vectors [linalg.algs.blas1.dot.dotc]<a href="#conjugated-dot-product-of-two-vectors-linalg.algs.blas1.dot.dotc" class="self-link"></a></h5>
-<p><i>[Note:</i> The functions in this section correspond to the BLAS
-functions <code>xDOT</code> (for real element types) and
-<code>xDOTC</code> (for complex element types). <i>– end note]</i> <!--
-`dotc` exists to give users reasonable default inner product behavior
-for both real and complex element types.
---></p>
 <div class="sourceCode" id="cb65"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2,</span>
 <span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Scalar<span class="op">&gt;</span></span>
@@ -8222,21 +8192,19 @@ for both real and complex element types.
 <span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a>            InVec1 v1,</span>
 <span id="cb65-13"><a href="#cb65-13" aria-hidden="true" tabindex="-1"></a>            InVec2 v2,</span>
 <span id="cb65-14"><a href="#cb65-14" aria-hidden="true" tabindex="-1"></a>            Scalar init<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 These functions compute a conjugated dot product with an explicit
 specified result type.</p>
-<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Effects:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> The
+<li><p><span class="marginalizedparent"><a class="marginalized">(10.1)</a></span> The
 three-parameter overload is equivalent to
 <code>return dot(conjugated(v1), v2, init);</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(10.2)</a></span> the
 four-parameter overload is equivalent to
 <code>return dot(std::forward&lt;ExecutionPolicy&gt;(exec), conjugated(v1), v2, init);</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-Conjugated dot product with default result type</p>
 <div class="sourceCode" id="cb66"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-vector</em> InVec1,</span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2<span class="op">&gt;</span></span>
 <span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dotc<span class="op">(</span>InVec1 v1,</span>
@@ -8247,15 +8215,18 @@ Conjugated dot product with default result type</p>
 <span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> dotc<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>          InVec1 v1,</span>
 <span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>          InVec2 v2<span class="op">)</span>;</span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">11</a></span> These
+functions compute a conjugated dot product with a default result
+type.</p>
+<p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Effects:</em> Let <code>T</code> be
 <code>decltype(</code><em><code>conj-if-needed</code></em><code>(declval&lt;typename InVec1::value_type&gt;()) * declval&lt;typename InVec2::value_type&gt;())</code>.
 Then,</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(12.1)</a></span> the
 two-parameter overload is equivalent to
 <code>return dotc(v1, v2, T{});</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span> the
 three-parameter overload is equivalent to
 <code>return dotc(std::forward&lt;ExecutionPolicy&gt;(exec), v1, v2, T{});</code>.</p></li>
 </ul>
@@ -8292,12 +8263,15 @@ is convertible to <code>Scalar</code>.</p>
 <code>init.scaling_factor</code> and
 <em><code>abs-if-needed</code></em><code>(x[i])</code> for all
 <code>i</code> in the domain of <code>v</code>; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> let
+<code>s2init</code> be
+<code>init.scaling_factor * init.scaling_factor * init.scaled_sum_of_squares</code>,
+then
 <code>result.scaling_factor * result.scaling_factor * result.scaled_sum_of_squares</code>
 equals the sum of squares of
 <em><code>abs-if-needed</code></em><code>(x[i])</code> for all
 <code>i</code> in the domain of <code>v</code>, plus
-<code>init.scaling_factor * init.scaling_factor * init.scaled_sum_of_squares</code>.</p></li>
+<code>s2init</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Remarks:</em> If <code>InVec::value_type</code>, and
@@ -8325,7 +8299,7 @@ vector [linalg.algs.blas1.nrm2]<a href="#euclidean-norm-of-a-vector-linalg.algs.
 <em><code>abs-if-needed</code></em><code>(declval&lt;typename InVec::value_type&gt;()))</code>
 is convertible to <code>Scalar</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Returns:</em> The square root of the sum of square of
+<em>Returns:</em> The square root of the sum of the square of
 <code>init</code> and the squares of the absolute values of the elements
 of <code>v</code>. <i>[Note:</i> For <code>init</code> equal to zero,
 this is the Euclidean norm (also called 2-norm) of the vector
@@ -8371,7 +8345,7 @@ of vector elements [linalg.algs.blas1.asum]<a href="#sum-of-absolute-values-of-v
 <span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>Scalar vector_abs_sum<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
 <span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a>                      InVec v,</span>
 <span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a>                      Scalar init<span class="op">)</span>;</span></code></pre></div>
-<p><i>[Note:</i> This function corresponds to the BLAS functions
+<p><i>[Note:</i> These functions correspond to the BLAS functions
 <code>SASUM</code>, <code>DASUM</code>, <code>SCASUM</code>, and
 <code>DZASUM</code>.<i>– end note]</i></p>
 <!--
@@ -8445,7 +8419,8 @@ absolute value of vector elements [linalg.algs.blas1.iamax]<a href="#index-of-ma
 <span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a>  InVec v<span class="op">)</span>;</span></code></pre></div>
 <p><i>[Note:</i> These functions correspond to the BLAS function
 <code>IxAMAX</code>. <i>– end note]</i></p>
-<p>[1] Let <code>T</code> be <code>decltype(</code>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+Let <code>T</code> be <code>decltype(</code>
 <em><code>abs-if-needed</code></em><code>(</code>
 <em><code>real-if-needed</code></em>
 <code>(declval&lt;typename InVec::value_type&gt;())) +</code>
@@ -8477,6 +8452,8 @@ value.</p></li>
 </ul>
 <h4 data-number="28.9.13.12" id="frobenius-norm-of-a-matrix-linalg.algs.blas1.matfrobnorm"><span class="header-section-number">28.9.13.12</span> Frobenius norm of a
 matrix [linalg.algs.blas1.matfrobnorm]<a href="#frobenius-norm-of-a-matrix-linalg.algs.blas1.matfrobnorm" class="self-link"></a></h4>
+<p><i>[Note:</i> These functions exist in the BLAS standard but are not
+part of the reference implementation. <i>– end note]</i></p>
 <div class="sourceCode" id="cb73"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Scalar<span class="op">&gt;</span></span>
 <span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>Scalar matrix_frob_norm<span class="op">(</span></span>
@@ -8497,9 +8474,9 @@ is convertible to <code>Scalar</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns:</em> The square root of the sum of squares of
 <code>init</code> and the absolute values of the elements of
-<code>A</code>. <i>[Note:</i> For <code>init</code> equal to zero, this
-is the Frobenius norm of the matrix <code>A</code>. <i>– end
-note]</i></p>
+<code>A</code>.</p>
+<p><i>[Note:</i> For <code>init</code> equal to zero, this is the
+Frobenius norm of the matrix <code>A</code>. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Remarks:</em> If <code>InMat::value_type</code> and
 <code>Scalar</code> are all floating-point types or specializations of
@@ -8515,7 +8492,7 @@ use <code>Scalar</code>’s precision or greater.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Let <code>T</code> be <code>decltype(</code>
 <em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()) *</code>
-<em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()))</code>,
+<em><code>abs-if-needed</code></em><code>(declval&lt;typename InMat::value_type&gt;()))</code>.
 Then,</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
@@ -8527,6 +8504,8 @@ two-parameter overload is equivalent to
 </ul>
 <h4 data-number="28.9.13.13" id="one-norm-of-a-matrix-linalg.algs.blas1.matonenorm"><span class="header-section-number">28.9.13.13</span> One norm of a matrix
 [linalg.algs.blas1.matonenorm]<a href="#one-norm-of-a-matrix-linalg.algs.blas1.matonenorm" class="self-link"></a></h4>
+<p><i>[Note:</i> These functions exist in the BLAS standard but are not
+part of the reference implementation. <i>– end note]</i></p>
 <div class="sourceCode" id="cb75"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Scalar<span class="op">&gt;</span></span>
 <span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>Scalar matrix_one_norm<span class="op">(</span></span>
@@ -8581,6 +8560,8 @@ two-parameter overload is equivalent to
 </ul>
 <h4 data-number="28.9.13.14" id="infinity-norm-of-a-matrix-linalg.algs.blas1.matinfnorm"><span class="header-section-number">28.9.13.14</span> Infinity norm of a
 matrix [linalg.algs.blas1.matinfnorm]<a href="#infinity-norm-of-a-matrix-linalg.algs.blas1.matinfnorm" class="self-link"></a></h4>
+<p><i>[Note:</i> These functions exist in the BLAS standard but are not
+part of the reference implementation. <i>– end note]</i></p>
 <div class="sourceCode" id="cb77"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Scalar<span class="op">&gt;</span></span>
 <span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>Scalar matrix_inf_norm<span class="op">(</span></span>
@@ -8683,7 +8664,7 @@ for those overloads that take a <code>z</code> parameter.</p></li>
 <span id="cb79-14"><a href="#cb79-14" aria-hidden="true" tabindex="-1"></a>                           InVec x,</span>
 <span id="cb79-15"><a href="#cb79-15" aria-hidden="true" tabindex="-1"></a>                           OutVec y<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-This functions performs an overwriting matrix-vector product.</p>
+These functions perform an overwriting matrix-vector product.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>y</em> = <em>A</em><em>x</em></span>.</p>
 <p>[<em>Example:</em></p>
@@ -8737,7 +8718,7 @@ This functions performs an overwriting matrix-vector product.</p>
 <span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a>                           InVec2 y,</span>
 <span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a>                           OutVec z<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
-This functions performs an updating matrix-vector product.</p>
+These functions performs an updating matrix-vector product.</p>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Computes <span class="math inline"><em>z</em> = <em>y</em> + <em>A</em><em>x</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
@@ -8803,7 +8784,7 @@ for those overloads that take a <code>z</code> parameter.</p></li>
 <span id="cb82-18"><a href="#cb82-18" aria-hidden="true" tabindex="-1"></a>                                     InVec x,</span>
 <span id="cb82-19"><a href="#cb82-19" aria-hidden="true" tabindex="-1"></a>                                     OutVec y<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-This function performs an overwriting symmetric matrix-vector product,
+These functions perform an overwriting symmetric matrix-vector product,
 taking into account the <code>Triangle</code> parameter that applies to
 the symmetric matrix <code>A</code> [linalg.general].</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
@@ -8819,22 +8800,21 @@ the symmetric matrix <code>A</code> [linalg.general].</p>
 <span id="cb83-9"><a href="#cb83-9" aria-hidden="true" tabindex="-1"></a>  InVec1 x,</span>
 <span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a>  InVec2 y,</span>
 <span id="cb83-11"><a href="#cb83-11" aria-hidden="true" tabindex="-1"></a>  OutVec z<span class="op">)</span>;</span>
-<span id="cb83-12"><a href="#cb83-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb83-13"><a href="#cb83-13" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb83-14"><a href="#cb83-14" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat,</span>
-<span id="cb83-15"><a href="#cb83-15" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
-<span id="cb83-16"><a href="#cb83-16" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
-<span id="cb83-17"><a href="#cb83-17" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2,</span>
-<span id="cb83-18"><a href="#cb83-18" aria-hidden="true" tabindex="-1"></a>         <em>out-vector</em> OutVec<span class="op">&gt;</span></span>
-<span id="cb83-19"><a href="#cb83-19" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_vector_product<span class="op">(</span></span>
-<span id="cb83-20"><a href="#cb83-20" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
-<span id="cb83-21"><a href="#cb83-21" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
-<span id="cb83-22"><a href="#cb83-22" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
-<span id="cb83-23"><a href="#cb83-23" aria-hidden="true" tabindex="-1"></a>  InVec1 x,</span>
-<span id="cb83-24"><a href="#cb83-24" aria-hidden="true" tabindex="-1"></a>  InVec2 y,</span>
-<span id="cb83-25"><a href="#cb83-25" aria-hidden="true" tabindex="-1"></a>  OutVec z<span class="op">)</span>;</span></code></pre></div>
+<span id="cb83-12"><a href="#cb83-12" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb83-13"><a href="#cb83-13" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat,</span>
+<span id="cb83-14"><a href="#cb83-14" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle,</span>
+<span id="cb83-15"><a href="#cb83-15" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec1,</span>
+<span id="cb83-16"><a href="#cb83-16" aria-hidden="true" tabindex="-1"></a>         <em>in-vector</em> InVec2,</span>
+<span id="cb83-17"><a href="#cb83-17" aria-hidden="true" tabindex="-1"></a>         <em>out-vector</em> OutVec<span class="op">&gt;</span></span>
+<span id="cb83-18"><a href="#cb83-18" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> symmetric_matrix_vector_product<span class="op">(</span></span>
+<span id="cb83-19"><a href="#cb83-19" aria-hidden="true" tabindex="-1"></a>  ExecutionPolicy<span class="op">&amp;&amp;</span> exec,</span>
+<span id="cb83-20"><a href="#cb83-20" aria-hidden="true" tabindex="-1"></a>  InMat A,</span>
+<span id="cb83-21"><a href="#cb83-21" aria-hidden="true" tabindex="-1"></a>  Triangle t,</span>
+<span id="cb83-22"><a href="#cb83-22" aria-hidden="true" tabindex="-1"></a>  InVec1 x,</span>
+<span id="cb83-23"><a href="#cb83-23" aria-hidden="true" tabindex="-1"></a>  InVec2 y,</span>
+<span id="cb83-24"><a href="#cb83-24" aria-hidden="true" tabindex="-1"></a>  OutVec z<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
-This function performs an updating symmetric matrix-vector product,
+These functions perform an updating symmetric matrix-vector product,
 taking into account the <code>Triangle</code> parameter that applies to
 the symmetric matrix <code>A</code> [linalg.general].</p>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
@@ -8902,7 +8882,7 @@ for those overloads that take a <code>z</code> parameter.</p></li>
 <span id="cb84-18"><a href="#cb84-18" aria-hidden="true" tabindex="-1"></a>                                     InVec x,</span>
 <span id="cb84-19"><a href="#cb84-19" aria-hidden="true" tabindex="-1"></a>                                     OutVec y<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-This function performs an overwriting Hermitian matrix-vector product,
+These functions perform an overwriting Hermitian matrix-vector product,
 taking into account the <code>Triangle</code> parameter that applies to
 the Hermitian matrix <code>A</code> [linalg.general].</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
@@ -8931,7 +8911,7 @@ the Hermitian matrix <code>A</code> [linalg.general].</p>
 <span id="cb85-22"><a href="#cb85-22" aria-hidden="true" tabindex="-1"></a>                                     InVec2 y,</span>
 <span id="cb85-23"><a href="#cb85-23" aria-hidden="true" tabindex="-1"></a>                                     OutVec z<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
-This function performs an updating Hermitian matrix-vector product,
+These functions perform an updating Hermitian matrix-vector product,
 taking into account the <code>Triangle</code> parameter that applies to
 the Hermitian matrix <code>A</code> [linalg.general].</p>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
@@ -9164,7 +9144,7 @@ apply to the triangular matrix <code>A</code> [linalg.general].</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Effects:</em> Computes a vector <span class="math inline"><em>x</em>′</span> such that <span class="math inline"><em>b</em> = <em>A</em><em>x</em>′</span>, and
 assigns each element of <span class="math inline"><em>x</em>′</span> to
-the corresponding element of <code>x</code>. If no such <span class="math inline"><em>x</em>′</span> exists, then the elements of
+the corresponding element of <span class="math inline"><em>x</em></span>. If no such <span class="math inline"><em>x</em>′</span> exists, then the elements of
 <code>x</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
@@ -9231,13 +9211,13 @@ account the <code>Triangle</code> and <code>DiagonalStorage</code>
 parameters that apply to the triangular matrix <code>A</code>
 [linalg.general].</p>
 <p><i>[Note:</i> Performing triangular solve in place hinders
-parallelization. However, other <code>ExecutionPolicy</code>-specific
+parallelization. However, other <code>ExecutionPolicy</code> specific
 optimizations, such as vectorization, are still possible. <i>– end
 note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">10</a></span>
 <em>Effects:</em> Computes a vector <span class="math inline"><em>x</em>′</span> such that <span class="math inline"><em>b</em> = <em>A</em><em>x</em>′</span>, and
 assigns each element of <span class="math inline"><em>x</em>′</span> to
-the corresponding element of <code>b</code>. If no such <span class="math inline"><em>x</em>′</span> exists, then the elements of
+the corresponding element of <span class="math inline"><em>b</em></span>. If no such <span class="math inline"><em>x</em>′</span> exists, then the elements of
 <code>b</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
@@ -9291,7 +9271,7 @@ update of a matrix [linalg.algs.blas2.rank1]<a href="#rank-1-outer-product-updat
 <span id="cb99-17"><a href="#cb99-17" aria-hidden="true" tabindex="-1"></a>  InOutMat A<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 These functions perform a nonsymmetric nonconjugated rank-1 update.</p>
-<p><i>[Note:</i> This function corresponds to the BLAS functions
+<p><i>[Note:</i> These functions correspond to the BLAS functions
 <code>xGER</code> (for real element types) and <code>xGERU</code> (for
 complex element types). <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -9334,7 +9314,7 @@ as the result of `conjugated`.  Alternately, they can use the shortcut
 <span id="cb100-17"><a href="#cb100-17" aria-hidden="true" tabindex="-1"></a>  InOutMat A<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 These functions perform a nonsymmetric conjugated rank-1 update.</p>
-<p><i>[Note:</i> This function corresponds to the BLAS functions
+<p><i>[Note:</i> These functions correspond to the BLAS functions
 <code>xGER</code> (for real element types) and <code>xGERC</code> (for
 complex element types). <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
@@ -9674,10 +9654,10 @@ The following elements apply to all functions in
 <em>Mandates:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<em><code>possibly-multipliable</code></em><code>&lt;decltype&lt;A&gt;, decltype&lt;B&gt;, decltype&lt;C&gt;&gt;()</code>
+<em><code>possibly-multipliable</code></em><code>&lt;decltype(A), decltype(B), decltype(C)&gt;()</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<em><code>possibly-addable</code></em><code>&lt;decltype&lt;E&gt;, decltype&lt;E&gt;, decltype&lt;C&gt;&gt;()</code>
+<em><code>possibly-addable</code></em><code>&lt;decltype(E), decltype(E), decltype(C)&gt;()</code>
 is <code>true</code> for those overloads that take an <code>E</code>
 parameter.</p></li>
 </ul>
@@ -10124,7 +10104,7 @@ is <code>true</code>; and</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Effects:</em> Computes a matrix <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>A</em><em>C</em></span> and
 assigns each element of <span class="math inline"><em>C</em>′</span> to
-the corresponding element of <code>C</code>.</p>
+the corresponding element of <span class="math inline"><em>C</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
 <code>A.extent(0)</code> <span class="math inline">⋅</span>
@@ -10175,7 +10155,7 @@ is <code>true</code>; and</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Effects:</em> Computes a matrix <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em><em>A</em></span> and
 assigns each element of <span class="math inline"><em>C</em>′</span> to
-the corresponding element of <code>C</code>.</p>
+the corresponding element of <span class="math inline"><em>C</em></span>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
 <code>A.extent(0)</code> <span class="math inline">⋅</span>
@@ -10244,7 +10224,7 @@ is <code>true</code>.</p></li>
 <em>Effects:</em> Computes a matrix <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>α</em><em>A</em><em>A</em><sup><em>T</em></sup></span>,
 where the scalar <span class="math inline"><em>α</em></span> is
 <code>alpha</code>, and assigns each element of <span class="math inline"><em>C</em>′</span> to the corresponding element of
-<code>C</code>.</p>
+<span class="math inline"><em>C</em></span>.</p>
 <div class="sourceCode" id="cb116"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb116-1"><a href="#cb116-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb116-2"><a href="#cb116-2" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
 <span id="cb116-3"><a href="#cb116-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
@@ -10264,7 +10244,7 @@ where the scalar <span class="math inline"><em>α</em></span> is
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> Computes a matrix <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>A</em><em>A</em><sup><em>T</em></sup></span>,
 and assigns each element of <span class="math inline"><em>C</em>′</span>
-to the corresponding element of <code>C</code>.</p>
+to the corresponding element of <span class="math inline"><em>C</em></span>.</p>
 <div class="sourceCode" id="cb117"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb117-1"><a href="#cb117-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Scalar,</span>
 <span id="cb117-2"><a href="#cb117-2" aria-hidden="true" tabindex="-1"></a>         <em>in-matrix</em> InMat,</span>
 <span id="cb117-3"><a href="#cb117-3" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
@@ -10289,7 +10269,7 @@ to the corresponding element of <code>C</code>.</p>
 <em>Effects:</em> Computes a matrix <span class="math inline"><em>C</em>′</span> such that <span class="math inline"><em>C</em>′ = <em>C</em> + <em>A</em><em>A</em><sup><em>H</em></sup></span>,
 where the scalar <span class="math inline"><em>α</em></span> is
 <code>alpha</code>, and assigns each element of <span class="math inline"><em>C</em>′</span> to the corresponding element of
-<code>C</code>.</p>
+<span class="math inline"><em>C</em></span>.</p>
 <div class="sourceCode" id="cb118"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb118-1"><a href="#cb118-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><em>in-matrix</em> InMat,</span>
 <span id="cb118-2"><a href="#cb118-2" aria-hidden="true" tabindex="-1"></a>         <em>possibly-packed-inout-matrix</em> InOutMat,</span>
 <span id="cb118-3"><a href="#cb118-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> Triangle<span class="op">&gt;</span></span>
@@ -10439,7 +10419,7 @@ apply to the triangular matrix <code>A</code> [linalg.general].</p>
 layout’s <code>Triangle</code> template argument has the same type as
 the function’s <code>Triangle</code> template argument;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<em><code>possibly-multipliable</code></em><code>&lt;InMat1, OutMat, InMat2&gt;</code>
+<em><code>possibly-multipliable</code></em><code>&lt;InMat1, OutMat, InMat2&gt;()</code>
 is <code>true</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 <em><code>compatible-static-extents</code></em><code>&lt;InMat1, InMat1&gt;(0,1)</code>
@@ -10458,7 +10438,7 @@ is <code>true</code>.</p></li>
 <em>Effects:</em> Computes <span class="math inline"><em>X</em>′</span>
 such that <span class="math inline"><em>A</em><em>X</em>′ = <em>B</em></span>, and
 assigns each element of <span class="math inline"><em>X</em>′</span> to
-the corresponding element of <code>X</code>. If no such <span class="math inline"><em>X</em>′</span> exists, then the elements of
+the corresponding element of <span class="math inline"><em>X</em></span>. If no such <span class="math inline"><em>X</em>′</span> exists, then the elements of
 <code>X</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
@@ -10544,7 +10524,7 @@ apply to the triangular matrix <code>A</code> [linalg.general].</p>
 layout’s <code>Triangle</code> template argument has the same type as
 the function’s <code>Triangle</code> template argument;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
-<em><code>possibly-multipliable</code></em><code>&lt;OutMat, InMat1, InMat2&gt;</code>
+<em><code>possibly-multipliable</code></em><code>&lt;OutMat, InMat1, InMat2&gt;()</code>
 is <code>true</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
 <em><code>compatible-static-extents</code></em><code>&lt;InMat1, InMat1&gt;(0,1)</code>
@@ -10563,7 +10543,7 @@ is <code>true</code>.</p></li>
 <em>Effects:</em> Computes <span class="math inline"><em>X</em>′</span>
 such that <span class="math inline"><em>X</em>′<em>A</em> = <em>B</em></span>, and
 assigns each element of <span class="math inline"><em>X</em>′</span> to
-the corresponding element of <code>X</code>. If no such <span class="math inline"><em>X</em>′</span> exists, then the elements of
+the corresponding element of <span class="math inline"><em>X</em></span>. If no such <span class="math inline"><em>X</em>′</span> exists, then the elements of
 <code>X</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
@@ -10647,7 +10627,7 @@ parameters that apply to the triangular matrix <code>A</code>
 <p><i>[Note:</i> This algorithm makes it possible to compute
 factorizations like Cholesky and LU in place.</p>
 <p>Performing triangular solve in place hinders parallelization.
-However, other <code>ExecutionPolicy</code>-specific optimizations, such
+However, other <code>ExecutionPolicy</code> specific optimizations, such
 as vectorization, are still possible. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em></p>
@@ -10657,7 +10637,7 @@ as vectorization, are still possible. <i>– end note]</i></p>
 layout’s <code>Triangle</code> template argument has the same type as
 the function’s <code>Triangle</code> template argument;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<em><code>possibly-multipliable</code></em><code>&lt;InMat, InOutMat, InOutMat&gt;</code>
+<em><code>possibly-multipliable</code></em><code>&lt;InMat, InOutMat, InOutMat&gt;()</code>
 is <code>true</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 <em><code>compatible-static-extents</code></em><code>&lt;InMat, InMat&gt;(0,1)</code>
@@ -10676,7 +10656,7 @@ is <code>true</code>.</p></li>
 <em>Effects:</em> Computes <span class="math inline"><em>X</em>′</span>
 such that <span class="math inline"><em>A</em><em>X</em>′ = <em>B</em></span>, and
 assigns each element of <span class="math inline"><em>X</em>′</span> to
-the corresponding element of <code>B</code>. If so such <span class="math inline"><em>X</em>′</span> exists, then the elements of
+the corresponding element of <span class="math inline"><em>B</em></span>. If so such <span class="math inline"><em>X</em>′</span> exists, then the elements of
 <code>B</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
@@ -10742,7 +10722,7 @@ parameters that apply to the triangular matrix <code>A</code>
 <p><i>[Note:</i> This algorithm makes it possible to compute
 factorizations like Cholesky and LU in place.</p>
 <p>Performing triangular solve in place hinders parallelization.
-However, other <code>ExecutionPolicy</code>-specific optimizations, such
+However, other <code>ExecutionPolicy</code> specific optimizations, such
 as vectorization, are still possible. <i>– end note]</i></p>
 <p><span class="marginalizedparent"><a class="marginalized">9</a></span>
 <em>Mandates:</em></p>
@@ -10752,7 +10732,7 @@ as vectorization, are still possible. <i>– end note]</i></p>
 layout’s <code>Triangle</code> template argument has the same type as
 the function’s <code>Triangle</code> template argument;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
-<em><code>possibly-multipliable</code></em><code>&lt;InOutMat, InMat, InOutMat&gt;</code>
+<em><code>possibly-multipliable</code></em><code>&lt;InOutMat, InMat, InOutMat&gt;()</code>
 is <code>true</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.3)</a></span>
 <em><code>compatible-static-extents</code></em><code>&lt;InMat, InMat&gt;(0,1)</code>
@@ -10771,7 +10751,7 @@ is <code>true</code>.</p></li>
 <em>Effects:</em> Computes <span class="math inline"><em>X</em>′</span>
 such that <span class="math inline"><em>X</em>′<em>A</em> = <em>B</em></span>, and
 assigns each element of <span class="math inline"><em>X</em>′</span> to
-the corresponding element of <code>B</code>. If so such <span class="math inline"><em>X</em>′</span> exists, then the elements of
+the corresponding element of <span class="math inline"><em>B</em></span>. If so such <span class="math inline"><em>X</em>′</span> exists, then the elements of
 <code>B</code> are valid but unspecified.</p>
 <p><span class="marginalizedparent"><a class="marginalized">12</a></span>
 <em>Complexity:</em> <span class="math inline"><em>O</em>(</span>
