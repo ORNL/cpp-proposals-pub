@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2023-11-09" />
+  <meta name="dcterms.date" content="2023-11-10" />
   <title>A free function linear algebra interface based on the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ algebra interface based on the BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2023-11-09</td>
+    <td>2023-11-10</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -1380,8 +1380,9 @@ should not result in ambiguous overloads, since <code>Triangle</code> is
 already Constrained to be <code>upper_triangle_t</code> or
 <code>lower_triangle_t</code>. Add a nonwording section explaining this
 design choice.</p></li>
-<li><p>Add <code>triangle_t</code> and <code>storage_order_t</code>
-public type aliases to <code>layout_blas_packed</code>.</p></li>
+<li><p>Add <code>triangle_type</code> and
+<code>storage_order_type</code> public type aliases to
+<code>layout_blas_packed</code>.</p></li>
 <li><p>Fix <code>layout_blas_packed</code> requirements so that wording
 of <code>operator()</code> and other members doesn’t need to consider
 overflow.</p></li>
@@ -1391,6 +1392,7 @@ unless explicitly permitted.</p></li>
 <li><p>Make sure that Complexity clauses use a math multiplication
 symbol instead of code-font <code>*</code>. (The latter would cause
 unwarranted overflow issues, especially for BLAS 3 functions.)</p></li>
+<li><p>Many more wording fixes based on LWG review</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -6693,8 +6695,8 @@ and Triangular Packed (TP) matrix types. <i>– end note]</i></p>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> StorageOrder<span class="op">&gt;</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> layout_blas_packed <span class="op">{</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> triangle_t <span class="op">=</span> Triangle;</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> storage_order_t <span class="op">=</span> StorageOrder;</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> triangle_type <span class="op">=</span> Triangle;</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> storage_order_type <span class="op">=</span> StorageOrder;</span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Extents<span class="op">&gt;</span></span>
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">struct</span> mapping <span class="op">{</span></span>
@@ -7623,7 +7625,7 @@ initializes <em><code>extents_</code></em> with
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Constraints:</em> The expression
 <code>x.</code><em><code>nested-mapping_</code></em>
-<code>== y.</code><em><code>nested-mapping_</code></em> is well formed
+<code>== y.</code><em><code>nested-mapping_</code></em> is well-formed
 and its result is convertible to <code>bool</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Returns:</em> <code>x.</code><em><code>nested-mapping_</code></em>
@@ -8268,10 +8270,9 @@ is convertible to <code>Scalar</code>.</p>
 <code>init.scaling_factor * init.scaling_factor * init.scaled_sum_of_squares</code>,
 then
 <code>result.scaling_factor * result.scaling_factor * result.scaled_sum_of_squares</code>
-equals the sum of squares of
+equals the sum of <code>s2init</code> and the squares of
 <em><code>abs-if-needed</code></em><code>(x[i])</code> for all
-<code>i</code> in the domain of <code>v</code>, plus
-<code>s2init</code>.</p></li>
+<code>i</code> in the domain of <code>v</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Remarks:</em> If <code>InVec::value_type</code>, and
@@ -8426,7 +8427,7 @@ Let <code>T</code> be <code>decltype(</code>
 <code>(declval&lt;typename InVec::value_type&gt;())) +</code>
 <em><code>abs-if-needed</code></em><code>(</code>
 <em><code>imag-if-needed</code></em>
-<code>(declval&lt;typename InVec::value_type&gt;())))</code></p>
+<code>(declval&lt;typename InVec::value_type&gt;())))</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Mandates:</em>
 <code>declval&lt;T&gt;() &lt; declval&lt;T&gt;()</code> is a valid
