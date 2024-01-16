@@ -143,6 +143,12 @@ Revision 3 to be submitted sometime after 2023-07-09.
 
 * Update non-wording text and implementation experience.
 
+## Revision 6
+
+* remove inline definition of default constructor which was forgotten
+
+* Fix update for mdspan.layout.general
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
@@ -1330,13 +1336,20 @@ then `Extents::static_extent(Extents::rank() - 1)` is a multiple of `LayoutRight
 
 [12]{.pnum} *Effects:* Direct-non-list-initializes `extents_` with `other.extents()`.
 
-> In Section � *[mdspan.layout.stride.cons]*,
-> in paragraph 7 (Remarks for the constructor
-> `layout_stride::mapping(const StridedLayoutMapping&)`),
-> right after the word Remarks,
-> add the following text.
+> In Section � *[mdspan.layout.general]*,
+> change paragraph 2 to be:
 
-Let _`is-layout-left-padded-mapping-of`_ be
+[2]{.pnum} In subclauses *[mdspan.layout.reqmts]* through *[mdspan.layout.rightpadded]*:
+
+* [2.1]{.pnum} let _`is-mapping-of`_ be the exposition-only variable template defined as follows:
+
+```c++
+template<class Layout, class Mapping>
+constexpr bool is-mapping-of =  // exposition only
+  is_same_v<typename Layout::template mapping<typename Mapping::extents_type>, Mapping>;
+```
+
+* [2.2]{.pnum} let _`is-layout-left-padded-mapping-of`_ be
 the exposition-only variable template defined as follows.
 
 ```c++
@@ -1353,7 +1366,7 @@ constexpr bool @_is-layout-left-padded-mapping-of_@ // exposition only
   @_is-layout-left-padded_@<typename Mapping::layout_type>::value;
 ```
 
-Let _`is-layout-right-padded-mapping-of`_ be
+* [2.3]{.pnum} let _`is-layout-right-padded-mapping-of`_ be
 the exposition-only variable template defined as follows.
 
 ```c++
@@ -1416,7 +1429,6 @@ public:
     requires(@_static-padding-stride_@ != dynamic_extent) noexcept = default;
   constexpr mapping()
     requires(@_static-padding-stride_@ == dynamic_extent) noexcept;
-      : mapping(extents_type{}) {}
   constexpr mapping(const mapping&) noexcept = default;
   constexpr mapping(const extents_type& ext);
   template<class OtherIndexType>
@@ -1834,7 +1846,6 @@ public:
     requires(@_static-padding-stride_@ != dynamic_extent) noexcept = default;
   constexpr mapping()
     requires(@_static-padding-stride_@ == dynamic_extent) noexcept;
-      : mapping(extents_type{}) {}
   constexpr mapping(const mapping&) noexcept = default;
   constexpr mapping(const extents_type& ext);
   template<class OtherIndexType>
