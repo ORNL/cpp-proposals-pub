@@ -1975,9 +1975,9 @@ is representable as a value of type `index_type`.
   * [3.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`, and
 
   * [3.2]{.pnum} if _`static-padding-stride`_ is equal to `dynamic_extent`,
-      direct-non-list-initializes _`stride-rm2`_ with `ext.extent(_`rank_`_ ` - 1)`
+      direct-non-list-initializes _`stride-rm2`_ with `ext.extent(`_`rank_`_ ` - 1)`
       if `padding_value` is `dynamic_extent`, and the least multiple of
-      `padding_value` greater than or equal to `ext.extent(_`rank_`_ ` - 1)` otherwise.
+      `padding_value` greater than or equal to `ext.extent(`_`rank_`_ ` - 1)` otherwise.
 
 ```c++
 template<class OtherIndexType>
