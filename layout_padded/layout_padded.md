@@ -2,7 +2,7 @@
 ---
 title: Padded mdspan layouts
 document: P2642
-date: 2023-10-13
+date: 2023-12-05
 audience: LEWG
 author:
   - name: Christian Trott (Sandia National Laboratories)
@@ -135,6 +135,14 @@ Revision 3 to be submitted sometime after 2023-07-09.
 
   * pull common items for all layouts into a *Common* subsection
 
+## Revision 5
+
+* Make change requested in 2023/11/09 LEWG poll: "Modify P2642R4 (Padded mdspan layouts) by removing the feature test macro and bumping the `__cpp_lib_submdspan` macro...."
+
+* Remove "rebase on top of P2630R3" wording, since P2630 has been merged into the current C++ Working Draft.  Update current C++ Working Draft reference to the latest at the time of publication, <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4964.pdf">N4964</a>.
+
+* Update non-wording text and implementation experience.
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
@@ -147,7 +155,7 @@ These layouts support two use cases:
     as supported by commonly used libraries
     like the <a href="https://netlib.org/blas/blast-forum/">BLAS</a>
     (Basic Linear Algebra Subroutines;
-    see P1417 and P1674 for historical overview and references)
+    see P1417, P1673, and P1674 for historical overview and references)
     and <a href="https://netlib.org/lapack/">LAPACK</a> (Linear Algebra PACKage); and
 
 2. "padded" storage for overaligned access
@@ -553,7 +561,8 @@ and `extents()` would return a const reference to that object.
 ## Integration with `submdspan`
 
 We propose changing `submdspan`
-(<a href="https://wg21.link/p2630">see P2630</a>)
+(see <a href="https://wg21.link/p2630">P2630</a>,
+which was accepted into the C++ Working Draft for C++26)
 of a `layout_left` resp. `layout_right` mdspan
 to return `layout_left_padded` resp. `layout_right_padded`
 instead of `layout_stride`, if the slice arguments permit it.
@@ -732,8 +741,9 @@ with `srm1_val1` greater than to equal to `srm1_val0`.
 Also, `W_sub.stride(1)` equals `W.stride(1)`.
 
 Preservation of these layouts under `submdspan`
-is an important feature for our linear algebra library proposal P1673,
-because it means that for existing BLAS and LAPACK use cases,
+is an important feature for our linear algebra library proposal P1673
+(which was accepted into the C++ Working Draft for C++26).
+It means that for existing BLAS and LAPACK use cases,
 if we start with one of these layouts,
 we know that we can implement fast linear algebra algorithms
 by calling directly into an optimized C or Fortran BLAS.
@@ -851,8 +861,7 @@ because the base case matrices are always `layout_stride`.
 
 On discovering this, the author of these functions
 might be tempted to write a custom layout for "BLAS-compatible" matrices.
-However, the current version of the `submdspan` proposal
-<a href="https://wg21.link/p2630">P2630</a>
+However, `submdspan` as currently specified in the C++ Working Draft
 forces `partition` to return four `layout_stride` mdspan
 if given a `layout_left` (or `layout_right`) input mdspan.
 This would, in turn, force users of `recursive_matrix_product`
@@ -885,6 +894,10 @@ void base_case_matrix_product(in_matrix_view<layout_left_padded<p>> A,
 }
 ```
 
+This optimization and simplification would also apply
+to implementations of P1673 that use a C or Fortran BLAS library
+where permitted by the `mdspan` layout(s) and accessor(s).
+
 ### Overaligned access
 
 By combining these new layouts with an accessor
@@ -896,7 +909,8 @@ This can enable use of hardware features
 that require overaligned memory access.
 
 The following `aligned_accessor` class template
-(proposed in our separate proposal [P2897](https://wg21.link/p2897))
+(proposed in our separate proposal [P2897](https://wg21.link/p2897),
+which is currently in LEWG review as of the time of publication)
 uses the C++ Standard Library function `assume_aligned`
 to decorate pointer access.
 
@@ -1147,8 +1161,8 @@ by offering a conversion customization point when most conversions don't make se
 
 ## Implementation experience
 
-Pull request <a href="https://github.com/kokkos/mdspan/pull/237">237</a>
-in the <a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a>
+The `stable` (main) branch of the
+<a href="https://github.com/kokkos/mdspan/">reference mdspan implementation</a>
 implements all of this proposal except `submdspan` support.
 
 ## Desired ship vehicle
@@ -1159,15 +1173,17 @@ C++26 / IS.
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 > The � character is used to denote a placeholder section number which the editor shall determine.
-> First, apply all wording from P2630R3.
-> (This proposal is a "rebase" atop the changes proposed by P2630R3.)
 
-> Add the following feature test macro to *[version.syn]*,
-> replacing YYYYMML with the integer literal
+> Make the following changes to the latest C++ Working Draft,
+> which at the time of writing is <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4964.pdf">N4964</a>.
+> All wording is relative to the latest C++ Working Draft.
+
+> In *[version.syn]*, increase the value of the `__cpp_lib_submdspan` macro
+> by replacing YYYMML below with the integer literal
 > encoding the appropriate year (YYYY) and month (MM).
 
 ```c++
-#define __cpp_lib_mdspan_layout_padded YYYYMML // also in <mdspan>
+#define __cpp_lib_submdspan YYYYMML // also in <mdspan>
 ```
 
 > In Section � *[mdspan.syn]*, in the synopsis,
