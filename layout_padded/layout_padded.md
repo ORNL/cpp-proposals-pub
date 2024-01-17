@@ -47,6 +47,7 @@ Revision 1 submitted 2022-10-15.
       that takes `extents_type` and
       `extents<index_type, padding_stride>`,
       because the latter may not be the actual padding stride.
+      (NOTE: Revision 4 renamed `padding_stride` to `padding_value`.)
 
   * Make converting constructors from `layout_{left,right}_padded::mapping` to `layout_{left,right}::mapping` use Mandates rather than Constraints to check compile-time stride compatibility.
 
@@ -114,18 +115,23 @@ Revision 3 to be submitted sometime after 2023-07-09.
     and `operator==` taking that type,
     to use a constraint instead of overloading.
     This helps with type deduction in practice.
-    As a result, we needed a way to get the `padding_stride`
+    As a result, we needed a way to get the `padding_value`
     template argument of a mapping.  We found it easiest to do this
     by adding a `static constexpr size_t padding_stride`
     public member to the mapping.  Another approach would have been
     to introduce an exposition-only trait, but we think
     the public member would be more generally useful.
+    (NOTE: Revision 4 renamed `padding_stride` to `padding_value`.)
 
 * Add Nic Morales as a coauthor.
 
 ## Revision 4
 
 * bring wording in-line with layouts in the ISO C++ standard draft
+
+* Rename `padding_stride` member of the two mappings to `padding_value`,
+    to avoid confusion with the padding stride.  Replace exposition-only
+    _`actual-padding-stride`_ with _`static-padding-stride`_.
 
 * redo submdspan wording
 
@@ -145,11 +151,16 @@ Revision 3 to be submitted sometime after 2023-07-09.
 
 ## Revision 6
 
-* remove inline definition of default constructor which was forgotten
+* Remove inline definition of the two layout mappings' default constructors
+    (the default constructor constrained with `static-padding-stride == dynamic_extent`),
+    as the constructors were already defined in the text below.
 
-* Fix update for mdspan.layout.general
+* Fix update for [mdspan.layout.general].
 
-* Fix constructor wording for initializing the stored extra stride, and the corresponding precondition
+* Fix constructor wording for initializing the stored extra stride,
+    and the corresponding precondition.
+
+* Respond to feedback from 2024/01/17 LWG review (IN PROGRESS).
 
 # Proposed changes and justification
 
@@ -235,9 +246,9 @@ any subview of a contiguous subset of rows and columns
 of a rank-2 `layout_left_padded` or `layout_right_padded` mdspan
 preserves the layout.
 For example, if `A` is a rank-2 mdspan
-whose layout is `layout_left_padded<padding_stride>`,
+whose layout is `layout_left_padded<padding_value>`,
 then `submdspan(A, tuple{r1, r2}, tuple{c1, c2})`
-also has layout `layout_left_padded<padding_stride>`
+also has layout `layout_left_padded<padding_value>`
 with the same padding stride as before.
 The BLAS and algorithms that use it
 (such as the blocked algorithms in LAPACK)
@@ -292,7 +303,7 @@ with a `required_span_size()` of 4 elements.
 A design change from R0 to R1 of this paper makes this overalignment case
 easier to use and more like the existing `std::assume_aligned` interface.
 In R0 of this paper, the user's padding input parameter
-(either a compile-time `padding_stride` or a run-time value)
+(either a compile-time `padding_value` or a run-time value)
 was exactly the padding stride.
 As such, it had to be greater than or equal to the extent to pad.
 For example, if users had an `extent(0)` of 13
@@ -344,15 +355,15 @@ that require overalignment of multidimensional arrays.
 
 ### Padding stride equality for layout mapping conversions
 
-`layout_left_padded<padding_stride>::mapping<Extents>`
+`layout_left_padded<padding_value>::mapping<Extents>`
 has a converting constructor from
-`layout_left_padded<other_padding_stride>::mapping<OtherExtents>`.
-Similarly, `layout_right_padded<padding_stride>::mapping<Extents>`
+`layout_left_padded<other_padding_value>::mapping<OtherExtents>`.
+Similarly, `layout_right_padded<padding_value>::mapping<Extents>`
 has a converting constructor from
-`layout_right_padded<other_padding_stride>::mapping<OtherExtents>`.
+`layout_right_padded<other_padding_value>::mapping<OtherExtents>`.
 These constructors require, among other conditions,
-that if `padding_stride` and `other_padding_stride` do not equal `dynamic_extent`,
-then `padding_stride` equals `other_padding_stride`.
+that if `padding_value` and `other_padding_value` do not equal `dynamic_extent`,
+then `padding_value` equals `other_padding_value`.
 
 Users may ask why they can't convert a more overaligned mapping,
 such as `layout_left_padded<4>::mapping`,
@@ -410,7 +421,7 @@ but otherwise behave like the
 `mapping(const extents_type&)` constructor.
 That is, they fill in the correct
 run-time padding stride value, if this is possible
-given the `padding_stride` template argument.
+given the `padding_value` template argument.
 Second, R2 adds more converting constructors.
 For `layout_left_padded::mapping`,
 R2 adds a converting constructor from each of the following.
@@ -615,11 +626,11 @@ and let `s1` be an object of a type `S1` such that
 
 Let `X` be an `mdspan` with rank at least two
 with `decltype(X)::index_type` naming the same type as `index_type`,
-whose layout is `layout_left_padded<padding_stride_X>`
-for some `constexpr size_t padding_stride_X`.
+whose layout is `layout_left_padded<padding_value_X>`
+for some `constexpr size_t padding_value_X`.
 Let `X_sub` be the object returned from `left_submatrix(X, s0, s1)`.
 Then, `X_sub` is an `mdspan` of rank `X.rank()`
-with layout `layout_left_padded<padding_stride_X>`,
+with layout `layout_left_padded<padding_value_X>`,
 and `X_sub.stride(1)` equals `X.stride(1)`.
 
 Let `Z` be an `mdspan` with rank at least two
@@ -627,8 +638,8 @@ with `decltype(Z)::index_type` naming the same type as `index_type`,
 whose layout is `layout_left`.
 Let `Z_sub` be the object returned from `left_submatrix(Z, s0, s1)`.
 Then, `Z_sub` is an `mdspan` of rank `Z.rank()`
-with layout `layout_left_padded<padding_stride_Z>`,
-where `padding_stride_Z` is
+with layout `layout_left_padded<padding_value_Z>`,
+where `padding_value_Z` is
 
   * `srm1_val1 - srm1_val0`, if `srm1` is convertible to
     `tuple<integral_constant<decltype(W)::index_type, srm1_val0>, integral_constant<decltype(W)::index_type, srm1_val1>>`
@@ -672,8 +683,8 @@ and let `srm1` ("s of rank minus 1") be an object of a type `Srm1` such that
 `is_convertible_v<S1, tuple<index_type_X, index_type_X>>` is `true`.
 
 Similarly, let `Y` be an `mdspan` with rank at least two
-whose layout is `layout_right_padded<padding_stride_Y>`
-for some `constexpr size_t padding_stride_Y`.
+whose layout is `layout_right_padded<padding_value_Y>`
+for some `constexpr size_t padding_value_Y`.
 Let `index_type_Y` name the type `decltype(Y)::index_type`.
 Let `srm2` ("S of rank minus 2") be an object of a type `Srm2` such that
 `is_convertible_v<Srm2, tuple<index_type_Y, index_type_Y>>` is `true`,
@@ -693,7 +704,7 @@ auto Y_sub = apply([&](full_extent_t... fe) {
 ```
 
 `Y_sub` is an `mdspan` of rank `Y.rank()`
-with layout `layout_left_padded<padding_stride>`,
+with layout `layout_left_padded<padding_value>`,
 and `Y_sub.stride(1)` equals `Y.stride(1)`.
 
 Let `Z` be an `mdspan` with rank at least two whose layout is `layout_left`.
@@ -716,8 +727,8 @@ auto Z_sub = apply( [&](full_extent_t... fe) {
 ```
 
 `Z_sub` is an `mdspan` of rank `Z.rank()`
-with layout `layout_left_padded<padding_stride_Z>`,
-where `padding_stride_Z` is `s0_val1 - s0_val0`
+with layout `layout_left_padded<padding_value_Z>`,
+where `padding_value_Z` is `s0_val1 - s0_val0`
 if `s0` is convertible to `tuple<integral_constant<index_type_Z, s0_val0>, integral_constant<index_type_Z, s0_val1>>`
 with `s0_val1` greater than to equal to `s0_val0`.
 Also, `Z_sub.stride(1)` equals `Z.stride(1)`.
@@ -742,8 +753,8 @@ auto W_sub = apply( [&](full_extent_t... fe) {
 ```
 
 `W_sub` is an `mdspan` of rank `W.rank()`
-with layout `layout_left_padded<padding_stride_W>`,
-where `padding_stride_W` is `srm1_val1 - srm1_val0`
+with layout `layout_left_padded<padding_value_W>`,
+where `padding_value_W` is `srm1_val1 - srm1_val0`
 if `srm1` is convertible to `tuple<integral_constant<index_type_W, srm1_val0>, integral_constant<index_type_W, srm1_val1>>`
 with `srm1_val1` greater than to equal to `srm1_val0`.
 Also, `W_sub.stride(1)` equals `W.stride(1)`.
@@ -1081,9 +1092,9 @@ All coauthors present voted against.
 The following will explain the context and why the authors oppose this change.
 
 The suggestion was that we should change
-`layout_left_padded<padding_stride>` and `layout_right_padded<padding_stride>`
+`layout_left_padded<padding_value>` and `layout_right_padded<padding_value>`
 from separate layout policies (the status quo) to nested types
-`layout_left::padded<padding_stride>` resp. `layout_right::padded<padding_stride>`.
+`layout_left::padded<padding_value>` resp. `layout_right::padded<padding_value>`.
 
 The issue with this change is that it is "morphologically confused,"
 to borrow the words of one LEWG reviewer.
@@ -1097,7 +1108,7 @@ Nesting a policy inside another policy,
 as in `layout_left::padded`, would break this rule that
 "the policy is on the outside, and the mapping is on the inside."
 
-Note also that the `padding_stride` template parameter
+Note also that the `padding_value` template parameter
 must live outside the mapping.  Otherwise, it wouldn't be possible
 to construct the mapping from just an `extents` object.
 
@@ -1268,9 +1279,15 @@ template<class LayoutLeftPaddedMapping>
 
   * `LayoutLeftPaddedMapping::extents_type::static_extent(0)` does not equal `dynamic_extent`, and
 
-  * `LayoutLeftPaddedMapping::padding_stride` does not equal `dynamic_extent`,
+  * `LayoutLeftPaddedMapping::padding_value` does not equal `dynamic_extent`,
     
-then `Extents::static_extent(0)` is a multiple of `LayoutLeftPaddedMapping::padding_stride`.
+then `Extents::static_extent(0)` is a multiple of `LayoutLeftPaddedMapping::padding_value`.
+
+<!--
+NOTE (mfh 2024/01/17)
+The original third bullet was needed because the stride could be run-time
+even if padding_value is compile-time.
+-->
 
 [11]{.pnum} *Preconditions:*
 
@@ -1325,9 +1342,9 @@ template<class LayoutRightPaddedMapping>
 
   * `LayoutRightPaddedMapping::extents_type::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`, and
 
-  * `LayoutRightPaddedMapping::padding_stride` does not equal `dynamic_extent`,
+  * `LayoutRightPaddedMapping::padding_value` does not equal `dynamic_extent`,
 
-then `Extents::static_extent(Extents::rank() - 1)` is a multiple of `LayoutRightPaddedMapping::padding_stride`.
+then `Extents::static_extent(Extents::rank() - 1)` is a multiple of `LayoutRightPaddedMapping::padding_value`.
 
 [11]{.pnum} *Preconditions:*
 
@@ -1343,47 +1360,80 @@ then `Extents::static_extent(Extents::rank() - 1)` is a multiple of `LayoutRight
 
 [2]{.pnum} In subclauses *[mdspan.layout.reqmts]* through *[mdspan.layout.rightpadded]*:
 
-* [2.1]{.pnum} let _`is-mapping-of`_ be the exposition-only variable template defined as follows:
+[2.1]{.pnum} Let _`is-mapping-of`_ be the exposition-only variable template defined as follows.
+
+<!--
+2024/01/17: Retain the exposition-only variable templates for consistency with other mdspan wording, but generally use prose to describe them, instead of code.  Let each "let" start with a capital letter.  "As follows" should end with consistent punctuation.
+-->
 
 ```c++
 template<class Layout, class Mapping>
-constexpr bool is-mapping-of =  // exposition only
+constexpr bool @_is-mapping-of_@ = // exposition only
   is_same_v<typename Layout::template mapping<typename Mapping::extents_type>, Mapping>;
 ```
 
-* [2.2]{.pnum} let _`is-layout-left-padded-mapping-of`_ be
-the exposition-only variable template defined as follows.
+[2.2]{.pnum} Let _`is-layout-left-padded-mapping-of`_ be
+the exposition-only variable template defined as follows,
+
+```c++
+template<class Mapping>
+constexpr bool @_is-layout-left-padded-mapping-of_@ = // exposition only
+  /* @_see-below_@ */;
+```
+
+where _`is-layout-left-padded-mapping-of`_`<Mapping>` is `true` if and only if `Mapping` denotes a specialization of `layout_left_padded<S>::mapping` for some value `S` of type `size_t`.
+
+<!--
+A typical implementation.
 
 ```c++
 template<class Layout>
 struct @_is-layout-left-padded_@ : // exposition only
   false_type {};
 
-template<size_t padding_stride>
-struct @_is-layout-left-padded_@<layout_left_padded<padding_stride>> : // exposition only
+template<size_t padding_value>
+struct @_is-layout-left-padded_@<layout_left_padded<padding_value>> : // exposition only
   true_type {};
 
 template<class Mapping>
-constexpr bool @_is-layout-left-padded-mapping-of_@ // exposition only
+constexpr bool @_is-layout-left-padded-mapping-of_@ = // exposition only
   @_is-layout-left-padded_@<typename Mapping::layout_type>::value;
 ```
+-->
 
-* [2.3]{.pnum} let _`is-layout-right-padded-mapping-of`_ be
-the exposition-only variable template defined as follows.
+[2.3]{.pnum} Let _`is-layout-right-padded-mapping-of`_ be
+the exposition-only variable template defined as follows,
+
+```c++
+template<class Mapping>
+constexpr bool @_is-layout-right-padded-mapping-of_@ = // exposition only
+  /* @_see-below_@ */;
+```
+
+where _`is-layout-right-padded-mapping-of`_`<Mapping>` is `true` if and only if `Mapping` denotes a specialization of `layout_right_padded<S>::mapping` for some value `S` of type `size_t`.
+
+<!--
+A typical implementation.
 
 ```c++
 template<class Layout>
 struct @_is-layout-right-padded_@ : // exposition only
   false_type {};
 
-template<size_t padding_stride>
-struct @_is-layout-right-padded_@<layout_right_padded<padding_stride>> : // exposition only
+template<size_t padding_value>
+struct @_is-layout-right-padded_@<layout_right_padded<padding_value>> : // exposition only
   true_type {};
 
 template<class Mapping>
-constexpr bool @_is-layout-right-padded-mapping-of_@ // exposition only
+constexpr bool @_is-layout-right-padded-mapping-of_@ = // exposition only
   @_is-layout-right-padded_@<typename Mapping::layout_type>::value;
 ```
+-->
+
+<!--
+TODO (mfh 2024/01/17) Specify the following as a diff with more context,
+showing the added lines in green.
+-->
 
 > In Section � *[mdspan.layout.stride.cons]*,
 > in paragraph 7 (Remarks for the constructor
@@ -1481,7 +1531,7 @@ private:
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    constexpr auto submdspan-mapping-impl(                    // exposition only
+    constexpr auto @_submdspan-mapping-impl_@(                    // exposition only
       SliceSpecifiers... slices) const -> see below;
 
   template<class... SliceSpecifiers>
@@ -1491,14 +1541,28 @@ private:
   }
 };
 ```
+<!--
+QUESTION (mfh 2024/01/17) _`stride-1`_ is exposition-only,
+so does it even need to be an `extents` object?
+Can't it just be `index_type`?
+We already have _`static-padding-stride`_ and we can ask
+if _`static-padding-stride`_ is `dynamic_extent`.
+-->
+
+<!--
+DONE (mfh 2024/01/17) Replace `size_t(0)` with `0zu` in the following.
+Generally replace `size_t(1)` with `1zu` as well.
+The point is to make clear that these are integer literals,
+so readers don't have to think about the cast.
+-->
 
 [2]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
 
   * [2.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
 
-  * [2.2]{.pnum} `size_t(0)`, if `extents_type::rank()` equals one; otherwise
+  * [2.2]{.pnum} `0zu`, if `extents_type::rank()` equals one; otherwise
 
-  * [2.3]{.pnum} the parameter pack `size_t(0)`, `size_t(1)`, ..., `extents_type::rank() - 1`.
+  * [2.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
 
 [3]{.pnum} *Mandates:* If
 
@@ -1524,11 +1588,19 @@ static constexpr size_t @_static-padding-stride_@ = /* see-below */; // expositi
   * [4.1]{.pnum } `0`, if `extents_type::rank()`
       equals zero or one; otherwise
 
+<!--
+TODO (mfh 2024/01/17) Separate the following point into two bullets, so we can get rid of the last bullet `dynamic_extent` case.
+-->
+
   * [4.2]{.pnum } the `size_t` value which is
     the least multiple of `padding_value`
     that is greater than or equal to
     `extents_type::static_extent(0)`, if
       `padding_value` does not equal `dynamic_extent` and `extents_type::static_extent(0)` does not equal `dynamic_extent`; otherwise
+
+<!--
+TODO (mfh 2024/01/17) Above change will let us get rid of the following point.
+-->
 
   * [4.3]{.pnum } `dynamic_extent`.
 
@@ -1914,9 +1986,9 @@ private:
 
   * [2.1]{.pnum} the empty parameter pack, if _`rank_`_ equals zero; otherwise
 
-  * [2.2]{.pnum} `size_t(0)`, if _`rank_`_ equals one; otherwise
+  * [2.2]{.pnum} `0zu`, if _`rank_`_ equals one; otherwise
 
-  * [2.3]{.pnum} the parameter pack `size_t(0)`, `size_t(1)`, ..., _`rank_`_ ` - 1`.
+  * [2.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., _`rank_`_ ` - 1`.
 
 [3]{.pnum} *Mandates:* If
 
