@@ -160,7 +160,26 @@ Revision 3 to be submitted sometime after 2023-07-09.
 * Fix constructor wording for initializing the stored extra stride,
     and the corresponding precondition.
 
-* Respond to feedback from 2024/01/17 LWG review (IN PROGRESS).
+* Respond to feedback from 2024/01/17 LWG review.
+
+    * Change definitions of the exposition-only variable templates
+        _`is-layout-left-padded-mapping-of`_ and
+        _`is-layout-right-padded-mapping-of`_
+        to use prose instead of code.
+
+    * Replace `size_t(0)` and other "literals cast to `size_t`"
+        with actual integer literals (e.g., `0zu`).
+
+    * Simplify _`static-padding-stride`_ definition.
+
+    * Simplify Mandates for `layout_left::mapping`'s
+        converting constructor from `LayoutLeftPaddedMapping`,
+        and for `layout_right::mapping`'s converting constructor
+        from `LayoutRightPaddedMapping`.
+        The "then" clause looks more restrictive,
+        but is nevertheless equivalent to the previous wording.
+
+    * Formatting fixes.
 
 # Proposed changes and justification
 
