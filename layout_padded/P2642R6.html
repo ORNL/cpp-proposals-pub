@@ -1901,7 +1901,7 @@ stride</em> <code>stride(1)</code> can be greater than or equal to
 <span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> layout_type <span class="op">=</span> layout_left_padded<span class="op">&lt;</span>PaddingValue<span class="op">&gt;</span>;</span>
 <span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* <em>see-below</em> */</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
 <span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.layout.leftpadded.cons], constructors</span></span>
@@ -1921,10 +1921,10 @@ stride</em> <code>stride(1)</code> can be greater than or equal to
 <span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span>extents_type<span class="op">::</span>rank<span class="op">()</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
 <span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
 <span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
-<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* <em>see below</em> */</span> <span class="op">)</span></span>
 <span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;)</span>;</span>
 <span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
-<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* <em>see below</em> */</span> <span class="op">)</span></span>
 <span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
@@ -1954,12 +1954,12 @@ stride</em> <code>stride(1)</code> can be greater than or equal to
 <span id="cb28-64"><a href="#cb28-64" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb28-65"><a href="#cb28-65" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-66"><a href="#cb28-66" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb28-67"><a href="#cb28-67" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span>index_type, <em>static-padding-stride</em><span class="op">&gt;</span> <em>stride-1</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
-<span id="cb28-68"><a href="#cb28-68" aria-hidden="true" tabindex="-1"></a>  extents_type <em>extents_</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
+<span id="cb28-67"><a href="#cb28-67" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span>index_type, <em>static-padding-stride</em><span class="op">&gt;</span> <em>stride-1</em><span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb28-68"><a href="#cb28-68" aria-hidden="true" tabindex="-1"></a>  extents_type <em>extents_</em><span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb28-69"><a href="#cb28-69" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-70"><a href="#cb28-70" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan.mapping], submdspan mapping specialization</span></span>
 <span id="cb28-71"><a href="#cb28-71" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb28-72"><a href="#cb28-72" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span>                    <span class="co">// exposition only</span></span>
+<span id="cb28-72"><a href="#cb28-72" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span>                    <span class="co">// <em>exposition only</em></span></span>
 <span id="cb28-73"><a href="#cb28-73" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> see below;</span>
 <span id="cb28-74"><a href="#cb28-74" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb28-75"><a href="#cb28-75" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
@@ -1974,12 +1974,6 @@ so does it even need to be an `extents` object?
 Can't it just be `index_type`?
 We already have _`static-padding-stride`_ and we can ask
 if _`static-padding-stride`_ is `dynamic_extent`.
--->
-<!--
-DONE (mfh 2024/01/17) Replace `size_t(0)` with `0zu` in the following.
-Generally replace `size_t(1)` with `1zu` as well.
-The point is to make clear that these are integer literals,
-so readers don't have to think about the cast.
 -->
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 Throughout [mdspan.layout.leftpadded], let <code>P_rank</code> be the
@@ -2009,32 +2003,21 @@ parameter pack <code>0zu</code>, <code>1zu</code>, …,
 than or equal to <code>extents_type::static_extent(0)</code> is
 representable as a value of type <code>size_t</code>, and is
 representable as a value of type <code>index_type</code>.</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* <em>see-below</em> */</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 The value is</p>
 <ul>
-<li><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
 <code>0</code>, if <code>extents_type::rank()</code> equals zero or one;
-otherwise</li>
-</ul>
-<!--
-TODO (mfh 2024/01/17) Separate the following point into two bullets, so we can get rid of the last bullet `dynamic_extent` case.
--->
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+otherwise</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<code>dynamic_extent</code>, if <code>padding_value</code> or
+<code>extents_type::static_extent(0)</code> equals
+<code>dynamic_extent</code>; otherwise</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> the
 <code>size_t</code> value which is the least multiple of
 <code>padding_value</code> that is greater than or equal to
-<code>extents_type::static_extent(0)</code>, if
-<code>padding_value</code> does not equal <code>dynamic_extent</code>
-and <code>extents_type::static_extent(0)</code> does not equal
-<code>dynamic_extent</code>; otherwise</li>
-</ul>
-<!--
-TODO (mfh 2024/01/17) Above change will let us get rid of the following point.
--->
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
-<code>dynamic_extent</code>.</li>
+<code>extents_type::static_extent(0)</code>.</p></li>
 </ul>
 <h3 data-number="4.1.2" id="constructors-mdspan.layout.leftpadded.cons"><span class="header-section-number">4.1.2</span> Constructors
 [mdspan.layout.leftpadded.cons]<a href="#constructors-mdspan.layout.leftpadded.cons" class="self-link"></a></h3>
@@ -2391,9 +2374,9 @@ than or equal to
 <span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> layout_type <span class="op">=</span> layout_right_padded<span class="op">&lt;</span>PaddingValue<span class="op">&gt;</span>;</span>
 <span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>rank_</em> <span class="op">=</span> extents_type<span class="op">::</span>rank<span class="op">()</span>; <span class="co">// exposition only</span></span>
-<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span>
-<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>last-static-extent</em> <span class="op">=</span> <span class="co">// exposition only</span></span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>rank_</em> <span class="op">=</span> extents_type<span class="op">::</span>rank<span class="op">()</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* <em>see-below</em> */</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>last-static-extent</em> <span class="op">=</span> <span class="co">// <em>exposition only</em></span></span>
 <span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>    extents_type<span class="op">::</span>static_extent<span class="op">(</span><em>rank_</em> <span class="op">-</span> <span class="dv">1</span><span class="op">)</span>;</span>
 <span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
@@ -2414,10 +2397,10 @@ than or equal to
 <span id="cb44-34"><a href="#cb44-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span><em>rank_</em> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span></span>
 <span id="cb44-35"><a href="#cb44-35" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>OtherExtents<span class="op">&gt;&amp;)</span>;</span>
 <span id="cb44-36"><a href="#cb44-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
-<span id="cb44-37"><a href="#cb44-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
+<span id="cb44-37"><a href="#cb44-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* <em>see below</em> */</span> <span class="op">)</span></span>
 <span id="cb44-38"><a href="#cb44-38" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;)</span>;</span>
 <span id="cb44-39"><a href="#cb44-39" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
-<span id="cb44-40"><a href="#cb44-40" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
+<span id="cb44-40"><a href="#cb44-40" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* <em>see below</em> */</span> <span class="op">)</span></span>
 <span id="cb44-41"><a href="#cb44-41" aria-hidden="true" tabindex="-1"></a>      mapping<span class="op">(</span><span class="kw">const</span> LayoutLeftPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb44-42"><a href="#cb44-42" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-43"><a href="#cb44-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> mapping<span class="op">&amp;</span> <span class="kw">operator</span><span class="op">=(</span><span class="kw">const</span> mapping<span class="op">&amp;)</span> <span class="kw">noexcept</span> <span class="op">=</span> <span class="cf">default</span>;</span>
@@ -2447,12 +2430,12 @@ than or equal to
 <span id="cb44-67"><a href="#cb44-67" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> LayoutRightPaddedMapping<span class="op">&amp;)</span> <span class="kw">noexcept</span>;</span>
 <span id="cb44-68"><a href="#cb44-68" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-69"><a href="#cb44-69" aria-hidden="true" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
-<span id="cb44-70"><a href="#cb44-70" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span>index_type, <em>static-padding-stride</em><span class="op">&gt;</span> <em>stride-rm2</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
-<span id="cb44-71"><a href="#cb44-71" aria-hidden="true" tabindex="-1"></a>  extents_type <em>extents_</em><span class="op">{}</span>; <span class="co">// exposition only</span></span>
+<span id="cb44-70"><a href="#cb44-70" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span>index_type, <em>static-padding-stride</em><span class="op">&gt;</span> <em>stride-rm2</em><span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
+<span id="cb44-71"><a href="#cb44-71" aria-hidden="true" tabindex="-1"></a>  extents_type <em>extents_</em><span class="op">{}</span>; <span class="co">// <em>exposition only</em></span></span>
 <span id="cb44-72"><a href="#cb44-72" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-73"><a href="#cb44-73" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan.mapping], submdspan mapping specialization</span></span>
 <span id="cb44-74"><a href="#cb44-74" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
-<span id="cb44-75"><a href="#cb44-75" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan<span class="op">-</span>mapping<span class="op">-</span>impl<span class="op">(</span>                    <span class="co">// exposition only</span></span>
+<span id="cb44-75"><a href="#cb44-75" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan<span class="op">-</span>mapping<span class="op">-</span>impl<span class="op">(</span>                    <span class="co">// <em>exposition only</em></span></span>
 <span id="cb44-76"><a href="#cb44-76" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> see below;</span>
 <span id="cb44-77"><a href="#cb44-77" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-78"><a href="#cb44-78" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
@@ -2463,23 +2446,23 @@ than or equal to
 <span id="cb44-83"><a href="#cb44-83" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 Throughout [mdspan.layout.rightpadded], let <code>P_rank</code> be the
-following size <em><code>rank_</code></em> parameter pack of
+following size <code>extents_type::rank()</code> parameter pack of
 <code>size_t</code> values:</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> the
-empty parameter pack, if <em><code>rank_</code></em> equals zero;
+empty parameter pack, if <code>extents_type::rank()</code> equals zero;
 otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>0zu</code>, if <em><code>rank_</code></em> equals one;
+<code>0zu</code>, if <code>extents_type::rank()</code> equals one;
 otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span> the
 parameter pack <code>0zu</code>, <code>1zu</code>, …,
-<em><code>rank_</code></em> <code>- 1</code>.</p></li>
+<code>extents_type::rank() - 1</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Mandates:</em> If</p>
 <ul>
-<li><p><em><code>rank_</code></em> is greater than one,</p></li>
+<li><p><code>extents_type::rank()</code> is greater than one,</p></li>
 <li><p><code>padding_value</code> does not equal
 <code>dynamic_extent</code>, and</p></li>
 <li><p><em><code>last-static-extent</code></em> does not equal
@@ -2489,22 +2472,21 @@ parameter pack <code>0zu</code>, <code>1zu</code>, …,
 than or equal to <em><code>last-static-extent</code></em> is
 representable as a value of type <code>size_t</code>, and is
 representable as a value of type <code>index_type</code>.</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* see-below */</span>; <span class="co">// exposition only</span></span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* <em>see-below</em> */</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 The value is</p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
-<code>0</code>, if <em><code>rank_</code></em> equals zero or one;
+<code>0</code>, if <code>extents_type::rank()</code> equals zero or one;
 otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<code>dynamic_extent</code>, if <code>padding_value</code> or
+<em><code>last-static-extent</code></em> equals
+<code>dynamic_extent</code>; otherwise</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> the
 <code>size_t</code> value which is the least multiple of
 <code>padding_value</code> that is greater than or equal to
-<em><code>last-static-extent</code></em>, if <code>padding_value</code>
-does not equal <code>dynamic_extent</code> and
-<em><code>last-static-extent</code></em> does not equal
-<code>dynamic_extent</code>; otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
-<code>dynamic_extent</code>.</p></li>
+<em><code>last-static-extent</code></em>.</p></li>
 </ul>
 <h3 data-number="4.2.2" id="constructors-mdspan.layout.rightpadded.cons"><span class="header-section-number">4.2.2</span> Constructors
 [mdspan.layout.rightpadded.cons]<a href="#constructors-mdspan.layout.rightpadded.cons" class="self-link"></a></h3>

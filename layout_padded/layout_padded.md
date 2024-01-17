@@ -1488,7 +1488,7 @@ public:
   using layout_type = layout_left_padded<PaddingValue>;
 
 private:
-  static constexpr size_t @_static-padding-stride_@ = /* see-below */; // exposition only
+  static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 
 public:
   // [mdspan.layout.leftpadded.cons], constructors
@@ -1508,10 +1508,10 @@ public:
     constexpr explicit(extents_type::rank() > 0)
       mapping(const layout_stride::mapping<OtherExtents>&);
   template<class LayoutLeftPaddedMapping>
-    constexpr explicit( /* see below */ )
+    constexpr explicit( /* @_see below_@ */ )
       mapping(const LayoutLeftPaddedMapping&);
   template<class LayoutRightPaddedMapping>
-    constexpr explicit( /* see below */ )
+    constexpr explicit( /* @_see below_@ */ )
       mapping(const LayoutRightPaddedMapping&) noexcept;
 
   constexpr mapping& operator=(const mapping&) noexcept = default;
@@ -1541,12 +1541,12 @@ public:
       const LayoutLeftPaddedMapping&) noexcept;
 
 private:
-  extents<index_type, @_static-padding-stride_@> @_stride-1_@{}; // exposition only
-  extents_type @_extents\__@{}; // exposition only
+  extents<index_type, @_static-padding-stride_@> @_stride-1_@{}; // @_exposition only_@
+  extents_type @_extents\__@{}; // @_exposition only_@
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    constexpr auto @_submdspan-mapping-impl_@(                    // exposition only
+    constexpr auto @_submdspan-mapping-impl_@(                    // @_exposition only_@
       SliceSpecifiers... slices) const -> see below;
 
   template<class... SliceSpecifiers>
@@ -1562,13 +1562,6 @@ so does it even need to be an `extents` object?
 Can't it just be `index_type`?
 We already have _`static-padding-stride`_ and we can ask
 if _`static-padding-stride`_ is `dynamic_extent`.
--->
-
-<!--
-DONE (mfh 2024/01/17) Replace `size_t(0)` with `0zu` in the following.
-Generally replace `size_t(1)` with `1zu` as well.
-The point is to make clear that these are integer literals,
-so readers don't have to think about the cast.
 -->
 
 [2]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
@@ -1595,29 +1588,20 @@ is representable as a value of type `size_t`,
 and is representable as a value of type `index_type`.
 
 ```c++
-static constexpr size_t @_static-padding-stride_@ = /* see-below */; // exposition only
+static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 ```
 
 [4]{.pnum} The value is
 
-  * [4.1]{.pnum } `0`, if `extents_type::rank()`
+  * [4.1]{.pnum} `0`, if `extents_type::rank()`
       equals zero or one; otherwise
 
-<!--
-TODO (mfh 2024/01/17) Separate the following point into two bullets, so we can get rid of the last bullet `dynamic_extent` case.
--->
+  * [4.2]{.pnum} `dynamic_extent`, if `padding_value` or `extents_type::static_extent(0)` equals `dynamic_extent`; otherwise
 
-  * [4.2]{.pnum } the `size_t` value which is
+  * [4.3]{.pnum } the `size_t` value which is
     the least multiple of `padding_value`
     that is greater than or equal to
-    `extents_type::static_extent(0)`, if
-      `padding_value` does not equal `dynamic_extent` and `extents_type::static_extent(0)` does not equal `dynamic_extent`; otherwise
-
-<!--
-TODO (mfh 2024/01/17) Above change will let us get rid of the following point.
--->
-
-  * [4.3]{.pnum } `dynamic_extent`.
+    `extents_type::static_extent(0)`.
 
 ### Constructors [mdspan.layout.leftpadded.cons]
 
@@ -1925,9 +1909,9 @@ public:
   using layout_type = layout_right_padded<PaddingValue>;
 
 private:
-  static constexpr size_t @_rank\__@ = extents_type::rank(); // exposition only
-  static constexpr size_t @_static-padding-stride_@ = /* see-below */; // exposition only
-  static constexpr size_t @_last-static-extent_@ = // exposition only
+  static constexpr size_t @_rank\__@ = extents_type::rank(); // @_exposition only_@
+  static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
+  static constexpr size_t @_last-static-extent_@ = // @_exposition only_@
     extents_type::static_extent(@_rank\__@ - 1);
 
 public:
@@ -1948,10 +1932,10 @@ public:
     constexpr explicit(@_rank\__@ > 0)
       mapping(const layout_stride::mapping<OtherExtents>&);
   template<class LayoutRightPaddedMapping>
-    constexpr explicit( /* see below */ )
+    constexpr explicit( /* @_see below_@ */ )
       mapping(const LayoutRightPaddedMapping&);
   template<class LayoutLeftPaddedMapping>
-    constexpr explicit( /* see below */ )
+    constexpr explicit( /* @_see below_@ */ )
       mapping(const LayoutLeftPaddedMapping&) noexcept;
 
   constexpr mapping& operator=(const mapping&) noexcept = default;
@@ -1981,12 +1965,12 @@ public:
       const LayoutRightPaddedMapping&) noexcept;
 
 private:
-  extents<index_type, @_static-padding-stride_@> @_stride-rm2_@{}; // exposition only
-  extents_type @_extents\__@{}; // exposition only
+  extents<index_type, @_static-padding-stride_@> @_stride-rm2_@{}; // @_exposition only_@
+  extents_type @_extents\__@{}; // @_exposition only_@
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    constexpr auto submdspan-mapping-impl(                    // exposition only
+    constexpr auto submdspan-mapping-impl(                    // @_exposition only_@
       SliceSpecifiers... slices) const -> see below;
 
   template<class... SliceSpecifiers>
@@ -1997,17 +1981,17 @@ private:
 };
 ```
 
-[2]{.pnum} Throughout [mdspan.layout.rightpadded], let `P_rank` be the following size _`rank_`_ parameter pack of `size_t` values:
+[2]{.pnum} Throughout [mdspan.layout.rightpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
 
-  * [2.1]{.pnum} the empty parameter pack, if _`rank_`_ equals zero; otherwise
+  * [2.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
 
-  * [2.2]{.pnum} `0zu`, if _`rank_`_ equals one; otherwise
+  * [2.2]{.pnum} `0zu`, if `extents_type::rank()` equals one; otherwise
 
-  * [2.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., _`rank_`_ ` - 1`.
+  * [2.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
 
 [3]{.pnum} *Mandates:* If
 
-* _`rank_`_ is greater than one,
+* `extents_type::rank()` is greater than one,
 
 * `padding_value` does not equal `dynamic_extent`, and
 
@@ -2021,21 +2005,20 @@ is representable as a value of type `size_t`,
 and is representable as a value of type `index_type`.
 
 ```c++
-static constexpr size_t @_static-padding-stride_@ = /* see-below */; // exposition only
+static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 ```
 
 [4]{.pnum} The value is
 
-  * [4.1]{.pnum } `0`, if _`rank_`_
+  * [4.1]{.pnum} `0`, if `extents_type::rank()`
       equals zero or one; otherwise
 
-  * [4.2]{.pnum } the `size_t` value which is
+  * [4.2]{.pnum} `dynamic_extent`, if `padding_value` or _`last-static-extent`_ equals `dynamic_extent`; otherwise
+
+  * [4.3]{.pnum } the `size_t` value which is
     the least multiple of `padding_value`
     that is greater than or equal to
-    _`last-static-extent`_, if
-      `padding_value` does not equal `dynamic_extent` and _`last-static-extent`_ does not equal `dynamic_extent`; otherwise
-
-  * [4.3]{.pnum } `dynamic_extent`.
+    _`last-static-extent`_.
 
 ### Constructors [mdspan.layout.rightpadded.cons]
 
