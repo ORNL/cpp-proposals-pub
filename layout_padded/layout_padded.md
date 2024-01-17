@@ -1430,23 +1430,38 @@ constexpr bool @_is-layout-right-padded-mapping-of_@ = // exposition only
 ```
 -->
 
+> In Section � *[mdspan.layout.stride.cons]*,
+> change paragraph 9 (*Remarks* for the constructor
+> `layout_stride::mapping(const StridedLayoutMapping&)`)
+> by adding the two lines shown in green to the code expression
+> that follows the "is equivalent to" phrase.
+
+[9]{.pnum} *Remarks*: The expression inside `explicit` is equivalent to:
+
+<pre id="mycode">
+  <code class="c++">
+  ! (is_convertible_v&lt;typename StridedLayoutMapping::extents_type, extents_type&gt; &&
+  (is-mapping-of&lt;layout_left, StridedLayoutMapping&gt; ||
+   is-mapping-of&lt;layout_right, StridedLayoutMapping&gt; ||
+  </code>
+  <code class="c++" style="color: green">
+   @_is-layout-left-padded-mapping-of_@ &lt;StridedLayoutMapping&gt; ||
+   @_is-layout-right-padded-mapping-of_@ &lt;StridedLayoutMapping&gt; ||
+  </code>
+  <code class="c++">
+   is-mapping-of&lt;layout_stride, StridedLayoutMapping&gt;))
+  </code>
+</pre>
+
 <!--
-TODO (mfh 2024/01/17) Specify the following as a diff with more context,
-showing the added lines in green.
+<pre id="mycode" class="c++" style="color: green;">
+  <code>
+  @_is-layout-left-padded-mapping-of_@ <LayoutStrideMapping> ||
+  @_is-layout-right-padded-mapping-of_@ <LayoutStrideMapping> ||
+  </code>
+</pre>
 -->
 
-> In Section � *[mdspan.layout.stride.cons]*,
-> in paragraph 7 (Remarks for the constructor
-> `layout_stride::mapping(const StridedLayoutMapping&)`),
-> add the following two lines immediately below
-> _`is-mapping-of`_`<layout_right, LayoutStrideMapping> ||`
-> and above
-> _`is-mapping-of`_`<layout_stride, LayoutStrideMapping> ||`:
-
-```c++
-@_is-layout-left-padded-mapping-of_@ <LayoutStrideMapping> ||
-@_is-layout-right-padded-mapping-of_@ <LayoutStrideMapping> ||
-```
 
 > After the end of Section � *[mdspan.layout.stride]*, add the following:
 
