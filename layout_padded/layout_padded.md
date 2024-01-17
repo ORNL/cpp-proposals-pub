@@ -1244,6 +1244,12 @@ and is a trivial type.
 > between the constructor converting from `layout_right::mapping<OtherExtents>`
 > and the constructor converting from `layout_stride::mapping<OtherExtents>`:
 
+<!--
+NOTE (mfh 2024/01/17) Converting constructors
+are generally ordered from "input with fewest preconditions"
+to "input with most preconditions."
+-->
+
 ```c++
 template<class LayoutLeftPaddedMapping>
   constexpr explicit(! is_convertible_v<typename LayoutLeftPaddedMapping::extents_type, extents_type>)
@@ -1275,18 +1281,20 @@ template<class LayoutLeftPaddedMapping>
 
   * `Extents::rank()` is greater than one,
 
-  * `Extents::static_extent(0)` does not equal `dynamic_extent`,
+  * `Extents::static_extent(0)` does not equal `dynamic_extent`, and
 
-  * `LayoutLeftPaddedMapping::extents_type::static_extent(0)` does not equal `dynamic_extent`, and
+  * `LayoutLeftPaddedMapping::`_`static-padding-stride`_ does not equal `dynamic_extent`,
 
-  * `LayoutLeftPaddedMapping::padding_value` does not equal `dynamic_extent`,
-    
-then `Extents::static_extent(0)` is a multiple of `LayoutLeftPaddedMapping::padding_value`.
+then `Extents::static_extent(0)` equals `LayoutLeftPaddedMapping::`_`static-padding-stride`_.
 
 <!--
-NOTE (mfh 2024/01/17)
-The original third bullet was needed because the stride could be run-time
-even if padding_value is compile-time.
+NOTE (mfh 2024/01/17) LWG asked us to change the "then" clause from the following.
+
+> then `Extents::static_extent(0)` is a multiple of `LayoutLeftPaddedMapping::padding_value`.
+
+If `LayoutLeftPaddedMapping::`_`static-padding-stride`_ is not `dynamic_extent`, then the input mapping must have static extent 0 _and_ static `padding_value`.
+
+It's possible for `LayoutLeftPaddedMapping::extents_type::static_extent(0)` to be not `dynamic_extent`, but for `padding_value` to be `dynamic_extent` -- that is, a compile-time input extent, but a run-time padding value.  This is what makes the Mandates clause not just equivalent to the condition that the result extents are constructible from the input extents.
 -->
 
 [11]{.pnum} *Preconditions:*
@@ -1338,13 +1346,16 @@ template<class LayoutRightPaddedMapping>
 
   * `Extents::rank()` is greater than one,
 
-  * `Extents::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`,
+  * `Extents::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`, and
 
-  * `LayoutRightPaddedMapping::extents_type::static_extent(Extents::rank() - 1)` does not equal `dynamic_extent`, and
+  * `LayoutRightPaddedMapping::`_`static-padding-stride`_ does not equal `dynamic_extent`,
 
-  * `LayoutRightPaddedMapping::padding_value` does not equal `dynamic_extent`,
+then `Extents::static_extent(Extents::rank() - 1)` equals `LayoutRightPaddedMapping::`_`static-padding-stride`_.
 
-then `Extents::static_extent(Extents::rank() - 1)` is a multiple of `LayoutRightPaddedMapping::padding_value`.
+<!--
+NOTE (mfh 2024/01/17) See above note for `layout_left::mapping`'s
+converting constructor from `LayoutLeftPaddedMapping`.
+-->
 
 [11]{.pnum} *Preconditions:*
 
