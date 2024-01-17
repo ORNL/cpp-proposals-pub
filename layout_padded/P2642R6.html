@@ -2069,10 +2069,15 @@ Direct-non-list-initializes <em><code>extents_</code></em> with
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> if
 <em><code>static-padding-stride</code></em> is equal to
 <code>dynamic_extent</code>, direct-non-list-initializes
-<em><code>stride-1</code></em> with <code>ext.extent(0)</code> if
-<code>padding_value</code> is <code>dynamic_extent</code>, and the least
-multiple of <code>padding_value</code> greater than or equal to
-<code>ext.extent(0)</code> otherwise.</p></li>
+<em><code>stride-1</code></em> with</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2.1)</a></span>
+<code>ext.extent(0)</code> if <code>padding_value</code> is
+<code>dynamic_extent</code>, otherwise with</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2.2)</a></span>
+the least multiple of <code>padding_value</code> greater than or equal
+to <code>ext.extent(0)</code>.</p></li>
+</ul></li>
 </ul>
 <div class="sourceCode" id="cb32"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherIndexType<span class="op">&gt;</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, OtherIndexType pad<span class="op">)</span>;</span></code></pre></div>
@@ -2170,10 +2175,9 @@ type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 <code>extents_type::rank() &gt; 0</code> is <code>true</code>, then
 <code>other.stride(0)</code> equals 1.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.3)</a></span> If
-<code>extents_type::rank() &gt; 2</code> is <code>true</code>, and then
-for all <code>r</code> in the range <span class="math inline">[</span>
-<code>2, extents_type::rank()</code><span class="math inline">)</span>,
-<code>other.stride(r)</code> equals
+<code>extents_type::rank() &gt; 2</code> is <code>true</code>, then for
+all <code>r</code> in the range <span class="math inline">[</span>
+<code>2</code>, <code>extents_type::rank()</code><span class="math inline">)</span>, <code>other.stride(r)</code> equals
 <code>other.extents().</code><em><code>fwd-prod-of-extents(r)</code></em><code>/ other.extents().extent(0) * other.stride(1)</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.4)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
@@ -2184,12 +2188,12 @@ type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(13.1)</a></span>
 Direct-non-list-initializes <em><code>extents_</code></em> with
-<code>other.extents()</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(13.2)</a></span> is
+<code>other.extents()</code>; and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(13.2)</a></span> if
 <code>static-padding-stride</code> is equal to
-<code>dynamic_extent</code> direct-non-list-initializes
+<code>dynamic_extent</code>, direct-non-list-initializes
 <em><code>stride-1</code></em> with
-<code>other.stride(1)</code>;</p></li>
+<code>other.stride(1)</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutLeftPaddedMapping<span class="op">&gt;</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
@@ -2226,7 +2230,7 @@ type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(17.1)</a></span>
 Direct-non-list-initializes <em><code>extents_</code></em> with
-<code>other.extents()</code>, and</p></li>
+<code>other.extents()</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(17.2)</a></span> if
 <code>static-padding-stride</code> is equal to
 <code>dynamic_extent</code>, direct-non-list-initializes
@@ -2538,12 +2542,17 @@ Direct-non-list-initializes <em><code>extents_</code></em> with
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span> if
 <em><code>static-padding-stride</code></em> is equal to
 <code>dynamic_extent</code>, direct-non-list-initializes
-<em><code>stride-rm2</code></em> with
+<em><code>stride-rm2</code></em> with</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2.1)</a></span>
 <code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code> if
-<code>padding_value</code> is <code>dynamic_extent</code>, and the least
-multiple of <code>padding_value</code> greater than or equal to
-<code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code>
-otherwise.</p></li>
+<code>padding_value</code> is <code>dynamic_extent</code>, otherwise
+with</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(3.2.2)</a></span>
+the least multiple of <code>padding_value</code> greater than or equal
+to <code>ext.extent(</code><em><code>rank_</code></em>
+<code>- 1)</code>.</p></li>
+</ul></li>
 </ul>
 <div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherIndexType<span class="op">&gt;</span></span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext, OtherIndexType pad<span class="op">)</span>;</span></code></pre></div>
@@ -2647,9 +2656,9 @@ then
 <code>other.stride(</code><em><code>rank_</code></em><code>- 1)</code>
 equals 1.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.3)</a></span> If
-<em><code>rank_</code></em><code>&gt; 2</code> is <code>true</code>, and
-then for all <code>r</code> in the range <span class="math inline">[</span>
-<code>0,</code><em><code>rank_</code></em><code>- 2</code><span class="math inline">)</span>, <code>other.stride(r)</code> equals
+<em><code>rank_</code></em><code>&gt; 2</code> is <code>true</code>,
+then for all <code>r</code> in the range <span class="math inline">[</span> <code>0</code>,
+<em><code>rank_</code></em><code>- 2</code><span class="math inline">)</span>, <code>other.stride(r)</code> equals
 <code>other.extents().</code><em><code>rev-prod-of-extents(r)</code></em><code>/ other.extents().extent(</code><em><code>rank_</code></em><code>- 1) * other.stride(</code><em><code>rank_</code></em><code>- 2)</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.4)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
@@ -2660,12 +2669,12 @@ type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(13.1)</a></span>
 Direct-non-list-initializes <em><code>extents_</code></em> with
-<code>other.extents()</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(13.2)</a></span> is
+<code>other.extents()</code>; and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(13.2)</a></span> if
 <code>static-padding-stride</code> is equal to
-<code>dynamic_extent</code> direct-non-list-initializes
+<code>dynamic_extent</code>, direct-non-list-initializes
 <em><code>stride-rm2</code></em> with
-<code>other.stride(</code><em><code>rank_</code></em><code>- 2)</code>;</p></li>
+<code>other.stride(</code><em><code>rank_</code></em><code>- 2)</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb51"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> LayoutRightPaddedMapping<span class="op">&gt;</span></span>
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(</span> <span class="co">/* see below */</span> <span class="op">)</span></span>
@@ -2704,7 +2713,7 @@ type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(17.1)</a></span>
 Direct-non-list-initializes <em><code>extents_</code></em> with
-<code>other.extents()</code>, and</p></li>
+<code>other.extents()</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(17.2)</a></span> if
 <code>static-padding-stride</code> is equal to
 <code>dynamic_extent</code>, direct-non-list-initializes
