@@ -179,6 +179,13 @@ Revision 3 to be submitted sometime after 2023-07-09.
         The "then" clause looks more restrictive,
         but is nevertheless equivalent to the previous wording.
 
+    * Change the exposition-only
+        `layout_left_padded<S>::mapping<E>::`_`stride-1`_ and `layout_right_padded<S>::mapping<E>::`_`stride-rm2`_
+        from having type `extents<index_type, `_`static-padding-stride`_`>`
+        to having type `index_type`.  For each of them, add a
+        *Recommended practice* clause recommending not to store the value
+        if _`static-padding-stride`_ is not `dynamic_extent`.
+
     * Formatting fixes.
 
 # Proposed changes and justification
@@ -1571,12 +1578,12 @@ public:
       const LayoutLeftPaddedMapping&) noexcept;
 
 private:
-  extents<index_type, @_static-padding-stride_@> @_stride-1_@{}; // @_exposition only_@
+  index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
   extents_type @_extents\__@{}; // @_exposition only_@
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    constexpr auto @_submdspan-mapping-impl_@(                    // @_exposition only_@
+    constexpr auto @_submdspan-mapping-impl_@( // @_exposition only_@
       SliceSpecifiers... slices) const -> see below;
 
   template<class... SliceSpecifiers>
@@ -1586,13 +1593,6 @@ private:
   }
 };
 ```
-<!--
-QUESTION (mfh 2024/01/17) _`stride-1`_ is exposition-only,
-so does it even need to be an `extents` object?
-Can't it just be `index_type`?
-We already have _`static-padding-stride`_ and we can ask
-if _`static-padding-stride`_ is `dynamic_extent`.
--->
 
 [2]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
 
@@ -1633,6 +1633,33 @@ static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_ex
     that is greater than or equal to
     `extents_type::static_extent(0)`.
 
+<!--
+NOTE (mfh 2024/01/18) Previously, we specified _`stride-1`_
+as having type `extents<index_type, `_`static-padding-stride`_`>`.
+LWG preference from review on 2024/01/17
+is instead to specify it as having type `index_type`,
+and then to use a "Recommended practice" clause
+to highlight the performance optimization
+of using `extents` instead of `index_type`.
+
+[[stacktrace.basic.nonmem]](https://eel.is/c++draft/stacktrace.basic.nonmem)
+and [[time.parse]](https://eel.is/c++draft/time.parse)
+give recent examples of "Recommended practice" clauses.
+
+[[description]](http://eel.is/c++draft/description) does not explain
+how to order a "Recommended practice" clause
+with respect to other library description clauses.
+-->
+
+```c++
+index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
+```
+
+[5]{.pnum} *Recommended practice*: Implementations should not store
+this value if _`static-padding-stride`_ is not `dynamic_extent`.
+For example, using `extents<index_type,`_`static-padding-stride`_`>`
+instead of `index_type` as the type of _`stride-1`_ would achieve this.
+
 ### Constructors [mdspan.layout.leftpadded.cons]
 
 ```c++
@@ -1655,14 +1682,16 @@ is representable as a value of type `index_type`.
 
 [3]{.pnum} *Effects:*
 
-  * [3.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`, and
+  * [3.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
-  * [3.2]{.pnum} if _`static-padding-stride`_ is equal to `dynamic_extent`,
+  * [3.2]{.pnum} if _`static-padding-stride`_ equals `dynamic_extent`,
       direct-non-list-initializes _`stride-1`_ with
 
-      * [3.2.1]{.pnum} `ext.extent(0)` if `padding_value` is `dynamic_extent`, otherwise with
+      * [3.2.1]{.pnum} `ext.extent(0)`
+          if `padding_value` is `dynamic_extent`, otherwise with
 
-      * [3.2.2]{.pnum} the least multiple of `padding_value` greater than or equal to `ext.extent(0)`.
+      * [3.2.2]{.pnum} the least multiple of `padding_value`
+          greater than or equal to `ext.extent(0)`.
 
 ```c++
 template<class OtherIndexType>
@@ -1690,10 +1719,12 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
 [6]{.pnum} *Effects:*
 
-  * [6.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`, and
+  * [6.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
-  * [6.2]{.pnum} if _`static-padding-stride`_ is equal to `dynamic_extent`,
-      direct-non-list-initializes _`stride-1`_ with the least multiple of `pad` greater than or equal to `ext.extent(0)`.
+  * [6.2]{.pnum} if _`static-padding-stride`_ equals `dynamic_extent`,
+      direct-non-list-initializes _`stride-1`_
+      with the least multiple of `pad` greater than or equal to
+      `ext.extent(0)`.
 
 ```c++
 template<class OtherExtents>
@@ -1758,8 +1789,9 @@ template<class OtherExtents>
 
   * [13.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [13.2]{.pnum} if `static-padding-stride` is equal to `dynamic_extent`,
-      direct-non-list-initializes _`stride-1`_ with `other.stride(1)`.
+  * [13.2]{.pnum} if `static-padding-stride` equals `dynamic_extent`,
+      direct-non-list-initializes _`stride-1`_ with
+      `other.stride(1)`.
 
 ```c++
 template<class LayoutLeftPaddedMapping>
@@ -1790,8 +1822,9 @@ template<class LayoutLeftPaddedMapping>
 
   * [17.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [17.2]{.pnum} if `static-padding-stride` is equal to `dynamic_extent`,
-      direct-non-list-initializes _`stride-1`_ with `other.stride(1)`.
+  * [17.2]{.pnum} if `static-padding-stride` equals `dynamic_extent`,
+      direct-non-list-initializes _`stride-1`_ with
+      `other.stride(1)`.
 
 [18]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to:
@@ -1895,9 +1928,11 @@ constexpr index_type stride(rank_type r) const noexcept;
 
   * [9.1]{.pnum} `1`, if `r` equals `0`; otherwise
 
-  * [9.2]{.pnum} _`stride-1`_`.extent(0)`, if `r` equals `1`; otherwise
+  * [9.2]{.pnum} _`stride-1`_, if `r` equals `1`; otherwise
 
-  * [9.3]{.pnum} the product of _`stride-1`_`.extent(0)` and all values _`extents_`_`.extent(k)` with `k` in the range of $[1,$ `r` $)$.
+  * [9.3]{.pnum} the product of _`stride-1`_ and all values
+      _`extents_`_`.extent(k)` with `k` in the range of
+      $[1,$ `r`$)$.
 
 ```c++
 template<class LayoutLeftPaddedMapping>
@@ -1999,12 +2034,12 @@ public:
       const LayoutRightPaddedMapping&) noexcept;
 
 private:
-  extents<index_type, @_static-padding-stride_@> @_stride-rm2_@{}; // @_exposition only_@
+  index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
   extents_type @_extents\__@{}; // @_exposition only_@
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
-    constexpr auto submdspan-mapping-impl(                    // @_exposition only_@
+    constexpr auto submdspan-mapping-impl( // @_exposition only_@
       SliceSpecifiers... slices) const -> see below;
 
   template<class... SliceSpecifiers>
@@ -2054,6 +2089,21 @@ static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_ex
     that is greater than or equal to
     _`last-static-extent`_.
 
+<!--
+NOTE (mfh 2024/01/18) Above comments on
+`layout_left_padded::mapping::`_`stride-1`_
+also apply to _`stride-rm2`_.
+-->
+
+```c++
+index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
+```
+
+[5]{.pnum} *Recommended practice*: Implementations should not store
+this value if _`static-padding-stride`_ is not `dynamic_extent`.
+For example, using `extents<index_type,`_`static-padding-stride`_`>`
+instead of `index_type` as the type of _`stride-rm2`_ would achieve this.
+
 ### Constructors [mdspan.layout.rightpadded.cons]
 
 ```c++
@@ -2076,14 +2126,16 @@ is representable as a value of type `index_type`.
 
 [3]{.pnum} *Effects:*
 
-  * [3.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`, and
+  * [3.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
-  * [3.2]{.pnum} if _`static-padding-stride`_ is equal to `dynamic_extent`,
+  * [3.2]{.pnum} if _`static-padding-stride`_ equals `dynamic_extent`,
       direct-non-list-initializes _`stride-rm2`_ with
 
-      * [3.2.1]{.pnum} `ext.extent(`_`rank_`_ ` - 1)` if `padding_value` is `dynamic_extent`, otherwise with
+      * [3.2.1]{.pnum} `ext.extent(`_`rank_`_ ` - 1)`
+          if `padding_value` is `dynamic_extent`, otherwise with
 
-      * [3.2.2]{.pnum} the least multiple of `padding_value` greater than or equal to `ext.extent(`_`rank_`_ ` - 1)`.
+      * [3.2.2]{.pnum} the least multiple of `padding_value`
+          greater than or equal to `ext.extent(`_`rank_`_ ` - 1)`.
 
 ```c++
 template<class OtherIndexType>
@@ -2111,10 +2163,12 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
 [6]{.pnum} *Effects:*
 
-  * [6.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`, and
+  * [6.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
-  * [6.2]{.pnum} if _`static-padding-stride`_ is equal to `dynamic_extent`,
-      direct-non-list-initializes _`stride-rm2`_ with the least multiple of `pad` greater than or equal to `ext.extent(`_`rank_`_ ` - 1)`.
+  * [6.2]{.pnum} if _`static-padding-stride`_ equals `dynamic_extent`,
+      direct-non-list-initializes _`stride-rm2`_
+      with the least multiple of `pad` greater than or equal to
+      `ext.extent(`_`rank_`_ ` - 1)`.
 
 ```c++
 template<class OtherExtents>
@@ -2179,7 +2233,9 @@ template<class OtherExtents>
 
   * [13.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [13.2]{.pnum} if `static-padding-stride` is equal to `dynamic_extent`, direct-non-list-initializes _`stride-rm2`_ with `other.stride(`_`rank_`_` - 2)`.
+  * [13.2]{.pnum} if `static-padding-stride` equals `dynamic_extent`,
+      direct-non-list-initializes _`stride-rm2`_ with
+      `other.stride(`_`rank_`_` - 2)`.
 
 ```c++
 template<class LayoutRightPaddedMapping>
@@ -2210,11 +2266,13 @@ template<class LayoutRightPaddedMapping>
 
   * [17.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [17.2]{.pnum} if `static-padding-stride` is equal to `dynamic_extent`,
-      direct-non-list-initializes _`stride-rm2`_ with `other.stride(`_`rank_`_` - 2)`.
+  * [17.2]{.pnum} if `static-padding-stride` equals `dynamic_extent`,
+      direct-non-list-initializes _`stride-rm2`_ with
+      `other.stride(`_`rank_`_` - 2)`.
 
 [18]{.pnum} *Remarks:*
-The expression inside `explicit` is equivalent to:_`rank_`_` > 1 && (padding_value != dynamic_extent || LayoutRightPaddedMapping::padding_value == dynamic_extent)`.
+The expression inside `explicit` is equivalent to:
+_`rank_`_` > 1 && (padding_value != dynamic_extent || LayoutRightPaddedMapping::padding_value == dynamic_extent)`.
 
 ```c++
 template<class LayoutLeftPaddedMapping>
@@ -2314,9 +2372,11 @@ constexpr index_type stride(rank_type r) const noexcept;
 
   * [9.1]{.pnum} `1`, if `r` equals _`rank_`_` - 1`; otherwise
 
-  * [9.2]{.pnum} _`stride-rm2`_`.extent(0)`, if `r` equals _`rank_`_` - 2`; otherwise
+  * [9.2]{.pnum} _`stride-rm2`_, if `r` equals _`rank_`_` - 2`; otherwise
 
-  * [9.3]{.pnum} the product of _`stride-rm2`_`.extent(0)` and all values _`extents_`_`.extent(k)` with `k` in the range of $[$`r + 1`, _`rank_`_` - 1` $)$.
+  * [9.3]{.pnum} the product of _`stride-rm2`_ and all values
+      _`extents_`_`.extent(k)` with `k` in the range of
+      $[$`r + 1`, _`rank_`_` - 1` $)$.
 
 ```c++
 template<class LayoutRightPaddedMapping>
