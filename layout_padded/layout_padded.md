@@ -2,7 +2,7 @@
 ---
 title: Padded mdspan layouts
 document: P2642
-date: 2023-12-05
+date: 2024-01-19
 audience: LEWG
 author:
   - name: Christian Trott (Sandia National Laboratories)
