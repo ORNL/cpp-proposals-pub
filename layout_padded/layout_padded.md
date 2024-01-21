@@ -1657,8 +1657,10 @@ index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_ex
 
 [5]{.pnum} *Recommended practice*: Implementations should not store
 this value if _`static-padding-stride`_ is not `dynamic_extent`.
+<i>[Note:</i>
 Using `extents<index_type,`_`static-padding-stride`_`>`
 instead of `index_type` as the type of _`stride-1`_ would achieve this.
+<i>-- end note]</i>
 
 ### Constructors [mdspan.layout.leftpadded.cons]
 
@@ -2101,8 +2103,10 @@ index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_
 
 [5]{.pnum} *Recommended practice*: Implementations should not store
 this value if _`static-padding-stride`_ is not `dynamic_extent`.
+<i>[Note:</i>
 Using `extents<index_type,`_`static-padding-stride`_`>`
 instead of `index_type` as the type of _`stride-rm2`_ would achieve this.
+<i>-- end note]</i>
 
 ### Constructors [mdspan.layout.rightpadded.cons]
 
