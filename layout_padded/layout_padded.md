@@ -2413,27 +2413,27 @@ template<class LayoutRightPaddedMapping>
 
 [1]{.pnum} The following elements apply to all functions in [mdspan.submdspan.mapping].
 
-[2]{.pnum} *Constraints:* `sizeof...(slices)` equals `extents_type::rank()`,
+[2]{.pnum} *Constraints:* `sizeof...(slices)` equals `extents_type::rank()`.
 
 [3]{.pnum} *Mandates:* For each rank index `k` of `extents()`, exactly one of the following is true:
 
-   * [3.1]{.pnum} $S_k$ models `convertible_to<index_type>`
+   * [3.1]{.pnum} $S_k$ models `convertible_to<index_type>`,
 
-   * [3.2]{.pnum} $S_k$ models _`index-pair-like`_`<index_type>`
+   * [3.2]{.pnum} $S_k$ models _`index-pair-like`_`<index_type>`,
 
-   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>` is `true`
+   * [3.3]{.pnum} `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, or
 
-   * [3.4]{.pnum} $S_k$ is a specialization of `strided_slice`
+   * [3.4]{.pnum} $S_k$ is a specialization of `strided_slice`.
 
 [4]{.pnum} *Preconditions:* For each rank index `k` of `extents()`, all of the following are true:
 
-   * [4.1]{.pnum}  if $S_k$ is a specialization of `strided_slice`
+   * [4.1]{.pnum} if $S_k$ is a specialization of `strided_slice`,
 
-      * $s_k$`.extent` $= 0$, or
+      * $s_k$`.extent` $= 0$ or
 
       * $s_k$`.stride` $\gt 0$; and
 
-   * [4.2]{.pnum} $0 \le$ _`first`_`_<index_type, k>(slices...)` $\le$ _`last_<k>`_`(extents(), slices...)` $\le$ `extents.extent(k)`.
+   * [4.2]{.pnum} $0 \le$ _`first_`_`<index_type, k>(slices...)` $\le$ _`last_`_`<k>(extents(), slices...)` $\le$ `extents.extent(k)`.
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
@@ -2443,9 +2443,9 @@ template<class LayoutRightPaddedMapping>
 
    * [6.2]{.pnum} otherwise, `stride(k)`.
 
-[7]{.pnum} Let `P`  be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
+[7]{.pnum} Let `P` be a parameter pack such that `is_same_v<make_index_sequence<rank()>, index_sequence<P...>>` is `true`.
 
-[8]{.pnum} Let `offset` be a value of type `size_t` equal to `(*this)(`_`first`_`_<index_type, P>(slices...)...)`.
+[8]{.pnum} Let `offset` be a value of type `size_t` equal to `(*this)(`_`first_`_`<index_type, P>(slices...)...)`.
 
 <b>24.7.3.7.6.2 `layout_left` specialization of `submdspan_mapping` [mdspan.submdspan.mapping.left]</b>
 
@@ -2453,7 +2453,7 @@ template<class LayoutRightPaddedMapping>
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_left::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
-    SliceSpecifiers ... slices) const -> @_see below_@;
+    SliceSpecifiers... slices) const -> @_see below_@;
 ```
 
 [1]{.pnum} *Returns:*
@@ -2468,7 +2468,7 @@ template<class LayoutRightPaddedMapping>
 
       <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
 
-   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<Extents::static_extent(0)>::mapping(sub_ext, extent(0)), offset}` if
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<Extents::static_extent(0)>::mapping(sub_ext, extent(0)), offset}`, if
 
       * $S_0$ models _`index-pair-like`_`<index_type>`; and
 
@@ -2478,14 +2478,13 @@ template<class LayoutRightPaddedMapping>
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
-
 <b>24.7.3.7.6.3 `layout_right` specialization of `submdspan_mapping` [mdspan.submdspan.mapping.right]</b>
 
 ```c++
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_right::mapping<Extents>::@_submdspan-mapping-impl_@(   // @_exposition only_@
-    SliceSpecifiers ... slices) const -> @_see below_@;
+    SliceSpecifiers... slices) const -> @_see below_@;
 ```
 
 [1]{.pnum} *Returns:*
@@ -2510,7 +2509,6 @@ template<class LayoutRightPaddedMapping>
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
-
 <b>24.7.3.7.6.4 `layout_stride` specialization of `submdspan_mapping` [mdspan.submdspan.mapping.stride]</b>
 
 ```c++
@@ -2532,7 +2530,7 @@ template<class LayoutRightPaddedMapping>
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_left_padded::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
-    SliceSpecifiers ... slices) const -> @_see below_@;
+    SliceSpecifiers... slices) const -> @_see below_@;
 ```
 
 [1]{.pnum} *Returns:*
@@ -2557,7 +2555,7 @@ template<class LayoutRightPaddedMapping>
   template<class Extents>
   template<class... SliceSpecifiers>
   constexpr auto layout_right_padded::mapping<Extents>::@_submdspan-mapping-impl_@(    // @_exposition only_@
-    SliceSpecifiers ... slices) const -> @_see below_@;
+    SliceSpecifiers... slices) const -> @_see below_@;
 ```
 
 [1]{.pnum} *Returns:*
@@ -2575,6 +2573,3 @@ template<class LayoutRightPaddedMapping>
       * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
-
-
-
