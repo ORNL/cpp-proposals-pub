@@ -1468,8 +1468,16 @@ constexpr bool @_is-layout-right-padded-mapping-of_@ = // exposition only
 -->
 
 > In Section � *[mdspan.layout.stride.cons]*,
-> change paragraph 9 (*Remarks* for the constructor
-> `layout_stride::mapping(const StridedLayoutMapping&)`)
+> for the following constructor
+> whose description starts on paragraph 6,
+
+```c++
+template<class StridedLayoutMapping>
+  constexpr explicit(@_see below_@)
+    mapping(const StridedLayoutMapping& other) noexcept;
+```
+
+> change paragraph 9 (*Remarks*)
 > by adding the two lines shown in green to the code expression
 > that follows the "is equivalent to" phrase.
 
