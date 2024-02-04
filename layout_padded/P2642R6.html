@@ -2007,28 +2007,40 @@ stride</em> <code>stride(1)</code> can be greater than or equal to
 <span id="cb29-76"><a href="#cb29-76" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb29-77"><a href="#cb29-77" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+If <code>Extents</code> is not a specialization of <code>extents</code>,
+then the program is ill-formed.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<code>layout_left_padded​::​mapping&lt;E&gt;</code> is a trivially
+copyable type that models <code>regular</code> for each
+<code>E</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 Throughout [mdspan.layout.leftpadded], let <code>P_rank</code> be the
 following size <code>extents_type::rank()</code> parameter pack of
 <code>size_t</code> values:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
 empty parameter pack, if <code>extents_type::rank()</code> equals zero;
 otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
 <code>0zu</code>, if <code>extents_type::rank()</code> equals one;
 otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> the
 parameter pack <code>0zu</code>, <code>1zu</code>, …,
 <code>extents_type::rank() - 1</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> If
+<code>Extents​::​rank_dynamic() == 0</code> is <code>true</code>, then the
+size of the multidimensional index space <code>Extents()</code> is
+representable as a value of type typename
+<code>Extents​::​index_type</code>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 <code>padding_value</code> is representable as a value of type
 <code>index_type</code>; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-If</p>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
+if</p>
 <ul>
 <li><p><code>extents_type::rank()</code> is greater than one,</p></li>
 <li><p><code>padding_value</code> does not equal
@@ -2091,12 +2103,18 @@ note]</i></p>
 <code>mapping(extents_type{});</code>.</p>
 <div class="sourceCode" id="cb33"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em> If <code>extents_type::rank()</code> is greater
-than one and <code>padding_value</code> does not equal
-<code>dynamic_extent</code>, then the least multiple of
-<code>padding_value</code> greater than or equal to
-<code>ext.extent(0)</code> is representable as a value of type
-<code>index_type</code>.</p>
+<em>Preconditions:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> The
+size of the multidimensional index space <code>ext</code> is
+representable as a value of type <code>index_type</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> If
+<code>extents_type::rank()</code> is greater than one and
+<code>padding_value</code> does not equal <code>dynamic_extent</code>,
+then the least multiple of <code>padding_value</code> greater than or
+equal to <code>ext.extent(0)</code> is representable as a value of type
+<code>index_type</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -2131,18 +2149,21 @@ is <code>true</code>.</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-<code>pad</code> is representable as a value of type
-<code>index_type</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> The
+size of the multidimensional index space <code>ext</code> is
+representable as a value of type <code>index_type</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
+<code>pad</code> is representable as a value of type
+<code>index_type</code>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
 <code>extents_type::</code><em><code>index-cast</code></em><code>(pad)</code>
-is greater than zero,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span> if
+is greater than zero;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span> if
 <code>extents_type::rank()</code> is greater than one, then the least
 multiple of <code>pad</code> greater than or equal to
 <code>ext.extent(0)</code> is representable as a value of type
-<code>index_type</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span> if
+<code>index_type</code>; and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.5)</a></span> if
 <code>padding_value</code> is not equal to <code>dynamic_extent</code>,
 <code>padding_value</code> equals
 <code>extents_type::</code><em><code>index-cast</code></em><code>(pad)</code>.</p></li>
@@ -2521,28 +2542,40 @@ than or equal to
 <span id="cb46-79"><a href="#cb46-79" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb46-80"><a href="#cb46-80" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+If <code>Extents</code> is not a specialization of <code>extents</code>,
+then the program is ill-formed.</p>
+<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<code>layout_right_padded​::​mapping&lt;E&gt;</code> is a trivially
+copyable type that models <code>regular</code> for each
+<code>E</code>.</p>
+<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 Throughout [mdspan.layout.rightpadded], let <code>P_rank</code> be the
 following size <code>extents_type::rank()</code> parameter pack of
 <code>size_t</code> values:</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span> the
 empty parameter pack, if <code>extents_type::rank()</code> equals zero;
 otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
 <code>0zu</code>, if <code>extents_type::rank()</code> equals one;
 otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> the
 parameter pack <code>0zu</code>, <code>1zu</code>, …,
 <code>extents_type::rank() - 1</code>.</p></li>
 </ul>
-<p><span class="marginalizedparent"><a class="marginalized">3</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Mandates:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> If
+<code>Extents​::​rank_dynamic() == 0</code> is <code>true</code>, then the
+size of the multidimensional index space <code>Extents()</code> is
+representable as a value of type typename
+<code>Extents​::​index_type</code>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 <code>padding_value</code> is representable as a value of type
 <code>index_type</code>; and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(3.2)</a></span>
-If</p>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
+if</p>
 <ul>
 <li><p><code>extents_type::rank()</code> is greater than one,</p></li>
 <li><p><code>padding_value</code> does not equal
@@ -2593,12 +2626,19 @@ note]</i></p>
 <code>mapping(extents_type{});</code>.</p>
 <div class="sourceCode" id="cb50"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> mapping<span class="op">(</span><span class="kw">const</span> extents_type<span class="op">&amp;</span> ext<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
-<em>Preconditions:</em> If <em><code>rank_</code></em> is greater than
-one and <code>padding_value</code> does not equal
-<code>dynamic_extent</code>, then the least multiple of
-<code>padding_value</code> greater than or equal to
-<code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code> is
-representable as a value of type <code>index_type</code>.</p>
+<em>Preconditions:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span> The
+size of the multidimensional index space <code>ext</code> is
+representable as a value of type <code>index_type</code>.</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> If
+<em><code>rank_</code></em> is greater than one and
+<code>padding_value</code> does not equal <code>dynamic_extent</code>,
+then the least multiple of <code>padding_value</code> greater than or
+equal to <code>ext.extent(</code><em><code>rank_</code></em>
+<code>- 1)</code> is representable as a value of type
+<code>index_type</code>.</p></li>
+</ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em></p>
 <ul>
@@ -2635,18 +2675,21 @@ is <code>true</code>.</p></li>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Preconditions:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-<code>pad</code> is representable as a value of type
-<code>index_type</code>,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> The
+size of the multidimensional index space <code>ext</code> is
+representable as a value of type <code>index_type</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
+<code>pad</code> is representable as a value of type
+<code>index_type</code>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
 <code>extents_type::</code><em><code>index-cast</code></em><code>(pad)</code>
-is greater than zero,</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span> if
+is greater than zero;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span> if
 <em><code>rank_</code></em> is greater than one, then the least multiple
 of <code>pad</code> greater than or equal to
 <code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code> is
-representable as a value of type <code>index_type</code>, and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span> if
+representable as a value of type <code>index_type</code>; and</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.5)</a></span> if
 <code>padding_value</code> is not equal to <code>dynamic_extent</code>,
 <code>padding_value</code> equals
 <code>extents_type::</code><em><code>index-cast</code></em><code>(pad)</code>.</p></li>

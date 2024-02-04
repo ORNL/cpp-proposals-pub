@@ -1599,19 +1599,25 @@ private:
 };
 ```
 
-[2]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
+[2]{.pnum} If `Extents` is not a specialization of `extents`, then the program is ill-formed.
 
-  * [2.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
+[3]{.pnum} `layout_left_padded​::​mapping<E>` is a trivially copyable type that models `regular` for each `E`.
 
-  * [2.2]{.pnum} `0zu`, if `extents_type::rank()` equals one; otherwise
+[4]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
 
-  * [2.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
+  * [4.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
 
-[3]{.pnum} *Mandates:* 
+  * [4.2]{.pnum} `0zu`, if `extents_type::rank()` equals one; otherwise
 
-  * [3.1]{.pnum} `padding_value` is representable as a value of type `index_type`; and
+  * [4.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
 
-  * [3.2]{.pnum} If
+[5]{.pnum} *Mandates:*
+
+  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`;
+
+  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`; and
+
+  * [5.3]{.pnum} if
 
     * `extents_type::rank()` is greater than one,
 
@@ -1684,11 +1690,15 @@ constexpr mapping(const extents_type& ext);
 ```
 
 [2]{.pnum} *Preconditions:*
-If `extents_type::rank()` is greater than one
-and `padding_value` does not equal `dynamic_extent`,
-then the least multiple of `padding_value`
-greater than or equal to `ext.extent(0)`
-is representable as a value of type `index_type`.
+
+  * [2.1]{.pnum} The size of the multidimensional index space `ext`
+    is representable as a value of type `index_type`.
+
+  * [2.2]{.pnum} If `extents_type::rank()` is greater than one
+    and `padding_value` does not equal `dynamic_extent`,
+    then the least multiple of `padding_value`
+    greater than or equal to `ext.extent(0)`
+    is representable as a value of type `index_type`.
 
 [3]{.pnum} *Effects:*
 
@@ -1716,16 +1726,19 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
 [5]{.pnum} *Preconditions:*
 
-  * [5.1]{.pnum} `pad` is representable as a value of type `index_type`,
+  * [5.1]{.pnum} The size of the multidimensional index space `ext`
+    is representable as a value of type `index_type`;
 
-  * [5.2]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero,
+  * [5.2]{.pnum} `pad` is representable as a value of type `index_type`;
 
-  * [5.3]{.pnum} if `extents_type::rank()` is greater than one,
+  * [5.3]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero;
+
+  * [5.4]{.pnum} if `extents_type::rank()` is greater than one,
       then the least multiple of `pad`
       greater than or equal to `ext.extent(0)`
-      is representable as a value of type `index_type`, and
+      is representable as a value of type `index_type`; and
 
-  * [5.4]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
+  * [5.5]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
 
 [6]{.pnum} *Effects:*
 
@@ -2075,19 +2088,25 @@ private:
 };
 ```
 
-[2]{.pnum} Throughout [mdspan.layout.rightpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
+[2]{.pnum} If `Extents` is not a specialization of `extents`, then the program is ill-formed.
 
-  * [2.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
+[3]{.pnum} `layout_right_padded​::​mapping<E>` is a trivially copyable type that models `regular` for each `E`.
 
-  * [2.2]{.pnum} `0zu`, if `extents_type::rank()` equals one; otherwise
+[4]{.pnum} Throughout [mdspan.layout.rightpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
 
-  * [2.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
+  * [4.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
 
-[3]{.pnum} *Mandates:*
+  * [4.2]{.pnum} `0zu`, if `extents_type::rank()` equals one; otherwise
 
-  * [3.1]{.pnum} `padding_value` is representable as a value of type `index_type`; and
+  * [4.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
 
-  * [3.2]{.pnum} If
+[5]{.pnum} *Mandates:*
+
+  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`;
+
+  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`; and
+
+  * [5.3]{.pnum} if
 
     * `extents_type::rank()` is greater than one,
 
@@ -2148,11 +2167,15 @@ constexpr mapping(const extents_type& ext);
 ```
 
 [2]{.pnum} *Preconditions:*
-If _`rank_`_ is greater than one
-and `padding_value` does not equal `dynamic_extent`,
-then the least multiple of `padding_value`
-greater than or equal to `ext.extent(`_`rank_`_ ` - 1)`
-is representable as a value of type `index_type`.
+
+  * [2.1]{.pnum} The size of the multidimensional index space `ext`
+    is representable as a value of type `index_type`.
+
+  * [2.2]{.pnum} If _`rank_`_ is greater than one
+    and `padding_value` does not equal `dynamic_extent`,
+    then the least multiple of `padding_value`
+    greater than or equal to `ext.extent(`_`rank_`_ ` - 1)`
+    is representable as a value of type `index_type`.
 
 [3]{.pnum} *Effects:*
 
@@ -2180,16 +2203,19 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
 [5]{.pnum} *Preconditions:*
 
-  * [5.1]{.pnum} `pad` is representable as a value of type `index_type`,
+  * [5.1]{.pnum} The size of the multidimensional index space `ext`
+    is representable as a value of type `index_type`;
 
-  * [5.2]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero,
+  * [5.2]{.pnum} `pad` is representable as a value of type `index_type`;
 
-  * [5.3]{.pnum} if _`rank_`_ is greater than one,
+  * [5.3]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero;
+
+  * [5.4]{.pnum} if _`rank_`_ is greater than one,
       then the least multiple of `pad`
       greater than or equal to `ext.extent(`_`rank_`_ ` - 1)`
-      is representable as a value of type `index_type`, and
+      is representable as a value of type `index_type`; and
 
-  * [5.4]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
+  * [5.5]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
 
 [6]{.pnum} *Effects:*
 
