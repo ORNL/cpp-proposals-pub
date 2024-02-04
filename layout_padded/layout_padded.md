@@ -1745,11 +1745,15 @@ template<class OtherExtents>
 [7]{.pnum} *Constraints:*
 `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[8]{.pnum} *Mandates:*
-If `OtherExtents::rank() > 1`,
-_`static-padding-stride`_ does not equal `dynamic_extent`,
-and `OtherExtents::static_extent(0)`
-does not equal `dynamic_extent`,
+[8]{.pnum} *Mandates:* If
+
+  * `OtherExtents::rank() > 1`,
+
+  * _`static-padding-stride`_ does not equal `dynamic_extent`, and
+
+  * `OtherExtents::static_extent(0)`
+    does not equal `dynamic_extent`,
+
 then _`static-padding-stride`_ equals
 `OtherExtents::static_extent(0)`.
 
@@ -2191,11 +2195,15 @@ template<class OtherExtents>
 [7]{.pnum} *Constraints:*
 `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[8]{.pnum} *Mandates:*
-If `OtherExtents::rank() > 1`,
-_`static-padding-stride`_ does not equal `dynamic_extent`,
-and `OtherExtents::static_extent(`_`rank_`_` - 1)`
-does not equal `dynamic_extent`,
+[8]{.pnum} *Mandates:* If
+
+  * If `OtherExtents::rank() > 1`,
+
+  * _`static-padding-stride`_ does not equal `dynamic_extent`, and
+
+  * `OtherExtents::static_extent(`_`rank_`_` - 1)`
+    does not equal `dynamic_extent`,
+
 then _`static-padding-stride`_ equals
 `OtherExtents::static_extent(`_`rank_`_` - 1)`.
 
