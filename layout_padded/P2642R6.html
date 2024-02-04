@@ -2218,7 +2218,17 @@ type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 <code>extents_type::rank() &gt; 2</code> is <code>true</code>, then for
 all <code>r</code> in the range <span class="math inline">[</span>
 <code>2</code>, <code>extents_type::rank()</code><span class="math inline">)</span>, <code>other.stride(r)</code> equals
-<code>other.extents().</code><em><code>fwd-prod-of-extents(r)</code></em><code>/ other.extents().extent(0) * other.stride(1)</code>.</p></li>
+<code>(other.extents().</code><em><code>fwd-prod-of-extents</code></em><code>(r) / other.extents().extent(0)) * other.stride(1)</code>.
+<!--
+    TODO (mfh 2024/02/04) Do something reasonable
+    if `other.extents().extent(0)` is zero.
+    This is a general issue with other constructors as well,
+    e.g., if `padding_value` is zero.
+    The two-parameter constructor `mapping(ext, pad)` has a precondition
+    that `extents_type::`_`index-cast`_`(pad)` is greater than zero.
+
+    See https://github.com/ORNL/cpp-proposals-pub/issues/442 .
+    --></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.4)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
@@ -2718,7 +2728,17 @@ equals 1.</p></li>
 <em><code>rank_</code></em><code>&gt; 2</code> is <code>true</code>,
 then for all <code>r</code> in the range <span class="math inline">[</span> <code>0</code>,
 <em><code>rank_</code></em><code>- 2</code><span class="math inline">)</span>, <code>other.stride(r)</code> equals
-<code>other.extents().</code><em><code>rev-prod-of-extents(r)</code></em><code>/ other.extents().extent(</code><em><code>rank_</code></em><code>- 1) * other.stride(</code><em><code>rank_</code></em><code>- 2)</code>.</p></li>
+<code>(other.extents().</code><em><code>rev-prod-of-extents</code></em><code>(r) / other.extents().extent(</code><em><code>rank_</code></em><code>- 1)) * other.stride(</code><em><code>rank_</code></em><code>- 2)</code>.
+<!--
+    TODO (mfh 2024/02/04) Do something reasonable
+    if `other.extents().extent(`_`rank_`_` - 1)` is zero.
+    This is a general issue with other constructors as well,
+    e.g., if `padding_value` is zero.
+    The two-parameter constructor `mapping(ext, pad)` has a precondition
+    that `extents_type::`_`index-cast`_`(pad)` is greater than zero.
+
+    See https://github.com/ORNL/cpp-proposals-pub/issues/442 .
+    --></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.4)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>

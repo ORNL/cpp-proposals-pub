@@ -1793,7 +1793,20 @@ template<class OtherExtents>
   * [12.2]{.pnum} If `extents_type::rank() > 0` is `true`,
       then `other.stride(0)` equals 1.
 
-  * [12.3]{.pnum} If `extents_type::rank() > 2` is `true`, then for all `r` in the range $[$ `2`, `extents_type::rank()`$)$, `other.stride(r)` equals `other.extents().`_`fwd-prod-of-extents(r)`_` / other.extents().extent(0) * other.stride(1)`.
+  * [12.3]{.pnum} If `extents_type::rank() > 2` is `true`,
+    then for all `r` in the range $[$ `2`, `extents_type::rank()`$)$,
+    `other.stride(r)` equals
+    `(other.extents().`_`fwd-prod-of-extents`_`(r) / other.extents().extent(0)) * other.stride(1)`.
+    <!--
+    TODO (mfh 2024/02/04) Do something reasonable
+    if `other.extents().extent(0)` is zero.
+    This is a general issue with other constructors as well,
+    e.g., if `padding_value` is zero.
+    The two-parameter constructor `mapping(ext, pad)` has a precondition
+    that `extents_type::`_`index-cast`_`(pad)` is greater than zero.
+
+    See https://github.com/ORNL/cpp-proposals-pub/issues/442 .
+    -->
 
   * [12.4]{.pnum} `other.required_span_size()`
       is representable as a value of type `index_type`
@@ -2244,7 +2257,20 @@ template<class OtherExtents>
   * [12.2]{.pnum} If _`rank_`_` > 0` is `true`,
       then `other.stride(`_`rank_`_` - 1)` equals 1.
 
-  * [12.3]{.pnum} If _`rank_`_` > 2` is `true`, then for all `r` in the range $[$ `0`, _`rank_`_` - 2`$)$, `other.stride(r)` equals `other.extents().`_`rev-prod-of-extents(r)`_` / other.extents().extent(`_`rank_`_` - 1) * other.stride(`_`rank_`_` - 2)`.
+  * [12.3]{.pnum} If _`rank_`_` > 2` is `true`,
+    then for all `r` in the range $[$ `0`, _`rank_`_` - 2`$)$,
+    `other.stride(r)` equals
+    `(other.extents().`_`rev-prod-of-extents`_`(r) / other.extents().extent(`_`rank_`_` - 1)) * other.stride(`_`rank_`_` - 2)`.
+    <!--
+    TODO (mfh 2024/02/04) Do something reasonable
+    if `other.extents().extent(`_`rank_`_` - 1)` is zero.
+    This is a general issue with other constructors as well,
+    e.g., if `padding_value` is zero.
+    The two-parameter constructor `mapping(ext, pad)` has a precondition
+    that `extents_type::`_`index-cast`_`(pad)` is greater than zero.
+
+    See https://github.com/ORNL/cpp-proposals-pub/issues/442 .
+    -->
 
   * [12.4]{.pnum} `other.required_span_size()`
       is representable as a value of type `index_type`
