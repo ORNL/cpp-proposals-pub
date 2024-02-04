@@ -1537,10 +1537,7 @@ private:
 
 public:
   // [mdspan.layout.leftpadded.cons], constructors
-  constexpr mapping() 
-    requires(@_static-padding-stride_@ != dynamic_extent) noexcept = default;
-  constexpr mapping()
-    requires(@_static-padding-stride_@ == dynamic_extent) noexcept;
+  constexpr mapping() noexcept;
   constexpr mapping(const mapping&) noexcept = default;
   constexpr mapping(const extents_type& ext);
   template<class OtherIndexType>
@@ -1673,8 +1670,7 @@ instead of `index_type` as the type of _`stride-1`_ would achieve this.
 ### Constructors [mdspan.layout.leftpadded.cons]
 
 ```c++
-constexpr mapping() 
-  requires(@_static-padding-stride == dynamic_extent_@) noexcept;
+constexpr mapping() noexcept;
 ```
 
 [1]{.pnum} *Effects:* Equivalent to `mapping(extents_type{});`.
@@ -1995,10 +1991,7 @@ private:
 
 public:
   // [mdspan.layout.rightpadded.cons], constructors
-  constexpr mapping() 
-    requires(@_static-padding-stride_@ != dynamic_extent) noexcept = default;
-  constexpr mapping()
-    requires(@_static-padding-stride_@ == dynamic_extent) noexcept;
+  constexpr mapping() noexcept;
   constexpr mapping(const mapping&) noexcept = default;
   constexpr mapping(const extents_type& ext);
   template<class OtherIndexType>
@@ -2119,8 +2112,7 @@ instead of `index_type` as the type of _`stride-rm2`_ would achieve this.
 ### Constructors [mdspan.layout.rightpadded.cons]
 
 ```c++
-constexpr mapping() 
-  requires(@_static-padding-stride == dynamic_extent_@) noexcept;
+constexpr mapping() noexcept;
 ```
 
 [1]{.pnum} *Effects:* Equivalent to `mapping(extents_type{});`.
