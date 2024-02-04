@@ -1890,8 +1890,9 @@ is representable as a value of type `index_type`
 [22]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to: `! is_convertible_v<typename LayoutRightPaddedMapping::extents_type, extents_type>`.
 
-<i>[Note:</i> Neither mapping uses the padding stride
-in the rank-0 or rank-1 case, so the padding stride does not affect
+<i>[Note:</i> Neither the input mapping nor the mapping to be constructed
+uses the padding stride in the rank-0 or rank-1 case,
+so the padding stride does not affect
 either the constraints or the preconditions. <i>-- end note]</i>
 
 ### Observers [mdspan.layout.leftpadded.obs]
@@ -2363,8 +2364,9 @@ is representable as a value of type `index_type`
 [22]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to: `! is_convertible_v<typename LayoutLeftPaddedMapping::extents_type, extents_type>`.
 
-<i>[Note:</i> Neither mapping uses the padding stride
-in the rank-0 or rank-1 case, so the padding stride does not affect
+<i>[Note:</i> Neither the input mapping nor the mapping to be constructed
+uses the padding stride in the rank-0 or rank-1 case,
+so the padding stride does not affect
 either the constraints or the preconditions. <i>-- end note]</i>
 
 ### Observers [mdspan.layout.rightpadded.obs]
