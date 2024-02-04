@@ -1819,7 +1819,8 @@ template<class LayoutLeftPaddedMapping>
 
 * [14.2]{.pnum} `is_constructible_v<extents_type, typename LayoutLeftPaddedMapping::extents_type>` is `true`.
 
-[15]{.pnum} *Mandates:* `padding_value == dynamic_extent || LayoutLeftPaddedMapping::padding_value == dynamic_extent || padding_value == LayoutLeftPaddedMapping::padding_value` is `true`.
+[15]{.pnum} *Mandates:* If `extents_type::rank() > 1` is `true`, then
+`padding_value == dynamic_extent || LayoutLeftPaddedMapping::padding_value == dynamic_extent || padding_value == LayoutLeftPaddedMapping::padding_value` is `true`.
 
 [16]{.pnum} *Preconditions:*
 
@@ -2269,7 +2270,8 @@ template<class LayoutRightPaddedMapping>
 
 * [14.2]{.pnum} `is_constructible_v<extents_type, typename LayoutRightPaddedMapping::extents_type>` is `true`.
 
-[15]{.pnum} *Mandates:* `padding_value == dynamic_extent || LayoutRightPaddedMapping::padding_value == dynamic_extent || padding_value == LayoutRightPaddedMapping::padding_value` is `true`.
+[15]{.pnum} *Mandates:* If _`rank_`_` > 1` is `true`, then
+`padding_value == dynamic_extent || LayoutRightPaddedMapping::padding_value == dynamic_extent || padding_value == LayoutRightPaddedMapping::padding_value` is `true`.
 
 [16]{.pnum} *Preconditions:*
 
