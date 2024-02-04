@@ -1607,20 +1607,24 @@ private:
 
   * [2.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
 
-[3]{.pnum} *Mandates:* If
+[3]{.pnum} *Mandates:* 
 
-* `extents_type::rank()` is greater than one,
+  * [3.1]{.pnum} `padding_value` is representable as a value of type `index_type`; and
 
-* `padding_value` does not equal `dynamic_extent`, and
+  * [3.2]{.pnum} If
 
-* `extents_type::static_extent(0)`
-    does not equal `dynamic_extent`,
+    * `extents_type::rank()` is greater than one,
 
-then the least multiple of `padding_value`
-that is greater than or equal to
-`extents_type::static_extent(0)`
-is representable as a value of type `size_t`,
-and is representable as a value of type `index_type`.
+    * `padding_value` does not equal `dynamic_extent`, and
+
+    * `extents_type::static_extent(0)`
+      does not equal `dynamic_extent`,
+
+  then the least multiple of `padding_value`
+  that is greater than or equal to
+  `extents_type::static_extent(0)`
+  is representable as a value of type `size_t`,
+  and is representable as a value of type `index_type`.
 
 ```c++
 static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
@@ -2061,20 +2065,24 @@ private:
 
   * [2.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
 
-[3]{.pnum} *Mandates:* If
+[3]{.pnum} *Mandates:*
 
-* `extents_type::rank()` is greater than one,
+  * [3.1]{.pnum} `padding_value` is representable as a value of type `index_type`; and
 
-* `padding_value` does not equal `dynamic_extent`, and
+  * [3.2]{.pnum} If
 
-* _`last-static-extent`_
-    does not equal `dynamic_extent`,
+    * `extents_type::rank()` is greater than one,
 
-then the least multiple of `padding_value`
-that is greater than or equal to
-_`last-static-extent`_
-is representable as a value of type `size_t`,
-and is representable as a value of type `index_type`.
+    * `padding_value` does not equal `dynamic_extent`, and
+
+    * _`last-static-extent`_
+      does not equal `dynamic_extent`,
+
+  then the least multiple of `padding_value`
+  that is greater than or equal to
+  _`last-static-extent`_
+  is representable as a value of type `size_t`,
+  and is representable as a value of type `index_type`.
 
 ```c++
 static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
