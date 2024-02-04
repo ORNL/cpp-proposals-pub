@@ -1544,7 +1544,7 @@ public:
   constexpr mapping(const mapping&) noexcept = default;
   constexpr mapping(const extents_type& ext);
   template<class OtherIndexType>
-    constexpr mapping(const extents_type& ext, OtherIndexType padding_value);
+    constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
   template<class OtherExtents>
     constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
@@ -2002,7 +2002,7 @@ public:
   constexpr mapping(const mapping&) noexcept = default;
   constexpr mapping(const extents_type& ext);
   template<class OtherIndexType>
-    constexpr mapping(const extents_type& ext, OtherIndexType padding_value);
+    constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
   template<class OtherExtents>
     constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
