@@ -1879,6 +1879,15 @@ constexpr bool @_is-layout-right-padded-mapping-of_@ = // exposition only
   @_is-layout-right-padded_@<typename Mapping::layout_type>::value;
 ```
 -->
+<p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span> For
+nonnegative integers <span class="math inline"><em>x</em></span> and
+<span class="math inline"><em>y</em></span>, let <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(<em>x</em>,<em>y</em>)</span>
+denote</p>
+<ul>
+<li><p><span class="math inline"><em>y</em></span> if <span class="math inline"><em>x</em></span> is zero, otherwise</p></li>
+<li><p>the least multiple of <span class="math inline"><em>x</em></span>
+that is greater than or equal to <span class="math inline"><em>y</em></span>.</p></li>
+</ul>
 <blockquote>
 <p>In Section � <em>[mdspan.layout.stride.cons]</em>, for the following
 constructor whose description starts on paragraph 6,</p>
@@ -2049,10 +2058,11 @@ if</p>
 <code>dynamic_extent</code>,</p></li>
 </ul></li>
 </ul>
-<p>then the least multiple of <code>padding_value</code> that is greater
-than or equal to <code>extents_type::static_extent(0)</code> is
-representable as a value of type <code>size_t</code>, and is
-representable as a value of type <code>index_type</code>.</p>
+<p>then <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>extents_type::static_extent(0)</code> <span class="math inline">)</span> is representable as a value of type
+<code>size_t</code>, and is representable as a value of type
+<code>index_type</code>.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* <em>see-below</em> */</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 The value is</p>
@@ -2065,9 +2075,9 @@ otherwise</p></li>
 <code>extents_type::static_extent(0)</code> equals
 <code>dynamic_extent</code>; otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> the
-<code>size_t</code> value which is the least multiple of
-<code>padding_value</code> that is greater than or equal to
-<code>extents_type::static_extent(0)</code>.</p></li>
+<code>size_t</code> value which is <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>extents_type::static_extent(0)</code> <span class="math inline">)</span>.</p></li>
 </ul>
 <!--
 NOTE (mfh 2024/01/18) Previously, we specified _`stride-1`_
@@ -2111,9 +2121,10 @@ representable as a value of type <code>index_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> If
 <code>extents_type::rank()</code> is greater than one and
 <code>padding_value</code> does not equal <code>dynamic_extent</code>,
-then the least multiple of <code>padding_value</code> greater than or
-equal to <code>ext.extent(0)</code> is representable as a value of type
-<code>index_type</code>.</p></li>
+then <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>ext.extent(0)</code> <span class="math inline">)</span> is
+representable as a value of type <code>index_type</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
 <em>Effects:</em></p>
@@ -2128,8 +2139,9 @@ direct-non-list-initializes <em><code>stride-1</code></em> with</p>
 <code>ext.extent(0)</code> if <code>padding_value</code> is
 <code>dynamic_extent</code>, otherwise with</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2.2)</a></span>
-the least multiple of <code>padding_value</code> greater than or equal
-to <code>ext.extent(0)</code>.</p></li>
+<span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>ext.extent(0)</code> <span class="math inline">)</span>.</p></li>
 </ul></li>
 </ul>
 <div class="sourceCode" id="cb34"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherIndexType<span class="op">&gt;</span></span>
@@ -2157,10 +2169,10 @@ representable as a value of type <code>index_type</code>;</p></li>
 <code>extents_type::</code><em><code>index-cast</code></em><code>(pad)</code>
 is greater than zero;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span> if
-<code>extents_type::rank()</code> is greater than one, then the least
-multiple of <code>pad</code> greater than or equal to
-<code>ext.extent(0)</code> is representable as a value of type
-<code>index_type</code>; and</p></li>
+<code>extents_type::rank()</code> is greater than one, then <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>pad</code> <span class="math inline">,</span>
+<code>ext.extent(0)</code> <span class="math inline">)</span> is
+representable as a value of type <code>index_type</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.5)</a></span> if
 <code>padding_value</code> is not equal to <code>dynamic_extent</code>,
 <code>padding_value</code> equals
@@ -2173,9 +2185,9 @@ multiple of <code>pad</code> greater than or equal to
 Direct-non-list-initializes <em><code>extents_</code></em> with
 <code>ext</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
-direct-non-list-initializes <em><code>stride-1</code></em> with the
-least multiple of <code>pad</code> greater than or equal to
-<code>ext.extent(0)</code>.</p></li>
+direct-non-list-initializes <em><code>stride-1</code></em> with <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>pad</code> <span class="math inline">,</span>
+<code>ext.extent(0)</code> <span class="math inline">)</span>.</p></li>
 </ul>
 <div class="sourceCode" id="cb35"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
@@ -2201,10 +2213,10 @@ least multiple of <code>pad</code> greater than or equal to
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.1)</a></span> If
 <code>extents_type::rank() &gt; 1</code> is <code>true</code> and
 <code>padding_value == dynamic_extent</code> is <code>false</code>, then
-<code>other.stride(1)</code> equals the least multiple of
-<code>padding_value</code> greater than or equal to
-<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(0))</code>;
-and</p></li>
+<code>other.stride(1)</code> equals <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(0))</code>
+<span class="math inline">)</span>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
@@ -2225,9 +2237,10 @@ type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.1)</a></span> If
 <code>extents_type::rank() &gt; 1</code> is <code>true</code> and
 <code>padding_value == dynamic_extent</code> is <code>false</code>, then
-<code>other.stride(1)</code> equals the least multiple of
-<code>padding_value</code> greater than or equal to
-<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(0))</code>.</p></li>
+<code>other.stride(1)</code> equals <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(0))</code>
+<span class="math inline">)</span>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span> If
 <code>extents_type::rank() &gt; 0</code> is <code>true</code>, then
 <code>other.stride(0)</code> equals 1.</p></li>
@@ -2284,9 +2297,10 @@ is <code>true</code>.</p>
 <li><p><span class="marginalizedparent"><a class="marginalized">(16.1)</a></span> If
 <code>extents_type::rank() &gt; 1</code> is <code>true</code> and
 <code>padding_value</code> does not equal <code>dynamic_extent</code>,
-then <code>other.stride(1)</code> equals the least multiple of
-<code>padding_value</code> greater than or equal to
-<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extent(0))</code>.</p></li>
+then <code>other.stride(1)</code> equals <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extent(0))</code>
+<span class="math inline">)</span>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(16.2)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
@@ -2579,10 +2593,11 @@ if</p>
 <code>dynamic_extent</code>,</p></li>
 </ul></li>
 </ul>
-<p>then the least multiple of <code>padding_value</code> that is greater
-than or equal to <em><code>last-static-extent</code></em> is
-representable as a value of type <code>size_t</code>, and is
-representable as a value of type <code>index_type</code>.</p>
+<p>then <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<em><code>last-static-extent</code></em> <span class="math inline">)</span> is representable as a value of type
+<code>size_t</code>, and is representable as a value of type
+<code>index_type</code>.</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* <em>see-below</em> */</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 The value is</p>
@@ -2595,9 +2610,9 @@ otherwise</p></li>
 <em><code>last-static-extent</code></em> equals
 <code>dynamic_extent</code>; otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> the
-<code>size_t</code> value which is the least multiple of
-<code>padding_value</code> that is greater than or equal to
-<em><code>last-static-extent</code></em>.</p></li>
+<code>size_t</code> value which is <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<em><code>last-static-extent</code></em> <span class="math inline">)</span>.</p></li>
 </ul>
 <!--
 NOTE (mfh 2024/01/18) Above comments on
@@ -2629,9 +2644,10 @@ representable as a value of type <code>index_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span> If
 <em><code>rank_</code></em> is greater than one and
 <code>padding_value</code> does not equal <code>dynamic_extent</code>,
-then the least multiple of <code>padding_value</code> greater than or
-equal to <code>ext.extent(</code><em><code>rank_</code></em>
-<code>- 1)</code> is representable as a value of type
+then <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code>
+<span class="math inline">)</span> is representable as a value of type
 <code>index_type</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
@@ -2648,9 +2664,10 @@ direct-non-list-initializes <em><code>stride-rm2</code></em> with</p>
 <code>padding_value</code> is <code>dynamic_extent</code>, otherwise
 with</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(3.2.2)</a></span>
-the least multiple of <code>padding_value</code> greater than or equal
-to <code>ext.extent(</code><em><code>rank_</code></em>
-<code>- 1)</code>.</p></li>
+<span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code>
+<span class="math inline">)</span>.</p></li>
 </ul></li>
 </ul>
 <div class="sourceCode" id="cb51"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherIndexType<span class="op">&gt;</span></span>
@@ -2678,10 +2695,11 @@ representable as a value of type <code>index_type</code>;</p></li>
 <code>extents_type::</code><em><code>index-cast</code></em><code>(pad)</code>
 is greater than zero;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span> if
-<em><code>rank_</code></em> is greater than one, then the least multiple
-of <code>pad</code> greater than or equal to
-<code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code> is
-representable as a value of type <code>index_type</code>; and</p></li>
+<em><code>rank_</code></em> is greater than one, then <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>pad</code> <span class="math inline">,</span>
+<code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code>
+<span class="math inline">)</span> is representable as a value of type
+<code>index_type</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.5)</a></span> if
 <code>padding_value</code> is not equal to <code>dynamic_extent</code>,
 <code>padding_value</code> equals
@@ -2694,10 +2712,10 @@ representable as a value of type <code>index_type</code>; and</p></li>
 Direct-non-list-initializes <em><code>extents_</code></em> with
 <code>ext</code>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
-direct-non-list-initializes <em><code>stride-rm2</code></em> with the
-least multiple of <code>pad</code> greater than or equal to
-<code>ext.extent(</code><em><code>rank_</code></em>
-<code>- 1)</code>.</p></li>
+direct-non-list-initializes <em><code>stride-rm2</code></em> with <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>pad</code> <span class="math inline">,</span>
+<code>ext.extent(</code><em><code>rank_</code></em> <code>- 1)</code>
+<span class="math inline">)</span>.</p></li>
 </ul>
 <div class="sourceCode" id="cb52"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> OtherExtents<span class="op">&gt;</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="kw">explicit</span><span class="op">(!</span> is_convertible_v<span class="op">&lt;</span>OtherExtents, extents_type<span class="op">&gt;)</span></span>
@@ -2724,10 +2742,10 @@ does not equal <code>dynamic_extent</code>,</p></li>
 <em><code>rank_</code></em> <code>&gt; 1</code> is <code>true</code> and
 <code>padding_value == dynamic_extent</code> is <code>false</code>, then
 <code>other.stride(</code><em><code>rank_</code></em><code>- 2)</code>
-equals the least multiple of <code>padding_value</code> greater than or
-equal to
-<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(</code><em><code>rank_</code></em><code>- 1))</code>;
-and</p></li>
+equals <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(</code><em><code>rank_</code></em><code>- 1))</code>
+<span class="math inline">)</span>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(9.2)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
@@ -2749,10 +2767,10 @@ type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
 <em><code>rank_</code></em><code>&gt; 1</code> is <code>true</code> and
 <code>padding_value == dynamic_extent</code> is <code>false</code>, then
 <code>other.stride(</code><em><code>rank_</code></em><code>- 2)</code>
-equals the least multiple of <code>padding_value</code> greater than or
-equal to
-<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(</code><em><code>rank_</code></em><code>- 1))</code>;
-and</p></li>
+equals <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extents().extent(</code><em><code>rank_</code></em><code>- 1))</code>
+<span class="math inline">)</span>; and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(12.2)</a></span> If
 <em><code>rank_</code></em><code>&gt; 0</code> is <code>true</code>,
 then
@@ -2813,9 +2831,10 @@ is <code>true</code>.</p>
 <code>padding_value</code> does not equal <code>dynamic_extent</code>,
 then
 <code>other.stride(</code><em><code>rank_</code></em><code>- 2)</code>
-equals the least multiple of <code>padding_value</code> greater than or
-equal to
-<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extent(</code><em><code>rank_</code></em><code>- 1))</code>.</p></li>
+equals <span class="math inline"><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em><em>_</em><em>m</em><em>u</em><em>l</em><em>t</em><em>i</em><em>p</em><em>l</em><em>e</em><em>_</em><em>a</em><em>t</em><em>_</em><em>l</em><em>e</em><em>a</em><em>s</em><em>t</em>(</span>
+<code>padding_value</code> <span class="math inline">,</span>
+<code>extents_type::</code><em><code>index-cast</code></em><code>(other.extent(</code><em><code>rank_</code></em><code>- 1))</code>
+<span class="math inline">)</span>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(16.2)</a></span>
 <code>other.required_span_size()</code> is representable as a value of
 type <code>index_type</code> (<em>[basic.fundamental]</em>).</p></li>
