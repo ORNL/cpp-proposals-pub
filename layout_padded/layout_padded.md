@@ -1467,8 +1467,16 @@ constexpr bool @_is-layout-right-padded-mapping-of_@ = // exposition only
 ```
 -->
 
+<!--
+For LEAST-MULTIPLE-AT-LEAST, we need math font, not code font.
+$\mathit{LEAST-MULTIPLE-AT-LEAST}(x, y)$ makes the spacing weird.
+$\text{LEAST-MULTIPLE-AT-LEAST}(x, y)$ is not italicized.
+$\mathit{\text{LEAST-MULTIPLE-AT-LEAST}}(x, y)$ looks the same as above.
+_LEAST-MULTIPLE-AT-LEAST_$(x, y)$ looks pretty much like what we want.
+-->
+
 [2.4]{.pnum} For nonnegative integers $x$ and $y$,
-let $\mathit{least\_multiple\_at\_least}(x, y)$ denote
+let _LEAST-MULTIPLE-AT-LEAST_$(x, y)$ denote
 
   * $y$ if $x$ is zero, otherwise
 
@@ -1633,7 +1641,7 @@ private:
     * `extents_type::static_extent(0)`
       does not equal `dynamic_extent`,
 
-  then $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::static_extent(0)` $)$
+  then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::static_extent(0)` $)$
   is representable as a value of type `size_t`,
   and is representable as a value of type `index_type`.
 
@@ -1649,7 +1657,7 @@ static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_ex
   * [4.2]{.pnum} `dynamic_extent`, if `padding_value` or `extents_type::static_extent(0)` equals `dynamic_extent`; otherwise
 
   * [4.3]{.pnum } the `size_t` value which is
-    $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::static_extent(0)` $)$.
+    _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::static_extent(0)` $)$.
 
 <!--
 NOTE (mfh 2024/01/18) Previously, we specified _`stride-1`_
@@ -1698,7 +1706,7 @@ constexpr mapping(const extents_type& ext);
     is representable as a value of type `index_type`.
 
   * [2.2]{.pnum} If `extents_type::rank()` is greater than one and `padding_value` does not equal `dynamic_extent`,
-      then the product of $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `ext.extent(0)` $)$ and all values
+      then the product of _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(0)` $)$ and all values
       `ext.extent(k)` with `k` in the range of $[1,$ `extents_type::rank()`$)$ is representable as a value of type `index_type`.
 
 
@@ -1711,7 +1719,7 @@ constexpr mapping(const extents_type& ext);
       * [3.2.1]{.pnum} `ext.extent(0)`
           if `padding_value` is `dynamic_extent`, otherwise with
 
-      * [3.2.2]{.pnum} $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `ext.extent(0)` $)$.
+      * [3.2.2]{.pnum} _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(0)` $)$.
 
 ```c++
 template<class OtherIndexType>
@@ -1731,7 +1739,7 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
   * [5.2]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero;
 
   * [5.3]{.pnum} if `extents_type::rank()` is greater than one,
-      then the product of $\mathit{least\_multiple\_at\_least}($ `pad` $,$ `ext.extent(0)` $)$ and all values
+      then the product of _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$ and all values
       `ext.extent(k)` with `k` in the range of $[1,$ `extents_type::rank()`$)$ is representable as a value of type `index_type`; and
 
   * [5.4]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
@@ -1741,7 +1749,7 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
   * [6.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
   * [6.2]{.pnum} direct-non-list-initializes _`stride-1`_
-      with $\mathit{least\_multiple\_at\_least}($ `pad` $,$ `ext.extent(0)` $)$.
+      with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$.
 
 ```c++
 template<class OtherExtents>
@@ -1769,7 +1777,7 @@ then _`static-padding-stride`_ equals
   * [9.1]{.pnum} If `extents_type::rank() > 1` is `true`
       and `padding_value == dynamic_extent` is `false`,
       then `other.stride(1)` equals
-      $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$; and
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$; and
 
   * [9.2]{.pnum} `other.required_span_size()`
       is representable as a value of type `index_type`
@@ -1791,7 +1799,7 @@ template<class OtherExtents>
   * [12.1]{.pnum} If `extents_type::rank() > 1` is `true`
       and `padding_value == dynamic_extent` is `false`,
       then `other.stride(1)` equals
-      $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$.
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$.
 
   * [12.2]{.pnum} If `extents_type::rank() > 0` is `true`,
       then `other.stride(0)` equals 1.
@@ -1842,7 +1850,7 @@ template<class LayoutLeftPaddedMapping>
 * [16.1]{.pnum} If `extents_type::rank() > 1` is `true`
     and `padding_value` does not equal `dynamic_extent`,
     then `other.stride(1)` equals
-    $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(0))` $)$.
+    _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(0))` $)$.
 
 * [16.2]{.pnum} `other.required_span_size()` is representable
     as a value of type `index_type` (*[basic.fundamental]*).
@@ -2103,7 +2111,7 @@ private:
     * _`last-static-extent`_
       does not equal `dynamic_extent`,
 
-  then $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ _`last-static-extent`_ $)$
+  then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`last-static-extent`_ $)$
   is representable as a value of type `size_t`,
   and is representable as a value of type `index_type`.
 
@@ -2119,7 +2127,7 @@ static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_ex
   * [4.2]{.pnum} `dynamic_extent`, if `padding_value` or _`last-static-extent`_ equals `dynamic_extent`; otherwise
 
   * [4.3]{.pnum } the `size_t` value which is
-    $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ _`last-static-extent`_ $)$.
+    _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`last-static-extent`_ $)$.
 
 <!--
 NOTE (mfh 2024/01/18) Above comments on
@@ -2156,7 +2164,7 @@ constexpr mapping(const extents_type& ext);
     is representable as a value of type `index_type`.
 
   * [2.2]{.pnum} If _`rank_`_ is greater than one and `padding_value` does not equal `dynamic_extent`,
-      then the product of $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$ and all values
+      then the product of _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$ and all values
       `ext.extent(k)` with `k` in the range of $[0,$ _`rank_`_$-1)$ is representable as a value of type `index_type`.
 
 [3]{.pnum} *Effects:*
@@ -2168,7 +2176,7 @@ constexpr mapping(const extents_type& ext);
       * [3.2.1]{.pnum} `ext.extent(`_`rank_`_ ` - 1)`
           if `padding_value` is `dynamic_extent`, otherwise with
 
-      * [3.2.2]{.pnum} $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
+      * [3.2.2]{.pnum} _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
 
 ```c++
 template<class OtherIndexType>
@@ -2188,7 +2196,7 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
   * [5.2]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero;
 
   * [5.3]{.pnum} If _`rank_`_ is greater than one,
-      then the product of $\mathit{least\_multiple\_at\_least}($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$ and all values
+      then the product of _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$ and all values
       `ext.extent(k)` with `k` in the range of $[0,$ _`rank_`_$-1)$ is representable as a value of type `index_type`.
 
   * [5.4]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
@@ -2198,7 +2206,7 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
   * [6.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
   * [6.2]{.pnum} direct-non-list-initializes _`stride-rm2`_
-      with $\mathit{least\_multiple\_at\_least}($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
+      with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
 
 ```c++
 template<class OtherExtents>
@@ -2226,7 +2234,7 @@ then _`static-padding-stride`_ equals
   * [9.1]{.pnum} If _`rank_`_ ` > 1` is `true`
       and `padding_value == dynamic_extent` is `false`,
       then `other.stride(`_`rank_`_` - 2)` equals
-      $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
 
   * [9.2]{.pnum} `other.required_span_size()`
       is representable as a value of type `index_type`
@@ -2248,7 +2256,7 @@ template<class OtherExtents>
   * [12.1]{.pnum} If _`rank_`_` > 1` is `true`
       and `padding_value == dynamic_extent` is `false`,
       then `other.stride(`_`rank_`_` - 2)` equals
-      $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
 
   * [12.2]{.pnum} If _`rank_`_` > 0` is `true`,
       then `other.stride(`_`rank_`_` - 1)` equals 1.
@@ -2299,7 +2307,7 @@ template<class LayoutRightPaddedMapping>
 * [16.1]{.pnum} If _`rank_`_` > 1` is `true`
     and `padding_value` does not equal `dynamic_extent`,
     then `other.stride(`_`rank_`_` - 2)` equals
-    $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(`_`rank_`_` - 1))` $)$.
+    _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(`_`rank_`_` - 1))` $)$.
 
 * [16.2]{.pnum} `other.required_span_size()` is representable
     as a value of type `index_type` (*[basic.fundamental]*).
