@@ -1984,13 +1984,9 @@ template<class LayoutLeftPaddedMapping>
 
   * [10.2]{.pnum} `LayoutLeftPaddedMapping::extents_type::rank() == extents_type::rank()` is `true`. <!-- LWG 2024/02/14 says we don't need "typename" here. -->
 
-[11]{.pnum} *Returns:* `true` if
-
-  * [11.1]{.pnum} `x.extents() == y.extents()` is `true`; and
-
-  * [11.2]{.pnum} if `extents_type::rank() > 1` is `true`,
-    then `x.stride(1) == y.stride(1)`
-    is `true`.
+[11]{.pnum} *Returns:* `true` if `x.extents() == y.extents()` is `true`
+and `extents_type::rank() < 2 || x.stride(1) == y.stride(1)`
+is `true`.  Otherwise, `false`.
 
 ## Class template `layout_right_padded::mapping` [mdspan.layout.rightpadded]
 
@@ -2441,13 +2437,9 @@ template<class LayoutRightPaddedMapping>
 
   * [10.2]{.pnum} `LayoutRightPaddedMapping::extents_type::rank() == `_`rank_`_ is `true`. <!-- LWG 2024/02/14 says we don't need "typename" here. -->
 
-[11]{.pnum} *Returns:* `true` if
-
-  * [11.1]{.pnum} `x.extents() == y.extents()` is `true`; and
-
-  * [11.2]{.pnum} if _`rank_`_` > 1` is `true`,
-    then `x.stride(`_`rank_`_` - 2) == y.stride(`_`rank_`_` - 2)`
-    is `true`.
+[11]{.pnum} *Returns:* `true` if `x.extents() == y.extents()` is `true`
+and _`rank_`_` < 2 || x.stride(`_`rank_`_` - 2) == y.stride(`_`rank_`_` - 2)`
+is `true`.  Otherwise, `false`.
 
 ## Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]
 

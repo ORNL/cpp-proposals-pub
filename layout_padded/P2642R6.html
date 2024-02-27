@@ -2463,15 +2463,10 @@ is <code>true</code>.
 <!-- LWG 2024/02/14 says we don't need "typename" here. --></p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
-<em>Returns:</em> <code>true</code> if</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(11.1)</a></span>
-<code>x.extents() == y.extents()</code> is <code>true</code>;
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(11.2)</a></span> if
-<code>extents_type::rank() &gt; 1</code> is <code>true</code>, then
-<code>x.stride(1) == y.stride(1)</code> is <code>true</code>.</p></li>
-</ul>
+<em>Returns:</em> <code>true</code> if
+<code>x.extents() == y.extents()</code> is <code>true</code> and
+<code>extents_type::rank() &lt; 2 || x.stride(1) == y.stride(1)</code>
+is <code>true</code>. Otherwise, <code>false</code>.</p>
 <h2 data-number="4.2" id="class-template-layout_right_paddedmapping-mdspan.layout.rightpadded"><span class="header-section-number">4.2</span> Class template
 <code>layout_right_padded::mapping</code> [mdspan.layout.rightpadded]<a href="#class-template-layout_right_paddedmapping-mdspan.layout.rightpadded" class="self-link"></a></h2>
 <h3 data-number="4.2.1" id="overview-mdspan.layout.rightpadded.overview"><span class="header-section-number">4.2.1</span> Overview
@@ -2994,17 +2989,10 @@ is <code>true</code>.
 <!-- LWG 2024/02/14 says we don't need "typename" here. --></p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">11</a></span>
-<em>Returns:</em> <code>true</code> if</p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(11.1)</a></span>
-<code>x.extents() == y.extents()</code> is <code>true</code>;
-and</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(11.2)</a></span> if
-<em><code>rank_</code></em><code>&gt; 1</code> is <code>true</code>,
-then
-<code>x.stride(</code><em><code>rank_</code></em><code>- 2) == y.stride(</code><em><code>rank_</code></em><code>- 2)</code>
-is <code>true</code>.</p></li>
-</ul>
+<em>Returns:</em> <code>true</code> if
+<code>x.extents() == y.extents()</code> is <code>true</code> and
+<em><code>rank_</code></em><code>&lt; 2 || x.stride(</code><em><code>rank_</code></em><code>- 2) == y.stride(</code><em><code>rank_</code></em><code>- 2)</code>
+is <code>true</code>. Otherwise, <code>false</code>.</p>
 <h2 data-number="4.3" id="layout-specializations-of-submdspan_mapping-mdspan.submdspan.mapping"><span class="header-section-number">4.3</span> Layout specializations of
 <code>submdspan_mapping</code> [mdspan.submdspan.mapping]<a href="#layout-specializations-of-submdspan_mapping-mdspan.submdspan.mapping" class="self-link"></a></h2>
 <blockquote>
