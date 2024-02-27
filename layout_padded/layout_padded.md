@@ -1951,7 +1951,7 @@ constexpr bool is_exhaustive() const noexcept;
 
 [7]{.pnum} *Returns:*
 
-* [7.1]{.pnum} If `extents_type::rank() < 2` is `true`, then `true`;
+* [7.1]{.pnum} If `extents_type::rank()` equals zero or one, then `true`;
 
 * [7.2]{.pnum} otherwise, _`extents_`_`.extent(0) == stride(1)`.
 
@@ -2408,7 +2408,7 @@ constexpr bool is_exhaustive() const noexcept;
 
 [7]{.pnum} *Returns:*
 
-* [7.1]{.pnum} If _`rank_`_` < 2` is `true`, then `true`;
+* [7.1]{.pnum} If _`rank_`_ equals zero or one, then `true`;
 
 * [7.2]{.pnum} otherwise, _`extents_`_`.extent(`_`rank_`_` - 1) == stride(`_`rank_`_` - 2)`.
 
