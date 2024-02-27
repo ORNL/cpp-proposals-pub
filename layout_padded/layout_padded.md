@@ -1329,7 +1329,7 @@ It's possible for `LayoutLeftPaddedMapping::extents_type::static_extent(0)` to b
     then `other.stride(1)` equals `other.extents(0)`.
 
 * [11.2]{.pnum} `other.required_span_size()` is representable
-    as a value of type `index_type` (*[basic.fundamental]*).
+    as a value of type `index_type`.
 
 [12]{.pnum} *Effects:* Direct-non-list-initializes
 `extents_` with `other.extents()`.
@@ -1388,7 +1388,7 @@ converting constructor from `LayoutLeftPaddedMapping`.
 * [11.1]{.pnum} if `extents_type::rank() > 1` is `true`,
     then `other.stride(extents_type::rank() - 2)` equals `other.extents().extent(extents_type::rank() - 1)`.
 
-* [11.2]{.pnum} `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+* [11.2]{.pnum} `other.required_span_size()` is representable as a value of type `index_type`.
 
 [12]{.pnum} *Effects:* Direct-non-list-initializes `extents_` with `other.extents()`.
 
@@ -1771,8 +1771,7 @@ then _`static-padding-stride`_ equals
       _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$; and
 
   * [8.2]{.pnum} `other.required_span_size()`
-      is representable as a value of type `index_type`
-      (*[basic.fundamental]*).
+      is representable as a value of type `index_type`.
 
 [9]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`.
 
@@ -1811,8 +1810,7 @@ template<class OtherExtents>
     -->
 
   * [11.4]{.pnum} `other.required_span_size()`
-      is representable as a value of type `index_type`
-      (*[basic.fundamental]*).
+      is representable as a value of type `index_type`.
 
 [12]{.pnum} *Effects:*
 
@@ -1844,7 +1842,7 @@ template<class LayoutLeftPaddedMapping>
     _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(0))` $)$.
 
 * [15.2]{.pnum} `other.required_span_size()` is representable
-    as a value of type `index_type` (*[basic.fundamental]*).
+    as a value of type `index_type`.
 
 [16]{.pnum} *Effects:*
 
@@ -1872,8 +1870,7 @@ template<class LayoutRightPaddedMapping>
 * [18.3]{.pnum} `is_constructible_v<extents_type, typename LayoutRightPaddedMapping::extents_type>` is `true`.
 
 [19]{.pnum} *Precondition:* `other.required_span_size()`
-is representable as a value of type `index_type`
-(*[basic.fundamental]*).
+is representable as a value of type `index_type`.
 
 [20]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`.
 
@@ -2216,8 +2213,7 @@ then _`static-padding-stride`_ equals
       _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
 
   * [8.2]{.pnum} `other.required_span_size()`
-      is representable as a value of type `index_type`
-      (*[basic.fundamental]*).
+      is representable as a value of type `index_type`.
 
 [9]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`.
 
@@ -2256,8 +2252,7 @@ template<class OtherExtents>
     -->
 
   * [11.4]{.pnum} `other.required_span_size()`
-      is representable as a value of type `index_type`
-      (*[basic.fundamental]*).
+      is representable as a value of type `index_type`.
 
 [12]{.pnum} *Effects:*
 
@@ -2289,7 +2284,7 @@ template<class LayoutRightPaddedMapping>
     _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(`_`rank_`_` - 1))` $)$.
 
 * [15.2]{.pnum} `other.required_span_size()` is representable
-    as a value of type `index_type` (*[basic.fundamental]*).
+    as a value of type `index_type`.
 
 [16]{.pnum} *Effects:*
 
@@ -2317,8 +2312,7 @@ template<class LayoutLeftPaddedMapping>
 * [18.3]{.pnum} `is_constructible_v<extents_type, typename LayoutLeftPaddedMapping::extents_type>` is `true`.
 
 [19]{.pnum} *Precondition:* `other.required_span_size()`
-is representable as a value of type `index_type`
-(*[basic.fundamental]*).
+is representable as a value of type `index_type`.
 
 [20]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`.
 
