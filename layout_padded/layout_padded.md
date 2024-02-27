@@ -1925,7 +1925,7 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 
   * [3.2]{.pnum} `(is_convertible_v<Indices, index_type> && ...)` is `true`.
 
-  * [3.3]{.pnum} `(is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
+  * [3.3]{.pnum} `(is_nothrow_constructible_v<index_type, Indices> && ...)` is `true`.
 
 [4]{.pnum} *Precondition:* `extents_type::`_`index-cast`_`(idxs)`
 is a multidimensional index in `extents()` (*[mdspan.overview]*).
@@ -2382,7 +2382,7 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 
   * [3.2]{.pnum} `(is_convertible_v<Indices, index_type> && ...)` is `true`.
 
-  * [3.3]{.pnum} `(is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
+  * [3.3]{.pnum} `(is_nothrow_constructible_v<index_type, Indices> && ...)` is `true`.
 
 [4]{.pnum} *Precondition:* `extents_type::`_`index-cast`_`(idxs)`
 is a multidimensional index in `extents()` (*[mdspan.overview]*).
