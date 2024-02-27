@@ -1738,11 +1738,9 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
   * [4.4]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
 
 [5]{.pnum} *Effects:*
-
-  * [5.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
-
-  * [5.2]{.pnum} direct-non-list-initializes _`stride-1`_
-      with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$.
+Direct-non-list-initializes _`extents_`_ with `ext`,
+and direct-non-list-initializes _`stride-1`_
+with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$.
 
 ```c++
 template<class OtherExtents>
@@ -2185,11 +2183,9 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
   * [4.4]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
 
 [5]{.pnum} *Effects:*
-
-  * [5.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
-
-  * [5.2]{.pnum} direct-non-list-initializes _`stride-rm2`_
-      with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
+Direct-non-list-initializes _`extents_`_ with `ext`,
+and direct-non-list-initializes _`stride-rm2`_
+with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
 
 ```c++
 template<class OtherExtents>
