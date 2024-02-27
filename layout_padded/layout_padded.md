@@ -1548,6 +1548,7 @@ public:
   using layout_type = layout_left_padded<PaddingValue>;
 
 private:
+  // [mdspan.layout.leftpadded.expo], exposition-only members
   static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 
 public:
@@ -1598,6 +1599,7 @@ public:
       const LayoutLeftPaddedMapping&) noexcept;
 
 private:
+  // [mdspan.layout.leftpadded.expo], exposition-only members
   index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
   extents_type @_extents\__@{}; // @_exposition only_@
 
@@ -1645,18 +1647,20 @@ private:
   is representable as a value of type `size_t`,
   and is representable as a value of type `index_type`.
 
+### Exposition-only members [mdspan.layout.leftpadded.expo]
+
 ```c++
 static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 ```
 
-[6]{.pnum} The value is
+[1]{.pnum} The value is
 
-  * [6.1]{.pnum} `0`, if `extents_type::rank()`
+  * [1.1]{.pnum} `0`, if `extents_type::rank()`
       equals zero or one; otherwise
 
-  * [6.2]{.pnum} `dynamic_extent`, if `padding_value` or `extents_type::static_extent(0)` equals `dynamic_extent`; otherwise
+  * [1.2]{.pnum} `dynamic_extent`, if `padding_value` or `extents_type::static_extent(0)` equals `dynamic_extent`; otherwise
 
-  * [6.3]{.pnum } the `size_t` value which is
+  * [1.3]{.pnum } the `size_t` value which is
     _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::static_extent(0)` $)$.
 
 <!--
@@ -1681,7 +1685,7 @@ with respect to other library description clauses.
 index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
 ```
 
-[7]{.pnum} *Recommended practice*: Implementations should not store
+[2]{.pnum} *Recommended practice*: Implementations should not store
 this value if _`static-padding-stride`_ is not `dynamic_extent`.
 <i>[Note:</i>
 Using `extents<index_type,`_`static-padding-stride`_`>`
@@ -2000,9 +2004,11 @@ public:
 
 private:
   static constexpr size_t @_rank\__@ = extents_type::rank(); // @_exposition only_@
-  static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
   static constexpr size_t @_last-static-extent_@ = // @_exposition only_@
     extents_type::static_extent(@_rank\__@ - 1);
+
+  // [mdspan.layout.rightpadded.expo], exposition-only members
+  static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 
 public:
   // [mdspan.layout.rightpadded.cons], constructors
@@ -2052,6 +2058,7 @@ public:
       const LayoutRightPaddedMapping&) noexcept;
 
 private:
+  // [mdspan.layout.rightpadded.expo], exposition-only members
   index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
   extents_type @_extents\__@{}; // @_exposition only_@
 
@@ -2099,18 +2106,20 @@ private:
   is representable as a value of type `size_t`,
   and is representable as a value of type `index_type`.
 
+### Exposition-only members [mdspan.layout.rightpadded.expo]
+
 ```c++
 static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 ```
 
-[6]{.pnum} The value is
+[1]{.pnum} The value is
 
-  * [6.1]{.pnum} `0`, if `extents_type::rank()`
+  * [1.1]{.pnum} `0`, if `extents_type::rank()`
       equals zero or one; otherwise
 
-  * [6.2]{.pnum} `dynamic_extent`, if `padding_value` or _`last-static-extent`_ equals `dynamic_extent`; otherwise
+  * [1.2]{.pnum} `dynamic_extent`, if `padding_value` or _`last-static-extent`_ equals `dynamic_extent`; otherwise
 
-  * [6.3]{.pnum } the `size_t` value which is
+  * [1.3]{.pnum } the `size_t` value which is
     _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`last-static-extent`_ $)$.
 
 <!--
@@ -2123,7 +2132,7 @@ also apply to _`stride-rm2`_.
 index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
 ```
 
-[7]{.pnum} *Recommended practice*: Implementations should not store
+[2]{.pnum} *Recommended practice*: Implementations should not store
 this value if _`static-padding-stride`_ is not `dynamic_extent`.
 <i>[Note:</i>
 Using `extents<index_type,`_`static-padding-stride`_`>`
