@@ -1982,7 +1982,7 @@ template<class LayoutLeftPaddedMapping>
 
   * [10.1]{.pnum} _`is-layout-left-padded-mapping-of`_`<LayoutLeftPaddedMapping>` is `true`.
 
-  * [10.2]{.pnum} `typename LayoutLeftPaddedMapping::extents_type::rank() == extents_type::rank()` is `true`.
+  * [10.2]{.pnum} `LayoutLeftPaddedMapping::extents_type::rank() == extents_type::rank()` is `true`. <!-- LWG 2024/02/14 says we don't need "typename" here. -->
 
 [11]{.pnum} *Returns:* `true` if
 
@@ -2439,7 +2439,7 @@ template<class LayoutRightPaddedMapping>
 
   * [10.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true`.
 
-  * [10.2]{.pnum} `typename LayoutRightPaddedMapping::extents_type::rank() == `_`rank_`_ is `true`.
+  * [10.2]{.pnum} `LayoutRightPaddedMapping::extents_type::rank() == `_`rank_`_ is `true`. <!-- LWG 2024/02/14 says we don't need "typename" here. -->
 
 [11]{.pnum} *Returns:* `true` if
 
