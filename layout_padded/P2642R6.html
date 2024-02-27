@@ -2376,7 +2376,7 @@ preconditions. <i>– end note]</i></p>
 <code>0</code> if the multidimensional index space
 <em><code>extents_</code></em> is empty, otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>*this(((extents_(P_rank) - index_type(1))...)) + 1</code></p></li>
+<code>*this(((extents_(P_rank) - index_type(1))...)) + 1</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb41"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> idxs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
@@ -2400,7 +2400,7 @@ is a multidimensional index in <code>extents()</code>
 (<em>[mdspan.overview]</em>).</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Returns:</em>
-<code>((static_cast&lt;index_type&gt;(idxs) * stride(P_rank)) + ... + 0);</code>.</p>
+<code>((static_cast&lt;index_type&gt;(idxs) * stride(P_rank)) + ... + 0)</code>.</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em></p>
@@ -2424,7 +2424,7 @@ otherwise, <code>false</code>.</p></li>
 <code>extents_type::rank() &lt; 2</code> is <code>true</code>, then
 <code>true</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-else,
+otherwise,
 <em><code>extents_</code></em><code>.extent(0) == stride(1)</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb44"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
@@ -2905,7 +2905,7 @@ preconditions. <i>– end note]</i></p>
 <code>0</code> if the multidimensional index space
 <em><code>extents_</code></em> is empty, otherwise</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>*this(((extents_(P_rank) - index_type(1))...)) + 1</code></p></li>
+<code>*this(((extents_(P_rank) - index_type(1))...)) + 1</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> Indices<span class="op">&gt;</span></span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> <span class="kw">operator</span><span class="op">()(</span>Indices<span class="op">...</span> idxs<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
@@ -2929,7 +2929,7 @@ is a multidimensional index in <code>extents()</code>
 (<em>[mdspan.overview]</em>).</p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Returns:</em>
-<code>((static_cast&lt;index_type&gt;(idxs) * stride(P_rank)) + ... + 0);</code>.</p>
+<code>((static_cast&lt;index_type&gt;(idxs) * stride(P_rank)) + ... + 0)</code>.</p>
 <div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">bool</span> is_always_exhaustive<span class="op">()</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em></p>
@@ -2954,7 +2954,7 @@ otherwise, <code>false</code>.</p></li>
 <em><code>rank_</code></em><code>&lt; 2</code> is <code>true</code>,
 then <code>true</code>;</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-else,
+otherwise,
 <em><code>extents_</code></em><code>.extent(</code><em><code>rank_</code></em><code>- 1) == stride(</code><em><code>rank_</code></em><code>- 2)</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb61"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>

@@ -1911,7 +1911,7 @@ constexpr index_type required_span_size() const noexcept;
 
   * [2.1]{.pnum} `0` if the multidimensional index space _`extents_`_ is empty, otherwise
  
-  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`
+  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`.
 
 
 ```c++
@@ -1931,7 +1931,7 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 is a multidimensional index in `extents()` (*[mdspan.overview]*).
 
 [5]{.pnum} *Returns:*
-`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0);`.
+`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0)`.
 
 ```c++
 static constexpr bool is_always_exhaustive() noexcept;
@@ -1953,7 +1953,7 @@ constexpr bool is_exhaustive() const noexcept;
 
 * [7.1]{.pnum} If `extents_type::rank() < 2` is `true`, then `true`;
 
-* [7.2]{.pnum} else, _`extents_`_`.extent(0) == stride(1)`.
+* [7.2]{.pnum} otherwise, _`extents_`_`.extent(0) == stride(1)`.
 
 ```c++
 constexpr index_type stride(rank_type r) const noexcept;
@@ -2368,7 +2368,7 @@ constexpr index_type required_span_size() const noexcept;
 
   * [2.1]{.pnum} `0` if the multidimensional index space _`extents_`_ is empty, otherwise
  
-  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`
+  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`.
 
 
 ```c++
@@ -2388,7 +2388,7 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 is a multidimensional index in `extents()` (*[mdspan.overview]*).
 
 [5]{.pnum} *Returns:*
-`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0);`.
+`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0)`.
 
 ```c++
 static constexpr bool is_always_exhaustive() noexcept;
@@ -2410,7 +2410,7 @@ constexpr bool is_exhaustive() const noexcept;
 
 * [7.1]{.pnum} If _`rank_`_` < 2` is `true`, then `true`;
 
-* [7.2]{.pnum} else, _`extents_`_`.extent(`_`rank_`_` - 1) == stride(`_`rank_`_` - 2)`.
+* [7.2]{.pnum} otherwise, _`extents_`_`.extent(`_`rank_`_` - 1) == stride(`_`rank_`_` - 2)`.
 
 ```c++
 constexpr index_type stride(rank_type r) const noexcept;
