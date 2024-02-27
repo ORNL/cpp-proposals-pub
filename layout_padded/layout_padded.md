@@ -1783,7 +1783,7 @@ then _`static-padding-stride`_ equals
       is representable as a value of type `index_type`
       (*[basic.fundamental]*).
 
-[10]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`;
+[10]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`.
 
 ```c++
 template<class OtherExtents>
@@ -2240,7 +2240,7 @@ then _`static-padding-stride`_ equals
       is representable as a value of type `index_type`
       (*[basic.fundamental]*).
 
-[10]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`;
+[10]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`.
 
 ```c++
 template<class OtherExtents>
