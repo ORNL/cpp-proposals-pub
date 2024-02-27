@@ -2403,29 +2403,22 @@ is a multidimensional index in <code>extents()</code>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> If
-<code>extents_type::rank()</code> equals zero or one, then
-<code>true</code>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
+<code>true</code> if <code>extents_type::rank()</code> equals zero or
+one; else</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
-else, if <em><code>static-padding-stride</code></em> nor
+<em><code>static-padding-stride</code></em><code>== extents_type::static_extent(0)</code>
+if neither <em><code>static-padding-stride</code></em> nor
 <code>extents_type::static_extent(0)</code> equals
-<code>dynamic_extent</code>, then
-<em><code>static-padding-stride</code></em> equals
-<code>extents_type::static_extent(0)</code>;</p></li>
+<code>dynamic_extent</code>; otherwise,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.3)</a></span>
-otherwise, <code>false</code>.</p></li>
+<code>false</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb42"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
-<em>Returns:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span> If
-<code>extents_type::rank()</code> equals zero or one, then
-<code>true</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-otherwise,
-<em><code>extents_</code></em><code>.extent(0) == stride(1)</code>.</p></li>
-</ul>
+<em>Returns:</em> <code>true</code> if <code>extents_type::rank()</code>
+equals zero or one; otherwise,
+<em><code>extents_</code></em><code>.extent(0) == stride(1)</code>.</p>
 <div class="sourceCode" id="cb43"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Preconditions:</em> <code>r</code> is smaller than
@@ -2924,29 +2917,22 @@ is a multidimensional index in <code>extents()</code>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Returns:</em></p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span> If
-<em><code>rank_</code></em> equals zero or one, then
-<code>true</code>;</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
+<code>true</code> if <em><code>rank_</code></em> equals zero or one;
+else</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
-else, if neither <em><code>static-padding-stride</code></em> nor
+<em><code>static-padding-stride</code></em><code>==</code><em><code>last-static-extent</code></em>
+if neither <em><code>static-padding-stride</code></em> nor
 <em><code>last-static-extent</code></em> equals
-<code>dynamic_extent</code>, then
-<em><code>static-padding-stride</code></em> equals
-<em><code>last-static-extent</code></em>;</p></li>
+<code>dynamic_extent</code>; otherwise,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(6.3)</a></span>
-otherwise, <code>false</code>.</p></li>
+<code>false</code>.</p></li>
 </ul>
 <div class="sourceCode" id="cb58"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">bool</span> is_exhaustive<span class="op">()</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">7</a></span>
-<em>Returns:</em></p>
-<ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.1)</a></span> If
-<em><code>rank_</code></em> equals zero or one, then
-<code>true</code>;</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(7.2)</a></span>
-otherwise,
-<em><code>extents_</code></em><code>.extent(</code><em><code>rank_</code></em><code>- 1) == stride(</code><em><code>rank_</code></em><code>- 2)</code>.</p></li>
-</ul>
+<em>Returns:</em> <code>true</code> if <em><code>rank_</code></em>
+equals zero or one; otherwise,
+<em><code>extents_</code></em><code>.extent(</code><em><code>rank_</code></em><code>- 1) == stride(</code><em><code>rank_</code></em><code>- 2)</code>.</p>
 <div class="sourceCode" id="cb59"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> index_type stride<span class="op">(</span>rank_type r<span class="op">)</span> <span class="kw">const</span> <span class="kw">noexcept</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">8</a></span>
 <em>Preconditions:</em> <code>r</code> is smaller than

@@ -1931,21 +1931,18 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 [6]{.pnum} *Returns:*
 
-* [6.1]{.pnum} If `extents_type::rank()` equals zero or one, then `true`;
+* [6.1]{.pnum} `true` if `extents_type::rank()` equals zero or one; else
 
-* [6.2]{.pnum} else, if _`static-padding-stride`_ nor `extents_type::static_extent(0)` equals `dynamic_extent`, then _`static-padding-stride`_ equals `extents_type::static_extent(0)`;
+* [6.2]{.pnum} _`static-padding-stride`_` == extents_type::static_extent(0)`
+if neither _`static-padding-stride`_ nor `extents_type::static_extent(0)` equals `dynamic_extent`; otherwise,
 
-* [6.3]{.pnum} otherwise, `false`.
+* [6.3]{.pnum} `false`.
 
 ```c++
 constexpr bool is_exhaustive() const noexcept;
 ```
 
-[7]{.pnum} *Returns:*
-
-* [7.1]{.pnum} If `extents_type::rank()` equals zero or one, then `true`;
-
-* [7.2]{.pnum} otherwise, _`extents_`_`.extent(0) == stride(1)`.
+[7]{.pnum} *Returns:* `true` if `extents_type::rank()` equals zero or one; otherwise, _`extents_`_`.extent(0) == stride(1)`.
 
 ```c++
 constexpr index_type stride(rank_type r) const noexcept;
@@ -2378,21 +2375,18 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 [6]{.pnum} *Returns:*
 
-* [6.1]{.pnum} If _`rank_`_ equals zero or one, then `true`;
+* [6.1]{.pnum} `true` if _`rank_`_ equals zero or one; else
 
-* [6.2]{.pnum} else, if neither _`static-padding-stride`_ nor _`last-static-extent`_ equals `dynamic_extent`, then _`static-padding-stride`_ equals _`last-static-extent`_;
+* [6.2]{.pnum} _`static-padding-stride`_` == `_`last-static-extent`_
+if neither _`static-padding-stride`_ nor _`last-static-extent`_ equals `dynamic_extent`; otherwise,
 
-* [6.3]{.pnum} otherwise, `false`.
+* [6.3]{.pnum} `false`.
 
 ```c++
 constexpr bool is_exhaustive() const noexcept;
 ```
 
-[7]{.pnum} *Returns:*
-
-* [7.1]{.pnum} If _`rank_`_ equals zero or one, then `true`;
-
-* [7.2]{.pnum} otherwise, _`extents_`_`.extent(`_`rank_`_` - 1) == stride(`_`rank_`_` - 2)`.
+[7]{.pnum} *Returns:* `true` if _`rank_`_ equals zero or one; otherwise, _`extents_`_`.extent(`_`rank_`_` - 1) == stride(`_`rank_`_` - 2)`.
 
 ```c++
 constexpr index_type stride(rank_type r) const noexcept;
