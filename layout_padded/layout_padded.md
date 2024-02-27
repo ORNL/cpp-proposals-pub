@@ -1604,12 +1604,12 @@ private:
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto @_submdspan-mapping-impl_@( // @_exposition only_@
-      SliceSpecifiers... slices) const -> see below;
+      SliceSpecifiers... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers... slices) {
-        return src.submdspan-mapping-impl(slices...);
+        return src.@_submdspan-mapping-impl_@(slices...);
   }
 };
 ```
@@ -1649,14 +1649,14 @@ private:
 static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 ```
 
-[4]{.pnum} The value is
+[6]{.pnum} The value is
 
-  * [4.1]{.pnum} `0`, if `extents_type::rank()`
+  * [6.1]{.pnum} `0`, if `extents_type::rank()`
       equals zero or one; otherwise
 
-  * [4.2]{.pnum} `dynamic_extent`, if `padding_value` or `extents_type::static_extent(0)` equals `dynamic_extent`; otherwise
+  * [6.2]{.pnum} `dynamic_extent`, if `padding_value` or `extents_type::static_extent(0)` equals `dynamic_extent`; otherwise
 
-  * [4.3]{.pnum } the `size_t` value which is
+  * [6.3]{.pnum } the `size_t` value which is
     _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::static_extent(0)` $)$.
 
 <!--
@@ -1681,7 +1681,7 @@ with respect to other library description clauses.
 index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
 ```
 
-[5]{.pnum} *Recommended practice*: Implementations should not store
+[7]{.pnum} *Recommended practice*: Implementations should not store
 this value if _`static-padding-stride`_ is not `dynamic_extent`.
 <i>[Note:</i>
 Using `extents<index_type,`_`static-padding-stride`_`>`
@@ -2074,12 +2074,12 @@ private:
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto submdspan-mapping-impl( // @_exposition only_@
-      SliceSpecifiers... slices) const -> see below;
+      SliceSpecifiers... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers... slices) {
-        return src.submdspan-mapping-impl(slices...);
+        return src.@_submdspan-mapping-impl_@(slices...);
   }
 };
 ```
@@ -2119,14 +2119,14 @@ private:
 static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 ```
 
-[4]{.pnum} The value is
+[6]{.pnum} The value is
 
-  * [4.1]{.pnum} `0`, if `extents_type::rank()`
+  * [6.1]{.pnum} `0`, if `extents_type::rank()`
       equals zero or one; otherwise
 
-  * [4.2]{.pnum} `dynamic_extent`, if `padding_value` or _`last-static-extent`_ equals `dynamic_extent`; otherwise
+  * [6.2]{.pnum} `dynamic_extent`, if `padding_value` or _`last-static-extent`_ equals `dynamic_extent`; otherwise
 
-  * [4.3]{.pnum } the `size_t` value which is
+  * [6.3]{.pnum } the `size_t` value which is
     _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`last-static-extent`_ $)$.
 
 <!--
@@ -2139,7 +2139,7 @@ also apply to _`stride-rm2`_.
 index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
 ```
 
-[5]{.pnum} *Recommended practice*: Implementations should not store
+[7]{.pnum} *Recommended practice*: Implementations should not store
 this value if _`static-padding-stride`_ is not `dynamic_extent`.
 <i>[Note:</i>
 Using `extents<index_type,`_`static-padding-stride`_`>`

@@ -2014,12 +2014,12 @@ stride</em> <code>stride(1)</code> can be greater than or equal to
 <span id="cb29-67"><a href="#cb29-67" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan.mapping], submdspan mapping specialization</span></span>
 <span id="cb29-68"><a href="#cb29-68" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
 <span id="cb29-69"><a href="#cb29-69" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> <em>submdspan-mapping-impl</em><span class="op">(</span> <span class="co">// <em>exposition only</em></span></span>
-<span id="cb29-70"><a href="#cb29-70" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> see below;</span>
+<span id="cb29-70"><a href="#cb29-70" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
 <span id="cb29-71"><a href="#cb29-71" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb29-72"><a href="#cb29-72" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
 <span id="cb29-73"><a href="#cb29-73" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan_mapping<span class="op">(</span></span>
 <span id="cb29-74"><a href="#cb29-74" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span> src, SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb29-75"><a href="#cb29-75" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> src<span class="op">.</span>submdspan<span class="op">-</span>mapping<span class="op">-</span>impl<span class="op">(</span>slices<span class="op">...)</span>;</span>
+<span id="cb29-75"><a href="#cb29-75" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> src<span class="op">.</span><em>submdspan-mapping-impl</em><span class="op">(</span>slices<span class="op">...)</span>;</span>
 <span id="cb29-76"><a href="#cb29-76" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb29-77"><a href="#cb29-77" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -2070,17 +2070,17 @@ if</p>
 <code>size_t</code>, and is representable as a value of type
 <code>index_type</code>.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* <em>see-below</em> */</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The value is</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
 <code>0</code>, if <code>extents_type::rank()</code> equals zero or one;
 otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
 <code>dynamic_extent</code>, if <code>padding_value</code> or
 <code>extents_type::static_extent(0)</code> equals
 <code>dynamic_extent</code>; otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.3)</a></span> the
 <code>size_t</code> value which is <em>LEAST-MULTIPLE-AT-LEAST</em><span class="math inline">(</span> <code>padding_value</code> <span class="math inline">,</span> <code>extents_type::static_extent(0)</code>
 <span class="math inline">)</span>.</p></li>
 </ul>
@@ -2102,7 +2102,7 @@ how to order a "Recommended practice" clause
 with respect to other library description clauses.
 -->
 <div class="sourceCode" id="cb31"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>index_type <span class="co">/* <em>see below</em> */</span> <em>stride-1</em> <span class="op">=</span> <em>static-padding-stride</em>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Recommended practice</em>: Implementations should not store this
 value if <em><code>static-padding-stride</code></em> is not
 <code>dynamic_extent</code>. <i>[Note:</i> Using
@@ -2552,12 +2552,12 @@ than or equal to
 <span id="cb46-70"><a href="#cb46-70" aria-hidden="true" tabindex="-1"></a>  <span class="co">// [mdspan.submdspan.mapping], submdspan mapping specialization</span></span>
 <span id="cb46-71"><a href="#cb46-71" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
 <span id="cb46-72"><a href="#cb46-72" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan<span class="op">-</span>mapping<span class="op">-</span>impl<span class="op">(</span> <span class="co">// <em>exposition only</em></span></span>
-<span id="cb46-73"><a href="#cb46-73" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> see below;</span>
+<span id="cb46-73"><a href="#cb46-73" aria-hidden="true" tabindex="-1"></a>      SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="kw">const</span> <span class="op">-&gt;</span> <em>see below</em>;</span>
 <span id="cb46-74"><a href="#cb46-74" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-75"><a href="#cb46-75" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span><span class="op">...</span> SliceSpecifiers<span class="op">&gt;</span></span>
 <span id="cb46-76"><a href="#cb46-76" aria-hidden="true" tabindex="-1"></a>    <span class="kw">friend</span> <span class="kw">constexpr</span> <span class="kw">auto</span> submdspan_mapping<span class="op">(</span></span>
 <span id="cb46-77"><a href="#cb46-77" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> mapping<span class="op">&amp;</span> src, SliceSpecifiers<span class="op">...</span> slices<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb46-78"><a href="#cb46-78" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> src<span class="op">.</span>submdspan<span class="op">-</span>mapping<span class="op">-</span>impl<span class="op">(</span>slices<span class="op">...)</span>;</span>
+<span id="cb46-78"><a href="#cb46-78" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> src<span class="op">.</span><em>submdspan-mapping-impl</em><span class="op">(</span>slices<span class="op">...)</span>;</span>
 <span id="cb46-79"><a href="#cb46-79" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb46-80"><a href="#cb46-80" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
@@ -2608,17 +2608,17 @@ if</p>
 <code>size_t</code>, and is representable as a value of type
 <code>index_type</code>.</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">static</span> <span class="kw">constexpr</span> <span class="dt">size_t</span> <em>static-padding-stride</em> <span class="op">=</span> <span class="co">/* <em>see-below</em> */</span>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 The value is</p>
 <ul>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.1)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.1)</a></span>
 <code>0</code>, if <code>extents_type::rank()</code> equals zero or one;
 otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.2)</a></span>
 <code>dynamic_extent</code>, if <code>padding_value</code> or
 <em><code>last-static-extent</code></em> equals
 <code>dynamic_extent</code>; otherwise</p></li>
-<li><p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span> the
+<li><p><span class="marginalizedparent"><a class="marginalized">(6.3)</a></span> the
 <code>size_t</code> value which is <em>LEAST-MULTIPLE-AT-LEAST</em><span class="math inline">(</span> <code>padding_value</code> <span class="math inline">,</span> <em><code>last-static-extent</code></em>
 <span class="math inline">)</span>.</p></li>
 </ul>
@@ -2628,7 +2628,7 @@ NOTE (mfh 2024/01/18) Above comments on
 also apply to _`stride-rm2`_.
 -->
 <div class="sourceCode" id="cb48"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>index_type <span class="co">/* <em>see below</em> */</span> <em>stride-rm2</em> <span class="op">=</span> <em>static-padding-stride</em>; <span class="co">// <em>exposition only</em></span></span></code></pre></div>
-<p><span class="marginalizedparent"><a class="marginalized">5</a></span>
+<p><span class="marginalizedparent"><a class="marginalized">7</a></span>
 <em>Recommended practice</em>: Implementations should not store this
 value if <em><code>static-padding-stride</code></em> is not
 <code>dynamic_extent</code>. <i>[Note:</i> Using
