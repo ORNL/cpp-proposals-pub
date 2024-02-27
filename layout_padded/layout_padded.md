@@ -1941,7 +1941,7 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 * [6.1]{.pnum} If `extents_type::rank()` equals zero or one, then `true`;
 
-* [6.2]{.pnum} else, if _`static-padding-stride`_ nor `extents_type::static_extent(0)` equal `dynamic_extent`, then _`static-padding-stride`_` == extents_type::static_extent(0)`;
+* [6.2]{.pnum} else, if _`static-padding-stride`_ nor `extents_type::static_extent(0)` equals `dynamic_extent`, then _`static-padding-stride`_ equals `extents_type::static_extent(0)`;
 
 * [6.3]{.pnum} otherwise, `false`.
 
@@ -2398,7 +2398,7 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 * [6.1]{.pnum} If _`rank_`_ equals zero or one, then `true`;
 
-* [6.2]{.pnum} else, if neither _`static-padding-stride`_ nor _`last-static-extent`_ equal `dynamic_extent`, then _`static-padding-stride`_ equals _`last-static-extent`_;
+* [6.2]{.pnum} else, if neither _`static-padding-stride`_ nor _`last-static-extent`_ equals `dynamic_extent`, then _`static-padding-stride`_ equals _`last-static-extent`_;
 
 * [6.3]{.pnum} otherwise, `false`.
 
