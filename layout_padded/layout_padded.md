@@ -1231,15 +1231,21 @@ C++26 / IS.
 #define __cpp_lib_submdspan YYYYMML // also in <mdspan>
 ```
 
+## Updates to *[mdspan.syn]*
+
 > In Section � *[mdspan.syn]*, in the synopsis,
 > after `struct layout_stride;`, add the following:
 
-```c++
-template<size_t PaddingValue = dynamic_extent> 
-struct layout_left_padded;
-template<size_t PaddingValue = dynamic_extent> 
-struct layout_right_padded;
-```
+`// [mdspan.layout], layout mapping`\
+`struct layout_left;`\
+`struct layout_right;`\
+`struct layout_stride;`\
+[`template<size_t PaddingValue = dynamic_extent>`]{.add}\
+[`struct layout_left_padded;`]{.add}\
+[`template<size_t PaddingValue = dynamic_extent>`]{.add}\
+[`struct layout_right_padded;`]{.add}
+
+## Updates to *[mdspan.layout.policy.overview]*
 
 > In *[mdspan.layout.policy.overview]*,
 > add the following to the code block after the `layout_stride` definition:
@@ -1265,6 +1271,8 @@ struct layout_right_padded {
 meets the layout mapping policy requirements
 and is a trivial type.
 
+## Updates to *[mdspan.layout.left.overview]*
+
 > In Section � *[mdspan.layout.left.overview]* ("Overview"),
 > add the following constructor to the `layout_left::mapping` class declaration,
 > between the constructor converting from `layout_right::mapping<OtherExtents>`
@@ -1281,6 +1289,8 @@ template<class LayoutLeftPaddedMapping>
   constexpr explicit(! is_convertible_v<typename LayoutLeftPaddedMapping::extents_type, extents_type>)
     mapping(const LayoutLeftPaddedMapping&) noexcept;
 ```
+
+## Updates to *[mdspan.layout.left.cons]*
 
 > In Section � *[mdspan.layout.left.cons]* ("Constructors"),
 > add the following between the constructor converting from
@@ -1329,10 +1339,12 @@ It's possible for `LayoutLeftPaddedMapping::extents_type::static_extent(0)` to b
     then `other.stride(1)` equals `other.extents(0)`.
 
 * [11.2]{.pnum} `other.required_span_size()` is representable
-    as a value of type `index_type` (*[basic.fundamental]*).
+    as a value of type `index_type`.
 
 [12]{.pnum} *Effects:* Direct-non-list-initializes
 `extents_` with `other.extents()`.
+
+## Updates to *[mdspan.layout.right.overview]*
 
 > In Section � *[mdspan.layout.right.overview]* ("Overview"),
 > add the following constructor
@@ -1347,6 +1359,8 @@ template<class LayoutRightPaddedMapping>
   constexpr explicit(! is_convertible_v<typename LayoutRightPaddedMapping::extents_type, extents_type>)
     mapping(const LayoutRightPaddedMapping&) noexcept;
 ```
+
+## Updates to *[mdspan.layout.right.cons]*
 
 > In Section � *[mdspan.layout.right.cons]* ("Constructors"),
 > add the following between the constructor converting from
@@ -1388,9 +1402,11 @@ converting constructor from `LayoutLeftPaddedMapping`.
 * [11.1]{.pnum} if `extents_type::rank() > 1` is `true`,
     then `other.stride(extents_type::rank() - 2)` equals `other.extents().extent(extents_type::rank() - 1)`.
 
-* [11.2]{.pnum} `other.required_span_size()` is representable as a value of type `index_type` (*[basic.fundamental]*).
+* [11.2]{.pnum} `other.required_span_size()` is representable as a value of type `index_type`.
 
 [12]{.pnum} *Effects:* Direct-non-list-initializes `extents_` with `other.extents()`.
+
+## Updates to *[mdspan.layout.general]*
 
 > In Section � *[mdspan.layout.general]*,
 > change paragraph 2 to be:
@@ -1467,12 +1483,22 @@ constexpr bool @_is-layout-right-padded-mapping-of_@ = // exposition only
 ```
 -->
 
+<!--
+For LEAST-MULTIPLE-AT-LEAST, we need math font, not code font.
+$\mathit{LEAST-MULTIPLE-AT-LEAST}(x, y)$ makes the spacing weird.
+$\text{LEAST-MULTIPLE-AT-LEAST}(x, y)$ is not italicized.
+$\mathit{\text{LEAST-MULTIPLE-AT-LEAST}}(x, y)$ looks the same as above.
+_LEAST-MULTIPLE-AT-LEAST_$(x, y)$ looks pretty much like what we want.
+-->
+
 [2.4]{.pnum} For nonnegative integers $x$ and $y$,
-let $\mathit{least\_multiple\_at\_least}(x, y)$ denote
+let _LEAST-MULTIPLE-AT-LEAST_$(x, y)$ denote
 
   * $y$ if $x$ is zero, otherwise
 
   * the least multiple of $x$ that is greater than or equal to $y$.
+
+## Updates to *[mdspan.layout.stride.cons]*
 
 > In Section � *[mdspan.layout.stride.cons]*,
 > for the following constructor
@@ -1490,20 +1516,13 @@ template<class StridedLayoutMapping>
 
 [9]{.pnum} *Remarks*: The expression inside `explicit` is equivalent to:
 
-<pre id="mycode">
-  <code class="c++">
-  ! (is_convertible_v&lt;typename StridedLayoutMapping::extents_type, extents_type&gt; &&
-  (is-mapping-of&lt;layout_left, StridedLayoutMapping&gt; ||
-   is-mapping-of&lt;layout_right, StridedLayoutMapping&gt; ||
-  </code>
-  <code class="c++" style="color: green">
-   @_is-layout-left-padded-mapping-of_@ &lt;StridedLayoutMapping&gt; ||
-   @_is-layout-right-padded-mapping-of_@ &lt;StridedLayoutMapping&gt; ||
-  </code>
-  <code class="c++">
-   is-mapping-of&lt;layout_stride, StridedLayoutMapping&gt;))
-  </code>
-</pre>
+`! (is_convertible_v<typename StridedLayoutMapping::extents_type, extents_type> &&`\
+`(`_`is-mapping-of`_`<layout_left, StridedLayoutMapping> ||`\
+_`is-mapping-of`_`<layout_right, StridedLayoutMapping> ||`\
+[_`is-layout-left-padded-mapping-of`_`<StridedLayoutMapping> ||`]{.add}\
+[_`is-layout-right-padded-mapping-of`_`<StridedLayoutMapping> ||`]{.add}\
+_`is-mapping-of`_`<layout_stride, StridedLayoutMapping>))`
+
 
 <!--
 <pre id="mycode" class="c++" style="color: green;">
@@ -1540,11 +1559,16 @@ public:
   using layout_type = layout_left_padded<PaddingValue>;
 
 private:
+  static constexpr size_t @_rank\__@ = extents_type::rank(); // @_exposition only_@
+  static constexpr size_t @_first-static-extent_@ = // @_exposition only_@
+    extents_type::static_extent(0);
+
+  // [mdspan.layout.leftpadded.expo], exposition-only members
   static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 
 public:
   // [mdspan.layout.leftpadded.cons], constructors
-  constexpr mapping() noexcept;
+  constexpr mapping() noexcept : mapping(extents_type{}) {}
   constexpr mapping(const mapping&) noexcept = default;
   constexpr mapping(const extents_type& ext);
   template<class OtherIndexType>
@@ -1567,7 +1591,7 @@ public:
 
   // [mdspan.layout.leftpadded.obs], observers
   constexpr const extents_type& extents() const noexcept { return @_extents\__@; }
-  constexpr array<index_type, extents_type::rank()> strides() const noexcept;
+  constexpr array<index_type, @_rank\__@> strides() const noexcept;
 
   constexpr index_type required_span_size() const noexcept;
 
@@ -1590,18 +1614,19 @@ public:
       const LayoutLeftPaddedMapping&) noexcept;
 
 private:
+  // [mdspan.layout.leftpadded.expo], exposition-only members
   index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
   extents_type @_extents\__@{}; // @_exposition only_@
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto @_submdspan-mapping-impl_@( // @_exposition only_@
-      SliceSpecifiers... slices) const -> see below;
+      SliceSpecifiers... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers... slices) {
-        return src.submdspan-mapping-impl(slices...);
+        return src.@_submdspan-mapping-impl_@(slices...);
   }
 };
 ```
@@ -1610,46 +1635,63 @@ private:
 
 [3]{.pnum} `layout_left_padded​::​mapping<E>` is a trivially copyable type that models `regular` for each `E`.
 
-[4]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
+[4]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size _`rank_`_ parameter pack of `size_t` values:
 
-  * [4.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
+  * [4.1]{.pnum} the empty parameter pack, if _`rank_`_ equals zero; otherwise
 
-  * [4.2]{.pnum} `0zu`, if `extents_type::rank()` equals one; otherwise
+  * [4.2]{.pnum} `0zu`, if _`rank_`_ equals one; otherwise
 
-  * [4.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
+  * [4.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., _`rank_`_` - 1`.
 
 [5]{.pnum} *Mandates:*
 
-  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`;
+  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`.
 
-  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`; and
+  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`.
 
-  * [5.3]{.pnum} if
+  * [5.3]{.pnum} If
 
-    * `extents_type::rank()` is greater than one,
+    * _`rank_`_ is greater than one,
 
     * `padding_value` does not equal `dynamic_extent`, and
 
-    * `extents_type::static_extent(0)`
-      does not equal `dynamic_extent`,
+    * _`first-static-extent`_ does not equal `dynamic_extent`,
 
-  then $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::static_extent(0)` $)$
+  then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`first-static-extent`_ $)$
   is representable as a value of type `size_t`,
   and is representable as a value of type `index_type`.
+
+  * [5.4]{.pnum} If
+
+    * _`rank_`_ is greater than one,
+
+    * `padding_value` does not equal `dynamic_extent`, and
+
+    * `extents_type::static_extent(k)`
+      does not equal `dynamic_extent`
+      for all `k` in the range $[0,$ `extents_type::rank()` $)$,
+  
+  then the product of
+  _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.static_extent(0)` $)$
+  and all values `ext.static_extent(k)` 
+  with `k` in the range of $[1,$ _`rank_`_ $)$
+  is representable as a value of type `size_t`,
+  and is representable as a value of type `index_type`.
+
+### Exposition-only members [mdspan.layout.leftpadded.expo]
 
 ```c++
 static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 ```
 
-[4]{.pnum} The value is
+[1]{.pnum} The value is
 
-  * [4.1]{.pnum} `0`, if `extents_type::rank()`
-      equals zero or one; otherwise
+  * [1.1]{.pnum} `0`, if _`rank_`_ equals zero or one; otherwise
 
-  * [4.2]{.pnum} `dynamic_extent`, if `padding_value` or `extents_type::static_extent(0)` equals `dynamic_extent`; otherwise
+  * [1.2]{.pnum} `dynamic_extent`, if `padding_value` or _`first-static-extent`_ equals `dynamic_extent`; otherwise
 
-  * [4.3]{.pnum } the `size_t` value which is
-    $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::static_extent(0)` $)$.
+  * [1.3]{.pnum } the `size_t` value which is
+    _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`first-static-extent`_ $)$.
 
 <!--
 NOTE (mfh 2024/01/18) Previously, we specified _`stride-1`_
@@ -1673,7 +1715,7 @@ with respect to other library description clauses.
 index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
 ```
 
-[5]{.pnum} *Recommended practice*: Implementations should not store
+[2]{.pnum} *Recommended practice*: Implementations should not store
 this value if _`static-padding-stride`_ is not `dynamic_extent`.
 <i>[Note:</i>
 Using `extents<index_type,`_`static-padding-stride`_`>`
@@ -1683,68 +1725,71 @@ instead of `index_type` as the type of _`stride-1`_ would achieve this.
 ### Constructors [mdspan.layout.leftpadded.cons]
 
 ```c++
-constexpr mapping() noexcept;
-```
-
-[1]{.pnum} *Effects:* Equivalent to `mapping(extents_type{});`.
-
-```c++
 constexpr mapping(const extents_type& ext);
 ```
 
-[2]{.pnum} *Preconditions:*
+[1]{.pnum} *Preconditions:*
 
-  * [2.1]{.pnum} The size of the multidimensional index space `ext`
+  * [1.1]{.pnum} The size of the multidimensional index space `ext`
     is representable as a value of type `index_type`.
 
-  * [2.2]{.pnum} If `extents_type::rank()` is greater than one
-    and `padding_value` does not equal `dynamic_extent`,
-    then $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `ext.extent(0)` $)$
-    is representable as a value of type `index_type`.
+  * [1.2]{.pnum} If _`rank_`_ is greater than one and `padding_value` does not equal `dynamic_extent`, then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(0)` $)$ is representable as a value of type `index_type`.
 
-[3]{.pnum} *Effects:*
+  * [1.3]{.pnum} If _`rank_`_ is greater than one and
+      `padding_value` does not equal `dynamic_extent`,
+      then the product of
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(0)` $)$
+      and all values `ext.extent(k)`
+      with `k` in the range of $[1,$ _`rank_`_ $)$
+      is representable as a value of type `index_type`.
 
-  * [3.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
+[2]{.pnum} *Effects:*
 
-  * [3.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
+  * [2.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
-      * [3.2.1]{.pnum} `ext.extent(0)`
+  * [2.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
+
+      * [2.2.1]{.pnum} `ext.extent(0)`
           if `padding_value` is `dynamic_extent`, otherwise with
 
-      * [3.2.2]{.pnum} $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `ext.extent(0)` $)$.
+      * [2.2.2]{.pnum} _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(0)` $)$.
 
 ```c++
 template<class OtherIndexType>
 constexpr mapping(const extents_type& ext, OtherIndexType pad);
 ```
 
-[4]{.pnum} *Constraints:*
+[3]{.pnum} *Constraints:*
 
-* [4.1]{.pnum} `is_convertible_v<OtherIndexType, index_type>` is `true`.
+* [3.1]{.pnum} `is_convertible_v<OtherIndexType, index_type>` is `true`.
 
-* [4.2]{.pnum} `is_nothrow_constructible_v<index_type, OtherIndexType>` is `true`.
+* [3.2]{.pnum} `is_nothrow_constructible_v<index_type, OtherIndexType>` is `true`.
 
-[5]{.pnum} *Preconditions:*
+[4]{.pnum} *Preconditions:*
 
-  * [5.1]{.pnum} The size of the multidimensional index space `ext`
-    is representable as a value of type `index_type`;
+  * [4.1]{.pnum} `pad` is representable as a value of type `index_type`.
 
-  * [5.2]{.pnum} `pad` is representable as a value of type `index_type`;
+  * [4.2]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero.
 
-  * [5.3]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero;
+  * [4.3]{.pnum} If _`rank_`_ is greater than one,
+      then _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$
+      is representable as a value of type `index_type`.
 
-  * [5.4]{.pnum} if `extents_type::rank()` is greater than one,
-      then $\mathit{least\_multiple\_at\_least}($ `pad` $,$ `ext.extent(0)` $)$
-      is representable as a value of type `index_type`; and
+  * [4.4]{.pnum} If _`rank_`_ is greater than one,
+      then the product of
+      _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$
+      and all values `ext.extent(k)` with `k` in the range of
+      $[1,$ _`rank_`_ $)$
+      is representable as a value of type `index_type`.
+      <!-- LWG 2024/02/14 review specifically wanted both 4.3 and 4.4. -->
 
-  * [5.5]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
+  * [4.5]{.pnum} If `padding_value` is not equal to `dynamic_extent`,
+      `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
 
-[6]{.pnum} *Effects:*
-
-  * [6.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
-
-  * [6.2]{.pnum} direct-non-list-initializes _`stride-1`_
-      with $\mathit{least\_multiple\_at\_least}($ `pad` $,$ `ext.extent(0)` $)$.
+[5]{.pnum} *Effects:*
+Direct-non-list-initializes _`extents_`_ with `ext`,
+and direct-non-list-initializes _`stride-1`_
+with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$.
 
 ```c++
 template<class OtherExtents>
@@ -1752,55 +1797,45 @@ template<class OtherExtents>
     mapping(const layout_left::mapping<OtherExtents>& other);
 ```
 
-[7]{.pnum} *Constraints:*
+[6]{.pnum} *Constraints:*
 `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[8]{.pnum} *Mandates:* If
+[7]{.pnum} *Mandates:* If `OtherExtents::rank()` is greater than 1, then
+`(`_`static-padding-stride`_` == dynamic_extent) || (OtherExtents::static_extent(0) == dynamic_extent) || (`_`static-padding-stride`_` == OtherExtents::static_extent(0))` is `true`.
 
-  * `OtherExtents::rank() > 1`,
+[8]{.pnum} *Preconditions:*
 
-  * _`static-padding-stride`_ does not equal `dynamic_extent`, and
-
-  * `OtherExtents::static_extent(0)`
-    does not equal `dynamic_extent`,
-
-then _`static-padding-stride`_ equals
-`OtherExtents::static_extent(0)`.
-
-[9]{.pnum} *Preconditions:*
-
-  * [9.1]{.pnum} If `extents_type::rank() > 1` is `true`
+  * [8.1]{.pnum} If `extents_type::rank() > 1` is `true`
       and `padding_value == dynamic_extent` is `false`,
       then `other.stride(1)` equals
-      $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$; and
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$; and
 
-  * [9.2]{.pnum} `other.required_span_size()`
-      is representable as a value of type `index_type`
-      (*[basic.fundamental]*).
+  * [8.2]{.pnum} `other.required_span_size()`
+      is representable as a value of type `index_type`.
 
-[10]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`;
+[9]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`.
 
 ```c++
 template<class OtherExtents>
-  constexpr explicit(extents_type::rank() > 0)
+  constexpr explicit(@_rank\__@ > 0)
     mapping(const layout_stride::mapping<OtherExtents>& other);
 ```
 
-[11]{.pnum}  *Constraints:*
+[10]{.pnum}  *Constraints:*
 `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[12]{.pnum} *Preconditions:*
+[11]{.pnum} *Preconditions:*
 
-  * [12.1]{.pnum} If `extents_type::rank() > 1` is `true`
-      and `padding_value == dynamic_extent` is `false`,
+  * [11.1]{.pnum} If _`rank_`_ is greater than 1
+      and `padding_value` does not equal `dynamic_extent`,
       then `other.stride(1)` equals
-      $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$.
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(0))` $)$.
 
-  * [12.2]{.pnum} If `extents_type::rank() > 0` is `true`,
+  * [11.2]{.pnum} If _`rank_`_ is greater than 0,
       then `other.stride(0)` equals 1.
 
-  * [12.3]{.pnum} If `extents_type::rank() > 2` is `true`,
-    then for all `r` in the range $[$ `2`, `extents_type::rank()`$)$,
+  * [11.3]{.pnum} If _`rank_`_ is greater than 2,
+    then for all `r` in the range $[$ `2`, _`rank_`_ $)$,
     `other.stride(r)` equals
     `(other.extents().`_`fwd-prod-of-extents`_`(r) / other.extents().extent(0)) * other.stride(1)`.
     <!--
@@ -1814,15 +1849,14 @@ template<class OtherExtents>
     See https://github.com/ORNL/cpp-proposals-pub/issues/442 .
     -->
 
-  * [12.4]{.pnum} `other.required_span_size()`
-      is representable as a value of type `index_type`
-      (*[basic.fundamental]*).
+  * [11.4]{.pnum} `other.required_span_size()`
+      is representable as a value of type `index_type`.
 
-[13]{.pnum} *Effects:*
+[12]{.pnum} *Effects:*
 
-  * [13.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
+  * [12.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [13.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
+  * [12.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
       `other.stride(1)`.
 
 ```c++
@@ -1831,35 +1865,35 @@ template<class LayoutLeftPaddedMapping>
     mapping(const LayoutLeftPaddedMapping& other);
 ```
 
-[14]{.pnum} *Constraints:*
+[13]{.pnum} *Constraints:*
 
-* [14.1]{.pnum} _`is-layout-left-padded-mapping-of`_`<LayoutLeftPaddedMapping>` is `true`.
+* [13.1]{.pnum} _`is-layout-left-padded-mapping-of`_`<LayoutLeftPaddedMapping>` is `true`.
 
-* [14.2]{.pnum} `is_constructible_v<extents_type, typename LayoutLeftPaddedMapping::extents_type>` is `true`.
+* [13.2]{.pnum} `is_constructible_v<extents_type, typename LayoutLeftPaddedMapping::extents_type>` is `true`.
 
-[15]{.pnum} *Mandates:* If `extents_type::rank() > 1` is `true`, then
+[14]{.pnum} *Mandates:* If _`rank_`_ is greater than 1, then
 `padding_value == dynamic_extent || LayoutLeftPaddedMapping::padding_value == dynamic_extent || padding_value == LayoutLeftPaddedMapping::padding_value` is `true`.
 
-[16]{.pnum} *Preconditions:*
+[15]{.pnum} *Preconditions:*
 
-* [16.1]{.pnum} If `extents_type::rank() > 1` is `true`
+* [15.1]{.pnum} If _`rank_`_ is greater than 1
     and `padding_value` does not equal `dynamic_extent`,
     then `other.stride(1)` equals
-    $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(0))` $)$.
+    _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(0))` $)$.
 
-* [16.2]{.pnum} `other.required_span_size()` is representable
-    as a value of type `index_type` (*[basic.fundamental]*).
+* [15.2]{.pnum} `other.required_span_size()` is representable
+    as a value of type `index_type`.
 
-[17]{.pnum} *Effects:*
+[16]{.pnum} *Effects:*
 
-  * [17.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
+  * [16.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [17.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
+  * [16.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
       `other.stride(1)`.
 
-[18]{.pnum} *Remarks:*
+[17]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to:
-`extents_type::rank() > 1 && (padding_value != dynamic_extent || LayoutLeftPaddedMapping::padding_value == dynamic_extent)`.
+_`rank_`_` > 1 && (padding_value != dynamic_extent || LayoutLeftPaddedMapping::padding_value == dynamic_extent)`.
 
 ```c++
 template<class LayoutRightPaddedMapping>
@@ -1867,21 +1901,20 @@ template<class LayoutRightPaddedMapping>
     mapping(const LayoutRightPaddedMapping& other) noexcept;
 ```
 
-[19]{.pnum} *Constraints:*
+[18]{.pnum} *Constraints:*
 
-* [19.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_right, LayoutRightPaddedMapping>` is `true,
+* [18.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_right, LayoutRightPaddedMapping>` is `true,
 
-* [19.2]{.pnum} `extents_type::rank()` equals zero or one, and
+* [18.2]{.pnum} _`rank_`_ equals zero or one, and
 
-* [19.3]{.pnum} `is_constructible_v<extents_type, typename LayoutRightPaddedMapping::extents_type>` is `true`.
+* [18.3]{.pnum} `is_constructible_v<extents_type, typename LayoutRightPaddedMapping::extents_type>` is `true`.
 
-[20]{.pnum} *Precondition:* `other.required_span_size()`
-is representable as a value of type `index_type`
-(*[basic.fundamental]*).
+[19]{.pnum} *Precondition:* `other.required_span_size()`
+is representable as a value of type `index_type`.
 
-[21]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`.
+[20]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`.
 
-[22]{.pnum} *Remarks:*
+[21]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to: `! is_convertible_v<typename LayoutRightPaddedMapping::extents_type, extents_type>`.
 
 <i>[Note:</i> Neither the input mapping nor the mapping to be constructed
@@ -1892,11 +1925,11 @@ either the constraints or the preconditions. <i>-- end note]</i>
 ### Observers [mdspan.layout.leftpadded.obs]
 
 ```c++
-constexpr array<index_type, extents_type::rank()>
+constexpr array<index_type, @_rank\__@>
   strides() const noexcept;
 ```
 
-[1]{.pnum} *Returns:* `array<index_type, extents_type::rank()>({stride(P_rank)...})`.
+[1]{.pnum} *Returns:* `array<index_type, `_`rank_`_`>({stride(P_rank)...})`.
 
 ```c++
 constexpr index_type required_span_size() const noexcept;
@@ -1906,7 +1939,7 @@ constexpr index_type required_span_size() const noexcept;
 
   * [2.1]{.pnum} `0` if the multidimensional index space _`extents_`_ is empty, otherwise
  
-  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`
+  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`.
 
 
 ```c++
@@ -1920,13 +1953,13 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 
   * [3.2]{.pnum} `(is_convertible_v<Indices, index_type> && ...)` is `true`.
 
-  * [3.3]{.pnum} `(is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
+  * [3.3]{.pnum} `(is_nothrow_constructible_v<index_type, Indices> && ...)` is `true`.
 
 [4]{.pnum} *Precondition:* `extents_type::`_`index-cast`_`(idxs)`
 is a multidimensional index in `extents()` (*[mdspan.overview]*).
 
 [5]{.pnum} *Returns:*
-`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0);`.
+`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0)`.
 
 ```c++
 static constexpr bool is_always_exhaustive() noexcept;
@@ -1934,9 +1967,9 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 [6]{.pnum} *Returns:*
 
-* [6.1]{.pnum} If `extents_type::rank()` equals zero or one, then `true`;
+* [6.1]{.pnum} If _`rank_`_ equals zero or one, then `true`;
 
-* [6.2]{.pnum} else, if _`static-padding-stride`_ nor `extents_type::static_extent(0)` equal `dynamic_extent`, then _`static-padding-stride`_` == extents_type::static_extent(0)`;
+* [6.2]{.pnum} else, if neither _`static-padding-stride`_ nor _`first-static-extent`_ equal `dynamic_extent`, then _`static-padding-stride`_` == `_`first-static-extent`_;
 
 * [6.3]{.pnum} otherwise, `false`.
 
@@ -1944,25 +1977,21 @@ static constexpr bool is_always_exhaustive() noexcept;
 constexpr bool is_exhaustive() const noexcept;
 ```
 
-[7]{.pnum} *Returns:*
-
-* [7.1]{.pnum} If `extents_type::rank() < 2` is `true`, then `true`;
-
-* [7.2]{.pnum} else, _`extents_`_`.extent(0) == stride(1)`.
+[7]{.pnum} *Returns:* `true` if _`rank_`_ equals zero or one; otherwise, _`extents_`_`.extent(0) == stride(1)`.
 
 ```c++
 constexpr index_type stride(rank_type r) const noexcept;
 ```
 
-[8]{.pnum} *Preconditions:* `r` is smaller than `extents_type::rank()`.
+[8]{.pnum} *Preconditions:* `r` is smaller than _`rank_`_.
 
 [9]{.pnum} *Returns:*
 
-  * [9.1]{.pnum} `1`, if `r` equals `0`; otherwise
+  * [9.1]{.pnum} If `r` equals zero: `1`;
 
-  * [9.2]{.pnum} _`stride-1`_, if `r` equals `1`; otherwise
+  * [9.2]{.pnum} else, if `r` equals one: _`stride-1`_;
 
-  * [9.3]{.pnum} the product of _`stride-1`_ and all values
+  * [9.3]{.pnum} otherwise, the product of _`stride-1`_ and all values
       _`extents_`_`.extent(k)` with `k` in the range of
       $[1,$ `r`$)$.
 
@@ -1977,15 +2006,11 @@ template<class LayoutLeftPaddedMapping>
 
   * [10.1]{.pnum} _`is-layout-left-padded-mapping-of`_`<LayoutLeftPaddedMapping>` is `true`.
 
-  * [10.2]{.pnum} `typename LayoutLeftPaddedMapping::extents_type::rank() == extents_type::rank()` is `true`.
+  * [10.2]{.pnum} `LayoutLeftPaddedMapping::extents_type::rank() == `_`rank_`_ is `true`. <!-- LWG 2024/02/14 says we don't need "typename" here. -->
 
-[11]{.pnum} *Returns:* `true` if
-
-  * [11.1]{.pnum} `x.extents() == y.extents()` is `true`; and
-
-  * [11.2]{.pnum} if `extents_type::rank() > 1` is `true`,
-    then `x.stride(1) == y.stride(1)`
-    is `true`.
+[11]{.pnum} *Returns:* `true` if `x.extents() == y.extents()` is `true`
+and _`rank_`_` < 2 || x.stride(1) == y.stride(1)`
+is `true`.  Otherwise, `false`.
 
 ## Class template `layout_right_padded::mapping` [mdspan.layout.rightpadded]
 
@@ -2011,13 +2036,15 @@ public:
 
 private:
   static constexpr size_t @_rank\__@ = extents_type::rank(); // @_exposition only_@
-  static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
   static constexpr size_t @_last-static-extent_@ = // @_exposition only_@
     extents_type::static_extent(@_rank\__@ - 1);
 
+  // [mdspan.layout.rightpadded.expo], exposition-only members
+  static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
+
 public:
   // [mdspan.layout.rightpadded.cons], constructors
-  constexpr mapping() noexcept;
+  constexpr mapping() noexcept : mapping(extents_type{}) {}
   constexpr mapping(const mapping&) noexcept = default;
   constexpr mapping(const extents_type& ext);
   template<class OtherIndexType>
@@ -2063,18 +2090,19 @@ public:
       const LayoutRightPaddedMapping&) noexcept;
 
 private:
+  // [mdspan.layout.rightpadded.expo], exposition-only members
   index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
   extents_type @_extents\__@{}; // @_exposition only_@
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto submdspan-mapping-impl( // @_exposition only_@
-      SliceSpecifiers... slices) const -> see below;
+      SliceSpecifiers... slices) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
       const mapping& src, SliceSpecifiers... slices) {
-        return src.submdspan-mapping-impl(slices...);
+        return src.@_submdspan-mapping-impl_@(slices...);
   }
 };
 ```
@@ -2083,46 +2111,63 @@ private:
 
 [3]{.pnum} `layout_right_padded​::​mapping<E>` is a trivially copyable type that models `regular` for each `E`.
 
-[4]{.pnum} Throughout [mdspan.layout.rightpadded], let `P_rank` be the following size `extents_type::rank()` parameter pack of `size_t` values:
+[4]{.pnum} Throughout [mdspan.layout.rightpadded], let `P_rank` be the following size _`rank_`_ parameter pack of `size_t` values:
 
-  * [4.1]{.pnum} the empty parameter pack, if `extents_type::rank()` equals zero; otherwise
+  * [4.1]{.pnum} the empty parameter pack, if _`rank_`_ equals zero; otherwise
 
-  * [4.2]{.pnum} `0zu`, if `extents_type::rank()` equals one; otherwise
+  * [4.2]{.pnum} `0zu`, if _`rank_`_ equals one; otherwise
 
-  * [4.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., `extents_type::rank() - 1`.
+  * [4.3]{.pnum} the parameter pack `0zu`, `1zu`, ..., _`rank_`_` - 1`.
 
 [5]{.pnum} *Mandates:*
 
-  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`;
+  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`.
 
-  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`; and
+  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`.
 
-  * [5.3]{.pnum} if
+  * [5.3]{.pnum} If
 
-    * `extents_type::rank()` is greater than one,
+    * _`rank_`_ is greater than one,
 
     * `padding_value` does not equal `dynamic_extent`, and
 
-    * _`last-static-extent`_
-      does not equal `dynamic_extent`,
+    * _`last-static-extent`_ does not equal `dynamic_extent`,
 
-  then $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ _`last-static-extent`_ $)$
+  then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`last-static-extent`_ $)$
   is representable as a value of type `size_t`,
   and is representable as a value of type `index_type`.
+
+  * [5.4]{.pnum} If
+
+    * _`rank_`_ is greater than one,
+
+    * `padding_value` does not equal `dynamic_extent`, and
+
+    * `extents_type::static_extent(k)`
+      does not equal `dynamic_extent`
+      for all `k` in the range $[0,$ _`rank_`_ $)$,
+
+  then the product of
+  _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.static_extent(`_`rank_`_` - 1)` $)$
+  and all values `ext.static_extent(k)` 
+  with `k` in the range of $[0,$ _`rank_`_ $-1)$
+  is representable as a value of type `size_t`,
+  and is representable as a value of type `index_type`.
+
+### Exposition-only members [mdspan.layout.rightpadded.expo]
 
 ```c++
 static constexpr size_t @_static-padding-stride_@ = /* @_see-below_@ */; // @_exposition only_@
 ```
 
-[4]{.pnum} The value is
+[1]{.pnum} The value is
 
-  * [4.1]{.pnum} `0`, if `extents_type::rank()`
-      equals zero or one; otherwise
+  * [1.1]{.pnum} `0`, if _`rank_`_ equals zero or one; otherwise
 
-  * [4.2]{.pnum} `dynamic_extent`, if `padding_value` or _`last-static-extent`_ equals `dynamic_extent`; otherwise
+  * [1.2]{.pnum} `dynamic_extent`, if `padding_value` or _`last-static-extent`_ equals `dynamic_extent`; otherwise
 
-  * [4.3]{.pnum } the `size_t` value which is
-    $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ _`last-static-extent`_ $)$.
+  * [1.3]{.pnum } the `size_t` value which is
+    _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`last-static-extent`_ $)$.
 
 <!--
 NOTE (mfh 2024/01/18) Above comments on
@@ -2134,7 +2179,7 @@ also apply to _`stride-rm2`_.
 index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
 ```
 
-[5]{.pnum} *Recommended practice*: Implementations should not store
+[2]{.pnum} *Recommended practice*: Implementations should not store
 this value if _`static-padding-stride`_ is not `dynamic_extent`.
 <i>[Note:</i>
 Using `extents<index_type,`_`static-padding-stride`_`>`
@@ -2144,68 +2189,71 @@ instead of `index_type` as the type of _`stride-rm2`_ would achieve this.
 ### Constructors [mdspan.layout.rightpadded.cons]
 
 ```c++
-constexpr mapping() noexcept;
-```
-
-[1]{.pnum} *Effects:* Equivalent to `mapping(extents_type{});`.
-
-```c++
 constexpr mapping(const extents_type& ext);
 ```
 
-[2]{.pnum} *Preconditions:*
+[1]{.pnum} *Preconditions:*
 
-  * [2.1]{.pnum} The size of the multidimensional index space `ext`
+  * [1.1]{.pnum} The size of the multidimensional index space `ext`
     is representable as a value of type `index_type`.
 
-  * [2.2]{.pnum} If _`rank_`_ is greater than one
-    and `padding_value` does not equal `dynamic_extent`,
-    then $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$
-    is representable as a value of type `index_type`.
+  * [1.2]{.pnum} If _`rank_`_ is greater than one and `padding_value` does not equal `dynamic_extent`, then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(`_`rank_`_` - 1)` $)$ is representable as a value of type `index_type`.
 
-[3]{.pnum} *Effects:*
+  * [1.3]{.pnum} If _`rank_`_ is greater than one and
+      `padding_value` does not equal `dynamic_extent`,
+      then the product of
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$
+      and all values `ext.extent(k)`
+      with `k` in the range of $[0,$ _`rank_`_$-1)$
+      is representable as a value of type `index_type`.
 
-  * [3.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
+[2]{.pnum} *Effects:*
 
-  * [3.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
+  * [2.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
-      * [3.2.1]{.pnum} `ext.extent(`_`rank_`_ ` - 1)`
+  * [2.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
+
+      * [2.2.1]{.pnum} `ext.extent(`_`rank_`_ ` - 1)`
           if `padding_value` is `dynamic_extent`, otherwise with
 
-      * [3.2.2]{.pnum} $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
+      * [2.2.2]{.pnum} _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
 
 ```c++
 template<class OtherIndexType>
 constexpr mapping(const extents_type& ext, OtherIndexType pad);
 ```
 
-[4]{.pnum} *Constraints:*
+[3]{.pnum} *Constraints:*
 
-* [4.1]{.pnum} `is_convertible_v<OtherIndexType, index_type>` is `true`.
+* [3.1]{.pnum} `is_convertible_v<OtherIndexType, index_type>` is `true`.
 
-* [4.2]{.pnum} `is_nothrow_constructible_v<index_type, OtherIndexType>` is `true`.
+* [3.2]{.pnum} `is_nothrow_constructible_v<index_type, OtherIndexType>` is `true`.
 
-[5]{.pnum} *Preconditions:*
+[4]{.pnum} *Preconditions:*
 
-  * [5.1]{.pnum} The size of the multidimensional index space `ext`
-    is representable as a value of type `index_type`;
+  * [4.1]{.pnum} `pad` is representable as a value of type `index_type`.
 
-  * [5.2]{.pnum} `pad` is representable as a value of type `index_type`;
+  * [4.2]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero.
 
-  * [5.3]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero;
+  * [4.3]{.pnum} If _`rank_`_ is greater than one,
+      then _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$
+      is representable as a value of type `index_type`.
 
-  * [5.4]{.pnum} if _`rank_`_ is greater than one,
-      then $\mathit{least\_multiple\_at\_least}($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$
-      is representable as a value of type `index_type`; and
+  * [4.4]{.pnum} If _`rank_`_ is greater than one,
+      then the product of
+      _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$
+      and all values `ext.extent(k)` with `k` in the range of
+      $[0,$ _`rank_`_$-1)$
+      is representable as a value of type `index_type`.
+      <!-- LWG 2024/02/14 review specifically wanted both 4.3 and 4.4. -->
 
-  * [5.5]{.pnum} if `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
+  * [4.5]{.pnum} If `padding_value` is not equal to `dynamic_extent`,
+      `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
 
-[6]{.pnum} *Effects:*
-
-  * [6.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
-
-  * [6.2]{.pnum} direct-non-list-initializes _`stride-rm2`_
-      with $\mathit{least\_multiple\_at\_least}($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
+[5]{.pnum} *Effects:*
+Direct-non-list-initializes _`extents_`_ with `ext`,
+and direct-non-list-initializes _`stride-rm2`_
+with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
 
 ```c++
 template<class OtherExtents>
@@ -2213,33 +2261,23 @@ template<class OtherExtents>
     mapping(const layout_right::mapping<OtherExtents>& other);
 ```
 
-[7]{.pnum} *Constraints:*
+[6]{.pnum} *Constraints:*
 `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[8]{.pnum} *Mandates:* If
+[7]{.pnum} *Mandates:* If `OtherExtents::rank()` is greater than 1, then
+`(`_`static-padding-stride`_` == dynamic_extent) || (OtherExtents::static_extent(`_`rank_`_` - 1) == dynamic_extent) || (`_`static-padding-stride`_` == OtherExtents::static_extent(`_`rank_`_` - 1))` is `true`.
 
-  * If `OtherExtents::rank() > 1`,
+[8]{.pnum} *Preconditions:*
 
-  * _`static-padding-stride`_ does not equal `dynamic_extent`, and
-
-  * `OtherExtents::static_extent(`_`rank_`_` - 1)`
-    does not equal `dynamic_extent`,
-
-then _`static-padding-stride`_ equals
-`OtherExtents::static_extent(`_`rank_`_` - 1)`.
-
-[9]{.pnum} *Preconditions:*
-
-  * [9.1]{.pnum} If _`rank_`_ ` > 1` is `true`
+  * [8.1]{.pnum} If _`rank_`_ ` > 1` is `true`
       and `padding_value == dynamic_extent` is `false`,
       then `other.stride(`_`rank_`_` - 2)` equals
-      $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
 
-  * [9.2]{.pnum} `other.required_span_size()`
-      is representable as a value of type `index_type`
-      (*[basic.fundamental]*).
+  * [8.2]{.pnum} `other.required_span_size()`
+      is representable as a value of type `index_type`.
 
-[10]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`;
+[9]{.pnum} *Effects:* Equivalent to `mapping(other.extents())`.
 
 ```c++
 template<class OtherExtents>
@@ -2247,20 +2285,20 @@ template<class OtherExtents>
     mapping(const layout_stride::mapping<OtherExtents>& other);
 ```
 
-[11]{.pnum}  *Constraints:*
+[10]{.pnum}  *Constraints:*
 `is_constructible_v<extents_type, OtherExtents>` is `true`.
 
-[12]{.pnum} *Preconditions:*
+[11]{.pnum} *Preconditions:*
 
-  * [12.1]{.pnum} If _`rank_`_` > 1` is `true`
-      and `padding_value == dynamic_extent` is `false`,
+  * [11.1]{.pnum} If _`rank_`_ is greater than 1
+      and `padding_value` does not equal `dynamic_extent`,
       then `other.stride(`_`rank_`_` - 2)` equals
-      $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
 
-  * [12.2]{.pnum} If _`rank_`_` > 0` is `true`,
+  * [11.2]{.pnum} If _`rank_`_ is greater than 0,
       then `other.stride(`_`rank_`_` - 1)` equals 1.
 
-  * [12.3]{.pnum} If _`rank_`_` > 2` is `true`,
+  * [11.3]{.pnum} If _`rank_`_ is greater than 2,
     then for all `r` in the range $[$ `0`, _`rank_`_` - 2`$)$,
     `other.stride(r)` equals
     `(other.extents().`_`rev-prod-of-extents`_`(r) / other.extents().extent(`_`rank_`_` - 1)) * other.stride(`_`rank_`_` - 2)`.
@@ -2275,15 +2313,14 @@ template<class OtherExtents>
     See https://github.com/ORNL/cpp-proposals-pub/issues/442 .
     -->
 
-  * [12.4]{.pnum} `other.required_span_size()`
-      is representable as a value of type `index_type`
-      (*[basic.fundamental]*).
+  * [11.4]{.pnum} `other.required_span_size()`
+      is representable as a value of type `index_type`.
 
-[13]{.pnum} *Effects:*
+[12]{.pnum} *Effects:*
 
-  * [13.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
+  * [12.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [13.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
+  * [12.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
       `other.stride(`_`rank_`_` - 2)`.
 
 ```c++
@@ -2292,33 +2329,33 @@ template<class LayoutRightPaddedMapping>
     mapping(const LayoutRightPaddedMapping& other);
 ```
 
-[14]{.pnum} *Constraints:*
+[13]{.pnum} *Constraints:*
 
-* [14.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true`.
+* [13.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true`.
 
-* [14.2]{.pnum} `is_constructible_v<extents_type, typename LayoutRightPaddedMapping::extents_type>` is `true`.
+* [13.2]{.pnum} `is_constructible_v<extents_type, typename LayoutRightPaddedMapping::extents_type>` is `true`.
 
-[15]{.pnum} *Mandates:* If _`rank_`_` > 1` is `true`, then
+[14]{.pnum} *Mandates:* If _`rank_`_ is greater than 1, then
 `padding_value == dynamic_extent || LayoutRightPaddedMapping::padding_value == dynamic_extent || padding_value == LayoutRightPaddedMapping::padding_value` is `true`.
 
-[16]{.pnum} *Preconditions:*
+[15]{.pnum} *Preconditions:*
 
-* [16.1]{.pnum} If _`rank_`_` > 1` is `true`
+* [15.1]{.pnum} If _`rank_`_ is greater than 1
     and `padding_value` does not equal `dynamic_extent`,
     then `other.stride(`_`rank_`_` - 2)` equals
-    $\mathit{least\_multiple\_at\_least}($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(`_`rank_`_` - 1))` $)$.
+    _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extent(`_`rank_`_` - 1))` $)$.
 
-* [16.2]{.pnum} `other.required_span_size()` is representable
-    as a value of type `index_type` (*[basic.fundamental]*).
+* [15.2]{.pnum} `other.required_span_size()` is representable
+    as a value of type `index_type`.
 
-[17]{.pnum} *Effects:*
+[16]{.pnum} *Effects:*
 
-  * [17.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
+  * [16.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [17.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
+  * [16.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
       `other.stride(`_`rank_`_` - 2)`.
 
-[18]{.pnum} *Remarks:*
+[17]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to:
 _`rank_`_` > 1 && (padding_value != dynamic_extent || LayoutRightPaddedMapping::padding_value == dynamic_extent)`.
 
@@ -2328,21 +2365,20 @@ template<class LayoutLeftPaddedMapping>
     mapping(const LayoutLeftPaddedMapping& other) noexcept;
 ```
 
-[19]{.pnum} *Constraints:*
+[18]{.pnum} *Constraints:*
 
-* [19.1]{.pnum} _`is-layout-left-padded-mapping-of`_`<LayoutLeftPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_left, LayoutLeftPaddedMapping>` is `true,
+* [18.1]{.pnum} _`is-layout-left-padded-mapping-of`_`<LayoutLeftPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_left, LayoutLeftPaddedMapping>` is `true,
 
-* [19.2]{.pnum} `extents_type::rank()` equals zero or one, and
+* [18.2]{.pnum} _`rank_`_ equals zero or one, and
 
-* [19.3]{.pnum} `is_constructible_v<extents_type, typename LayoutLeftPaddedMapping::extents_type>` is `true`.
+* [18.3]{.pnum} `is_constructible_v<extents_type, typename LayoutLeftPaddedMapping::extents_type>` is `true`.
 
-[20]{.pnum} *Precondition:* `other.required_span_size()`
-is representable as a value of type `index_type`
-(*[basic.fundamental]*).
+[19]{.pnum} *Precondition:* `other.required_span_size()`
+is representable as a value of type `index_type`.
 
-[21]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`.
+[20]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`.
 
-[22]{.pnum} *Remarks:*
+[21]{.pnum} *Remarks:*
 The expression inside `explicit` is equivalent to: `! is_convertible_v<typename LayoutLeftPaddedMapping::extents_type, extents_type>`.
 
 <i>[Note:</i> Neither the input mapping nor the mapping to be constructed
@@ -2367,7 +2403,7 @@ constexpr index_type required_span_size() const noexcept;
 
   * [2.1]{.pnum} `0` if the multidimensional index space _`extents_`_ is empty, otherwise
  
-  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`
+  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`.
 
 
 ```c++
@@ -2381,13 +2417,13 @@ constexpr size_t operator()(Indices... idxs) const noexcept;
 
   * [3.2]{.pnum} `(is_convertible_v<Indices, index_type> && ...)` is `true`.
 
-  * [3.3]{.pnum} `(is_nothrow_constructible<index_type, Indices> && ...)` is `true`.
+  * [3.3]{.pnum} `(is_nothrow_constructible_v<index_type, Indices> && ...)` is `true`.
 
 [4]{.pnum} *Precondition:* `extents_type::`_`index-cast`_`(idxs)`
 is a multidimensional index in `extents()` (*[mdspan.overview]*).
 
 [5]{.pnum} *Returns:*
-`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0);`.
+`((static_cast<index_type>(idxs) * stride(P_rank)) + ... + 0)`.
 
 ```c++
 static constexpr bool is_always_exhaustive() noexcept;
@@ -2397,7 +2433,7 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 * [6.1]{.pnum} If _`rank_`_ equals zero or one, then `true`;
 
-* [6.2]{.pnum} else, if neither _`static-padding-stride`_ nor _`last-static-extent`_ equal `dynamic_extent`, then _`static-padding-stride`_ equals _`last-static-extent`_;
+* [6.2]{.pnum} else, if neither _`static-padding-stride`_ nor _`last-static-extent`_ equal `dynamic_extent`, then _`static-padding-stride`_`==`_`last-static-extent`_;
 
 * [6.3]{.pnum} otherwise, `false`.
 
@@ -2405,11 +2441,7 @@ static constexpr bool is_always_exhaustive() noexcept;
 constexpr bool is_exhaustive() const noexcept;
 ```
 
-[7]{.pnum} *Returns:*
-
-* [7.1]{.pnum} If _`rank_`_` < 2` is `true`, then `true`;
-
-* [7.2]{.pnum} else, _`extents_`_`.extent(`_`rank_`_` - 1) == stride(`_`rank_`_` - 2)`.
+[7]{.pnum} *Returns:* `true` if _`rank_`_ equals zero or one; otherwise, _`extents_`_`.extent(`_`rank_`_` - 1) == stride(`_`rank_`_` - 2)`.
 
 ```c++
 constexpr index_type stride(rank_type r) const noexcept;
@@ -2419,11 +2451,11 @@ constexpr index_type stride(rank_type r) const noexcept;
 
 [9]{.pnum} *Returns:*
 
-  * [9.1]{.pnum} `1`, if `r` equals _`rank_`_` - 1`; otherwise
+  * [9.1]{.pnum} If `r` equals _`rank_`_` - 1`: `1`;
 
-  * [9.2]{.pnum} _`stride-rm2`_, if `r` equals _`rank_`_` - 2`; otherwise
+  * [9.2]{.pnum} else, if `r` equals _`rank_`_` - 2`: _`stride-rm2`_;
 
-  * [9.3]{.pnum} the product of _`stride-rm2`_ and all values
+  * [9.3]{.pnum} otherwise, the product of _`stride-rm2`_ and all values
       _`extents_`_`.extent(k)` with `k` in the range of
       $[$`r + 1`, _`rank_`_` - 1` $)$.
 
@@ -2438,15 +2470,11 @@ template<class LayoutRightPaddedMapping>
 
   * [10.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true`.
 
-  * [10.2]{.pnum} `typename LayoutRightPaddedMapping::extents_type::rank() == `_`rank_`_ is `true`.
+  * [10.2]{.pnum} `LayoutRightPaddedMapping::extents_type::rank() == `_`rank_`_ is `true`. <!-- LWG 2024/02/14 says we don't need "typename" here. -->
 
-[11]{.pnum} *Returns:* `true` if
-
-  * [11.1]{.pnum} `x.extents() == y.extents()` is `true`; and
-
-  * [11.2]{.pnum} if _`rank_`_` > 1` is `true`,
-    then `x.stride(`_`rank_`_` - 2) == y.stride(`_`rank_`_` - 2)`
-    is `true`.
+[11]{.pnum} *Returns:* `true` if `x.extents() == y.extents()` is `true`
+and _`rank_`_` < 2 || x.stride(`_`rank_`_` - 2) == y.stride(`_`rank_`_` - 2)`
+is `true`.  Otherwise, `false`.
 
 ## Layout specializations of `submdspan_mapping` [mdspan.submdspan.mapping]
 
