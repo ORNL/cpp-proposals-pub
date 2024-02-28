@@ -1736,13 +1736,18 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
   * [4.2]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero.
 
   * [4.3]{.pnum} If `extents_type::rank()` is greater than one,
+      then _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$
+      is representable as a value of type `index_type`.
+
+  * [4.4]{.pnum} If `extents_type::rank()` is greater than one,
       then the product of
       _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$
       and all values `ext.extent(k)` with `k` in the range of
       $[1,$ `extents_type::rank()`$)$
       is representable as a value of type `index_type`.
+      <!-- LWG 2024/02/14 review specifically wanted both 4.3 and 4.4. -->
 
-  * [4.4]{.pnum} If `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
+  * [4.5]{.pnum} If `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
 
 [5]{.pnum} *Effects:*
 Direct-non-list-initializes _`extents_`_ with `ext`,
@@ -2174,13 +2179,18 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
   * [4.2]{.pnum} `extents_type::`_`index-cast`_`(pad)` is greater than zero.
 
   * [4.3]{.pnum} If _`rank_`_ is greater than one,
+      then _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$
+      is representable as a value of type `index_type`.
+
+  * [4.4]{.pnum} If _`rank_`_ is greater than one,
       then the product of
       _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$
       and all values `ext.extent(k)` with `k` in the range of
       $[0,$ _`rank_`_$-1)$
       is representable as a value of type `index_type`.
+      <!-- LWG 2024/02/14 review specifically wanted both 4.3 and 4.4. -->
 
-  * [4.4]{.pnum} If `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
+  * [4.5]{.pnum} If `padding_value` is not equal to `dynamic_extent`, `padding_value` equals `extents_type::`_`index-cast`_`(pad)`.
 
 [5]{.pnum} *Effects:*
 Direct-non-list-initializes _`extents_`_ with `ext`,
