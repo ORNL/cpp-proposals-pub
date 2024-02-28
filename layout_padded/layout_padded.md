@@ -1630,11 +1630,11 @@ private:
 
 [5]{.pnum} *Mandates:*
 
-  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`;
+  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`.
 
-  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`; and
+  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`.
 
-  * [5.3]{.pnum} if
+  * [5.3]{.pnum} If
 
     * `extents_type::rank()` is greater than one,
 
@@ -1644,6 +1644,23 @@ private:
       does not equal `dynamic_extent`,
 
   then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::static_extent(0)` $)$
+  is representable as a value of type `size_t`,
+  and is representable as a value of type `index_type`.
+
+  * [5.4]{.pnum} If
+
+    * `extents_type::rank()` is greater than one,
+
+    * `padding_value` does not equal `dynamic_extent`, and
+
+    * `extents_type::static_extent(k)`
+      does not equal `dynamic_extent`
+      for all `k` in the range $[0,$ `extents_type::rank()` $)$,
+  
+  then the product of
+  _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.static_extent(0)` $)$
+  and all values `ext.static_extent(k)` 
+  with `k` in the range of $[1,$ `extents_type::rank()` $)$
   is representable as a value of type `size_t`,
   and is representable as a value of type `index_type`.
 
@@ -2085,11 +2102,11 @@ private:
 
 [5]{.pnum} *Mandates:*
 
-  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`;
+  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`.
 
-  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`; and
+  * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`.
 
-  * [5.3]{.pnum} if
+  * [5.3]{.pnum} If
 
     * `extents_type::rank()` is greater than one,
 
@@ -2099,6 +2116,23 @@ private:
       does not equal `dynamic_extent`,
 
   then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ _`last-static-extent`_ $)$
+  is representable as a value of type `size_t`,
+  and is representable as a value of type `index_type`.
+
+  * [5.4]{.pnum} If
+
+    * `extents_type::rank()` is greater than one,
+
+    * `padding_value` does not equal `dynamic_extent`, and
+
+    * `extents_type::static_extent(k)`
+      does not equal `dynamic_extent`
+      for all `k` in the range $[0,$ _`rank_`_ $)$,
+
+  then the product of
+  _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.static_extent(`_`rank_`_` - 1)` $)$
+  and all values `ext.static_extent(k)` 
+  with `k` in the range of $[0,$ _`rank_`_ $-1)$
   is representable as a value of type `size_t`,
   and is representable as a value of type `index_type`.
 

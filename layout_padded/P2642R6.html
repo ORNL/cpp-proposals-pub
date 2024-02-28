@@ -2057,12 +2057,12 @@ parameter pack <code>0zu</code>, <code>1zu</code>, …,
 <code>Extents​::​rank_dynamic() == 0</code> is <code>true</code>, then the
 size of the multidimensional index space <code>Extents()</code> is
 representable as a value of type typename
-<code>Extents​::​index_type</code>;</p></li>
+<code>Extents​::​index_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 <code>padding_value</code> is representable as a value of type
-<code>index_type</code>; and</p></li>
+<code>index_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
-if</p>
+If</p>
 <ul>
 <li><p><code>extents_type::rank()</code> is greater than one,</p></li>
 <li><p><code>padding_value</code> does not equal
@@ -2072,6 +2072,23 @@ if</p>
 </ul></li>
 </ul>
 <p>then <em>LEAST-MULTIPLE-AT-LEAST</em><span class="math inline">(</span> <code>padding_value</code> <span class="math inline">,</span> <code>extents_type::static_extent(0)</code>
+<span class="math inline">)</span> is representable as a value of type
+<code>size_t</code>, and is representable as a value of type
+<code>index_type</code>.</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span>
+If</p>
+<ul>
+<li><p><code>extents_type::rank()</code> is greater than one,</p></li>
+<li><p><code>padding_value</code> does not equal
+<code>dynamic_extent</code>, and</p></li>
+<li><p><code>extents_type::static_extent(k)</code> does not equal
+<code>dynamic_extent</code> for all <code>k</code> in the range <span class="math inline">[0,</span> <code>extents_type::rank()</code> <span class="math inline">)</span>,</p></li>
+</ul></li>
+</ul>
+<p>then the product of <em>LEAST-MULTIPLE-AT-LEAST</em><span class="math inline">(</span> <code>padding_value</code> <span class="math inline">,</span> <code>ext.static_extent(0)</code> <span class="math inline">)</span> and all values
+<code>ext.static_extent(k)</code> with <code>k</code> in the range of
+<span class="math inline">[1,</span> <code>extents_type::rank()</code>
 <span class="math inline">)</span> is representable as a value of type
 <code>size_t</code>, and is representable as a value of type
 <code>index_type</code>.</p>
@@ -2581,12 +2598,12 @@ parameter pack <code>0zu</code>, <code>1zu</code>, …,
 <code>Extents​::​rank_dynamic() == 0</code> is <code>true</code>, then the
 size of the multidimensional index space <code>Extents()</code> is
 representable as a value of type typename
-<code>Extents​::​index_type</code>;</p></li>
+<code>Extents​::​index_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 <code>padding_value</code> is representable as a value of type
-<code>index_type</code>; and</p></li>
+<code>index_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.3)</a></span>
-if</p>
+If</p>
 <ul>
 <li><p><code>extents_type::rank()</code> is greater than one,</p></li>
 <li><p><code>padding_value</code> does not equal
@@ -2597,6 +2614,24 @@ if</p>
 </ul>
 <p>then <em>LEAST-MULTIPLE-AT-LEAST</em><span class="math inline">(</span> <code>padding_value</code> <span class="math inline">,</span> <em><code>last-static-extent</code></em>
 <span class="math inline">)</span> is representable as a value of type
+<code>size_t</code>, and is representable as a value of type
+<code>index_type</code>.</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(5.4)</a></span>
+If</p>
+<ul>
+<li><p><code>extents_type::rank()</code> is greater than one,</p></li>
+<li><p><code>padding_value</code> does not equal
+<code>dynamic_extent</code>, and</p></li>
+<li><p><code>extents_type::static_extent(k)</code> does not equal
+<code>dynamic_extent</code> for all <code>k</code> in the range <span class="math inline">[0,</span> <em><code>rank_</code></em> <span class="math inline">)</span>,</p></li>
+</ul></li>
+</ul>
+<p>then the product of <em>LEAST-MULTIPLE-AT-LEAST</em><span class="math inline">(</span> <code>padding_value</code> <span class="math inline">,</span>
+<code>ext.static_extent(</code><em><code>rank_</code></em><code>- 1)</code>
+<span class="math inline">)</span> and all values
+<code>ext.static_extent(k)</code> with <code>k</code> in the range of
+<span class="math inline">[0,</span> <em><code>rank_</code></em> <span class="math inline"> − 1)</span> is representable as a value of type
 <code>size_t</code>, and is representable as a value of type
 <code>index_type</code>.</p>
 <h3 data-number="4.2.2" id="exposition-only-members-mdspan.layout.rightpadded.expo"><span class="header-section-number">4.2.2</span> Exposition-only members
