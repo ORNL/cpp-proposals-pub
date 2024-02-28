@@ -2293,7 +2293,7 @@ template<class OtherExtents>
   * [11.1]{.pnum} If _`rank_`_ is greater than 1
       and `padding_value` does not equal `dynamic_extent`,
       then `other.stride(`_`rank_`_` - 2)` equals
-      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$; and
+      _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `extents_type::`_`index-cast`_`(other.extents().extent(`_`rank_`_` - 1))` $)$.
 
   * [11.2]{.pnum} If _`rank_`_ is greater than 0,
       then `other.stride(`_`rank_`_` - 1)` equals 1.
@@ -2367,24 +2367,24 @@ template<class LayoutLeftPaddedMapping>
 
 [18]{.pnum} *Constraints:*
 
-* [18.1]{.pnum} _`is-layout-left-padded-mapping-of`_`<LayoutLeftPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_left, LayoutLeftPaddedMapping>` is `true,
+* [18.1]{.pnum} _`is-layout-left-padded-mapping-of`_`<LayoutLeftPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_left, LayoutLeftPaddedMapping>` is `true`.
 
-* [18.2]{.pnum} _`rank_`_ equals zero or one, and
+* [18.2]{.pnum} _`rank_`_ equals zero or one.
 
 * [18.3]{.pnum} `is_constructible_v<extents_type, typename LayoutLeftPaddedMapping::extents_type>` is `true`.
 
-[19]{.pnum} *Precondition:* `other.required_span_size()`
+[19]{.pnum} *Preconditions:* `other.required_span_size()`
 is representable as a value of type `index_type`.
 
-[20]{.pnum} *Effects:* direct-non-list-initializes _`extents_`_ with `other.extents()`.
+[20]{.pnum} *Effects:* Direct-non-list-initializes _`extents_`_ with `other.extents()`.
 
 [21]{.pnum} *Remarks:*
-The expression inside `explicit` is equivalent to: `! is_convertible_v<typename LayoutLeftPaddedMapping::extents_type, extents_type>`.
+The expression inside `explicit` is equivalent to: `!is_convertible_v<typename LayoutLeftPaddedMapping::extents_type, extents_type>`.
 
 <i>[Note:</i> Neither the input mapping nor the mapping to be constructed
 uses the padding stride in the rank-0 or rank-1 case,
-so the padding stride does not affect
-either the constraints or the preconditions. <i>-- end note]</i>
+so the padding stride affects
+neither the constraints nor the preconditions. <i>-- end note]</i>
 
 ### Observers [mdspan.layout.rightpadded.obs]
 
