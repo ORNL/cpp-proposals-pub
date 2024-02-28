@@ -1231,15 +1231,21 @@ C++26 / IS.
 #define __cpp_lib_submdspan YYYYMML // also in <mdspan>
 ```
 
+## Updates to *[mdspan.syn]*
+
 > In Section � *[mdspan.syn]*, in the synopsis,
 > after `struct layout_stride;`, add the following:
 
-```c++
-template<size_t PaddingValue = dynamic_extent> 
-struct layout_left_padded;
-template<size_t PaddingValue = dynamic_extent> 
-struct layout_right_padded;
-```
+`// [mdspan.layout], layout mapping`\
+`struct layout_left;`\
+`struct layout_right;`\
+`struct layout_stride;`\
+[`template<size_t PaddingValue = dynamic_extent>`]{.add}\
+[`struct layout_left_padded;`]{.add}\
+[`template<size_t PaddingValue = dynamic_extent>`]{.add}\
+[`struct layout_right_padded;`]{.add}
+
+## Updates to *[mdspan.layout.policy.overview]*
 
 > In *[mdspan.layout.policy.overview]*,
 > add the following to the code block after the `layout_stride` definition:
@@ -1265,6 +1271,8 @@ struct layout_right_padded {
 meets the layout mapping policy requirements
 and is a trivial type.
 
+## Updates to *[mdspan.layout.left.overview]*
+
 > In Section � *[mdspan.layout.left.overview]* ("Overview"),
 > add the following constructor to the `layout_left::mapping` class declaration,
 > between the constructor converting from `layout_right::mapping<OtherExtents>`
@@ -1281,6 +1289,8 @@ template<class LayoutLeftPaddedMapping>
   constexpr explicit(! is_convertible_v<typename LayoutLeftPaddedMapping::extents_type, extents_type>)
     mapping(const LayoutLeftPaddedMapping&) noexcept;
 ```
+
+## Updates to *[mdspan.layout.left.cons]*
 
 > In Section � *[mdspan.layout.left.cons]* ("Constructors"),
 > add the following between the constructor converting from
@@ -1334,6 +1344,8 @@ It's possible for `LayoutLeftPaddedMapping::extents_type::static_extent(0)` to b
 [12]{.pnum} *Effects:* Direct-non-list-initializes
 `extents_` with `other.extents()`.
 
+## Updates to *[mdspan.layout.right.overview]*
+
 > In Section � *[mdspan.layout.right.overview]* ("Overview"),
 > add the following constructor
 > to the `layout_right::mapping` class declaration,
@@ -1347,6 +1359,8 @@ template<class LayoutRightPaddedMapping>
   constexpr explicit(! is_convertible_v<typename LayoutRightPaddedMapping::extents_type, extents_type>)
     mapping(const LayoutRightPaddedMapping&) noexcept;
 ```
+
+## Updates to *[mdspan.layout.right.cons]*
 
 > In Section � *[mdspan.layout.right.cons]* ("Constructors"),
 > add the following between the constructor converting from
@@ -1391,6 +1405,8 @@ converting constructor from `LayoutLeftPaddedMapping`.
 * [11.2]{.pnum} `other.required_span_size()` is representable as a value of type `index_type`.
 
 [12]{.pnum} *Effects:* Direct-non-list-initializes `extents_` with `other.extents()`.
+
+## Updates to *[mdspan.layout.general]*
 
 > In Section � *[mdspan.layout.general]*,
 > change paragraph 2 to be:
@@ -1482,6 +1498,8 @@ let _LEAST-MULTIPLE-AT-LEAST_$(x, y)$ denote
 
   * the least multiple of $x$ that is greater than or equal to $y$.
 
+## Updates to *[mdspan.layout.stride.cons]*
+
 > In Section � *[mdspan.layout.stride.cons]*,
 > for the following constructor
 > whose description starts on paragraph 6,
@@ -1498,20 +1516,13 @@ template<class StridedLayoutMapping>
 
 [9]{.pnum} *Remarks*: The expression inside `explicit` is equivalent to:
 
-<pre id="mycode">
-  <code class="c++">
-  ! (is_convertible_v&lt;typename StridedLayoutMapping::extents_type, extents_type&gt; &&
-  (is-mapping-of&lt;layout_left, StridedLayoutMapping&gt; ||
-   is-mapping-of&lt;layout_right, StridedLayoutMapping&gt; ||
-  </code>
-  <code class="c++" style="color: green">
-   @_is-layout-left-padded-mapping-of_@ &lt;StridedLayoutMapping&gt; ||
-   @_is-layout-right-padded-mapping-of_@ &lt;StridedLayoutMapping&gt; ||
-  </code>
-  <code class="c++">
-   is-mapping-of&lt;layout_stride, StridedLayoutMapping&gt;))
-  </code>
-</pre>
+`! (is_convertible_v<typename StridedLayoutMapping::extents_type, extents_type> &&`\
+`(`_`is-mapping-of`_`<layout_left, StridedLayoutMapping> ||`\
+_`is-mapping-of`_`<layout_right, StridedLayoutMapping> ||`\
+[_`is-layout-left-padded-mapping-of`_`<StridedLayoutMapping> ||`]{.add}\
+[_`is-layout-right-padded-mapping-of`_`<StridedLayoutMapping> ||`]{.add}\
+_`is-mapping-of`_`<layout_stride, StridedLayoutMapping>))`
+
 
 <!--
 <pre id="mycode" class="c++" style="color: green;">
