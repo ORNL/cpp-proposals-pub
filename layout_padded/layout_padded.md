@@ -1954,12 +1954,11 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 [6]{.pnum} *Returns:*
 
-* [6.1]{.pnum} `true` if _`rank_`_ equals zero or one; else
+* [6.1]{.pnum} If _`rank_`_ equals zero or one, then `true`;
 
-* [6.2]{.pnum} _`static-padding-stride`_` == `_`first-static-extent`_
-if neither _`static-padding-stride`_ nor _`first-static-extent`_ equals `dynamic_extent`; otherwise,
+* [6.2]{.pnum} else, if neither _`static-padding-stride`_ nor _`first-static-extent`_ equal `dynamic_extent`, then _`static-padding-stride`_` == `_`first-static-extent`_;
 
-* [6.3]{.pnum} `false`.
+* [6.3]{.pnum} otherwise, `false`.
 
 ```c++
 constexpr bool is_exhaustive() const noexcept;
@@ -1975,11 +1974,11 @@ constexpr index_type stride(rank_type r) const noexcept;
 
 [9]{.pnum} *Returns:*
 
-  * [9.1]{.pnum} `1`, if `r` equals `0`; otherwise
+  * [9.1]{.pnum} If `r` equals zero: `1`;
 
-  * [9.2]{.pnum} _`stride-1`_, if `r` equals `1`; otherwise
+  * [9.2]{.pnum} else, if `r` equals one: _`stride-1`_;
 
-  * [9.3]{.pnum} the product of _`stride-1`_ and all values
+  * [9.3]{.pnum} otherwise, the product of _`stride-1`_ and all values
       _`extents_`_`.extent(k)` with `k` in the range of
       $[1,$ `r`$)$.
 
@@ -2417,12 +2416,11 @@ static constexpr bool is_always_exhaustive() noexcept;
 
 [6]{.pnum} *Returns:*
 
-* [6.1]{.pnum} `true` if _`rank_`_ equals zero or one; else
+* [6.1]{.pnum} If _`rank_`_ equals zero or one, then `true`;
 
-* [6.2]{.pnum} _`static-padding-stride`_` == `_`last-static-extent`_
-if neither _`static-padding-stride`_ nor _`last-static-extent`_ equals `dynamic_extent`; otherwise,
+* [6.2]{.pnum} else, if neither _`static-padding-stride`_ nor _`last-static-extent`_ equal `dynamic_extent`, then _`static-padding-stride`_`==`_`last-static-extent`_;
 
-* [6.3]{.pnum} `false`.
+* [6.3]{.pnum} otherwise, `false`.
 
 ```c++
 constexpr bool is_exhaustive() const noexcept;
@@ -2438,11 +2436,11 @@ constexpr index_type stride(rank_type r) const noexcept;
 
 [9]{.pnum} *Returns:*
 
-  * [9.1]{.pnum} `1`, if `r` equals _`rank_`_` - 1`; otherwise
+  * [9.1]{.pnum} If `r` equals _`rank_`_` - 1`: `1`;
 
-  * [9.2]{.pnum} _`stride-rm2`_, if `r` equals _`rank_`_` - 2`; otherwise
+  * [9.2]{.pnum} else, if `r` equals _`rank_`_` - 2`: _`stride-rm2`_;
 
-  * [9.3]{.pnum} the product of _`stride-rm2`_ and all values
+  * [9.3]{.pnum} otherwise, the product of _`stride-rm2`_ and all values
       _`extents_`_`.extent(k)` with `k` in the range of
       $[$`r + 1`, _`rank_`_` - 1` $)$.
 
