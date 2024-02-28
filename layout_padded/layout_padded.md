@@ -1733,7 +1733,9 @@ constexpr mapping(const extents_type& ext);
   * [1.1]{.pnum} The size of the multidimensional index space `ext`
     is representable as a value of type `index_type`.
 
-  * [1.2]{.pnum} If _`rank_`_ is greater than one and
+  * [1.2]{.pnum} If _`rank_`_ is greater than one and `padding_value` does not equal `dynamic_extent`, then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(0)` $)$ is representable as a value of type `index_type`.
+
+  * [1.3]{.pnum} If _`rank_`_ is greater than one and
       `padding_value` does not equal `dynamic_extent`,
       then the product of
       _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(0)` $)$
@@ -2195,7 +2197,9 @@ constexpr mapping(const extents_type& ext);
   * [1.1]{.pnum} The size of the multidimensional index space `ext`
     is representable as a value of type `index_type`.
 
-  * [1.2]{.pnum} If _`rank_`_ is greater than one and
+  * [1.2]{.pnum} If _`rank_`_ is greater than one and `padding_value` does not equal `dynamic_extent`, then _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(`_`rank_`_` - 1)` $)$ is representable as a value of type `index_type`.
+
+  * [1.3]{.pnum} If _`rank_`_ is greater than one and
       `padding_value` does not equal `dynamic_extent`,
       then the product of
       _LEAST-MULTIPLE-AT-LEAST_$($ `padding_value` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$
