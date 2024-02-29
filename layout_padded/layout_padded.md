@@ -1903,9 +1903,9 @@ template<class LayoutRightPaddedMapping>
 
 [18]{.pnum} *Constraints:*
 
-* [18.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_right, LayoutRightPaddedMapping>` is `true,
+* [18.1]{.pnum} _`is-layout-right-padded-mapping-of`_`<LayoutRightPaddedMapping>` is `true` or _`is-mapping-of`_`<layout_right, LayoutRightPaddedMapping>` is `true`.
 
-* [18.2]{.pnum} _`rank_`_ equals zero or one, and
+* [18.2]{.pnum} _`rank_`_ equals zero or one.
 
 * [18.3]{.pnum} `is_constructible_v<extents_type, typename LayoutRightPaddedMapping::extents_type>` is `true`.
 
@@ -2389,8 +2389,7 @@ neither the constraints nor the preconditions. <i>-- end note]</i>
 ### Observers [mdspan.layout.rightpadded.obs]
 
 ```c++
-constexpr array<index_type, @_rank\__@>
-  strides() const noexcept;
+constexpr array<index_type, @_rank\__@> strides() const noexcept;
 ```
 
 [1]{.pnum} *Returns:* `array<index_type, `_`rank_`_`>({stride(P_rank)...})`.
@@ -2399,11 +2398,8 @@ constexpr array<index_type, @_rank\__@>
 constexpr index_type required_span_size() const noexcept;
 ```
 
-[2]{.pnum} *Returns:*
-
-  * [2.1]{.pnum} `0` if the multidimensional index space _`extents_`_ is empty, otherwise
- 
-  * [2.2]{.pnum} `*this(((extents_(P_rank) - index_type(1))...)) + 1`.
+[2]{.pnum} *Returns:* `0` if the multidimensional index space _`extents_`_ is empty, otherwise
+                      `*this(((extents_(P_rank) - index_type(1))...)) + 1`.
 
 
 ```c++
@@ -2574,7 +2570,7 @@ is `true`.  Otherwise, `false`.
 
    * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<Extents::static_extent(Extents::rank()-1)>::template mapping(sub_ext, extent(Extents::rank() - 1)), offset}` if
 
-      * for `k` equal to `Extents::rank() - 1` $S_k$ models _`index-pair-like`_`<index_type>`; and
+      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>`; and
 
       * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
   
