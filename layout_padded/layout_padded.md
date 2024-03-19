@@ -1,4 +1,5 @@
 
+
 ---
 title: Padded mdspan layouts
 document: P2642
@@ -1645,7 +1646,7 @@ private:
 
 [5]{.pnum} *Mandates:*
 
-  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`.
+  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type `Extents​::​index_type`.
 
   * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`.
 
@@ -2121,7 +2122,7 @@ private:
 
 [5]{.pnum} *Mandates:*
 
-  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type typename `Extents​::​index_type`.
+  * [5.1]{.pnum} If `rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type `index_type`.
 
   * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`.
 
@@ -2538,13 +2539,23 @@ is `true`.  Otherwise, `false`.
 
       <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
 
-   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<Extents::static_extent(0)>::mapping(sub_ext, extent(0)), offset}`, if
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, s_dynamic), offset}`, if there exists an integral value `u` such that:
 
-      * $S_0$ models _`index-pair-like`_`<index_type>`; and
+      * $S_0$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_0$ `, full_extent_t>` is `true`; and
 
-      * for each `k` in the range $[$`1, SubExtents::rank()-1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$`u + 1, u + SubExtents::rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
 
-      * for `k` equal to `SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+      * for `k` equal to `u + SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+
+   and where `S_static` is:
+
+   * `dynamic_extent`, if `static_extent(k)` is `dynamic_extent` for any `k` in the range $[$`0, u + 1`$)$, otherwise
+
+   * the product of all values `static_extent(k)` for `k` in the range $[$`0, u + 1`$)$;
+
+   and where `s_dynamic` is the product of all values `extent(k)` for `k` in the range $[$`0, u + 1`$)$.
+
+
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -2569,13 +2580,21 @@ is `true`.  Otherwise, `false`.
 
       <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` $\lt$ `Extents::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
-   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<Extents::static_extent(Extents::rank()-1)>::template mapping(sub_ext, extent(Extents::rank() - 1)), offset}` if
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, s_dynamic), offset}` if there exists an integral value `u` such that
 
-      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>`; and
+      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1 - u, Extents.rank() - 1 - u`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
   
-      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+      * for `k` equal to `Extents::rank()-SubExtents::rank() - u`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+
+and where `S_static` is:
+
+   * `dynamic_extent` if for any `k` in the range $[$`Extents::rank() - u, Extents.rank()`$)$ `static_extent(k)` is `dynamic_extent`, otherwise
+
+   * the product of all values `static_extent(k)` with `k` in the range $[$`Extents::rank() - u, Extents.rank()`$)$;
+
+and where `s_dynamic` is the product of all values `extent(k)` for `k` in the range $[$`Extents::rank() - u, Extents::rank()`$)$.
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -2609,13 +2628,15 @@ is `true`.  Otherwise, `false`.
 
    * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<padding_value>::mapping(sub_ext), offset}`, if `Extents::rank()==1` is `true`;
 
-   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<padding_value>::mapping(sub_ext, stride(1)), offset}` if
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<padding_value>::mapping(sub_ext, s_dynamic), offset}` if there exists an integral value `u` such that
 
       * $S_0$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_0$`, full_extent_t>` is `true`; and
 
-      * for each `k` in the range $[$`1, SubExtents::rank()-1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$`u + 1, u + SubExtents::rank()-1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
 
-      * for `k` equal to `SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+      * for `k` equal to `u + SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+
+and where `s_dynamic` is the product of all values `extent(k)` for `k` in the range $[$`0, u + 1`$)$.
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -2634,12 +2655,14 @@ is `true`.  Otherwise, `false`.
 
    * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<padding_value>::mapping(sub_ext), offset}`, if `Extents::rank() == 1` is `true`;
 
-   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<padding_value>::mapping(sub_ext, stride(Extents::rank() - 1)), offset}` if
+   * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<padding_value>::mapping(sub_ext, s_dynamic), offset}` if there exists an integral value `u` such that
 
-      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_0$`, full_extent_t>` is `true`; and
+      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
 
-      * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1, Extents.rank() - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1 - u, Extents.rank() - 1 - u`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
 
-      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+      * for `k` equal to `Extents::rank()-SubExtents::rank() - u`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+
+and where `s_dynamic` is the product of all values `extent(k)` for `k` in the range $[$`Extents::rank() - u, Extents::rank()`$)$.
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
