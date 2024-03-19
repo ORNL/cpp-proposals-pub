@@ -1220,7 +1220,7 @@ C++26 / IS.
 > The � character is used to denote a placeholder section number which the editor shall determine.
 
 > Make the following changes to the latest C++ Working Draft,
-> which at the time of writing is <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4964.pdf">N4964</a>.
+> which at the time of writing is <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4964.pdf">N4971</a>.
 > All wording is relative to the latest C++ Working Draft.
 
 > In *[version.syn]*, increase the value of the `__cpp_lib_submdspan` macro
@@ -1413,7 +1413,7 @@ converting constructor from `LayoutLeftPaddedMapping`.
 
 [2]{.pnum} In subclauses *[mdspan.layout.reqmts]* through *[mdspan.layout.rightpadded]*:
 
-[2.1]{.pnum} Let _`is-mapping-of`_ be the exposition-only variable template defined as follows.
+* [2.1]{.pnum} Let _`is-mapping-of`_ be the exposition-only variable template defined as follows:
 
 <!--
 2024/01/17: Retain the exposition-only variable templates for consistency with other mdspan wording, but generally use prose to describe them, instead of code.  Let each "let" start with a capital letter.  "As follows" should end with consistent punctuation.
@@ -1425,8 +1425,8 @@ constexpr bool @_is-mapping-of_@ = // exposition only
   is_same_v<typename Layout::template mapping<typename Mapping::extents_type>, Mapping>;
 ```
 
-[2.2]{.pnum} Let _`is-layout-left-padded-mapping-of`_ be
-the exposition-only variable template defined as follows,
+* [2.2]{.pnum} Let _`is-layout-left-padded-mapping-of`_ be
+the exposition-only variable template defined as follows:
 
 ```c++
 template<class Mapping>
@@ -1454,8 +1454,8 @@ constexpr bool @_is-layout-left-padded-mapping-of_@ = // exposition only
 ```
 -->
 
-[2.3]{.pnum} Let _`is-layout-right-padded-mapping-of`_ be
-the exposition-only variable template defined as follows,
+* [2.3]{.pnum} Let _`is-layout-right-padded-mapping-of`_ be
+the exposition-only variable template defined as follows:
 
 ```c++
 template<class Mapping>
@@ -1491,12 +1491,12 @@ $\mathit{\text{LEAST-MULTIPLE-AT-LEAST}}(x, y)$ looks the same as above.
 _LEAST-MULTIPLE-AT-LEAST_$(x, y)$ looks pretty much like what we want.
 -->
 
-[2.4]{.pnum} For nonnegative integers $x$ and $y$,
+* [2.4]{.pnum} For nonnegative integers $x$ and $y$,
 let _LEAST-MULTIPLE-AT-LEAST_$(x, y)$ denote
 
-  * $y$ if $x$ is zero, otherwise
+    * $y$ if $x$ is zero, otherwise
 
-  * the least multiple of $x$ that is greater than or equal to $y$.
+    * the least multiple of $x$ that is greater than or equal to $y$.
 
 ## Updates to *[mdspan.layout.stride.cons]*
 
@@ -1570,9 +1570,9 @@ public:
   // [mdspan.layout.leftpadded.cons], constructors
   constexpr mapping() noexcept : mapping(extents_type{}) {}
   constexpr mapping(const mapping&) noexcept = default;
-  constexpr mapping(const extents_type& ext);
+  constexpr mapping(const extents_type&);
   template<class OtherIndexType>
-    constexpr mapping(const extents_type& ext, OtherIndexType pad);
+    constexpr mapping(const extents_type&, OtherIndexType);
 
   template<class OtherExtents>
     constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
@@ -1596,7 +1596,7 @@ public:
   constexpr index_type required_span_size() const noexcept;
 
   template<class... Indices>
-    constexpr index_type operator()(Indices... idxs) const noexcept;
+    constexpr index_type operator()(Indices...) const noexcept;
 
   static constexpr bool is_always_unique() noexcept { return true; }
   static constexpr bool is_always_exhaustive() noexcept;
@@ -1606,7 +1606,7 @@ public:
   constexpr bool is_exhaustive() const noexcept;
   static constexpr bool is_strided() noexcept { return true; }
 
-  constexpr index_type stride(rank_type r) const noexcept;
+  constexpr index_type stride(rank_type) const noexcept;
 
   template<class LayoutLeftPaddedMapping>
     friend constexpr bool operator==(
@@ -1615,13 +1615,13 @@ public:
 
 private:
   // [mdspan.layout.leftpadded.expo], exposition-only members
-  index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
+  index_type @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
   extents_type @_extents\__@{}; // @_exposition only_@
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto @_submdspan-mapping-impl_@( // @_exposition only_@
-      SliceSpecifiers... slices) const -> @_see below_@;
+      SliceSpecifiers...) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
@@ -1712,7 +1712,7 @@ with respect to other library description clauses.
 -->
 
 ```c++
-index_type /* @_see below_@ */ @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
+index_type @_stride-1_@ = @_static-padding-stride_@; // @_exposition only_@
 ```
 
 [2]{.pnum} *Recommended practice*: Implementations should not store
@@ -1747,7 +1747,7 @@ constexpr mapping(const extents_type& ext);
 
   * [2.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
-  * [2.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
+  * [2.2]{.pnum} if _`rank_`_ is greater than one, direct-non-list-initializes _`stride-1`_ with
 
       * [2.2.1]{.pnum} `ext.extent(0)`
           if `padding_value` is `dynamic_extent`, otherwise with
@@ -1788,7 +1788,7 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
 [5]{.pnum} *Effects:*
 Direct-non-list-initializes _`extents_`_ with `ext`,
-and direct-non-list-initializes _`stride-1`_
+and if _`rank_`_ is greater than one, direct-non-list-initializes _`stride-1`_
 with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(0)` $)$.
 
 ```c++
@@ -1856,7 +1856,7 @@ template<class OtherExtents>
 
   * [12.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [12.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
+  * [12.2]{.pnum} if _`rank_`_ is greater than one, direct-non-list-initializes _`stride-1`_ with
       `other.stride(1)`.
 
 ```c++
@@ -1888,7 +1888,7 @@ template<class LayoutLeftPaddedMapping>
 
   * [16.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [16.2]{.pnum} direct-non-list-initializes _`stride-1`_ with
+  * [16.2]{.pnum} if _`rank_`_ is greater than one, direct-non-list-initializes _`stride-1`_ with
       `other.stride(1)`.
 
 [17]{.pnum} *Remarks:*
@@ -2046,9 +2046,9 @@ public:
   // [mdspan.layout.rightpadded.cons], constructors
   constexpr mapping() noexcept : mapping(extents_type{}) {}
   constexpr mapping(const mapping&) noexcept = default;
-  constexpr mapping(const extents_type& ext);
+  constexpr mapping(const extents_type&);
   template<class OtherIndexType>
-    constexpr mapping(const extents_type& ext, OtherIndexType pad);
+    constexpr mapping(const extents_type&, OtherIndexType);
 
   template<class OtherExtents>
     constexpr explicit(! is_convertible_v<OtherExtents, extents_type>)
@@ -2072,7 +2072,7 @@ public:
   constexpr index_type required_span_size() const noexcept;
 
   template<class... Indices>
-    constexpr index_type operator()(Indices... idxs) const noexcept;
+    constexpr index_type operator()(Indices...) const noexcept;
 
   static constexpr bool is_always_unique() noexcept { return true; }
   static constexpr bool is_always_exhaustive() noexcept;
@@ -2082,7 +2082,7 @@ public:
   constexpr bool is_exhaustive() const noexcept;
   static constexpr bool is_strided() noexcept { return true; }
 
-  constexpr index_type stride(rank_type r) const noexcept;
+  constexpr index_type stride(rank_type) const noexcept;
 
   template<class LayoutRightPaddedMapping>
     friend constexpr bool operator==(
@@ -2091,13 +2091,13 @@ public:
 
 private:
   // [mdspan.layout.rightpadded.expo], exposition-only members
-  index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
+  index_type @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
   extents_type @_extents\__@{}; // @_exposition only_@
 
   // [mdspan.submdspan.mapping], submdspan mapping specialization
   template<class... SliceSpecifiers>
     constexpr auto submdspan-mapping-impl( // @_exposition only_@
-      SliceSpecifiers... slices) const -> @_see below_@;
+      SliceSpecifiers...) const -> @_see below_@;
 
   template<class... SliceSpecifiers>
     friend constexpr auto submdspan_mapping(
@@ -2176,7 +2176,7 @@ also apply to _`stride-rm2`_.
 -->
 
 ```c++
-index_type /* @_see below_@ */ @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
+index_type @_stride-rm2_@ = @_static-padding-stride_@; // @_exposition only_@
 ```
 
 [2]{.pnum} *Recommended practice*: Implementations should not store
@@ -2211,7 +2211,7 @@ constexpr mapping(const extents_type& ext);
 
   * [2.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `ext`; and
 
-  * [2.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
+  * [2.2]{.pnum} if _`rank_`_ is greater than one, direct-non-list-initializes _`stride-rm2`_ with
 
       * [2.2.1]{.pnum} `ext.extent(`_`rank_`_ ` - 1)`
           if `padding_value` is `dynamic_extent`, otherwise with
@@ -2252,7 +2252,7 @@ constexpr mapping(const extents_type& ext, OtherIndexType pad);
 
 [5]{.pnum} *Effects:*
 Direct-non-list-initializes _`extents_`_ with `ext`,
-and direct-non-list-initializes _`stride-rm2`_
+and if _`rank_`_ is greater than one, direct-non-list-initializes _`stride-rm2`_
 with _LEAST-MULTIPLE-AT-LEAST_$($ `pad` $,$ `ext.extent(`_`rank_`_ ` - 1)` $)$.
 
 ```c++
@@ -2320,7 +2320,7 @@ template<class OtherExtents>
 
   * [12.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [12.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
+  * [12.2]{.pnum} if _`rank_`_ is greater than one, direct-non-list-initializes _`stride-rm2`_ with
       `other.stride(`_`rank_`_` - 2)`.
 
 ```c++
@@ -2352,7 +2352,7 @@ template<class LayoutRightPaddedMapping>
 
   * [16.1]{.pnum} Direct-non-list-initializes _`extents_`_ with `other.extents()`; and
 
-  * [16.2]{.pnum} direct-non-list-initializes _`stride-rm2`_ with
+  * [16.2]{.pnum} if _`rank_`_ is greater than one, direct-non-list-initializes _`stride-rm2`_ with
       `other.stride(`_`rank_`_` - 2)`.
 
 [17]{.pnum} *Remarks:*
@@ -2503,6 +2503,7 @@ is `true`.  Otherwise, `false`.
       * $s_k$`.stride` $\gt 0$; and
 
    * [4.2]{.pnum} $0 \le$ _`first_`_`<index_type, k>(slices...)` $\le$ _`last_`_`<k>(extents(), slices...)` $\le$ `extents.extent(k)`.
+      <i>[Editorial Note: </i> There is a drive-by fix here, where the current draft text just doesnt make sense. <i>- end note]</i>
 
 [5]{.pnum} Let `sub_ext` be the result of `submdspan_extents(extents(), slices...)` and let `SubExtents` be `decltype(sub_ext)`.
 
