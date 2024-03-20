@@ -189,6 +189,8 @@ Revision 3 to be submitted sometime after 2023-07-09.
 
     * Formatting fixes.
 
+    * Generate padded layouts in more `submdspan` cases where possible.
+
 # Proposed changes and justification
 
 ## Summary of proposed changes
@@ -2529,7 +2531,7 @@ is `true`.  Otherwise, `false`.
 
 [1]{.pnum} *Returns:*
 
-   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank()==0` is `true`;
+   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if _`rank_`_`==0` is `true`;
    
    * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if `SubExtents::rank()==0` is `true`;
 
@@ -2572,34 +2574,34 @@ is `true`.  Otherwise, `false`.
 
 [1]{.pnum} *Returns:*
 
-   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank()==0` is `true`;
+   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if _`rank_`_`==0` is `true`;
    
    * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if `SubExtents::rank()==0` is `true`;
 
    * [1.3]{.pnum} otherwise, `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
 
-      * for each `k` in the range $[$ `Extents::rank() - SubExtents::rank()+1, Extents::rank()`$)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$ _`rank_`_` - SubExtents::rank()+1, `_`rank_`_ $)$, `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for `k` equal to `Extents::rank()-SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+      * for `k` equal to _`rank_`_` - SubExtents::rank()`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
-      <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` $\lt$ `Extents::rank()-SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
+      <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` $\lt$ _`rank_`_ `- SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, s_dynamic), offset}` 
-if for a value `u` for which `Extents::rank() - u - 2` is the largest value `k` smaller than `Extents::rank()-1` for which $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, the following conditions are met:
+if for a value `u` for which _`rank_`_` - u - 2` is the largest value `k` smaller than _`rank_`_` - 1` for which $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, the following conditions are met:
 
-      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
+      * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1 - u, Extents.rank() - 1 - u`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$ _`rank_`_ ` - SubExtents::rank() + 1 - u`, _`rank_`_ ` - 1 - u`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
   
-      * for `k` equal to `Extents::rank() - SubExtents::rank() - u`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+      * for `k` equal to _`rank`_ ` - SubExtents::rank() - u`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
 and where `S_static` is:
 
-   * `dynamic_extent` if for any `k` in the range $[$`Extents::rank() - u - 1, Extents.rank()`$)$ `static_extent(k)` is `dynamic_extent`, otherwise
+   * `dynamic_extent` if for any `k` in the range $[$ _`rank_`_ ` - u - 1`, _`rank_`_ $)$ `static_extent(k)` is `dynamic_extent`, otherwise
 
-   * the product of all values `static_extent(k)` with `k` in the range $[$`Extents::rank() - u - 1, Extents.rank()`$)$;
+   * the product of all values `static_extent(k)` with `k` in the range $[$ _`rank_`_ `- u - 1`, _`rank_`_ $)$;
 
-and where `s_dynamic` is `stride(Extents::rank() - u - 2)`.
+and where `s_dynamic` is `stride(`_`rank_`_ ` - u - 2)`.
 
    * [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -2633,7 +2635,7 @@ and where `s_dynamic` is `stride(Extents::rank() - u - 2)`.
 
    * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_left::mapping(sub_ext), offset}`, if
 
-      * `Extents::rank()==1` is `true`; or
+      * _`rank_`_`==1` is `true`; or
 
       * `SubExtents::rank()==0` is `true`;
 
@@ -2673,11 +2675,11 @@ and where `s_dynamic` is `stride(u+1)`.
 
 [1]{.pnum} *Returns:*
 
-   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if `Extents::rank() == 0` is `true`;
+   * [1.1]{.pnum} `submdspan_mapping_result{*this, 0}`, if _`rank_`_` == 0` is `true`;
 
    * [1.2]{.pnum} otherwise, `submdspan_mapping_result{layout_right::mapping(sub_ext), offset}`, if
 
-      * `Extents::rank()==1` is `true`; or
+      * _`rank_`_`==1` is `true`; or
 
       * `SubExtents::rank()==0` is `true`;
    
@@ -2685,23 +2687,23 @@ and where `s_dynamic` is `stride(u+1)`.
 
       * `SubExtents::rank()==1` is `true`; and
 
-      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
+      * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, s_dynamic), offset}` 
-if for a value `u` for which `Extents::rank() - u - 2` is the largest value `k` smaller than `Extents::rank()-1` for which $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, the following conditions are met:
+if for a value `u` for which _`rank_`_` - u - 2` is the largest value `k` smaller than _`rank_`_` - 1` for which $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, the following conditions are met:
 
-      * for `k` equal to `Extents::rank() - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
+      * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for each `k` in the range $[$`Extents::rank() - SubExtents::rank() + 1 - u, Extents.rank() - 1 - u`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$ _`rank_`_` - SubExtents::rank() + 1 - u`, _`rank_`_` - 1 - u`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
   
-      * for `k` equal to `Extents::rank() - SubExtents::rank() - u`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
+      * for `k` equal to _`rank_`_` - SubExtents::rank() - u`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
 and where `S_static` is:
 
-   * `dynamic_extent` if for any `k` in the range $[$`Extents::rank() - u, Extents.rank()`$)$ `static_extent(k)` is `dynamic_extent`, otherwise
+   * `dynamic_extent` if for any `k` in the range $[$_`rank_`_` - u`, _`rank_`_$)$ `static_extent(k)` is `dynamic_extent`, otherwise
 
-   * the product of all values `static_extent(k)` with `k` in the range $[$`Extents::rank() - u - 1, Extents.rank()`$)$;
+   * the product of all values `static_extent(k)` with `k` in the range $[$ _`rank_`_` - u - 1`, _`rank_`_$)$;
 
-and where `s_dynamic` is `stride(Extents::rank() - u - 2)`.
+and where `s_dynamic` is `stride(`_`rank_`_` - u - 2)`.
 
    * [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
