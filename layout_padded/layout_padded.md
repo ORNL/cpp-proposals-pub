@@ -1636,7 +1636,7 @@ private:
 
 [2]{.pnum} If `Extents` is not a specialization of `extents`, then the program is ill-formed.
 
-[3]{.pnum} `layout_left_padded​::​mapping<E>` is a trivially copyable type that models `regular` for each `E`.
+[3]{.pnum} `layout_left_padded::mapping<E>` is a trivially copyable type that models `regular` for each `E`.
 
 [4]{.pnum} Throughout [mdspan.layout.leftpadded], let `P_rank` be the following size _`rank_`_ parameter pack of `size_t` values:
 
@@ -1648,7 +1648,7 @@ private:
 
 [5]{.pnum} *Mandates:*
 
-  * [5.1]{.pnum} If `Extents​::​rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type `Extents​::​index_type`.
+  * [5.1]{.pnum} If `rank_dynamic() == 0` is `true`, then the size of the multidimensional index space `Extents()` is representable as a value of type `index_type`.
 
   * [5.2]{.pnum} `padding_value` is representable as a value of type `index_type`.
 
@@ -2112,7 +2112,7 @@ private:
 
 [2]{.pnum} If `Extents` is not a specialization of `extents`, then the program is ill-formed.
 
-[3]{.pnum} `layout_right_padded​::​mapping<E>` is a trivially copyable type that models `regular` for each `E`.
+[3]{.pnum} `layout_right_padded::mapping<E>` is a trivially copyable type that models `regular` for each `E`.
 
 [4]{.pnum} Throughout [mdspan.layout.rightpadded], let `P_rank` be the following size _`rank_`_ parameter pack of `size_t` values:
 
@@ -2646,7 +2646,7 @@ and where `s_dynamic` is `stride(`_`rank_`_ ` - u - 2)`.
       * $S_0$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_0$ `, full_extent_t>` is `true`;
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, s_dynamic), offset}`, 
-if for a value `u` for which `u+1` is the smallest value `k` larger than zero for which $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, the following conditions are met:
+if for a value `u` for which `u+1` is the smallest value `p` larger than zero for which $S_p$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_p$`, full_extent_t>` is `true`, the following conditions are met:
       
       * $S_0$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_0$`, full_extent_t>` is `true`; and
 
@@ -2687,10 +2687,10 @@ and where `s_dynamic` is `stride(u+1)`.
 
       * `SubExtents::rank()==1` is `true`; and
 
-      * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
+      * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`;
 
    * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, s_dynamic), offset}` 
-if for a value `u` for which _`rank_`_` - u - 2` is the largest value `k` smaller than _`rank_`_` - 1` for which $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, the following conditions are met:
+if for a value `u` for which _`rank_`_` - u - 2` is the largest value `p` smaller than _`rank_`_` - 1` for which $S_p$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_p$`, full_extent_t>` is `true`, the following conditions are met:
 
       * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
