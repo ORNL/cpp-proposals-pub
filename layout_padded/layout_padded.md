@@ -2543,8 +2543,8 @@ is `true`.  Otherwise, `false`.
 
       <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` larger than `SubExtents::rank()-1` are convertible to `index_type`. <i>- end note]</i>
 
-   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, s_dynamic), offset}`,
-      if for a value `u` for which `u+1` is the smallest value `k` larger than zero for which $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, the following conditions are met:
+   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(u+1)), offset}`,
+      if for a value `u` for which `u+1` is the smallest value `p` larger than zero for which $S_p$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_p$`, full_extent_t>` is `true`, the following conditions are met:
 
       * $S_0$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_0$ `, full_extent_t>` is `true`; and
 
@@ -2552,14 +2552,11 @@ is `true`.  Otherwise, `false`.
 
       * for `k` equal to `u + SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
-   and where `S_static` is:
+     and where `S_static` is:
 
-   * `dynamic_extent`, if `static_extent(k)` is `dynamic_extent` for any `k` in the range $[$`0, u + 1`$)$, otherwise
+      * `dynamic_extent`, if `static_extent(k)` is `dynamic_extent` for any `k` in the range $[$`0, u + 1`$)$, otherwise
 
-   * the product of all values `static_extent(k)` for `k` in the range $[$`0, u + 1`$)$;
-
-   and where `s_dynamic` is `stride(u+1)`. 
-
+      * the product of all values `static_extent(k)` for `k` in the range $[$`0, u + 1`$)$;
 
    * [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -2586,22 +2583,20 @@ is `true`.  Otherwise, `false`.
 
       <i>[Note: </i> If the above conditions are true, all $S_k$ with `k` $\lt$ _`rank_`_ `- SubExtents::rank()` are convertible to `index_type`. <i>- end note]</i>
 
-   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, s_dynamic), offset}` 
-if for a value `u` for which _`rank_`_` - u - 2` is the largest value `k` smaller than _`rank_`_` - 1` for which $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`, the following conditions are met:
+   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, stride(`_`rank_`_`-u-2)), offset}` 
+if for a value `u` for which _`rank_`_` - u - 2` is the largest value `p` smaller than _`rank_`_` - 1` for which $S_p$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_p$`, full_extent_t>` is `true`, the following conditions are met:
 
       * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for each `k` in the range $[$ _`rank_`_ ` - SubExtents::rank() + 1 - u`, _`rank_`_ ` - 1 - u`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$ _`rank_`_ ` - SubExtents::rank() - u + 1`, _`rank_`_ ` - u - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
   
       * for `k` equal to _`rank`_ ` - SubExtents::rank() - u`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
-and where `S_static` is:
+     and where `S_static` is:
 
-   * `dynamic_extent` if for any `k` in the range $[$ _`rank_`_ ` - u - 1`, _`rank_`_ $)$ `static_extent(k)` is `dynamic_extent`, otherwise
+      * `dynamic_extent` if for any `k` in the range $[$ _`rank_`_ ` - u - 1`, _`rank_`_ $)$ `static_extent(k)` is `dynamic_extent`, otherwise
 
-   * the product of all values `static_extent(k)` with `k` in the range $[$ _`rank_`_ `- u - 1`, _`rank_`_ $)$;
-
-and where `s_dynamic` is `stride(`_`rank_`_ ` - u - 2)`.
+      * the product of all values `static_extent(k)` with `k` in the range $[$ _`rank_`_ `- u - 1`, _`rank_`_ $)$;
 
    * [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -2645,8 +2640,8 @@ and where `s_dynamic` is `stride(`_`rank_`_ ` - u - 2)`.
 
       * $S_0$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_0$ `, full_extent_t>` is `true`;
 
-   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, s_dynamic), offset}`, 
-if for a value `u` for which `u+1` is the smallest value `p` larger than zero for which $S_p$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_p$`, full_extent_t>` is `true`, the following conditions are met:
+   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_left_padded<S_static>::mapping(sub_ext, stride(u + 1)), offset}`, 
+if for a value `u` for which `u + 1` is the smallest value `p` larger than zero for which $S_p$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_p$`, full_extent_t>` is `true`, the following conditions are met:
       
       * $S_0$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_0$`, full_extent_t>` is `true`; and
 
@@ -2654,13 +2649,12 @@ if for a value `u` for which `u+1` is the smallest value `p` larger than zero fo
 
       * for `k` equal to `u + SubExtents::rank()-1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
-and where `S_static` is:
+     and where `S_static` is:
 
-   * `dynamic_extent`, if _`static-padding-stride`_ is `dynamic_extent` or `static_extent(k)` is `dynamic_extent` for any `k` in the range $[$`1, u + 1`$)$, otherwise
+      * `dynamic_extent`, if _`static-padding-stride`_ is `dynamic_extent` or `static_extent(k)` is `dynamic_extent` for any `k` in the range $[$`1, u + 1`$)$, otherwise
 
-   * the product of _`static-padding-stride`_ and all values `static_extent(k)` for `k` in the range $[$`1, u + 1`$)$;
+      * the product of _`static-padding-stride`_ and all values `static_extent(k)` for `k` in the range $[$`1, u + 1`$)$;
 
-and where `s_dynamic` is `stride(u+1)`.
 
    * [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
 
@@ -2689,21 +2683,20 @@ and where `s_dynamic` is `stride(u+1)`.
 
       * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`;
 
-   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, s_dynamic), offset}` 
+   * [1.4]{.pnum} otherwise, `submdspan_mapping_result{layout_right_padded<S_static>::template mapping(sub_ext, stride(`_`rank_`_`-u-2)), offset}` 
 if for a value `u` for which _`rank_`_` - u - 2` is the largest value `p` smaller than _`rank_`_` - 1` for which $S_p$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_p$`, full_extent_t>` is `true`, the following conditions are met:
 
       * for `k` equal to _`rank_`_` - 1`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<` $S_k$ `, full_extent_t>` is `true`; and
 
-      * for each `k` in the range $[$ _`rank_`_` - SubExtents::rank() + 1 - u`, _`rank_`_` - 1 - u`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
+      * for each `k` in the range $[$ _`rank_`_` - SubExtents::rank() - u + 1`, _`rank_`_` - u - 1`$)$, `is_convertible_v<`$S_k$`, full_extent_t>` is `true`; and
   
       * for `k` equal to _`rank_`_` - SubExtents::rank() - u`, $S_k$ models _`index-pair-like`_`<index_type>` or `is_convertible_v<`$S_k$`, full_extent_t>` is `true`;
 
-and where `S_static` is:
+     and where `S_static` is:
 
-   * `dynamic_extent` if for any `k` in the range $[$_`rank_`_` - u`, _`rank_`_$)$ `static_extent(k)` is `dynamic_extent`, otherwise
+      * `dynamic_extent` if _`static-padding-stride`_ is `dynamic_extent` or for any `k` in the range $[$_`rank_`_` - u - 1`, _`rank_`_ `- 1`$)$ `static_extent(k)` is `dynamic_extent`, otherwise
 
-   * the product of all values `static_extent(k)` with `k` in the range $[$ _`rank_`_` - u - 1`, _`rank_`_$)$;
+      * the product of _`static-padding-stride`_ and all values `static_extent(k)` with `k` in the range $[$ _`rank_`_` - u - 1`, _`rank_`_ `- 1`$)$;
 
-and where `s_dynamic` is `stride(`_`rank_`_` - u - 2)`.
 
    * [1.5]{.pnum} otherwise, `submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}`.
