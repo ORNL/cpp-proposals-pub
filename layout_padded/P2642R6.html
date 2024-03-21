@@ -729,6 +729,8 @@ to having type <code>index_type</code>. For each of them, add a
 if <em><code>static-padding-stride</code></em> is not
 <code>dynamic_extent</code>.</p></li>
 <li><p>Formatting fixes.</p></li>
+<li><p>Generate padded layouts in more <code>submdspan</code> cases
+where possible.</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="proposed-changes-and-justification"><span class="header-section-number">3</span> Proposed changes and
@@ -2072,7 +2074,7 @@ stride</em> <code>stride(1)</code> can be greater than or equal to
 If <code>Extents</code> is not a specialization of <code>extents</code>,
 then the program is ill-formed.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<code>layout_left_padded​::​mapping&lt;E&gt;</code> is a trivially
+<code>layout_left_padded::mapping&lt;E&gt;</code> is a trivially
 copyable type that models <code>regular</code> for each
 <code>E</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
@@ -2094,10 +2096,9 @@ parameter pack <code>0zu</code>, <code>1zu</code>, …,
 <em>Mandates:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span> If
-<code>Extents​::​rank_dynamic() == 0</code> is <code>true</code>, then the
-size of the multidimensional index space <code>Extents()</code> is
-representable as a value of type
-<code>Extents​::​index_type</code>.</p></li>
+<code>rank_dynamic() == 0</code> is <code>true</code>, then the size of
+the multidimensional index space <code>Extents()</code> is representable
+as a value of type <code>index_type</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
 <code>padding_value</code> is representable as a value of type
 <code>index_type</code>.</p></li>
@@ -2621,7 +2622,7 @@ than or equal to
 If <code>Extents</code> is not a specialization of <code>extents</code>,
 then the program is ill-formed.</p>
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-<code>layout_right_padded​::​mapping&lt;E&gt;</code> is a trivially
+<code>layout_right_padded::mapping&lt;E&gt;</code> is a trivially
 copyable type that models <code>regular</code> for each
 <code>E</code>.</p>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
@@ -3181,11 +3182,11 @@ is <code>true</code>;</p></li>
 convertible to <code>index_type</code>. <i>- end note]</i></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span>
 otherwise,
-<code>submdspan_mapping_result{layout_left_padded&lt;S_static&gt;::mapping(sub_ext, s_dynamic), offset}</code>,
+<code>submdspan_mapping_result{layout_left_padded&lt;S_static&gt;::mapping(sub_ext, stride(u+1)), offset}</code>,
 if for a value <code>u</code> for which <code>u+1</code> is the smallest
-value <code>k</code> larger than zero for which <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+value <code>p</code> larger than zero for which <span class="math inline"><em>S</em><sub><em>p</em></sub></span> models
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>p</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>, the following conditions are met:</p>
 <ul>
 <li><p><span class="math inline"><em>S</em><sub>0</sub></span> models
@@ -3199,7 +3200,6 @@ is <code>true</code>; and</p></li>
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
 <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>;</p></li>
-</ul></li>
 </ul>
 <p>and where <code>S_static</code> is:</p>
 <ul>
@@ -3207,12 +3207,10 @@ is <code>true</code>;</p></li>
 <code>dynamic_extent</code> for any <code>k</code> in the range <span class="math inline">[</span><code>0, u + 1</code><span class="math inline">)</span>, otherwise</p></li>
 <li><p>the product of all values <code>static_extent(k)</code> for
 <code>k</code> in the range <span class="math inline">[</span><code>0, u + 1</code><span class="math inline">)</span>;</p></li>
-</ul>
-<p>and where <code>s_dynamic</code> is <code>stride(u+1)</code>.</p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
+</ul></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
 otherwise,
-<code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</li>
+<code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</p></li>
 </ul>
 <p><b>24.7.3.7.6.3 <code>layout_right</code> specialization of
 <code>submdspan_mapping</code> [mdspan.submdspan.mapping.right]</b></p>
@@ -3253,13 +3251,13 @@ is <code>true</code>;</p></li>
 convertible to <code>index_type</code>. <i>- end note]</i></p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span>
 otherwise,
-<code>submdspan_mapping_result{layout_right_padded&lt;S_static&gt;::template mapping(sub_ext, s_dynamic), offset}</code>
+<code>submdspan_mapping_result{layout_right_padded&lt;S_static&gt;::template mapping(sub_ext, stride(</code><em><code>rank_</code></em><code>-u-2)), offset}</code>
 if for a value <code>u</code> for which
 <em><code>rank_</code></em><code>- u - 2</code> is the largest value
-<code>k</code> smaller than <em><code>rank_</code></em><code>- 1</code>
-for which <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<code>p</code> smaller than <em><code>rank_</code></em><code>- 1</code>
+for which <span class="math inline"><em>S</em><sub><em>p</em></sub></span> models
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>p</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>, the following conditions are met:</p>
 <ul>
 <li><p>for <code>k</code> equal to
@@ -3268,8 +3266,8 @@ is <code>true</code>, the following conditions are met:</p>
 <code>is_convertible_v&lt;</code> <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
 <code>, full_extent_t&gt;</code> is <code>true</code>; and</p></li>
 <li><p>for each <code>k</code> in the range <span class="math inline">[</span> <em><code>rank_</code></em>
-<code>- SubExtents::rank() + 1 - u</code>, <em><code>rank_</code></em>
-<code>- 1 - u</code><span class="math inline">)</span>,
+<code>- SubExtents::rank() - u + 1</code>, <em><code>rank_</code></em>
+<code>- u - 1</code><span class="math inline">)</span>,
 <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>; and</p></li>
 <li><p>for <code>k</code> equal to <em><code>rank</code></em>
@@ -3277,7 +3275,6 @@ is <code>true</code>; and</p></li>
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
 <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>;</p></li>
-</ul></li>
 </ul>
 <p>and where <code>S_static</code> is:</p>
 <ul>
@@ -3289,14 +3286,10 @@ range <span class="math inline">[</span> <em><code>rank_</code></em>
 <code>k</code> in the range <span class="math inline">[</span>
 <em><code>rank_</code></em> <code>- u - 1</code>,
 <em><code>rank_</code></em> <span class="math inline">)</span>;</p></li>
-</ul>
-<p>and where <code>s_dynamic</code> is
-<code>stride(</code><em><code>rank_</code></em>
-<code>- u - 2)</code>.</p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
+</ul></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
 otherwise,
-<code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</li>
+<code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</p></li>
 </ul>
 <p><b>24.7.3.7.6.4 <code>layout_stride</code> specialization of
 <code>submdspan_mapping</code> [mdspan.submdspan.mapping.stride]</b></p>
@@ -3350,11 +3343,11 @@ and</p></li>
 </ul></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span>
 otherwise,
-<code>submdspan_mapping_result{layout_left_padded&lt;S_static&gt;::mapping(sub_ext, s_dynamic), offset}</code>,
-if for a value <code>u</code> for which <code>u+1</code> is the smallest
-value <code>k</code> larger than zero for which <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<code>submdspan_mapping_result{layout_left_padded&lt;S_static&gt;::mapping(sub_ext, stride(u + 1)), offset}</code>,
+if for a value <code>u</code> for which <code>u + 1</code> is the
+smallest value <code>p</code> larger than zero for which <span class="math inline"><em>S</em><sub><em>p</em></sub></span> models
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>p</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>, the following conditions are met:</p>
 <ul>
 <li><p><span class="math inline"><em>S</em><sub>0</sub></span> models
@@ -3368,7 +3361,6 @@ is <code>true</code>; and</p></li>
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
 <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>;</p></li>
-</ul></li>
 </ul>
 <p>and where <code>S_static</code> is:</p>
 <ul>
@@ -3379,12 +3371,10 @@ is <code>true</code>;</p></li>
 <li><p>the product of <em><code>static-padding-stride</code></em> and
 all values <code>static_extent(k)</code> for <code>k</code> in the range
 <span class="math inline">[</span><code>1, u + 1</code><span class="math inline">)</span>;</p></li>
-</ul>
-<p>and where <code>s_dynamic</code> is <code>stride(u+1)</code>.</p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
+</ul></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
 otherwise,
-<code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</li>
+<code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</p></li>
 </ul>
 <p><b>24.7.3.7.6.6 <code>layout_right_padded</code> specialization of
 <code>submdspan_mapping</code>
@@ -3420,17 +3410,17 @@ and</p></li>
 <em><code>rank_</code></em><code>- 1</code>, <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
 <code>is_convertible_v&lt;</code> <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
-<code>, full_extent_t&gt;</code> is <code>true</code>; and</p></li>
+<code>, full_extent_t&gt;</code> is <code>true</code>;</p></li>
 </ul></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span>
 otherwise,
-<code>submdspan_mapping_result{layout_right_padded&lt;S_static&gt;::template mapping(sub_ext, s_dynamic), offset}</code>
+<code>submdspan_mapping_result{layout_right_padded&lt;S_static&gt;::template mapping(sub_ext, stride(</code><em><code>rank_</code></em><code>-u-2)), offset}</code>
 if for a value <code>u</code> for which
 <em><code>rank_</code></em><code>- u - 2</code> is the largest value
-<code>k</code> smaller than <em><code>rank_</code></em><code>- 1</code>
-for which <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
+<code>p</code> smaller than <em><code>rank_</code></em><code>- 1</code>
+for which <span class="math inline"><em>S</em><sub><em>p</em></sub></span> models
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
-<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+<code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>p</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>, the following conditions are met:</p>
 <ul>
 <li><p>for <code>k</code> equal to
@@ -3439,34 +3429,31 @@ is <code>true</code>, the following conditions are met:</p>
 <code>is_convertible_v&lt;</code> <span class="math inline"><em>S</em><sub><em>k</em></sub></span>
 <code>, full_extent_t&gt;</code> is <code>true</code>; and</p></li>
 <li><p>for each <code>k</code> in the range <span class="math inline">[</span>
-<em><code>rank_</code></em><code>- SubExtents::rank() + 1 - u</code>,
-<em><code>rank_</code></em><code>- 1 - u</code><span class="math inline">)</span>, <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
+<em><code>rank_</code></em><code>- SubExtents::rank() - u + 1</code>,
+<em><code>rank_</code></em><code>- u - 1</code><span class="math inline">)</span>, <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>; and</p></li>
 <li><p>for <code>k</code> equal to
 <em><code>rank_</code></em><code>- SubExtents::rank() - u</code>, <span class="math inline"><em>S</em><sub><em>k</em></sub></span> models
 <em><code>index-pair-like</code></em><code>&lt;index_type&gt;</code> or
 <code>is_convertible_v&lt;</code><span class="math inline"><em>S</em><sub><em>k</em></sub></span><code>, full_extent_t&gt;</code>
 is <code>true</code>;</p></li>
-</ul></li>
 </ul>
 <p>and where <code>S_static</code> is:</p>
 <ul>
-<li><p><code>dynamic_extent</code> if for any <code>k</code> in the
-range <span class="math inline">[</span><em><code>rank_</code></em><code>- u</code>,
-<em><code>rank_</code></em><span class="math inline">)</span>
-<code>static_extent(k)</code> is <code>dynamic_extent</code>,
-otherwise</p></li>
-<li><p>the product of all values <code>static_extent(k)</code> with
-<code>k</code> in the range <span class="math inline">[</span>
+<li><p><code>dynamic_extent</code> if
+<em><code>static-padding-stride</code></em> is
+<code>dynamic_extent</code> or for any <code>k</code> in the range <span class="math inline">[</span><em><code>rank_</code></em><code>- u - 1</code>,
+<em><code>rank_</code></em> <code>- 1</code><span class="math inline">)</span> <code>static_extent(k)</code> is
+<code>dynamic_extent</code>, otherwise</p></li>
+<li><p>the product of <em><code>static-padding-stride</code></em> and
+all values <code>static_extent(k)</code> with <code>k</code> in the
+range <span class="math inline">[</span>
 <em><code>rank_</code></em><code>- u - 1</code>,
-<em><code>rank_</code></em><span class="math inline">)</span>;</p></li>
-</ul>
-<p>and where <code>s_dynamic</code> is
-<code>stride(</code><em><code>rank_</code></em><code>- u - 2)</code>.</p>
-<ul>
-<li><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
+<em><code>rank_</code></em> <code>- 1</code><span class="math inline">)</span>;</p></li>
+</ul></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.5)</a></span>
 otherwise,
-<code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</li>
+<code>submdspan_mapping_result{layout_stride::mapping(sub_ext, sub_strides), offset}</code>.</p></li>
 </ul>
 </div>
 </div>
