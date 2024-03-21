@@ -25,7 +25,7 @@ The main design direction of this proposal is to provide methods for copying and
 
 Furthermore, accessors as a customization point should be enabled, as with any other `mdspan` operation. For example, a custom accessor that checks a condition inside of the `access` method should still work and check that condition. It's worth noting that there may be a high sensitivity of how much implementations able to optimize if provided custom accessors. For example, optimizations could be disabled if using a custom accessor that is identical to the default accessor.
 
-Finally, there is some question as to whether `copy` and `fill` should return a value when applied to `mdspan`, as the iterator and ranged-based algorithms do. We believe that `mdspan` copy and fill should return void, as there is no past-the-end iterator that they could reasonable return.
+Finally, there is some question as to whether `copy` and `fill` should return a value when applied to `mdspan`, as the iterator and ranged-based algorithms do. We believe that `mdspan` copy and fill should return void, as there is no past-the-end iterator that they could reasonably return.
 
 ## What the proposal does not include
 
@@ -54,11 +54,11 @@ void copy(ExecutionPolicy&& policy, const mdspan<SrcElementType, SrcExtents, Src
 
 [2]{.pnum} *Preconditions:*
 
-  * [2.1]{.pnum} `src.extent(r) <= dst.extent(r)` for every rank index `r` of `dst`
+  * [2.1]{.pnum} `src.extents() == dst.extents()`
 
   * [2.2]{.pnum} `dst.is_unique()`
 
-  * [2.3]{.pnum} there is no unique multidimensional index `i...` in `src.extents()`, and no unique multidimensional index `j...` in `dst.extents()` such that `src.accessor().offset(src.data_handle(), src.mapping(i...)) == dst.accessor().offset(dst.data_handle(), dst.mapping(j...))`
+  * [2.3]{.pnum} there is no unique multidimensional index `i...` in `src.extents()` where there exists a multidimensional index `j...` in `dst.extents()` such that `src[i...]` and `dst[j...]` refer to the same element.
 
 [3]{.pnum} *Effects:* for all unique multidimensional indices `i...` in `src.extents()`, assigns `src[i...]` to `dst[i...]`
 
