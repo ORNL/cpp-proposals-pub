@@ -39,18 +39,18 @@ Finally, there is some question as to whether `copy` and `fill` should return a 
 ```c++
 template<class SrcElementType, class SrcExtents, class SrcLayoutPolicy, class SrcAccessorPolicy,
          class DstElementType, class DstExtents, class DstLayoutPolicy, class DstAccessorPolicy>
-void copy(const mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> &src, const mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> &dst)
+void copy(mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> src, mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> dst);
 
 template<class ExecutionPolicy, class SrcElementType, class SrcExtents, class SrcLayoutPolicy, class SrcAccessorPolicy,
          class DstElementType, class DstExtents, class DstLayoutPolicy, class DstAccessorPolicy>
-void copy(ExecutionPolicy&& policy, const mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> &src, const mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> &dst)
+void copy(ExecutionPolicy&& policy, mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> src, mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> dst);
 ```
 
 [1]{.pnum} *Constraints:*
 
-  * [1.1]{.pnum} `std::is_assignable_v<typename mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy>::reference, typename mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy>::reference>`
+  * [1.1]{.pnum} `std::is_assignable_v<typename mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy>::reference, typename mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy>::reference>` is `true`.
 
-  * [1.2]{.pnum} `mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy>::rank() == mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy>::rank()`
+  * [1.2]{.pnum} `mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy>::rank()` equals `mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy>::rank()`.
 
 [2]{.pnum} *Preconditions:*
 
@@ -65,10 +65,10 @@ void copy(ExecutionPolicy&& policy, const mdspan<SrcElementType, SrcExtents, Src
 
 ```c++
 template<class ElementType, class Extents, class LayoutPolicy, class AccessorPolicy, class T>
-void fill(const mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy> &dst, const T &value)
+void fill(mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy> dst, const T& value);
 
 template<class ExecutionPolicy, class ElementType, class Extents, class LayoutPolicy, class AccessorPolicy, class T>
-void fill(ExecutionPolicy&& policy, const mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy> &dst, const T &value)
+void fill(ExecutionPolicy&& policy, mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy> dst, const T& value);
 ```
 
 [4]{.pnum} *Constraints:* `std::is_assignable_v<typename mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>::reference, const T &T>`
