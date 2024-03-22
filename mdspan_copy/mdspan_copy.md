@@ -1,15 +1,24 @@
 ---
 title: "Copy and fill for `mdspan`"
 date: today
+author:
+  - name: Nicolas Morales
+    email: <nmmoral@sandia.gov>
+  - name: Christian Trott
+    email: <crtrott@sandia.gov>
+  - name: Mark Hoemmen
+    email: <mark.hoemmen@gmail.com>
+  - name: Damien Lebrun-Grandie
+    email: <lebrungrandt@ornl.gov>
 ---
 
 # Motivation
 
-C++23 introduced `mdspan` ([@P0009R18]), a nonowning multidmensional array abstraction that has a customizable layout. Layout customization was originally motivated in [@P0009R18] with considerations for interoperability and performance, particularly on different architectures. Moreover, [@P2630R4] introduced `submdspan`, a slicing function that can yield arbitrarily strided layouts. Without standard library support, copying efficiently between mdspans with mixes of complex layouts is challenging for users.
+C++23 introduced `mdspan` ([@P0009R18]), a nonowning multidmensional array abstraction that has a customizable layout. Layout customization was originally motivated in [@P0009R18] with considerations for interoperability and performance, particularly on different architectures. Moreover, [@P2630R4] introduced `submdspan`, a slicing function that can yield arbitrarily strided layouts. However, without standard library support, copying efficiently between mdspans with mixes of complex layouts is challenging for users.
 
-Many applications, including high-performance computing (HPC), image processing, computer graphics, etc that benefit from `mdspan` also would benefit from basic memory operations provided in standard algorithms such as copy and fill. Indeed, the authors found that a copy algorithm would have been quite useful in their implementation of the copying `mdarray` ([@P1684]) constructor.
+Many applications, including high-performance computing (HPC), image processing, computer graphics, etc that benefit from `mdspan` also would benefit from basic memory operations provided in standard algorithms such as copy and fill. Indeed, the authors found that a copy algorithm would have been quite useful in their implementation of the copying `mdarray` ([@P1684R5]) constructor. A more constrained form of `copy` is also included in the standard linear algebra library ([@P1673R13]).
 
-However, existing standard library facilities are not sufficient here. Currently, `mdspan` does not have iterators or ranges that represent the span of the `mdspan`. Additionally, it's not entirely clear what this would entail.
+However, existing standard library facilities are not sufficient here. Currently, `mdspan` does not have iterators or ranges that represent the span of the `mdspan`. Additionally, it's not entirely clear what this would entail. `std::linalg::copy` ([@P1673R13]) is limited to `mdspans` of rank 2 or lower.
 
 Moreover, the manner in which an `mdspan` is copied (or filled) is highly performance sensitive, particularly in regards to caching behavior when traversing mdspan memory. A naïve user implementation is easy to get wrong in addition to being tedious for higher rank `mdspan`s. Ideally, an implementation would be free to use information about the layout of the `mdspan` known at compile time to perform optimizations; e.g. a continuous span `mdspan` copy for trivial types could be implementeed with a `memcpy`.
 
@@ -27,11 +36,33 @@ Furthermore, accessors as a customization point should be enabled, as with any o
 
 Finally, there is some question as to whether `copy` and `fill` should return a value when applied to `mdspan`, as the iterator and ranged-based algorithms do. We believe that `mdspan` copy and fill should return void, as there is no past-the-end iterator that they could reasonably return.
 
+## Header
+
+Currently, we are proposing adding `copy` and `fill` algorithms on `mdspan` to header `<mdspan>`. We considered other options, namely:
+
+* `<algorithm>`: This would mean that users of iterator-based algorithms would need to pull in `<mdspan>`. On the other hand, this is where iterator-based `copy` and `fill` live so may be preferable in that sense.
+* `<mdspan_algorithm>` (or similarly any other new header): This seems like overkill for two functions. However, in the future, we may want to add new algorithms for `mdspan` that are not strictly covered by existing algorithms in `<algorithm>`, so this option may be more future proof.
+
+We settled on `<mdspan>` because as proposed this is a relatively light-weight addition that reflects operations that are commonly desired with `mdspan`s. However, the authors are open to changing this.
+
+## Existing `copy` in `std::linalg`
+
+[@P1673R13] introduced several linear algebra operations including `std::linalg::copy`. This operation only applies to `mdspan`s with $rank \le 2$. This paper is proposing a version of `copy` that is constrained to a superset of `std::linalg::copy`.
+
+Right now the strict addition of `copy` would potentially cause the following code to be ambiguous, due to ADL-finding `std::copy`:
+
+```c++
+using std::linalg::copy;
+copy(mds1, mds2);
+```
+
+One possibility would be to remove `std::linalg::copy`, as it is a subset of the proposed `std::copy`, though as of now this paper does not propose to do this.
+
 ## What the proposal does not include
 
 * `std::move`: Perhaps this should be included for completeness's sake. However, it doesn't seem applicable to the typical usage of `mdspan`.
 * `(copy|fill)_n`: As a multidimensional view `mdspan` does not in general follow a specific ordering. Memory ordering may not be obvious to calling code, so it's not even clear how these would work. Any applications intending to copy a subset of `mdspan` should use call `copy` on the result of `submdspan`.
-* `copy_backward`: As above, there is no specific ordering. A similar effect could be achieved via transformations with a custom layout, similar to `layout_transpose` in [@P1673].
+* `copy_backward`: As above, there is no specific ordering. A similar effect could be achieved via transformations with a custom layout, similar to `layout_transpose` in [@P1673R13].
 * Other algorithms, include `std::for_each`. `for_each` in particular is a desirable but brings in many unanswered questions that should be addressed in a different paper.
 
 # Wording
@@ -39,11 +70,13 @@ Finally, there is some question as to whether `copy` and `fill` should return a 
 ```c++
 template<class SrcElementType, class SrcExtents, class SrcLayoutPolicy, class SrcAccessorPolicy,
          class DstElementType, class DstExtents, class DstLayoutPolicy, class DstAccessorPolicy>
-void copy(mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> src, mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> dst);
+void copy(mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> src, 
+          mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> dst);
 
 template<class ExecutionPolicy, class SrcElementType, class SrcExtents, class SrcLayoutPolicy, class SrcAccessorPolicy,
          class DstElementType, class DstExtents, class DstLayoutPolicy, class DstAccessorPolicy>
-void copy(ExecutionPolicy&& policy, mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> src, mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> dst);
+void copy(ExecutionPolicy&& policy, mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> src,
+          mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> dst);
 ```
 
 [1]{.pnum} *Constraints:*
