@@ -228,10 +228,24 @@ Here are some reasons why WG21 might _not_ want to do this.
 
 We would like LEWG to poll this design alternative.
 
+# Implementation
+
+This proposal is implemented as
+<a href="https://github.com/kokkos/stdBLAS/pull/268">PR 268</a>
+in the reference `mdspan` implementation.
+
 # Wording
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
 >
+> Make the following changes to the latest C++ Working Draft as of the time of writing.  All wording is relative to the latest C++ Working Draft.
+>
+> In [version.syn], increase the value of the `__cpp_lib_linalg` macro by replacing YYYMML below with the integer literal encoding the appropriate year (YYYY) and month (MM).
+
+```c++
+#define __cpp_lib_linalg YYYYMML // also in <linalg>
+```
+
 > Change [linalg.transp.transposed] paragraph 3 ("Let `ReturnExtents` be ...") by inserting the following subparagraphs after subparagraph 3.2 ("otherwise, `layout_left` ...") and before current subparagraph 3.3 ("otherwise, `layout_stride` ...", to be renumbered to paragraph 3.5), and renumbering subparagraphs and subsubparagraphs within paragraph 3 thereafter.
 
 [3.3]{.pnum} otherwise, `layout_right_padded<PaddingValue>` if `Layout` is `layout_left_padded<PaddingValue>` for some `size_t` value `PaddingValue`;
