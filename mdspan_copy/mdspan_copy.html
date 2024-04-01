@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-03-22" />
+  <meta name="dcterms.date" content="2024-04-01" />
   <title>Copy and fill for mdspan</title>
   <style>
 code{white-space: pre-wrap;}
@@ -25,7 +25,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -425,7 +425,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2024-03-22</td>
+    <td>2024-04-01</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -465,15 +465,15 @@ include</a></li>
 </ul>
 </div>
 <h1 data-number="1" id="motivation"><span class="header-section-number">1</span> Motivation<a href="#motivation" class="self-link"></a></h1>
-<p>C++23 introduced <code>mdspan</code> (<span class="citation" data-cites="P0009R18">[<a href="#ref-P0009R18" role="doc-biblioref">P0009R18</a>]</span>), a nonowning multidmensional
+<p>C++23 introduced <code>mdspan</code> (<span class="citation" data-cites="P0009R18">[<a href="#ref-P0009R18" role="doc-biblioref">P0009R18</a>]</span>), a non-owning multidmensional
 array abstraction that has a customizable layout. Layout customization
 was originally motivated in <span class="citation" data-cites="P0009R18">[<a href="#ref-P0009R18" role="doc-biblioref">P0009R18</a>]</span> with considerations for
 interoperability and performance, particularly on different
 architectures. Moreover, <span class="citation" data-cites="P2630R4">[<a href="#ref-P2630R4" role="doc-biblioref">P2630R4</a>]</span> introduced
 <code>submdspan</code>, a slicing function that can yield arbitrarily
 strided layouts. However, without standard library support, copying
-efficiently between mdspans with mixes of complex layouts is challenging
-for users.</p>
+efficiently between <code>mdspan</code>s with mixes of complex layouts
+is challenging for users.</p>
 <p>Many applications, including high-performance computing (HPC), image
 processing, computer graphics, etc that benefit from <code>mdspan</code>
 also would benefit from basic memory operations provided in standard
@@ -487,21 +487,21 @@ here. Currently, <code>mdspan</code> does not have iterators or ranges
 that represent the span of the <code>mdspan</code>. Additionally, it’s
 not entirely clear what this would entail.
 <code>std::linalg::copy</code> (<span class="citation" data-cites="P1673R13">[<a href="#ref-P1673R13" role="doc-biblioref">P1673R13</a>]</span>) is limited to
-<code>mdspans</code> of rank 2 or lower.</p>
+<code>mdspan</code>s of rank 2 or lower.</p>
 <p>Moreover, the manner in which an <code>mdspan</code> is copied (or
 filled) is highly performance sensitive, particularly in regards to
-caching behavior when traversing mdspan memory. A naïve user
-implementation is easy to get wrong in addition to being tedious for
-higher rank <code>mdspan</code>s. Ideally, an implementation would be
-free to use information about the layout of the <code>mdspan</code>
+caching behavior when traversing <code>mdspan</code> memory. A naive
+user implementation is easy to get wrong in addition to being tedious
+for higher rank <code>mdspan</code>s. Ideally, an implementation would
+be free to use information about the layout of the <code>mdspan</code>
 known at compile time to perform optimizations; e.g. a continuous span
-<code>mdspan</code> copy for trivial types could be implementeed with a
+<code>mdspan</code> copy for trivial types could be implemented with a
 <code>memcpy</code>.</p>
 <p>Finally, providing these generic algorithms would also enable these
 operations for types that are representable by <code>mdspan</code>. For
 example, this would naturally include <code>mdarray</code>, which is
 convertible to <code>mdspan</code>, or for user-defined types whose view
-of memory corresponds to <code>mdspans</code> (e.g. an image class or
+of memory corresponds to <code>mdspan</code>s (e.g. an image class or
 something similar).</p>
 <h2 data-number="1.1" id="safety"><span class="header-section-number">1.1</span> Safety<a href="#safety" class="self-link"></a></h2>
 <p>Due to the closed nature of <code>mdspan</code> extents, copy
@@ -555,18 +555,40 @@ open to changing this.</p>
 <p><span class="citation" data-cites="P1673R13">[<a href="#ref-P1673R13" role="doc-biblioref">P1673R13</a>]</span> introduced several linear
 algebra operations including <code>std::linalg::copy</code>. This
 operation only applies to <code>mdspan</code>s with <span class="math inline"><em>r</em><em>a</em><em>n</em><em>k</em> ≤ 2</span>.
-This paper is proposing a version of <code>copy</code> that is
-constrained to a superset of <code>std::linalg::copy</code>.</p>
-<p>Right now the strict addition of <code>copy</code> would potentially
-cause the following code to be ambiguous, due to ADL-finding
+This paper is proposing a version of <code>copy</code> that is not
+constrained by the number of ranks and differs from
+<code>std::linalg::copy</code> in some important ways outline below.</p>
+<p>Note that right now the strict addition of <code>copy</code> would
+potentially cause the following code to be ambiguous, due to ADL-finding
 <code>std::copy</code>:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> std<span class="op">::</span>linalg<span class="op">::</span>copy;</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>copy<span class="op">(</span>mds1, mds2<span class="op">)</span>;</span></code></pre></div>
 <p>One possibility would be to remove <code>std::linalg::copy</code>, as
-it is a subset of the proposed <code>std::copy</code>, though as of now
-this paper does not propose to do this.</p>
+it is a subset of the proposed <code>std::copy</code>. This was rejected
+by the paper authors because of certain requirements in
+[linalg.reqs.alg] – that is:</p>
+<blockquote>
+<p>The function may make arbitrarily many objects of any linear algebra
+value type, value-initializing or direct-initializing them with any
+existing object of that type.</p>
+</blockquote>
+<p>This requirement is likely undesirable for a generalized copy
+algorithm.</p>
+<p>There is a similar argument against simply generalizing
+<code>std::linalg::copy</code>. In addition to the freedom of
+<code>std::linalg::copy</code> to arbitrarily value or
+direct-initializing values, using the linear algebra version of copy
+would require the use of unnecessary includes and namespaces. It seems
+not very ergonomic for a user to have to use
+<code>std::linalg::copy</code> and include <code>&lt;linalg&gt;</code>
+even if the <code>mdspan</code> operations they are performing are
+unrelated to linear algebra.</p>
 <h2 data-number="2.3" id="what-the-proposal-does-not-include"><span class="header-section-number">2.3</span> What the proposal does not
 include<a href="#what-the-proposal-does-not-include" class="self-link"></a></h2>
+<p>There are a few additions that are analogous to existing standard
+algorithms that are not included in this proposal, both to keep the
+proposal small and because some of these algorithms do not make sense in
+the context of <code>mdspan</code>s:</p>
 <ul>
 <li><code>std::move</code>: Perhaps this should be included for
 completeness’s sake. However, it doesn’t seem applicable to the typical
@@ -587,7 +609,7 @@ unanswered questions that should be addressed in a different paper.</li>
 <h1 data-number="3" id="wording"><span class="header-section-number">3</span> Wording<a href="#wording" class="self-link"></a></h1>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src, </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
@@ -650,7 +672,7 @@ Iliopoulos, John Michopoulos, Nevin Liber. 2022. mdspan. <a href="https://wg21.l
 Daniel Sunderland, Nevin Liber, Alicia Klinvex, Li-Ta Lo, Damien
 Lebrun-Grandie, Graham Lopez, Peter Caday, Sarah Knepper, Piotr
 Luszczek, Timothy Costa. 2023. A free function linear algebra interface
-based on the BLAS. <a href="https://wg21.link/p1673r1"><div class="csl-block">https://wg21.link/p1673r1</div></a></div>
+based on the BLAS. <a href="https://wg21.link/p1673r13"><div class="csl-block">https://wg21.link/p1673r13</div></a></div>
 </div>
 <div id="ref-P1684R5" class="csl-entry" role="listitem">
 <div class="csl-left-margin">[P1684R5] </div><div class="csl-right-inline">Christian Trott, Daisy Hollman, Mark Hoemmen,

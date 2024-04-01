@@ -14,15 +14,15 @@ author:
 
 # Motivation
 
-C++23 introduced `mdspan` ([@P0009R18]), a nonowning multidmensional array abstraction that has a customizable layout. Layout customization was originally motivated in [@P0009R18] with considerations for interoperability and performance, particularly on different architectures. Moreover, [@P2630R4] introduced `submdspan`, a slicing function that can yield arbitrarily strided layouts. However, without standard library support, copying efficiently between mdspans with mixes of complex layouts is challenging for users.
+C++23 introduced `mdspan` ([@P0009R18]), a non-owning multidmensional array abstraction that has a customizable layout. Layout customization was originally motivated in [@P0009R18] with considerations for interoperability and performance, particularly on different architectures. Moreover, [@P2630R4] introduced `submdspan`, a slicing function that can yield arbitrarily strided layouts. However, without standard library support, copying efficiently between `mdspan`s with mixes of complex layouts is challenging for users.
 
 Many applications, including high-performance computing (HPC), image processing, computer graphics, etc that benefit from `mdspan` also would benefit from basic memory operations provided in standard algorithms such as copy and fill. Indeed, the authors found that a copy algorithm would have been quite useful in their implementation of the copying `mdarray` ([@P1684R5]) constructor. A more constrained form of `copy` is also included in the standard linear algebra library ([@P1673R13]).
 
-However, existing standard library facilities are not sufficient here. Currently, `mdspan` does not have iterators or ranges that represent the span of the `mdspan`. Additionally, it's not entirely clear what this would entail. `std::linalg::copy` ([@P1673R13]) is limited to `mdspans` of rank 2 or lower.
+However, existing standard library facilities are not sufficient here. Currently, `mdspan` does not have iterators or ranges that represent the span of the `mdspan`. Additionally, it's not entirely clear what this would entail. `std::linalg::copy` ([@P1673R13]) is limited to `mdspan`s of rank 2 or lower.
 
-Moreover, the manner in which an `mdspan` is copied (or filled) is highly performance sensitive, particularly in regards to caching behavior when traversing mdspan memory. A naïve user implementation is easy to get wrong in addition to being tedious for higher rank `mdspan`s. Ideally, an implementation would be free to use information about the layout of the `mdspan` known at compile time to perform optimizations; e.g. a continuous span `mdspan` copy for trivial types could be implementeed with a `memcpy`.
+Moreover, the manner in which an `mdspan` is copied (or filled) is highly performance sensitive, particularly in regards to caching behavior when traversing `mdspan` memory. A naive user implementation is easy to get wrong in addition to being tedious for higher rank `mdspan`s. Ideally, an implementation would be free to use information about the layout of the `mdspan` known at compile time to perform optimizations; e.g. a continuous span `mdspan` copy for trivial types could be implemented with a `memcpy`.
 
-Finally, providing these generic algorithms would also enable these operations for types that are representable by `mdspan`. For example, this would naturally include `mdarray`, which is convertible to `mdspan`, or for user-defined types whose view of memory corresponds to `mdspans` (e.g. an image class or something similar).
+Finally, providing these generic algorithms would also enable these operations for types that are representable by `mdspan`. For example, this would naturally include `mdarray`, which is convertible to `mdspan`, or for user-defined types whose view of memory corresponds to `mdspan`s (e.g. an image class or something similar).
 
 ## Safety
 
@@ -47,18 +47,26 @@ We settled on `<mdspan>` because as proposed this is a relatively light-weight a
 
 ## Existing `copy` in `std::linalg`
 
-[@P1673R13] introduced several linear algebra operations including `std::linalg::copy`. This operation only applies to `mdspan`s with $rank \le 2$. This paper is proposing a version of `copy` that is constrained to a superset of `std::linalg::copy`.
+[@P1673R13] introduced several linear algebra operations including `std::linalg::copy`. This operation only applies to `mdspan`s with $rank \le 2$. This paper is proposing a version of `copy` that is not constrained by the number of ranks and differs from `std::linalg::copy` in some important ways outline below.
 
-Right now the strict addition of `copy` would potentially cause the following code to be ambiguous, due to ADL-finding `std::copy`:
+Note that right now the strict addition of `copy` would potentially cause the following code to be ambiguous, due to ADL-finding `std::copy`:
 
 ```c++
 using std::linalg::copy;
 copy(mds1, mds2);
 ```
 
-One possibility would be to remove `std::linalg::copy`, as it is a subset of the proposed `std::copy`, though as of now this paper does not propose to do this.
+One possibility would be to remove `std::linalg::copy`, as it is a subset of the proposed `std::copy`. This was rejected by the paper authors because of certain requirements in \[linalg.reqs.alg\] -- that is:
+
+> The function may make arbitrarily many objects of any linear algebra value type, value-initializing or direct-initializing them with any existing object of that type.
+
+This requirement is likely undesirable for a generalized copy algorithm.
+
+There is a similar argument against simply generalizing `std::linalg::copy`. In addition to the freedom of `std::linalg::copy` to arbitrarily value or direct-initializing values, using the linear algebra version of copy would require the use of unnecessary includes and namespaces. It seems not very ergonomic for a user to have to use `std::linalg::copy` and include `<linalg>` even if the `mdspan` operations they are performing are unrelated to linear algebra.
 
 ## What the proposal does not include
+
+There are a few additions that are analogous to existing standard algorithms that are not included in this proposal, both to keep the proposal small and because some of these algorithms do not make sense in the context of `mdspan`s:
 
 * `std::move`: Perhaps this should be included for completeness's sake. However, it doesn't seem applicable to the typical usage of `mdspan`.
 * `(copy|fill)_n`: As a multidimensional view `mdspan` does not in general follow a specific ordering. Memory ordering may not be obvious to calling code, so it's not even clear how these would work. Any applications intending to copy a subset of `mdspan` should use call `copy` on the result of `submdspan`.
@@ -70,7 +78,7 @@ One possibility would be to remove `std::linalg::copy`, as it is a subset of the
 ```c++
 template<class SrcElementType, class SrcExtents, class SrcLayoutPolicy, class SrcAccessorPolicy,
          class DstElementType, class DstExtents, class DstLayoutPolicy, class DstAccessorPolicy>
-void copy(mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> src, 
+void copy(mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy> src,
           mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy> dst);
 
 template<class ExecutionPolicy, class SrcElementType, class SrcExtents, class SrcLayoutPolicy, class SrcAccessorPolicy,
