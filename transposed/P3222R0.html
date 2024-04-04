@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Add transposed special cases for P2642 layouts</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+</style>
+  <style>
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f6f8fa; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #008000; font-style: italic; } 
+code span.cv { color: #008000; font-style: italic; } 
+code span.do { color: #008000; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #008000; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #af1915; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #008000; font-weight: bold; } 
+code.diff {color: #898887}
+code.diff span.va {color: #00AA00}
+code.diff span.st {color: #bf0303}
+</style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+
+div#refs p { padding-left: 32px; text-indent: -32px; }
+</style>
+  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Add transposed special cases
+for P2642 layouts</h1>
+
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #: </td>
+    <td>P3222R0</td>
+  </tr>
+  <tr>
+    <td>Date: </td>
+    <td>2024/04/04</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project: </td>
+    <td>Programming Language C++<br>
+      LEWG<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to: </td>
+    <td>
+      Mark Hoemmen<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#authors" id="toc-authors"><span class="toc-section-number">1</span> Authors</a></li>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">2</span> Acknowledgements</a></li>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">3</span> Revision history</a></li>
+<li><a href="#abstract" id="toc-abstract"><span class="toc-section-number">4</span> Abstract</a></li>
+<li><a href="#what-the-c-working-draft-currently-does" id="toc-what-the-c-working-draft-currently-does"><span class="toc-section-number">5</span> What the C++ Working Draft currently
+does</a>
+<ul>
+<li><a href="#what-is-linalgtransposed" id="toc-what-is-linalgtransposed"><span class="toc-section-number">5.1</span> What is
+<code>linalg::transposed</code>?</a></li>
+<li><a href="#special-cases" id="toc-special-cases"><span class="toc-section-number">5.2</span> Special cases</a></li>
+<li><a href="#fall-back-case" id="toc-fall-back-case"><span class="toc-section-number">5.3</span> Fall-back case</a></li>
+<li><a href="#why-does-transposed-need-special-cases" id="toc-why-does-transposed-need-special-cases"><span class="toc-section-number">5.4</span> Why does <code>transposed</code>
+need special cases?</a></li>
+<li><a href="#what-if-transposed-had-no-special-cases" id="toc-what-if-transposed-had-no-special-cases"><span class="toc-section-number">5.5</span> What if <code>transposed</code>
+had no special cases?</a></li>
+<li><a href="#layout_left_padded-and-layout_right_padded" id="toc-layout_left_padded-and-layout_right_padded"><span class="toc-section-number">5.6</span> <code>layout_left_padded</code>
+and <code>layout_right_padded</code></a></li>
+<li><a href="#p1673-originally-included-this-optimization" id="toc-p1673-originally-included-this-optimization"><span class="toc-section-number">5.7</span> P1673 originally included this
+optimization</a></li>
+</ul></li>
+<li><a href="#proposed-changes" id="toc-proposed-changes"><span class="toc-section-number">6</span> Proposed changes</a>
+<ul>
+<li><a href="#before-and-after-example" id="toc-before-and-after-example"><span class="toc-section-number">6.1</span> Before and after example</a>
+<ul>
+<li><a href="#before-this-proposal" id="toc-before-this-proposal"><span class="toc-section-number">6.1.1</span> Before this proposal</a></li>
+<li><a href="#after-this-proposal" id="toc-after-this-proposal"><span class="toc-section-number">6.1.2</span> After this proposal</a></li>
+</ul></li>
+<li><a href="#delaying-until-after-c26-would-be-a-breaking-change" id="toc-delaying-until-after-c26-would-be-a-breaking-change"><span class="toc-section-number">6.2</span> Delaying until after C++26 would
+be a breaking change</a></li>
+<li><a href="#what-happens-if-we-dont-do-this" id="toc-what-happens-if-we-dont-do-this"><span class="toc-section-number">6.3</span> What happens if we don’t do
+this?</a></li>
+</ul></li>
+<li><a href="#optional-design-alternative-transposed_mapping-customization-point" id="toc-optional-design-alternative-transposed_mapping-customization-point"><span class="toc-section-number">7</span> Optional design alternative:
+<code>transposed_mapping</code> customization point</a></li>
+<li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">8</span> Implementation</a></li>
+<li><a href="#wording-for-the-main-proposal-not-the-alternative" id="toc-wording-for-the-main-proposal-not-the-alternative"><span class="toc-section-number">9</span> Wording for the main proposal (not
+the alternative)</a></li>
+</ul>
+</div>
+<h1 data-number="1" id="authors"><span class="header-section-number">1</span> Authors<a href="#authors" class="self-link"></a></h1>
+<ul>
+<li>Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)</li>
+</ul>
+<h1 data-number="2" id="acknowledgements"><span class="header-section-number">2</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<p>Thanks to Nicolas Morales (Sandia National Laboratories) for review
+feedback.</p>
+<h1 data-number="3" id="revision-history"><span class="header-section-number">3</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
+<ul>
+<li>Revision 0 to be submitted for the post-Tokyo mailing before
+2024/04/16</li>
+</ul>
+<h1 data-number="4" id="abstract"><span class="header-section-number">4</span> Abstract<a href="#abstract" class="self-link"></a></h1>
+<p>We propose to change the C++ Working Draft for C++26 so that
+<code>linalg::transposed</code> includes special cases for
+<code>layout_left_padded</code> and <code>layout_right_padded</code>.
+These are the two mdspan layouts proposed by P2642R6, which was voted
+into the C++ Working Draft at the Tokyo 2024 WG21 meeting. This change
+will make it easier for <code>linalg</code> implementations to optimize
+for these two layouts by dispatching to an existing optimized C or
+Fortran BLAS (Basic Linear Algebra Subroutines). Delaying this until
+after C++26 would be a breaking change.</p>
+<h1 data-number="5" id="what-the-c-working-draft-currently-does"><span class="header-section-number">5</span> What the C++ Working Draft
+currently does<a href="#what-the-c-working-draft-currently-does" class="self-link"></a></h1>
+<h2 data-number="5.1" id="what-is-linalgtransposed"><span class="header-section-number">5.1</span> What is
+<code>linalg::transposed</code>?<a href="#what-is-linalgtransposed" class="self-link"></a></h2>
+<p>WG21 voted P1673R13 into the C++ Working Draft at the Kona 2023 WG21
+meeting. P1673 introduces the <code>linalg::transposed</code> function,
+which takes a rank-2 <code>mdspan</code> and returns a read-only
+<code>mdspan</code> representing the transpose of its input. The
+<em>transpose</em> of a rank-2 mdspan <code>A</code> is a rank-2 mdspan
+<code>AT</code> such that <code>A[i, j]</code> refers to the same
+element as <code>AT[j, i]</code> for all <code>i, j</code> in the domain
+of <code>A</code>. Transposing a matrix “flips” it over its diagonal.
+The <em>diagonal</em> of a rank-2 mdspan <code>A</code> is the set of
+all elements <code>A[i, i]</code> where <code>i, i</code> is in the
+domain of <code>A</code>. A key feature of <code>transposed</code> is
+that it represents a read-only “transpose view” of the data, without
+copying or moving elements of the matrix.</p>
+<h2 data-number="5.2" id="special-cases"><span class="header-section-number">5.2</span> Special cases<a href="#special-cases" class="self-link"></a></h2>
+<p>The <code>transposed</code> function currently has “special cases”
+for three layouts: <code>layout_left</code>, <code>layout_right</code>,
+and <code>layout_stride</code>. For these three layouts,
+<code>linalg::transposed</code> works by changing the return type’s
+layout and/or layout mapping in a way that reverses the extents and
+strides. For <code>layout_left</code>, “reversing the strides” means
+<code>layout_right</code>, and vice versa. For example, the transpose
+layout mapping of
+<code>layout_left::mapping&lt;extents&lt;int, 3, 4&gt;&gt;{}</code> is
+<code>layout_right::mapping&lt;extents&lt;int, 4, 3&gt;&gt;{}</code>,
+and the transpose layout mapping of
+<code>layout_right::mapping&lt;extents&lt;int, 3, 4&gt;&gt;{}</code> is
+<code>layout_left::mapping&lt;extents&lt;int, 4, 3&gt;&gt;{}</code>. For
+both those two layouts, the mapping does not store the strides; they are
+computed from the extents. For <code>layout_stride</code>, the mapping
+actually stores the strides and its constructor takes them as a
+<code>std::array</code>, so “reversing the strides” means passing in a
+reverse-order <code>array</code> of the input strides. For example, the
+transpose layout of</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> m <span class="op">=</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">&gt;&gt;{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">&gt;{}</span>, array<span class="op">{</span><span class="dv">2</span>, <span class="dv">6</span><span class="op">}}</span>;</span></code></pre></div>
+<p>is</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> mt <span class="op">=</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">4</span>, <span class="dv">3</span><span class="op">&gt;&gt;{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">4</span>, <span class="dv">3</span><span class="op">&gt;{}</span>, array<span class="op">{</span><span class="dv">6</span>, <span class="dv">2</span><span class="op">}}</span>;</span></code></pre></div>
+<h2 data-number="5.3" id="fall-back-case"><span class="header-section-number">5.3</span> Fall-back case<a href="#fall-back-case" class="self-link"></a></h2>
+<p>For any layout other than one of the three special cases,
+<code>transposed</code> resorts to a “fall-back”: it wraps the original
+layout <code>Layout</code>’s mapping in a nested layout mapping
+<code>layout_transpose&lt;Layout&gt;::mapping</code>. That nested
+mapping’s <code>operator()</code> invokes the original layout with
+indices reversed.</p>
+<h2 data-number="5.4" id="why-does-transposed-need-special-cases"><span class="header-section-number">5.4</span> Why does
+<code>transposed</code> need special cases?<a href="#why-does-transposed-need-special-cases" class="self-link"></a></h2>
+<p>The fall-back case correctly represents the transpose of an mdspan
+with any layout. If so, why do we need special cases? Why doesn’t
+<code>transposed</code> just always use
+<code>layout_transpose</code>?</p>
+<p>The design intent of P1673 is that implementations can dispatch to an
+optimized C or Fortran BLAS if the caller’s <code>mdspan</code> satisfy
+the right conditions. One of those conditions is that the layout
+mappings are all unique (<code>is_unique()</code> is <code>true</code>)
+and strided (<code>is_strided()</code> is <code>true</code>) with at
+least one of the strides equal to one. This is known at compile time to
+be true for all <code>layout_left</code> and <code>layout_right</code>
+mappings. For <code>layout_stride</code>, it requires a run-time check
+of the two strides.</p>
+<p>If the caller’s <code>mdspan</code> do <em>not</em> satisfy the right
+conditions for dispatching to a C or Fortran BLAS, the implementation
+may dispatch to possibly unoptimized “generic” code. As P1673 explains,
+this may result in asymptotically slower run time, and/or may fail to
+take advantage of any acceleration hardware.</p>
+<p>Knowing at compile time whether a layout mapping is compatible with
+the BLAS makes it a zero-cost abstraction for the implementation to
+dispatch to the BLAS based on that mapping. As we will see below,
+<code>layout_left_padded</code> and <code>layout_right_padded</code>
+also have this property, that their mappings are known at compile time
+always to be compatible with the BLAS. However, <code>transposed</code>
+does not have special cases for these two layouts.</p>
+<h2 data-number="5.5" id="what-if-transposed-had-no-special-cases"><span class="header-section-number">5.5</span> What if <code>transposed</code>
+had no special cases?<a href="#what-if-transposed-had-no-special-cases" class="self-link"></a></h2>
+<p>Suppose that <code>transposed</code> had no special cases for input
+layouts. Implementations of P1673’s algorithms could still optimize by
+adding their own special cases for specific input layouts, such as
+<code>layout_transpose&lt;layout_left&gt;</code> and
+<code>layout_transpose&lt;layout_right&gt;</code>. This would not hinder
+the ability to dispatch to the BLAS. However, it would complicate the
+implementation and possibly add compile-time cost by introducing more
+internal overloads and/or specializations. Every algorithm would need to
+check for twice as many layout special cases. The code that dispatches
+to the BLAS would need to do the same thing that <code>transposed</code>
+does for its special cases, namely reverse the extents and strides in
+the transposed case. Furthermore, users may want to use
+<code>transposed</code> with their own P1673-like linear algebra
+algorithms. Such users would generally expect <code>transposed</code> to
+optimize for the common case of known strided layouts. Without that
+optimization, they may end up implementing their own
+<code>transposed</code> functions. The proliferation of incompatible
+<code>transposed</code> functions would hinder interoperability of
+libraries.</p>
+<h2 data-number="5.6" id="layout_left_padded-and-layout_right_padded"><span class="header-section-number">5.6</span> <code>layout_left_padded</code>
+and <code>layout_right_padded</code><a href="#layout_left_padded-and-layout_right_padded" class="self-link"></a></h2>
+<p>WG21 voted P2642R6 into the C++ Working Draft at the Tokyo 2024 WG21
+meeting. P2642R6 adds two layouts, <code>layout_left_padded</code> and
+<code>layout_right_padded</code>. The data layouts described by these
+two class templates are exactly the two layouts understood by the C BLAS
+(Basic Linear Algebra Subroutines), as explained in P1673 and P1674.
+These layouts have one stride (the leftmost resp. rightmost) that is
+known at compile time to be one, and one stride (the next leftmost resp.
+rightmost) that the user provides either at compile time or run time.
+The remaining strides are computed from these and the extents, as if
+with <code>layout_left</code> resp. <code>layout_right</code> where the
+user-provided stride represents a possibly larger extent.</p>
+<p>These two layouts are exactly the layouts supported by the BLAS. The
+BLAS calls the one user-provided stride the matrix’s “leading
+dimension.” BLAS implementations can optimize transpose of input
+matrices in these two layouts without copying data, just by reversing
+extents and retaining the one input stride. Furthermore, it is known at
+compile time that any mapping of these two layouts is compatible with
+the BLAS. Therefore, it’s reasonable to expect P1673 implementations to
+optimize for <code>layout_left_padded</code> and
+<code>layout_right_padded</code>. The way to do that would be for
+<code>transposed</code> of a
+<code>layout_left_padded&lt;PaddingValue&gt;</code> <code>mdspan</code>
+to return a <code>layout_right_padded&lt;PaddingValue&gt;</code>
+<code>mdspan</code> with extents swapped and the one “padding stride”
+copied over, and vice versa for <code>transposed</code> of a
+<code>layout_right_padded&lt;PaddingValue&gt;</code>
+<code>mdspan</code>. However, the C++ Working Draft currently handles
+those two layouts with the “fall-back” <code>layout_transpose</code>
+case.</p>
+<h2 data-number="5.7" id="p1673-originally-included-this-optimization"><span class="header-section-number">5.7</span> P1673 originally included this
+optimization<a href="#p1673-originally-included-this-optimization" class="self-link"></a></h2>
+<p>Earlier versions of P1673 defined two <code>mdspan</code> layouts,
+<code>layout_blas_general&lt;column_major_t&gt;</code> and
+<code>layout_blas_general&lt;row_major_t&gt;</code>. P1673’s
+<code>transposed</code> function originally included special cases for
+those two layouts, as one can see in P1673R9’s
+[linalg.transp.transposed]. Version R10 of P1673 moved those layouts to
+P2642 and renamed them <code>layout_left_padded</code> and
+<code>layout_right_padded</code>, respectively. P167310 removed these
+special cases from <code>transposed</code> so that P2642 and P1673 could
+make progress separately. However, P1673’s authors always intended to
+optimize <code>transposed</code> for those layouts. WG21 voted P2642R6
+into the C++ Working Draft at the Tokyo 2024 WG21 meeting, so now it’s
+possible to carry out that intent.</p>
+<h1 data-number="6" id="proposed-changes"><span class="header-section-number">6</span> Proposed changes<a href="#proposed-changes" class="self-link"></a></h1>
+<p>We propose to add those two special cases. The result of
+<code>transposed</code> on a
+<code>layout_left_padded&lt;PaddingValue&gt;</code> <code>mdspan</code>
+will be a <code>layout_right_padded&lt;PaddingValue&gt;</code>
+<code>mdspan</code> with extents swapped and the one “padding stride”
+copied over. Likewise, the result of <code>transposed</code> on a
+<code>layout_right_padded&lt;PaddingValue&gt;</code> <code>mdspan</code>
+will be a <code>layout_left_padded&lt;PaddingValue&gt;</code>
+<code>mdspan</code> with extents swapped and the one “padding stride”
+copied over.</p>
+<h2 data-number="6.1" id="before-and-after-example"><span class="header-section-number">6.1</span> Before and after example<a href="#before-and-after-example" class="self-link"></a></h2>
+<p>The following example shows how this proposal would change the return
+type of <code>transposed</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// optimized overload</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> some_algorithm<span class="op">(</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span>, layout_right_padded<span class="op">&lt;</span>dynamic_extent<span class="op">&gt;&gt;</span> A_T,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span>, layout_left_padded<span class="op">&lt;</span>dynamic_extent<span class="op">&gt;&gt;</span> B,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="dt">float</span>, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span>, layout_left_padded<span class="op">&lt;</span>dynamic_extent<span class="op">&gt;&gt;</span> C<span class="op">)</span>;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> GenericFallBackLayout<span class="op">&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> some_algorithm<span class="op">(</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span>, GenericFallBackLayout<span class="op">&gt;</span> A_T,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span>, layout_left_padded<span class="op">&lt;</span>dynamic_extent<span class="op">&gt;&gt;</span> B,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="dt">float</span>, dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span>, layout_left_padded<span class="op">&lt;</span>dynamic_extent<span class="op">&gt;&gt;</span> C<span class="op">)</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... slow generic code ...</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> some_function<span class="op">(</span><span class="dt">size_t</span> N<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> A_storage<span class="op">(</span><span class="dv">4</span> <span class="op">*</span> N <span class="op">*</span> N<span class="op">)</span>;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> B_storage<span class="op">(</span>N <span class="op">*</span> N<span class="op">)</span>;</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> C_storage<span class="op">(</span>N <span class="op">*</span> N<span class="op">)</span>;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  mdspan A_parent<span class="op">{</span>A_storage<span class="op">.</span>data<span class="op">()</span>, extents<span class="op">{</span><span class="dv">2</span> <span class="op">*</span> N, <span class="dv">2</span> <span class="op">*</span> N<span class="op">}</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  mdspan B<span class="op">{</span>B_storage<span class="op">.</span>data<span class="op">()</span>, extents<span class="op">{</span>N, N<span class="op">}}</span>;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  mdspan C<span class="op">{</span>C_storage<span class="op">.</span>data<span class="op">()</span>, extents<span class="op">{</span>N, N<span class="op">}}</span>;</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... fill A_parent and B with useful values ...</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">// A views the upper left N x N submatrix of its &quot;parent.&quot;</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  mdspan A <span class="op">=</span> submdspan<span class="op">(</span>A_parent, tuple<span class="op">{</span><span class="dv">0</span>, N<span class="op">}</span>, tuple<span class="op">{</span><span class="dv">0</span>, N<span class="op">})</span>;</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Approval of P2642R6 added this to the C++ Working Draft.</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">decltype</span><span class="op">(</span>A<span class="op">)::</span>layout_type,</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    layout_left_padded<span class="op">&lt;</span>dynamic_extent<span class="op">&gt;&gt;)</span>;</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>A<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>; <span class="co">// compile-time value</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  mdspan A_T <span class="op">=</span> linalg<span class="op">::</span>transposed<span class="op">(</span>A<span class="op">)</span>;</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  some_algorithm<span class="op">(</span>A_T, B, C<span class="op">)</span>;</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 data-number="6.1.1" id="before-this-proposal"><span class="header-section-number">6.1.1</span> Before this proposal<a href="#before-this-proposal" class="self-link"></a></h3>
+<ol type="1">
+<li><p><code>decltype(A_T)::layout_type</code> is
+<code>layout_transposed&lt;layout_left_padded&lt;dynamic_extent&gt;&gt;</code>.</p></li>
+<li><p>Generic overload of <code>some_algorithm</code> is
+called.</p></li>
+</ol>
+<h3 data-number="6.1.2" id="after-this-proposal"><span class="header-section-number">6.1.2</span> After this proposal<a href="#after-this-proposal" class="self-link"></a></h3>
+<ol type="1">
+<li><p><code>decltype(A_T)::layout_type</code> is
+<code>layout_right_padded&lt;dynamic_extent&gt;</code>.</p></li>
+<li><p>The statement <code>static_assert(A_T.stride(1) == 1);</code> is
+well formed.</p></li>
+<li><p>Optimized overload of <code>some_algorithm</code> is
+called.</p></li>
+</ol>
+<h2 data-number="6.2" id="delaying-until-after-c26-would-be-a-breaking-change"><span class="header-section-number">6.2</span> Delaying until after C++26
+would be a breaking change<a href="#delaying-until-after-c26-would-be-a-breaking-change" class="self-link"></a></h2>
+<p>The type of the layout of the <code>mdspan</code> returned by
+<code>transposed</code> is observable and is specified in the current
+wording. Therefore, delaying this change until after C++26 would be a
+breaking change.</p>
+<h2 data-number="6.3" id="what-happens-if-we-dont-do-this"><span class="header-section-number">6.3</span> What happens if we don’t do
+this?<a href="#what-happens-if-we-dont-do-this" class="self-link"></a></h2>
+<p>We have already discussed above how the lack of special cases for
+<code>transposed</code> would affect use of <code>transposed</code> with
+user’s custom P1673-like algorithms, and possibly hinder
+interoperability of different users’ libraries. That leaves the effects
+of not having this proposal on P1673 implementations themselves.</p>
+<p>The first and worst possibility is that implementations might not not
+optimize for <code>layout_left_padded</code> or
+<code>layout_right_padded</code> at all. That would be unfortunate,
+because those are exactly the layouts that the BLAS supports and has
+supported since the 1980’s. This would hinder adoption of P1673
+algorithms.</p>
+<p>The second possibility is that implementations may dispatch to the
+BLAS for any layout mapping that is unique, strided, and has at least
+one stride equal to one. This works for user-defined layouts as well as
+the Standard layouts. <code>layout_transpose::mapping</code> preserves
+the uniqueness and stridedness of its nested layout mapping, and even
+reverses the strides if the nested layout mapping is strided. However,
+without this proposal, implementations that check stridedness would
+still need to check the actual stride values at run time, even though
+for <code>layout_left_padded</code> and
+<code>layout_right_padded</code>, it’s known at compile time that at
+least one of the strides is one. The run-time check would add overhead
+and complicate the implementation.</p>
+<p>The third possibility is that implementations might add special cases
+for
+<code>layout_transpose&lt;layout_left_padded&lt;PaddingValue&gt;&gt;</code>
+and
+<code>layout_transpose&lt;layout_right_padded&lt;PaddingValue&gt;&gt;</code>
+in the algorithms, rather than in <code>transposed</code>. However, as
+discussed above in the section “What if <code>transposed</code> had no
+special cases?”, this would complicate the implementation and possibly
+add compile-time cost.</p>
+<p>The fourth possibility is that the implementation may simply not
+optimize the transposed case for any layouts. This would be unfortunate,
+as the BLAS itself favors transposes in some cases. For example,
+implementations of matrix-matrix multiply for general dense matrices
+(GEMM) have simpler code and may perform better if one of the two input
+matrices is transposed.</p>
+<p>A valid P1673 implementation might not dispatch to the BLAS for all
+layouts that permit this. Instead, it might only do so for the four
+layouts where BLAS compatibility is known at compile time:
+<code>layout_left</code>, <code>layout_right</code>,
+<code>layout_left_padded</code>, and <code>layout_right_padded</code>.
+This approach has three advantages.</p>
+<ol type="1">
+<li><p>It minimizes run-time overhead by not calling
+<code>is_unique</code>, <code>is_strided</code>, or
+<code>stride</code>.</p></li>
+<li><p>It can use function overloading on specific layout types to
+dispatch to the BLAS, instead of generic constraint checks that may
+increase compilation cost.</p></li>
+<li><p>It avoids the risk that user-defined layouts incorrectly define
+their stridedness or uniqueness. Users who copy-paste an existing layout
+to write their own might forget to change <code>is_strided()</code> or
+<code>is_unique()</code>.</p></li>
+</ol>
+<p>However, without this proposal, such an implementation would need to
+resort to either the third or fourth possibility above.</p>
+<h1 data-number="7" id="optional-design-alternative-transposed_mapping-customization-point"><span class="header-section-number">7</span> Optional design alternative:
+<code>transposed_mapping</code> customization point<a href="#optional-design-alternative-transposed_mapping-customization-point" class="self-link"></a></h1>
+<p>In the previous section, we mentioned that users may want to use
+<code>transposed</code> with their own P1673-like linear algebra
+algorithms. A reviewer suggested that we make it possible for users to
+optimize <code>transposed</code> for their user-defined layouts, by
+adding a <code>transposed_mapping</code> customization point. This would
+be analogous to the <code>submdspan_mapping</code> customization point
+that approval of P2630R4 (<code>submdspan</code>) added to the C++
+Working Draft. The new <code>transposed_mapping</code> customization
+point would take an input layout mapping and return the layout mapping
+that the transpose of an <code>mdspan</code> with the input mapping
+would have. If no customization exists for a given layout mapping,
+<code>transposed</code> would default to using
+<code>layout_transpose</code>, as before.</p>
+<p>This design would have the following advantages.</p>
+<ol type="1">
+<li><p>It would be easier to specify the wording of
+<code>transposed</code>. Instead of its current list of special cases,
+it would look more like the <code>submdspan</code> wording that puts all
+the layout-specific behavior in the customization point.</p></li>
+<li><p>Implementations that provide implementation-specific layouts
+could optimize <code>transposed</code> for those layouts.</p></li>
+<li><p>Users could use <code>transposed</code> with their custom
+P1673-like algorithms and implement optimizations for their user-defined
+layouts.</p></li>
+</ol>
+<p>Here are some reasons why WG21 might <em>not</em> want to do
+this.</p>
+<ol type="1">
+<li><p>It would reserve yet another customization point name.</p></li>
+<li><p>It would not change the set of BLAS-compatible layouts. P1673
+implementations can already dispatch to the BLAS for user-defined layout
+mappings and their transposes, as long as those layout mappings are
+unique, strided, and have at least one stride equal to one.</p></li>
+<li><p><code>submdspan_mapping</code> enables functionality – the
+ability to slice <code>mdspan</code> with user-defined layouts – while
+<code>transposed_mapping</code> would only enable (or simplify)
+optimizations.</p></li>
+<li><p>It makes less sense for <code>transposed_mapping</code> to be a
+hidden friend than it does for <code>submdspan_mapping</code> to be a
+hidden friend. However, defining <code>transposed_mapping</code> as a
+nonmember function without using the hidden friends technique would make
+<code>transposed_mapping</code> vulnerable to implicit conversions. This
+could make <code>transposed</code>’s calls to the customization point
+ambiguous.</p></li>
+<li><p>LEWG has already seen the proposed design over several reviews
+(the last being the 2022/07/05 telecon review of P1673R9), but has not
+yet had a chance to review this alternative customization point
+design.</p></li>
+</ol>
+<p>Regarding (4), the C++ Working Draft defines
+<code>submdspan_mapping</code> customizations for Standard layout
+mappings as “hidden friends.” The hidden friends technique protects use
+of the customization from possible ambiguities due to implicit
+conversions. This matters because layout mappings have many implicit
+conversions. These conversions help make <code>mdspan</code>-based
+interfaces more usable. Slicing is closely enough related to a layout
+mapping’s behavior that it makes sense to put the slicing customization
+in the layout mapping. However, it makes less sense to make
+<code>transposed_mapping</code> a hidden friend of the mapping, because
+transposition only works for rank-2 mappings, and transposition is
+specific to linear algebra and related computations.</p>
+<p>We think the disadvantages of a customization point outweigh the
+advantages. For example, we do not recommend adding
+<code>transposed_mapping</code> as a hidden friend of all the Standard
+layout mappings. As a result, we do not provide wording for this
+alternative design. Nevertheless, we would like LEWG to poll this
+option.</p>
+<h1 data-number="8" id="implementation"><span class="header-section-number">8</span> Implementation<a href="#implementation" class="self-link"></a></h1>
+<p>This proposal is implemented as
+<a href="https://github.com/kokkos/stdBLAS/pull/268">PR 268</a> in the
+reference <code>mdspan</code> implementation.</p>
+<h1 data-number="9" id="wording-for-the-main-proposal-not-the-alternative"><span class="header-section-number">9</span> Wording for the main proposal
+(not the alternative)<a href="#wording-for-the-main-proposal-not-the-alternative" class="self-link"></a></h1>
+<blockquote>
+<p>Text in blockquotes is not proposed wording, but rather instructions
+for generating proposed wording.</p>
+<p>Make the following changes to the latest C++ Working Draft as of the
+time of writing. All wording is relative to the latest C++ Working
+Draft.</p>
+<p>In [version.syn], increase the value of the
+<code>__cpp_lib_linalg</code> macro by replacing YYYMML below with the
+integer literal encoding the appropriate year (YYYY) and month (MM).</p>
+</blockquote>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_linalg </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;linalg&gt;</span></span></code></pre></div>
+<blockquote>
+<p>Change [linalg.transp.transposed] paragraph 3 (“Let
+<code>ReturnExtents</code> be …”) by inserting the following
+subparagraphs after subparagraph 3.2 (“otherwise,
+<code>layout_left</code> …”) and before current subparagraph 3.3
+(“otherwise, <code>layout_stride</code> …”, to be renumbered to
+paragraph 3.5), and renumbering subparagraphs and subsubparagraphs
+within paragraph 3 thereafter.</p>
+</blockquote>
+<p><span class="marginalizedparent"><a class="marginalized">(3.3)</a></span>
+otherwise, <code>layout_right_padded&lt;PaddingValue&gt;</code> if
+<code>Layout</code> is
+<code>layout_left_padded&lt;PaddingValue&gt;</code> for some
+<code>size_t</code> value <code>PaddingValue</code>;</p>
+<p><span class="marginalizedparent"><a class="marginalized">(3.4)</a></span>
+otherwise, <code>layout_left_padded&lt;PaddingValue&gt;</code> if
+<code>Layout</code> is
+<code>layout_right_padded&lt;PaddingValue&gt;</code> for some
+<code>size_t</code> value <code>PaddingValue</code>;</p>
+<blockquote>
+<p>Change [linalg.transp.transposed] paragraph 4 (<em>Returns</em>
+clause of <code>transposed</code>) by inserting the following
+subparagraphs after subparagraph 4.1 (for <code>Layout</code> being
+<code>layout_left</code>, <code>layout_right</code>, or a specialization
+of <code>layout_blas_packed</code>) and before current subparagraph 4.2
+(for <code>Layout</code> being <code>layout_stride</code>, to be
+renumbered to subparagraph 4.4), and renumbering subparagraphs within
+paragraph 4 thereafter.</p>
+</blockquote>
+<p><span class="marginalizedparent"><a class="marginalized">(4.2)</a></span>
+otherwise,
+<code>R(a.data_handle(), ReturnMapping(</code><em><code>transpose-extents</code></em><code>(a.mapping().extents()), a.mapping().stride(1)), a.accessor())</code>
+if <code>Layout</code> is
+<code>layout_left_padded&lt;PaddingValue&gt;</code> for some
+<code>size_t</code> value <code>PaddingValue</code>;</p>
+<p><span class="marginalizedparent"><a class="marginalized">(4.3)</a></span>
+otherwise,
+<code>R(a.data_handle(), ReturnMapping(</code><em><code>transpose-extents</code></em><code>(a.mapping().extents()), a.stride(0)), a.accessor())</code>
+if <code>Layout</code> is
+<code>layout_right_padded&lt;PaddingValue&gt;</code> for some
+<code>size_t</code> value <code>PaddingValue</code>;</p>
+</div>
+</div>
+</body>
+</html>

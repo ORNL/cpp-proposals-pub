@@ -1,7 +1,7 @@
 
 ---
 title: "Add transposed special cases for P2642 layouts"
-document: D????
+document: P3222R0
 date: 2024/04/04
 audience: LEWG
 author:
@@ -33,11 +33,6 @@ This change will make it easier for `linalg` implementations
 to optimize for these two layouts by dispatching
 to an existing optimized C or Fortran BLAS (Basic Linear Algebra Subroutines).
 Delaying this until after C++26 would be a breaking change.
-
-We also propose a more general alternative design:
-adding a `transposed_mapping` customization point
-analogous to `submdspan_mapping`.  This is optional to the proposal.
-Delaying it until after C++26 would also be a breaking change.
 
 # What the C++ Working Draft currently does
 
