@@ -2,7 +2,7 @@
 ---
 title: "Add transposed special cases for P2642 layouts"
 document: D????
-date: 2024/03/26
+date: 2024/04/04
 audience: LEWG
 author:
   - name: Mark Hoemmen
