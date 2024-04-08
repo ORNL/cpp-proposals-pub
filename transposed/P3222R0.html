@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Add transposed special cases for P2642 layouts</title>
+  <title>Fix C++26 by adding transposed special cases for P2642 layouts</title>
   <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -414,8 +414,8 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <body>
 <div class="wrapper">
 <header id="title-block-header">
-<h1 class="title" style="text-align:center">Add transposed special cases
-for P2642 layouts</h1>
+<h1 class="title" style="text-align:center">Fix C++26 by adding
+transposed special cases for P2642 layouts</h1>
 
 <table style="border:none;float:right">
   <tr>
@@ -424,7 +424,7 @@ for P2642 layouts</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2024/04/04</td>
+    <td>2024/04/08</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -458,8 +458,8 @@ does</a>
 <li><a href="#fall-back-case" id="toc-fall-back-case"><span class="toc-section-number">5.3</span> Fall-back case</a></li>
 <li><a href="#why-does-transposed-need-special-cases" id="toc-why-does-transposed-need-special-cases"><span class="toc-section-number">5.4</span> Why does <code>transposed</code>
 need special cases?</a></li>
-<li><a href="#what-if-transposed-had-no-special-cases" id="toc-what-if-transposed-had-no-special-cases"><span class="toc-section-number">5.5</span> What if <code>transposed</code>
-had no special cases?</a></li>
+<li><a href="#what-if-transposed-had-no-special-cases-at-all" id="toc-what-if-transposed-had-no-special-cases-at-all"><span class="toc-section-number">5.5</span> What if <code>transposed</code>
+had no special cases at all?</a></li>
 <li><a href="#layout_left_padded-and-layout_right_padded" id="toc-layout_left_padded-and-layout_right_padded"><span class="toc-section-number">5.6</span> <code>layout_left_padded</code>
 and <code>layout_right_padded</code></a></li>
 <li><a href="#p1673-originally-included-this-optimization" id="toc-p1673-originally-included-this-optimization"><span class="toc-section-number">5.7</span> P1673 originally included this
@@ -530,28 +530,36 @@ and <code>layout_stride</code>. For these three layouts,
 <code>linalg::transposed</code> works by changing the return type’s
 layout and/or layout mapping in a way that reverses the extents and
 strides. For <code>layout_left</code>, “reversing the strides” means
-<code>layout_right</code>, and vice versa. For example, the transpose
-layout mapping of
+<code>layout_right</code>, and vice versa. Here are two examples.</p>
+<ol type="1">
+<li><p>The transpose layout mapping of
 <code>layout_left::mapping&lt;extents&lt;int, 3, 4&gt;&gt;{}</code> is
-<code>layout_right::mapping&lt;extents&lt;int, 4, 3&gt;&gt;{}</code>,
-and the transpose layout mapping of
+<code>layout_right::mapping&lt;extents&lt;int, 4, 3&gt;&gt;{}</code>.</p></li>
+<li><p>The transpose layout mapping of
 <code>layout_right::mapping&lt;extents&lt;int, 3, 4&gt;&gt;{}</code> is
-<code>layout_left::mapping&lt;extents&lt;int, 4, 3&gt;&gt;{}</code>. For
-both those two layouts, the mapping does not store the strides; they are
-computed from the extents. For <code>layout_stride</code>, the mapping
-actually stores the strides and its constructor takes them as a
-<code>std::array</code>, so “reversing the strides” means passing in a
-reverse-order <code>array</code> of the input strides. For example, the
-transpose layout of</p>
+<code>layout_left::mapping&lt;extents&lt;int, 4, 3&gt;&gt;{}</code>.</p></li>
+</ol>
+<p>For both <code>layout_left</code> and <code>layout_right</code>, the
+mapping does not store the strides; they are computed from the extents.
+For <code>layout_stride</code>, the mapping actually stores the strides
+and its constructor takes them as a <code>std::array</code>, so
+“reversing the strides” means passing in a reverse-order
+<code>array</code> of the input strides. For example, the transpose
+layout of</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> m <span class="op">=</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">&gt;&gt;{</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">3</span>, <span class="dv">4</span><span class="op">&gt;{}</span>, array<span class="op">{</span><span class="dv">2</span>, <span class="dv">6</span><span class="op">}}</span>;</span></code></pre></div>
 <p>is</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> mt <span class="op">=</span> layout_stride<span class="op">::</span>mapping<span class="op">&lt;</span>extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">4</span>, <span class="dv">3</span><span class="op">&gt;&gt;{</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">4</span>, <span class="dv">3</span><span class="op">&gt;{}</span>, array<span class="op">{</span><span class="dv">6</span>, <span class="dv">2</span><span class="op">}}</span>;</span></code></pre></div>
+<p>The transpose layouts described above reflect the <em>current</em>
+behavior in the C++ Working Draft.</p>
 <h2 data-number="5.3" id="fall-back-case"><span class="header-section-number">5.3</span> Fall-back case<a href="#fall-back-case" class="self-link"></a></h2>
-<p>For any layout other than one of the three special cases,
-<code>transposed</code> resorts to a “fall-back”: it wraps the original
-layout <code>Layout</code>’s mapping in a nested layout mapping
+<p>The <em>current</em> behavior in the C++ Working Draft is that for
+any layout which is not one of the three cases listed above
+(<code>layout_left</code>, <code>layout_right</code>, or
+<code>layout_stride</code>), <code>transposed</code> resorts to a
+“fall-back.” That is, it wraps the original layout <code>Layout</code>’s
+mapping in a nested layout mapping
 <code>layout_transpose&lt;Layout&gt;::mapping</code>. That nested
 mapping’s <code>operator()</code> invokes the original layout with
 indices reversed.</p>
@@ -562,45 +570,56 @@ with any layout. If so, why do we need special cases? Why doesn’t
 <code>transposed</code> just always use
 <code>layout_transpose</code>?</p>
 <p>The design intent of P1673 is that implementations can dispatch to an
-optimized C or Fortran BLAS if the caller’s <code>mdspan</code> satisfy
-the right conditions. One of those conditions is that the layout
-mappings are all unique (<code>is_unique()</code> is <code>true</code>)
-and strided (<code>is_strided()</code> is <code>true</code>) with at
-least one of the strides equal to one. This is known at compile time to
-be true for all <code>layout_left</code> and <code>layout_right</code>
-mappings. For <code>layout_stride</code>, it requires a run-time check
-of the two strides.</p>
-<p>If the caller’s <code>mdspan</code> do <em>not</em> satisfy the right
-conditions for dispatching to a C or Fortran BLAS, the implementation
-may dispatch to possibly unoptimized “generic” code. As P1673 explains,
-this may result in asymptotically slower run time, and/or may fail to
-take advantage of any acceleration hardware.</p>
-<p>Knowing at compile time whether a layout mapping is compatible with
-the BLAS makes it a zero-cost abstraction for the implementation to
-dispatch to the BLAS based on that mapping. As we will see below,
-<code>layout_left_padded</code> and <code>layout_right_padded</code>
-also have this property, that their mappings are known at compile time
-always to be compatible with the BLAS. However, <code>transposed</code>
-does not have special cases for these two layouts.</p>
-<h2 data-number="5.5" id="what-if-transposed-had-no-special-cases"><span class="header-section-number">5.5</span> What if <code>transposed</code>
-had no special cases?<a href="#what-if-transposed-had-no-special-cases" class="self-link"></a></h2>
+existing optimized C or Fortran BLAS if the caller’s <code>mdspan</code>
+arguments satisfy the right conditions. If the arguments do <em>not</em>
+satisfy these conditions, the implementation may dispatch to possibly
+unoptimized “generic” code. As P1673 explains, failure to dispatch to an
+optimized library may result in invocation of an asymptotically slower
+algorithm, and/or may fail to take advantage of any acceleration
+hardware. Some of these conditions depend only on the argument types and
+thus can always be checked at compile time, while other conditions
+depend on possibly run-time properties of the objects.</p>
+<p>One of those conditions is that the layout mappings satisfy the
+following three properties.</p>
+<ol type="1">
+<li><p>They are all unique (<code>is_unique()</code> is
+<code>true</code>).</p></li>
+<li><p>They are all strided (<code>is_strided()</code> is
+<code>true</code>).</p></li>
+<li><p>At least one of their strides equals to one.</p></li>
+</ol>
+<p>If all three are true, we say that the layout mapping is
+<em>BLAS-compatible</em>. For all <code>layout_left</code> and
+<code>layout_right</code> mappings, these are known at compile time
+always to be true. For <code>layout_stride</code>, testing the third
+property requires a possibly run-time check.</p>
+<p>Knowing at compile time whether a layout mapping is BLAS-compatible
+makes it a zero-cost abstraction for the implementation to dispatch to
+the BLAS based on that mapping. As we will see below, both
+<code>layout_left_padded</code> and <code>layout_right_padded</code> are
+also known at compile time always to be BLAS-compatible. However,
+<code>transposed</code> does not have special cases for these two
+layouts.</p>
+<h2 data-number="5.5" id="what-if-transposed-had-no-special-cases-at-all"><span class="header-section-number">5.5</span> What if <code>transposed</code>
+had no special cases at all?<a href="#what-if-transposed-had-no-special-cases-at-all" class="self-link"></a></h2>
 <p>Suppose that <code>transposed</code> had no special cases for input
 layouts. Implementations of P1673’s algorithms could still optimize by
 adding their own special cases for specific input layouts, such as
 <code>layout_transpose&lt;layout_left&gt;</code> and
-<code>layout_transpose&lt;layout_right&gt;</code>. This would not hinder
-the ability to dispatch to the BLAS. However, it would complicate the
-implementation and possibly add compile-time cost by introducing more
-internal overloads and/or specializations. Every algorithm would need to
-check for twice as many layout special cases. The code that dispatches
-to the BLAS would need to do the same thing that <code>transposed</code>
-does for its special cases, namely reverse the extents and strides in
-the transposed case. Furthermore, users may want to use
-<code>transposed</code> with their own P1673-like linear algebra
-algorithms. Such users would generally expect <code>transposed</code> to
-optimize for the common case of known strided layouts. Without that
-optimization, they may end up implementing their own
-<code>transposed</code> functions. The proliferation of incompatible
+<code>layout_transpose&lt;layout_right&gt;</code>. This would not
+prevent implementations from dispatching to the BLAS. However, it would
+complicate the implementation and possibly add compile-time cost by
+introducing more internal overloads and/or specializations. Every
+algorithm would need to check for twice as many layout special cases:
+the BLAS-compatible layout, and <code>layout_transpose</code> of that
+layout. The code that dispatches to the BLAS would need to do the same
+thing that <code>transposed</code> does for its special cases, namely
+reverse the extents and strides in the transposed case. Furthermore,
+users may want to use <code>transposed</code> with their own P1673-like
+linear algebra algorithms. Such users would generally expect
+<code>transposed</code> to optimize for the common case of known strided
+layouts. Without that optimization, they may end up implementing their
+own <code>transposed</code> functions. The proliferation of incompatible
 <code>transposed</code> functions would hinder interoperability of
 libraries.</p>
 <h2 data-number="5.6" id="layout_left_padded-and-layout_right_padded"><span class="header-section-number">5.6</span> <code>layout_left_padded</code>
@@ -618,14 +637,16 @@ with <code>layout_left</code> resp. <code>layout_right</code> where the
 user-provided stride represents a possibly larger extent.</p>
 <p>These two layouts are exactly the layouts supported by the BLAS. The
 BLAS calls the one user-provided stride the matrix’s “leading
-dimension.” BLAS implementations can optimize transpose of input
-matrices in these two layouts without copying data, just by reversing
-extents and retaining the one input stride. Furthermore, it is known at
-compile time that any mapping of these two layouts is compatible with
-the BLAS. Therefore, it’s reasonable to expect P1673 implementations to
-optimize for <code>layout_left_padded</code> and
-<code>layout_right_padded</code>. The way to do that would be for
-<code>transposed</code> of a
+dimension.” (The name hints at the reason for these layouts, namely that
+they represent the layout of a submatrix of contiguous rows and columns
+of a possibly larger matrix, whose dimension is the user-provided
+stride.) BLAS implementations can optimize transpose of input matrices
+in these two layouts without copying data, just by reversing extents and
+retaining the one input stride. Furthermore, it is known at compile time
+that any mapping of these two layouts is BLAS-compatible. Therefore,
+it’s reasonable to expect P1673 implementations to optimize for
+<code>layout_left_padded</code> and <code>layout_right_padded</code>.
+The way to do that would be for <code>transposed</code> of a
 <code>layout_left_padded&lt;PaddingValue&gt;</code> <code>mdspan</code>
 to return a <code>layout_right_padded&lt;PaddingValue&gt;</code>
 <code>mdspan</code> with extents swapped and the one “padding stride”
@@ -697,10 +718,11 @@ type of <code>transposed</code>.</p>
 <span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="kw">decltype</span><span class="op">(</span>A<span class="op">)::</span>layout_type,</span>
 <span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    layout_left_padded<span class="op">&lt;</span>dynamic_extent<span class="op">&gt;&gt;)</span>;</span>
 <span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>A<span class="op">.</span>stride<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>; <span class="co">// compile-time value</span></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  mdspan A_T <span class="op">=</span> linalg<span class="op">::</span>transposed<span class="op">(</span>A<span class="op">)</span>;</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  some_algorithm<span class="op">(</span>A_T, B, C<span class="op">)</span>;</span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>A<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">)</span> <span class="op">==</span> A_parent<span class="op">.</span>stride<span class="op">(</span><span class="dv">1</span><span class="op">))</span>; <span class="co">// possibly run-time value</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  mdspan A_T <span class="op">=</span> linalg<span class="op">::</span>transposed<span class="op">(</span>A<span class="op">)</span>;</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  some_algorithm<span class="op">(</span>A_T, B, C<span class="op">)</span>;</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <h3 data-number="6.1.1" id="before-this-proposal"><span class="header-section-number">6.1.1</span> Before this proposal<a href="#before-this-proposal" class="self-link"></a></h3>
 <ol type="1">
 <li><p><code>decltype(A_T)::layout_type</code> is
@@ -736,15 +758,14 @@ optimize for <code>layout_left_padded</code> or
 because those are exactly the layouts that the BLAS supports and has
 supported since the 1980’s. This would hinder adoption of P1673
 algorithms.</p>
-<p>The second possibility is that implementations may dispatch to the
-BLAS for any layout mapping that is unique, strided, and has at least
-one stride equal to one. This works for user-defined layouts as well as
-the Standard layouts. <code>layout_transpose::mapping</code> preserves
-the uniqueness and stridedness of its nested layout mapping, and even
-reverses the strides if the nested layout mapping is strided. However,
-without this proposal, implementations that check stridedness would
-still need to check the actual stride values at run time, even though
-for <code>layout_left_padded</code> and
+<p>The second possibility is that implementations may nevertheless still
+dispatch to the BLAS for any BLAS-compatible layout. This works for
+user-defined layouts as well as the Standard layouts.
+<code>layout_transpose::mapping</code> preserves the uniqueness and
+stridedness of its nested layout mapping, and even reverses the strides
+if the nested layout mapping is strided. However, without this proposal,
+implementations would still need to check the actual stride values at
+run time, even though for <code>layout_left_padded</code> and
 <code>layout_right_padded</code>, it’s known at compile time that at
 least one of the strides is one. The run-time check would add overhead
 and complicate the implementation.</p>
@@ -761,11 +782,13 @@ add compile-time cost.</p>
 optimize the transposed case for any layouts. This would be unfortunate,
 as the BLAS itself favors transposes in some cases. For example,
 implementations of matrix-matrix multiply for general dense matrices
-(GEMM) have simpler code and may perform better if one of the two input
-matrices is transposed.</p>
+(GEMM) have simpler code and may perform better if exactly one of the
+two input matrices is transposed. Under these so-called “NT” and “TN”
+cases, typical optimized implementations end up reading the matrices as
+if they have the same memory layout.</p>
 <p>A valid P1673 implementation might not dispatch to the BLAS for all
-layouts that permit this. Instead, it might only do so for the four
-layouts where BLAS compatibility is known at compile time:
+BLAS-compatible layouts. Instead, it might only do so for the four
+Standard layouts which are known to be BLAS compatible at compile time:
 <code>layout_left</code>, <code>layout_right</code>,
 <code>layout_left_padded</code>, and <code>layout_right_padded</code>.
 This approach has three advantages.</p>
@@ -774,8 +797,9 @@ This approach has three advantages.</p>
 <code>is_unique</code>, <code>is_strided</code>, or
 <code>stride</code>.</p></li>
 <li><p>It can use function overloading on specific layout types to
-dispatch to the BLAS, instead of generic constraint checks that may
-increase compilation cost.</p></li>
+dispatch to the BLAS, instead of generic constraint checks (like a
+constraint that <code>is_always_strided()</code> is <code>true</code>)
+that may increase compilation cost.</p></li>
 <li><p>It avoids the risk that user-defined layouts incorrectly define
 their stridedness or uniqueness. Users who copy-paste an existing layout
 to write their own might forget to change <code>is_strided()</code> or
@@ -814,14 +838,14 @@ layouts.</p></li>
 this.</p>
 <ol type="1">
 <li><p>It would reserve yet another customization point name.</p></li>
-<li><p>It would not change the set of BLAS-compatible layouts. P1673
-implementations can already dispatch to the BLAS for user-defined layout
-mappings and their transposes, as long as those layout mappings are
-unique, strided, and have at least one stride equal to one.</p></li>
+<li><p>It would not change the set of BLAS-compatible layouts, and would
+not change the ability of P1673 implementations to dispatch to the BLAS
+for any BLAS-compatible layout.</p></li>
 <li><p><code>submdspan_mapping</code> enables functionality – the
-ability to slice <code>mdspan</code> with user-defined layouts – while
-<code>transposed_mapping</code> would only enable (or simplify)
-optimizations.</p></li>
+ability to slice <code>mdspan</code> with user-defined layouts. In
+contrast, <code>transposed_mapping</code> would only enable (or
+simplify) optimizations for one of many legal ways to implement the
+Standard.</p></li>
 <li><p>It makes less sense for <code>transposed_mapping</code> to be a
 hidden friend than it does for <code>submdspan_mapping</code> to be a
 hidden friend. However, defining <code>transposed_mapping</code> as a
@@ -849,9 +873,10 @@ specific to linear algebra and related computations.</p>
 <p>We think the disadvantages of a customization point outweigh the
 advantages. For example, we do not recommend adding
 <code>transposed_mapping</code> as a hidden friend of all the Standard
-layout mappings. As a result, we do not provide wording for this
-alternative design. Nevertheless, we would like LEWG to poll this
-option.</p>
+layout mappings. We also would not want to force users to remember to
+protect their customizations from the possibility of ambiguous
+overloads. As a result, we do not provide wording for this alternative
+design. Nevertheless, we would like LEWG to poll this option.</p>
 <h1 data-number="8" id="implementation"><span class="header-section-number">8</span> Implementation<a href="#implementation" class="self-link"></a></h1>
 <p>This proposal is implemented as
 <a href="https://github.com/kokkos/stdBLAS/pull/268">PR 268</a> in the

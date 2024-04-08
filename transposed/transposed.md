@@ -1,8 +1,8 @@
 
 ---
-title: "Add transposed special cases for P2642 layouts"
+title: "Fix C++26 by adding transposed special cases for P2642 layouts"
 document: P3222R0
-date: 2024/04/04
+date: 2024/04/08
 audience: LEWG
 author:
   - name: Mark Hoemmen
@@ -58,18 +58,23 @@ without copying or moving elements of the matrix.
 The `transposed` function currently has "special cases"
 for three layouts: `layout_left`, `layout_right`, and `layout_stride`.
 For these three layouts, `linalg::transposed` works
-by changing the return type's layout and/or layout mapping 
+by changing the return type's layout and/or layout mapping
 in a way that reverses the extents and strides.
-For `layout_left`, "reversing the strides" means `layout_right`, and vice versa.
-For example, the transpose layout mapping of
+For `layout_left`, "reversing the strides" means `layout_right`,
+and vice versa.  Here are two examples.
+
+1. The transpose layout mapping of
 `layout_left::mapping<extents<int, 3, 4>>{}`
 is
-`layout_right::mapping<extents<int, 4, 3>>{}`,
-and the transpose layout mapping of
+`layout_right::mapping<extents<int, 4, 3>>{}`.
+
+2. The transpose layout mapping of
 `layout_right::mapping<extents<int, 3, 4>>{}`
 is
 `layout_left::mapping<extents<int, 4, 3>>{}`.
-For both those two layouts, the mapping does not store the strides;
+
+For both `layout_left` and `layout_right`,
+the mapping does not store the strides;
 they are computed from the extents.
 For `layout_stride`, the mapping actually stores the strides
 and its constructor takes them as a `std::array`,
@@ -86,11 +91,16 @@ auto mt = layout_stride::mapping<extents<int, 4, 3>>{
   extents<int, 4, 3>{}, array{6, 2}};
 ```
 
+The transpose layouts described above reflect
+the _current_ behavior in the C++ Working Draft.
+
 ## Fall-back case
 
-For any layout other than one of the three special cases,
-`transposed` resorts to a "fall-back":
-it wraps the original layout `Layout`'s mapping
+The _current_ behavior in the C++ Working Draft is that
+for any layout which is not one of the three cases listed above
+(`layout_left`, `layout_right`, or `layout_stride`),
+`transposed` resorts to a "fall-back."
+That is, it wraps the original layout `Layout`'s mapping
 in a nested layout mapping `layout_transpose<Layout>::mapping`.
 That nested mapping's `operator()`
 invokes the original layout with indices reversed.
@@ -103,42 +113,53 @@ If so, why do we need special cases?
 Why doesn't `transposed` just always use `layout_transpose`?
 
 The design intent of P1673 is that implementations
-can dispatch to an optimized C or Fortran BLAS
-if the caller's `mdspan` satisfy the right conditions.
-One of those conditions is that the layout mappings
-are all unique (`is_unique()` is `true`)
-and strided (`is_strided()` is `true`)
-with at least one of the strides equal to one.
-This is known at compile time to be true
-for all `layout_left` and `layout_right` mappings.
-For `layout_stride`, it requires a run-time check of the two strides.
-
-If the caller's `mdspan` do _not_ satisfy the right conditions
-for dispatching to a C or Fortran BLAS,
-the implementation may dispatch to possibly unoptimized "generic" code. 
-As P1673 explains, this may result in asymptotically slower run time,
+can dispatch to an existing optimized C or Fortran BLAS
+if the caller's `mdspan` arguments satisfy the right conditions.
+If the arguments do _not_ satisfy these conditions,
+the implementation may dispatch to possibly unoptimized "generic" code.
+As P1673 explains, failure to dispatch to an optimized library
+may result in invocation of an asymptotically slower algorithm,
 and/or may fail to take advantage of any acceleration hardware.
+Some of these conditions depend only on the argument types
+and thus can always be checked at compile time,
+while other conditions depend on
+possibly run-time properties of the objects.
 
-Knowing at compile time whether a layout mapping is compatible with the BLAS
-makes it a zero-cost abstraction
-for the implementation to dispatch to the BLAS based on that mapping.
-As we will see below,
-`layout_left_padded` and `layout_right_padded` also have this property,
-that their mappings are known at compile time
-always to be compatible with the BLAS.
+One of those conditions is that the layout mappings
+satisfy the following three properties.
+
+1. They are all unique (`is_unique()` is `true`).
+
+2. They are all strided (`is_strided()` is `true`).
+
+3. At least one of their strides equals to one.
+
+If all three are true, we say that
+the layout mapping is *BLAS-compatible*.
+For all `layout_left` and `layout_right` mappings,
+these are known at compile time always to be true.
+For `layout_stride`, testing the third property
+requires a possibly run-time check.
+
+Knowing at compile time whether a layout mapping is BLAS-compatible
+makes it a zero-cost abstraction for the implementation
+to dispatch to the BLAS based on that mapping.
+As we will see below, both `layout_left_padded` and `layout_right_padded`
+are also known at compile time always to be BLAS-compatible.
 However, `transposed` does not have special cases for these two layouts.
 
-## What if `transposed` had no special cases?
+## What if `transposed` had no special cases at all?
 
 Suppose that `transposed` had no special cases for input layouts.
 Implementations of P1673's algorithms could still optimize
 by adding their own special cases for specific input layouts,
 such as `layout_transpose<layout_left>` and `layout_transpose<layout_right>`.
-This would not hinder the ability to dispatch to the BLAS.
+This would not prevent implementations from dispatching to the BLAS.
 However, it would complicate the implementation
 and possibly add compile-time cost by introducing
 more internal overloads and/or specializations.
-Every algorithm would need to check for twice as many layout special cases.
+Every algorithm would need to check for twice as many layout special cases:
+the BLAS-compatible layout, and `layout_transpose` of that layout.
 The code that dispatches to the BLAS would need to do the same thing
 that `transposed` does for its special cases,
 namely reverse the extents and strides in the transposed case.
@@ -168,11 +189,15 @@ where the user-provided stride represents a possibly larger extent.
 
 These two layouts are exactly the layouts supported by the BLAS.
 The BLAS calls the one user-provided stride the matrix's "leading dimension."
+(The name hints at the reason for these layouts,
+namely that they represent the layout of a submatrix
+of contiguous rows and columns of a possibly larger matrix,
+whose dimension is the user-provided stride.)
 BLAS implementations can optimize transpose of input matrices
 in these two layouts without copying data,
 just by reversing extents and retaining the one input stride.
 Furthermore, it is known at compile time that any mapping
-of these two layouts is compatible with the BLAS.
+of these two layouts is BLAS-compatible.
 Therefore, it's reasonable to expect P1673 implementations
 to optimize for `layout_left_padded` and `layout_right_padded`.
 The way to do that would be for `transposed`
@@ -217,7 +242,7 @@ with extents swapped and the one "padding stride" copied over.
 The following example shows how this proposal
 would change the return type of `transposed`.
 
-```c++ 
+```c++
 // optimized overload
 extern void some_algorithm(
   mdspan<const float, dextents<size_t, 2>, layout_right_padded<dynamic_extent>> A_T,
@@ -252,6 +277,7 @@ void some_function(size_t N) {
     decltype(A)::layout_type,
     layout_left_padded<dynamic_extent>>);
   static_assert(A.stride(0) == 1); // compile-time value
+  assert(A.stride(1) == A_parent.stride(1)); // possibly run-time value
 
   mdspan A_T = linalg::transposed(A);
   some_algorithm(A_T, B, C);
@@ -266,7 +292,7 @@ void some_function(size_t N) {
 
 ### After this proposal
 
-1. `decltype(A_T)::layout_type` is `layout_right_padded<dynamic_extent>`. 
+1. `decltype(A_T)::layout_type` is `layout_right_padded<dynamic_extent>`.
 
 2. The statement `static_assert(A_T.stride(1) == 1);` is well formed.
 
@@ -294,14 +320,13 @@ that the BLAS supports and has supported since the 1980's.
 This would hinder adoption of P1673 algorithms.
 
 The second possibility
-is that implementations may dispatch to the BLAS
-for any layout mapping that is unique, strided,
-and has at least one stride equal to one.
+is that implementations may nevertheless still
+dispatch to the BLAS for any BLAS-compatible layout.
 This works for user-defined layouts as well as the Standard layouts.
 `layout_transpose::mapping` preserves the uniqueness and stridedness
 of its nested layout mapping, and even reverses the strides
 if the nested layout mapping is strided.
-However, without this proposal, implementations that check stridedness
+However, without this proposal, implementations
 would still need to check the actual stride values at run time,
 even though for `layout_left_padded` and `layout_right_padded`,
 it's known at compile time that at least one of the strides is one.
@@ -322,11 +347,15 @@ may simply not optimize the transposed case for any layouts.
 This would be unfortunate, as the BLAS itself favors transposes
 in some cases.  For example, implementations of matrix-matrix multiply
 for general dense matrices (GEMM) have simpler code and may perform better
-if one of the two input matrices is transposed.
+if exactly one of the two input matrices is transposed.
+Under these so-called "NT" and "TN" cases,
+typical optimized implementations end up reading the matrices
+as if they have the same memory layout.
 
 A valid P1673 implementation might not dispatch to the BLAS
-for all layouts that permit this.  Instead, it might only do so
-for the four layouts where BLAS compatibility is known at compile time:
+for all BLAS-compatible layouts.
+Instead, it might only do so for the four Standard layouts
+which are known to be BLAS compatible at compile time:
 `layout_left`, `layout_right`,
 `layout_left_padded`, and `layout_right_padded`.
 This approach has three advantages.
@@ -336,6 +365,7 @@ This approach has three advantages.
 
 2. It can use function overloading on specific layout types
     to dispatch to the BLAS, instead of generic constraint checks
+    (like a constraint that `is_always_strided()` is `true`)
     that may increase compilation cost.
 
 3. It avoids the risk that user-defined layouts
@@ -379,16 +409,15 @@ Here are some reasons why WG21 might _not_ want to do this.
 
 1. It would reserve yet another customization point name.
 
-2. It would not change the set of BLAS-compatible layouts.
-    P1673 implementations can already dispatch to the BLAS
-    for user-defined layout mappings and their transposes,
-    as long as those layout mappings are unique, strided,
-    and have at least one stride equal to one.
+2. It would not change the set of BLAS-compatible layouts,
+    and would not change the ability of P1673 implementations
+    to dispatch to the BLAS for any BLAS-compatible layout.
 
 3. `submdspan_mapping` enables functionality --
-    the ability to slice `mdspan` with user-defined layouts --
-    while `transposed_mapping` would only enable
-    (or simplify) optimizations.
+    the ability to slice `mdspan` with user-defined layouts.
+    In contrast, `transposed_mapping` would only enable
+    (or simplify) optimizations for one of many legal ways
+    to implement the Standard.
 
 4. It makes less sense for `transposed_mapping`
     to be a hidden friend than it does for
@@ -421,6 +450,8 @@ transposition is specific to linear algebra and related computations.
 We think the disadvantages of a customization point outweigh the advantages.
 For example, we do not recommend adding `transposed_mapping`
 as a hidden friend of all the Standard layout mappings.
+We also would not want to force users to remember to protect
+their customizations from the possibility of ambiguous overloads.
 As a result, we do not provide wording for this alternative design.
 Nevertheless, we would like LEWG to poll this option.
 
