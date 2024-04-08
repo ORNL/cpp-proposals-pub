@@ -1,8 +1,8 @@
 
 ---
-title: "Optimize linalg::conjugated for noncomplex value types"
-document: P3050
-date: 2023/11/15
+title: "Fix C++26 by optimizing linalg::conjugated for noncomplex value types"
+document: P3050R1
+date: 2024/04/08
 audience: LEWG
 author:
   - name: Mark Hoemmen
@@ -16,7 +16,19 @@ toc: true
 
 # Revision history
 
-* Revision 0 to be submitted for the post-Kona mailing 2023/11/15
+* Revision 0 was submitted for the post-Kona mailing on 2023/11/15.
+
+* Revision 1 will be submitted for the post-Tokyo mailing on 2024/04/16.
+
+    * Add explanation to Wording section
+        (actual wording change is not affected)
+
+    * Minor revisions of non-wording material
+
+    * Add link to implementation
+
+    * Change title and abstract, to emphasize that delaying
+        this until after C++26 would be a breaking change
 
 # Abstract
 
@@ -26,6 +38,7 @@ and if that `mdspan` does not already have
 accessor type `conjugated_accessor<A>`
 for some nested accessor type `A`,
 then we propose to change `conjugated(x)` just to return `x`.
+Delaying this until after C++26 would be a breaking change.
 
 # Design justification
 
@@ -84,7 +97,7 @@ Currently, `conjugated` has two cases.
 This is correct behavior for any valid `value_type`,
 because `conjugated_accessor::access` uses _`conj-if-needed`_
 to conjugate each element.
-The exposition-only helper function object _`conj-if-needed`_ 
+The exposition-only helper function object _`conj-if-needed`_
 uses namespace-unqualified `conj`
 if it can find it via argument-dependent lookup;
 otherwise, it is just the identity function.
@@ -287,7 +300,7 @@ static_assert(is_same_v<
 >);
 // ... and its reference type is nonconst as well.
 static_assert(is_same_v<
-  decltype(x_conj_conj.access(declval<complex<float>*>(), size_t{})),
+  decltype(x_conj_conj)::accessor_type::reference,
   complex<float>&
 >);
 ```
@@ -320,6 +333,13 @@ std::mdspan x{x_storage.data(),
 
 There's no reason for users to want to do this,
 but the resulting `mdspan` still behaves correctly.
+We don't prohibit users from doing this.
+
+# Implementation
+
+This proposal is implemented as
+<a href="https://github.com/kokkos/stdBLAS/pull/268">PR 268</a>
+in the reference `mdspan` implementation.
 
 # Acknowledgments
 
@@ -334,6 +354,11 @@ for an LWG review contribution.
 >
 > Change [linalg.conj.conjugated] paragraphs 1 and 2
 > to read as follows.
+> (Paragraph 1 has been reorganized from a sentence
+> into 3 bullet points, where the new Paragraph 1.2
+> was inserted as the middle bullet point.
+> Paragraph 2 has had Paragraph 2.2 changed to 2.3,
+> and a new bullet point inserted as Paragraph 2.2.)
 
 [1]{.pnum} Let `A` be
 
