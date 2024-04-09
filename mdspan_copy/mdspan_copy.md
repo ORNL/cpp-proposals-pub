@@ -91,13 +91,13 @@ void copy(ExecutionPolicy&& policy, mdspan<SrcElementType, SrcExtents, SrcLayout
 
   * [1.1]{.pnum} `std::is_assignable_v<typename mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy>::reference, typename mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy>::reference>` is `true`.
 
-  * [1.2]{.pnum} `mdspan<SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy>::rank()` equals `mdspan<DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy>::rank()`.
+  * [1.2]{.pnum} `is_constructible_v<DstExtents, SrcExtents>`.
 
 [2]{.pnum} *Preconditions:*
 
-  * [2.1]{.pnum} `src.extents() == dst.extents()`
+  * [2.1]{.pnum} `src.extents() == dst.extents()` is `true`.
 
-  * [2.2]{.pnum} `dst.is_unique()`
+  * [2.2]{.pnum} `dst.is_unique()` is `true`.
 
   * [2.3]{.pnum} there is no unique multidimensional index `i...` in `src.extents()` where there exists a multidimensional index `j...` in `dst.extents()` such that `src[i...]` and `dst[j...]` refer to the same element.
 
@@ -114,6 +114,4 @@ void fill(ExecutionPolicy&& policy, mdspan<ElementType, Extents, LayoutPolicy, A
 
 [4]{.pnum} *Constraints:* `std::is_assignable_v<typename mdspan<ElementType, Extents, LayoutPolicy, AccessorPolicy>::reference, const T &T>`
 
-[5]{.pnum} *Preconditions:* `dst.is_unique()`
-
-[6]{.pnum} *Effects:* for all unique multidimensional indices `i...` in `dst.extents()`, assigns `value` to `dst[i...]`
+[5]{.pnum} *Effects:* for all unique multidimensional indices `i...` in `dst.extents()`, assigns `value` to `dst[i...]`

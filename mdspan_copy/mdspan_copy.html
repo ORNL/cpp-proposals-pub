@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-04-01" />
+  <meta name="dcterms.date" content="2024-04-09" />
   <title>Copy and fill for mdspan</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2024-04-01</td>
+    <td>2024-04-09</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -623,17 +623,16 @@ unanswered questions that should be addressed in a different paper.</li>
 <code>std::is_assignable_v&lt;typename mdspan&lt;SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy&gt;::reference, typename mdspan&lt;DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy&gt;::reference&gt;</code>
 is <code>true</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-<code>mdspan&lt;SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy&gt;::rank()</code>
-equals
-<code>mdspan&lt;DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy&gt;::rank()</code>.</p></li>
+<code>is_constructible_v&lt;DstExtents, SrcExtents&gt;</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Preconditions:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
-<code>src.extents() == dst.extents()</code></p></li>
+<code>src.extents() == dst.extents()</code> is
+<code>true</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
-<code>dst.is_unique()</code></p></li>
+<code>dst.is_unique()</code> is <code>true</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
 there is no unique multidimensional index <code>i...</code> in
 <code>src.extents()</code> where there exists a multidimensional index
@@ -654,8 +653,6 @@ element.</p></li>
 <em>Constraints:</em>
 <code>std::is_assignable_v&lt;typename mdspan&lt;ElementType, Extents, LayoutPolicy, AccessorPolicy&gt;::reference, const T &amp;T&gt;</code></p>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
-<em>Preconditions:</em> <code>dst.is_unique()</code></p>
-<p><span class="marginalizedparent"><a class="marginalized">6</a></span>
 <em>Effects:</em> for all unique multidimensional indices
 <code>i...</code> in <code>dst.extents()</code>, assigns
 <code>value</code> to <code>dst[i...]</code></p>
