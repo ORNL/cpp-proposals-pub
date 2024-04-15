@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-04-09" />
+  <meta name="dcterms.date" content="2024-04-15" />
   <title>Copy and fill for mdspan</title>
   <style>
 code{white-space: pre-wrap;}
@@ -25,7 +25,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -421,15 +421,16 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td></td>
+    <td>D3242R0</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2024-04-09</td>
+    <td>2024-04-15</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
     <td>Programming Language C++<br>
+      LEWG<br>
     </td>
   </tr>
   <tr>
@@ -461,7 +462,8 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 include</a></li>
 </ul></li>
 <li><a href="#wording" id="toc-wording"><span class="toc-section-number">3</span> Wording</a></li>
-<li><a href="#references" id="toc-references"><span class="toc-section-number">4</span> References</a></li>
+<li><a href="#acknowledgements" id="toc-acknowledgements"><span class="toc-section-number">4</span> Acknowledgements</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">5</span> References</a></li>
 </ul>
 </div>
 <h1 data-number="1" id="motivation"><span class="header-section-number">1</span> Motivation<a href="#motivation" class="self-link"></a></h1>
@@ -612,10 +614,12 @@ unanswered questions that should be addressed in a different paper.</li>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span></code></pre></div>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Constraints:</em></p>
 <ul>
@@ -647,8 +651,10 @@ element.</p></li>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Constraints:</em>
 <code>std::is_assignable_v&lt;typename mdspan&lt;ElementType, Extents, LayoutPolicy, AccessorPolicy&gt;::reference, const T &amp;T&gt;</code></p>
@@ -656,7 +662,16 @@ element.</p></li>
 <em>Effects:</em> for all unique multidimensional indices
 <code>i...</code> in <code>dst.extents()</code>, assigns
 <code>value</code> to <code>dst[i...]</code></p>
-<h1 data-number="4" id="references"><span class="header-section-number">4</span> References<a href="#references" class="self-link"></a></h1>
+<h1 data-number="4" id="acknowledgements"><span class="header-section-number">4</span> Acknowledgements<a href="#acknowledgements" class="self-link"></a></h1>
+<p>Sandia National Laboratories is a multimission laboratory managed and
+operated by National Technology &amp; Engineering Solutions of Sandia,
+LLC, a wholly owned subsidiary of Honeywell International Inc., for the
+U.S. Department of Energy’s National Nuclear Security Administration
+under contract DE-NA0003525. This paper describes objective technical
+results and analysis. Any subjective views or opinions that might be
+expressed in the paper do not necessarily represent the views of the
+U.S. Department of Energy or the United States Government.</p>
+<h1 data-number="5" id="references"><span class="header-section-number">5</span> References<a href="#references" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
 <div id="ref-P0009R18" class="csl-entry" role="listitem">
 <div class="csl-left-margin">[P0009R18] </div><div class="csl-right-inline">Christian Trott, D.S. Hollman, Damien
