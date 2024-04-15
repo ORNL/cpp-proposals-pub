@@ -1,6 +1,6 @@
 ---
 title: "Copy and fill for `mdspan`"
-document: D3242R0
+document: P3242R0
 date: today
 audience: LEWG
 author:
