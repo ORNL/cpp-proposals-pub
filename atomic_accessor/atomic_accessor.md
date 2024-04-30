@@ -272,7 +272,7 @@ void compute_histogram(ExecT exec, float bin_size,
 }
 ```
 
-The above example is available on godbolt: https://godbolt.org/z/jY17Yoje1 .
+The above example is available on godbolt: [https://godbolt.org/z/cWa6MG5dj](https://godbolt.org/z/cWa6MG5dj)
 
 # Design decisions
 
