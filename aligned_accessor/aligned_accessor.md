@@ -1,7 +1,7 @@
 
 ---
 title: "`aligned_accessor`: An mdspan accessor expressing pointer overalignment"
-document: P2897R1
+document: P2897R2
 date: today
 audience: LEWG
 author:
@@ -32,7 +32,7 @@ toc: true
 
 * Revision 1 (pre-Kona) to be submitted 2023-10-15
 
-    * Implement changes requested by LEWG review on 2023/10/10
+    * Implement changes requested by LEWG review on 2023-10-10
 
         * Change `gcd` converting constructor Constraint to a Mandate
 
@@ -54,11 +54,17 @@ toc: true
             `byte_alignment >= alignof(ElementType)` is `true`.
             This prevents construction of an invalid `aligned_accessor` object.
 
-    * Add more design discussion based on LEWG review on 2023/10/10
+    * Add more design discussion based on LEWG review on 2023-10-10
 
         * Explain why we do not include an `aligned_mdspan` alias
 
         * Explain `aligned_accessor` construction safety
+
+* Revision 2 (post - St. Louis) to be submitted 2024-07-15
+
+    * Implement changes requested by LEWG review on 2024-06-28
+
+        * Remove `constexpr` from `is_sufficiently_aligned`
 
 # Purpose of this paper
 
@@ -161,7 +167,7 @@ instead of having it modify another user-provided accessor.
 
 ## Explicit constructor from `default_accessor`
 
-LEWG's 2023/10/10 review of R0 pointed out that in R0,
+LEWG's 2023-10-10 review of R0 pointed out that in R0,
 `aligned_accessor` lacks an `explicit` constructor from `default_accessor`.
 Having that constructor would make it easier for users
 to create an aligned `mdspan` from an unaligned `mdspan`.
@@ -231,7 +237,7 @@ aligned_matrix_t aligned_matrix{matrix};
 
 ## We do not define an alias for aligned mdspan
 
-In LEWG's 2023/10/10 review of R0,
+In LEWG's 2023-10-10 review of R0,
 participants observed that this proposal's examples define
 an example-specific type alias for `mdspan` with `aligned_accessor`.
 They asked whether our proposal should include a _standard_ alias `aligned_mdspan`.
@@ -286,7 +292,7 @@ we do not find the proliferation of aliases particularly ergonomic.
 
 ## mdspan construction safety
 
-LEWG's 2023/10/10 review of R0 expressed concern that
+LEWG's 2023-10-10 review of R0 expressed concern that
 `mdspan`'s constructor has no way to check
 `aligned_accessor`'s alignment requirements.
 Users can call `aligned_accessor`'s `is_sufficiently_aligned(p)`
@@ -358,7 +364,7 @@ then they know alignment before dispatch.
 In both cases, users already know the alignment
 before constructing the `mdspan`.
 
-An LEWG poll on 2023/10/10,
+An LEWG poll on 2023-10-10,
 "[b]lock `aligned_accessor` progressing until we have
 a way of checking alignment requirements during `mdspan` construction,"
 resulted in no consensus.  Attendance was 14.
@@ -385,6 +391,29 @@ in subsequent work after the fall 2023 Kona WG21 meeting.
 LEWG recognized that this is a general issue with `mdspan`
 and asked us to explore safety
 in a way that is not specific to `aligned_accessor`.
+
+## `is_sufficiently_aligned` is not `constexpr`
+
+LEWG reviewed R1 of this proposal
+at the June 2024 St. Louis WG21 meeting,
+and polled 1/10/0/0/1 (SF/F/N/A/SA)
+to remove `constexpr` from `is_sufficiently_aligned`.
+This is because it is not clear how to implement the function
+in a way that could ever be a constant expression.
+The straightforward cross-platform way to implement this
+would `bit_cast` the pointer to `uintptr_t`.
+However, `bit_cast` is not `constexpr` when converting
+from a pointer to an integer, per
+<a href="https://eel.is/c++draft/bit.cast#3">[bit.cast] 3</a>.
+Any `reinterpret_cast` similarly could not be
+a core constant expression, per
+<a href="https://eel.is/c++draft/expr.const#5.15">[expr.const] 5.15</a>.
+One LEWG reviewer pointed out that some compilers have a built-in operation
+(e.g., Clang and GCC have `__builtin_bit_cast`)
+that might form a constant expression when `bit_cast` does not.
+On the other hand, the authors could not foresee a need
+for `is_sufficiently_aligned` to be `constexpr` and did not want to
+constrain implementations to use compiler-specific functionality.
 
 # Implementation
 
@@ -506,7 +535,7 @@ struct aligned_accessor {
   constexpr typename offset_policy::data_handle_type
     offset(data_handle_type p, size_t i) const noexcept;
 
-  constexpr static bool is_sufficiently_aligned(data_handle_type p);
+  static bool is_sufficiently_aligned(data_handle_type p);
 };
 ```
 
@@ -562,7 +591,7 @@ constexpr typename offset_policy::data_handle_type
 [7]{.pnum} *Effects*: Equivalent to: `return p + i;`
 
 ```c++
-constexpr static bool is_sufficiently_aligned(data_handle_type p);
+static bool is_sufficiently_aligned(data_handle_type p);
 ```
 
 [8]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
