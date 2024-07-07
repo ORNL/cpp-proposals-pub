@@ -279,15 +279,19 @@ They define these aliases _once_ and use them throughout the application.
 For instance, users might define the following.
 ```c++
 template<class ElementType>
-using vector_t = std::mdspan<ElementType, std::dextents<int, 1>, std::layout_left>;
+using vector_t = std::mdspan<ElementType,
+  std::dextents<int, 1>, std::layout_left>;
 template<class ElementType>
-using matrix_t = std::mdspan<ElementType, std::dextents<int, 2>, std::layout_left>;
+using matrix_t = std::mdspan<ElementType,
+  std::dextents<int, 2>, std::layout_left>;
 
 template<class ElementType, size_t byte_alignment>
-using aligned_vector_t = std::mdspan<ElementType, std::dextents<int, 1>, std::layout_left, 
+using aligned_vector_t = std::mdspan<ElementType,
+  std::dextents<int, 1>, std::layout_left, 
   std::aligned_accessor<ElementType, byte_alignment>>;
 template<class ElementType, size_t byte_alignment>
-using aligned_matrix_t = std::mdspan<ElementType, std::dextents<int, 2>, std::layout_left, 
+using aligned_matrix_t = std::mdspan<ElementType,
+  std::dextents<int, 2>, std::layout_left, 
   std::aligned_accessor<ElementType, byte_alignment>>;
 ```
 Such users may never type the characters "`mdspan`" again.
