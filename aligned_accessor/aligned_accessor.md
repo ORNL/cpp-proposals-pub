@@ -62,9 +62,13 @@ toc: true
 
 * Revision 2 (post - St. Louis) to be submitted 2024-07-15
 
-    * Implement changes requested by LEWG review on 2024-06-28
+    * Implement required changes from LEWG review of R1 on 2024-06-28
 
         * Remove `constexpr` from `is_sufficiently_aligned`
+    
+    * Add optional suggestions from LEWG review of R1 on 2024-06-28
+
+        * Add `is_checkably_valid` discussion
 
 # Purpose of this paper
 
@@ -415,6 +419,170 @@ On the other hand, the authors could not foresee a need
 for `is_sufficiently_aligned` to be `constexpr` and did not want to
 constrain implementations to use compiler-specific functionality.
 
+## Generalize `is_sufficiently_aligned` for all accessors?
+
+### `is_sufficiently_aligned` is specific to `aligned_accessor`
+
+The `is_sufficiently_aligned` function exists
+so users can check the pointer's alignment precondition
+before constructing an `mdspan` with it.
+This precondition check is specific to `aligned_accessor`.
+Furthermore, the function has a precondition
+that the pointer points to a valid element.
+Standard C++ offers no way for users to check that.
+More importantly for `mdspan` users,
+Standard C++ offers no way to check whether a pointer
+and a layout mapping's `required_span_size()` form a valid range.
+
+### `is_checkably_valid`: Generic validity check?
+
+During the June 2024 St. Louis WG21 meeting,
+one LEWG reviewer pointed out that code that is generic on the accessor type
+currently has no way to check whether a given data handle is valid.
+Specifically, given a `size_t` `size`
+(e.g., the `required_span_size()` of a given layout mapping),
+there is no way to check whether $[$ 0, `size` $)$ forms an accessible range
+(see <a href="https://eel.is/c++draft/views.multidim#mdspan.accessor.general-2">[mdspan.accessor.general] 2</a>)
+of a given data handle and accessor.
+The reviewer suggested adding a new member function
+```c++
+bool is_checkably_valid(data_handle_type handle, size_t size) const noexcept;
+```
+to all `mdspan` accessors.  This would return `false`
+if the implementation can show that $[$ 0, `size` $)$
+is *not* an accessible range for `handle` and the accessor,
+and `true` otherwise.
+The word "checkably" in the name would remind users
+that this is a "best effort" check.
+It might return `true` even if the handle is invalid
+or if $[$ 0, `size` $)$ is not an accessible range.
+Also, it might return different values on different implementations,
+depending on their ability to check e.g., pointer range validity.
+The function would have the following design features.
+
+* It must be a non-`static` member function,
+    because in general, accessors may have state
+    that determines validity of the data handle.
+
+* It must be `const` because precondition-checking code
+    should avoid observable side effects.
+
+* It must be `noexcept` because precondition-checking code
+    should not throw.
+
+With such a function, users could write
+generic checked `mdspan` creation code like the following.
+```c++
+template<class LayoutMapping, class Accessor>
+auto create_mdspan_with_check(
+  typename Accessor::data_handle_type handle,
+  LayoutMapping mapping,
+  Accessor accessor)
+{
+  if (not accessor.is_checkably_valid(handle, mapping.required_span_size())) {
+    throw std::out_of_range("Invalid data handle and/or size");
+  }
+  return mdspan{handle, mapping, accessor};
+}
+```
+
+### Arguments against and for `is_checkably_valid`
+
+We didn't include this feature in the original `mdspan` design
+because most data handle types have no way to check validity.  
+We didn't want to give users the false impression 
+that a validity check was doing anything meaningful.
+Standard C++ has no way to check a raw pointer `T*` and a size,
+though some implementations such as CHERI C++
+([Davis 2019] and [Watson 2020]) do have this feature.
+We designed `mdspan` accessors to be able to wrap libraries that implement
+a partitioned global address space (PGAS) programming model
+for accessing remote data over a network.
+(See <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p0009r18.html#why-custom-accessors">P0009R18, Section 2.7, "Why custom accessors?".</a>)
+Such libraries include the one-sided communication interface in MPI
+(the Message Passing Interface for distributed-memory parallel programming)
+or NVSHMEM (NVIDIA's implementation of the SHMEM standard).
+Those libraries define their own data handle to represent remote data.
+For example, MPI uses an `MPI_Win` "window" object.
+NVSHMEM uses a C++ pointer to represent a "symmetric address"
+that points to an allocation from the "symmetric heap"
+(that is accessible to all participating parallel processes).
+Such libraries generally do not have validity checks for their handles.
+
+On the other hand, an `is_checkably_valid` function
+would let happen any checks that _could_ happen.
+For instance, a hypothetical "GPU device memory accessor"
+(not proposed for the C++ Standard,
+but existing in projects like RAPIDS RAFT)
+might permit access to an allocation of GPU "device" memory
+from only GPU "device" code, not from ordinary "host" code.
+A common use case for GPU allocations
+is to allocate device memory in host code,
+then pass the pointer to device code for use there.
+Thus, it would be reasonable to create an `mdspan`
+in host code with that accessor.
+The accessor could use a CUDA run-time function like
+<a href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__UNIFIED.html">`cudaPointerGetAttributes`</a>
+to check if the pointer points to valid GPU memory.
+
+### Nonmember customization point design
+
+C++23 defines the generic interface of accessors
+through the "accessor policy requirements" in
+<a href="https://eel.is/c++draft/mdspan.accessor.reqmts">[mdspan.accessor.reqmts]</a>.
+Adding `is_checkably_valid` to these requirements would be a breaking change.
+Thus, generic code that wanted to call this function
+would need to fill in default behavior
+for existing C++23 or user-defined accessors.
+The following `is_checkably_valid` nonmember function
+shows one way users could do that.
+For the full source code and tests, please see this
+<a href="https://godbolt.org/z/14YPfMoq3">Compiler Explorer link</a>
+or Appendix A below.
+
+The point of this function is to show that
+even if C++26 adds `is_checkably_valid` to the accessor requirements
+and to all the Standard accessors,
+users could still work around the lack of this function
+in C++23 - compliant accessors.
+While it could make sense to standardize this function,
+users might like to fill in different default behavior,
+so we do not propose this here.
+
+```c++
+template<class Accessor>
+concept has_is_checkably_valid = requires(Accessor acc) {
+  // Making the existence of the type alias a separate constraint
+  // gives more user-friendly error messages.
+  typename Accessor::data_handle_type;
+  { std::as_const(acc).is_checkably_valid(
+      std::declval<typename Accessor::data_handle_type>(),
+      std::declval<std::size_t>()
+    ) } noexcept -> std::convertible_to<bool>;
+};
+
+template<class Accessor>
+bool is_checkably_valid(Accessor&& accessor,
+  typename std::remove_cvref_t<Accessor>::data_handle_type handle,
+  std::size_t size)
+{
+  if constexpr (has_is_checkably_valid<std::remove_cvref_t<Accessor>>) {
+    return std::as_const(accessor).is_checkably_valid(handle, size);
+  }
+  else {
+    return true;
+  }
+}
+```
+
+### Conclusions
+
+1. Adding `is_checkably_valid` to the accessor requirements and existing Standard accessors in C++26 would be a breaking change.  Nevertheless, users could fill in reasonable behavior for C++23 accessors.
+
+2. Few C++ implementations offer a way to check validity of a pointer range.  Thus, users would experience `is_checkably_valid` as mostly not useful for the common case of `default_accessor` and other accessors that access a pointer range.
+
+3. Item (1) reduces the urgency of this suggestion for C++26.  Item (2) reduces its potential to improve the `mdspan` user experience in a practical way.  Therefore, we do not suggest adding `is_checkably_valid` to the accessor requirements in this proposal.  However, we do not discourage further work in separate proposals.
+
 # Implementation
 
 We have tested an implementation of this proposal with the
@@ -476,6 +644,23 @@ float user_function(size_t num_elements, float alpha)
   return vectorized_norm(y);
 }
 ```
+
+# References
+
+* Davis et al.,
+"CheriABI: Enforcing Valid Pointer Provenance and Minimizing Pointer Privilege in the POSIX C Run-time Environment,"
+ASPLOS '19,
+April 2019,
+pp. 379 - 393.
+Available online [last accessed 2024-07-05]:
+https://dl.acm.org/doi/10.1145/3297858.3304042
+
+* Watson et al., "CHERI C/C++ Programming Guide,"
+Technical Report UCAM-CL-TR-947,
+University of Cambridge Computer Laboratory,
+June 2020.
+Available online [last accessed 2024-07-05]:
+https://doi.org/10.48456/tr-947
 
 # Wording
 
@@ -695,3 +880,162 @@ float user_function(size_t num_elements, float alpha)
 }
 ```
 --*end example*]
+
+# Appendix A: `is_checkably_valid` nonmember function example
+
+This section is nonnormative.  This is the full source code with tests
+for the `is_checkably_valid` nonmember function example above.  Please see
+this <a href="https://godbolt.org/z/hKh3vK11f">Compiler Explorer link</a>.
+
+```c++
+#include <cassert>
+#include <concepts>
+#include <cstdint>
+#include <iostream>
+#include <stdexcept>
+#include <type_traits>
+#include <utility>
+
+template<class Accessor>
+concept has_is_checkably_valid = requires(Accessor acc) {
+  typename Accessor::data_handle_type;
+  { std::as_const(acc).is_checkably_valid(
+      std::declval<typename Accessor::data_handle_type>(),
+      std::declval<std::size_t>()
+    ) } noexcept -> std::convertible_to<bool>;
+};
+
+template<class Accessor>
+bool is_checkably_valid(Accessor&& accessor,
+  typename std::remove_cvref_t<Accessor>::data_handle_type handle,
+  std::size_t size)
+{
+  if constexpr (has_is_checkably_valid<std::remove_cvref_t<Accessor>>) {
+    return std::as_const(accessor).is_checkably_valid(handle, size);
+  }
+  else {
+    return true;
+  }
+}
+
+struct A {
+  using data_handle_type = float*;
+
+  static bool is_checkably_valid(data_handle_type ptr, std::size_t size) noexcept {
+    return ptr != nullptr || size == 0;
+  }
+};
+
+struct B {
+  using data_handle_type = float*;
+};
+
+struct C {
+  using data_handle_type = float*;
+
+  // This is nonconst, so it's not actually called.
+  bool is_checkably_valid(data_handle_type ptr, std::size_t size) {
+    throw std::runtime_error("C::is_checkably_valid: uh oh");
+  }
+};
+
+struct D {
+  using data_handle_type = float*;
+
+  // This is const but not noexcept, so it's not actually called.
+  bool is_checkably_valid(data_handle_type ptr, std::size_t size) const {
+    throw std::runtime_error("D::is_checkably_valid: uh oh");
+  }
+};
+
+
+int main()
+{
+  float* ptr = nullptr;
+
+  assert(is_checkably_valid(A{}, ptr, 0));
+  assert(not is_checkably_valid(A{}, ptr, 1));
+
+  A a{};
+  assert(is_checkably_valid(a, ptr, 0));
+  assert(not is_checkably_valid(a, ptr, 1));
+
+  const A a_c{};
+  assert(is_checkably_valid(a_c, ptr, 0));
+  assert(not is_checkably_valid(a_c, ptr, 1));
+
+  assert(is_checkably_valid(B{}, ptr, 0));
+  assert(is_checkably_valid(B{}, ptr, 1));
+
+  // B doesn't know how to check pointer validity.
+
+  assert(is_checkably_valid(B{}, ptr, 0));
+  assert(is_checkably_valid(B{}, ptr, 1));
+
+  B b{};
+  assert(is_checkably_valid(b, ptr, 0));
+  assert(is_checkably_valid(b, ptr, 1));
+
+  const B b_c{};
+  assert(is_checkably_valid(b_c, ptr, 0));
+  assert(is_checkably_valid(b_c, ptr, 1));
+
+  // If users make is_checkably_valid nonconst or not noexcept,
+  // the nonmember function falls back to a default implementation.
+
+  try {
+    assert(is_checkably_valid(C{}, ptr, 0));
+    assert(is_checkably_valid(C{}, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "C{} threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    const C c_c{};
+    assert(is_checkably_valid(c_c, ptr, 0));
+    assert(is_checkably_valid(c_c, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "const C threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    C c{};
+    assert(is_checkably_valid(c, ptr, 0));
+    assert(is_checkably_valid(c, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "nonconst C threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    assert(is_checkably_valid(D{}, ptr, 0));
+    assert(is_checkably_valid(D{}, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "D{} threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    const D d_c{};
+    assert(is_checkably_valid(d_c, ptr, 0));
+    assert(is_checkably_valid(d_c, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "const D threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    D d{};
+    assert(is_checkably_valid(d, ptr, 0));
+    assert(is_checkably_valid(d, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "nonconst D threw runtime_error: " << e.what() << "\n";
+  }
+
+  std::cerr << "Made it to the end\n";
+  return 0;
+}
+```
