@@ -102,7 +102,7 @@ reach their maximum value.
 
 * `data_handle_type` is `ElementType*`
 
-* Constructor permits conversion
+* Constructor permits (implicit) conversion
 
     * from nonconst to const `ElementType`, and
 
@@ -396,9 +396,12 @@ resulted in no consensus.  Attendance was 14.
 
 LEWG expressed an (unpolled) interest that we explore `mdspan` safety
 in subsequent work after the fall 2023 Kona WG21 meeting.
-LEWG recognized that this is a general issue with `mdspan`
-and asked us to explore safety
+LEWG asked us to explore safety
 in a way that is not specific to `aligned_accessor`.
+We consider the section below
+"Generalize `is_sufficiently_aligned` for all accessors?",
+that discusses adding a member function `is_checkably_valid`
+to the accessor requirements, part of that exploration.
 
 ## `is_sufficiently_aligned` is not `constexpr`
 
