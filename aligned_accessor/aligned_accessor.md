@@ -66,9 +66,11 @@ toc: true
 
         * Remove `constexpr` from `is_sufficiently_aligned`
     
-    * Add optional suggestions from LEWG review of R1 on 2024-06-28
+    * Discuss optional suggestions from LEWG review of R1 on 2024-06-28
 
         * Add `is_checkably_valid` discussion
+
+        * Add `naughty_cast` discussion
 
 # Purpose of this paper
 
@@ -589,6 +591,235 @@ bool is_checkably_valid(Accessor&& accessor,
 2. Few C++ implementations offer a way to check validity of a pointer range.  Thus, users would experience `is_checkably_valid` as mostly not useful for the common case of `default_accessor` and other accessors that access a pointer range.
 
 3. Item (1) reduces the urgency of this suggestion for C++26.  Item (2) reduces its potential to improve the `mdspan` user experience in a practical way.  Therefore, we do not suggest adding `is_checkably_valid` to the accessor requirements in this proposal.  However, we do not discourage further work in separate proposals.
+
+## Explicit conversions as the model for precondition-asserting conversions
+
+During the June 2024 St. Louis WG21 meeting,
+one LEWG reviewer asked about the `explicit` constructor from `default_accessor`.
+This constructor lets users assert that a pointer
+has sufficient alignment to be accessed by the `aligned_accessor`.
+The reviewer argued that this was an "unsafe" conversion,
+and wanted these "unsafe" conversions to be even more explicit
+than an `explicit` constructor: e.g., a new `*_cast` function template.
+We do not agree with this idea; this section explains why.
+
+### Example: conversion to `aligned_accessor`
+
+Suppose that some function that users can't change
+returns an `mdspan` of `float` with `default_accessor`, even though
+users know that the `mdspan` is overaligned to `8 * sizeof(float)` bytes.
+The function's parameter(s) don't matter for this example.
+
+```c++
+mdspan<float, dims<1>, layout_right, default_accessor<float>>
+  overaligned_view(SomeParameters params);
+```
+
+Suppose also that users want to call some other function that they can't change.
+This function takes an `mdspan` of `float` with `aligned_accessor<float, 8>`.
+Its return type doesn't matter for this example.
+
+```c++
+SomeReturnType use_overaligned_view(
+  mdspan<float, dims<1>, layout_right, aligned_accessor<float, 8>>);
+```
+
+### Status quo
+
+How do users call `use_overaligned_view`
+with the object returned from `overaligned_view`?
+The status quo offers two ways.
+Both of them rely on `aligned_accessor<float, 8>`'s
+`explicit` converting constructor from `default_accessor<float>`.
+
+1. Use `mdspan`'s `explicit` converting constructor.
+
+2. Construct the new `mdspan` explicitly from its data handle,
+    layout mapping, and accessor.  (This is the ideal use case
+    for CTAD, as an `mdspan` is nothing more than
+    its data handle, layout mapping, and accessor.)
+
+Way (1) looks like this.
+```c++
+auto x = overaligned_view(params);
+auto result = use_overaligned_view(
+  mdspan<float, dims<1>, layout_right,
+    aligned_accessor<float, 8>>(x)
+);
+```
+Way (2) looks like this.  Note use of CTAD.
+```c++
+auto x = overaligned_view(params);
+auto result = use_overaligned_view(
+  mdspan{x.data_handle(), x.mapping(),
+    aligned_accessor<float, 8>>(x.accessor())}
+);
+```
+
+Which way is less verbose depends on `mdspan`'s template arguments.
+Both ways, though, force the user to name the type
+`aligned_accessor<float, 8>` explicitly.
+Users know that they have pulled out a sharp knife from the toolbox.
+It's verbose, it's nondefault, and it's a class with a short definition.
+Users can go to the specification, see `assume_aligned`, and know
+they are dealing with a low-level function that has a precondition.
+
+### `mdspan` uses explicit conversions to assert preconditions
+
+The entire system of `mdspan` components was designed so that
+
+* conversions with preconditions happen through
+    `explicit` conversions (mostly converting constructors); while
+
+* conversions without preconditions happen through implicit conversions.
+
+Changing this would break backwards compatibility with C++23.
+For example, one can see this with converting constructors for
+
+* `extents` (for conversions from run-time to compile-time extents,
+    or conversions from wider to narrower index type):
+    <a href="https://eel.is/c++draft/mdspan.extents.cons">[mdspan.extents.cons]</a>;
+    and
+
+* `layout_left::mapping`, and all the other layout mappings currently
+    in the Standard that are not `layout_stride` or `layout_transpose`
+    (for conversions from e.g., `layout_stride::mapping`,
+    which assert that the strides are compatible): e.g.,
+    <a href="https://eel.is/c++draft/mdspan.layout.left.cons">[mdspan.layout.left.cons]</a>.
+
+This is consistent with C++ Standard Library class templates,
+in that construction asserts any preconditions.
+For example, if users construct a `string_view` or `span`
+from a pointer `ptr` and a size `size`, this asserts
+that the range $[$ `ptr`, `ptr + size` $)$ is accessible.
+
+### Alternative: explicit cast function `naughty_cast`
+
+Everything we have described above is the status quo.
+What did the one LEWG reviewer want to see?
+They wanted all conversions with preconditions
+to use a "cast" function with an easily searchable name,
+analogous to `static_cast`.
+As a placeholder, we'll call it "`naughty_cast`."
+For the above `use_overaligned_view` example,
+the `naughty_cast` analog of Way (2) would look like this.
+```c++
+auto x = overaligned_view(params);
+auto result = use_overaligned_view(
+  mdspan{x.data_handle(), x.mapping(),
+    naughty_cast<aligned_accessor<float, 8>>>(x.accessor())}
+);
+```
+One could imagine defining `naughty_cast` of `mdspan`
+by `naughty_cast` of its components.
+This would enable an analog of Way (1).
+```c++
+auto x = overaligned_view(params);
+auto result = use_overaligned_view(naughty_cast<
+  mdspan<float, dims<1>, layout_right,
+    aligned_accessor<float, 8>>>(x)
+);
+```
+
+Requiring `naughty_cast` for `mdspan` conversions with preconditions
+is a bit like requiring `static_cast` for narrowing arithmetic conversions.
+The advantage is that one can search a large code base for `static_cast`.
+The disadvantage is that the code base will become full of `static_cast`,
+thus making potentially incorrect conversions less searchable anyway.
+
+Another argument for `naughty_cast` besides searchability
+is to make conversions with preconditions "loud," that is,
+easily seen in the code by human developers.
+However, the original Way (1) and Way (2) both are loud already
+in that they require a lot of extra code
+that spells out the result's accessor type explicitly.
+The status quo's difference in "volume" is implicit conversion
+```c++
+auto result = use_overaligned_view(x);
+```
+versus explicit construction.
+```c++
+auto result = use_overaligned_view(
+  mdspan{x.data_handle(), x.mapping(),
+    aligned_accessor<float, 8>(x)});
+);
+```
+Adding `naughty_cast` to the latter doesn't make it much louder.
+```c++
+auto result = use_overaligned_view(
+  mdspan{x.data_handle(), x.mapping(),
+    naughty_cast<aligned_accessor<float, 8>>(x)});
+);
+```
+
+There are other disadvantages to a `naughty_cast` design.
+The point of that design would be to remove or make non-`public`
+all the `explicit` constructors from `mdspan`'s components.
+That functionality would need to move somewhere.
+A typical implementation technique for a custom cast function
+is to rely on specializations of a struct with two template parameters,
+one for the input type and one for the output type of the cast.
+The `naughty_caster` struct example below shows how one could do that.
+
+```c++
+template<class Output, class Input>
+struct naughty_caster {};
+
+template<class Output, class Input>
+Output naughty_cast(const Input& input) {
+  return naughty_caster<Output, Input>::cast(input);
+}
+
+template<class OutputElementType, size_t ByteAlignment,
+  class InputElementType>
+  requires (is_convertible_v<InputElementType(*)[],
+    OutputElementType(*)[]>) 
+struct naughty_caster {
+  using output_type =
+    aligned_accessor<OutputElementType, ByteAlignment>;
+  using input_type = default_accessor<InputElementType>;
+
+  static output_type cast(const input_type&) {
+    return {}; 
+  }
+};
+```
+
+This technique takes a lot of effort and code,
+when by far the common case is that `cast` has a trivial body.
+For any accessors with state, it would almost certainly call
+for breaks of encapsulation, like making the `naughty_caster`
+specialization a `friend` of the input and/or output.
+
+We emphasize that users are meant to write custom accessors.
+The intended typical author of a custom accessor
+is a performance expert who is not necessarily a C++ expert.
+It takes quite a bit of C++ experience to learn how to use
+encapsulation-breaking techniques safely; the lazy approaches
+all just expose implementation details or defeat the "safety"
+that `naughty_cast` is supposed to introduce.
+Given that the main motivation of `naughty_cast` is safety,
+we shouldn't make it harder for users to write safe code.
+
+More importantly, `naughty_cast` would obfuscate accessors.
+The architects of `mdspan` meant accessors to have to have
+a small number of "moving parts" and to define all those parts
+in a single place.  Contrast `default_accessor`
+with the contiguous iterator requirements, for instance.
+The `naughty_cast` design would force custom accessors
+(and custom layouts) to define their different parts
+in different places, rather than all in one class.
+WG21 has moved away from this scattered design approach.
+For example, <a href="https://wg21.link/p2855r1">P2855R1</a>
+("Member customization points for Senders and Receivers")
+changes P2300 (std::execution) to use member functions
+instead of `tag_invoke`-based customization points.
+
+### Conclusion: retain `mdspan`'s current design
+
+For all these reasons, we do not support replacing `mdspan`'s
+current "conversions with preconditions are explicit conversions"
+design with a cast function design. 
 
 # Implementation
 
