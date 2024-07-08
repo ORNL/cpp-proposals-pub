@@ -1,7 +1,7 @@
 
 ---
 title: "`aligned_accessor`: An mdspan accessor expressing pointer overalignment"
-document: P2897R1
+document: P2897R2
 date: today
 audience: LEWG
 author:
@@ -32,7 +32,7 @@ toc: true
 
 * Revision 1 (pre-Kona) to be submitted 2023-10-15
 
-    * Implement changes requested by LEWG review on 2023/10/10
+    * Implement changes requested by LEWG review on 2023-10-10
 
         * Change `gcd` converting constructor Constraint to a Mandate
 
@@ -54,11 +54,23 @@ toc: true
             `byte_alignment >= alignof(ElementType)` is `true`.
             This prevents construction of an invalid `aligned_accessor` object.
 
-    * Add more design discussion based on LEWG review on 2023/10/10
+    * Add more design discussion based on LEWG review on 2023-10-10
 
         * Explain why we do not include an `aligned_mdspan` alias
 
         * Explain `aligned_accessor` construction safety
+
+* Revision 2 (post - St. Louis) to be submitted 2024-07-15
+
+    * Implement required changes from LEWG review of R1 on 2024-06-28
+
+        * Remove `constexpr` from `is_sufficiently_aligned`
+    
+    * Discuss optional suggestions from LEWG review of R1 on 2024-06-28
+
+        * Add `is_checkably_valid` discussion
+
+        * Add `naughty_cast` discussion
 
 # Purpose of this paper
 
@@ -92,7 +104,7 @@ reach their maximum value.
 
 * `data_handle_type` is `ElementType*`
 
-* Constructor permits conversion
+* Constructor permits (implicit) conversion
 
     * from nonconst to const `ElementType`, and
 
@@ -161,7 +173,7 @@ instead of having it modify another user-provided accessor.
 
 ## Explicit constructor from `default_accessor`
 
-LEWG's 2023/10/10 review of R0 pointed out that in R0,
+LEWG's 2023-10-10 review of R0 pointed out that in R0,
 `aligned_accessor` lacks an `explicit` constructor from `default_accessor`.
 Having that constructor would make it easier for users
 to create an aligned `mdspan` from an unaligned `mdspan`.
@@ -231,7 +243,7 @@ aligned_matrix_t aligned_matrix{matrix};
 
 ## We do not define an alias for aligned mdspan
 
-In LEWG's 2023/10/10 review of R0,
+In LEWG's 2023-10-10 review of R0,
 participants observed that this proposal's examples define
 an example-specific type alias for `mdspan` with `aligned_accessor`.
 They asked whether our proposal should include a _standard_ alias `aligned_mdspan`.
@@ -269,15 +281,19 @@ They define these aliases _once_ and use them throughout the application.
 For instance, users might define the following.
 ```c++
 template<class ElementType>
-using vector_t = std::mdspan<ElementType, std::dextents<int, 1>, std::layout_left>;
+using vector_t = std::mdspan<ElementType,
+  std::dextents<int, 1>, std::layout_left>;
 template<class ElementType>
-using matrix_t = std::mdspan<ElementType, std::dextents<int, 2>, std::layout_left>;
+using matrix_t = std::mdspan<ElementType,
+  std::dextents<int, 2>, std::layout_left>;
 
 template<class ElementType, size_t byte_alignment>
-using aligned_vector_t = std::mdspan<ElementType, std::dextents<int, 1>, std::layout_left, 
+using aligned_vector_t = std::mdspan<ElementType,
+  std::dextents<int, 1>, std::layout_left, 
   std::aligned_accessor<ElementType, byte_alignment>>;
 template<class ElementType, size_t byte_alignment>
-using aligned_matrix_t = std::mdspan<ElementType, std::dextents<int, 2>, std::layout_left, 
+using aligned_matrix_t = std::mdspan<ElementType,
+  std::dextents<int, 2>, std::layout_left, 
   std::aligned_accessor<ElementType, byte_alignment>>;
 ```
 Such users may never type the characters "`mdspan`" again.
@@ -286,7 +302,7 @@ we do not find the proliferation of aliases particularly ergonomic.
 
 ## mdspan construction safety
 
-LEWG's 2023/10/10 review of R0 expressed concern that
+LEWG's 2023-10-10 review of R0 expressed concern that
 `mdspan`'s constructor has no way to check
 `aligned_accessor`'s alignment requirements.
 Users can call `aligned_accessor`'s `is_sufficiently_aligned(p)`
@@ -358,7 +374,7 @@ then they know alignment before dispatch.
 In both cases, users already know the alignment
 before constructing the `mdspan`.
 
-An LEWG poll on 2023/10/10,
+An LEWG poll on 2023-10-10,
 "[b]lock `aligned_accessor` progressing until we have
 a way of checking alignment requirements during `mdspan` construction,"
 resulted in no consensus.  Attendance was 14.
@@ -382,9 +398,428 @@ resulted in no consensus.  Attendance was 14.
 
 LEWG expressed an (unpolled) interest that we explore `mdspan` safety
 in subsequent work after the fall 2023 Kona WG21 meeting.
-LEWG recognized that this is a general issue with `mdspan`
-and asked us to explore safety
+LEWG asked us to explore safety
 in a way that is not specific to `aligned_accessor`.
+We consider the section below
+"Generalize `is_sufficiently_aligned` for all accessors?",
+that discusses adding a member function `is_checkably_valid`
+to the accessor requirements, part of that exploration.
+
+## `is_sufficiently_aligned` is not `constexpr`
+
+LEWG reviewed R1 of this proposal
+at the June 2024 St. Louis WG21 meeting,
+and polled 1/10/0/0/1 (SF/F/N/A/SA)
+to remove `constexpr` from `is_sufficiently_aligned`.
+This is because it is not clear how to implement the function
+in a way that could ever be a constant expression.
+The straightforward cross-platform way to implement this
+would `bit_cast` the pointer to `uintptr_t`.
+However, `bit_cast` is not `constexpr` when converting
+from a pointer to an integer, per
+<a href="https://eel.is/c++draft/bit.cast#3">[bit.cast] 3</a>.
+Any `reinterpret_cast` similarly could not be
+a core constant expression, per
+<a href="https://eel.is/c++draft/expr.const#5.15">[expr.const] 5.15</a>.
+One LEWG reviewer pointed out that some compilers have a built-in operation
+(e.g., Clang and GCC have `__builtin_bit_cast`)
+that might form a constant expression when `bit_cast` does not.
+On the other hand, the authors could not foresee a need
+for `is_sufficiently_aligned` to be `constexpr` and did not want to
+constrain implementations to use compiler-specific functionality.
+
+## Generalize `is_sufficiently_aligned` for all accessors?
+
+### `is_sufficiently_aligned` is specific to `aligned_accessor`
+
+The `is_sufficiently_aligned` function exists
+so users can check the pointer's alignment precondition
+before constructing an `mdspan` with it.
+This precondition check is specific to `aligned_accessor`.
+Furthermore, the function has a precondition
+that the pointer points to a valid element.
+Standard C++ offers no way for users to check that.
+More importantly for `mdspan` users,
+Standard C++ offers no way to check whether a pointer
+and a layout mapping's `required_span_size()` form a valid range.
+
+### `is_checkably_valid`: Generic validity check?
+
+During the June 2024 St. Louis WG21 meeting,
+one LEWG reviewer pointed out that code that is generic on the accessor type
+currently has no way to check whether a given data handle is valid.
+Specifically, given a `size_t` `size`
+(e.g., the `required_span_size()` of a given layout mapping),
+there is no way to check whether $[$ 0, `size` $)$ forms an accessible range
+(see <a href="https://eel.is/c++draft/views.multidim#mdspan.accessor.general-2">[mdspan.accessor.general] 2</a>)
+of a given data handle and accessor.
+The reviewer suggested adding a new member function
+```c++
+bool is_checkably_valid(data_handle_type handle, size_t size) const noexcept;
+```
+to all `mdspan` accessors.  This would return `false`
+if the implementation can show that $[$ 0, `size` $)$
+is *not* an accessible range for `handle` and the accessor,
+and `true` otherwise.
+The word "checkably" in the name would remind users
+that this is a "best effort" check.
+It might return `true` even if the handle is invalid
+or if $[$ 0, `size` $)$ is not an accessible range.
+Also, it might return different values on different implementations,
+depending on their ability to check e.g., pointer range validity.
+The function would have the following design features.
+
+* It must be a non-`static` member function,
+    because in general, accessors may have state
+    that determines validity of the data handle.
+
+* It must be `const` because precondition-checking code
+    should avoid observable side effects.
+
+* It must be `noexcept` because precondition-checking code
+    should not throw.
+
+With such a function, users could write
+generic checked `mdspan` creation code like the following.
+```c++
+template<class LayoutMapping, class Accessor>
+auto create_mdspan_with_check(
+  typename Accessor::data_handle_type handle,
+  LayoutMapping mapping,
+  Accessor accessor)
+{
+  if (not accessor.is_checkably_valid(handle, mapping.required_span_size())) {
+    throw std::out_of_range("Invalid data handle and/or size");
+  }
+  return mdspan{handle, mapping, accessor};
+}
+```
+
+### Arguments against and for `is_checkably_valid`
+
+We didn't include this feature in the original `mdspan` design
+because most data handle types have no way to check validity.  
+We didn't want to give users the false impression 
+that a validity check was doing anything meaningful.
+Standard C++ has no way to check a raw pointer `T*` and a size,
+though some implementations such as CHERI C++
+([Davis 2019] and [Watson 2020]) do have this feature.
+We designed `mdspan` accessors to be able to wrap libraries that implement
+a partitioned global address space (PGAS) programming model
+for accessing remote data over a network.
+(See <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/p0009r18.html#why-custom-accessors">P0009R18, Section 2.7, "Why custom accessors?".</a>)
+Such libraries include the one-sided communication interface in MPI
+(the Message Passing Interface for distributed-memory parallel programming)
+or NVSHMEM (NVIDIA's implementation of the SHMEM standard).
+Those libraries define their own data handle to represent remote data.
+For example, MPI uses an `MPI_Win` "window" object.
+NVSHMEM uses a C++ pointer to represent a "symmetric address"
+that points to an allocation from the "symmetric heap"
+(that is accessible to all participating parallel processes).
+Such libraries generally do not have validity checks for their handles.
+
+On the other hand, an `is_checkably_valid` function
+would let happen any checks that _could_ happen.
+For instance, a hypothetical "GPU device memory accessor"
+(not proposed for the C++ Standard,
+but existing in projects like RAPIDS RAFT)
+might permit access to an allocation of GPU "device" memory
+from only GPU "device" code, not from ordinary "host" code.
+A common use case for GPU allocations
+is to allocate device memory in host code,
+then pass the pointer to device code for use there.
+Thus, it would be reasonable to create an `mdspan`
+in host code with that accessor.
+The accessor could use a CUDA run-time function like
+<a href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__UNIFIED.html">`cudaPointerGetAttributes`</a>
+to check if the pointer points to valid GPU memory.
+
+### Nonmember customization point design
+
+C++23 defines the generic interface of accessors
+through the "accessor policy requirements" in
+<a href="https://eel.is/c++draft/mdspan.accessor.reqmts">[mdspan.accessor.reqmts]</a>.
+Adding `is_checkably_valid` to these requirements would be a breaking change.
+Thus, generic code that wanted to call this function
+would need to fill in default behavior
+for existing C++23 or user-defined accessors.
+The following `is_checkably_valid` nonmember function
+shows one way users could do that.
+For the full source code and tests, please see this
+<a href="https://godbolt.org/z/14YPfMoq3">Compiler Explorer link</a>
+or Appendix A below.
+
+The point of this function is to show that
+even if C++26 adds `is_checkably_valid` to the accessor requirements
+and to all the Standard accessors,
+users could still work around the lack of this function
+in C++23 - compliant accessors.
+While it could make sense to standardize this function,
+users might like to fill in different default behavior,
+so we do not propose this here.
+
+```c++
+template<class Accessor>
+concept has_is_checkably_valid = requires(Accessor acc) {
+  // Making the existence of the type alias a separate constraint
+  // gives more user-friendly error messages.
+  typename Accessor::data_handle_type;
+  { std::as_const(acc).is_checkably_valid(
+      std::declval<typename Accessor::data_handle_type>(),
+      std::declval<std::size_t>()
+    ) } noexcept -> std::convertible_to<bool>;
+};
+
+template<class Accessor>
+bool is_checkably_valid(Accessor&& accessor,
+  typename std::remove_cvref_t<Accessor>::data_handle_type handle,
+  std::size_t size)
+{
+  if constexpr (has_is_checkably_valid<std::remove_cvref_t<Accessor>>) {
+    return std::as_const(accessor).is_checkably_valid(handle, size);
+  }
+  else {
+    return true;
+  }
+}
+```
+
+### Conclusions
+
+1. Adding `is_checkably_valid` to the accessor requirements and existing Standard accessors in C++26 would be a breaking change.  Nevertheless, users could fill in reasonable behavior for C++23 accessors.
+
+2. Few C++ implementations offer a way to check validity of a pointer range.  Thus, users would experience `is_checkably_valid` as mostly not useful for the common case of `default_accessor` and other accessors that access a pointer range.
+
+3. Item (1) reduces the urgency of this suggestion for C++26.  Item (2) reduces its potential to improve the `mdspan` user experience in a practical way.  Therefore, we do not suggest adding `is_checkably_valid` to the accessor requirements in this proposal.  However, we do not discourage further work in separate proposals.
+
+## Explicit conversions as the model for precondition-asserting conversions
+
+During the June 2024 St. Louis WG21 meeting,
+one LEWG reviewer asked about the `explicit` constructor from `default_accessor`.
+This constructor lets users assert that a pointer
+has sufficient alignment to be accessed by the `aligned_accessor`.
+The reviewer argued that this was an "unsafe" conversion,
+and wanted these "unsafe" conversions to be even more explicit
+than an `explicit` constructor: e.g., a new `*_cast` function template.
+We do not agree with this idea; this section explains why.
+
+### Example: conversion to `aligned_accessor`
+
+Suppose that some function that users can't change
+returns an `mdspan` of `float` with `default_accessor`, even though
+users know that the `mdspan` is overaligned to `8 * sizeof(float)` bytes.
+The function's parameter(s) don't matter for this example.
+
+```c++
+mdspan<float, dims<1>, layout_right, default_accessor<float>>
+  overaligned_view(SomeParameters params);
+```
+
+Suppose also that users want to call some other function that they can't change.
+This function takes an `mdspan` of `float` with `aligned_accessor<float, 8>`.
+Its return type doesn't matter for this example.
+
+```c++
+SomeReturnType use_overaligned_view(
+  mdspan<float, dims<1>, layout_right, aligned_accessor<float, 8>>);
+```
+
+### Status quo
+
+How do users call `use_overaligned_view`
+with the object returned from `overaligned_view`?
+The status quo offers two ways.
+Both of them rely on `aligned_accessor<float, 8>`'s
+`explicit` converting constructor from `default_accessor<float>`.
+
+1. Use `mdspan`'s `explicit` converting constructor.
+
+2. Construct the new `mdspan` explicitly from its data handle,
+    layout mapping, and accessor.  (This is the ideal use case
+    for CTAD, as an `mdspan` is nothing more than
+    its data handle, layout mapping, and accessor.)
+
+Way (1) looks like this.
+```c++
+auto x = overaligned_view(params);
+auto result = use_overaligned_view(
+  mdspan<float, dims<1>, layout_right,
+    aligned_accessor<float, 8>>(x)
+);
+```
+Way (2) looks like this.  Note use of CTAD.
+```c++
+auto x = overaligned_view(params);
+auto result = use_overaligned_view(
+  mdspan{x.data_handle(), x.mapping(),
+    aligned_accessor<float, 8>>(x.accessor())}
+);
+```
+
+Which way is less verbose depends on `mdspan`'s template arguments.
+Both ways, though, force the user to name the type
+`aligned_accessor<float, 8>` explicitly.
+Users know that they have pulled out a sharp knife from the toolbox.
+It's verbose, it's nondefault, and it's a class with a short definition.
+Users can go to the specification, see `assume_aligned`, and know
+they are dealing with a low-level function that has a precondition.
+
+### `mdspan` uses explicit conversions to assert preconditions
+
+The entire system of `mdspan` components was designed so that
+
+* conversions with preconditions happen through
+    `explicit` conversions (mostly converting constructors); while
+
+* conversions without preconditions happen through implicit conversions.
+
+Changing this would break backwards compatibility with C++23.
+For example, one can see this with converting constructors for
+
+* `extents` (for conversions from run-time to compile-time extents,
+    or conversions from wider to narrower index type):
+    <a href="https://eel.is/c++draft/mdspan.extents.cons">[mdspan.extents.cons]</a>;
+    and
+
+* `layout_left::mapping`, and all the other layout mappings currently
+    in the Standard that are not `layout_stride` or `layout_transpose`
+    (for conversions from e.g., `layout_stride::mapping`,
+    which assert that the strides are compatible): e.g.,
+    <a href="https://eel.is/c++draft/mdspan.layout.left.cons">[mdspan.layout.left.cons]</a>.
+
+This is consistent with C++ Standard Library class templates,
+in that construction asserts any preconditions.
+For example, if users construct a `string_view` or `span`
+from a pointer `ptr` and a size `size`, this asserts
+that the range $[$ `ptr`, `ptr + size` $)$ is accessible.
+
+### Alternative: explicit cast function `naughty_cast`
+
+Everything we have described above is the status quo.
+What did the one LEWG reviewer want to see?
+They wanted all conversions with preconditions
+to use a "cast" function with an easily searchable name,
+analogous to `static_cast`.
+As a placeholder, we'll call it "`naughty_cast`."
+For the above `use_overaligned_view` example,
+the `naughty_cast` analog of Way (2) would look like this.
+```c++
+auto x = overaligned_view(params);
+auto result = use_overaligned_view(
+  mdspan{x.data_handle(), x.mapping(),
+    naughty_cast<aligned_accessor<float, 8>>>(x.accessor())}
+);
+```
+One could imagine defining `naughty_cast` of `mdspan`
+by `naughty_cast` of its components.
+This would enable an analog of Way (1).
+```c++
+auto x = overaligned_view(params);
+auto result = use_overaligned_view(naughty_cast<
+  mdspan<float, dims<1>, layout_right,
+    aligned_accessor<float, 8>>>(x)
+);
+```
+
+Requiring `naughty_cast` for `mdspan` conversions with preconditions
+is a bit like requiring `static_cast` for narrowing arithmetic conversions.
+The advantage is that one can search a large code base for `static_cast`.
+The disadvantage is that the code base will become full of `static_cast`,
+thus making potentially incorrect conversions less searchable anyway.
+
+Another argument for `naughty_cast` besides searchability
+is to make conversions with preconditions "loud," that is,
+easily seen in the code by human developers.
+However, the original Way (1) and Way (2) both are loud already
+in that they require a lot of extra code
+that spells out the result's accessor type explicitly.
+The status quo's difference in "volume" is implicit conversion
+```c++
+auto result = use_overaligned_view(x);
+```
+versus explicit construction.
+```c++
+auto result = use_overaligned_view(
+  mdspan{x.data_handle(), x.mapping(),
+    aligned_accessor<float, 8>(x)});
+);
+```
+Adding `naughty_cast` to the latter doesn't make it much louder.
+```c++
+auto result = use_overaligned_view(
+  mdspan{x.data_handle(), x.mapping(),
+    naughty_cast<aligned_accessor<float, 8>>(x)});
+);
+```
+
+There are other disadvantages to a `naughty_cast` design.
+The point of that design would be to remove or make non-`public`
+all the `explicit` constructors from `mdspan`'s components.
+That functionality would need to move somewhere.
+A typical implementation technique for a custom cast function
+is to rely on specializations of a struct with two template parameters,
+one for the input type and one for the output type of the cast.
+The `naughty_caster` struct example below shows how one could do that.
+
+```c++
+template<class Output, class Input>
+struct naughty_caster {};
+
+template<class Output, class Input>
+Output naughty_cast(const Input& input) {
+  return naughty_caster<Output, Input>::cast(input);
+}
+
+template<class OutputElementType, size_t ByteAlignment,
+  class InputElementType>
+  requires (is_convertible_v<InputElementType(*)[],
+    OutputElementType(*)[]>) 
+struct naughty_caster {
+  using output_type =
+    aligned_accessor<OutputElementType, ByteAlignment>;
+  using input_type = default_accessor<InputElementType>;
+
+  static output_type cast(const input_type&) {
+    return {}; 
+  }
+};
+```
+
+This technique takes a lot of effort and code,
+when by far the common case is that `cast` has a trivial body.
+For any accessors with state, it would almost certainly call
+for breaks of encapsulation, like making the `naughty_caster`
+specialization a `friend` of the input and/or output.
+
+We emphasize that users are meant to write custom accessors.
+The intended typical author of a custom accessor
+is a performance expert who is not necessarily a C++ expert.
+It takes quite a bit of C++ experience to learn how to use
+encapsulation-breaking techniques safely; the lazy approaches
+all just expose implementation details or defeat the "safety"
+that `naughty_cast` is supposed to introduce.
+Given that the main motivation of `naughty_cast` is safety,
+we shouldn't make it harder for users to write safe code.
+
+More importantly, `naughty_cast` would obfuscate accessors.
+The architects of `mdspan` meant accessors to have to have
+a small number of "moving parts" and to define all those parts
+in a single place.  Contrast `default_accessor`
+with the contiguous iterator requirements, for instance.
+The `naughty_cast` design would force custom accessors
+(and custom layouts) to define their different parts
+in different places, rather than all in one class.
+WG21 has moved away from this scattered design approach.
+For example, <a href="https://wg21.link/p2855r1">P2855R1</a>
+("Member customization points for Senders and Receivers")
+changes P2300 (std::execution) to use member functions
+instead of `tag_invoke`-based customization points.
+
+### Conclusion: retain `mdspan`'s current design
+
+For all these reasons, we do not support replacing `mdspan`'s
+current "conversions with preconditions are explicit conversions"
+design with a cast function design. 
 
 # Implementation
 
@@ -448,6 +883,23 @@ float user_function(size_t num_elements, float alpha)
 }
 ```
 
+# References
+
+* Davis et al.,
+"CheriABI: Enforcing Valid Pointer Provenance and Minimizing Pointer Privilege in the POSIX C Run-time Environment,"
+ASPLOS '19,
+April 2019,
+pp. 379 - 393.
+Available online [last accessed 2024-07-05]:
+<a href="https://dl.acm.org/doi/10.1145/3297858.3304042">https://dl.acm.org/doi/10.1145/3297858.3304042</a>
+
+* Watson et al., "CHERI C/C++ Programming Guide,"
+Technical Report UCAM-CL-TR-947,
+University of Cambridge Computer Laboratory,
+June 2020.
+Available online [last accessed 2024-07-05]:
+<a href="https://doi.org/10.48456/tr-947">https://doi.org/10.48456/tr-947</a>
+
 # Wording
 
 > Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
@@ -506,7 +958,7 @@ struct aligned_accessor {
   constexpr typename offset_policy::data_handle_type
     offset(data_handle_type p, size_t i) const noexcept;
 
-  constexpr static bool is_sufficiently_aligned(data_handle_type p);
+  static bool is_sufficiently_aligned(data_handle_type p);
 };
 ```
 
@@ -562,7 +1014,7 @@ constexpr typename offset_policy::data_handle_type
 [7]{.pnum} *Effects*: Equivalent to: `return p + i;`
 
 ```c++
-constexpr static bool is_sufficiently_aligned(data_handle_type p);
+static bool is_sufficiently_aligned(data_handle_type p);
 ```
 
 [8]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
@@ -666,3 +1118,162 @@ float user_function(size_t num_elements, float alpha)
 }
 ```
 --*end example*]
+
+# Appendix A: `is_checkably_valid` nonmember function example
+
+This section is nonnormative.  This is the full source code with tests
+for the `is_checkably_valid` nonmember function example above.  Please see
+this <a href="https://godbolt.org/z/hKh3vK11f">Compiler Explorer link</a>.
+
+```c++
+#include <cassert>
+#include <concepts>
+#include <cstdint>
+#include <iostream>
+#include <stdexcept>
+#include <type_traits>
+#include <utility>
+
+template<class Accessor>
+concept has_is_checkably_valid = requires(Accessor acc) {
+  typename Accessor::data_handle_type;
+  { std::as_const(acc).is_checkably_valid(
+      std::declval<typename Accessor::data_handle_type>(),
+      std::declval<std::size_t>()
+    ) } noexcept -> std::convertible_to<bool>;
+};
+
+template<class Accessor>
+bool is_checkably_valid(Accessor&& accessor,
+  typename std::remove_cvref_t<Accessor>::data_handle_type handle,
+  std::size_t size)
+{
+  if constexpr (has_is_checkably_valid<std::remove_cvref_t<Accessor>>) {
+    return std::as_const(accessor).is_checkably_valid(handle, size);
+  }
+  else {
+    return true;
+  }
+}
+
+struct A {
+  using data_handle_type = float*;
+
+  static bool is_checkably_valid(data_handle_type ptr, std::size_t size) noexcept {
+    return ptr != nullptr || size == 0;
+  }
+};
+
+struct B {
+  using data_handle_type = float*;
+};
+
+struct C {
+  using data_handle_type = float*;
+
+  // This is nonconst, so it's not actually called.
+  bool is_checkably_valid(data_handle_type ptr, std::size_t size) {
+    throw std::runtime_error("C::is_checkably_valid: uh oh");
+  }
+};
+
+struct D {
+  using data_handle_type = float*;
+
+  // This is const but not noexcept, so it's not actually called.
+  bool is_checkably_valid(data_handle_type ptr, std::size_t size) const {
+    throw std::runtime_error("D::is_checkably_valid: uh oh");
+  }
+};
+
+
+int main()
+{
+  float* ptr = nullptr;
+
+  assert(is_checkably_valid(A{}, ptr, 0));
+  assert(not is_checkably_valid(A{}, ptr, 1));
+
+  A a{};
+  assert(is_checkably_valid(a, ptr, 0));
+  assert(not is_checkably_valid(a, ptr, 1));
+
+  const A a_c{};
+  assert(is_checkably_valid(a_c, ptr, 0));
+  assert(not is_checkably_valid(a_c, ptr, 1));
+
+  assert(is_checkably_valid(B{}, ptr, 0));
+  assert(is_checkably_valid(B{}, ptr, 1));
+
+  // B doesn't know how to check pointer validity.
+
+  assert(is_checkably_valid(B{}, ptr, 0));
+  assert(is_checkably_valid(B{}, ptr, 1));
+
+  B b{};
+  assert(is_checkably_valid(b, ptr, 0));
+  assert(is_checkably_valid(b, ptr, 1));
+
+  const B b_c{};
+  assert(is_checkably_valid(b_c, ptr, 0));
+  assert(is_checkably_valid(b_c, ptr, 1));
+
+  // If users make is_checkably_valid nonconst or not noexcept,
+  // the nonmember function falls back to a default implementation.
+
+  try {
+    assert(is_checkably_valid(C{}, ptr, 0));
+    assert(is_checkably_valid(C{}, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "C{} threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    const C c_c{};
+    assert(is_checkably_valid(c_c, ptr, 0));
+    assert(is_checkably_valid(c_c, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "const C threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    C c{};
+    assert(is_checkably_valid(c, ptr, 0));
+    assert(is_checkably_valid(c, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "nonconst C threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    assert(is_checkably_valid(D{}, ptr, 0));
+    assert(is_checkably_valid(D{}, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "D{} threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    const D d_c{};
+    assert(is_checkably_valid(d_c, ptr, 0));
+    assert(is_checkably_valid(d_c, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "const D threw runtime_error: " << e.what() << "\n";
+  }
+
+  try {
+    D d{};
+    assert(is_checkably_valid(d, ptr, 0));
+    assert(is_checkably_valid(d, ptr, 1));
+  }
+  catch (const std::runtime_error& e) {
+    std::cerr << "nonconst D threw runtime_error: " << e.what() << "\n";
+  }
+
+  std::cerr << "Made it to the end\n";
+  return 0;
+}
+```
