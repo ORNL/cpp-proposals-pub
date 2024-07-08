@@ -891,14 +891,14 @@ ASPLOS '19,
 April 2019,
 pp. 379 - 393.
 Available online [last accessed 2024-07-05]:
-https://dl.acm.org/doi/10.1145/3297858.3304042
+<a href="https://dl.acm.org/doi/10.1145/3297858.3304042">https://dl.acm.org/doi/10.1145/3297858.3304042</a>
 
 * Watson et al., "CHERI C/C++ Programming Guide,"
 Technical Report UCAM-CL-TR-947,
 University of Cambridge Computer Laboratory,
 June 2020.
 Available online [last accessed 2024-07-05]:
-https://doi.org/10.48456/tr-947
+<a href="https://doi.org/10.48456/tr-947">https://doi.org/10.48456/tr-947</a>
 
 # Wording
 
