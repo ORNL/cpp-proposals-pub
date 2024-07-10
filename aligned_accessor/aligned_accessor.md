@@ -81,6 +81,9 @@ toc: true
     * P2389R2 was voted into the Working Draft at St. Louis,
         so replace use of `dextents` in examples with `dims`.
 
+    * Add non-wording section explaining why `aligned_accessor`
+        has no `explicit` constructor from less to more alignment
+
 # Purpose of this paper
 
 We propose adding `aligned_accessor` to the C++ Standard Library.
@@ -271,6 +274,61 @@ Now, users can do the same thing with fewer characters.
 ```c++
 aligned_matrix_t aligned_matrix{matrix};
 ```
+
+## Why no explicit constructor from less to more alignment?
+
+As explained in the previous section,
+`aligned_accessor` has an `explicit` converting constructor
+from `default_accessor` so that users can assert overalignment.
+It also has an (implicit) converting constructor
+from another `aligned_accessor` with more alignment,
+to an `aligned_accessor` with less alignment.
+However, `aligned_accessor` does *not* have
+an `explicit` converting constructor
+from another `aligned_accessor` with *less* alignment,
+to an `aligned_accessor` with *more* alignment.  Why not?
+
+Consider the three typical use cases for `aligned_accessor`.
+
+1. User knows an allocation's alignment at compile time.
+
+2. User knows an allocation's alignment at run time,
+    but not at compile time.  For example, the value might depend
+    on run-time detection of particular hardware features.
+
+3. User doesn't know whether an allocation is overaligned.
+    They might need to ask some system at run time,
+    or check the pointer value themselves, in order to decide
+    whether to call code that expects a particular alignment.
+
+In Case (1), users would normally declare the maximum alignment.
+They would want to preserve this information at compile time
+as much as possible, by keeping the `aligned_accessor` `mdspan` with
+maximum compile-time alignment for the entire scope of its use.
+Users would only want implicit conversions to less alignment
+or `default_accessor` when calling functions whose parameter types
+encode these requirements.
+
+Case (2) reduces to Case (3).
+
+Case (3) reduces to Case (1).  This works like
+any conversion from run-time type to compile-time type,
+with a fixed list of possible compile-time types (the alignments).
+As soon as a user's `mdspan` enters a scope
+where the alignment is known at compile time,
+the user would want to preserve that compile-time information
+and maximize the alignment for as large of a scope as possible.
+
+None of these cases involve starting with more alignment,
+going to less (but still some) alignment,
+and then going back to more alignment again.
+Code that does that probably does not correctly use the types
+of function parameters to express its overalignment requirements.
+It's like code that uses `dynamic_cast` a lot.
+Users can still convert from less or more alignment
+by creating the result's `aligned_accessor` manually.
+However, we don't want to encourage this pattern,
+so we don't offer an explicit conversion for it.
 
 ## We do not define an alias for aligned mdspan
 

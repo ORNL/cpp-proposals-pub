@@ -460,46 +460,48 @@ Purpose of this paper</a></li>
 nestable</a></li>
 <li><a href="#explicit-constructor-from-default_accessor" id="toc-explicit-constructor-from-default_accessor"><span class="toc-section-number">5.2</span> Explicit constructor from
 <code>default_accessor</code></a></li>
-<li><a href="#we-do-not-define-an-alias-for-aligned-mdspan" id="toc-we-do-not-define-an-alias-for-aligned-mdspan"><span class="toc-section-number">5.3</span> We do not define an alias for
+<li><a href="#why-no-explicit-constructor-from-less-to-more-alignment" id="toc-why-no-explicit-constructor-from-less-to-more-alignment"><span class="toc-section-number">5.3</span> Why no explicit constructor from
+less to more alignment?</a></li>
+<li><a href="#we-do-not-define-an-alias-for-aligned-mdspan" id="toc-we-do-not-define-an-alias-for-aligned-mdspan"><span class="toc-section-number">5.4</span> We do not define an alias for
 aligned mdspan</a></li>
-<li><a href="#mdspan-construction-safety" id="toc-mdspan-construction-safety"><span class="toc-section-number">5.4</span> mdspan construction
+<li><a href="#mdspan-construction-safety" id="toc-mdspan-construction-safety"><span class="toc-section-number">5.5</span> mdspan construction
 safety</a></li>
-<li><a href="#is_sufficiently_aligned-is-not-constexpr" id="toc-is_sufficiently_aligned-is-not-constexpr"><span class="toc-section-number">5.5</span>
+<li><a href="#is_sufficiently_aligned-is-not-constexpr" id="toc-is_sufficiently_aligned-is-not-constexpr"><span class="toc-section-number">5.6</span>
 <code>is_sufficiently_aligned</code> is not
 <code>constexpr</code></a></li>
-<li><a href="#generalize-is_sufficiently_aligned-for-all-accessors" id="toc-generalize-is_sufficiently_aligned-for-all-accessors"><span class="toc-section-number">5.6</span> Generalize
+<li><a href="#generalize-is_sufficiently_aligned-for-all-accessors" id="toc-generalize-is_sufficiently_aligned-for-all-accessors"><span class="toc-section-number">5.7</span> Generalize
 <code>is_sufficiently_aligned</code> for all accessors?</a>
 <ul>
-<li><a href="#is_sufficiently_aligned-is-specific-to-aligned_accessor" id="toc-is_sufficiently_aligned-is-specific-to-aligned_accessor"><span class="toc-section-number">5.6.1</span>
+<li><a href="#is_sufficiently_aligned-is-specific-to-aligned_accessor" id="toc-is_sufficiently_aligned-is-specific-to-aligned_accessor"><span class="toc-section-number">5.7.1</span>
 <code>is_sufficiently_aligned</code> is specific to
 <code>aligned_accessor</code></a></li>
-<li><a href="#detectably_invalid-generic-validity-check" id="toc-detectably_invalid-generic-validity-check"><span class="toc-section-number">5.6.2</span> <code>detectably_invalid</code>:
+<li><a href="#detectably_invalid-generic-validity-check" id="toc-detectably_invalid-generic-validity-check"><span class="toc-section-number">5.7.2</span> <code>detectably_invalid</code>:
 Generic validity check?</a></li>
-<li><a href="#arguments-against-and-for-detectably_invalid" id="toc-arguments-against-and-for-detectably_invalid"><span class="toc-section-number">5.6.3</span> Arguments against and for
+<li><a href="#arguments-against-and-for-detectably_invalid" id="toc-arguments-against-and-for-detectably_invalid"><span class="toc-section-number">5.7.3</span> Arguments against and for
 <code>detectably_invalid</code></a></li>
-<li><a href="#nonmember-customization-point-design" id="toc-nonmember-customization-point-design"><span class="toc-section-number">5.6.4</span> Nonmember customization point
+<li><a href="#nonmember-customization-point-design" id="toc-nonmember-customization-point-design"><span class="toc-section-number">5.7.4</span> Nonmember customization point
 design</a></li>
-<li><a href="#we-need-both-is_sufficiently_aligned-and-detectably_invalid" id="toc-we-need-both-is_sufficiently_aligned-and-detectably_invalid"><span class="toc-section-number">5.6.5</span> We need both
+<li><a href="#we-need-both-is_sufficiently_aligned-and-detectably_invalid" id="toc-we-need-both-is_sufficiently_aligned-and-detectably_invalid"><span class="toc-section-number">5.7.5</span> We need both
 <code>is_sufficiently_aligned</code> and
 <code>detectably_invalid</code></a></li>
-<li><a href="#alternative-nonmember-is_sufficiently_aligned" id="toc-alternative-nonmember-is_sufficiently_aligned"><span class="toc-section-number">5.6.6</span> Alternative: Nonmember
+<li><a href="#alternative-nonmember-is_sufficiently_aligned" id="toc-alternative-nonmember-is_sufficiently_aligned"><span class="toc-section-number">5.7.6</span> Alternative: Nonmember
 <code>is_sufficiently_aligned</code></a></li>
-<li><a href="#do-accessors-need-to-check-anything-else" id="toc-do-accessors-need-to-check-anything-else"><span class="toc-section-number">5.6.7</span> Do accessors need to check
+<li><a href="#do-accessors-need-to-check-anything-else" id="toc-do-accessors-need-to-check-anything-else"><span class="toc-section-number">5.7.7</span> Do accessors need to check
 anything else?</a></li>
-<li><a href="#naming-the-function" id="toc-naming-the-function"><span class="toc-section-number">5.6.8</span> Naming the function</a></li>
-<li><a href="#conclusions" id="toc-conclusions"><span class="toc-section-number">5.6.9</span> Conclusions</a></li>
+<li><a href="#naming-the-function" id="toc-naming-the-function"><span class="toc-section-number">5.7.8</span> Naming the function</a></li>
+<li><a href="#conclusions" id="toc-conclusions"><span class="toc-section-number">5.7.9</span> Conclusions</a></li>
 </ul></li>
-<li><a href="#explicit-conversions-as-the-model-for-precondition-asserting-conversions" id="toc-explicit-conversions-as-the-model-for-precondition-asserting-conversions"><span class="toc-section-number">5.7</span> Explicit conversions as the model
+<li><a href="#explicit-conversions-as-the-model-for-precondition-asserting-conversions" id="toc-explicit-conversions-as-the-model-for-precondition-asserting-conversions"><span class="toc-section-number">5.8</span> Explicit conversions as the model
 for precondition-asserting conversions</a>
 <ul>
-<li><a href="#example-conversion-to-aligned_accessor" id="toc-example-conversion-to-aligned_accessor"><span class="toc-section-number">5.7.1</span> Example: conversion to
+<li><a href="#example-conversion-to-aligned_accessor" id="toc-example-conversion-to-aligned_accessor"><span class="toc-section-number">5.8.1</span> Example: conversion to
 <code>aligned_accessor</code></a></li>
-<li><a href="#status-quo" id="toc-status-quo"><span class="toc-section-number">5.7.2</span> Status quo</a></li>
-<li><a href="#mdspan-uses-explicit-conversions-to-assert-preconditions" id="toc-mdspan-uses-explicit-conversions-to-assert-preconditions"><span class="toc-section-number">5.7.3</span> <code>mdspan</code> uses
+<li><a href="#status-quo" id="toc-status-quo"><span class="toc-section-number">5.8.2</span> Status quo</a></li>
+<li><a href="#mdspan-uses-explicit-conversions-to-assert-preconditions" id="toc-mdspan-uses-explicit-conversions-to-assert-preconditions"><span class="toc-section-number">5.8.3</span> <code>mdspan</code> uses
 explicit conversions to assert preconditions</a></li>
-<li><a href="#alternative-explicit-cast-function-naughty_cast" id="toc-alternative-explicit-cast-function-naughty_cast"><span class="toc-section-number">5.7.4</span> Alternative: explicit cast
+<li><a href="#alternative-explicit-cast-function-naughty_cast" id="toc-alternative-explicit-cast-function-naughty_cast"><span class="toc-section-number">5.8.4</span> Alternative: explicit cast
 function <code>naughty_cast</code></a></li>
-<li><a href="#conclusion-retain-mdspans-current-design" id="toc-conclusion-retain-mdspans-current-design"><span class="toc-section-number">5.7.5</span> Conclusion: retain
+<li><a href="#conclusion-retain-mdspans-current-design" id="toc-conclusion-retain-mdspans-current-design"><span class="toc-section-number">5.8.5</span> Conclusion: retain
 <code>mdspan</code>’s current design</a></li>
 </ul></li>
 </ul></li>
@@ -588,6 +590,9 @@ concurrently</p></li>
 <li><p>P2389R2 was voted into the Working Draft at St. Louis, so replace
 use of <code>dextents</code> in examples with
 <code>dims</code>.</p></li>
+<li><p>Add non-wording section explaining why
+<code>aligned_accessor</code> has no <code>explicit</code> constructor
+from less to more alignment</p></li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -774,7 +779,55 @@ could perform this conversion by typing the following.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>aligned_matrix_t aligned_matrix<span class="op">{</span>matrix<span class="op">.</span>data_handle<span class="op">()</span>, matrix<span class="op">.</span>mapping<span class="op">()}</span>;</span></code></pre></div>
 <p>Now, users can do the same thing with fewer characters.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>aligned_matrix_t aligned_matrix<span class="op">{</span>matrix<span class="op">}</span>;</span></code></pre></div>
-<h2 data-number="5.3" id="we-do-not-define-an-alias-for-aligned-mdspan"><span class="header-section-number">5.3</span> We do not define an alias for
+<h2 data-number="5.3" id="why-no-explicit-constructor-from-less-to-more-alignment"><span class="header-section-number">5.3</span> Why no explicit constructor
+from less to more alignment?<a href="#why-no-explicit-constructor-from-less-to-more-alignment" class="self-link"></a></h2>
+<p>As explained in the previous section, <code>aligned_accessor</code>
+has an <code>explicit</code> converting constructor from
+<code>default_accessor</code> so that users can assert overalignment. It
+also has an (implicit) converting constructor from another
+<code>aligned_accessor</code> with more alignment, to an
+<code>aligned_accessor</code> with less alignment. However,
+<code>aligned_accessor</code> does <em>not</em> have an
+<code>explicit</code> converting constructor from another
+<code>aligned_accessor</code> with <em>less</em> alignment, to an
+<code>aligned_accessor</code> with <em>more</em> alignment. Why not?</p>
+<p>Consider the three typical use cases for
+<code>aligned_accessor</code>.</p>
+<ol type="1">
+<li><p>User knows an allocation’s alignment at compile time.</p></li>
+<li><p>User knows an allocation’s alignment at run time, but not at
+compile time. For example, the value might depend on run-time detection
+of particular hardware features.</p></li>
+<li><p>User doesn’t know whether an allocation is overaligned. They
+might need to ask some system at run time, or check the pointer value
+themselves, in order to decide whether to call code that expects a
+particular alignment.</p></li>
+</ol>
+<p>In Case (1), users would normally declare the maximum alignment. They
+would want to preserve this information at compile time as much as
+possible, by keeping the <code>aligned_accessor</code>
+<code>mdspan</code> with maximum compile-time alignment for the entire
+scope of its use. Users would only want implicit conversions to less
+alignment or <code>default_accessor</code> when calling functions whose
+parameter types encode these requirements.</p>
+<p>Case (2) reduces to Case (3).</p>
+<p>Case (3) reduces to Case (1). This works like any conversion from
+run-time type to compile-time type, with a fixed list of possible
+compile-time types (the alignments). As soon as a user’s
+<code>mdspan</code> enters a scope where the alignment is known at
+compile time, the user would want to preserve that compile-time
+information and maximize the alignment for as large of a scope as
+possible.</p>
+<p>None of these cases involve starting with more alignment, going to
+less (but still some) alignment, and then going back to more alignment
+again. Code that does that probably does not correctly use the types of
+function parameters to express its overalignment requirements. It’s like
+code that uses <code>dynamic_cast</code> a lot. Users can still convert
+from less or more alignment by creating the result’s
+<code>aligned_accessor</code> manually. However, we don’t want to
+encourage this pattern, so we don’t offer an explicit conversion for
+it.</p>
+<h2 data-number="5.4" id="we-do-not-define-an-alias-for-aligned-mdspan"><span class="header-section-number">5.4</span> We do not define an alias for
 aligned mdspan<a href="#we-do-not-define-an-alias-for-aligned-mdspan" class="self-link"></a></h2>
 <p>In LEWG’s 2023-10-10 review of R0, participants observed that this
 proposal’s examples define an example-specific type alias for
@@ -827,7 +880,7 @@ users might define the following.</p>
 For this reason, while we do not object to an
 <code>aligned_mdspan</code> alias, we do not find the proliferation of
 aliases particularly ergonomic.</p>
-<h2 data-number="5.4" id="mdspan-construction-safety"><span class="header-section-number">5.4</span> mdspan construction safety<a href="#mdspan-construction-safety" class="self-link"></a></h2>
+<h2 data-number="5.5" id="mdspan-construction-safety"><span class="header-section-number">5.5</span> mdspan construction safety<a href="#mdspan-construction-safety" class="self-link"></a></h2>
 <p>LEWG’s 2023-10-10 review of R0 expressed concern that
 <code>mdspan</code>’s constructor has no way to check
 <code>aligned_accessor</code>’s alignment requirements. Users can call
@@ -947,7 +1000,7 @@ specific to <code>aligned_accessor</code>. Part of that exploration is
 in the section below “Generalize <code>is_sufficiently_aligned</code>
 for all accessors?”. We plan further exploration of this topic
 elsewhere.</p>
-<h2 data-number="5.5" id="is_sufficiently_aligned-is-not-constexpr"><span class="header-section-number">5.5</span>
+<h2 data-number="5.6" id="is_sufficiently_aligned-is-not-constexpr"><span class="header-section-number">5.6</span>
 <code>is_sufficiently_aligned</code> is not <code>constexpr</code><a href="#is_sufficiently_aligned-is-not-constexpr" class="self-link"></a></h2>
 <p>LEWG reviewed R1 of this proposal at the June 2024 St. Louis WG21
 meeting, and polled 1/10/0/0/1 (SF/F/N/A/SA) to remove
@@ -968,9 +1021,9 @@ not. On the other hand, the authors could not foresee a need for
 <code>is_sufficiently_aligned</code> to be <code>constexpr</code> and
 did not want to constrain implementations to use compiler-specific
 functionality.</p>
-<h2 data-number="5.6" id="generalize-is_sufficiently_aligned-for-all-accessors"><span class="header-section-number">5.6</span> Generalize
+<h2 data-number="5.7" id="generalize-is_sufficiently_aligned-for-all-accessors"><span class="header-section-number">5.7</span> Generalize
 <code>is_sufficiently_aligned</code> for all accessors?<a href="#generalize-is_sufficiently_aligned-for-all-accessors" class="self-link"></a></h2>
-<h3 data-number="5.6.1" id="is_sufficiently_aligned-is-specific-to-aligned_accessor"><span class="header-section-number">5.6.1</span>
+<h3 data-number="5.7.1" id="is_sufficiently_aligned-is-specific-to-aligned_accessor"><span class="header-section-number">5.7.1</span>
 <code>is_sufficiently_aligned</code> is specific to
 <code>aligned_accessor</code><a href="#is_sufficiently_aligned-is-specific-to-aligned_accessor" class="self-link"></a></h3>
 <p>The <code>is_sufficiently_aligned</code> function exists so users can
@@ -982,7 +1035,7 @@ offers no way for users to check that. More importantly for
 <code>mdspan</code> users, Standard C++ offers no way to check whether a
 pointer and a layout mapping’s <code>required_span_size()</code> form a
 valid range.</p>
-<h3 data-number="5.6.2" id="detectably_invalid-generic-validity-check"><span class="header-section-number">5.6.2</span>
+<h3 data-number="5.7.2" id="detectably_invalid-generic-validity-check"><span class="header-section-number">5.7.2</span>
 <code>detectably_invalid</code>: Generic validity check?<a href="#detectably_invalid-generic-validity-check" class="self-link"></a></h3>
 <p>During the June 2024 St. Louis WG21 meeting, one LEWG reviewer
 (please see Acknowledgments below) pointed out that code that is generic
@@ -1026,7 +1079,7 @@ code should not throw.</p></li>
 <span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> mdspan<span class="op">{</span>handle, mapping, accessor<span class="op">}</span>;</span>
 <span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 data-number="5.6.3" id="arguments-against-and-for-detectably_invalid"><span class="header-section-number">5.6.3</span> Arguments against and for
+<h3 data-number="5.7.3" id="arguments-against-and-for-detectably_invalid"><span class="header-section-number">5.7.3</span> Arguments against and for
 <code>detectably_invalid</code><a href="#arguments-against-and-for-detectably_invalid" class="self-link"></a></h3>
 <p>We didn’t include this feature in the original <code>mdspan</code>
 design because most data handle types have no way to say with full
@@ -1067,7 +1120,7 @@ to check if the pointer points to valid GPU memory. Even
 <div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> detectably_invalid<span class="op">(</span>data_handle_type ptr, <span class="dt">size_t</span> size<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> ptr <span class="op">==</span> <span class="kw">nullptr</span> <span class="op">&amp;&amp;</span> size <span class="op">!=</span> <span class="dv">0</span>;</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 data-number="5.6.4" id="nonmember-customization-point-design"><span class="header-section-number">5.6.4</span> Nonmember customization point
+<h3 data-number="5.7.4" id="nonmember-customization-point-design"><span class="header-section-number">5.7.4</span> Nonmember customization point
 design<a href="#nonmember-customization-point-design" class="self-link"></a></h3>
 <p>C++23 defines the generic interface of accessors through the accessor
 policy requirements
@@ -1110,7 +1163,7 @@ accessors that have the ability to make accurate checks.</p>
 <span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">false</span>;</span>
 <span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 data-number="5.6.5" id="we-need-both-is_sufficiently_aligned-and-detectably_invalid"><span class="header-section-number">5.6.5</span> We need both
+<h3 data-number="5.7.5" id="we-need-both-is_sufficiently_aligned-and-detectably_invalid"><span class="header-section-number">5.7.5</span> We need both
 <code>is_sufficiently_aligned</code> and
 <code>detectably_invalid</code><a href="#we-need-both-is_sufficiently_aligned-and-detectably_invalid" class="self-link"></a></h3>
 <p>The same LEWG reviewer who suggested <code>detectably_invalid</code>
@@ -1132,7 +1185,7 @@ already asserted that the range formed by its data handle and
 <code>required_span_size()</code> is valid. Thus, the only thing the
 user would need to check would be whether the data handle is
 sufficiently aligned.</p>
-<h3 data-number="5.6.6" id="alternative-nonmember-is_sufficiently_aligned"><span class="header-section-number">5.6.6</span> Alternative: Nonmember
+<h3 data-number="5.7.6" id="alternative-nonmember-is_sufficiently_aligned"><span class="header-section-number">5.7.6</span> Alternative: Nonmember
 <code>is_sufficiently_aligned</code><a href="#alternative-nonmember-is_sufficiently_aligned" class="self-link"></a></h3>
 <p>The reviewer responded to our argument above by suggesting that we
 remove <code>is_sufficiently_aligned</code> from
@@ -1147,7 +1200,7 @@ like everything else in the <code>&lt;bit&gt;</code> header. Another
 option would be to put it in <code>&lt;memory&gt;</code> right after
 <code>assume_aligned</code>, and to mark it as freestanding (since
 <code>assume_aligned</code> is).</p>
-<h3 data-number="5.6.7" id="do-accessors-need-to-check-anything-else"><span class="header-section-number">5.6.7</span> Do accessors need to check
+<h3 data-number="5.7.7" id="do-accessors-need-to-check-anything-else"><span class="header-section-number">5.7.7</span> Do accessors need to check
 anything else?<a href="#do-accessors-need-to-check-anything-else" class="self-link"></a></h3>
 <p>The only other thing an accessor’s user might want to check besides a
 (data handle, size) pair would be converting construction from another
@@ -1168,7 +1221,7 @@ accessors, as there would be no risk of ambiguity. Converting
 constructors only take one argument, so there would be no ambiguity
 between calling <code>detectably_invalid</code> with an accessor and
 calling it with a data handle and size.</p>
-<h3 data-number="5.6.8" id="naming-the-function"><span class="header-section-number">5.6.8</span> Naming the function<a href="#naming-the-function" class="self-link"></a></h3>
+<h3 data-number="5.7.8" id="naming-the-function"><span class="header-section-number">5.7.8</span> Naming the function<a href="#naming-the-function" class="self-link"></a></h3>
 <ol type="1">
 <li><p>The function describes a property: “this (data handle, size) pair
 is not known to be invalid.” It’s an adjective (like
@@ -1192,7 +1245,7 @@ type alias of <code>void*</code>​.</p></li>
 </ol>
 <p>These points together suggest the name
 <code>detectably_invalid</code>.</p>
-<h3 data-number="5.6.9" id="conclusions"><span class="header-section-number">5.6.9</span> Conclusions<a href="#conclusions" class="self-link"></a></h3>
+<h3 data-number="5.7.9" id="conclusions"><span class="header-section-number">5.7.9</span> Conclusions<a href="#conclusions" class="self-link"></a></h3>
 <ol type="1">
 <li><p>Adding <code>detectably_invalid</code> to the accessor
 requirements and existing Standard accessors in C++26 would be a
@@ -1215,7 +1268,7 @@ removes <code>is_sufficiently_aligned</code> from
 a separate nonmember function. We think LWG review of
 <code>aligned_accessor</code> can proceed concurrently.</p></li>
 </ol>
-<h2 data-number="5.7" id="explicit-conversions-as-the-model-for-precondition-asserting-conversions"><span class="header-section-number">5.7</span> Explicit conversions as the
+<h2 data-number="5.8" id="explicit-conversions-as-the-model-for-precondition-asserting-conversions"><span class="header-section-number">5.8</span> Explicit conversions as the
 model for precondition-asserting conversions<a href="#explicit-conversions-as-the-model-for-precondition-asserting-conversions" class="self-link"></a></h2>
 <p>During the June 2024 St. Louis WG21 meeting, one LEWG reviewer asked
 about the <code>explicit</code> constructor from
@@ -1226,7 +1279,7 @@ pointer has sufficient alignment to be accessed by the
 more explicit than an <code>explicit</code> constructor: e.g., a new
 <code>*_cast</code> function template. We do not agree with this idea;
 this section explains why.</p>
-<h3 data-number="5.7.1" id="example-conversion-to-aligned_accessor"><span class="header-section-number">5.7.1</span> Example: conversion to
+<h3 data-number="5.8.1" id="example-conversion-to-aligned_accessor"><span class="header-section-number">5.8.1</span> Example: conversion to
 <code>aligned_accessor</code><a href="#example-conversion-to-aligned_accessor" class="self-link"></a></h3>
 <p>Suppose that some function that users can’t change returns an
 <code>mdspan</code> of <code>float</code> with
@@ -1241,7 +1294,7 @@ can’t change. This function takes an <code>mdspan</code> of
 Its return type doesn’t matter for this example.</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>SomeReturnType use_overaligned_view<span class="op">(</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span><span class="dt">float</span>, dims<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;</span>, layout_right, aligned_accessor<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">8</span><span class="op">&gt;&gt;)</span>;</span></code></pre></div>
-<h3 data-number="5.7.2" id="status-quo"><span class="header-section-number">5.7.2</span> Status quo<a href="#status-quo" class="self-link"></a></h3>
+<h3 data-number="5.8.2" id="status-quo"><span class="header-section-number">5.8.2</span> Status quo<a href="#status-quo" class="self-link"></a></h3>
 <p>How do users call <code>use_overaligned_view</code> with the object
 returned from <code>overaligned_view</code>? The status quo offers two
 ways. Both of them rely on
@@ -1275,7 +1328,7 @@ that they have pulled out a sharp knife from the toolbox. It’s verbose,
 it’s nondefault, and it’s a class with a short definition. Users can go
 to the specification, see <code>assume_aligned</code>, and know they are
 dealing with a low-level function that has a precondition.</p>
-<h3 data-number="5.7.3" id="mdspan-uses-explicit-conversions-to-assert-preconditions"><span class="header-section-number">5.7.3</span> <code>mdspan</code> uses
+<h3 data-number="5.8.3" id="mdspan-uses-explicit-conversions-to-assert-preconditions"><span class="header-section-number">5.8.3</span> <code>mdspan</code> uses
 explicit conversions to assert preconditions<a href="#mdspan-uses-explicit-conversions-to-assert-preconditions" class="self-link"></a></h3>
 <p>The entire system of <code>mdspan</code> components was designed so
 that</p>
@@ -1307,7 +1360,7 @@ a <code>string_view</code> or <code>span</code> from a pointer
 range <span class="math inline">[</span> <code>ptr</code>,
 <code>ptr + size</code> <span class="math inline">)</span> is
 accessible.</p>
-<h3 data-number="5.7.4" id="alternative-explicit-cast-function-naughty_cast"><span class="header-section-number">5.7.4</span> Alternative: explicit cast
+<h3 data-number="5.8.4" id="alternative-explicit-cast-function-naughty_cast"><span class="header-section-number">5.8.4</span> Alternative: explicit cast
 function <code>naughty_cast</code><a href="#alternative-explicit-cast-function-naughty_cast" class="self-link"></a></h3>
 <p>Everything we have described above is the status quo. What did the
 one LEWG reviewer want to see? They wanted all conversions with
@@ -1403,7 +1456,7 @@ design approach. For example,
 points for Senders and Receivers”) changes P2300 (std::execution) to use
 member functions instead of <code>tag_invoke</code>-based customization
 points.</p>
-<h3 data-number="5.7.5" id="conclusion-retain-mdspans-current-design"><span class="header-section-number">5.7.5</span> Conclusion: retain
+<h3 data-number="5.8.5" id="conclusion-retain-mdspans-current-design"><span class="header-section-number">5.8.5</span> Conclusion: retain
 <code>mdspan</code>’s current design<a href="#conclusion-retain-mdspans-current-design" class="self-link"></a></h3>
 <p>For all these reasons, we do not support replacing
 <code>mdspan</code>’s current “conversions with preconditions are
