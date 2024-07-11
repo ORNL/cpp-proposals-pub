@@ -84,6 +84,8 @@ toc: true
     * Add non-wording section explaining why `aligned_accessor`
         has no `explicit` constructor from less to more alignment
 
+    * Add Compiler Explorer link with full implementation and demo
+
 # Purpose of this paper
 
 We propose adding `aligned_accessor` to the C++ Standard Library.
@@ -1533,6 +1535,194 @@ int main()
   }
 
   std::cerr << "Made it to the end\n";
+  return 0;
+}
+```
+
+# Appendix B: Implementation and demo
+
+<a href="https://godbolt.org/z/hjqExKaeh">This Compiler Explorer link</a>
+gives a full implementation of `aligned_accessor` and a demonstration.
+We show the full source code from that link here below.
+
+```c++
+#include <https://raw.githubusercontent.com/kokkos/mdspan/single-header/mdspan.hpp>
+#include <bit>
+#include <cassert>
+#include <cmath>
+#if defined(_MSC_VER)
+#  include <cstdlib> // MSVC's _aligned_malloc
+#endif
+#include <exception>
+#include <functional>
+#include <memory>
+#include <numeric>
+#include <type_traits>
+
+namespace stdex = std::experimental;
+
+// P2389 (voted into C++ at June 2024 STL plenary)
+namespace std {
+template<size_t Rank, class IndexType = size_t>
+using dims = dextents<IndexType, Rank>;
+} // namespace std
+
+namespace {
+
+template<class ElementType, std::size_t byte_alignment>
+class aligned_accessor {
+public:
+  static_assert(std::has_single_bit(byte_alignment),
+    "byte_alignment must be a power of two.");
+  static_assert(byte_alignment >= alignof(ElementType),
+    "Insufficient byte alignment for ElementType");
+
+  using offset_policy = stdex::default_accessor<ElementType>;
+  using element_type = ElementType;
+  using reference = ElementType&;
+  using data_handle_type = ElementType*;
+
+  constexpr aligned_accessor() noexcept = default;
+
+  template<
+    class OtherElementType,
+    std::size_t other_byte_alignment>
+  requires(std::is_convertible_v<
+    OtherElementType(*)[], element_type(*)[]>)
+  constexpr aligned_accessor(
+    aligned_accessor<OtherElementType, other_byte_alignment>)
+      noexcept
+  {
+    constexpr size_t the_gcd =
+      std::gcd(other_byte_alignment, byte_alignment);
+    static_assert(the_gcd == byte_alignment);
+  }
+
+  template<class OtherElementType>
+  requires(std::is_convertible_v<
+    OtherElementType(*)[], element_type(*)[]>)
+  constexpr explicit aligned_accessor(
+    stdex::default_accessor<OtherElementType>) noexcept
+  {}
+ 
+  constexpr
+    operator stdex::default_accessor<element_type>() const
+  {
+    return {};
+  }
+
+  constexpr reference
+    access(data_handle_type p, size_t i) const noexcept
+  {
+    return std::assume_aligned<byte_alignment>(p)[i];
+  }
+
+  constexpr typename offset_policy::data_handle_type
+  offset(data_handle_type p, size_t i) const noexcept {
+    return p + i;
+  }
+
+  static bool
+    is_sufficiently_aligned(data_handle_type p) noexcept
+  {
+    return alignof(ElementType) >= byte_alignment && 
+      std::bit_cast<uintptr_t>(p) % byte_alignment == 0;
+  }
+};
+
+template<size_t byte_alignment>
+using aligned_mdspan =
+  std::mdspan<float, std::dims<1, int>, std::layout_right,
+    aligned_accessor<float, byte_alignment>>;
+
+// Interfaces that require 32-byte alignment,
+// because they want to do 8-wide SIMD of float.
+void
+vectorized_axpby(aligned_mdspan<32> y,
+  float alpha, aligned_mdspan<32> x, float beta)
+{
+  assert(x.extent(0) == y.extent(0));
+  for (int k = 0; k < x.extent(0); ++k) {
+    y[k] = beta * y[k] + alpha * x[k]; 
+  }
+}
+
+// 1-norm of the vector y
+float vectorized_norm(aligned_mdspan<32> y)
+{
+  float one_norm = 0.0f;
+  for (int k = 0; k < y.extent(0); ++k) {
+    one_norm += std::fabs(y[k]); 
+  }
+  return one_norm;
+}
+
+// Interfaces that require 16-byte alignment,
+// because they want to do 4-wide SIMD of float.
+void fill_x(aligned_mdspan<16> x) {
+  for (int k = 0; k < x.extent(0); ++k) {
+    x[k] = static_cast<float>(k + 2);
+  }  
+}
+void fill_y(aligned_mdspan<16> y) {
+  for (int k = 0; k < y.extent(0); ++k) {
+    y[k] = static_cast<float>(k - 1);
+  }  
+}
+
+// Helper functions for making overaligned array allocations.
+
+template<class ElementType>
+struct delete_raw {
+  void operator()(ElementType* p) const {
+    std::free(p);
+  }
+};
+
+template<class ElementType>
+using allocation =
+  std::unique_ptr<ElementType[], delete_raw<ElementType>>;
+
+template<class ElementType, std::size_t byte_alignment>
+allocation<ElementType> allocate_raw(const std::size_t num_elements)
+{
+  const std::size_t num_bytes = num_elements * sizeof(ElementType);
+  float* ptr = reinterpret_cast<float*>(
+#if defined(_MSC_VER)
+    _aligned_malloc(byte_alignment, num_bytes)
+#else
+    std::aligned_alloc(byte_alignment, num_bytes)
+#endif
+  );
+  return {ptr, delete_raw<ElementType>{}};
+}
+
+float user_function(size_t num_elements, float alpha, float beta)
+{
+  constexpr size_t max_byte_alignment = 32;
+  // unique_ptr<float[], deleter_something>
+  auto x_alloc = allocate_raw<float, max_byte_alignment>(num_elements);
+  auto y_alloc = allocate_raw<float, max_byte_alignment>(num_elements);
+
+  aligned_mdspan<max_byte_alignment> x(x_alloc.get(), num_elements);
+  aligned_mdspan<max_byte_alignment> y(y_alloc.get(), num_elements);
+
+  // expect aligned_mdspan<16>, get aligned_mdspan<32>
+  fill_x(x); // automatic conversion from 32-byte aligned to 16-byte aligned
+  fill_y(y); // automatic conversion again
+
+  // expect aligned_mdspan<32>, get aligned_mdspan<32>
+  vectorized_axpby(y, alpha, x, beta);
+  return vectorized_norm(y);
+}
+
+} // namespace (anonymous)
+
+int main(int argc, char* argv[])
+{
+  float result = user_function(10, 1.0f, -1.0f);
+  // 3 + 3 + ... + 3 = 30
+  assert(result == 30.0f);
   return 0;
 }
 ```
