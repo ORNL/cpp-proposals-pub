@@ -1042,6 +1042,7 @@ design with a cast function design.
 
 We have tested an implementation of this proposal with the
 [reference mdspan implementation](https://github.com/kokkos/mdspan/).
+Appendix B below lists the source code of a full implementation.
 
 # Example
 
