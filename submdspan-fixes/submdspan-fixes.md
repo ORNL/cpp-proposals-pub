@@ -22,9 +22,15 @@ We propose the following fixes to `submdspan` for C++26.
 
 ## Permit user-defined pair types
 
+### Requirement is currently an opt-in type list
+
 Users sometimes want to express "a pair of integers" using types other than `std::tuple` or `std::pair`.  For example, users might want their representation of a pair of two `integral_constant` to be an empty class, but a `std::tuple` of two elements is not empty.  (This is because `get<0>` and `get<1>` must return references to their corresponding members.)  However, the current requirements for a `submdspan` "pair of integers" slice, _`index-pair-like`_, include _`pair-like`_.  This in turn includes _`tuple-like`_, an exposition-only concept which is an opt-in list of types: `array`, `complex`, `pair`, `tuple`, or `ranges​::​subrange` (see **[tuple.like]**).  As a result, a user-defined type cannot model _`tuple-like`_.
 
-What users want here is that structured binding works for their type, and results in two elements, each of which is convertible to the layout mapping's `index_type`.  That last `convertible_to<index_type>` requirement doesn't just support integers and _`integral-constant-like`_ types; it also supports more interesting types like "strong typedefs" that wrap integers to give them meaning.  A common use case for integer strong typedefs like this is to help prevent common bugs like mixing up loop indices.  Here is a somewhat contrived example from the finite-element method for solving partial differential equations. 
+### Requirement should depend on structured binding instead
+
+The author of this proposal is a coauthor of P2630, and has asked the other authors of P2630 what they intended.  The authors of P2630 always intended to support user-defined "pair-like" slice types.  How they meant to define "pair-like" is that structured binding works for the slice type, and results in two elements, each of which is convertible to the layout mapping's `index_type`.  We can express "structured binding works" using the language of <a href="https://eel.is/c++draft/dcl.struct.bind#4">**[dcl.struct.bind]** 4</a>.  The key is that `tuple_size_v<T>` is a "well-formed integral constant expression."  If it's also equal to 2, then we have a "pair of indices" slice.
+
+That last `convertible_to<index_type>` requirement doesn't just support integers and _`integral-constant-like`_ types; it also supports more interesting types like "strong typedefs" that wrap integers to give them meaning.  A common use case for integer strong typedefs like this is to help prevent common bugs like mixing up loop indices.  Here is a somewhat contrived example from the finite-element method for solving partial differential equations. 
 
 ```c++
 for (Element e = {}; e < num_elements; ++e) {
@@ -40,9 +46,39 @@ for (Element e = {}; e < num_elements; ++e) {
 }
 ```
 
-The `convertible_to<index_type>` requirement has perhaps surprising results.  For example, `complex<float>(1.25f, 3.75f)` is a valid slice with the same meaning as `tuple<int, int>{1, 4}`.  On the other hand, the set of valid types for a "pair of indices" slice should be the same as the set of types that `mdspan`'s `operator[]` accepts.  If `x[1.25f]` works for an `mdspan` or even an `array` or `vector` `x`, then we see no reason why `tuple{1.25f, 3.75f}` or even `complex<float>{1.25f, 3.75f}` shouldn't work as a slice.
+### Yes, `complex` is a valid slice type; it already was
 
-We can express "structured binding works" using the language of <a href="https://eel.is/c++draft/dcl.struct.bind#4">**[dcl.struct.bind]** 4</a>.  The key is that `tuple_size_v<T>` is a "well-formed integral constant expression."  If it's also equal to 2, then we have a "pair of indices" slice.
+1. `complex` is a valid slice type; it was already before this proposal.
+
+2. We don't propose to change that here, because it would break consistency between `mdspan`'s `operator[]` and the index type used by slices.
+
+Some users might find it surprising that `complex<float>(1.25f, 3.75f)` is a valid slice with the same meaning as `tuple<int, int>{1, 4}`.  This is true in the current Working Draft, because adoption of <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2819r2.pdf">P2819R2</a> ("Add tuple protocol to complex") added `complex` to the opt-in list of _`tuple-like`_ types.  A valid "pair-like" slice has two requirements:
+
+1. _`pair-like`_ (that is, _`tuple-like`_ with two elements); and
+
+2. the elements are (implicitly) convertible to the `mdspan`'s `index_type`.
+
+The type `complex<float>` is _`pair-like`_ due to P2819R2's adoption, and its element type `float` is implicitly convertible to `int`.  Even though this proposal would change the _`pair-like`_ requirement on slices, it would only strictly enlarge the set of valid slice types.
+
+### Slice elements are indices, so they have the same requirements
+
+The `convertible_to<index_type>` requirement exists for good reason: it's the same as the requirement on types that `mdspan`'s `operator[]` accepts.  A slice represents a finite set of indices, and a "pair-like" slice specifically represents an interval with a finite lower and upper bound, both of which are indices.  `x[1.25f]` works if `x` is an `mdspan`, an `array`, a `vector`, or even a raw array.  Thus, we see no reason why `tuple{1.25f, 3.75f}` or even `complex<float>{1.25f, 3.75f}` shouldn't work as a slice.
+
+One could carve out an exception like "but not `complex<T>` for any `T`."  However, that would have two issues.  First, it would still permit types like `tuple<float>`.  Second, it would permit user-defined complex types with floating-point element type, as long as those types define the tuple protocol.  Support for user-defined complex types is a feature of the linear algebra proposal P1673, which was adopted into the Working Draft.  In general, while we might be able to exclude `complex` specifically, we don't have a way to define the open-ended set of types that "maybe shouldn't be treated as pair-like slices even though this works just fine syntactically."  For this reason, we do not propose treating `complex` differently than any other pair-like type.
+
+If we wanted to carve out an exception like "convertible to `index_type`, but not a floating-point type," then that would still permit class types that wrap a floating-point number, but are convertible to an integral type, like this.
+```c++
+struct WrappedFloat {
+  float value_;
+
+  operator int() const {
+    return value_;
+  }
+};
+```
+Again, we find impossible to define the open-ended set of types that "maybe shouldn't be used as array indices."
+
+The key rule is that the set of types permitted in slices should be the same as the set of types permitted in `mdspan::operator[]`.  We should never change those two requirements separately.  This rule would still let us carve out exceptions for the "pair-like" types themselves (e.g., we could forbid `complex`, even though we do not here), but not for the members of the pair-like types.
 
 ## Preserve contiguity with compile-time extent
 

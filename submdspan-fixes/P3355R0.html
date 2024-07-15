@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-07-12" />
+  <meta name="dcterms.date" content="2024-07-14" />
   <title>Fix submdspan for C++26</title>
   <style>
 code{white-space: pre-wrap;}
@@ -424,7 +424,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2024-07-12</td>
+    <td>2024-07-14</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -449,8 +449,17 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <li><a href="#abstract" id="toc-abstract"><span class="toc-section-number">2</span> Abstract</a></li>
 <li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">3</span> Motivation</a>
 <ul>
-<li><a href="#permit-user-defined-pair-types" id="toc-permit-user-defined-pair-types"><span class="toc-section-number">3.1</span> Permit user-defined pair
-types</a></li>
+<li><a href="#permit-user-defined-pair-types" id="toc-permit-user-defined-pair-types"><span class="toc-section-number">3.1</span> Permit user-defined pair types</a>
+<ul>
+<li><a href="#requirement-is-currently-an-opt-in-type-list" id="toc-requirement-is-currently-an-opt-in-type-list"><span class="toc-section-number">3.1.1</span> Requirement is currently an
+opt-in type list</a></li>
+<li><a href="#requirement-should-depend-on-structured-binding-instead" id="toc-requirement-should-depend-on-structured-binding-instead"><span class="toc-section-number">3.1.2</span> Requirement should depend on
+structured binding instead</a></li>
+<li><a href="#yes-complex-is-a-valid-slice-type-it-already-was" id="toc-yes-complex-is-a-valid-slice-type-it-already-was"><span class="toc-section-number">3.1.3</span> Yes, <code>complex</code> is a
+valid slice type; it already was</a></li>
+<li><a href="#slice-elements-are-indices-so-they-have-the-same-requirements" id="toc-slice-elements-are-indices-so-they-have-the-same-requirements"><span class="toc-section-number">3.1.4</span> Slice elements are indices, so
+they have the same requirements</a></li>
+</ul></li>
 <li><a href="#preserve-contiguity-with-compile-time-extent" id="toc-preserve-contiguity-with-compile-time-extent"><span class="toc-section-number">3.2</span> Preserve contiguity with
 compile-time extent</a>
 <ul>
@@ -489,6 +498,8 @@ cause common layouts to devolve into
 <h1 data-number="3" id="motivation"><span class="header-section-number">3</span> Motivation<a href="#motivation" class="self-link"></a></h1>
 <h2 data-number="3.1" id="permit-user-defined-pair-types"><span class="header-section-number">3.1</span> Permit user-defined pair
 types<a href="#permit-user-defined-pair-types" class="self-link"></a></h2>
+<h3 data-number="3.1.1" id="requirement-is-currently-an-opt-in-type-list"><span class="header-section-number">3.1.1</span> Requirement is currently an
+opt-in type list<a href="#requirement-is-currently-an-opt-in-type-list" class="self-link"></a></h3>
 <p>Users sometimes want to express “a pair of integers” using types
 other than <code>std::tuple</code> or <code>std::pair</code>. For
 example, users might want their representation of a pair of two
@@ -504,16 +515,27 @@ opt-in list of types: <code>array</code>, <code>complex</code>,
 <code>pair</code>, <code>tuple</code>, or <code>ranges​::​subrange</code>
 (see <strong>[tuple.like]</strong>). As a result, a user-defined type
 cannot model <em><code>tuple-like</code></em>.</p>
-<p>What users want here is that structured binding works for their type,
-and results in two elements, each of which is convertible to the layout
-mapping’s <code>index_type</code>. That last
-<code>convertible_to&lt;index_type&gt;</code> requirement doesn’t just
-support integers and <em><code>integral-constant-like</code></em> types;
-it also supports more interesting types like “strong typedefs” that wrap
-integers to give them meaning. A common use case for integer strong
-typedefs like this is to help prevent common bugs like mixing up loop
-indices. Here is a somewhat contrived example from the finite-element
-method for solving partial differential equations.</p>
+<h3 data-number="3.1.2" id="requirement-should-depend-on-structured-binding-instead"><span class="header-section-number">3.1.2</span> Requirement should depend on
+structured binding instead<a href="#requirement-should-depend-on-structured-binding-instead" class="self-link"></a></h3>
+<p>The author of this proposal is a coauthor of P2630, and has asked the
+other authors of P2630 what they intended. The authors of P2630 always
+intended to support user-defined “pair-like” slice types. How they meant
+to define “pair-like” is that structured binding works for the slice
+type, and results in two elements, each of which is convertible to the
+layout mapping’s <code>index_type</code>. We can express “structured
+binding works” using the language of
+<a href="https://eel.is/c++draft/dcl.struct.bind#4"><strong>[dcl.struct.bind]</strong>
+4</a>. The key is that <code>tuple_size_v&lt;T&gt;</code> is a
+“well-formed integral constant expression.” If it’s also equal to 2,
+then we have a “pair of indices” slice.</p>
+<p>That last <code>convertible_to&lt;index_type&gt;</code> requirement
+doesn’t just support integers and
+<em><code>integral-constant-like</code></em> types; it also supports
+more interesting types like “strong typedefs” that wrap integers to give
+them meaning. A common use case for integer strong typedefs like this is
+to help prevent common bugs like mixing up loop indices. Here is a
+somewhat contrived example from the finite-element method for solving
+partial differential equations.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="op">(</span>Element e <span class="op">=</span> <span class="op">{}</span>; e <span class="op">&lt;</span> num_elements; <span class="op">++</span>e<span class="op">)</span> <span class="op">{</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span>FaceOffset fo <span class="op">=</span> faces_begin<span class="op">[</span>e<span class="op">]</span>; fo <span class="op">&lt;</span> faces_end<span class="op">[</span>e<span class="op">]</span>; <span class="op">++</span>fo<span class="op">)</span> <span class="op">{</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    Face f <span class="op">=</span> faces<span class="op">[</span>fo<span class="op">]</span>; <span class="co">// faces live in a flat array</span></span>
@@ -525,23 +547,81 @@ method for solving partial differential equations.</p>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    store_integration_result<span class="op">(</span>f, sum<span class="op">)</span>;</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>The <code>convertible_to&lt;index_type&gt;</code> requirement has
-perhaps surprising results. For example,
+<h3 data-number="3.1.3" id="yes-complex-is-a-valid-slice-type-it-already-was"><span class="header-section-number">3.1.3</span> Yes, <code>complex</code> is
+a valid slice type; it already was<a href="#yes-complex-is-a-valid-slice-type-it-already-was" class="self-link"></a></h3>
+<ol type="1">
+<li><p><code>complex</code> is a valid slice type; it was already before
+this proposal.</p></li>
+<li><p>We don’t propose to change that here, because it would break
+consistency between <code>mdspan</code>’s <code>operator[]</code> and
+the index type used by slices.</p></li>
+</ol>
+<p>Some users might find it surprising that
 <code>complex&lt;float&gt;(1.25f, 3.75f)</code> is a valid slice with
-the same meaning as <code>tuple&lt;int, int&gt;{1, 4}</code>. On the
-other hand, the set of valid types for a “pair of indices” slice should
-be the same as the set of types that <code>mdspan</code>’s
-<code>operator[]</code> accepts. If <code>x[1.25f]</code> works for an
-<code>mdspan</code> or even an <code>array</code> or <code>vector</code>
-<code>x</code>, then we see no reason why
+the same meaning as <code>tuple&lt;int, int&gt;{1, 4}</code>. This is
+true in the current Working Draft, because adoption of
+<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2819r2.pdf">P2819R2</a>
+(“Add tuple protocol to complex”) added <code>complex</code> to the
+opt-in list of <em><code>tuple-like</code></em> types. A valid
+“pair-like” slice has two requirements:</p>
+<ol type="1">
+<li><p><em><code>pair-like</code></em> (that is,
+<em><code>tuple-like</code></em> with two elements); and</p></li>
+<li><p>the elements are (implicitly) convertible to the
+<code>mdspan</code>’s <code>index_type</code>.</p></li>
+</ol>
+<p>The type <code>complex&lt;float&gt;</code> is
+<em><code>pair-like</code></em> due to P2819R2’s adoption, and its
+element type <code>float</code> is implicitly convertible to
+<code>int</code>. Even though this proposal would change the
+<em><code>pair-like</code></em> requirement on slices, it would only
+strictly enlarge the set of valid slice types.</p>
+<h3 data-number="3.1.4" id="slice-elements-are-indices-so-they-have-the-same-requirements"><span class="header-section-number">3.1.4</span> Slice elements are indices,
+so they have the same requirements<a href="#slice-elements-are-indices-so-they-have-the-same-requirements" class="self-link"></a></h3>
+<p>The <code>convertible_to&lt;index_type&gt;</code> requirement exists
+for good reason: it’s the same as the requirement on types that
+<code>mdspan</code>’s <code>operator[]</code> accepts. A slice
+represents a finite set of indices, and a “pair-like” slice specifically
+represents an interval with a finite lower and upper bound, both of
+which are indices. <code>x[1.25f]</code> works if <code>x</code> is an
+<code>mdspan</code>, an <code>array</code>, a <code>vector</code>, or
+even a raw array. Thus, we see no reason why
 <code>tuple{1.25f, 3.75f}</code> or even
 <code>complex&lt;float&gt;{1.25f, 3.75f}</code> shouldn’t work as a
 slice.</p>
-<p>We can express “structured binding works” using the language of
-<a href="https://eel.is/c++draft/dcl.struct.bind#4"><strong>[dcl.struct.bind]</strong>
-4</a>. The key is that <code>tuple_size_v&lt;T&gt;</code> is a
-“well-formed integral constant expression.” If it’s also equal to 2,
-then we have a “pair of indices” slice.</p>
+<p>One could carve out an exception like “but not
+<code>complex&lt;T&gt;</code> for any <code>T</code>.” However, that
+would have two issues. First, it would still permit types like
+<code>tuple&lt;float&gt;</code>. Second, it would permit user-defined
+complex types with floating-point element type, as long as those types
+define the tuple protocol. Support for user-defined complex types is a
+feature of the linear algebra proposal P1673, which was adopted into the
+Working Draft. In general, while we might be able to exclude
+<code>complex</code> specifically, we don’t have a way to define the
+open-ended set of types that “maybe shouldn’t be treated as pair-like
+slices even though this works just fine syntactically.” For this reason,
+we do not propose treating <code>complex</code> differently than any
+other pair-like type.</p>
+<p>If we wanted to carve out an exception like “convertible to
+<code>index_type</code>, but not a floating-point type,” then that would
+still permit class types that wrap a floating-point number, but are
+convertible to an integral type, like this.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> WrappedFloat <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span> value_;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">operator</span> <span class="dt">int</span><span class="op">()</span> <span class="kw">const</span> <span class="op">{</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> value_;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
+<p>Again, we find impossible to define the open-ended set of types that
+“maybe shouldn’t be used as array indices.”</p>
+<p>The key rule is that the set of types permitted in slices should be
+the same as the set of types permitted in
+<code>mdspan::operator[]</code>. We should never change those two
+requirements separately. This rule would still let us carve out
+exceptions for the “pair-like” types themselves (e.g., we could forbid
+<code>complex</code>, even though we do not here), but not for the
+members of the pair-like types.</p>
 <h2 data-number="3.2" id="preserve-contiguity-with-compile-time-extent"><span class="header-section-number">3.2</span> Preserve contiguity with
 compile-time extent<a href="#preserve-contiguity-with-compile-time-extent" class="self-link"></a></h2>
 <h3 data-number="3.2.1" id="vectorization-example"><span class="header-section-number">3.2.1</span> Vectorization example<a href="#vectorization-example" class="self-link"></a></h3>
@@ -553,94 +633,94 @@ the array is aligned to <code>8 * sizeof(float)</code> (32) bytes. In
 practice, plenty of libraries exist to optimize 1-D array copy. This is
 just an example that simplifies the use cases for explicit 8-wide SIMD
 enough to show in a brief proposal.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> ext, <span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> aligned_array_view <span class="op">=</span> mdspan<span class="op">&lt;</span>ElementType,</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span><span class="dt">int</span>, ext<span class="op">&gt;</span>, layout_right,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  aligned_accessor<span class="op">&lt;</span>ElementType, byte_alignment<span class="op">&gt;&gt;</span>;</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>copy_8_floats<span class="op">(</span>aligned_array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, <span class="dv">8</span>, <span class="dv">32</span><span class="op">&gt;</span> src,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  aligned_array_view<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">8</span>, <span class="dv">32</span><span class="op">&gt;</span> dst<span class="op">)</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// One would instead use a hardware instruction for aligned copy,</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// or a &quot;simd&quot; or &quot;unroll&quot; pragma.</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">8</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    dst<span class="op">[</span>k<span class="op">]</span> <span class="op">=</span> src<span class="op">[</span>k<span class="op">]</span>;</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> ext, <span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> aligned_array_view <span class="op">=</span> mdspan<span class="op">&lt;</span>ElementType,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  extents<span class="op">&lt;</span><span class="dt">int</span>, ext<span class="op">&gt;</span>, layout_right,</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  aligned_accessor<span class="op">&lt;</span>ElementType, byte_alignment<span class="op">&gt;&gt;</span>;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>copy_8_floats<span class="op">(</span>aligned_array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, <span class="dv">8</span>, <span class="dv">32</span><span class="op">&gt;</span> src,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  aligned_array_view<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">8</span>, <span class="dv">32</span><span class="op">&gt;</span> dst<span class="op">)</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// One would instead use a hardware instruction for aligned copy,</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// or a &quot;simd&quot; or &quot;unroll&quot; pragma.</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> <span class="dv">8</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    dst<span class="op">[</span>k<span class="op">]</span> <span class="op">=</span> src<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The natural next step would be to use <code>copy_8_floats</code> to
 implement copying 1-D <code>float</code> arrays by the usual
 “strip-mining” approach.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> array_view <span class="op">=</span> mdspan<span class="op">&lt;</span>ElementType, dims<span class="op">&lt;</span><span class="dv">1</span>, <span class="dt">int</span><span class="op">&gt;&gt;</span>;</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> slow_copy<span class="op">(</span>array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span><span class="op">&gt;</span> src, array_view<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> dst<span class="op">)</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> dst<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">))</span>;</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    dst<span class="op">[</span>k<span class="op">]</span> <span class="op">=</span> src<span class="op">[</span>k<span class="op">]</span>;</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> vector_length<span class="op">&gt;</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> strip_mined_copy<span class="op">(</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  aligned_array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, dynamic_extent,</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    vector_length <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;</span> src,</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  aligned_array_view<span class="op">&lt;</span>      <span class="dt">float</span>, dynamic_extent,</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    vector_length <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;</span> dst<span class="op">)</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> dst<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">))</span>;</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">%</span> vector_length <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> beg <span class="op">=</span> <span class="dv">0</span>; beg <span class="op">&lt;</span> src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; beg <span class="op">+=</span> vector_length<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> one <span class="op">=</span> std<span class="op">::</span>integral_constant<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">1</span><span class="op">&gt;{}</span>;</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> vec_len <span class="op">=</span> std<span class="op">::</span>integral_constant<span class="op">&lt;</span><span class="dt">int</span>, vector_length<span class="op">&gt;{}</span>;</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Using strided_slice lets the extent be a compile-time constant.</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">// tuple{beg, beg + vector_length} would result in dynamic_extent.</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> vector_slice <span class="op">=</span></span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>      strided_slice<span class="op">{.</span>offset<span class="op">=</span>dst_lower, <span class="op">.</span>extent<span class="op">=</span>vector_length, <span class="op">.</span>stride<span class="op">=</span>one<span class="op">}</span>;</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">// PROBLEM: Current wording makes this always layout_stride,</span></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">// but we know that it could be layout_right.</span></span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> src_slice <span class="op">=</span> submdspan<span class="op">(</span>src, vector_slice<span class="op">)</span>;</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> dst_slice <span class="op">=</span> submdspan<span class="op">(</span>dst, vector_slice<span class="op">)</span>;</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>    copy_8_floats<span class="op">(</span>src_slice, dst_slice<span class="op">)</span>;</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span><span class="op">&gt;</span> src, array_view<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> dst<span class="op">)</span></span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> dst<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">))</span>;</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">int</span> vector_length <span class="op">=</span> <span class="dv">8</span>;</span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Handle possibly unaligned prefix of less than vector_length elements. </span></span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> aligned_starting_index <span class="op">=</span> <span class="op">[](</span><span class="kw">auto</span><span class="op">*</span> ptr<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> v <span class="op">=</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">unsigned</span><span class="op">&gt;(</span>vector_length<span class="op">)</span>;</span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> ptr_value <span class="op">=</span> <span class="kw">reinterpret_cast</span><span class="op">&lt;</span><span class="dt">uintptr_t</span><span class="op">&gt;(</span>ptr_value<span class="op">)</span>;</span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> remainder <span class="op">=</span> ptr_value <span class="op">%</span> v;</span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>ptr_value <span class="op">+</span> <span class="op">(</span>v <span class="op">-</span> remainder<span class="op">)</span> <span class="op">%</span> v<span class="op">)</span>;</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> src_beg <span class="op">=</span> aligned_starting_index<span class="op">(</span>src<span class="op">.</span>data<span class="op">())</span>;</span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> dst_beg <span class="op">=</span> aligned_starting_index<span class="op">(</span>dst<span class="op">.</span>data<span class="op">())</span>;</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(</span>src_beg <span class="op">!=</span> dst_beg<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>    slow_copy<span class="op">(</span>src, dst<span class="op">)</span>;</span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>;</span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>  slow_copy<span class="op">(</span>submdspan<span class="op">(</span>src, tuple<span class="op">{</span><span class="dv">0</span>, src_beg<span class="op">})</span>,</span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>    submdspan<span class="op">(</span>dst, tuple<span class="op">{</span><span class="dv">0</span>, dst_beg<span class="op">}))</span>;</span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Strip-mine the aligned vector_length segments of the array.</span></span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> src_end <span class="op">=</span> <span class="op">(</span>src<span class="op">.</span>size<span class="op">()</span> <span class="op">/</span> vector_length<span class="op">)</span> <span class="op">*</span> vector_length;</span>
-<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> dst_end <span class="op">=</span> <span class="op">(</span>dst<span class="op">.</span>size<span class="op">()</span> <span class="op">/</span> vector_length<span class="op">)</span> <span class="op">*</span> vector_length;</span>
-<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>  strip_mined_copy<span class="op">&lt;</span><span class="dv">8</span><span class="op">&gt;(</span>submdspan<span class="op">(</span>src, tuple<span class="op">{</span>src_beg, src_end<span class="op">})</span>,</span>
-<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a>    submdspan<span class="op">(</span>dst, tuple<span class="op">{</span>dst_beg, dst_end<span class="op">}))</span>;</span>
-<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Handle suffix of less than vector_length elements.</span></span>
-<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>  slow_copy<span class="op">(</span>submdspan<span class="op">(</span>src, tuple<span class="op">{</span>src_end, src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)})</span>,</span>
-<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>    submdspan<span class="op">(</span>dst, tuple<span class="op">{</span>dst_end, dst<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)}))</span>;</span>
-<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> array_view <span class="op">=</span> mdspan<span class="op">&lt;</span>ElementType, dims<span class="op">&lt;</span><span class="dv">1</span>, <span class="dt">int</span><span class="op">&gt;&gt;</span>;</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> slow_copy<span class="op">(</span>array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span><span class="op">&gt;</span> src, array_view<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> dst<span class="op">)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> dst<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">))</span>;</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> k <span class="op">=</span> <span class="dv">0</span>; k <span class="op">&lt;</span> src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; <span class="op">++</span>k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    dst<span class="op">[</span>k<span class="op">]</span> <span class="op">=</span> src<span class="op">[</span>k<span class="op">]</span>;</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> vector_length<span class="op">&gt;</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> strip_mined_copy<span class="op">(</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  aligned_array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, dynamic_extent,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    vector_length <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;</span> src,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  aligned_array_view<span class="op">&lt;</span>      <span class="dt">float</span>, dynamic_extent,</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    vector_length <span class="op">*</span> <span class="kw">sizeof</span><span class="op">(</span><span class="dt">float</span><span class="op">)&gt;</span> dst<span class="op">)</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> dst<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">))</span>;</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">%</span> vector_length <span class="op">==</span> <span class="dv">0</span><span class="op">)</span>;</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> beg <span class="op">=</span> <span class="dv">0</span>; beg <span class="op">&lt;</span> src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span>; beg <span class="op">+=</span> vector_length<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> one <span class="op">=</span> std<span class="op">::</span>integral_constant<span class="op">&lt;</span><span class="dt">int</span>, <span class="dv">1</span><span class="op">&gt;{}</span>;</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> vec_len <span class="op">=</span> std<span class="op">::</span>integral_constant<span class="op">&lt;</span><span class="dt">int</span>, vector_length<span class="op">&gt;{}</span>;</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Using strided_slice lets the extent be a compile-time constant.</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">// tuple{beg, beg + vector_length} would result in dynamic_extent.</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> vector_slice <span class="op">=</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>      strided_slice<span class="op">{.</span>offset<span class="op">=</span>dst_lower, <span class="op">.</span>extent<span class="op">=</span>vector_length, <span class="op">.</span>stride<span class="op">=</span>one<span class="op">}</span>;</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="co">// PROBLEM: Current wording makes this always layout_stride,</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    <span class="co">// but we know that it could be layout_right.</span></span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> src_slice <span class="op">=</span> submdspan<span class="op">(</span>src, vector_slice<span class="op">)</span>;</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> dst_slice <span class="op">=</span> submdspan<span class="op">(</span>dst, vector_slice<span class="op">)</span>;</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    copy_8_floats<span class="op">(</span>src_slice, dst_slice<span class="op">)</span>;</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span><span class="op">&gt;</span> src, array_view<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> dst<span class="op">)</span></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>  <span class="ot">assert</span><span class="op">(</span>src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)</span> <span class="op">==</span> dst<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">))</span>;</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">constexpr</span> <span class="dt">int</span> vector_length <span class="op">=</span> <span class="dv">8</span>;</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Handle possibly unaligned prefix of less than vector_length elements. </span></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  <span class="kw">auto</span> aligned_starting_index <span class="op">=</span> <span class="op">[](</span><span class="kw">auto</span><span class="op">*</span> ptr<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">constexpr</span> <span class="kw">auto</span> v <span class="op">=</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">unsigned</span><span class="op">&gt;(</span>vector_length<span class="op">)</span>;</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> ptr_value <span class="op">=</span> <span class="kw">reinterpret_cast</span><span class="op">&lt;</span><span class="dt">uintptr_t</span><span class="op">&gt;(</span>ptr_value<span class="op">)</span>;</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>    <span class="kw">auto</span> remainder <span class="op">=</span> ptr_value <span class="op">%</span> v;</span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>ptr_value <span class="op">+</span> <span class="op">(</span>v <span class="op">-</span> remainder<span class="op">)</span> <span class="op">%</span> v<span class="op">)</span>;</span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span>;</span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> src_beg <span class="op">=</span> aligned_starting_index<span class="op">(</span>src<span class="op">.</span>data<span class="op">())</span>;</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> dst_beg <span class="op">=</span> aligned_starting_index<span class="op">(</span>dst<span class="op">.</span>data<span class="op">())</span>;</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="op">(</span>src_beg <span class="op">!=</span> dst_beg<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>    slow_copy<span class="op">(</span>src, dst<span class="op">)</span>;</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>;</span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>  slow_copy<span class="op">(</span>submdspan<span class="op">(</span>src, tuple<span class="op">{</span><span class="dv">0</span>, src_beg<span class="op">})</span>,</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>    submdspan<span class="op">(</span>dst, tuple<span class="op">{</span><span class="dv">0</span>, dst_beg<span class="op">}))</span>;</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Strip-mine the aligned vector_length segments of the array.</span></span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> src_end <span class="op">=</span> <span class="op">(</span>src<span class="op">.</span>size<span class="op">()</span> <span class="op">/</span> vector_length<span class="op">)</span> <span class="op">*</span> vector_length;</span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> dst_end <span class="op">=</span> <span class="op">(</span>dst<span class="op">.</span>size<span class="op">()</span> <span class="op">/</span> vector_length<span class="op">)</span> <span class="op">*</span> vector_length;</span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>  strip_mined_copy<span class="op">&lt;</span><span class="dv">8</span><span class="op">&gt;(</span>submdspan<span class="op">(</span>src, tuple<span class="op">{</span>src_beg, src_end<span class="op">})</span>,</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    submdspan<span class="op">(</span>dst, tuple<span class="op">{</span>dst_beg, dst_end<span class="op">}))</span>;</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Handle suffix of less than vector_length elements.</span></span>
+<span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a>  slow_copy<span class="op">(</span>submdspan<span class="op">(</span>src, tuple<span class="op">{</span>src_end, src<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)})</span>,</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a>    submdspan<span class="op">(</span>dst, tuple<span class="op">{</span>dst_end, dst<span class="op">.</span>extent<span class="op">(</span><span class="dv">0</span><span class="op">)}))</span>;</span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>The <code>strip_mined_copy</code> function must use
 <code>strided_slice</code> to get slices of 8 elements at a time, rather
 than <code>tuple</code>. This ensures that the resulting extent is a
@@ -676,10 +756,10 @@ because it would complicate both of them quite a bit.</p>
 <a href="https://eel.is/c++draft/views.multidim#mdspan.submdspan.submdspan-6"><strong>[mdspan.submdspan.submdspan]</strong>
 6</a> says that <code>submdspan(src, slices...)</code> has effects
 equivalent to the following.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sub_map_offset <span class="op">=</span> submdspan_mapping<span class="op">(</span>src<span class="op">.</span>mapping<span class="op">()</span>, slices<span class="op">...)</span>;</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> mdspan<span class="op">(</span>src<span class="op">.</span>accessor<span class="op">().</span>offset<span class="op">(</span>src<span class="op">.</span>data<span class="op">()</span>, sub_map_offset<span class="op">.</span>offset<span class="op">)</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>              sub_map_offset<span class="op">.</span>mapping,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>              AccessorPolicy<span class="op">::</span>offset_policy<span class="op">(</span>src<span class="op">.</span>accessor<span class="op">()))</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> sub_map_offset <span class="op">=</span> submdspan_mapping<span class="op">(</span>src<span class="op">.</span>mapping<span class="op">()</span>, slices<span class="op">...)</span>;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> mdspan<span class="op">(</span>src<span class="op">.</span>accessor<span class="op">().</span>offset<span class="op">(</span>src<span class="op">.</span>data<span class="op">()</span>, sub_map_offset<span class="op">.</span>offset<span class="op">)</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>              sub_map_offset<span class="op">.</span>mapping,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>              AccessorPolicy<span class="op">::</span>offset_policy<span class="op">(</span>src<span class="op">.</span>accessor<span class="op">()))</span>;</span></code></pre></div>
 <p>The problem is
 <code>AccessorPolicy::offset_policy(src.accessor())</code>. The type
 <code>offset_policy</code> is the wrong type in this case,
@@ -714,12 +794,12 @@ in this case is <code>default_accessor</code>).</p></li>
 <p>The work-around is to convert the result of <code>submdspan</code> by
 hand to use the desired accessor. In the above <code>copy</code>
 example, one would replace the line</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>    copy_8_floats<span class="op">(</span>src_slice, dst_slice<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>    copy_8_floats<span class="op">(</span>src_slice, dst_slice<span class="op">)</span>;</span></code></pre></div>
 <p>with the following, that depends on <code>aligned_accessor</code>’s
 <code>explicit</code> constructor from
 <code>default_accessor</code>.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>    copy_8_floats<span class="op">(</span>aligned_array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, <span class="dv">8</span>, <span class="dv">32</span><span class="op">&gt;{</span>src<span class="op">}</span>,</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>      aligned_array_view<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">8</span>, <span class="dv">32</span><span class="op">&gt;{</span>dst<span class="op">})</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>    copy_8_floats<span class="op">(</span>aligned_array_view<span class="op">&lt;</span><span class="kw">const</span> <span class="dt">float</span>, <span class="dv">8</span>, <span class="dv">32</span><span class="op">&gt;{</span>src<span class="op">}</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>      aligned_array_view<span class="op">&lt;</span><span class="dt">float</span>, <span class="dv">8</span>, <span class="dv">32</span><span class="op">&gt;{</span>dst<span class="op">})</span>;</span></code></pre></div>
 <p>Given that this work-around is easy to do, should only be needed for
 a few special cases, and avoids a big design change to the accessor
 policy requirements, we don’t propose trying to fix this issue in the
@@ -735,12 +815,12 @@ synopsis”), replace the <em><code>index-pair-like</code></em> definition
 with the following. (The only line changed is
 <em><code>pair-like&lt;T&gt; &amp;&amp;</code></em>.)</p>
 </blockquote>
-<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T, <span class="kw">class</span> IndexType<span class="op">&gt;</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">concept</span> <em>index-pair-like</em> <span class="op">=</span>               <span class="co">// exposition only</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>      is_integral_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>tuple_size_v<span class="op">&lt;</span>T<span class="op">&gt;)&gt;</span> <span class="op">&amp;&amp;</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>      <span class="op">(</span>tuple_size_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">==</span> <span class="dv">2</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      convertible_to<span class="op">&lt;</span>tuple_element_t<span class="op">&lt;</span><span class="dv">0</span>, T<span class="op">&gt;</span>, IndexType<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>      convertible_to<span class="op">&lt;</span>tuple_element_t<span class="op">&lt;</span><span class="dv">1</span>, T<span class="op">&gt;</span>, IndexType<span class="op">&gt;</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>  <span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> T, <span class="kw">class</span> IndexType<span class="op">&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">concept</span> <em>index-pair-like</em> <span class="op">=</span>               <span class="co">// exposition only</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>      is_integral_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>tuple_size_v<span class="op">&lt;</span>T<span class="op">&gt;)&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>      <span class="op">(</span>tuple_size_v<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">==</span> <span class="dv">2</span><span class="op">)</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>      convertible_to<span class="op">&lt;</span>tuple_element_t<span class="op">&lt;</span><span class="dv">0</span>, T<span class="op">&gt;</span>, IndexType<span class="op">&gt;</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>      convertible_to<span class="op">&lt;</span>tuple_element_t<span class="op">&lt;</span><span class="dv">1</span>, T<span class="op">&gt;</span>, IndexType<span class="op">&gt;</span>;</span></code></pre></div>
 <blockquote>
 <p>Throughout <strong>[mdspan.sub]</strong>, wherever the text says</p>
 <p>“<span class="math inline"><em>S</em><sub><em>k</em></sub></span>
@@ -780,164 +860,164 @@ with the same meaning as <code>std::tuple&lt;First, Second&gt;</code>.
 This <a href="https://godbolt.org/z/K6zYPeG4x">Compiler Explorer
 link</a> demonstrates the code below with four compilers: GCC 14.1,
 Clang 18.1.0, MSVC v19.40 (VS17.10), and nvc++ 24.5.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;tuple&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;type_traits&gt;</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> std<span class="op">::</span><span class="dt">size_t</span>;</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> user <span class="op">{</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">// User-defined pair type that only stores non-empty elements.</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second,</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> FirstIsEmpty <span class="op">=</span> std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>First<span class="op">&gt;</span>,</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> SecondIsEmpty <span class="op">=</span> std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Second<span class="op">&gt;&gt;</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair;</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair<span class="op">&lt;</span>First, Second, <span class="kw">true</span>, <span class="kw">true</span><span class="op">&gt;</span> <span class="op">{}</span>;</span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair<span class="op">&lt;</span>First, Second, <span class="kw">false</span>, <span class="kw">true</span><span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  First first;  </span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair<span class="op">&lt;</span>First, Second, <span class="kw">true</span>, <span class="kw">false</span><span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  Second second;</span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair<span class="op">&lt;</span>First, Second, <span class="kw">false</span>, <span class="kw">false</span><span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  First first;</span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  Second second;</span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace user</span></span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
-<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> tuple_size<span class="op">&lt;</span>user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&gt;</span></span>
-<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>  <span class="op">:</span> std<span class="op">::</span>integral_constant<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span> <span class="op">{}</span>;</span>
-<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> tuple_element<span class="op">&lt;</span><span class="dv">0</span>, user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&gt;</span> <span class="op">{</span></span>
-<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> type <span class="op">=</span> First;</span>
-<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> tuple_element<span class="op">&lt;</span><span class="dv">1</span>, user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&gt;</span> <span class="op">{</span></span>
-<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> type <span class="op">=</span> Second;</span>
-<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
-<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace std</span></span>
-<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Index, <span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span> get<span class="op">(</span><span class="kw">const</span> user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&amp;</span> t<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>First<span class="op">&gt;)</span> <span class="op">{</span></span>
-<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> First<span class="op">{}</span>;</span>
-<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="kw">const</span> First<span class="op">&amp;&gt;(</span>t<span class="op">.</span>first<span class="op">)</span>;  </span>
-<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Second<span class="op">&gt;)</span> <span class="op">{</span></span>
-<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> Second<span class="op">{}</span>;</span>
-<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="kw">const</span> Second<span class="op">&amp;&gt;(</span>t<span class="op">.</span>second<span class="op">)</span>;  </span>
-<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>Index <span class="op">&lt;</span> <span class="dv">2</span><span class="bu">u</span><span class="op">)</span>;</span>
-<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Index, <span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span> get<span class="op">(</span>user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&amp;</span> t<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>First<span class="op">&gt;)</span> <span class="op">{</span></span>
-<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> First<span class="op">{}</span>;</span>
-<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span>First<span class="op">&amp;&gt;(</span>t<span class="op">.</span>first<span class="op">)</span>;  </span>
-<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Second<span class="op">&gt;)</span> <span class="op">{</span></span>
-<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> Second<span class="op">{}</span>;</span>
-<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span>Second<span class="op">&amp;&gt;(</span>t<span class="op">.</span>second<span class="op">)</span>;  </span>
-<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>Index <span class="op">&lt;</span> <span class="dv">2</span><span class="bu">u</span><span class="op">)</span>;</span>
-<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Index, <span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
-<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span> get<span class="op">(</span>user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&amp;&amp;</span> t<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>First<span class="op">&gt;)</span> <span class="op">{</span></span>
-<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> First<span class="op">{}</span>;</span>
-<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>move<span class="op">(</span>t<span class="op">.</span>first<span class="op">)</span>;  </span>
-<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Second<span class="op">&gt;)</span> <span class="op">{</span></span>
-<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> Second<span class="op">{}</span>;</span>
-<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>move<span class="op">(</span>t<span class="op">.</span>second<span class="op">)</span>;  </span>
-<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
-<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>Index <span class="op">&lt;</span> <span class="dv">2</span><span class="bu">u</span><span class="op">)</span>;</span>
-<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Value<span class="op">&gt;</span></span>
-<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Empty <span class="op">{}</span>;</span>
-<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Empty<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;&gt;)</span>;</span>
-<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
-<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>user<span class="op">::</span>user_pair<span class="op">&lt;</span>Empty<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;&gt;)</span>;</span>
-<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> type <span class="op">=</span> user<span class="op">::</span>user_pair<span class="op">&lt;</span><span class="dt">int</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;</span>;</span>
-<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>std<span class="op">::</span>tuple_size_v<span class="op">&lt;</span>type<span class="op">&gt;)</span>, <span class="kw">const</span> <span class="dt">size_t</span><span class="op">&gt;)</span>;</span>
-<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span>std<span class="op">::</span>tuple_element_t<span class="op">&lt;</span><span class="dv">0</span>, type<span class="op">&gt;</span>, <span class="dt">int</span><span class="op">&gt;)</span>;</span>
-<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span>std<span class="op">::</span>tuple_element_t<span class="op">&lt;</span><span class="dv">1</span>, type<span class="op">&gt;</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
-<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a>    type t<span class="op">{</span><span class="dv">1</span><span class="op">}</span>;</span>
-<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">))</span>, <span class="dt">int</span><span class="op">&amp;&gt;)</span>;</span>
-<span id="cb8-140"><a href="#cb8-140" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;(</span>t<span class="op">))</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
-<span id="cb8-141"><a href="#cb8-141" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
-<span id="cb8-142"><a href="#cb8-142" aria-hidden="true" tabindex="-1"></a>    get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">)</span> <span class="op">=</span> <span class="dv">2</span>;</span>
-<span id="cb8-143"><a href="#cb8-143" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">)</span> <span class="op">==</span> <span class="dv">2</span><span class="op">)</span>;</span>
-<span id="cb8-144"><a href="#cb8-144" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-145"><a href="#cb8-145" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb8-146"><a href="#cb8-146" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> type t<span class="op">{</span><span class="dv">1</span><span class="op">}</span>;</span>
-<span id="cb8-147"><a href="#cb8-147" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">))</span>, <span class="kw">const</span> <span class="dt">int</span><span class="op">&amp;&gt;)</span>;</span>
-<span id="cb8-148"><a href="#cb8-148" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;(</span>t<span class="op">))</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
-<span id="cb8-149"><a href="#cb8-149" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
-<span id="cb8-150"><a href="#cb8-150" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-151"><a href="#cb8-151" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
-<span id="cb8-152"><a href="#cb8-152" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>type<span class="op">{</span><span class="dv">1</span><span class="op">}))</span>, <span class="dt">int</span><span class="op">&amp;&amp;&gt;)</span>;</span>
-<span id="cb8-153"><a href="#cb8-153" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;(</span>type<span class="op">{</span><span class="dv">1</span><span class="op">}))</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
-<span id="cb8-154"><a href="#cb8-154" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>type<span class="op">{</span><span class="dv">1</span><span class="op">})</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
-<span id="cb8-155"><a href="#cb8-155" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb8-156"><a href="#cb8-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-157"><a href="#cb8-157" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
-<span id="cb8-158"><a href="#cb8-158" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cassert&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;tuple&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;type_traits&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> std<span class="op">::</span><span class="dt">size_t</span>;</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> user <span class="op">{</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co">// User-defined pair type that only stores non-empty elements.</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second,</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> FirstIsEmpty <span class="op">=</span> std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>First<span class="op">&gt;</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> SecondIsEmpty <span class="op">=</span> std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Second<span class="op">&gt;&gt;</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair;</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair<span class="op">&lt;</span>First, Second, <span class="kw">true</span>, <span class="kw">true</span><span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair<span class="op">&lt;</span>First, Second, <span class="kw">false</span>, <span class="kw">true</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  First first;  </span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair<span class="op">&lt;</span>First, Second, <span class="kw">true</span>, <span class="kw">false</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  Second second;</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> user_pair<span class="op">&lt;</span>First, Second, <span class="kw">false</span>, <span class="kw">false</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>  First first;</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>  Second second;</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace user</span></span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a><span class="kw">namespace</span> std <span class="op">{</span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> tuple_size<span class="op">&lt;</span>user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&gt;</span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>  <span class="op">:</span> std<span class="op">::</span>integral_constant<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span> <span class="op">{}</span>;</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> tuple_element<span class="op">&lt;</span><span class="dv">0</span>, user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&gt;</span> <span class="op">{</span></span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> type <span class="op">=</span> First;</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> tuple_element<span class="op">&lt;</span><span class="dv">1</span>, user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&gt;</span> <span class="op">{</span></span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> type <span class="op">=</span> Second;</span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a><span class="op">}</span> <span class="co">// namespace std</span></span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Index, <span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span> get<span class="op">(</span><span class="kw">const</span> user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&amp;</span> t<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>First<span class="op">&gt;)</span> <span class="op">{</span></span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> First<span class="op">{}</span>;</span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="kw">const</span> First<span class="op">&amp;&gt;(</span>t<span class="op">.</span>first<span class="op">)</span>;  </span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Second<span class="op">&gt;)</span> <span class="op">{</span></span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> Second<span class="op">{}</span>;</span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="kw">const</span> Second<span class="op">&amp;&gt;(</span>t<span class="op">.</span>second<span class="op">)</span>;  </span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>Index <span class="op">&lt;</span> <span class="dv">2</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Index, <span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span> get<span class="op">(</span>user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&amp;</span> t<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>First<span class="op">&gt;)</span> <span class="op">{</span></span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> First<span class="op">{}</span>;</span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span>First<span class="op">&amp;&gt;(</span>t<span class="op">.</span>first<span class="op">)</span>;  </span>
+<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Second<span class="op">&gt;)</span> <span class="op">{</span></span>
+<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> Second<span class="op">{}</span>;</span>
+<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span>Second<span class="op">&amp;&gt;(</span>t<span class="op">.</span>second<span class="op">)</span>;  </span>
+<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>Index <span class="op">&lt;</span> <span class="dv">2</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Index, <span class="kw">class</span> First, <span class="kw">class</span> Second<span class="op">&gt;</span></span>
+<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a><span class="kw">decltype</span><span class="op">(</span><span class="kw">auto</span><span class="op">)</span> get<span class="op">(</span>user<span class="op">::</span>user_pair<span class="op">&lt;</span>First, Second<span class="op">&gt;&amp;&amp;</span> t<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>First<span class="op">&gt;)</span> <span class="op">{</span></span>
+<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> First<span class="op">{}</span>;</span>
+<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>move<span class="op">(</span>t<span class="op">.</span>first<span class="op">)</span>;  </span>
+<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>Index <span class="op">==</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">constexpr</span> <span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Second<span class="op">&gt;)</span> <span class="op">{</span></span>
+<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> Second<span class="op">{}</span>;</span>
+<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> std<span class="op">::</span>move<span class="op">(</span>t<span class="op">.</span>second<span class="op">)</span>;  </span>
+<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>Index <span class="op">&lt;</span> <span class="dv">2</span><span class="bu">u</span><span class="op">)</span>;</span>
+<span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-123"><a href="#cb9-123" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> Value<span class="op">&gt;</span></span>
+<span id="cb9-124"><a href="#cb9-124" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Empty <span class="op">{}</span>;</span>
+<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> main<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Empty<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;&gt;)</span>;</span>
+<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
+<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_empty_v<span class="op">&lt;</span>user<span class="op">::</span>user_pair<span class="op">&lt;</span>Empty<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;&gt;)</span>;</span>
+<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a>  <span class="kw">using</span> type <span class="op">=</span> user<span class="op">::</span>user_pair<span class="op">&lt;</span><span class="dt">int</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;</span>;</span>
+<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>std<span class="op">::</span>tuple_size_v<span class="op">&lt;</span>type<span class="op">&gt;)</span>, <span class="kw">const</span> <span class="dt">size_t</span><span class="op">&gt;)</span>;</span>
+<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span>std<span class="op">::</span>tuple_element_t<span class="op">&lt;</span><span class="dv">0</span>, type<span class="op">&gt;</span>, <span class="dt">int</span><span class="op">&gt;)</span>;</span>
+<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a>  <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span>std<span class="op">::</span>tuple_element_t<span class="op">&lt;</span><span class="dv">1</span>, type<span class="op">&gt;</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
+<span id="cb9-136"><a href="#cb9-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-137"><a href="#cb9-137" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a>    type t<span class="op">{</span><span class="dv">1</span><span class="op">}</span>;</span>
+<span id="cb9-139"><a href="#cb9-139" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">))</span>, <span class="dt">int</span><span class="op">&amp;&gt;)</span>;</span>
+<span id="cb9-140"><a href="#cb9-140" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;(</span>t<span class="op">))</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
+<span id="cb9-141"><a href="#cb9-141" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb9-142"><a href="#cb9-142" aria-hidden="true" tabindex="-1"></a>    get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">)</span> <span class="op">=</span> <span class="dv">2</span>;</span>
+<span id="cb9-143"><a href="#cb9-143" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">)</span> <span class="op">==</span> <span class="dv">2</span><span class="op">)</span>;</span>
+<span id="cb9-144"><a href="#cb9-144" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-145"><a href="#cb9-145" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb9-146"><a href="#cb9-146" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> type t<span class="op">{</span><span class="dv">1</span><span class="op">}</span>;</span>
+<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">))</span>, <span class="kw">const</span> <span class="dt">int</span><span class="op">&amp;&gt;)</span>;</span>
+<span id="cb9-148"><a href="#cb9-148" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;(</span>t<span class="op">))</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
+<span id="cb9-149"><a href="#cb9-149" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>t<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb9-150"><a href="#cb9-150" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-151"><a href="#cb9-151" aria-hidden="true" tabindex="-1"></a>  <span class="op">{</span></span>
+<span id="cb9-152"><a href="#cb9-152" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>type<span class="op">{</span><span class="dv">1</span><span class="op">}))</span>, <span class="dt">int</span><span class="op">&amp;&amp;&gt;)</span>;</span>
+<span id="cb9-153"><a href="#cb9-153" aria-hidden="true" tabindex="-1"></a>    <span class="kw">static_assert</span><span class="op">(</span>std<span class="op">::</span>is_same_v<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">1</span><span class="op">&gt;(</span>type<span class="op">{</span><span class="dv">1</span><span class="op">}))</span>, Empty<span class="op">&lt;</span><span class="dv">2</span><span class="op">&gt;&gt;)</span>;</span>
+<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a>    <span class="ot">assert</span><span class="op">(</span>get<span class="op">&lt;</span><span class="dv">0</span><span class="op">&gt;(</span>type<span class="op">{</span><span class="dv">1</span><span class="op">})</span> <span class="op">==</span> <span class="dv">1</span><span class="op">)</span>;</span>
+<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="dv">0</span>;</span>
+<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </div>
 </div>
 </body>
