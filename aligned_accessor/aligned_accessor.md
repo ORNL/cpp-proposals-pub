@@ -86,6 +86,11 @@ toc: true
 
     * Add Compiler Explorer link with full implementation and demo
 
+* Revision 3 (post - St. Louis) to be submitted 2024-07-15
+
+    * Include updated feedback from David Sankel
+        (see Acknowledgments) after his review of R2
+
 # Purpose of this paper
 
 We propose adding `aligned_accessor` to the C++ Standard Library.
@@ -699,9 +704,10 @@ bool detectably_invalid(Accessor&& accessor,
 
 ### We need both `is_sufficiently_aligned` and `detectably_invalid`
 
-The same LEWG reviewer who suggested `detectably_invalid`
-also said that it would make `is_sufficiently_aligned` unnecessary.
-We disagree for the following reasons.
+One could argue that if `aligned_accessor` had `detectably_invalid`,
+that would make `is_sufficiently_aligned` unnecessary.
+We disagree; we think `is_sufficiently_aligned` is useful by itself,
+whether or not `detectably_invalid` exists, for the following reasons.
 
 1. Users will often want to check alignment separately
     from pointer range validity.
@@ -718,6 +724,13 @@ so the user has already asserted that the range formed by
 its data handle and `required_span_size()` is valid.
 Thus, the only thing the user would need to check
 would be whether the data handle is sufficiently aligned.
+
+The same LEWG reviewer who suggested `detectably_invalid`
+had originally thought it would make `is_sufficiently_aligned` unnecessary.
+However, after reviewing R2 of this paper, that reviewer changed their mind.
+They now agree with us that `is_sufficiently_aligned` is useful by itself.
+All their concerns would be addressed by making `is_sufficiently_aligned`
+a nonmember function, rather than a member function of `aligned_accessor`.
 
 ### Alternative: Nonmember `is_sufficiently_aligned`
 
