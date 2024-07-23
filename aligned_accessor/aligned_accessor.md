@@ -1,7 +1,7 @@
 
 ---
 title: "`aligned_accessor`: An mdspan accessor expressing pointer overalignment"
-document: P2897R2
+document: P2897R4
 date: today
 audience: LEWG
 author:
@@ -91,6 +91,13 @@ toc: true
     * Include updated feedback from David Sankel
         (see Acknowledgments) after his review of R2
 
+* Revision 4 (post - St. Louis) to be submitted 2024-07-24
+
+    * Per request of LEWG chair, make `is_sufficiently_aligned` a
+        nonmember function instead of a static member function of
+        `aligned_accessor`.  R3 presented this only as an alternative.
+        R4 makes this the actually proposed design.
+
 # Purpose of this paper
 
 We propose adding `aligned_accessor` to the C++ Standard Library.
@@ -134,7 +141,9 @@ reach their maximum value.
 * `explicit` converting constructor from `default_accessor`
     lets users assert overalignment
 
-* `is_sufficiently_aligned` checks pointer alignment
+* New nonmember function `is_sufficiently_aligned`
+    lets users check a pointer's alignment
+    before using it with `aligned_accessor`
 
 The `offset_policy` alias is `default_accessor<ElementType>`,
 because even if a pointer `p` is aligned, `p + i` might not be.
@@ -164,18 +173,25 @@ However, they may then need to call a function
 that takes an `mdspan` with `aligned_accessor<float, 32>`,
 which declares the function's intent to use 8-wide SIMD of `float`.
 
+The `explicit` converting constructor from `default_accessor`
+lets users assert that an `mdspan`'s pointer is overaligned.
+This follows the idiom of existing `mdspan` layout mappings
+and accessors, where all conversions with preconditions
+are expressed as `explicit` constructors or conversion operators.
+
+We do *not* provide an `explicit` conversion from an
+`aligned_accessor` with less alignment to an
+`aligned_accessor` with more alignment.  As we explain below,
+we think that if users need to do this conversion,
+they likely have a design problem.
+
 The `is_sufficiently_aligned` function checks whether a pointer
 has sufficient alignment to be used correctly with the class.
 This makes it easier for users to check preconditions,
 without needing to know how to cast a pointer to an integer
-of the correct size and signedness.
-
-Per discussion below,
-we would like LEWG to consider the alternative design that
-removes `is_sufficiently_aligned` from `aligned_accessor` and
-adds it to the `<bit>` header as a separate nonmember function.
-We think LWG review of `aligned_accessor` can proceed concurrently.
-We present wording for this design alternative below.
+of the correct size and signedness.  As of R4 of this proposal,
+this is no longer a static member function of `aligned_accessor`.
+Instead, it is a nonmember function in the `<bit>` header.
 
 # Design discussion
 
@@ -402,16 +418,17 @@ we do not find the proliferation of aliases particularly ergonomic.
 LEWG's 2023-10-10 review of R0 expressed concern that
 `mdspan`'s constructor has no way to check
 `aligned_accessor`'s alignment requirements.
-Users can call `aligned_accessor`'s `is_sufficiently_aligned(p)`
-`static` member function with a pointer `p` to check this themselves,
-before constructing the `mdspan`.
+Users can call `is_sufficiently_aligned` to check the pointer
+before constructing the `mdspan` with it.
 However, `mdspan`'s constructor generally has no way to check
 whether its accessor finds the caller's data handle acceptable.
 
 This is true for any accessor type, not just for `aligned_accessor`.
 It is a design feature of `mdspan` that accessors can be stateless.
 Most of them have no state.  Even if they have state,
-they do not need to be constructed with or store the data handle.
+they generally do not store the data handle
+(as that would be redundant with the `mdspan`)
+and are thus generally not constructed with it.
 As a result, an accessor might not see a data handle
 until `access` or `offset` is called.
 Both of those member functions are performance critical,
@@ -537,18 +554,33 @@ constrain implementations to use compiler-specific functionality.
 
 ## Generalize `is_sufficiently_aligned` for all accessors?
 
-### `is_sufficiently_aligned` is specific to `aligned_accessor`
+We proposed the `is_sufficiently_aligned` function
+so that users can check a pointer's alignment precondition
+before constructing an `aligned_accessor` `mdspan` with it.
+R4 of this paper changes `is_sufficiently_aligned`
+from a static member function of `aligned_accessor`
+to a nonmember function not in an `mdspan` header.
+C++ developers who do not use `mdspan` at all
+might still find `is_sufficiently_aligned` useful,
+for example to check the preconditions of `assume_aligned`.
 
-The `is_sufficiently_aligned` function exists
-so users can check the pointer's alignment precondition
-before constructing an `mdspan` with it.
-This precondition check is specific to `aligned_accessor`.
-Furthermore, the function has a precondition
+Nevertheless, in the context of `mdspan` accessors,
+`is_sufficiently_aligned` is specific to `aligned_accessor`.
+No other `mdspan` accessors existing in or proposed for
+the Standard Library have an alignment precondition.
+Furthermore, `is_sufficiently_aligned` has a precondition
 that the pointer points to a valid element.
 Standard C++ offers no way for users to check that.
 More importantly for `mdspan` users,
 Standard C++ offers no way to check whether a pointer
 and a layout mapping's `required_span_size()` form a valid range.
+
+For this reason, we do not propose here solving the general
+"is this data handle valid for an arbitrary given accessor?" question.
+That is, we do not propose adding a function
+to the accessor requirements that would tell
+if a given data handle and size pair is valid for that accessor.
+This section describes what such a check would look like if it existed.
 
 ### `detectably_invalid`: Generic validity check?
 
@@ -702,7 +734,7 @@ bool detectably_invalid(Accessor&& accessor,
 }
 ```
 
-### We need both `is_sufficiently_aligned` and `detectably_invalid`
+### `is_sufficiently_aligned` is still useful on its own
 
 One could argue that if `aligned_accessor` had `detectably_invalid`,
 that would make `is_sufficiently_aligned` unnecessary.
@@ -714,6 +746,11 @@ whether or not `detectably_invalid` exists, for the following reasons.
 
 2. Checking alignment may be much less expensive
     than checking pointer range validity.
+
+3. As of R4 of this paper, `is_sufficiently_aligned`
+    is available without including an `mdspan` header,
+    and thus is useful even to those who do not adopt `mdspan`.
+
 
 Regarding (1), we think the most common use case for
 `aligned_accessor`'s `explicit` converting constructor
@@ -732,14 +769,12 @@ They now agree with us that `is_sufficiently_aligned` is useful by itself.
 All their concerns would be addressed by making `is_sufficiently_aligned`
 a nonmember function, rather than a member function of `aligned_accessor`.
 
-### Alternative: Nonmember `is_sufficiently_aligned`
+### Nonmember `is_sufficiently_aligned`
 
 The reviewer responded to our argument above by suggesting
 that we remove `is_sufficiently_aligned` from `aligned_accessor`
 and make it a separate nonmember function.
-This is a reasonable alternative suggestion.
-We think that LWG review of `aligned_accessor` can proceed concurrently
-while LEWG considers this alternative.
+R4 of this paper implements this change.
 
 Into which header should this new function go?
 We think it belongs in `<bit>`,
@@ -749,6 +784,9 @@ like everything else in the `<bit>` header.
 Another option would be to put it in `<memory>`
 right after `assume_aligned`, and to mark it
 as freestanding (since `assume_aligned` is).
+We do not object to other reasonable choices of header.
+The point is that `is_sufficiently_aligned` does not depend on `mdspan`
+and thus should not live in an `mdspan` header.
 
 ### Do accessors need to check anything else?
 
@@ -822,10 +860,11 @@ These points together suggest the name `detectably_invalid`.
     `detectably_invalid` to the accessor requirements in this proposal.
     However, we do not discourage further work in separate proposals.
 
-4. We would like LEWG to consider the alternative design that
-    removes `is_sufficiently_aligned` from `aligned_accessor` and
-    adds it to the C++ Standard Library as a separate nonmember function.
-    We think LWG review of `aligned_accessor` can proceed concurrently.
+4. R4 of this paper removes `is_sufficiently_aligned` from `aligned_accessor`
+    and adds it to the `<bit>` header as a separate nonmember function.
+    It could go in other headers, but it should not go in an `mdspan` header,
+    because it does not depend on `mdspan` and would be useful
+    even for users who have not adopted `mdspan`.
 
 ## Explicit conversions as the model for precondition-asserting conversions
 
@@ -1025,7 +1064,7 @@ We emphasize that users are meant to write custom accessors.
 The intended typical author of a custom accessor
 is a performance expert who is not necessarily a C++ expert.
 It takes quite a bit of C++ experience to learn how to use
-encapsulation-breaking techniques safely; the lazy approaches
+encapsulation-breaking techniques safely; other approaches
 all just expose implementation details or defeat the "safety"
 that `naughty_cast` is supposed to introduce.
 Given that the main motivation of `naughty_cast` is safety,
@@ -1061,12 +1100,16 @@ Appendix B below lists the source code of a full implementation.
 
 ```c++
 template<size_t byte_alignment>
-using aligned_mdspan =
-  std::mdspan<float, std::dims<1, int>, std::layout_right, std::aligned_accessor<float, byte_alignment>>;
+using aligned_mdspan = std::mdspan<
+  float,
+  std::dims<1, int>,
+  std::layout_right,
+  std::aligned_accessor<float, byte_alignment>>;
 
 // Interfaces that require 32-byte alignment,
 // because they want to do 8-wide SIMD of float.
-extern void vectorized_axpy(aligned_mdspan<32> y, float alpha, aligned_mdspan<32> x);
+extern void vectorized_axpy(
+  aligned_mdspan<32> y, float alpha, aligned_mdspan<32> x);
 extern float vectorized_norm(aligned_mdspan<32> y);
 
 // Interfaces that require 16-byte alignment,
@@ -1074,7 +1117,7 @@ extern float vectorized_norm(aligned_mdspan<32> y);
 extern void fill_x(aligned_mdspan<16> x);
 extern void fill_y(aligned_mdspan<16> y);
 
-// Helper functions for making overaligned array allocations.
+// Helper functions for overaligned array allocations.
 
 template<class ElementType>
 struct delete_raw {
@@ -1084,10 +1127,12 @@ struct delete_raw {
 };
 
 template<class ElementType>
-using allocation = std::unique_ptr<ElementType[], delete_raw<ElementType>>;
+using allocation =
+  std::unique_ptr<ElementType[], delete_raw<ElementType>>;
 
 template<class ElementType, std::size_t byte_alignment>
-allocation<ElementType> allocate_raw(const std::size_t num_elements)
+allocation<ElementType>
+  allocate_raw(const std::size_t num_elements)
 {
   const std::size_t num_bytes = num_elements * sizeof(ElementType);
   void* ptr = std::aligned_alloc(byte_alignment, num_bytes);
@@ -1096,9 +1141,10 @@ allocation<ElementType> allocate_raw(const std::size_t num_elements)
 
 float user_function(size_t num_elements, float alpha)
 {
-  // Code using the above two interfaces needs to allocate to the max alignment.
-  // Users could also query aligned_accessor::byte_alignment
-  // for the various interfaces and take the max.
+  // Code using the above two interfaces needs to allocate
+  // to the max alignment.  Users could also query
+  // aligned_accessor::byte_alignment for the various interfaces
+  // and take the max.
   constexpr size_t max_byte_alignment = 32;
   auto x_alloc = allocate_raw<float, max_byte_alignment>(num_elements);
   auto y_alloc = allocate_raw<float, max_byte_alignment>(num_elements);
@@ -1106,9 +1152,11 @@ float user_function(size_t num_elements, float alpha)
   aligned_mdspan<max_byte_alignment> x(x_alloc.get());
   aligned_mdspan<max_byte_alignment> y(y_alloc.get());
 
-  fill_x(x); // automatic conversion from 32-byte aligned to 16-byte aligned
-  fill_y(y); // automatic conversion again
+  // Two automatic conversions from 32-byte aligned to 16-byte aligned
+  fill_x(x);
+  fill_y(y);
 
+  // These interfaces use 32-byte alignment directly.
   vectorized_axpy(y, alpha, x);
   return vectorized_norm(y);
 }
@@ -1137,18 +1185,51 @@ Available online [last accessed 2024-07-05]:
 
 # Wording
 
-> Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
-> The � character is used to denote a placeholder section number which the editor shall determine.
+> Text in blockquotes is not proposed wording,
+> but rather instructions for generating proposed wording.
+> The � character is used to denote a placeholder section number
+> which the editor shall determine.
 >
-> In *[version.syn]*, add
+> In **[version.syn]**, add
 
 ```c++
 #define __cpp_lib_aligned_accessor YYYYMML // also in <mdspan>
+#define __cpp_lib_is_sufficiently_aligned YYYYMML // also in <bit>
 ```
 
-> Adjust the placeholder value as needed so as to denote this proposal's date of adoption.
+> Adjust the placeholder value `YYYYMML` as needed
+> so as to denote this proposal's date of adoption.
 >
-> To the Header `<mdspan>` synopsis **[mdspan.syn]**, after `class default_accessor` and before `class mdspan`, add the following.
+> To the Header `<bit>` synopsis **[bit.syn]**,
+> after `enum class endian` and before the `}`
+> that closes `namespace std`, add the following.
+
+```c++
+// [bit.aligned], is_sufficiently_aligned
+template<class ElementType, size_t byte_alignment>
+  bool is_sufficiently_aligned(ElementType*);
+```
+
+> After **[bit.endian]**, add all the material that follows.
+
+## Add subsection � [bit.aligned] with the following
+
+```c++
+template<class ElementType, size_t byte_alignment>
+bool is_sufficiently_aligned(ElementType* p);
+```
+
+[1]{.pnum} *Preconditions*: `p` points to an object `X`
+of a type similar (**[conv.qual]**) to `ElementType`.
+
+[2]{.pnum} *Returns*: `true` if `X` has alignment
+at least `byte_alignment`, else `false`.
+
+## Add `aligned_accessor` declaration to `<mdspan>` header synopsis
+
+> To the Header `<mdspan>` synopsis **[mdspan.syn]**,
+> after `class default_accessor` and before `class mdspan`,
+> add the following.
 
 ```c++
 // [mdspan.accessor.aligned], class template aligned_accessor
@@ -1156,7 +1237,9 @@ template<class ElementType, size_t byte_alignment>
   class aligned_accessor;
 ```
 
-> At the end of **[mdspan.accessor.default]** and before **[mdspan.mdspan]**, add all the material that follows.
+> At the end of **[mdspan.accessor.default]**
+> and before **[mdspan.mdspan]**,
+> add all the material that follows.
 
 ## Add subsection � [mdspan.accessor.aligned] with the following
 
@@ -1192,8 +1275,6 @@ struct aligned_accessor {
 
   constexpr typename offset_policy::data_handle_type
     offset(data_handle_type p, size_t i) const noexcept;
-
-  static bool is_sufficiently_aligned(data_handle_type p);
 };
 ```
 
@@ -1232,12 +1313,16 @@ template<class OtherElementType>
 [3]{.pnum} *Constraints*: `is_convertible_v<OtherElementType(*)[], element_type(*)[]>` is `true`.
 
 ```c++
-constexpr reference access(data_handle_type p, size_t i) const noexcept;
+constexpr reference
+  access(data_handle_type p, size_t i) const noexcept;
 ```
 
-[4]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`, where `X` has alignment `byte_alignment` (**[basic.align]**).
+[4]{.pnum} *Preconditions*: `p` points to an object `X`
+of a type similar (**[conv.qual]**) to `element_type`,
+where `X` has alignment `byte_alignment` (**[basic.align]**).
 
-[5]{.pnum} *Effects*: Equivalent to: `return assume_aligned<byte_alignment>(p)[i];`
+[5]{.pnum} *Effects*: Equivalent to:
+`return assume_aligned<byte_alignment>(p)[i];`
 
 ```c++
 constexpr typename offset_policy::data_handle_type
@@ -1248,23 +1333,15 @@ constexpr typename offset_policy::data_handle_type
 
 [7]{.pnum} *Effects*: Equivalent to: `return p + i;`
 
-```c++
-static bool is_sufficiently_aligned(data_handle_type p);
-```
-
-[8]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `element_type`.
-
-[9]{.pnum} *Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
-
 [*Example:*
-The following function `compute` uses `is_sufficiently_aligned` to check
-whether a given `mdspan` with `default_accessor`
+The following function `compute` uses `is_sufficiently_aligned`
+to check whether a given `mdspan` with `default_accessor`
 has a data handle with sufficient alignment
 to be used with `aligned_accessor<float, 4 * sizeof(float)>`.
 If so, the function dispatches to a function `compute_using_fourfold_overalignment`
 that requires fourfold overalignment of arrays,
-but can therefore use hardware-specific instructions,
-such as four-wide SIMD (Single Instruction Multiple Data) instructions.
+but can therefore use hardware-specific instructions, such as
+four-wide SIMD (Single Instruction Multiple Data) instructions.
 Otherwise, `compute` dispatches to a possibly less optimized function
 `compute_without_requiring_overalignment` that has no overalignment requirement.
 
@@ -1276,15 +1353,18 @@ compute_using_fourfold_overalignment(
 
 extern void
 compute_without_requiring_overalignment(
-  std::mdspan<float, std::dims<1>> x);
+  std::mdspan<float, std::dims<1>, std::layout_right> x);
 
 void compute(std::mdspan<float, std::dims<1>> x)
 {
-  auto accessor = aligned_accessor<float, 4 * sizeof(float)>{};
+  constexpr auto byte_alignment = 4 * sizeof(float); 
+  auto accessor =
+    std::aligned_accessor<float, byte_alignment>{};
   auto x_handle = x.data_handle();
 
-  if (accessor.is_sufficiently_aligned(x_handle)) {
-    compute_using_fourfold_overalignment(mdspan{x_handle, x.mapping(), accessor});
+  if (std::is_sufficiently_aligned<byte_alignment>(x_handle)) {
+    compute_using_fourfold_overalignment(
+      std::mdspan{x_handle, x.mapping(), accessor});
   }
   else {
     compute_without_requiring_overalignment(x);
@@ -1294,10 +1374,12 @@ void compute(std::mdspan<float, std::dims<1>> x)
 --*end example*]
 
 [*Example:*
-The following example shows how users can fulfill the preconditions of `aligned_accessor`
-by using existing C++ Standard Library functionality to create overaligned allocations.
-First, the `allocate_overaligned` helper function uses `aligned_alloc`
-to create an overaligned allocation.
+The following example shows how users can fulfill
+the preconditions of `aligned_accessor` by using
+existing C++ Standard Library functionality
+to create overaligned allocations.
+First, the `allocate_overaligned` helper function
+uses `aligned_alloc` to create an overaligned allocation.
 
 ```c++
 template<class ElementType>
@@ -1311,7 +1393,8 @@ template<class ElementType>
 using allocation = std::unique_ptr<ElementType[], delete_with_free<ElementType>>;
 
 template<class ElementType, size_t byte_alignment>
-allocation<ElementType> allocate_overaligned(const size_t num_elements)
+allocation<ElementType>
+  allocate_overaligned(const size_t num_elements)
 {
   const size_t num_bytes = num_elements * sizeof(ElementType);
   void* ptr = std::aligned_alloc(byte_alignment, num_bytes);
@@ -1319,29 +1402,34 @@ allocation<ElementType> allocate_overaligned(const size_t num_elements)
 }
 ```
 
-Second, this example presumes that some third-party library provides functions
+Second, this example presumes that a library provides functions
 requiring arrays of `float` to have 32-byte alignment.
 
 ```c++
 template<size_t byte_alignment>
-using aligned_mdspan = std::mdspan<float, std::dims<1, int>,
-  std::layout_right, std::aligned_accessor<float, byte_alignment>>;
+using aligned_mdspan = std::mdspan<
+  float, std::dims<1, int>,
+  std::layout_right,
+  std::aligned_accessor<float, byte_alignment>>;
 
-extern void vectorized_axpy(aligned_mdspan<32> y, float alpha, aligned_mdspan<32> x);
+extern void vectorized_axpy(
+  aligned_mdspan<32> y, float alpha, aligned_mdspan<32> x);
 extern float vectorized_norm(aligned_mdspan<32> y);
 ```
 
 Third and finally, the user's function `user_function` would begin
 by allocating "raw" overaligned arrays with `allocate_overaligned`.
 It would then create aligned `mdspan` with them,
-and pass the resulting `mdspan` into the third-party library's functions.
+and pass the resulting `mdspan` into the library's functions.
 
 ```c++
 float user_function(size_t num_elements, float alpha)
 {
   constexpr size_t max_byte_alignment = 32;
-  auto x_alloc = allocate_overaligned<float, max_byte_alignment>(num_elements);
-  auto y_alloc = allocate_overaligned<float, max_byte_alignment>(num_elements);
+  auto x_alloc =
+    allocate_overaligned<float, max_byte_alignment>(num_elements);
+  auto y_alloc =
+    allocate_overaligned<float, max_byte_alignment>(num_elements);
 
   aligned_mdspan<max_byte_alignment> x(x_alloc.get());
   aligned_mdspan<max_byte_alignment> y(y_alloc.get());
@@ -1353,44 +1441,6 @@ float user_function(size_t num_elements, float alpha)
 }
 ```
 --*end example*]
-
-# Wording for alternative nonmember `is_sufficiently_aligned` design
-
-> Text in blockquotes is not proposed wording, but rather instructions for generating proposed wording.
-> The instructions here are expressed as a "diff" atop P2897R2,
-> that is, as if the wording proposed in P2897R2
-> had already been applied to the Working Draft.
-> The � character is used to denote a placeholder section number which the editor shall determine.
-
-> From the `aligned_accessor` synopsis in **[mdspan.accessor.aligned.overview]**,
-> remove the member function `static bool is_sufficiently_aligned(data_handle_type p);`.
-
-> From the list of members of `aligned_accessor` in **[mdspan.accessor.aligned.members]**,
-> remove `static bool is_sufficiently_aligned(data_handle_type p);`
-> from after line 7 ("*Effects*: Equivalent to: `return p + i;`"), and
-> remove line 8 ("*Preconditions*: ...") and line 9 ("*Returns*: ...").
-> (Retain the *Example* using `is_sufficiently_aligned`
-> that immediately follows the deleted lines.)
-
-> To the Header `<bit>` synopsis **[bit.syn]**, after `enum class endian` and before the `}` that closes `namespace std`, add the following.
-
-```c++
-// [bit.aligned], is_sufficiently_aligned
-template<class ElementType, size_t byte_alignment>
-  bool is_sufficiently_aligned(ElementType*);
-```
-
-> After **[bit.endian]**, add a new section **[bit.aligned]**
-> and put in it all the material that follows.
-
-```c++
-template<class ElementType, size_t byte_alignment>
-bool is_sufficiently_aligned(ElementType* p);
-```
-
-[1]{.pnum} *Preconditions*: `p` points to an object `X` of a type similar (**[conv.qual]**) to `ElementType`.
-
-[2]{.pnum} *Returns*: `true` if `X` has alignment at least `byte_alignment`, else `false`.
 
 # Appendix A: `detectably_invalid` nonmember function example
 
@@ -1555,7 +1605,7 @@ int main()
 
 # Appendix B: Implementation and demo
 
-<a href="https://godbolt.org/z/hjqExKaeh">This Compiler Explorer link</a>
+<a href="https://godbolt.org/z/K39dr8v4s">This Compiler Explorer link</a>
 gives a full implementation of `aligned_accessor` and a demonstration.
 We show the full source code from that link here below.
 
@@ -1579,6 +1629,13 @@ namespace stdex = std::experimental;
 namespace std {
 template<size_t Rank, class IndexType = size_t>
 using dims = dextents<IndexType, Rank>;
+
+template<class ElementType, size_t byte_alignment>
+bool is_sufficiently_aligned(ElementType* p)
+{
+  return std::bit_cast<uintptr_t>(p) % byte_alignment == 0;
+}
+
 } // namespace std
 
 namespace {
@@ -1634,13 +1691,6 @@ public:
   constexpr typename offset_policy::data_handle_type
   offset(data_handle_type p, size_t i) const noexcept {
     return p + i;
-  }
-
-  static bool
-    is_sufficiently_aligned(data_handle_type p) noexcept
-  {
-    return alignof(ElementType) >= byte_alignment && 
-      std::bit_cast<uintptr_t>(p) % byte_alignment == 0;
   }
 };
 
