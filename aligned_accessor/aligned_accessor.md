@@ -428,7 +428,7 @@ It is a design feature of `mdspan` that accessors can be stateless.
 Most of them have no state.  Even if they have state,
 they generally do not store the data handle
 (as that would be redundant with the `mdspan`)
-and are thus generally not constructed with it.
+and are thus generally not constructed with the data handle.
 As a result, an accessor might not see a data handle
 until `access` or `offset` is called.
 Both of those member functions are performance critical,
