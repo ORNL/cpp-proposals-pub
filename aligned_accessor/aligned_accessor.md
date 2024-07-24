@@ -1653,7 +1653,7 @@ int main()
 
 # Appendix B: Implementation and demo
 
-<a href="https://godbolt.org/z/K39dr8v4s">This Compiler Explorer link</a>
+<a href="https://godbolt.org/z/3z1WaW778">This Compiler Explorer link</a>
 gives a full implementation of `aligned_accessor` and a demonstration.
 We show the full source code from that link here below.
 
@@ -1681,17 +1681,13 @@ using dims = dextents<IndexType, Rank>;
 template<class ElementType, size_t byte_alignment>
 bool is_sufficiently_aligned(ElementType* p)
 {
-  return std::bit_cast<uintptr_t>(p) % byte_alignment == 0;
+  return bit_cast<uintptr_t>(p) % byte_alignment == 0;
 }
 
-} // namespace std
-
-namespace {
-
-template<class ElementType, std::size_t byte_alignment>
+template<class ElementType, size_t byte_alignment>
 class aligned_accessor {
 public:
-  static_assert(std::has_single_bit(byte_alignment),
+  static_assert(has_single_bit(byte_alignment),
     "byte_alignment must be a power of two.");
   static_assert(byte_alignment >= alignof(ElementType),
     "Insufficient byte alignment for ElementType");
@@ -1705,20 +1701,20 @@ public:
 
   template<
     class OtherElementType,
-    std::size_t other_byte_alignment>
-  requires(std::is_convertible_v<
+    size_t other_byte_alignment>
+  requires(is_convertible_v<
     OtherElementType(*)[], element_type(*)[]>)
   constexpr aligned_accessor(
     aligned_accessor<OtherElementType, other_byte_alignment>)
       noexcept
   {
     constexpr size_t the_gcd =
-      std::gcd(other_byte_alignment, byte_alignment);
+      gcd(other_byte_alignment, byte_alignment);
     static_assert(the_gcd == byte_alignment);
   }
 
   template<class OtherElementType>
-  requires(std::is_convertible_v<
+  requires(is_convertible_v<
     OtherElementType(*)[], element_type(*)[]>)
   constexpr explicit aligned_accessor(
     stdex::default_accessor<OtherElementType>) noexcept
@@ -1733,7 +1729,7 @@ public:
   constexpr reference
     access(data_handle_type p, size_t i) const noexcept
   {
-    return std::assume_aligned<byte_alignment>(p)[i];
+    return assume_aligned<byte_alignment>(p)[i];
   }
 
   constexpr typename offset_policy::data_handle_type
@@ -1742,10 +1738,14 @@ public:
   }
 };
 
+} // namespace std
+
+namespace { // (anonymous)
+
 template<size_t byte_alignment>
 using aligned_mdspan =
   std::mdspan<float, std::dims<1, int>, std::layout_right,
-    aligned_accessor<float, byte_alignment>>;
+    std::aligned_accessor<float, byte_alignment>>;
 
 // Interfaces that require 32-byte alignment,
 // because they want to do 8-wide SIMD of float.
@@ -1812,18 +1812,17 @@ allocation<ElementType> allocate_raw(const std::size_t num_elements)
 float user_function(size_t num_elements, float alpha, float beta)
 {
   constexpr size_t max_byte_alignment = 32;
-  // unique_ptr<float[], deleter_something>
   auto x_alloc = allocate_raw<float, max_byte_alignment>(num_elements);
   auto y_alloc = allocate_raw<float, max_byte_alignment>(num_elements);
 
   aligned_mdspan<max_byte_alignment> x(x_alloc.get(), num_elements);
   aligned_mdspan<max_byte_alignment> y(y_alloc.get(), num_elements);
 
-  // expect aligned_mdspan<16>, get aligned_mdspan<32>
-  fill_x(x); // automatic conversion from 32-byte aligned to 16-byte aligned
-  fill_y(y); // automatic conversion again
+  // Implicit conversion from 32-byte aligned to 16-byte aligned
+  fill_x(x);
+  fill_y(y);
 
-  // expect aligned_mdspan<32>, get aligned_mdspan<32>
+  // No conversion: interfaces expect 32-byte aligned and get it
   vectorized_axpby(y, alpha, x, beta);
   return vectorized_norm(y);
 }
@@ -1833,8 +1832,7 @@ float user_function(size_t num_elements, float alpha, float beta)
 int main(int argc, char* argv[])
 {
   float result = user_function(10, 1.0f, -1.0f);
-  // 3 + 3 + ... + 3 = 30
-  assert(result == 30.0f);
+  assert(result == 30.0f); // 3 + 3 + ... + 3 = 30
   return 0;
 }
 ```
