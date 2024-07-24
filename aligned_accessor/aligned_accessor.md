@@ -182,8 +182,8 @@ are expressed as `explicit` constructors or conversion operators.
 We do *not* provide an `explicit` conversion from an
 `aligned_accessor` with less alignment to an
 `aligned_accessor` with more alignment.  As we explain below,
-we think that if users need to do this conversion,
-they likely have a design problem.
+we think that if users need to do this conversion very often,
+then they likely have a design problem.
 
 The `is_sufficiently_aligned` function checks whether a pointer
 has sufficient alignment to be used correctly with the class.
