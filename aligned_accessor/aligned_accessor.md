@@ -1258,7 +1258,7 @@ template<class ElementType, size_t byte_alignment>
   bool is_sufficiently_aligned(ElementType*);
 ```
 
-> After **[bit.endian]**, add all the material that follows.
+> After **[bit.endian]**, add the following.
 
 ## Add subsection � [bit.aligned] with the following
 
@@ -1273,11 +1273,11 @@ of a type similar (**[conv.qual]**) to `ElementType`.
 [2]{.pnum} *Returns*: `true` if `X` has alignment
 at least `byte_alignment`, else `false`.
 
-## Add `aligned_accessor` declaration to `<mdspan>` header synopsis
-
 > To the Header `<mdspan>` synopsis **[mdspan.syn]**,
 > after `class default_accessor` and before `class mdspan`,
 > add the following.
+
+## Add `aligned_accessor` declaration to `<mdspan>` header synopsis
 
 ```c++
 // [mdspan.accessor.aligned], class template aligned_accessor
@@ -1287,7 +1287,7 @@ template<class ElementType, size_t byte_alignment>
 
 > At the end of **[mdspan.accessor.default]**
 > and before **[mdspan.mdspan]**,
-> add all the material that follows.
+> add the following.
 
 ## Add subsection � [mdspan.accessor.aligned] with the following
 
@@ -1426,7 +1426,7 @@ The following example shows how users can fulfill
 the preconditions of `aligned_accessor` by using
 existing C++ Standard Library functionality
 to create overaligned allocations.
-First, the `allocate_overaligned` helper function
+The example's `allocate_overaligned` function
 uses `aligned_alloc` to create an overaligned allocation.
 
 ```c++
@@ -1450,8 +1450,8 @@ allocation<ElementType>
 }
 ```
 
-Second, this example presumes that a library provides functions
-requiring arrays of `float` to have 32-byte alignment.
+The example's functions `vectorized_axpy` and `vectorized_norm`
+require their input arrays to have 32-byte alignment.
 
 ```c++
 template<size_t byte_alignment>
@@ -1465,7 +1465,7 @@ extern void vectorized_axpy(
 extern float vectorized_norm(aligned_mdspan<32> y);
 ```
 
-Third and finally, the user's function `user_function` would begin
+The user's function `user_function` would begin
 by allocating "raw" overaligned arrays with `allocate_overaligned`.
 It would then create aligned `mdspan` with them,
 and pass the resulting `mdspan` into the library's functions.

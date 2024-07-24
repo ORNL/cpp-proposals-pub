@@ -1662,8 +1662,7 @@ the following.</p>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">bool</span> is_sufficiently_aligned<span class="op">(</span>ElementType<span class="op">*)</span>;</span></code></pre></div>
 <blockquote>
-<p>After <strong>[bit.endian]</strong>, add all the material that
-follows.</p>
+<p>After <strong>[bit.endian]</strong>, add the following.</p>
 </blockquote>
 <h2 data-number="10.1" id="add-subsection-bit.aligned-with-the-following"><span class="header-section-number">10.1</span> Add subsection � [bit.aligned]
 with the following<a href="#add-subsection-bit.aligned-with-the-following" class="self-link"></a></h2>
@@ -1676,20 +1675,20 @@ with the following<a href="#add-subsection-bit.aligned-with-the-following" class
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Returns</em>: <code>true</code> if <code>X</code> has alignment at
 least <code>byte_alignment</code>, else <code>false</code>.</p>
-<h2 data-number="10.2" id="add-aligned_accessor-declaration-to-mdspan-header-synopsis"><span class="header-section-number">10.2</span> Add
-<code>aligned_accessor</code> declaration to <code>&lt;mdspan&gt;</code>
-header synopsis<a href="#add-aligned_accessor-declaration-to-mdspan-header-synopsis" class="self-link"></a></h2>
 <blockquote>
 <p>To the Header <code>&lt;mdspan&gt;</code> synopsis
 <strong>[mdspan.syn]</strong>, after <code>class default_accessor</code>
 and before <code>class mdspan</code>, add the following.</p>
 </blockquote>
+<h2 data-number="10.2" id="add-aligned_accessor-declaration-to-mdspan-header-synopsis"><span class="header-section-number">10.2</span> Add
+<code>aligned_accessor</code> declaration to <code>&lt;mdspan&gt;</code>
+header synopsis<a href="#add-aligned_accessor-declaration-to-mdspan-header-synopsis" class="self-link"></a></h2>
 <div class="sourceCode" id="cb29"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [mdspan.accessor.aligned], class template aligned_accessor</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">class</span> aligned_accessor;</span></code></pre></div>
 <blockquote>
 <p>At the end of <strong>[mdspan.accessor.default]</strong> and before
-<strong>[mdspan.mdspan]</strong>, add all the material that follows.</p>
+<strong>[mdspan.mdspan]</strong>, add the following.</p>
 </blockquote>
 <h2 data-number="10.3" id="add-subsection-mdspan.accessor.aligned-with-the-following"><span class="header-section-number">10.3</span> Add subsection �
 [mdspan.accessor.aligned] with the following<a href="#add-subsection-mdspan.accessor.aligned-with-the-following" class="self-link"></a></h2>
@@ -1825,8 +1824,8 @@ overalignment requirement.</p>
 <p>–<em>end example</em>]</p>
 <p>[<em>Example:</em> The following example shows how users can fulfill
 the preconditions of <code>aligned_accessor</code> by using existing C++
-Standard Library functionality to create overaligned allocations. First,
-the <code>allocate_overaligned</code> helper function uses
+Standard Library functionality to create overaligned allocations. The
+example’s <code>allocate_overaligned</code> function uses
 <code>aligned_alloc</code> to create an overaligned allocation.</p>
 <div class="sourceCode" id="cb36"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType<span class="op">&gt;</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> delete_with_free <span class="op">{</span></span>
@@ -1846,8 +1845,9 @@ the <code>allocate_overaligned</code> helper function uses
 <span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">void</span><span class="op">*</span> ptr <span class="op">=</span> std<span class="op">::</span>aligned_alloc<span class="op">(</span>byte_alignment, num_bytes<span class="op">)</span>;</span>
 <span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">{</span>ptr, delete_with_free<span class="op">&lt;</span>ElementType<span class="op">&gt;{}}</span>;</span>
 <span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>Second, this example presumes that a library provides functions
-requiring arrays of <code>float</code> to have 32-byte alignment.</p>
+<p>The example’s functions <code>vectorized_axpy</code> and
+<code>vectorized_norm</code> require their input arrays to have 32-byte
+alignment.</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="dt">size_t</span> byte_alignment<span class="op">&gt;</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="kw">using</span> aligned_mdspan <span class="op">=</span> std<span class="op">::</span>mdspan<span class="op">&lt;</span></span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>, std<span class="op">::</span>dims<span class="op">&lt;</span><span class="dv">1</span>, <span class="dt">int</span><span class="op">&gt;</span>,</span>
@@ -1857,8 +1857,8 @@ requiring arrays of <code>float</code> to have 32-byte alignment.</p>
 <span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">void</span> vectorized_axpy<span class="op">(</span></span>
 <span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y, <span class="dt">float</span> alpha, aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> x<span class="op">)</span>;</span>
 <span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a><span class="kw">extern</span> <span class="dt">float</span> vectorized_norm<span class="op">(</span>aligned_mdspan<span class="op">&lt;</span><span class="dv">32</span><span class="op">&gt;</span> y<span class="op">)</span>;</span></code></pre></div>
-<p>Third and finally, the user’s function <code>user_function</code>
-would begin by allocating “raw” overaligned arrays with
+<p>The user’s function <code>user_function</code> would begin by
+allocating “raw” overaligned arrays with
 <code>allocate_overaligned</code>. It would then create aligned
 <code>mdspan</code> with them, and pass the resulting
 <code>mdspan</code> into the library’s functions.</p>
