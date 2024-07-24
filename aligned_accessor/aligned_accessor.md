@@ -447,12 +447,58 @@ it just passes the point through without "blunting" it.
 
 Before submitting R0 of this paper,
 we considered an approach specific to `aligned_accessor`,
-that would wrap the pointer in a special data handle type.
-The data handle type would have an `explicit` constructor
-that takes a raw pointer,
-with a precondition that the raw pointer have sufficient alignment.
+that would force the precondition back to `mdspan` construction time.
+This approach would wrap the pointer in a special data handle type
+with a constructor that takes a raw pointer,
+and has a precondition that the raw pointer has sufficient alignment.
 The constructor would be `explicit`, because it would have a precondition.
-This design would force the precondition back to `mdspan` construction time.
+The design would look something like this.
+
+```c++
+template<class ElementType, std::size_t byte_alignment>
+class aligned_accessor {
+public:
+  using element_type = ElementType;
+  using reference = ElementType&;
+  using offset_policy = stdex::default_accessor<ElementType>;
+
+  class data_handle_type {
+  public:
+    constexpr data_handle_type() = default;
+
+    // Checking the precondition can never be a compile-time
+    // expression, so the constructor is not marked constexpr.
+    explicit data_handle_type(element_type* the_data)
+      : data_(the_data)
+    { // Precondition: null, or sufficiently aligned.
+      assert(data_ == nullptr ||
+        is_sufficiently_aligned<byte_alignment>(data_));
+    }
+
+    // Conversion is implicit because it has no precondition.
+    constexpr operator element_type* () const noexcept {
+      return data();
+    }
+
+  private:
+    element_type* data_ = nullptr;
+  };
+
+  // ... the omitted parts of aligned_accessor would not change ...
+
+  constexpr reference
+    access(data_handle_type p, size_t i) const noexcept
+  {
+    return assume_aligned<byte_alignment>((element_type*)(p))[i];
+  }
+
+  constexpr typename offset_policy::data_handle_type
+  offset(data_handle_type p, size_t i) const noexcept {
+    return (element_type*)(p) + i;
+  }
+};
+```
+
 Users would have to construct the `mdspan` like this.
 
 ```c++
