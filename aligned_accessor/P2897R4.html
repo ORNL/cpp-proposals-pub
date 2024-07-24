@@ -476,8 +476,9 @@ safety</a></li>
 Generic validity check?</a></li>
 <li><a href="#arguments-against-and-for-detectably_invalid" id="toc-arguments-against-and-for-detectably_invalid"><span class="toc-section-number">5.7.2</span> Arguments against and for
 <code>detectably_invalid</code></a></li>
-<li><a href="#nonmember-customization-point-design" id="toc-nonmember-customization-point-design"><span class="toc-section-number">5.7.3</span> Nonmember customization point
-design</a></li>
+<li><a href="#users-could-work-around-the-breaking-change-of-adding-detectably_invalid-to-accessor-requirements" id="toc-users-could-work-around-the-breaking-change-of-adding-detectably_invalid-to-accessor-requirements"><span class="toc-section-number">5.7.3</span> Users could work around the
+breaking change of adding <code>detectably_invalid</code> to accessor
+requirements</a></li>
 <li><a href="#is_sufficiently_aligned-is-still-useful-on-its-own" id="toc-is_sufficiently_aligned-is-still-useful-on-its-own"><span class="toc-section-number">5.7.4</span>
 <code>is_sufficiently_aligned</code> is still useful on its own</a></li>
 <li><a href="#nonmember-is_sufficiently_aligned" id="toc-nonmember-is_sufficiently_aligned"><span class="toc-section-number">5.7.5</span> Nonmember
@@ -1194,11 +1195,14 @@ accessor could use a CUDA run-time function like
 <a href="https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__UNIFIED.html"><code>cudaPointerGetAttributes</code></a>
 to check if the pointer points to valid GPU memory. Even
 <code>default_accessor</code> could have a simple check like this.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> detectably_invalid<span class="op">(</span>data_handle_type ptr, <span class="dt">size_t</span> size<span class="op">)</span> <span class="kw">const</span> <span class="op">{</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> ptr <span class="op">==</span> <span class="kw">nullptr</span> <span class="op">&amp;&amp;</span> size <span class="op">!=</span> <span class="dv">0</span>;</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<h3 data-number="5.7.3" id="nonmember-customization-point-design"><span class="header-section-number">5.7.3</span> Nonmember customization point
-design<a href="#nonmember-customization-point-design" class="self-link"></a></h3>
+<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="dt">bool</span> detectably_invalid<span class="op">(</span>data_handle_type ptr, <span class="dt">size_t</span> size<span class="op">)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="kw">noexcept</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> ptr <span class="op">==</span> <span class="kw">nullptr</span> <span class="op">&amp;&amp;</span> size <span class="op">!=</span> <span class="dv">0</span>;</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 data-number="5.7.3" id="users-could-work-around-the-breaking-change-of-adding-detectably_invalid-to-accessor-requirements"><span class="header-section-number">5.7.3</span> Users could work around the
+breaking change of adding <code>detectably_invalid</code> to accessor
+requirements<a href="#users-could-work-around-the-breaking-change-of-adding-detectably_invalid-to-accessor-requirements" class="self-link"></a></h3>
 <p>C++23 defines the generic interface of accessors through the accessor
 policy requirements
 <a href="https://eel.is/c++draft/mdspan.accessor.reqmts"><strong>[mdspan.accessor.reqmts]</strong></a>.
@@ -1320,8 +1324,8 @@ is not known to be invalid.” It’s an adjective (like
 “check” as in “<code>check_valid</code>”).</p></li>
 <li><p>The function does not promise perfect accuracy. In the common
 case, it says whether it can <em>detect</em> whether the handle and size
-are _in_valid. Whether or not they are <em>valid</em> might be harder to
-say.</p></li>
+are <em>not</em> valid. Whether they are <em>valid</em> might be harder
+to say.</p></li>
 <li><p>As discussed above, users may also want to check converting
 constructors from other accessor types. However, there would be no risk
 of ambiguity between that and checking a data handle and size.

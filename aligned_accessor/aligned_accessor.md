@@ -725,12 +725,14 @@ to check if the pointer points to valid GPU memory.
 Even `default_accessor` could have a simple check like this.
 
 ```c++
-bool detectably_invalid(data_handle_type ptr, size_t size) const {
+bool detectably_invalid(data_handle_type ptr, size_t size)
+  const noexcept
+{
   return ptr == nullptr && size != 0;
 }
 ```
 
-### Nonmember customization point design
+### Users could work around the breaking change of adding `detectably_invalid` to accessor requirements
 
 C++23 defines the generic interface of accessors
 through the accessor policy requirements
@@ -867,8 +869,8 @@ with an accessor and calling it with a data handle and size.
 
 2. The function does not promise perfect accuracy.
     In the common case, it says whether it can _detect_
-    whether the handle and size are _in_valid.
-    Whether or not they are _valid_ might be harder to say.
+    whether the handle and size are _not_ valid.
+    Whether they are _valid_ might be harder to say.
 
 3. As discussed above, users may also want to check
     converting constructors from other accessor types.
