@@ -1,7 +1,7 @@
 
 ---
 title: "`aligned_accessor`: An mdspan accessor expressing pointer overalignment"
-document: P2897R4
+document: P2897R5
 date: today
 audience: LEWG
 author:
@@ -93,10 +93,18 @@ toc: true
 
 * Revision 4 (post - St. Louis) to be submitted 2024-07-24
 
-    * Per request of LEWG chair, make `is_sufficiently_aligned` a
+    * Make `is_sufficiently_aligned` a
         nonmember function instead of a static member function of
         `aligned_accessor`.  R3 presented this only as an alternative.
         R4 makes this the actually proposed design.
+
+* Revision 5 (post - St. Louis) to be submitted by 2024-08-15
+
+    * Move `is_sufficiently_aligned` from `<bit>` to `<memory>`,
+        due to feedback from LEWG mailing list review of R4
+
+    * Give `is_sufficiently_aligned` a "*Throws*: Nothing" clause
+        and add nonwording text explaining why
 
 # Purpose of this paper
 
@@ -191,7 +199,7 @@ This makes it easier for users to check preconditions,
 without needing to know how to cast a pointer to an integer
 of the correct size and signedness.  As of R4 of this proposal,
 this is no longer a static member function of `aligned_accessor`.
-Instead, it is a nonmember function in the `<bit>` header.
+Instead, it is a nonmember function in the `<memory>` header.
 
 # Design discussion
 
@@ -799,7 +807,6 @@ whether or not `detectably_invalid` exists, for the following reasons.
     is available without including an `mdspan` header,
     and thus is useful even to those who do not adopt `mdspan`.
 
-
 Regarding (1), we think the most common use case for
 `aligned_accessor`'s `explicit` converting constructor
 from `default_accessor` would be explicit construction
@@ -824,17 +831,48 @@ that we remove `is_sufficiently_aligned` from `aligned_accessor`
 and make it a separate nonmember function.
 R4 of this paper implements this change.
 
+#### Mark it freestanding
+
+We propose marking `is_sufficiently_aligned` freestanding.
+We know of no obstacles to this.
+Since `assume_aligned` is freestanding and since it would be reasonable
+to use `is_sufficiently_aligned` and `assume_aligned` together,
+it would make sense to mark `is_sufficiently_aligned` freestanding as well.
+
+#### Put it in `<memory>`
+
 Into which header should this new function go?
-We think it belongs in `<bit>`,
+Since `is_sufficiently_aligned` does not depend on `mdspan`,
+it should not live in an `mdspan` header.
+It should be usable in any place that `assume_aligned` can be used.
+R4 proposed putting it in `<bit>`,
 because it is fundamentally a bit arithmetic operation.
-There should be no reason why that could not be freestanding,
-like everything else in the `<bit>` header.
-Another option would be to put it in `<memory>`
-right after `assume_aligned`, and to mark it
-as freestanding (since `assume_aligned` is).
-We do not object to other reasonable choices of header.
-The point is that `is_sufficiently_aligned` does not depend on `mdspan`
-and thus should not live in an `mdspan` header.
+However, LEWG mailing list feedback expressed a strong preference
+for the function to go in `<memory>` instead.
+First, that would make it easier to use
+`is_sufficiently_aligned` and `assume_aligned` together.
+Second, "alignment is related to placement of the object in memory,"
+as one LEWG mailing list reviewer pointed out.
+R5 thus proposes putting the function in `<memory>`.
+
+#### Throws: Nothing
+
+R5 also adds a "*Throws*: Nothing" element to `is_sufficiently_aligned`.
+Users generally would not want `is_sufficiently_aligned` to throw,
+because it exists to check a precondition of `assume_aligned`.
+
+Note that the function is *not* declared `noexcept`.
+This is because the function has a precondition,
+that its input `T* ptr` points to an object of a type similar to `T`.
+As we explained in the `detectably_invalid` discussion above,
+implementations do exist that can check this precondition.
+In practice, the most common use cases for `is_sufficiently_aligned`
+are analogous to use of `dynamic_cast` for class hierarchies.
+Users start with a valid pointer with unknown alignment
+(analogous to a valid pointer to a base class `Base`),
+then assert or determine its alignment at run time
+(analogous to `dynamic_cast`ing the pointer to a subclass of `Base`,
+and checking if the result is null).
 
 ### Do accessors need to check anything else?
 
@@ -894,25 +932,23 @@ These points together suggest the name `detectably_invalid`.
 1. Adding `detectably_invalid` to the accessor requirements
     and existing Standard accessors in C++26
     would be a breaking change to C++23.
-    Nevertheless, users could write code
-    that fills in reasonable behavior for C++23 accessors.
+    Nevertheless, even with this breaking change, users could still
+    write code that fills in reasonable behavior for C++23 accessors.
 
 2. Few C++ implementations offer a way to check validity of a pointer range.
     Thus, users would experience `detectably_invalid` as mostly not useful
     for the common case of `default_accessor` and other accessors
     that access a pointer range.
 
-3. Item (1) reduces the urgency of this suggestion for C++26.
+3. Item (1) reduces the urgency of adding `detectably_invalid` to C++26.
     Item (2) reduces its potential to improve the `mdspan` user experience
     in a practical way.  Therefore, we do not suggest adding
     `detectably_invalid` to the accessor requirements in this proposal.
     However, we do not discourage further work in separate proposals.
 
 4. R4 of this paper removes `is_sufficiently_aligned` from `aligned_accessor`
-    and adds it to the `<bit>` header as a separate nonmember function.
-    It could go in other headers, but it should not go in an `mdspan` header,
-    because it does not depend on `mdspan` and would be useful
-    even for users who have not adopted `mdspan`.
+    and adds it to the Standard Library as a separate nonmember function.
+    R5 puts it in the `<memory>` header.
 
 ## Explicit conversions as the model for precondition-asserting conversions
 
@@ -1242,36 +1278,36 @@ Available online [last accessed 2024-07-05]:
 
 ```c++
 #define __cpp_lib_aligned_accessor YYYYMML // also in <mdspan>
-#define __cpp_lib_is_sufficiently_aligned YYYYMML // also in <bit>
+#define __cpp_lib_is_sufficiently_aligned YYYYMML // also in <memory>
 ```
 
 > Adjust the placeholder value `YYYYMML` as needed
 > so as to denote this proposal's date of adoption.
 >
-> To the Header `<bit>` synopsis **[bit.syn]**,
-> after `enum class endian` and before the `}`
-> that closes `namespace std`, add the following.
+> To the Header `<memory>` synopsis **[memory.syn]**,
+> after the declaration of `assume_aligned` and
+> before the declarations of functions in **[obj.lifetime]**,
+> add the following.
 
 ```c++
-// [bit.aligned], is_sufficiently_aligned
-template<class ElementType, size_t byte_alignment>
-  bool is_sufficiently_aligned(ElementType*);
+template<class T, size_t alignment>
+  bool is_sufficiently_aligned(T* ptr);
 ```
 
-> After **[bit.endian]**, add the following.
-
-## Add subsection � [bit.aligned] with the following
+> At the end of **[ptr.align]**, add the following.
 
 ```c++
-template<class ElementType, size_t byte_alignment>
-bool is_sufficiently_aligned(ElementType* p);
+template<class T, size_t alignment>
+bool is_sufficiently_aligned(T* ptr);
 ```
 
-[1]{.pnum} *Preconditions*: `p` points to an object `X`
-of a type similar (**[conv.qual]**) to `ElementType`.
+[10]{.pnum} *Preconditions*: `p` points to an object `X`
+of a type similar (**[conv.qual]**) to `T`.
 
-[2]{.pnum} *Returns*: `true` if `X` has alignment
-at least `byte_alignment`, else `false`.
+[11]{.pnum} *Returns*: `true` if `X` has alignment
+at least `alignment`, else `false`.
+
+[12]{.pnum} *Throws*: Nothing.
 
 > To the Header `<mdspan>` synopsis **[mdspan.syn]**,
 > after `class default_accessor` and before `class mdspan`,
