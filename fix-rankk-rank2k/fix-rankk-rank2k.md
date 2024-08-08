@@ -84,6 +84,8 @@ Since we do not propose changing the symmetric and Hermitian rank-1 and rank-2 f
 
 There are some wording issues in **[linalg.algs.blas3.rankk]** and **[linalg.algs.blas3.rank2k]**, specifically in the Mandates, Preconditions, and Complexity clauses.  These clauses do not reflect the design intent, which is expressed by the corresponding BLAS routines and the mathematical expressions in the current wording that express the functions' behavior.  We have not yet filed an LWG issue for these wording issues.  Given that the above changes will call for adjusting some parts of these clauses anyway (e.g., by changing `InOutMat` to `OutMat`), we have decided to propose "drive-by" fixes to these clauses in this proposal.  We nevertheless plan to file an LWG issue to fix both these and other wording issues we have found.
 
+Many thanks (with permission) to Raffaele Solcà (CSCS Swiss National Supercomputing Centre, `raffaele.solca@cscs.ch`) for pointing out this issue and related issues that we plan to file as part of the aforementioned LWG issue.
+
 # Wording
 
 > Text in blockquotes is not proposed wording,
