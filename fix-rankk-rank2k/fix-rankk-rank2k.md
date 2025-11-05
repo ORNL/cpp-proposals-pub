@@ -1065,7 +1065,7 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
            @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ @[`In`]{.rm}@OutMat, class Triangle>
     void symmetric_matrix_rank_2_update(InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
   template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
-           @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ InOutMat, class Triangle>
+           @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ @[`In`]{.rm}@OutMat, class Triangle>
     void symmetric_matrix_rank_2_update(ExecutionPolicy&& exec,
                                         InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
 
@@ -1074,7 +1074,7 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
            @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ @[`In`]{.rm}@OutMat, class Triangle>
     void hermitian_matrix_rank_2_update(InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
   template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
-           @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ InOutMat, class Triangle>
+           @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ @[`In`]{.rm}@OutMat, class Triangle>
     void hermitian_matrix_rank_2_update(ExecutionPolicy&& exec,
                                         InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
 ```
