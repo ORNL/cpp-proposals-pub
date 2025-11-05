@@ -1588,7 +1588,7 @@ template<class ExecutionPolicy,
 * [5.2]{.pnum} _`multipliable`_`(A, x, y)` is `true`[.]{.rm}[, and]{.add}
 
 ::: add
-* [5.3]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads that take an `E` parameter.
+* [5.3]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads with an `E` parameter.
 :::
 
 [6]{.pnum} *Complexity*: $O($ `x.extent(0)` × `y.extent(0)` $)$.
@@ -1685,7 +1685,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
     the function's `Triangle` template argument;
 
 ::: add
-* [3.2]{.pnum} If the function takes an `InMat2` template parameter and
+* [3.2]{.pnum} If the function has an `InMat2` template parameter and
     if `InMat2` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
@@ -1716,13 +1716,13 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 ::: add
 * [4.1]{.pnum} _`multipliable`_`(A, transposed(A), C)` is `true`; and <i>[Note:</i> This implies that `C` is square <i>-- end note]</i>
 
-* [4.2]{.pnum} _`addable`_`(C, E, C)` is `true` for those overloads that take an `E` parameter.
+* [4.2]{.pnum} _`addable`_`(C, E, C)` is `true` for those overloads with an `E` parameter.
 :::
 
 [5]{.pnum} *Complexity:* $O($ `A.extent(0)` $\cdot$ `A.extent(1)` $\cdot$ [`A`]{.add}[`C`]{.rm}`.extent(0)` $)$.
 
 ::: add
-[6]{.pnum} *Remarks:* `C` may alias `E` for those overloads that take an `E` parameter.
+[6]{.pnum} *Remarks:* `C` may alias `E` for those overloads with an `E` parameter.
 :::
 
 ```
@@ -1917,7 +1917,7 @@ where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
     the function's `Triangle` template argument;
 
 ::: add
-* [4.2]{.pnum} If the function takes an `InMat3` template parameter and
+* [4.2]{.pnum} If the function has an `InMat3` template parameter and
     if `InMat3` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument;
@@ -1942,13 +1942,13 @@ where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
 * [5.2]{.pnum} [_`multipliable`_`(B, transposed(A), C)` is `true`]{.add} [`A.extent(0)` equals `A.extent(1)`]{.rm}.  [<i>[Note:</i> This and the previous imply that `C` is square. <i>-- end note]</i>]{.add}
 
 ::: add
-* [5.3]{.pnum} _`addable`_`(C, E, C)` is `true` for those overloads that take an `E` parameter.
+* [5.3]{.pnum} _`addable`_`(C, E, C)` is `true` for those overloads with an `E` parameter.
 :::
 
 [6]{.pnum} *Complexity:* $O($ `A.extent(0)` $\cdot$ `A.extent(1)` $\cdot$ [`B`]{.add}[`C`]{.rm}`.extent(0)` $)$
 
 ::: add
-[7]{.pnum} *Remarks:* `C` may alias `E` for those overloads that take an `E` parameter.
+[7]{.pnum} *Remarks:* `C` may alias `E` for those overloads with an `E` parameter.
 :::
 
 ```
