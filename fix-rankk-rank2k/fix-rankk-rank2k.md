@@ -1326,8 +1326,10 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @[_`
 
 [5]{.pnum} These functions perform a[n overwriting]{.add} nonsymmetric nonconjugated rank-1 update.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types).
 <i>-- end note]</i>
 
 ::: rm
@@ -1356,8 +1358,10 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @_in
 
 [7]{.pnum} These functions perform an updating nonsymmetric nonconjugated rank-1 update.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types).
 <i>-- end note]</i>
 
 [8]{.pnum} *Effects*: Computes $A = E + x y^T$.
@@ -1374,8 +1378,10 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @[_`
 
 [10]{.pnum} These functions perform a[n overwriting]{.add} nonsymmetric conjugated rank-1 update.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERC` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERC` (for complex element types).
 <i>-- end note]</i>
 
 [11]{.pnum} *Effects*:
@@ -1400,8 +1406,10 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @_in
 
 [12]{.pnum} These functions perform an updating nonsymmetric conjugated rank-1 update.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERC` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERC` (for complex element types).
 <i>-- end note]</i>
 
 [13]{.pnum} *Effects*:
@@ -1421,8 +1429,10 @@ matrix_rank_1_update(std::forward<ExecutionPolicy>(exec), x, conjugated(y), E, A
 
 > Change [linalg.algs.blas2.symherrank1] as follows.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 [1]{.pnum} <i>[Note:</i>
-These functions correspond to the BLAS functions `xSYR`, `xSPR`, `xHER`, and `xHPR`[bib].
+These functions correspond to the BLAS functions `xSYR`, `xSPR`, `xHER`, and `xHPR`.
 They take a scaling factor `alpha`, because it would be impossible to express the update $A = A - x x^T$ [in noncomplex arithmetic]{.add} otherwise.
 <i>-- end note]</i>
 
@@ -1552,8 +1562,10 @@ template<class ExecutionPolicy,
 
 > Change [linalg.algs.blas2.rank2] as follows.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 [1]{.pnum} <i>[Note:</i> These functions correspond to the BLAS functions
-`xSYR2`, `xSPR2`, `xHER2`, and `xHPR2` [bib]. <i>-- end note]</i>
+`xSYR2`, `xSPR2`, `xHER2`, and `xHPR2`. <i>-- end note]</i>
 
 [2]{.pnum} The following elements apply to all functions in [linalg.algs.blas2.rank2].
 
@@ -1897,8 +1909,10 @@ where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
 > The changes proposed here are rebased atop the changes proposed in [LWG4137](https://cplusplus.github.io/LWG/lwg-active.html#4137), "Fix Mandates, Preconditions, and Complexity elements of [linalg] algorithms."
 > <i>-- end note]</i>
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 [1]{.pnum} <i>[Note:</i> These functions correspond to the BLAS functions
-`xSYR2K` and `xHER2K`[bib]. <i>-- end note]</i>
+`xSYR2K` and `xHER2K`. <i>-- end note]</i>
 
 [2]{.pnum} The following elements apply to all functions in [linalg.algs.blas3.rank2k].
 
