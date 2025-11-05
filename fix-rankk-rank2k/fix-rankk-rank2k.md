@@ -1429,7 +1429,7 @@ They take a scaling factor `alpha`, because it would be impossible to express th
 [2]{.pnum} The following elements apply to all functions in [linalg.algs.blas2.symherrank1].
 
 ::: add
-[3]{.pnum} For any function `F` in this section that takes a parameter named `t`, an `InMat` template parameter, and a function parameter `InMat E`, `t` applies to accesses done through the parameter `E`.  `F` will only access the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` will use the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` will use the value
+[3]{.pnum} For any function `F` in this subclause with a parameter named `t`, an `InMat` template parameter, and a function parameter `InMat E`, `t` applies to accesses done through the parameter `E`.  `F` only accesses the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` only uses the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` only uses the value
 
 * [3.1]{.pnum} _`conj-if-needed`_`(E[j, i])` if the name of `F` starts with `hermitian`, or
 
@@ -1558,7 +1558,7 @@ template<class ExecutionPolicy,
 [2]{.pnum} The following elements apply to all functions in [linalg.algs.blas2.rank2].
 
 ::: add
-[3]{.pnum} For any function `F` in this section that takes a parameter named `t`, an `InMat` template parameter, and a function parameter `InMat E`, `t` applies to accesses done through the parameter `E`.  `F` will only access the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` will use the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` will use the value
+[3]{.pnum} For any function `F` in this subclause with a parameter named `t`, an `InMat` template parameter, and a function parameter `InMat E`, `t` applies to accesses done through the parameter `E`.  `F` only accesses the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` only uses the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` only uses the value
 
 * [3.1]{.pnum} _`conj-if-needed`_`(E[j, i])` if the name of `F` starts with `hermitian`, or
 
@@ -1671,7 +1671,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 [1]{.pnum} The following elements apply to all functions in [linalg.algs.blas3.rankk].
 
 ::: add
-[2]{.pnum} For any function `F` in this section that takes a parameter named `t`, an `InMat2` template parameter, and a function parameter `InMat2 E`, `t` applies to accesses done through the parameter `E`.  `F` will only access the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` will use the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` will use the value
+[2]{.pnum} For any function `F` in this subclause with a parameter named `t`, an `InMat2` template parameter, and a function parameter `InMat2 E`, `t` applies to accesses done through the parameter `E`.  `F` only accesses the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` only uses the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` only uses the value
 
 * [2.1]{.pnum} _`conj-if-needed`_`(E[j, i])` if the name of `F` starts with `hermitian`, or
 
@@ -1903,7 +1903,7 @@ where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
 [2]{.pnum} The following elements apply to all functions in [linalg.algs.blas3.rank2k].
 
 ::: add
-[3]{.pnum} For any function `F` in this section that takes a parameter named `t`, an `InMat3` template parameter, and a function parameter `InMat3 E`, `t` applies to accesses done through the parameter `E`.  `F` will only access the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` will use the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` will use the value
+[3]{.pnum} For any function `F` in this subclause with a parameter named `t`, an `InMat3` template parameter, and a function parameter `InMat3 E`, `t` applies to accesses done through the parameter `E`.  `F` only accesses the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` only uses the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` only uses the value
 
 * [3.1]{.pnum} _`conj-if-needed`_`(E[j, i])` if the name of `F` starts with `hermitian`, or
 
