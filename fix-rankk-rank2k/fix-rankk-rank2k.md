@@ -1306,13 +1306,13 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
 
 [2.1]{.pnum} _`possibly-multipliable`_`<OutMat, InVec2, InVec1>()` is `true`, and
 
-[2.2]{.pnum} _`possibly-addable`_`(A, E, A)` is `true` for those overloads that take an `E` parameter.
+[2.2]{.pnum} _`possibly-addable`_`<OutMat, InMat, OutMat>()` is `true` for those overloads with an `E` parameter.
 
 [3]{.pnum} *Preconditions*:
 
-[3.1]{.pnum} `multipliable(A, y, x)` is `true`, and
+[3.1]{.pnum} _`multipliable`_`(A, y, x)` is `true`, and
 
-[3.2]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads that take an `E` parameter.
+[3.2]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads with an `E` parameter.
 
 [4]{.pnum} *Complexity*: $O($ `x.extent(0)` × `y.extent(0)` $)$.
 :::
@@ -1447,7 +1447,7 @@ They take a scaling factor `alpha`, because it would be impossible to express th
 * [4.4]{.pnum} _`compatible-static-extents`_`<decltype(A), decltype(x)>(0, 0)` is `true`[.]{.rm}[; and]{.add}
 
 ::: add
-* [4.5]{.pnum} _`possibly-addable`_`<decltype(A), decltype(E), decltype(A)>` is `true` for those overloads that take an `E` parameter.
+* [4.5]{.pnum} _`possibly-addable`_`<decltype(A), decltype(E), decltype(A)>()` is `true` for those overloads with an `E` parameter.
 :::
 
 [5]{.pnum} *Preconditions*:
@@ -1457,7 +1457,7 @@ They take a scaling factor `alpha`, because it would be impossible to express th
 * [5.2]{.pnum} `A.extent(0)` equals `x.extent(0)`[.]{.rm}[, and]{.add}
 
 ::: add
-* [5.3]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads that take an `E` parameter.
+* [5.3]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads with an `E` parameter.
 :::
 
 [6]{.pnum} *Complexity*: $O($ `x.extent(0)` × `x.extent(0)` $)$.
@@ -1578,7 +1578,7 @@ template<class ExecutionPolicy,
 * [4.4]{.pnum} _`possibly-multipliable`_`<decltype(A), decltype(x), decltype(y)>()` is `true`[.]{.rm}[; and]{.add}
 
 ::: add
-* [4.5]{.pnum} _`possibly-addable`_`<decltype(A), decltype(E), decltype(A)>` is `true` for those overloads that take an `E` parameter.
+* [4.5]{.pnum} _`possibly-addable`_`<decltype(A), decltype(E), decltype(A)>()` is `true` for those overloads with an `E` parameter.
 :::
 
 [5]{.pnum} *Preconditions*:
@@ -1691,7 +1691,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
     the function's `Triangle` template argument.
 :::
 
-* [3.3]{.pnum} [ _`possibly-multipliable`_`<decltype(A), decltype(transposed(A)), decltype(C)>`]{.add} [_`compatible-static-extents`_`<decltype(A), decltype(A)>(0, 1)`]{.rm} is `true`; [and]{.add}
+* [3.3]{.pnum} [ _`possibly-multipliable`_`<decltype(A), decltype(transposed(A)), decltype(C)>()`]{.add} [_`compatible-static-extents`_`<decltype(A), decltype(A)>(0, 1)`]{.rm} is `true`; [and]{.add}
 
 ::: rm
 * [3.3]{.pnum} _`compatible-static-extents`_`<decltype(C), decltype(C)>(0, 1)` is `true`; and
@@ -1700,7 +1700,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 :::
 
 ::: add
-* [3.4]{.pnum} _`possibly-addable`_`<decltype(C), decltype(E), decltype(C)>` is `true` for those overloads that take an `E` parameter.
+* [3.4]{.pnum} _`possibly-addable`_`<decltype(C), decltype(E), decltype(C)>()` is `true` for those overloads with an `E` parameter.
 :::
 
 [4]{.pnum} *Preconditions:*
@@ -1923,16 +1923,16 @@ where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
     the function's `Triangle` template argument;
 :::
 
-* [4.2]{.pnum} [_`possibly-multipliable`_`<decltype(A), decltype(transposed(B)), decltype(C)>`]{.add} [_`possibly-addable`_`<decltype(A), decltype(B), decltype(C)>()`]{.rm} is `true`; [and]{.rm}
+* [4.2]{.pnum} [_`possibly-multipliable`_`<decltype(A), decltype(transposed(B)), decltype(C)>()`]{.add} [_`possibly-addable`_`<decltype(A), decltype(B), decltype(C)>()`]{.rm} is `true`; [and]{.rm}
 
-* [4.3]{.pnum} [_`possibly-multipliable`_`<decltype(B), decltype(transposed(A)), decltype(C)>`]{.add}[_`compatible-static-extents`_`<decltype(A), decltype(A)>(0, 1)`]{.rm} is `true`[.]{.rm}[; and]{.add}
+* [4.3]{.pnum} [_`possibly-multipliable`_`<decltype(B), decltype(transposed(A)), decltype(C)>()`]{.add}[_`compatible-static-extents`_`<decltype(A), decltype(A)>(0, 1)`]{.rm} is `true`[.]{.rm}[; and]{.add}
 
 ::: add
-* [4.5]{.pnum} _`possibly-addable`_`<decltype(C), decltype(E), decltype(C)>` is `true` for those overloads that take an `E` parameter.
+* [4.5]{.pnum} _`possibly-addable`_`<decltype(C), decltype(E), decltype(C)>()` is `true` for those overloads with an `E` parameter.
 :::
 
 > <i>[Editorial Note:</i>
-> The proposed fix for [LWG4137](https://cplusplus.github.io/LWG/lwg-active.html#4137), "Fix Mandates, Preconditions, and Complexity elements of [linalg] algorithms," incorrectly adds `(0, 1)` after _`possibly-multipliable`_`<decltype(B), decltype(transposed(A)), decltype(C)>` in paragraph 4.3 above (3.3 in the issue).
+> The proposed fix for [LWG4137](https://cplusplus.github.io/LWG/lwg-active.html#4137), "Fix Mandates, Preconditions, and Complexity elements of [linalg] algorithms," incorrectly adds `(0, 1)` after _`possibly-multipliable`_`<decltype(B), decltype(transposed(A)), decltype(C)>()` in paragraph 4.3 above (3.3 in the issue).
 > <i>-- end note]</i>
 
 [5]{.pnum} *Preconditions:*
