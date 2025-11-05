@@ -1401,7 +1401,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @_in
 [12]{.pnum} These functions perform an updating nonsymmetric conjugated rank-1 update.
 
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERC` (for complex element types)[bib].
 <i>-- end note]</i>
 
 [13]{.pnum} *Effects*:
