@@ -1,9 +1,9 @@
 
 ---
 title: "Fix C++26 by making the rank-1, rank-2, rank-k, and rank-2k updates consistent with the BLAS"
-document: P3371R4
+document: P3371R5
 date: today
-audience: LEWG
+audience: LWG
 author:
   - name: Mark Hoemmen
     email: <mhoemmen@nvidia.com>
@@ -59,7 +59,7 @@ toc: true
 
     * Add nonwording sections motivating this change.
 
-* Revision 4 to be submitted 2025-04-??
+* Revision 4 to be submitted 2025-04-06
 
     * LEWG voted to forward R3 on 2025-03-18.
 
@@ -68,6 +68,12 @@ toc: true
     * Update (nonwording) "Implementation status" section.
 
     * Harmonise wording diff with proposed fix for [LWG4137](https://cplusplus.github.io/LWG/lwg-active.html#4137) (atop which this paper was and is rebased) and add Editorial Notes explaining where the rebase affects this proposal's wording changes.
+
+* Revision 5 to be submitted 2025-11-??
+
+    * LEWG voted on 2025-11-04 at the Kona meeting to forward R4 for C++26.
+
+    * LWG reviewed R4 on 2025-11-05; include requested changes.
 
 # Abstract
 
