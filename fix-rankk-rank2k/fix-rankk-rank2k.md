@@ -910,18 +910,34 @@ Many thanks (with permission) to Raffaele Solcà (CSCS Swiss National Supercompu
 > adjust the placeholder value `YYYYMML` as needed
 > so as to denote this proposal's date of adoption.
 
-## New exposition-only concepts for possibly-packed input and output matrices
+## Change exposition-only concepts
 
-> To the header `<linalg>` synopsis **[linalg.syn]**, just after the declaration of the exposition-only concept _`inout-matrix`_, replace the exposition-only concept _`possibly-packed-inout-matrix`_ with the new exposition-only concept _`possibly-packed-out-matrix`_.
+> Change the header `<linalg>` synopsis **[linalg.syn]** as follows.
+>
+> Just after the declaration of the exposition-only concept _`inout-matrix`_, replace the exposition-only concept _`possibly-packed-inout-matrix`_ with the new exposition-only concept _`possibly-packed-out-matrix`_.
+>
+> At the end of the list of declarations of exposition-only concepts, after the declaration of the exposition-only concept _`inout-object`_, add a declaration of the new exposition-only concept _`scalar`_.
 
 ```
   template<class T>
-    concept @_inout-matrix_@ = @_see below_@;                // @_exposition only_@
+    concept @_inout-matrix_@ = @_see below_@;                  // @_exposition only_@
   template<class T>
     concept @_possibly-packed_-@@[_`in`_]{.rm}@@_out-matrix_@ = @_see below_@;  // @_exposition only_@
+  template<class T>
+    concept @_in-object_@ = @_see below_@;                     // @_exposition only_@
+  template<class T>
+    concept @_out-object_@ = @_see below_@;                    // @_exposition only_@
+  template<class T>
+    concept @_inout-object_@ = @_see below_@;                  // @_exposition only_@
 ```
+::: add
+```
+  template<class T>
+    concept @_scalar_@ = @_see below_@;                        // @_exposition only_@
+```
+:::
 
-> Then, in **[linalg.helpers.concepts]**, just after the definition of the exposition-only variable template _`is-layout-blas-packed`_, replace the exposition-only concept _`possibly-packed-inout-matrix`_ with the new exposition-only concept _`possibly-packed-out-matrix`_.  The two concepts have the same definitions and thus differ only in name.
+> Then, in **[linalg.helpers.concepts]** paragraph 1, just after the definition of the exposition-only variable template _`is-layout-blas-packed`_, replace the exposition-only concept _`possibly-packed-inout-matrix`_ with the new exposition-only concept _`possibly-packed-out-matrix`_.  The two concepts have the same definitions and thus differ only in name.
 
 ```
   template<class T>
@@ -936,6 +952,21 @@ Many thanks (with permission) to Raffaele Solcà (CSCS Swiss National Supercompu
       is_assignable_v<typename T::reference, typename T::element_type> &&
       (T::is_always_unique() || @_is-layout-blas-packed_@<typename T::layout_type>);
 ```
+
+> Then, again in **[linalg.helpers.concepts]** paragraph 1, after the definition of the exposition-only concept _`inout-object`_, add the definition of the new exposition-only concept _`scalar`_ as specified below.
+
+```
+template<class T>
+  concept @_inout-object_@ =
+    @_is-mdspan_@<T> && (T::rank() == 1 || T::rank() == 2);
+```
+::: add
+```
+template<class T>
+  concept @_scalar_@ =
+    semiregular<T> && (! @_is-mdspan_@<T>) && (! is_execution_policy_v<T>);
+```
+:::
 
 > Then, in [linalg.helpers.concepts], change paragraph 3 to rename _`possibly-packed-inout-matrix`_ to _`possibly-packed-out-matrix`_.
 
@@ -1285,15 +1316,23 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
 
 * [1.2]{.pnum} the `Scalar` template parameter (if any) of any function or class in **[linalg]**.
 
-[2]{.pnum} Linear algebra value types shall model `semiregular`.
+[The "shall model" paragraphs apply to (1.1), the `mdspan`s' `value_type`.
+New Paragraph 3 ("...does not participate in overload resolution...")
+applies to the `Scalar` template parameter of functions or classes.
+That's why we have both.
+We add Paragraph 3, rather than changing all the function
+and class declarations and definitions, in order to minimize the diff.
+]{.ednote}
+
+[2]{.pnum} Linear algebra value types shall model [`semiregular`]{.rm}[_`scalar`_]{.add}.
 
 ::: add
-[3]{.pnum} Linear algebra value types shall not be specializations of `mdspan`.
-
-[4]{.pnum} If `T` is a linear algebra value type, then `is_execution_policy_v<T>` shall be `false`.
+[3]{.pnum} If a function or class in [linalg] has a `Scalar` template parameter,
+then the function or class does not participate in overload resolution
+unless `Scalar` satisfies _`scalar`_.
 :::
 
-[5]{.pnum} A value-initialized object of linear algebra value type shall act as the additive identity.
+[4]{.pnum} A value-initialized object of linear algebra value type shall act as the additive identity.
 
 ## Specification of nonsymmetric rank-1 update functions
 
