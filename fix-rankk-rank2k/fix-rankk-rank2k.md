@@ -1621,7 +1621,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 
 [7]{.pnum} These functions perform a[n overwriting]{.add} symmetric rank-2 update of the symmetric matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
 
-[8]{.pnum} Effects: Computes [$A'$ such that $A' = A + x y^T + y x^T$ and assigns each element of $A'$ to the corresponding element of $A$]{.rm}[$A = x y^T + y x^T$]{.add}.
+[8]{.pnum} *Effects*: Computes [$A'$ such that $A' = A + x y^T + y x^T$ and assigns each element of $A'$ to the corresponding element of $A$]{.rm}[$A = x y^T + y x^T$]{.add}.
 
 ::: add
 ```
@@ -1638,7 +1638,9 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 
 [9]{.pnum} These functions perform an updating symmetric rank-2 update of the symmetric matrix `A` using the symmetric matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
 
-[10]{.pnum} Effects: Computes $A = E + x y^T + y x^T$.
+[10]{.pnum} *Effects*: Computes $A = E + x y^T + y x^T$.
+
+[11]{.pnum} *Remarks*: `A` may alias `E`.
 :::
 
 ```
@@ -1651,9 +1653,9 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
                                       InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
 ```
 
-[11]{.pnum} These functions perform a[n overwriting]{.add} Hermitian rank-2 update of the Hermitian matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
+[12]{.pnum} These functions perform a[n overwriting]{.add} Hermitian rank-2 update of the Hermitian matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
 
-[12]{.pnum} Effects: Computes [$A'$ such that $A' = A + x y^H + y x^H$ and assigns each element of $A'$ to the corresponding element of $A$]{.rm}[$A = x y^H + y x^H$]{.add}.
+[13]{.pnum} *Effects*: Computes [$A'$ such that $A' = A + x y^H + y x^H$ and assigns each element of $A'$ to the corresponding element of $A$]{.rm}[$A = x y^H + y x^H$]{.add}.
 
 ::: add
 ```
@@ -1668,9 +1670,11 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
                                       InVec1 x, InVec2 y, InMat E, OutMat A, Triangle t);
 ```
 
-[13]{.pnum} These functions perform an updating Hermitian rank-2 update of the Hermitian matrix `A` using the Hermitian matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
+[14]{.pnum} These functions perform an updating Hermitian rank-2 update of the Hermitian matrix `A` using the Hermitian matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
 
-[14]{.pnum} Effects: Computes $A = E + x y^H + y x^H$.
+[15]{.pnum} *Effects*: Computes $A = E + x y^H + y x^H$.
+
+[16]{.pnum} *Remarks*: `A` may alias `E`.
 :::
 
 ## Specification of rank-k update functions
