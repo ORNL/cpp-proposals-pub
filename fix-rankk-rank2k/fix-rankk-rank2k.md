@@ -1513,6 +1513,8 @@ template<class ExecutionPolicy,
 [9]{.pnum} These functions perform an updating symmetric rank-1 update of the symmetric matrix `A` using the symmetric matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
 
 [10]{.pnum} *Effects*: Computes $A = E + \alpha x x^T$, where the scalar $\alpha$ is `alpha`.
+
+[11]{.pnum} *Remarks*: `A` may alias `E`.
 :::
 
 ```
@@ -1524,9 +1526,9 @@ template<class ExecutionPolicy,
                                       Scalar alpha, InVec x, @[`In`]{.rm}@OutMat A, Triangle t);
 ```
 
-[11]{.pnum} These functions perform an overwriting Hermitian rank-1 update of the Hermitian matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
+[12]{.pnum} These functions perform an overwriting Hermitian rank-1 update of the Hermitian matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
 
-[12]{.pnum} *Effects*: Computes [a matrix $A'$ such that $A' = A + \alpha x x^H$]{.rm}[$A = \alpha x x^H$]{.add}, where the scalar $\alpha$ is [`alpha`]{.rm}[_`real-if-needed`_(alpha)]{.add}[, and assigns each element of $A'$ to the corresponding element of $A$]{.rm}.
+[13]{.pnum} *Effects*: Computes [a matrix $A'$ such that $A' = A + \alpha x x^H$]{.rm}[$A = \alpha x x^H$]{.add}, where the scalar $\alpha$ is [`alpha`]{.rm}[_`real-if-needed`_(alpha)]{.add}[, and assigns each element of $A'$ to the corresponding element of $A$]{.rm}.
 
 ::: rm
 ```
@@ -1553,9 +1555,11 @@ template<class ExecutionPolicy,
                                       Scalar alpha, InVec x, InMat E, OutMat A, Triangle t);
 ```
 
-[15]{.pnum} These functions perform an updating Hermitian rank-1 update of the Hermitian matrix `A` using the Hermitian matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
+[14]{.pnum} These functions perform an updating Hermitian rank-1 update of the Hermitian matrix `A` using the Hermitian matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
 
-[16]{.pnum} *Effects*: Computes $A = E + \alpha x x^H$, where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
+[15]{.pnum} *Effects*: Computes $A = E + \alpha x x^H$, where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
+
+[16]{.pnum} *Remarks*: `A` may alias `E`.
 :::
 
 ## Specification of symmetric and Hermitian rank-2 update functions
