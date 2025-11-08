@@ -918,12 +918,12 @@ Many thanks (with permission) to Raffaele Solcà (CSCS Swiss National Supercompu
 
 ## Constrain all `class Scalar` template parameters
 
-> Throughout [linalg], if a function declaration, class declaration,
-> function definition, or class definition has a `Scalar` template parameter,
-> replace `class Scalar` with _`scalar`_ `Scalar`.
-> Please apply this change _after_ the changes below.
-> That is, in the changes below as well as in the current Working Draft,
-> replace `class Scalar` with _`scalar`_ `Scalar`.
+[Throughout [linalg], if a function declaration, class declaration,
+function definition, or class definition has a `Scalar` template parameter,
+replace `class Scalar` with _`scalar`_ `Scalar`.
+Please apply this change _after_ the changes below.
+That is, in the changes below as well as in the current Working Draft,
+replace `class Scalar` with _`scalar`_ `Scalar`.]{.ednote}
 
 [We express the change this way in order to minimize the diff to review.
 The exposition-only concept _`scalar`_ will be declared and defined
