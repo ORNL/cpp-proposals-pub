@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2025-11-05" />
+  <meta name="dcterms.date" content="2025-11-07" />
   <title>Fix C++26 by making the rank-1, rank-2, rank-k, and rank-2k updates consistent with the BLAS</title>
   <style>
 code{white-space: pre-wrap;}
@@ -427,7 +427,7 @@ BLAS</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2025-11-05</td>
+    <td>2025-11-07</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -520,27 +520,29 @@ Implementation status</a></li>
 <li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">7</span> Acknowledgments</a></li>
 <li><a href="#wording" id="toc-wording"><span class="toc-section-number">8</span> Wording</a>
 <ul>
-<li><a href="#change-exposition-only-concepts" id="toc-change-exposition-only-concepts"><span class="toc-section-number">8.1</span> Change exposition-only
+<li><a href="#constrain-all-class-scalar-template-parameters" id="toc-constrain-all-class-scalar-template-parameters"><span class="toc-section-number">8.1</span> Constrain all
+<code>class Scalar</code> template parameters</a></li>
+<li><a href="#change-exposition-only-concepts" id="toc-change-exposition-only-concepts"><span class="toc-section-number">8.2</span> Change exposition-only
 concepts</a></li>
-<li><a href="#rank-1-update-functions-in-synopsis" id="toc-rank-1-update-functions-in-synopsis"><span class="toc-section-number">8.2</span> Rank-1 update functions in
+<li><a href="#rank-1-update-functions-in-synopsis" id="toc-rank-1-update-functions-in-synopsis"><span class="toc-section-number">8.3</span> Rank-1 update functions in
 synopsis</a></li>
-<li><a href="#rank-2-update-functions-in-synopsis" id="toc-rank-2-update-functions-in-synopsis"><span class="toc-section-number">8.3</span> Rank-2 update functions in
+<li><a href="#rank-2-update-functions-in-synopsis" id="toc-rank-2-update-functions-in-synopsis"><span class="toc-section-number">8.4</span> Rank-2 update functions in
 synopsis</a></li>
-<li><a href="#rank-k-update-functions-in-synopsis" id="toc-rank-k-update-functions-in-synopsis"><span class="toc-section-number">8.4</span> Rank-k update functions in
+<li><a href="#rank-k-update-functions-in-synopsis" id="toc-rank-k-update-functions-in-synopsis"><span class="toc-section-number">8.5</span> Rank-k update functions in
 synopsis</a></li>
-<li><a href="#rank-2k-update-functions-in-synopsis" id="toc-rank-2k-update-functions-in-synopsis"><span class="toc-section-number">8.5</span> Rank-2k update functions in
+<li><a href="#rank-2k-update-functions-in-synopsis" id="toc-rank-2k-update-functions-in-synopsis"><span class="toc-section-number">8.6</span> Rank-2k update functions in
 synopsis</a></li>
-<li><a href="#constrain-linear-algebra-value-type" id="toc-constrain-linear-algebra-value-type"><span class="toc-section-number">8.6</span> Constrain linear algebra value
+<li><a href="#constrain-linear-algebra-value-type" id="toc-constrain-linear-algebra-value-type"><span class="toc-section-number">8.7</span> Constrain linear algebra value
 type</a></li>
-<li><a href="#specification-of-nonsymmetric-rank-1-update-functions" id="toc-specification-of-nonsymmetric-rank-1-update-functions"><span class="toc-section-number">8.7</span> Specification of nonsymmetric
+<li><a href="#specification-of-nonsymmetric-rank-1-update-functions" id="toc-specification-of-nonsymmetric-rank-1-update-functions"><span class="toc-section-number">8.8</span> Specification of nonsymmetric
 rank-1 update functions</a></li>
-<li><a href="#specification-of-symmetric-and-hermitian-rank-1-update-functions" id="toc-specification-of-symmetric-and-hermitian-rank-1-update-functions"><span class="toc-section-number">8.8</span> Specification of symmetric and
+<li><a href="#specification-of-symmetric-and-hermitian-rank-1-update-functions" id="toc-specification-of-symmetric-and-hermitian-rank-1-update-functions"><span class="toc-section-number">8.9</span> Specification of symmetric and
 Hermitian rank-1 update functions</a></li>
-<li><a href="#specification-of-symmetric-and-hermitian-rank-2-update-functions" id="toc-specification-of-symmetric-and-hermitian-rank-2-update-functions"><span class="toc-section-number">8.9</span> Specification of symmetric and
+<li><a href="#specification-of-symmetric-and-hermitian-rank-2-update-functions" id="toc-specification-of-symmetric-and-hermitian-rank-2-update-functions"><span class="toc-section-number">8.10</span> Specification of symmetric and
 Hermitian rank-2 update functions</a></li>
-<li><a href="#specification-of-rank-k-update-functions" id="toc-specification-of-rank-k-update-functions"><span class="toc-section-number">8.10</span> Specification of rank-k update
+<li><a href="#specification-of-rank-k-update-functions" id="toc-specification-of-rank-k-update-functions"><span class="toc-section-number">8.11</span> Specification of rank-k update
 functions</a></li>
-<li><a href="#specification-of-rank-2k-update-functions" id="toc-specification-of-rank-2k-update-functions"><span class="toc-section-number">8.11</span> Specification of rank-2k update
+<li><a href="#specification-of-rank-2k-update-functions" id="toc-specification-of-rank-2k-update-functions"><span class="toc-section-number">8.12</span> Specification of rank-2k update
 functions</a></li>
 </ul></li>
 <li><a href="#appendix-a-example-of-a-generic-numerical-algorithm" id="toc-appendix-a-example-of-a-generic-numerical-algorithm"><span class="toc-section-number">9</span> Appendix A: Example of a generic
@@ -2399,7 +2401,23 @@ are shown in green, and removals in red.</p>
 <p>adjust the placeholder value <code>YYYYMML</code> as needed so as to
 denote this proposal’s date of adoption.</p>
 </blockquote>
-<h2 data-number="8.1" id="change-exposition-only-concepts"><span class="header-section-number">8.1</span> Change exposition-only
+<h2 data-number="8.1" id="constrain-all-class-scalar-template-parameters"><span class="header-section-number">8.1</span> Constrain all
+<code>class Scalar</code> template parameters<a href="#constrain-all-class-scalar-template-parameters" class="self-link"></a></h2>
+<blockquote>
+<p>Throughout [linalg], if a function declaration, class declaration,
+function definition, or class definition has a <code>Scalar</code>
+template parameter, replace <code>class Scalar</code> with
+<em><code>scalar</code></em> <code>Scalar</code>. Please apply this
+change <em>after</em> the changes below. That is, in the changes below
+as well as in the current Working Draft, replace
+<code>class Scalar</code> with <em><code>scalar</code></em>
+<code>Scalar</code>.</p>
+</blockquote>
+<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: We
+express the change this way in order to minimize the diff to review. The
+exposition-only concept <em><code>scalar</code></em> will be declared
+and defined in the rest of the diff below. ]</span></p>
+<h2 data-number="8.2" id="change-exposition-only-concepts"><span class="header-section-number">8.2</span> Change exposition-only
 concepts<a href="#change-exposition-only-concepts" class="self-link"></a></h2>
 <blockquote>
 <p>Change the header <code>&lt;linalg&gt;</code> synopsis
@@ -2479,7 +2497,7 @@ below.</p>
 <em><code>possibly-packed-</code></em><span class="rm" style="color: #bf0303"><del><em><span><code>in</code></span></em></del></span><em><code>out-matrix</code></em>
 parameter of a function in [linalg] shall not overlap any other
 <code>mdspan</code> parameter of the function.</p>
-<h2 data-number="8.2" id="rank-1-update-functions-in-synopsis"><span class="header-section-number">8.2</span> Rank-1 update functions in
+<h2 data-number="8.3" id="rank-1-update-functions-in-synopsis"><span class="header-section-number">8.3</span> Rank-1 update functions in
 synopsis<a href="#rank-1-update-functions-in-synopsis" class="self-link"></a></h2>
 <blockquote>
 <p>In the header <code>&lt;linalg&gt;</code> synopsis
@@ -2586,7 +2604,7 @@ removed. (“General” rank-1 update functions
 <span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>                                        Scalar alpha, InVec x, InMat E, OutMat A, Triangle t);</span></code></pre></div>
 
 </div>
-<h2 data-number="8.3" id="rank-2-update-functions-in-synopsis"><span class="header-section-number">8.3</span> Rank-2 update functions in
+<h2 data-number="8.4" id="rank-2-update-functions-in-synopsis"><span class="header-section-number">8.4</span> Rank-2 update functions in
 synopsis<a href="#rank-2-update-functions-in-synopsis" class="self-link"></a></h2>
 <blockquote>
 <p>In the header <code>&lt;linalg&gt;</code> synopsis
@@ -2643,7 +2661,7 @@ synopsis<a href="#rank-2-update-functions-in-synopsis" class="self-link"></a></h
 <span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>                                        InVec1 x, InVec2 y, InMat E, OutMat A, Triangle t);</span></code></pre></div>
 
 </div>
-<h2 data-number="8.4" id="rank-k-update-functions-in-synopsis"><span class="header-section-number">8.4</span> Rank-k update functions in
+<h2 data-number="8.5" id="rank-k-update-functions-in-synopsis"><span class="header-section-number">8.5</span> Rank-k update functions in
 synopsis<a href="#rank-k-update-functions-in-synopsis" class="self-link"></a></h2>
 <blockquote>
 <p>In the header <code>&lt;linalg&gt;</code> synopsis
@@ -2754,7 +2772,7 @@ removed. <i>– end note]</i></li>
 <span id="cb36-35"><a href="#cb36-35" aria-hidden="true" tabindex="-1"></a>      InMat1 A, InMat2 E, OutMat C, Triangle t);</span></code></pre></div>
 
 </div>
-<h2 data-number="8.5" id="rank-2k-update-functions-in-synopsis"><span class="header-section-number">8.5</span> Rank-2k update functions in
+<h2 data-number="8.6" id="rank-2k-update-functions-in-synopsis"><span class="header-section-number">8.6</span> Rank-2k update functions in
 synopsis<a href="#rank-2k-update-functions-in-synopsis" class="self-link"></a></h2>
 <blockquote>
 <p>In the header <code>&lt;linalg&gt;</code> synopsis
@@ -2815,7 +2833,7 @@ synopsis<a href="#rank-2k-update-functions-in-synopsis" class="self-link"></a></
 <span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a>                                         InMat1 A, InMat2 B, InMat3 E, OutMat C, Triangle t);</span></code></pre></div>
 
 </div>
-<h2 data-number="8.6" id="constrain-linear-algebra-value-type"><span class="header-section-number">8.6</span> Constrain linear algebra value
+<h2 data-number="8.7" id="constrain-linear-algebra-value-type"><span class="header-section-number">8.7</span> Constrain linear algebra value
 type<a href="#constrain-linear-algebra-value-type" class="self-link"></a></h2>
 <blockquote>
 <p>Change [linalg.reqs.val] as follows.</p>
@@ -2832,27 +2850,12 @@ type<span class="add" style="color: #00AA00"><ins>s</ins></span></em>:</p>
 <code>Scalar</code> template parameter (if any) of any function or class
 in <strong>[linalg]</strong>.</p></li>
 </ul>
-<p><span class="ednote" style="color: #0000ff">[ Editor&#39;s note: The
-“shall model” paragraphs apply to (1.1), the <code>mdspan</code>s’
-<code>value_type</code>. New Paragraph 3 (“…does not participate in
-overload resolution…”) applies to the <code>Scalar</code> template
-parameter of functions or classes. That’s why we have both. We add
-Paragraph 3, rather than changing all the function and class
-declarations and definitions, in order to minimize the diff.
-]</span></p>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 Linear algebra value types shall model <span class="rm" style="color: #bf0303"><del><span><code>semiregular</code></span></del></span><span class="add" style="color: #00AA00"><ins><em><span><code>scalar</code></span></em></ins></span>.</p>
-<div class="add" style="color: #00AA00">
 <p><span class="marginalizedparent"><a class="marginalized">3</a></span>
-If a function or class in [linalg] has a <code>Scalar</code> template
-parameter, then the function or class does not participate in overload
-resolution unless <code>Scalar</code> satisfies
-<em><code>scalar</code></em>.</p>
-</div>
-<p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 A value-initialized object of linear algebra value type shall act as the
 additive identity.</p>
-<h2 data-number="8.7" id="specification-of-nonsymmetric-rank-1-update-functions"><span class="header-section-number">8.7</span> Specification of nonsymmetric
+<h2 data-number="8.8" id="specification-of-nonsymmetric-rank-1-update-functions"><span class="header-section-number">8.8</span> Specification of nonsymmetric
 rank-1 update functions<a href="#specification-of-nonsymmetric-rank-1-update-functions" class="self-link"></a></h2>
 <blockquote>
 <p>Change [linalg.algs.blas2.rank1] as follows.</p>
@@ -2985,7 +2988,7 @@ otherwise, equivalent to:</p>
 <div class="sourceCode" id="cb46"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>matrix_rank_1_update(std::forward&lt;ExecutionPolicy&gt;(exec), x, conjugated(y), E, A);</span></code></pre></div>
 
 </div>
-<h2 data-number="8.8" id="specification-of-symmetric-and-hermitian-rank-1-update-functions"><span class="header-section-number">8.8</span> Specification of symmetric and
+<h2 data-number="8.9" id="specification-of-symmetric-and-hermitian-rank-1-update-functions"><span class="header-section-number">8.9</span> Specification of symmetric and
 Hermitian rank-1 update functions<a href="#specification-of-symmetric-and-hermitian-rank-1-update-functions" class="self-link"></a></h2>
 <blockquote>
 <p>Change [linalg.algs.blas2.symherrank1] as follows.</p>
@@ -3183,7 +3186,7 @@ where the scalar <span class="math inline"><em>α</em></span> is
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
 <em>Remarks</em>: <code>A</code> may alias <code>E</code>.</p>
 </div>
-<h2 data-number="8.9" id="specification-of-symmetric-and-hermitian-rank-2-update-functions"><span class="header-section-number">8.9</span> Specification of symmetric and
+<h2 data-number="8.10" id="specification-of-symmetric-and-hermitian-rank-2-update-functions"><span class="header-section-number">8.10</span> Specification of symmetric and
 Hermitian rank-2 update functions<a href="#specification-of-symmetric-and-hermitian-rank-2-update-functions" class="self-link"></a></h2>
 <blockquote>
 <p>Change [linalg.algs.blas2.rank2] as follows.</p>
@@ -3354,7 +3357,7 @@ into account the <code>Triangle</code> parameter that applies to
 <p><span class="marginalizedparent"><a class="marginalized">16</a></span>
 <em>Remarks</em>: <code>A</code> may alias <code>E</code>.</p>
 </div>
-<h2 data-number="8.10" id="specification-of-rank-k-update-functions"><span class="header-section-number">8.10</span> Specification of rank-k update
+<h2 data-number="8.11" id="specification-of-rank-k-update-functions"><span class="header-section-number">8.11</span> Specification of rank-k update
 functions<a href="#specification-of-rank-k-update-functions" class="self-link"></a></h2>
 <blockquote>
 <p>Change [linalg.algs.blas3.rankk] as follows.</p>
@@ -3632,7 +3635,7 @@ where the scalar <span class="math inline"><em>α</em></span> is
 where the scalar <span class="math inline"><em>α</em></span> is
 <em><code>real-if-needed</code></em><code>(alpha)</code>.</p>
 </div>
-<h2 data-number="8.11" id="specification-of-rank-2k-update-functions"><span class="header-section-number">8.11</span> Specification of rank-2k
+<h2 data-number="8.12" id="specification-of-rank-2k-update-functions"><span class="header-section-number">8.12</span> Specification of rank-2k
 update functions<a href="#specification-of-rank-2k-update-functions" class="self-link"></a></h2>
 <blockquote>
 <p>Change [linalg.algs.blas3.rank2k] as follows.</p>

@@ -916,6 +916,19 @@ Many thanks (with permission) to Raffaele Solcà (CSCS Swiss National Supercompu
 > adjust the placeholder value `YYYYMML` as needed
 > so as to denote this proposal's date of adoption.
 
+## Constrain all `class Scalar` template parameters
+
+> Throughout [linalg], if a function declaration, class declaration,
+> function definition, or class definition has a `Scalar` template parameter,
+> replace `class Scalar` with _`scalar`_ `Scalar`.
+> Please apply this change _after_ the changes below.
+> That is, in the changes below as well as in the current Working Draft,
+> replace `class Scalar` with _`scalar`_ `Scalar`.
+
+[We express the change this way in order to minimize the diff to review.
+The exposition-only concept _`scalar`_ will be declared and defined
+in the rest of the diff below.]{.ednote}
+
 ## Change exposition-only concepts
 
 > Change the header `<linalg>` synopsis **[linalg.syn]** as follows.
@@ -1322,23 +1335,9 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
 
 * [1.2]{.pnum} the `Scalar` template parameter (if any) of any function or class in **[linalg]**.
 
-[The "shall model" paragraphs apply to (1.1), the `mdspan`s' `value_type`.
-New Paragraph 3 ("...does not participate in overload resolution...")
-applies to the `Scalar` template parameter of functions or classes.
-That's why we have both.
-We add Paragraph 3, rather than changing all the function
-and class declarations and definitions, in order to minimize the diff.
-]{.ednote}
-
 [2]{.pnum} Linear algebra value types shall model [`semiregular`]{.rm}[_`scalar`_]{.add}.
 
-::: add
-[3]{.pnum} If a function or class in [linalg] has a `Scalar` template parameter,
-then the function or class does not participate in overload resolution
-unless `Scalar` satisfies _`scalar`_.
-:::
-
-[4]{.pnum} A value-initialized object of linear algebra value type shall act as the additive identity.
+[3]{.pnum} A value-initialized object of linear algebra value type shall act as the additive identity.
 
 ## Specification of nonsymmetric rank-1 update functions
 
