@@ -1,9 +1,9 @@
 
 ---
 title: "Fix C++26 by making the rank-1, rank-2, rank-k, and rank-2k updates consistent with the BLAS"
-document: P3371R4
+document: P3371R5
 date: today
-audience: LEWG
+audience: LWG
 author:
   - name: Mark Hoemmen
     email: <mhoemmen@nvidia.com>
@@ -59,7 +59,7 @@ toc: true
 
     * Add nonwording sections motivating this change.
 
-* Revision 4 to be submitted 2025-04-??
+* Revision 4 to be submitted 2025-04-06
 
     * LEWG voted to forward R3 on 2025-03-18.
 
@@ -68,6 +68,12 @@ toc: true
     * Update (nonwording) "Implementation status" section.
 
     * Harmonise wording diff with proposed fix for [LWG4137](https://cplusplus.github.io/LWG/lwg-active.html#4137) (atop which this paper was and is rebased) and add Editorial Notes explaining where the rebase affects this proposal's wording changes.
+
+* Revision 5 to be submitted 2025-11-??
+
+    * LEWG voted on 2025-11-04 at the Kona meeting to forward R4 for C++26.
+
+    * LWG reviewed R4 on 2025-11-05; include requested changes.
 
 # Abstract
 
@@ -910,18 +916,47 @@ Many thanks (with permission) to Raffaele Solcà (CSCS Swiss National Supercompu
 > adjust the placeholder value `YYYYMML` as needed
 > so as to denote this proposal's date of adoption.
 
-## New exposition-only concepts for possibly-packed input and output matrices
+## Constrain all `class Scalar` template parameters
 
-> To the header `<linalg>` synopsis **[linalg.syn]**, just after the declaration of the exposition-only concept _`inout-matrix`_, replace the exposition-only concept _`possibly-packed-inout-matrix`_ with the new exposition-only concept _`possibly-packed-out-matrix`_.
+[Throughout [linalg], if a function declaration, class declaration,
+function definition, or class definition has a `Scalar` template parameter,
+replace `class Scalar` with _`scalar`_ `Scalar`.
+Please apply this change _after_ the changes below.
+That is, in the changes below as well as in the current Working Draft,
+replace `class Scalar` with _`scalar`_ `Scalar`.]{.ednote}
+
+[We express the change this way in order to minimize the diff to review.
+The exposition-only concept _`scalar`_ will be declared and defined
+in the rest of the diff below.]{.ednote}
+
+## Change exposition-only concepts
+
+> Change the header `<linalg>` synopsis **[linalg.syn]** as follows.
+>
+> Just after the declaration of the exposition-only concept _`inout-matrix`_, replace the exposition-only concept _`possibly-packed-inout-matrix`_ with the new exposition-only concept _`possibly-packed-out-matrix`_.
+>
+> At the end of the list of declarations of exposition-only concepts, after the declaration of the exposition-only concept _`inout-object`_, add a declaration of the new exposition-only concept _`scalar`_.
 
 ```
   template<class T>
-    concept @_inout-matrix_@ = @_see below_@;                // @_exposition only_@
+    concept @_inout-matrix_@ = @_see below_@;                  // @_exposition only_@
   template<class T>
     concept @_possibly-packed_-@@[_`in`_]{.rm}@@_out-matrix_@ = @_see below_@;  // @_exposition only_@
+  template<class T>
+    concept @_in-object_@ = @_see below_@;                     // @_exposition only_@
+  template<class T>
+    concept @_out-object_@ = @_see below_@;                    // @_exposition only_@
+  template<class T>
+    concept @_inout-object_@ = @_see below_@;                  // @_exposition only_@
 ```
+::: add
+```
+  template<class T>
+    concept @_scalar_@ = @_see below_@;                        // @_exposition only_@
+```
+:::
 
-> Then, in **[linalg.helpers.concepts]**, just after the definition of the exposition-only variable template _`is-layout-blas-packed`_, replace the exposition-only concept _`possibly-packed-inout-matrix`_ with the new exposition-only concept _`possibly-packed-out-matrix`_.  The two concepts have the same definitions and thus differ only in name.
+> Then, in **[linalg.helpers.concepts]** paragraph 1, just after the definition of the exposition-only variable template _`is-layout-blas-packed`_, replace the exposition-only concept _`possibly-packed-inout-matrix`_ with the new exposition-only concept _`possibly-packed-out-matrix`_.  The two concepts have the same definitions and thus differ only in name.
 
 ```
   template<class T>
@@ -936,6 +971,21 @@ Many thanks (with permission) to Raffaele Solcà (CSCS Swiss National Supercompu
       is_assignable_v<typename T::reference, typename T::element_type> &&
       (T::is_always_unique() || @_is-layout-blas-packed_@<typename T::layout_type>);
 ```
+
+> Then, again in **[linalg.helpers.concepts]** paragraph 1, after the definition of the exposition-only concept _`inout-object`_, add the definition of the new exposition-only concept _`scalar`_ as specified below.
+
+```
+template<class T>
+  concept @_inout-object_@ =
+    @_is-mdspan_@<T> && (T::rank() == 1 || T::rank() == 2);
+```
+::: add
+```
+template<class T>
+  concept @_scalar_@ =
+    semiregular<T> && (! @_is-mdspan_@<T>) && (! is_execution_policy_v<T>);
+```
+:::
 
 > Then, in [linalg.helpers.concepts], change paragraph 3 to rename _`possibly-packed-inout-matrix`_ to _`possibly-packed-out-matrix`_.
 
@@ -1065,7 +1115,7 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
            @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ @[`In`]{.rm}@OutMat, class Triangle>
     void symmetric_matrix_rank_2_update(InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
   template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
-           @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ InOutMat, class Triangle>
+           @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ @[`In`]{.rm}@OutMat, class Triangle>
     void symmetric_matrix_rank_2_update(ExecutionPolicy&& exec,
                                         InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
 
@@ -1074,7 +1124,7 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
            @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ @[`In`]{.rm}@OutMat, class Triangle>
     void hermitian_matrix_rank_2_update(InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
   template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
-           @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ InOutMat, class Triangle>
+           @_`possibly-packed-`_@@[_`in`_]{.rm}@@_out-matrix_@ @[`In`]{.rm}@OutMat, class Triangle>
     void hermitian_matrix_rank_2_update(ExecutionPolicy&& exec,
                                         InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
 ```
@@ -1285,15 +1335,9 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
 
 * [1.2]{.pnum} the `Scalar` template parameter (if any) of any function or class in **[linalg]**.
 
-[2]{.pnum} Linear algebra value types shall model `semiregular`.
+[2]{.pnum} Linear algebra value types shall model [`semiregular`]{.rm}[_`scalar`_]{.add}.
 
-::: add
-[3]{.pnum} Linear algebra value types shall not be specializations of `mdspan`.
-
-[4]{.pnum} If `T` is a linear algebra value type, then `is_execution_policy_v<T>` shall be `false`.
-:::
-
-[5]{.pnum} A value-initialized object of linear algebra value type shall act as the additive identity.
+[3]{.pnum} A value-initialized object of linear algebra value type shall act as the additive identity.
 
 ## Specification of nonsymmetric rank-1 update functions
 
@@ -1306,13 +1350,13 @@ Unless explicitly permitted, any _`inout-vector`_, _`inout-matrix`_, _`inout-obj
 
 [2.1]{.pnum} _`possibly-multipliable`_`<OutMat, InVec2, InVec1>()` is `true`, and
 
-[2.2]{.pnum} _`possibly-addable`_`(A, E, A)` is `true` for those overloads that take an `E` parameter.
+[2.2]{.pnum} _`possibly-addable`_`<OutMat, InMat, OutMat>()` is `true` for those overloads with an `E` parameter.
 
 [3]{.pnum} *Preconditions*:
 
-[3.1]{.pnum} `multipliable(A, y, x)` is `true`, and
+[3.1]{.pnum} _`multipliable`_`(A, y, x)` is `true`, and
 
-[3.2]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads that take an `E` parameter.
+[3.2]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads with an `E` parameter.
 
 [4]{.pnum} *Complexity*: $O($ `x.extent(0)` × `y.extent(0)` $)$.
 :::
@@ -1326,8 +1370,10 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @[_`
 
 [5]{.pnum} These functions perform a[n overwriting]{.add} nonsymmetric nonconjugated rank-1 update.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types).
 <i>-- end note]</i>
 
 ::: rm
@@ -1356,8 +1402,10 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @_in
 
 [7]{.pnum} These functions perform an updating nonsymmetric nonconjugated rank-1 update.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types).
 <i>-- end note]</i>
 
 [8]{.pnum} *Effects*: Computes $A = E + x y^T$.
@@ -1374,8 +1422,10 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @[_`
 
 [10]{.pnum} These functions perform a[n overwriting]{.add} nonsymmetric conjugated rank-1 update.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERC` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERC` (for complex element types).
 <i>-- end note]</i>
 
 [11]{.pnum} *Effects*:
@@ -1400,8 +1450,10 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2, @_in
 
 [12]{.pnum} These functions perform an updating nonsymmetric conjugated rank-1 update.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 <i>[Note:</i>
-These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERU` (for complex element types)[bib].
+These functions correspond to the BLAS functions `xGER` (for real element types) and `xGERC` (for complex element types).
 <i>-- end note]</i>
 
 [13]{.pnum} *Effects*:
@@ -1421,15 +1473,17 @@ matrix_rank_1_update(std::forward<ExecutionPolicy>(exec), x, conjugated(y), E, A
 
 > Change [linalg.algs.blas2.symherrank1] as follows.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 [1]{.pnum} <i>[Note:</i>
-These functions correspond to the BLAS functions `xSYR`, `xSPR`, `xHER`, and `xHPR`[bib].
+These functions correspond to the BLAS functions `xSYR`, `xSPR`, `xHER`, and `xHPR`.
 They take a scaling factor `alpha`, because it would be impossible to express the update $A = A - x x^T$ [in noncomplex arithmetic]{.add} otherwise.
 <i>-- end note]</i>
 
 [2]{.pnum} The following elements apply to all functions in [linalg.algs.blas2.symherrank1].
 
 ::: add
-[3]{.pnum} For any function `F` in this section that takes a parameter named `t`, an `InMat` template parameter, and a function parameter `InMat E`, `t` applies to accesses done through the parameter `E`.  `F` will only access the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` will use the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` will use the value
+[3]{.pnum} For any function `F` in this subclause with a parameter named `t`, an `InMat` template parameter, and a function parameter `InMat E`, `t` applies to accesses done through the parameter `E`.  `F` only accesses the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` only uses the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` only uses the value
 
 * [3.1]{.pnum} _`conj-if-needed`_`(E[j, i])` if the name of `F` starts with `hermitian`, or
 
@@ -1447,7 +1501,7 @@ They take a scaling factor `alpha`, because it would be impossible to express th
 * [4.4]{.pnum} _`compatible-static-extents`_`<decltype(A), decltype(x)>(0, 0)` is `true`[.]{.rm}[; and]{.add}
 
 ::: add
-* [4.5]{.pnum} _`possibly-addable`_`<decltype(A), decltype(E), decltype(A)>` is `true` for those overloads that take an `E` parameter.
+* [4.5]{.pnum} _`possibly-addable`_`<decltype(A), decltype(E), decltype(A)>()` is `true` for those overloads with an `E` parameter.
 :::
 
 [5]{.pnum} *Preconditions*:
@@ -1457,7 +1511,7 @@ They take a scaling factor `alpha`, because it would be impossible to express th
 * [5.2]{.pnum} `A.extent(0)` equals `x.extent(0)`[.]{.rm}[, and]{.add}
 
 ::: add
-* [5.3]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads that take an `E` parameter.
+* [5.3]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads with an `E` parameter.
 :::
 
 [6]{.pnum} *Complexity*: $O($ `x.extent(0)` × `x.extent(0)` $)$.
@@ -1503,6 +1557,8 @@ template<class ExecutionPolicy,
 [9]{.pnum} These functions perform an updating symmetric rank-1 update of the symmetric matrix `A` using the symmetric matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
 
 [10]{.pnum} *Effects*: Computes $A = E + \alpha x x^T$, where the scalar $\alpha$ is `alpha`.
+
+[11]{.pnum} *Remarks*: `A` may alias `E`.
 :::
 
 ```
@@ -1514,9 +1570,9 @@ template<class ExecutionPolicy,
                                       Scalar alpha, InVec x, @[`In`]{.rm}@OutMat A, Triangle t);
 ```
 
-[11]{.pnum} These functions perform an overwriting Hermitian rank-1 update of the Hermitian matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
+[12]{.pnum} These functions perform an overwriting Hermitian rank-1 update of the Hermitian matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
 
-[12]{.pnum} *Effects*: Computes [a matrix $A'$ such that $A' = A + \alpha x x^H$]{.rm}[$A = \alpha x x^H$]{.add}, where the scalar $\alpha$ is [`alpha`]{.rm}[_`real-if-needed`_(alpha)]{.add}[, and assigns each element of $A'$ to the corresponding element of $A$]{.rm}.
+[13]{.pnum} *Effects*: Computes [a matrix $A'$ such that $A' = A + \alpha x x^H$]{.rm}[$A = \alpha x x^H$]{.add}, where the scalar $\alpha$ is [`alpha`]{.rm}[_`real-if-needed`_(alpha)]{.add}[, and assigns each element of $A'$ to the corresponding element of $A$]{.rm}.
 
 ::: rm
 ```
@@ -1543,22 +1599,26 @@ template<class ExecutionPolicy,
                                       Scalar alpha, InVec x, InMat E, OutMat A, Triangle t);
 ```
 
-[15]{.pnum} These functions perform an updating Hermitian rank-1 update of the Hermitian matrix `A` using the Hermitian matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
+[14]{.pnum} These functions perform an updating Hermitian rank-1 update of the Hermitian matrix `A` using the Hermitian matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
 
-[16]{.pnum} *Effects*: Computes $A = E + \alpha x x^H$, where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
+[15]{.pnum} *Effects*: Computes $A = E + \alpha x x^H$, where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
+
+[16]{.pnum} *Remarks*: `A` may alias `E`.
 :::
 
 ## Specification of symmetric and Hermitian rank-2 update functions
 
 > Change [linalg.algs.blas2.rank2] as follows.
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 [1]{.pnum} <i>[Note:</i> These functions correspond to the BLAS functions
-`xSYR2`, `xSPR2`, `xHER2`, and `xHPR2` [bib]. <i>-- end note]</i>
+`xSYR2`, `xSPR2`, `xHER2`, and `xHPR2`. <i>-- end note]</i>
 
 [2]{.pnum} The following elements apply to all functions in [linalg.algs.blas2.rank2].
 
 ::: add
-[3]{.pnum} For any function `F` in this section that takes a parameter named `t`, an `InMat` template parameter, and a function parameter `InMat E`, `t` applies to accesses done through the parameter `E`.  `F` will only access the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` will use the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` will use the value
+[3]{.pnum} For any function `F` in this subclause with a parameter named `t`, an `InMat` template parameter, and a function parameter `InMat E`, `t` applies to accesses done through the parameter `E`.  `F` only accesses the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` only uses the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` only uses the value
 
 * [3.1]{.pnum} _`conj-if-needed`_`(E[j, i])` if the name of `F` starts with `hermitian`, or
 
@@ -1578,7 +1638,7 @@ template<class ExecutionPolicy,
 * [4.4]{.pnum} _`possibly-multipliable`_`<decltype(A), decltype(x), decltype(y)>()` is `true`[.]{.rm}[; and]{.add}
 
 ::: add
-* [4.5]{.pnum} _`possibly-addable`_`<decltype(A), decltype(E), decltype(A)>` is `true` for those overloads that take an `E` parameter.
+* [4.5]{.pnum} _`possibly-addable`_`<decltype(A), decltype(E), decltype(A)>()` is `true` for those overloads with an `E` parameter.
 :::
 
 [5]{.pnum} *Preconditions*:
@@ -1588,7 +1648,7 @@ template<class ExecutionPolicy,
 * [5.2]{.pnum} _`multipliable`_`(A, x, y)` is `true`[.]{.rm}[, and]{.add}
 
 ::: add
-* [5.3]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads that take an `E` parameter.
+* [5.3]{.pnum} _`addable`_`(A, E, A)` is `true` for those overloads with an `E` parameter.
 :::
 
 [6]{.pnum} *Complexity*: $O($ `x.extent(0)` × `y.extent(0)` $)$.
@@ -1605,7 +1665,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 
 [7]{.pnum} These functions perform a[n overwriting]{.add} symmetric rank-2 update of the symmetric matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
 
-[8]{.pnum} Effects: Computes [$A'$ such that $A' = A + x y^T + y x^T$ and assigns each element of $A'$ to the corresponding element of $A$]{.rm}[$A = x y^T + y x^T$]{.add}.
+[8]{.pnum} *Effects*: Computes [$A'$ such that $A' = A + x y^T + y x^T$ and assigns each element of $A'$ to the corresponding element of $A$]{.rm}[$A = x y^T + y x^T$]{.add}.
 
 ::: add
 ```
@@ -1622,7 +1682,9 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 
 [9]{.pnum} These functions perform an updating symmetric rank-2 update of the symmetric matrix `A` using the symmetric matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
 
-[10]{.pnum} Effects: Computes $A = E + x y^T + y x^T$.
+[10]{.pnum} *Effects*: Computes $A = E + x y^T + y x^T$.
+
+[11]{.pnum} *Remarks*: `A` may alias `E`.
 :::
 
 ```
@@ -1635,9 +1697,9 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
                                       InVec1 x, InVec2 y, @[`In`]{.rm}@OutMat A, Triangle t);
 ```
 
-[11]{.pnum} These functions perform a[n overwriting]{.add} Hermitian rank-2 update of the Hermitian matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
+[12]{.pnum} These functions perform a[n overwriting]{.add} Hermitian rank-2 update of the Hermitian matrix `A`, taking into account the `Triangle` parameter that applies to `A` ([linalg.general]).
 
-[12]{.pnum} Effects: Computes [$A'$ such that $A' = A + x y^H + y x^H$ and assigns each element of $A'$ to the corresponding element of $A$]{.rm}[$A = x y^H + y x^H$]{.add}.
+[13]{.pnum} *Effects*: Computes [$A'$ such that $A' = A + x y^H + y x^H$ and assigns each element of $A'$ to the corresponding element of $A$]{.rm}[$A = x y^H + y x^H$]{.add}.
 
 ::: add
 ```
@@ -1652,9 +1714,11 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
                                       InVec1 x, InVec2 y, InMat E, OutMat A, Triangle t);
 ```
 
-[13]{.pnum} These functions perform an updating Hermitian rank-2 update of the Hermitian matrix `A` using the Hermitian matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
+[14]{.pnum} These functions perform an updating Hermitian rank-2 update of the Hermitian matrix `A` using the Hermitian matrix `E`, taking into account the `Triangle` parameter that applies to `A` and `E` ([linalg.general]).
 
-[14]{.pnum} Effects: Computes $A = E + x y^H + y x^H$.
+[15]{.pnum} *Effects*: Computes $A = E + x y^H + y x^H$.
+
+[16]{.pnum} *Remarks*: `A` may alias `E`.
 :::
 
 ## Specification of rank-k update functions
@@ -1671,7 +1735,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 [1]{.pnum} The following elements apply to all functions in [linalg.algs.blas3.rankk].
 
 ::: add
-[2]{.pnum} For any function `F` in this section that takes a parameter named `t`, an `InMat2` template parameter, and a function parameter `InMat2 E`, `t` applies to accesses done through the parameter `E`.  `F` will only access the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` will use the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` will use the value
+[2]{.pnum} For any function `F` in this subclause with a parameter named `t`, an `InMat2` template parameter, and a function parameter `InMat2 E`, `t` applies to accesses done through the parameter `E`.  `F` only accesses the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` only uses the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` only uses the value
 
 * [2.1]{.pnum} _`conj-if-needed`_`(E[j, i])` if the name of `F` starts with `hermitian`, or
 
@@ -1685,13 +1749,13 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
     the function's `Triangle` template argument;
 
 ::: add
-* [3.2]{.pnum} If the function takes an `InMat2` template parameter and
+* [3.2]{.pnum} If the function has an `InMat2` template parameter and
     if `InMat2` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument.
 :::
 
-* [3.3]{.pnum} [ _`possibly-multipliable`_`<decltype(A), decltype(transposed(A)), decltype(C)>`]{.add} [_`compatible-static-extents`_`<decltype(A), decltype(A)>(0, 1)`]{.rm} is `true`; [and]{.add}
+* [3.3]{.pnum} [ _`possibly-multipliable`_`<decltype(A), decltype(transposed(A)), decltype(C)>()`]{.add} [_`compatible-static-extents`_`<decltype(A), decltype(A)>(0, 1)`]{.rm} is `true`; [and]{.add}
 
 ::: rm
 * [3.3]{.pnum} _`compatible-static-extents`_`<decltype(C), decltype(C)>(0, 1)` is `true`; and
@@ -1700,7 +1764,7 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 :::
 
 ::: add
-* [3.4]{.pnum} _`possibly-addable`_`<decltype(C), decltype(E), decltype(C)>` is `true` for those overloads that take an `E` parameter.
+* [3.4]{.pnum} _`possibly-addable`_`<decltype(C), decltype(E), decltype(C)>()` is `true` for those overloads with an `E` parameter.
 :::
 
 [4]{.pnum} *Preconditions:*
@@ -1716,13 +1780,13 @@ template<class ExecutionPolicy, @_in-vector_@ InVec1, @_in-vector_@ InVec2,
 ::: add
 * [4.1]{.pnum} _`multipliable`_`(A, transposed(A), C)` is `true`; and <i>[Note:</i> This implies that `C` is square <i>-- end note]</i>
 
-* [4.2]{.pnum} _`addable`_`(C, E, C)` is `true` for those overloads that take an `E` parameter.
+* [4.2]{.pnum} _`addable`_`(C, E, C)` is `true` for those overloads with an `E` parameter.
 :::
 
 [5]{.pnum} *Complexity:* $O($ `A.extent(0)` $\cdot$ `A.extent(1)` $\cdot$ [`A`]{.add}[`C`]{.rm}`.extent(0)` $)$.
 
 ::: add
-[6]{.pnum} *Remarks:* `C` may alias `E` for those overloads that take an `E` parameter.
+[6]{.pnum} *Remarks:* `C` may alias `E` for those overloads with an `E` parameter.
 :::
 
 ```
@@ -1897,13 +1961,15 @@ where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
 > The changes proposed here are rebased atop the changes proposed in [LWG4137](https://cplusplus.github.io/LWG/lwg-active.html#4137), "Fix Mandates, Preconditions, and Complexity elements of [linalg] algorithms."
 > <i>-- end note]</i>
 
+[The Note below has a bibliography link, which we don't know how to render here and have therefore omitted.]{.ednote}
+
 [1]{.pnum} <i>[Note:</i> These functions correspond to the BLAS functions
-`xSYR2K` and `xHER2K`[bib]. <i>-- end note]</i>
+`xSYR2K` and `xHER2K`. <i>-- end note]</i>
 
 [2]{.pnum} The following elements apply to all functions in [linalg.algs.blas3.rank2k].
 
 ::: add
-[3]{.pnum} For any function `F` in this section that takes a parameter named `t`, an `InMat3` template parameter, and a function parameter `InMat3 E`, `t` applies to accesses done through the parameter `E`.  `F` will only access the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` will use the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` will use the value
+[3]{.pnum} For any function `F` in this subclause with a parameter named `t`, an `InMat3` template parameter, and a function parameter `InMat3 E`, `t` applies to accesses done through the parameter `E`.  `F` only accesses the triangle of `E` specified by `t`.  For accesses of diagonal elements `E[i, i]`, `F` only uses the value _`real-if-needed`_`(E[i, i])` if the name of `F` starts with `hermitian`.  For accesses `E[i, j]` outside the triangle specified by `t`, `F` only uses the value
 
 * [3.1]{.pnum} _`conj-if-needed`_`(E[j, i])` if the name of `F` starts with `hermitian`, or
 
@@ -1917,22 +1983,22 @@ where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
     the function's `Triangle` template argument;
 
 ::: add
-* [4.2]{.pnum} If the function takes an `InMat3` template parameter and
+* [4.2]{.pnum} If the function has an `InMat3` template parameter and
     if `InMat3` has `layout_blas_packed` layout, then the
     layout's `Triangle` template argument has the same type as
     the function's `Triangle` template argument;
 :::
 
-* [4.2]{.pnum} [_`possibly-multipliable`_`<decltype(A), decltype(transposed(B)), decltype(C)>`]{.add} [_`possibly-addable`_`<decltype(A), decltype(B), decltype(C)>()`]{.rm} is `true`; [and]{.rm}
+* [4.2]{.pnum} [_`possibly-multipliable`_`<decltype(A), decltype(transposed(B)), decltype(C)>()`]{.add} [_`possibly-addable`_`<decltype(A), decltype(B), decltype(C)>()`]{.rm} is `true`; [and]{.rm}
 
-* [4.3]{.pnum} [_`possibly-multipliable`_`<decltype(B), decltype(transposed(A)), decltype(C)>`]{.add}[_`compatible-static-extents`_`<decltype(A), decltype(A)>(0, 1)`]{.rm} is `true`[.]{.rm}[; and]{.add}
+* [4.3]{.pnum} [_`possibly-multipliable`_`<decltype(B), decltype(transposed(A)), decltype(C)>()`]{.add}[_`compatible-static-extents`_`<decltype(A), decltype(A)>(0, 1)`]{.rm} is `true`[.]{.rm}[; and]{.add}
 
 ::: add
-* [4.5]{.pnum} _`possibly-addable`_`<decltype(C), decltype(E), decltype(C)>` is `true` for those overloads that take an `E` parameter.
+* [4.5]{.pnum} _`possibly-addable`_`<decltype(C), decltype(E), decltype(C)>()` is `true` for those overloads with an `E` parameter.
 :::
 
 > <i>[Editorial Note:</i>
-> The proposed fix for [LWG4137](https://cplusplus.github.io/LWG/lwg-active.html#4137), "Fix Mandates, Preconditions, and Complexity elements of [linalg] algorithms," incorrectly adds `(0, 1)` after _`possibly-multipliable`_`<decltype(B), decltype(transposed(A)), decltype(C)>` in paragraph 4.3 above (3.3 in the issue).
+> The proposed fix for [LWG4137](https://cplusplus.github.io/LWG/lwg-active.html#4137), "Fix Mandates, Preconditions, and Complexity elements of [linalg] algorithms," incorrectly adds `(0, 1)` after _`possibly-multipliable`_`<decltype(B), decltype(transposed(A)), decltype(C)>()` in paragraph 4.3 above (3.3 in the issue).
 > <i>-- end note]</i>
 
 [5]{.pnum} *Preconditions:*
@@ -1942,13 +2008,13 @@ where the scalar $\alpha$ is _`real-if-needed`_`(alpha)`.
 * [5.2]{.pnum} [_`multipliable`_`(B, transposed(A), C)` is `true`]{.add} [`A.extent(0)` equals `A.extent(1)`]{.rm}.  [<i>[Note:</i> This and the previous imply that `C` is square. <i>-- end note]</i>]{.add}
 
 ::: add
-* [5.3]{.pnum} _`addable`_`(C, E, C)` is `true` for those overloads that take an `E` parameter.
+* [5.3]{.pnum} _`addable`_`(C, E, C)` is `true` for those overloads with an `E` parameter.
 :::
 
 [6]{.pnum} *Complexity:* $O($ `A.extent(0)` $\cdot$ `A.extent(1)` $\cdot$ [`B`]{.add}[`C`]{.rm}`.extent(0)` $)$
 
 ::: add
-[7]{.pnum} *Remarks:* `C` may alias `E` for those overloads that take an `E` parameter.
+[7]{.pnum} *Remarks:* `C` may alias `E` for those overloads with an `E` parameter.
 :::
 
 ```
