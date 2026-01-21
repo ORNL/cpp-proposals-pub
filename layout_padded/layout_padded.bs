@@ -609,7 +609,7 @@ struct aligned_accessor {
   // __attribute__((align_value(byte_alignment))).
   using data_handle_type = ElementType*;
 
-  constexpr aligned_accessor() noexcept = default;
+  aligned_accessor() = default;
 
   // A feature of default_accessor that permits
   // conversion from nonconst to const.
@@ -900,13 +900,13 @@ private:
   <it>unpadded-extent-type</it> <it>unpadded-extent_</it>; // exposition only
 
 public:
-  constexpr mapping() 
-    requires(<it>actual-padding-stride != dynamic_extent</it>) noexcept = default;
-  constexpr mapping() 
-    requires(actual-padding-stride == dynamic_extent) noexcept;
+  mapping()
+    requires(<it>actual-padding-stride != dynamic_extent</it>) = default;
+  constexpr mapping() noexcept
+    requires(actual-padding-stride == dynamic_extent);
 
-  constexpr mapping(const mapping&) noexcept = default;
-  mapping& operator=(const mapping&) noexcept = default;
+  mapping(const mapping&) = default;
+  mapping& operator=(const mapping&) = default;
 
   constexpr mapping(const extents_type& ext);
 
@@ -1306,8 +1306,8 @@ class layout_right_padded<padding_stride>::mapping {
       constexpr explicit(not is_convertible_v<OtherExtents, extents_type>)
         mapping(const layout_left_padded<other_padding_stride>::mapping<OtherExtents>& other) noexcept;
 
-    constexpr mapping(const mapping&) noexcept = default;
-    mapping& operator=(const mapping&) noexcept = default;
+    mapping(const mapping&) = default;
+    mapping& operator=(const mapping&) = default;
 
     constexpr extents_type extents() const noexcept;
 
