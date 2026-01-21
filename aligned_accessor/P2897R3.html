@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-07-11" />
+  <meta name="dcterms.date" content="2024-07-15" />
   <title>aligned_accessor: An mdspan accessor expressing pointer overalignment</title>
   <style>
 code{white-space: pre-wrap;}
@@ -425,7 +425,7 @@ An mdspan accessor expressing pointer overalignment</h1>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2024-07-11</td>
+    <td>2024-07-15</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -597,6 +597,11 @@ use of <code>dextents</code> in examples with
 from less to more alignment</p></li>
 <li><p>Add Compiler Explorer link with full implementation and
 demo</p></li>
+</ul></li>
+<li><p>Revision 3 (post - St. Louis) to be submitted 2024-07-15</p>
+<ul>
+<li>Include updated feedback from David Sankel (see Acknowledgments)
+after his review of R2</li>
 </ul></li>
 </ul>
 <h1 data-number="3" id="purpose-of-this-paper"><span class="header-section-number">3</span> Purpose of this paper<a href="#purpose-of-this-paper" class="self-link"></a></h1>
@@ -1170,9 +1175,11 @@ accessors that have the ability to make accurate checks.</p>
 <h3 data-number="5.7.5" id="we-need-both-is_sufficiently_aligned-and-detectably_invalid"><span class="header-section-number">5.7.5</span> We need both
 <code>is_sufficiently_aligned</code> and
 <code>detectably_invalid</code><a href="#we-need-both-is_sufficiently_aligned-and-detectably_invalid" class="self-link"></a></h3>
-<p>The same LEWG reviewer who suggested <code>detectably_invalid</code>
-also said that it would make <code>is_sufficiently_aligned</code>
-unnecessary. We disagree for the following reasons.</p>
+<p>One could argue that if <code>aligned_accessor</code> had
+<code>detectably_invalid</code>, that would make
+<code>is_sufficiently_aligned</code> unnecessary. We disagree; we think
+<code>is_sufficiently_aligned</code> is useful by itself, whether or not
+<code>detectably_invalid</code> exists, for the following reasons.</p>
 <ol type="1">
 <li><p>Users will often want to check alignment separately from pointer
 range validity.</p></li>
@@ -1189,6 +1196,14 @@ already asserted that the range formed by its data handle and
 <code>required_span_size()</code> is valid. Thus, the only thing the
 user would need to check would be whether the data handle is
 sufficiently aligned.</p>
+<p>The same LEWG reviewer who suggested <code>detectably_invalid</code>
+had originally thought it would make
+<code>is_sufficiently_aligned</code> unnecessary. However, after
+reviewing R2 of this paper, that reviewer changed their mind. They now
+agree with us that <code>is_sufficiently_aligned</code> is useful by
+itself. All their concerns would be addressed by making
+<code>is_sufficiently_aligned</code> a nonmember function, rather than a
+member function of <code>aligned_accessor</code>.</p>
 <h3 data-number="5.7.6" id="alternative-nonmember-is_sufficiently_aligned"><span class="header-section-number">5.7.6</span> Alternative: Nonmember
 <code>is_sufficiently_aligned</code><a href="#alternative-nonmember-is_sufficiently_aligned" class="self-link"></a></h3>
 <p>The reviewer responded to our argument above by suggesting that we
