@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="mpark/wg21" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Fix C++26 by optimizing linalg::conjugated for noncomplex value types</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+</style>
+  <style>
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f6f8fa; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span { } 
+code span.al { color: #ff0000; } 
+code span.an { } 
+code span.at { } 
+code span.bn { color: #9f6807; } 
+code span.bu { color: #9f6807; } 
+code span.cf { color: #00607c; } 
+code span.ch { color: #9f6807; } 
+code span.cn { } 
+code span.co { color: #008000; font-style: italic; } 
+code span.cv { color: #008000; font-style: italic; } 
+code span.do { color: #008000; } 
+code span.dt { color: #00607c; } 
+code span.dv { color: #9f6807; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #9f6807; } 
+code span.fu { } 
+code span.im { } 
+code span.in { color: #008000; } 
+code span.kw { color: #00607c; } 
+code span.op { color: #af1915; } 
+code span.ot { } 
+code span.pp { color: #6f4e37; } 
+code span.re { } 
+code span.sc { color: #9f6807; } 
+code span.ss { color: #9f6807; } 
+code span.st { color: #9f6807; } 
+code span.va { } 
+code span.vs { color: #9f6807; } 
+code span.wa { color: #008000; font-weight: bold; } 
+code.diff {color: #898887}
+code.diff span.va {color: #00AA00}
+code.diff span.st {color: #bf0303}
+</style>
+  <style type="text/css">
+body {
+margin: 5em;
+font-family: serif;
+
+hyphens: auto;
+line-height: 1.35;
+}
+div.wrapper {
+max-width: 60em;
+margin: auto;
+}
+ul {
+list-style-type: none;
+padding-left: 2em;
+margin-top: -0.2em;
+margin-bottom: -0.2em;
+}
+a {
+text-decoration: none;
+color: #4183C4;
+}
+a.hidden_link {
+text-decoration: none;
+color: inherit;
+}
+li {
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+h1, h2, h3, h4 {
+position: relative;
+line-height: 1;
+}
+a.self-link {
+position: absolute;
+top: 0;
+left: calc(-1 * (3.5rem - 26px));
+width: calc(3.5rem - 26px);
+height: 2em;
+text-align: center;
+border: none;
+transition: opacity .2s;
+opacity: .5;
+font-family: sans-serif;
+font-weight: normal;
+font-size: 83%;
+}
+a.self-link:hover { opacity: 1; }
+a.self-link::before { content: "§"; }
+ul > li:before {
+content: "\2014";
+position: absolute;
+margin-left: -1.5em;
+}
+:target { background-color: #C9FBC9; }
+:target .codeblock { background-color: #C9FBC9; }
+:target ul { background-color: #C9FBC9; }
+.abbr_ref { float: right; }
+.folded_abbr_ref { float: right; }
+:target .folded_abbr_ref { display: none; }
+:target .unfolded_abbr_ref { float: right; display: inherit; }
+.unfolded_abbr_ref { display: none; }
+.secnum { display: inline-block; min-width: 35pt; }
+.header-section-number { display: inline-block; min-width: 35pt; }
+.annexnum { display: block; }
+div.sourceLinkParent {
+float: right;
+}
+a.sourceLink {
+position: absolute;
+opacity: 0;
+margin-left: 10pt;
+}
+a.sourceLink:hover {
+opacity: 1;
+}
+a.itemDeclLink {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+opacity: 0;
+}
+a.itemDeclLink:hover { opacity: 1; }
+span.marginalizedparent {
+position: relative;
+left: -5em;
+}
+li span.marginalizedparent { left: -7em; }
+li ul > li span.marginalizedparent { left: -9em; }
+li ul > li ul > li span.marginalizedparent { left: -11em; }
+li ul > li ul > li ul > li span.marginalizedparent { left: -13em; }
+div.footnoteNumberParent {
+position: relative;
+left: -4.7em;
+}
+a.marginalized {
+position: absolute;
+font-size: 75%;
+text-align: right;
+width: 5em;
+}
+a.enumerated_item_num {
+position: relative;
+left: -3.5em;
+display: inline-block;
+margin-right: -3em;
+text-align: right;
+width: 3em;
+}
+div.para { margin-bottom: 0.6em; margin-top: 0.6em; text-align: justify; }
+div.section { text-align: justify; }
+div.sentence { display: inline; }
+span.indexparent {
+display: inline;
+position: relative;
+float: right;
+right: -1em;
+}
+a.index {
+position: absolute;
+display: none;
+}
+a.index:before { content: "⟵"; }
+
+a.index:target {
+display: inline;
+}
+.indexitems {
+margin-left: 2em;
+text-indent: -2em;
+}
+div.itemdescr {
+margin-left: 3em;
+}
+.bnf {
+font-family: serif;
+margin-left: 40pt;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+}
+.ncbnf {
+font-family: serif;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+}
+.ncsimplebnf {
+font-family: serif;
+font-style: italic;
+margin-top: 0.5em;
+margin-bottom: 0.5em;
+margin-left: 40pt;
+background: inherit; 
+}
+span.textnormal {
+font-style: normal;
+font-family: serif;
+white-space: normal;
+display: inline-block;
+}
+span.rlap {
+display: inline-block;
+width: 0px;
+}
+span.descr { font-style: normal; font-family: serif; }
+span.grammarterm { font-style: italic; }
+span.term { font-style: italic; }
+span.terminal { font-family: monospace; font-style: normal; }
+span.nonterminal { font-style: italic; }
+span.tcode { font-family: monospace; font-style: normal; }
+span.textbf { font-weight: bold; }
+span.textsc { font-variant: small-caps; }
+a.nontermdef { font-style: italic; font-family: serif; }
+span.emph { font-style: italic; }
+span.techterm { font-style: italic; }
+span.mathit { font-style: italic; }
+span.mathsf { font-family: sans-serif; }
+span.mathrm { font-family: serif; font-style: normal; }
+span.textrm { font-family: serif; }
+span.textsl { font-style: italic; }
+span.mathtt { font-family: monospace; font-style: normal; }
+span.mbox { font-family: serif; font-style: normal; }
+span.ungap { display: inline-block; width: 2pt; }
+span.textit { font-style: italic; }
+span.texttt { font-family: monospace; }
+span.tcode_in_codeblock { font-family: monospace; font-style: normal; }
+span.phantom { color: white; }
+
+span.math { font-style: normal; }
+span.mathblock {
+display: block;
+margin-left: auto;
+margin-right: auto;
+margin-top: 1.2em;
+margin-bottom: 1.2em;
+text-align: center;
+}
+span.mathalpha {
+font-style: italic;
+}
+span.synopsis {
+font-weight: bold;
+margin-top: 0.5em;
+display: block;
+}
+span.definition {
+font-weight: bold;
+display: block;
+}
+.codeblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+.outputblock {
+margin-left: 1.2em;
+line-height: 127%;
+}
+div.itemdecl {
+margin-top: 2ex;
+}
+code.itemdeclcode {
+white-space: pre;
+display: block;
+}
+span.textsuperscript {
+vertical-align: super;
+font-size: smaller;
+line-height: 0;
+}
+.footnotenum { vertical-align: super; font-size: smaller; line-height: 0; }
+.footnote {
+font-size: small;
+margin-left: 2em;
+margin-right: 2em;
+margin-top: 0.6em;
+margin-bottom: 0.6em;
+}
+div.minipage {
+display: inline-block;
+margin-right: 3em;
+}
+div.numberedTable {
+text-align: center;
+margin: 2em;
+}
+div.figure {
+text-align: center;
+margin: 2em;
+}
+table {
+border: 1px solid black;
+border-collapse: collapse;
+margin-left: auto;
+margin-right: auto;
+margin-top: 0.8em;
+text-align: left;
+hyphens: none; 
+}
+td, th {
+padding-left: 1em;
+padding-right: 1em;
+vertical-align: top;
+}
+td.empty {
+padding: 0px;
+padding-left: 1px;
+}
+td.left {
+text-align: left;
+}
+td.right {
+text-align: right;
+}
+td.center {
+text-align: center;
+}
+td.justify {
+text-align: justify;
+}
+td.border {
+border-left: 1px solid black;
+}
+tr.rowsep, td.cline {
+border-top: 1px solid black;
+}
+tr.even, tr.odd {
+border-bottom: 1px solid black;
+}
+tr.capsep {
+border-top: 3px solid black;
+border-top-style: double;
+}
+tr.header {
+border-bottom: 3px solid black;
+border-bottom-style: double;
+}
+th {
+border-bottom: 1px solid black;
+}
+span.centry {
+font-weight: bold;
+}
+div.table {
+display: block;
+margin-left: auto;
+margin-right: auto;
+text-align: center;
+width: 90%;
+}
+span.indented {
+display: block;
+margin-left: 2em;
+margin-bottom: 1em;
+margin-top: 1em;
+}
+ol.enumeratea { list-style-type: none; background: inherit; }
+ol.enumerate { list-style-type: none; background: inherit; }
+
+code.sourceCode > span { display: inline; }
+
+div#refs p { padding-left: 32px; text-indent: -32px; }
+</style>
+  <link href="data:image/vnd.microsoft.icon;base64,AAABAAIAEBAAAAEAIABoBAAAJgAAACAgAAABACAAqBAAAI4EAAAoAAAAEAAAACAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAVoJEAN6CRADegkQAWIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wCCRAAAgkQAAIJEAACCRAAsgkQAvoJEAP+CRAD/gkQA/4JEAP+CRADAgkQALoJEAACCRAAAgkQAAP///wD///8AgkQAAIJEABSCRACSgkQA/IJEAP99PQD/dzMA/3czAP99PQD/gkQA/4JEAPyCRACUgkQAFIJEAAD///8A////AHw+AFiBQwDqgkQA/4BBAP9/PxP/uZd6/9rJtf/bybX/upd7/39AFP+AQQD/gkQA/4FDAOqAQgBc////AP///wDKklv4jlEa/3o7AP+PWC//8+3o///////////////////////z7un/kFox/35AAP+GRwD/mVYA+v///wD///8A0Zpk+NmibP+0d0T/8evj///////+/fv/1sKz/9bCs//9/fr//////+/m2/+NRwL/nloA/5xYAPj///8A////ANKaZPjRmGH/5cKh////////////k149/3UwAP91MQD/lmQ//86rhv+USg3/m1YA/5hSAP+bVgD4////AP///wDSmmT4zpJY/+/bx///////8+TV/8mLT/+TVx//gkIA/5lVAP+VTAD/x6B//7aEVv/JpH7/s39J+P///wD///8A0ppk+M6SWP/u2sf///////Pj1f/Nj1T/2KFs/8mOUv+eWhD/lEsA/8aee/+0glT/x6F7/7J8Rvj///8A////ANKaZPjRmGH/48Cf///////+/v7/2qt//82PVP/OkFX/37KJ/86siv+USg7/mVQA/5hRAP+bVgD4////AP///wDSmmT40ppk/9CVXP/69O////////7+/v/x4M//8d/P//7+/f//////9u7n/6tnJf+XUgD/nFgA+P///wD///8A0ppk+NKaZP/RmWL/1qNy//r07///////////////////////+vXw/9akdP/Wnmn/y5FY/6JfFvj///8A////ANKaZFTSmmTo0ppk/9GYYv/Ql1//5cWm//Hg0P/x4ND/5cWm/9GXYP/RmGH/0ppk/9KaZOjVnmpY////AP///wDSmmQA0ppkEtKaZI7SmmT60ppk/9CWX//OkVb/zpFW/9CWX//SmmT/0ppk/NKaZJDSmmQS0ppkAP///wD///8A0ppkANKaZADSmmQA0ppkKtKaZLrSmmT/0ppk/9KaZP/SmmT/0ppkvNKaZCrSmmQA0ppkANKaZAD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkUtKaZNzSmmTc0ppkVNKaZADSmmQA0ppkANKaZADSmmQA////AP5/AAD4HwAA4AcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAACAAQAAgAEAAMADAADgBwAA+B8AAP5/AAAoAAAAIAAAAEAAAAABACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAyCRACMgkQA6oJEAOqCRACQgkQAEIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRABigkQA5oJEAP+CRAD/gkQA/4JEAP+CRADqgkQAZoJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAA4gkQAwoJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQAxIJEADyCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAAgkQAAP///wD///8A////AP///wCCRAAAgkQAAIJEAACCRAAAgkQAAIJEAACCRAAWgkQAmIJEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAJyCRAAYgkQAAIJEAACCRAAAgkQAAIJEAACCRAAA////AP///wD///8A////AIJEAACCRAAAgkQAAIJEAACCRAAAgkQAdIJEAPCCRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAP+CRAD/gkQA/4JEAPSCRAB4gkQAAIJEAACCRAAAgkQAAIJEAAD///8A////AP///wD///8AgkQAAIJEAACCRAAAgkQASoJEANKCRAD/gkQA/4JEAP+CRAD/g0YA/39AAP9zLgD/bSQA/2shAP9rIQD/bSQA/3MuAP9/PwD/g0YA/4JEAP+CRAD/gkQA/4JEAP+CRADUgkQAToJEAACCRAAAgkQAAP///wD///8A////AP///wB+PwAAgkUAIoJEAKiCRAD/gkQA/4JEAP+CRAD/hEcA/4BBAP9sIwD/dTAA/5RfKv+viF7/vp56/76ee/+wiF7/lWAr/3YxAP9sIwD/f0AA/4RHAP+CRAD/gkQA/4JEAP+CRAD/gkQArIJEACaBQwAA////AP///wD///8A////AIBCAEBzNAD6f0EA/4NFAP+CRAD/gkQA/4VIAP92MwD/bSUA/6N1Tv/ezsL/////////////////////////////////38/D/6V3Uv9uJgD/dTEA/4VJAP+CRAD/gkQA/4JEAP+BQwD/fUAA/4FDAEj///8A////AP///wD///8AzJRd5qBlKf91NgD/dDUA/4JEAP+FSQD/cy4A/3YyAP/PuKP//////////////////////////////////////////////////////9K7qP94NQD/ciwA/4VJAP+CRAD/fkEA/35BAP+LSwD/mlYA6v///wD///8A////AP///wDdpnL/4qx3/8KJUv+PUhf/cTMA/3AsAP90LgD/4dK+/////////////////////////////////////////////////////////////////+TYxf91MAD/dTIA/31CAP+GRwD/llQA/6FcAP+gWwD8////AP///wD///8A////ANGZY/LSm2X/4ap3/92mcP+wdT3/byQA/8mwj////////////////////////////////////////////////////////////////////////////+LYxv9zLgP/jUoA/59bAP+hXAD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/RmWL/1p9q/9ubXv/XqXj////////////////////////////7+fD/vZyG/6BxS/+gcUr/vJuE//r37f//////////////////////3MOr/5dQBf+dVQD/nVkA/5xYAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmWP/yohJ//jo2P//////////////////////4NTG/4JDFf9lGAD/bSQA/20kAP9kGAD/fz8S/+Xb0f//////5NG9/6txN/+LOgD/m1QA/51aAP+cWAD/m1cA/5xYAP+cWADy////AP///wD///8A////ANKaZPLSmmT/0ppk/8+TWf/Unmv//v37//////////////////////+TWRr/VwsA/35AAP+ERgD/g0UA/4JGAP9lHgD/kFga/8KXX/+TRwD/jT4A/49CAP+VTQD/n10A/5xYAP+OQQD/lk4A/55cAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/y4tO/92yiP//////////////////////8NnE/8eCQP+rcTT/ez0A/3IyAP98PgD/gEMA/5FSAP+USwD/jj8A/5lUAP+JNwD/yqV2/694Mf+HNQD/jkAA/82rf/+laBj/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/LiUr/4byY///////////////////////gupX/0I5P/+Wuev/Lklz/l1sj/308AP+QSwD/ol0A/59aAP+aVQD/k0oA/8yoh///////+fXv/6pwO//Lp3v///////Pr4f+oay7y////AP///wD///8A////ANKaZPLSmmT/0ppk/8uJSv/hvJj//////////////////////+G7l//Jhkb/0ppk/96nc//fqXX/x4xO/6dkFP+QSQD/llEA/5xXAP+USgD/yaOA///////38uv/qG05/8ijdv//////8efb/6ZpLPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/zIxO/9yxh///////////////////////7dbA/8iEQf/Sm2X/0Zlj/9ScZv/eqHf/2KJv/7yAQf+XTgD/iToA/5lSAP+JNgD/yKFv/611LP+HNQD/jT8A/8qmeP+kZRT/jT4A8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/Pk1n/1J5q//78+//////////////////+/fv/1aFv/8iEQv/Tm2b/0ppl/9GZY//Wn2z/1pZc/9eldf/Bl2b/kUcA/4w9AP+OQAD/lUwA/59eAP+cWQD/jT8A/5ZOAP+eXADy////AP///wD///8A////ANKaZPLSmmT/0ppk/9KZY//KiEn/8d/P///////////////////////47+f/05tm/8iCP//KiEj/yohJ/8eCP//RmGH//vfy///////n1sP/rXQ7/4k4AP+TTAD/nVoA/5xYAP+cVwD/nFgA/5xYAPL///8A////AP///wD///8A0ppk8tKaZP/SmmT/0ptl/8uLTf/aq37////////////////////////////+/fz/6c2y/961jv/etY7/6Myx//78+v//////////////////////3MWv/5xXD/+ORAD/mFQA/51ZAP+cWAD/nFgA8v///wD///8A////AP///wDSmmTy0ppk/9KaZP/SmmT/0ppk/8mFRP/s1b//////////////////////////////////////////////////////////////////////////////+PD/0JFU/7NzMv+WUQD/kUsA/5tXAP+dWQDy////AP///wD///8A////ANKaZP/SmmT/0ppk/9KaZP/Sm2X/z5NZ/8yMT//z5NX/////////////////////////////////////////////////////////////////9Ofa/8yNUP/UmGH/36p5/8yTWv+qaSD/kksA/5ROAPz///8A////AP///wD///8A0ppk5NKaZP/SmmT/0ppk/9KaZP/TnGf/zY9T/82OUv/t1sD//////////////////////////////////////////////////////+7Yw//OkFX/zI5R/9OcZ//SmmP/26V0/9ymdf/BhUf/ol8R6P///wD///8A////AP///wDSmmQ80ppk9tKaZP/SmmT/0ppk/9KaZP/TnGj/zpFW/8qJSv/dson/8uHS//////////////////////////////////Lj0//etIv/y4lL/86QVf/TnGj/0ppk/9KaZP/RmWP/05xn/9ymdfjUnWdC////AP///wD///8A////ANKaZADSmmQc0ppkotKaZP/SmmT/0ppk/9KaZP/Tm2b/0Zli/8qJSf/NjlH/16Z3/+G8mP/myKr/5siq/+G8mP/Xp3f/zY5S/8qISf/RmGH/05tm/9KaZP/SmmT/0ppk/9KaZP/SmmSm0pljINWdaQD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkQtKaZMrSmmT/0ppk/9KaZP/SmmT/0ptl/9GYYf/Nj1P/y4lL/8qISP/KiEj/y4lK/82PU//RmGH/0ptl/9KaZP/SmmT/0ppk/9KaZP/SmmTO0ppkRtKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZGzSmmTu0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmTw0ppkcNKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZBLSmmSQ0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppklNKaZBTSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP///wD///8A0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQy0ppkutKaZP/SmmT/0ppk/9KaZP/SmmT/0ppk/9KaZP/SmmT/0ppkvtKaZDbSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkAP///wD///8A////AP///wDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkXNKaZODSmmT/0ppk/9KaZP/SmmT/0ppk5NKaZGDSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA////AP///wD///8A////ANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkBtKaZIbSmmTo0ppk6tKaZIrSmmQK0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZADSmmQA0ppkANKaZAD///8A////AP/8P///+B///+AH//+AAf//AAD//AAAP/AAAA/gAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA+AAAAfwAAAP/AAAP/8AAP//gAH//+AH///4H////D//" rel="icon" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+  
+</head>
+<body>
+<div class="wrapper">
+<header id="title-block-header">
+<h1 class="title" style="text-align:center">Fix C++26 by optimizing
+linalg::conjugated for noncomplex value types</h1>
+
+<table style="border:none;float:right">
+  <tr>
+    <td>Document #: </td>
+    <td>P3050R2</td>
+  </tr>
+  <tr>
+    <td>Date: </td>
+    <td>2024/08/12</td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Project: </td>
+    <td>Programming Language C++<br>
+      LEWG<br>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align:top">Reply-to: </td>
+    <td>
+      Mark Hoemmen<br>&lt;<a href="mailto:mhoemmen@nvidia.com" class="email">mhoemmen@nvidia.com</a>&gt;<br>
+    </td>
+  </tr>
+</table>
+
+</header>
+<div style="clear:both">
+<div id="TOC" role="doc-toc">
+<h1 id="toctitle">Contents</h1>
+<ul>
+<li><a href="#authors" id="toc-authors"><span class="toc-section-number">1</span> Authors</a></li>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">2</span> Revision history</a></li>
+<li><a href="#abstract" id="toc-abstract"><span class="toc-section-number">3</span> Abstract</a></li>
+<li><a href="#presentation" id="toc-presentation"><span class="toc-section-number">4</span> Presentation</a>
+<ul>
+<li><a href="#terms" id="toc-terms"><span class="toc-section-number">4.1</span> Terms</a></li>
+<li><a href="#common-practice-conjugate-transpose-of-a-noncomplex-matrix-is-just-the-transpose" id="toc-common-practice-conjugate-transpose-of-a-noncomplex-matrix-is-just-the-transpose"><span class="toc-section-number">4.2</span> Common practice: “conjugate
+transpose of a noncomplex matrix is just the transpose”</a></li>
+<li><a href="#conjugated-transposed-and-conjugate_transposed-views" id="toc-conjugated-transposed-and-conjugate_transposed-views"><span class="toc-section-number">4.3</span> <code>conjugated</code>,
+<code>transposed</code>, and <code>conjugate_transposed</code>
+views</a></li>
+<li><a href="#how-does-conjugated-work-currently" id="toc-how-does-conjugated-work-currently"><span class="toc-section-number">4.4</span> How does <code>conjugated</code>
+work currently?</a></li>
+<li><a href="#this-is-correct-but-can-hinder-optimization" id="toc-this-is-correct-but-can-hinder-optimization"><span class="toc-section-number">4.5</span> This is correct, but can hinder
+optimization</a></li>
+<li><a href="#fix-conjugateda-should-return-a-if-a-is-noncomplex" id="toc-fix-conjugateda-should-return-a-if-a-is-noncomplex"><span class="toc-section-number">4.6</span> Fix: <code>conjugated(A)</code>
+should return <code>A</code> if <code>A</code> is noncomplex</a></li>
+</ul></li>
+<li><a href="#design-justification" id="toc-design-justification"><span class="toc-section-number">5</span> Design justification</a>
+<ul>
+<li><a href="#introduction" id="toc-introduction"><span class="toc-section-number">5.1</span> Introduction</a></li>
+<li><a href="#current-behavior-of-conjugated" id="toc-current-behavior-of-conjugated"><span class="toc-section-number">5.2</span> Current behavior of
+<code>conjugated</code></a></li>
+<li><a href="#why-change-the-current-behavior" id="toc-why-change-the-current-behavior"><span class="toc-section-number">5.3</span> Why change the current
+behavior?</a></li>
+<li><a href="#p1673-layouts-and-accessors-are-not-just-tags" id="toc-p1673-layouts-and-accessors-are-not-just-tags"><span class="toc-section-number">5.4</span> P1673 layouts and accessors are
+not “just tags”</a></li>
+<li><a href="#change-conjugatedx-may-no-longer-have-const-element_type" id="toc-change-conjugatedx-may-no-longer-have-const-element_type"><span class="toc-section-number">5.5</span> Change: <code>conjugated(x)</code>
+may no longer have const <code>element_type</code></a></li>
+<li><a href="#what-if-the-input-mdspan-has-conjugated_accessor-with-noncomplex-element_type" id="toc-what-if-the-input-mdspan-has-conjugated_accessor-with-noncomplex-element_type"><span class="toc-section-number">5.6</span> What if the input
+<code>mdspan</code> has <code>conjugated_accessor</code> with noncomplex
+<code>element_type</code>?</a></li>
+</ul></li>
+<li><a href="#implementation" id="toc-implementation"><span class="toc-section-number">6</span> Implementation</a></li>
+<li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">7</span> Acknowledgments</a></li>
+<li><a href="#wording" id="toc-wording"><span class="toc-section-number">8</span> Wording</a></li>
+</ul>
+</div>
+<h1 data-number="1" id="authors"><span class="header-section-number">1</span> Authors<a href="#authors" class="self-link"></a></h1>
+<ul>
+<li>Mark Hoemmen (mhoemmen@nvidia.com) (NVIDIA)</li>
+</ul>
+<h1 data-number="2" id="revision-history"><span class="header-section-number">2</span> Revision history<a href="#revision-history" class="self-link"></a></h1>
+<ul>
+<li><p>Revision 0 was submitted for the post-Kona mailing on
+2023/11/15.</p></li>
+<li><p>Revision 1 will be submitted for the post-Tokyo mailing on
+2024/04/16.</p>
+<ul>
+<li><p>Add explanation to Wording section (actual wording change is not
+affected)</p></li>
+<li><p>Minor revisions of non-wording material</p></li>
+<li><p>Add link to implementation</p></li>
+<li><p>Change title and abstract, to emphasize that delaying this until
+after C++26 would be a breaking change</p></li>
+</ul></li>
+<li><p>Revision 2 will be submitted by 2024/08/15.</p>
+<ul>
+<li><p>Minor wording fix (define “<code>E</code>” in
+“<code>conj(E)</code>”)</p></li>
+<li><p>Bump value of <code>__cpp_lib_linalg</code> macro</p></li>
+<li><p>Add nonwording “Presentation” section</p></li>
+</ul></li>
+</ul>
+<h1 data-number="3" id="abstract"><span class="header-section-number">3</span> Abstract<a href="#abstract" class="self-link"></a></h1>
+<p>We propose the following change to the C++ Working Paper. If an
+<code>mdspan</code> object <code>x</code> has noncomplex
+<code>value_type</code>, and if that <code>mdspan</code> does not
+already have accessor type <code>conjugated_accessor&lt;A&gt;</code> for
+some nested accessor type <code>A</code>, then we propose to change
+<code>conjugated(X)</code> just to return <code>X</code>. Delaying this
+until after C++26 would be a breaking change.</p>
+<h1 data-number="4" id="presentation"><span class="header-section-number">4</span> Presentation<a href="#presentation" class="self-link"></a></h1>
+<p>Reviewers who are not familiar with <code>std::linalg</code> might
+like to start with this section. It summarizes why
+<code>conjugated</code> exists, how it works, and why its definition
+needs to change.</p>
+<h2 data-number="4.1" id="terms"><span class="header-section-number">4.1</span> Terms<a href="#terms" class="self-link"></a></h2>
+<ul>
+<li><p>A <em>complex number</em> <span class="math inline"><em>z</em> = <em>x</em> + <em>i</em><em>y</em></span>
+has a <em>real part</em> <span class="math inline"><em>x</em></span> and
+an <em>imaginary part</em> <span class="math inline"><em>y</em></span>.</p>
+<ul>
+<li><p>Mathematical convention calls <span class="math inline"><em>x</em></span> the “real part” even if <span class="math inline"><em>x</em></span> isn’t necessarily a real number
+(e.g., it could be an integer).</p></li>
+<li><p>In std::linalg, a “complex number” is any number type, not
+necessarily <code>std::complex</code>, where <code>conj</code> is
+ADL-findable. (Users define their own complex number types to work
+around various <code>std::complex</code> issues, as P1673
+explains.)</p></li>
+<li><p>For numbers that are not complex, we say “noncomplex” and not
+“real” because <code>std::linalg</code> does not require them to be real
+numbers, or even necessarily to be of arithmetic types (e.g., they could
+be user-defined number types).</p></li>
+</ul></li>
+<li><p>The <em>conjugate</em> of a complex number <span class="math inline"><em>z</em> = <em>x</em> + <em>i</em><em>y</em></span>
+is <span class="math inline"><em>x</em> − <em>i</em><em>y</em></span>.</p></li>
+<li><p>The conjugate of a noncomplex number is just the number (as its
+imaginary part is zero).</p>
+<ul>
+<li><p><code>conj(z)</code> returns <code>std::complex</code> even if
+<code>z</code> is an arithmetic type.</p></li>
+<li><p><code>std::linalg</code> uses
+<em><code>conj-if-needed(z)</code></em>, which preserves the type of its
+input.</p></li>
+</ul></li>
+<li><p>For a rank-2 <code>mdspan</code> <code>A</code>:</p>
+<ul>
+<li><p>the <em>transpose</em> of <code>A</code> is a rank-2
+<code>mdspan</code> <code>B</code> such that <code>B[c, r]</code> equals
+<code>A[r, c]</code>; and</p></li>
+<li><p>the <em>conjugate transpose</em> of <code>A</code> is a rank-2
+<code>mdspan</code> <code>B</code> such that <code>B[c, r]</code> equals
+<em><code>conj-if-needed</code></em><code>(A[r, c])</code>.</p></li>
+</ul></li>
+<li><p><em>BLAS</em> (pronounced “blahz”) stands for the “Basic Linear
+Algebra Subroutines,” a Standard Fortran and C interface providing
+linear algebra operations. This is the foundation of
+<code>std::linalg</code>.</p></li>
+</ul>
+<h2 data-number="4.2" id="common-practice-conjugate-transpose-of-a-noncomplex-matrix-is-just-the-transpose"><span class="header-section-number">4.2</span> Common practice: “conjugate
+transpose of a noncomplex matrix is just the transpose”<a href="#common-practice-conjugate-transpose-of-a-noncomplex-matrix-is-just-the-transpose" class="self-link"></a></h2>
+<p>The conjugate transpose of a complex matrix naturally generalizes the
+transpose of a noncomplex matrix. Users who develop generic algorithms
+for either complex or noncomplex problems write the algorithm once using
+the conjugate transpose. BLAS and matrix-oriented programming languages
+like Matlab treat both using the same notation (e.g., the
+<code>&#39;C&#39;</code> flag means transpose for a noncomplex matrix, and
+conjugate transpose for a complex matrix).</p>
+<h2 data-number="4.3" id="conjugated-transposed-and-conjugate_transposed-views"><span class="header-section-number">4.3</span> <code>conjugated</code>,
+<code>transposed</code>, and <code>conjugate_transposed</code> views<a href="#conjugated-transposed-and-conjugate_transposed-views" class="self-link"></a></h2>
+<p>A key feature of linear algebra libraries is their ability to view
+the transpose or conjugate transpose of a matrix “in place” without
+actually changing its elements. Matrices may be large and copying them
+may be too expensive.</p>
+<ul>
+<li><p>BLAS implements “view (conjugate) transpose in place” with a
+separate flag argument: <code>&#39;N&#39;</code>, <code>&#39;T&#39;</code>, or
+<code>&#39;C&#39;</code>.</p></li>
+<li><p><code>std::linalg</code> implements this using the
+<code>mdspan</code> view creation functions <code>conjugated</code>,
+<code>transposed</code>, and <code>conjugate_transposed</code>.</p></li>
+</ul>
+<h2 data-number="4.4" id="how-does-conjugated-work-currently"><span class="header-section-number">4.4</span> How does
+<code>conjugated</code> work currently?<a href="#how-does-conjugated-work-currently" class="self-link"></a></h2>
+<ol type="1">
+<li><p>If the input mdspan has accessor type
+<code>conjugated_accessor&lt;NestedAccessor&gt;</code>, then the result
+has accessor type <code>NestedAccessor</code>;</p></li>
+<li><p>otherwise, if the input mdspan has accessor type
+<code>Accessor</code>, then the result has accessor type
+<code>conjugated_accessor&lt;Accessor&gt;</code>.</p></li>
+</ol>
+<p><code>conjugated_accessor</code>’s (read-only) <code>access</code>
+function conjugates the element if it’s a complex number, else it just
+returns the number.</p>
+<h2 data-number="4.5" id="this-is-correct-but-can-hinder-optimization"><span class="header-section-number">4.5</span> This is correct, but can hinder
+optimization<a href="#this-is-correct-but-can-hinder-optimization" class="self-link"></a></h2>
+<p>The current behavior of <code>conjugated</code> is mathematically
+correct, but may result in poor performance.</p>
+<p>The problem is that <code>conjugated(A)</code> for an
+mdspan-of-noncomplex-numbers <code>A</code> should just return
+<code>A</code>, but instead it returns an <code>mdspan</code> with a
+different accessor type than <code>A</code>.</p>
+<p>This is bad because both Standard Library implementations and users
+may want to optimize for “known accessors” such as
+<code>default_accessor</code>. Accessors communicate optimization
+information, like “this is a contiguous array in memory.” Optimizations
+for known accessors include calling really fast libraries that exploit
+low-level hardware features. The generic accessor code path may be
+asymptotically slower in terms of the number of memory accesses.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> IndexType, <span class="dt">size_t</span> Ext0, <span class="kw">class</span> Layout, <span class="kw">class</span> Accessor<span class="op">&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> generic_algorithm<span class="op">(</span> <span class="co">// fully generic</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span>ElementType, extent<span class="op">&lt;</span>IndexType, Ext0<span class="op">&gt;</span>, Layout, Accessor<span class="op">&gt;</span> x<span class="op">)</span>;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> IndexType, <span class="dt">size_t</span> Ext0, <span class="kw">class</span> Layout<span class="op">&gt;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> generic_algorithm<span class="op">(</span> <span class="co">// specialization</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span>ElementType, extent<span class="op">&lt;</span>IndexType, Ext0<span class="op">&gt;</span>, Layout, default_accessor<span class="op">&lt;</span>ElementType<span class="op">&gt;&gt;</span> x<span class="op">)</span>;</span></code></pre></div>
+<p>Currently, <code>conjugated</code> of a
+<code>default_accessor&lt;ElementType&gt;</code> mdspan has accessor
+<code>conjugated_accessor&lt;default_accessor&lt;ElementType&gt;&gt;</code>.
+Calling <code>generic_algorithm</code> with this mdspan will thus take
+the “generic path,” rather than the specialization.</p>
+<p>If we want to optimize the <code>conjugated_accessor</code> case, we
+have to add another specialization. This has compile-time costs. Users
+either have to remember to do this, or write their generic algorithms
+twice (once for complex and once for noncomplex).</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Real, <span class="kw">class</span> IndexType, <span class="dt">size_t</span> Ext0, <span class="kw">class</span> Layout<span class="op">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">requires</span><span class="op">(</span><span class="kw">not</span> impl<span class="op">::</span>is_complex_v<span class="op">&lt;</span>Real<span class="op">&gt;)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> generic_algorithm<span class="op">(</span> <span class="co">// another specialization</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span>Real, extent<span class="op">&lt;</span>IndexType, Ext0<span class="op">&gt;</span>, Layout, conjugated_accessor<span class="op">&lt;</span>default_accessor<span class="op">&lt;</span>Real<span class="op">&gt;&gt;&gt;</span> x<span class="op">)</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Dispatch to default_accessor specialization</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> generic_algorithm<span class="op">(</span>mdspan<span class="op">{</span>x<span class="op">.</span>data_handle<span class="op">()</span>, x<span class="op">.</span>mapping<span class="op">()</span>, x<span class="op">.</span>accessor<span class="op">().</span>nested_accessor<span class="op">()})</span>;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 data-number="4.6" id="fix-conjugateda-should-return-a-if-a-is-noncomplex"><span class="header-section-number">4.6</span> Fix: <code>conjugated(A)</code>
+should return <code>A</code> if <code>A</code> is noncomplex<a href="#fix-conjugateda-should-return-a-if-a-is-noncomplex" class="self-link"></a></h2>
+<p>P3050 proposes the only reasonable fix: make
+<code>conjugated(A)</code> return <code>A</code> if the elements of
+<code>A</code> are not complex.</p>
+<h1 data-number="5" id="design-justification"><span class="header-section-number">5</span> Design justification<a href="#design-justification" class="self-link"></a></h1>
+<h2 data-number="5.1" id="introduction"><span class="header-section-number">5.1</span> Introduction<a href="#introduction" class="self-link"></a></h2>
+<p>LWG finished its review of P1673 at the Kona 2023 WG21 meeting. One
+reviewer (see Acknowledgments) pointed out that
+<code>linalg::conjugated</code> could be optimized by having it be the
+identity function if <em><code>conj-if-needed</code></em> would have
+been the identity function anyway on the input <code>mdspan</code>’s
+<code>value_type</code>. This paper proposes that change. Specifically,
+if an <code>mdspan</code> object <code>x</code> has noncomplex
+<code>value_type</code>, and if that <code>mdspan</code> does not
+already have accessor type <code>conjugated_accessor&lt;A&gt;</code> for
+some nested accessor type <code>A</code>, then we propose to change
+<code>conjugated(x)</code> just to return <code>x</code>.</p>
+<p>This change has two observable effects.</p>
+<ol type="1">
+<li><p>The result’s accessor type will be different. Instead of being
+<code>conjugated_accessor&lt;A&gt;</code> for some <code>A</code>, it
+will just be <code>A</code>.</p></li>
+<li><p>If <code>x</code> has noncomplex <code>value_type</code>, then
+<code>conjugated(x)</code> will no longer have const
+<code>element_type</code>.</p></li>
+</ol>
+<p>We consider Effect (2) acceptable for two reasons.</p>
+<ol type="a">
+<li><p><em><code>in-vector</code></em>, <em><code>in-matrix</code></em>,
+and <em><code>in-object</code></em> already do not need to have const
+<code>element_type</code>. Users can pass in views-of-nonconst
+<code>mdspan</code> as read-only vector or matrix parameters. Thus,
+making the <code>element_type</code> of <code>conjugated(x)</code>
+nonconst would not break existing calls to <code>linalg</code> functions
+that take input vector or matrix parameters.</p></li>
+<li><p><code>conjugated(conjugated(z))</code> for <code>z</code> with
+nonconst complex <code>element_type</code> already has nonconst
+<code>element_type</code>. Thus, generic code that depends on the
+<code>element_type</code> of the result of <code>conjugated</code>
+already cannot assume that it is const.</p></li>
+</ol>
+<h2 data-number="5.2" id="current-behavior-of-conjugated"><span class="header-section-number">5.2</span> Current behavior of
+<code>conjugated</code><a href="#current-behavior-of-conjugated" class="self-link"></a></h2>
+<p>Currently, <code>conjugated</code> has two cases.</p>
+<ol type="1">
+<li><p>If the input has accessor type
+<code>conjugated_accessor&lt;NestedAccessor&gt;</code>, then the result
+has accessor type <code>NestedAccessor</code>;</p></li>
+<li><p>otherwise, if the input has accessor type <code>A</code>, then
+the result has accessor type
+<code>conjugated_accessor&lt;A&gt;</code>.</p></li>
+</ol>
+<p>This is correct behavior for any valid <code>value_type</code>,
+because <code>conjugated_accessor::access</code> uses
+<em><code>conj-if-needed</code></em> to conjugate each element. The
+exposition-only helper function object
+<em><code>conj-if-needed</code></em> uses namespace-unqualified
+<code>conj</code> if it can find it via argument-dependent lookup;
+otherwise, it is just the identity function. As P1673 explains,
+<em><code>conj-if-needed</code></em> exists for two reasons.</p>
+<ol type="1">
+<li><p>It preserves the type of its input (unlike
+<code>std::conj</code>, which returns <code>complex&lt;T&gt;</code> if
+the input is a floating-point type and therefore noncomplex).</p></li>
+<li><p>It lets the library recognize user-defined types as complex
+numbers, as long as <code>conj</code> can be found for them via
+argument-dependent lookup.</p></li>
+</ol>
+<p>The as-if rule would let <code>conjugated_accessor::access</code>
+skip calling <em><code>conj-if-needed</code></em> and just dispatch to
+its nested accessor if <em><code>conj-if-needed</code></em> would have
+been the identity anyway. However, the accessor type of the
+<code>mdspan</code> returned from <code>conjugated</code> is observable,
+so implementations cannot avoid using
+<code>conjugated_accessor</code>.</p>
+<h2 data-number="5.3" id="why-change-the-current-behavior"><span class="header-section-number">5.3</span> Why change the current
+behavior?<a href="#why-change-the-current-behavior" class="self-link"></a></h2>
+<p>The current behavior of <code>conjugated</code> is correct. The issue
+is that <code>conjugated</code> throws away the knowledge that its input
+<code>mdspan</code> views noncomplex elements. P1673 functions can
+optimize internally by using
+<code>conjugated_accessor::nested_accessor</code> to create a new
+<code>mdspan</code> for noncomplex <code>element_type</code>. However,
+that costs build time, increases the testing burden, and adds tedious
+boilerplate to every P1673 function.</p>
+<p>This issue also increases the complexity of users’ code. For example,
+users may reasonably assume that if they are working with noncomplex
+numbers and matrices that live in memory, then they only need to
+specialize their functions to use
+<code>default_accessor&lt;ElementType&gt;</code>. Such users will find
+out via build errors that <code>conjugated(x)</code> uses
+<code>conjugated_accessor</code> instead. Users may have to pay
+increased build times and possible loss of code optimizations for this
+complexity, especially if they write their own computations that use the
+result of <code>conjugated</code> directly as an
+<code>mdspan</code>.</p>
+<p>As discussed in P1673 (see the section titled “Why users want to
+‘conjugate’ matrices of real numbers”), linear algebra users commonly
+write algorithms that work for either real or complex numbers. The BLAS
+assumes this: e.g., <code>DGEMM</code> (Double-precision General
+Matrix-matrix Multiply) treats <code>TRANSA=&#39;C&#39;</code> or
+<code>TRANSB=&#39;C&#39;</code> (<code>&#39;Conjugate Transpose&#39;</code> in full) as
+indicating the transpose (same as <code>&#39;T&#39;</code> or
+<code>&#39;Transpose&#39;</code>). The Matlab software package uses a trailing
+single quote, the normal syntax for transpose in Matlab’s language, to
+indicate the conjugate transpose if its argument is complex, and the
+transpose if its argument is real. Thus, we expect users to write
+algorithms that use <code>conjugate_transposed(x)</code> or
+<code>conjugated(transposed(x))</code>, even if those users never use
+complex number types or custom accessors. The current behavior means
+that such users will need to make their functions’ overload sets generic
+on accessor type. This proposal would let those users ignore
+<code>conjugated_accessor</code> if they never use complex numbers.</p>
+<h2 data-number="5.4" id="p1673-layouts-and-accessors-are-not-just-tags"><span class="header-section-number">5.4</span> P1673 layouts and accessors are
+not “just tags”<a href="#p1673-layouts-and-accessors-are-not-just-tags" class="self-link"></a></h2>
+<p>Even though we propose to change the behavior of
+<code>conjugated</code>, <code>conjugate_accessor</code> needs to retain
+its current behavior. A key design principle of P1673 is that</p>
+<blockquote>
+<p>… each <code>mdspan</code> parameter of a function behaves as itself
+and is not otherwise “modified” by other parameters.</p>
+</blockquote>
+<p>P1673’s nonwording section “BLAS applies <code>UPLO</code> to
+original matrix; we apply <code>Triangle</code> to transformed matrix”
+gives an example of the application of this principle.</p>
+<p>Another way to say that is that the layouts and accessors added by
+P1673 are not “tags.” That is, P1673’s algorithms like
+<code>matrix_product</code> ascribe no special meaning to
+<code>layout_transpose</code>, <code>conjugated_accessor</code>, or
+<code>scaled_accessor</code>, other than their normal meaning as a valid
+<code>mdspan</code> layout or accessors. P1673 authors definitely
+intended for implementations to optimize for the new layouts and
+accessors in P1673, but a correct implementation of P1673 can just treat
+the <code>mdspan</code> types generically.</p>
+<h2 data-number="5.5" id="change-conjugatedx-may-no-longer-have-const-element_type"><span class="header-section-number">5.5</span> Change:
+<code>conjugated(x)</code> may no longer have const
+<code>element_type</code><a href="#change-conjugatedx-may-no-longer-have-const-element_type" class="self-link"></a></h2>
+<p>Both <code>conjugated_accessor</code> and
+<code>scaled_accessor</code> have const <code>element_type</code>, to
+make clear that they are read-only views. This also avoids confusion
+about what it means to write to the complex conjugate of an element, or
+to the scaled value of an element. This proposal would change
+<code>conjugated(x)</code> to return <code>x</code> for <code>x</code>
+with noncomplex <code>value_type</code> and with accessors other than
+<code>conjugated_accessor&lt;A&gt;</code> for some <code>A</code>. As a
+result, the result of <code>conjugated(x)</code> would no longer have
+const <code>element_type</code> if <code>x</code> did not have const
+<code>element_type</code>.</p>
+<p>We consider this change acceptable for two reasons.</p>
+<ol type="1">
+<li><p><em><code>in-vector</code></em>, <em><code>in-matrix</code></em>,
+and <em><code>in-object</code></em> already do not need to have const
+<code>element_type</code>. Users can pass in views-of-nonconst
+<code>mdspan</code> as read-only vector or matrix parameters. Thus,
+making the <code>element_type</code> of <code>conjugated(x)</code>
+nonconst would not break existing calls to <code>linalg</code> functions
+that take input vector or matrix parameters.</p></li>
+<li><p><code>conjugated(conjugated(z))</code> for <code>z</code> with
+nonconst complex <code>element_type</code> already has nonconst
+<code>element_type</code>. Thus, generic code that depends on the
+<code>element_type</code> of the result of <code>conjugated</code>
+already cannot assume that it is const.</p></li>
+</ol>
+<p>Regarding Reason (2), the current behavior of <code>conjugated</code>
+for an input <code>mdspan</code> object <code>x</code> with nonconst
+complex <code>element_type</code> is that</p>
+<ul>
+<li><p><code>conjugated(x)</code> has const <code>element_type</code>,
+but</p></li>
+<li><p><code>conjugated(conjugated(x))</code> has nonconst
+<code>element_type</code>.</p></li>
+</ul>
+<p>This proposal would not change that behavior. The following example
+illustrates.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> num_rows <span class="op">=</span> <span class="dv">10</span>;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">size_t</span> num_cols <span class="op">=</span> <span class="dv">11</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>vector<span class="op">&lt;</span>complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&gt;</span> x_storage<span class="op">(</span>num_rows <span class="op">*</span> num_cols<span class="op">)</span>;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">// mdspan with nonconst complex element_type</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>mdspan<span class="op">&lt;</span>complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span>, layout_right,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  default_accessor<span class="op">&lt;</span>complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&gt;&gt;</span> x<span class="op">{</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    x_storage<span class="op">.</span>data<span class="op">()</span>, num_rows, num_cols</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">// conjugated(x) has const element_type,</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co">// because `conjugated_accessor` does.</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> x_conj <span class="op">=</span> conjugated<span class="op">(</span>x<span class="op">)</span>;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>x_conj<span class="op">)</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  mdspan<span class="op">&lt;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span>, <span class="co">// element_type</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    dextents<span class="op">&lt;</span><span class="dt">size_t</span>, <span class="dv">2</span><span class="op">&gt;</span>, layout_right,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    conjugated_accessor<span class="op">&lt;</span>default_accessor<span class="op">&lt;</span>complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&gt;&gt;</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="op">&gt;</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;)</span>;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="co">// x_conj retains the original nested accessor and data handle,</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="co">// even though these are both nonconst.</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  remove_cvref_t<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>x_conj<span class="op">.</span>accessor<span class="op">().</span>nested_accessor<span class="op">())&gt;</span>,</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  default_accessor<span class="op">&lt;</span>complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&gt;</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;)</span>;</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a><span class="co">// The data handle being nonconst means that we&#39;ll be able to</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a><span class="co">// create conjugated(x_conj), even though conjugated(x_conj)</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="co">// has nonconst data handle.</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>x_conj<span class="op">.</span>data_handle<span class="op">())</span>,</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;*</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;)</span>;</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="co">// You can&#39;t modify the elements through x_conj, though,</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="co">// because the reference type is complex&lt;float&gt;,</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="co">// not complex&lt;float&gt;&amp;.</span></span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>x_conj<span class="op">)::</span>reference,</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;)</span>;</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="co">// x_conj_conj = conjugated(conjugated(x));</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="kw">auto</span> x_conj_conj <span class="op">=</span> conjugated<span class="op">(</span>x_conj<span class="op">)</span>;</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="co">// x_conj_conj has x&#39;s original nested accessor type.</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>  remove_cvref_t<span class="op">&lt;</span><span class="kw">decltype</span><span class="op">(</span>x_conj_conj<span class="op">.</span>accessor<span class="op">())&gt;</span>,</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>  default_accessor<span class="op">&lt;</span>complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&gt;</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;)</span>;</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="co">// That means its element_type is nonconst, ...</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>x_conj_conj<span class="op">)::</span>element_type,</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span></span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;)</span>;</span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="co">// ... its data_handle_type is pointer-to-nonconst, ...</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>x_conj_conj<span class="op">.</span>data_handle<span class="op">())</span>,</span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;*</span></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;)</span>;</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="co">// ... and its reference type is nonconst as well.</span></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="kw">static_assert</span><span class="op">(</span>is_same_v<span class="op">&lt;</span></span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>  <span class="kw">decltype</span><span class="op">(</span>x_conj_conj<span class="op">)::</span>accessor_type<span class="op">::</span>reference,</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a>  complex<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;&amp;</span></span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;)</span>;</span></code></pre></div>
+<h2 data-number="5.6" id="what-if-the-input-mdspan-has-conjugated_accessor-with-noncomplex-element_type"><span class="header-section-number">5.6</span> What if the input
+<code>mdspan</code> has <code>conjugated_accessor</code> with noncomplex
+<code>element_type</code>?<a href="#what-if-the-input-mdspan-has-conjugated_accessor-with-noncomplex-element_type" class="self-link"></a></h2>
+<p>What should <code>conjugated(x)</code> do if <code>x</code> has
+accessor type <code>conjugated_accessor</code>, but noncomplex
+<code>element_type</code>? The current behavior already covers this
+case: just strip off <code>conjugated_accessor</code> and restore its
+nested accessor. This proposal does not change that.</p>
+<p>Before this proposal, <code>conjugated</code> could produce an
+<code>mdspan</code> with accessor type <code>conjugated_accessor</code>
+but noncomplex <code>element_type</code>. The only thing that this
+proposal changes is that it eliminates any way for
+<code>conjugated</code> to reach this case on its own. Users could only
+get an <code>mdspan</code> like that by constructing an
+<code>mdspan</code> explicitly with <code>conjugated_accessor</code>,
+like this.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>vector<span class="op">&lt;</span><span class="dt">float</span><span class="op">&gt;</span> x_storage<span class="op">(</span>M <span class="op">*</span> N<span class="op">)</span>;</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>std<span class="op">::</span>mdspan x<span class="op">{</span>x_storage<span class="op">.</span>data<span class="op">()</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>layout_right<span class="op">::</span>mapping<span class="op">{</span>M, N<span class="op">}</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  std<span class="op">::</span>linalg<span class="op">::</span>conjugated_accessor<span class="op">{</span>std<span class="op">::</span>default_accessor<span class="op">{}}}</span>;</span></code></pre></div>
+<p>There’s no reason for users to want to do this, but the resulting
+<code>mdspan</code> still behaves correctly. We don’t prohibit users
+from doing this.</p>
+<h1 data-number="6" id="implementation"><span class="header-section-number">6</span> Implementation<a href="#implementation" class="self-link"></a></h1>
+<p>This proposal is implemented as
+<a href="https://github.com/kokkos/stdBLAS/pull/268">PR 268</a> in the
+reference <code>mdspan</code> implementation.</p>
+<h1 data-number="7" id="acknowledgments"><span class="header-section-number">7</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
+<p>Thanks to Tim Song (<code>t.canens.cpp@gmail.com</code>, Jump
+Trading) for making this suggestion during LWG review of P1673. We have
+his permission to acknowledge him by name for an LWG review
+contribution.</p>
+<h1 data-number="8" id="wording"><span class="header-section-number">8</span> Wording<a href="#wording" class="self-link"></a></h1>
+<blockquote>
+<p>Text in blockquotes is not proposed wording, but rather instructions
+for generating proposed wording.</p>
+<p>In [version.syn], for the following definition,</p>
+</blockquote>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_linalg </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;linalg&gt;</span></span></code></pre></div>
+<blockquote>
+<p>adjust the placeholder vlaue YYYYMML as needed so as to denote this
+proposal’s date of adoption.</p>
+<p>Change [linalg.conj.conjugated] paragraphs 1 and 2 to read as
+follows. (Paragraph 1 has been reorganized from a sentence into four
+bullet points, where the old Paragraph 2.2 has been changed to 2.4, and
+the new Paragraphs 1.2 and 1.3 have been inserted as the middle bullet
+points. Similarly, Paragraph 2 has been reorganized from two bullet
+points into four. The old Paragraph 2.2 has been changed to 2.4, and the
+new Paragraphs 2.2 and 2.3 have been inserted as the middle bullet
+points.)</p>
+</blockquote>
+<p><span class="marginalizedparent"><a class="marginalized">1</a></span>
+Let <code>A</code> be</p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
+<code>remove_cvref_t&lt;decltype(a.accessor().nested_accessor())&gt;</code>
+if <code>Accessor</code> is a specialization of
+<code>conjugated_accessor</code>; otherwise,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
+<code>Accessor</code> if <code>remove_cvref_t&lt;ElementType&gt;</code>
+is an arithmetic type; otherwise,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
+<code>Accessor</code> if the expression <code>conj(E)</code> is not
+valid for any subexpression <code>E</code> whose type <code>T</code> is
+expression-equivalent to <code>remove_cvref_t&lt;ElementType&gt;</code>
+with overload resolution performed in a context that includes the
+declaration
+<code>template&lt;class T&gt; conj(const T&amp;) = delete;</code>;
+otherwise,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(1.4)</a></span>
+<code>conjugated_accessor&lt;Accessor&gt;</code>.</p></li>
+</ul>
+<p><span class="marginalizedparent"><a class="marginalized">2</a></span>
+<em>Returns:</em></p>
+<ul>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.1)</a></span>
+<code>mdspan&lt;typename A::element_type, Extents, Layout, A&gt;(a.data_handle(), a.mapping(), a.accessor().nested_accessor())</code>
+if <code>Accessor</code> is a specialization of
+<code>conjugated_accessor</code>; otherwise,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.2)</a></span>
+<code>a</code> if <code>remove_cvref_t&lt;ElementType&gt;</code> is an
+arithmetic type; otherwise,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.3)</a></span>
+<code>a</code> if the expression <code>conj(E)</code> is not valid for
+any subexpression <code>E</code> whose type <code>T</code> is
+expression-equivalent to <code>remove_cvref_t&lt;ElementType&gt;</code>
+with overload resolution performed in a context that includes the
+declaration
+<code>template&lt;class T&gt; conj(const T&amp;) = delete;</code>;
+otherwise,</p></li>
+<li><p><span class="marginalizedparent"><a class="marginalized">(2.4)</a></span>
+<code>mdspan&lt;typename A::element_type, Extents, Layout, A&gt;(a.data_handle(), a.mapping(), conjugated_accessor(a.accessor()))</code>.</p></li>
+</ul>
+</div>
+</div>
+</body>
+</html>
