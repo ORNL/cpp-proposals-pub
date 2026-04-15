@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="mpark/wg21" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta name="dcterms.date" content="2024-04-15" />
+  <meta name="dcterms.date" content="2026-03-27" />
   <title>Copy and fill for mdspan</title>
   <style>
 code{white-space: pre-wrap;}
@@ -13,8 +13,9 @@ span.underline{text-decoration: underline;}
 div.column{display: inline-block; vertical-align: top; width: 50%;}
 </style>
   <style>
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -25,7 +26,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -421,11 +422,11 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <table style="border:none;float:right">
   <tr>
     <td>Document #: </td>
-    <td>P3242R0</td>
+    <td>P3242R1</td>
   </tr>
   <tr>
     <td>Date: </td>
-    <td>2024-04-15</td>
+    <td>2026-03-27</td>
   </tr>
   <tr>
     <td style="vertical-align:top">Project: </td>
@@ -449,24 +450,60 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
 <div id="TOC" role="doc-toc">
 <h1 id="toctitle">Contents</h1>
 <ul>
-<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">1</span> Motivation</a>
+<li><a href="#revision-history" id="toc-revision-history"><span class="toc-section-number">1</span> Revision History</a>
 <ul>
-<li><a href="#safety" id="toc-safety"><span class="toc-section-number">1.1</span> Safety</a></li>
+<li><a href="#p3242r2-2026-03-post-croydon-mailing" id="toc-p3242r2-2026-03-post-croydon-mailing">P3242R2: 2026-03
+Post-Croydon Mailing</a></li>
+<li><a href="#p3242r1-2025-03-post-hagenberg-mailing" id="toc-p3242r1-2025-03-post-hagenberg-mailing">P3242R1: 2025-03
+Post-Hagenberg Mailing</a></li>
+<li><a href="#p3242r0-2024-04-post-tokyo-mailing" id="toc-p3242r0-2024-04-post-tokyo-mailing">P3242R0: 2024-04 Post-Tokyo
+Mailing</a></li>
 </ul></li>
-<li><a href="#design" id="toc-design"><span class="toc-section-number">2</span> Design</a>
+<li><a href="#motivation" id="toc-motivation"><span class="toc-section-number">2</span> Motivation</a>
 <ul>
-<li><a href="#header" id="toc-header"><span class="toc-section-number">2.1</span> Header</a></li>
-<li><a href="#existing-copy-in-stdlinalg" id="toc-existing-copy-in-stdlinalg"><span class="toc-section-number">2.2</span> Existing <code>copy</code> in
+<li><a href="#safety" id="toc-safety"><span class="toc-section-number">2.1</span> Safety</a></li>
+</ul></li>
+<li><a href="#design" id="toc-design"><span class="toc-section-number">3</span> Design</a>
+<ul>
+<li><a href="#header" id="toc-header"><span class="toc-section-number">3.1</span> Header</a></li>
+<li><a href="#existing-copy-in-stdlinalg" id="toc-existing-copy-in-stdlinalg"><span class="toc-section-number">3.2</span> Existing <code>copy</code> in
 <code>std::linalg</code></a></li>
-<li><a href="#what-the-proposal-does-not-include" id="toc-what-the-proposal-does-not-include"><span class="toc-section-number">2.3</span> What the proposal does not
+<li><a href="#what-the-proposal-does-not-include" id="toc-what-the-proposal-does-not-include"><span class="toc-section-number">3.3</span> What the proposal does not
 include</a></li>
 </ul></li>
-<li><a href="#wording" id="toc-wording"><span class="toc-section-number">3</span> Wording</a></li>
-<li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">4</span> Acknowledgments</a></li>
-<li><a href="#references" id="toc-references"><span class="toc-section-number">5</span> References</a></li>
+<li><a href="#wording" id="toc-wording"><span class="toc-section-number">4</span> Wording</a>
+<ul>
+<li><a href="#multidmensional-copy-algorithms" id="toc-multidmensional-copy-algorithms">23.7.3.?? Multidmensional Copy
+Algorithms</a></li>
+</ul></li>
+<li><a href="#acknowledgments" id="toc-acknowledgments"><span class="toc-section-number">5</span> Acknowledgments</a></li>
+<li><a href="#references" id="toc-references"><span class="toc-section-number">6</span> References</a></li>
 </ul>
 </div>
-<h1 data-number="1" id="motivation"><span class="header-section-number">1</span> Motivation<a href="#motivation" class="self-link"></a></h1>
+<h1 data-number="1" id="revision-history"><span class="header-section-number">1</span> Revision History<a href="#revision-history" class="self-link"></a></h1>
+<h2 class="unnumbered" id="p3242r2-2026-03-post-croydon-mailing">P3242R2: 2026-03 Post-Croydon
+Mailing<a href="#p3242r2-2026-03-post-croydon-mailing" class="self-link"></a></h2>
+<ul>
+<li>Forwarded to LWG</li>
+<li>Add non-normative note to make constraint on <code>copy</code>
+clear</li>
+<li>Add <code>&lt;mdspan&gt;</code> header to wording</li>
+<li>Add feaature test macro</li>
+<li>Add <code>constexpr</code> to serial <code>copy</code> and
+<code>fill</code> implementations (pending LEWG approval)</li>
+</ul>
+<h2 class="unnumbered" id="p3242r1-2025-03-post-hagenberg-mailing">P3242R1: 2025-03
+Post-Hagenberg Mailing<a href="#p3242r1-2025-03-post-hagenberg-mailing" class="self-link"></a></h2>
+<ul>
+<li>Add discussion of applying <code>copy</code> to <code>mdspan</code>s
+of differing sizes</li>
+</ul>
+<h2 class="unnumbered" id="p3242r0-2024-04-post-tokyo-mailing">P3242R0:
+2024-04 Post-Tokyo Mailing<a href="#p3242r0-2024-04-post-tokyo-mailing" class="self-link"></a></h2>
+<ul>
+<li>Initial paper revision</li>
+</ul>
+<h1 data-number="2" id="motivation"><span class="header-section-number">2</span> Motivation<a href="#motivation" class="self-link"></a></h1>
 <p>C++23 introduced <code>mdspan</code> (<span class="citation" data-cites="P0009R18">[<a href="#ref-P0009R18" role="doc-biblioref">P0009R18</a>]</span>), a non-owning
 multidimensional array abstraction that has a customizable layout.
 Layout customization was originally motivated in <span class="citation" data-cites="P0009R18">[<a href="#ref-P0009R18" role="doc-biblioref">P0009R18</a>]</span> with considerations for
@@ -505,12 +542,12 @@ example, this would naturally include <code>mdarray</code>, which is
 convertible to <code>mdspan</code>, or for user-defined types whose view
 of memory corresponds to <code>mdspan</code>s (e.g. an image class or
 something similar).</p>
-<h2 data-number="1.1" id="safety"><span class="header-section-number">1.1</span> Safety<a href="#safety" class="self-link"></a></h2>
+<h2 data-number="2.1" id="safety"><span class="header-section-number">2.1</span> Safety<a href="#safety" class="self-link"></a></h2>
 <p>Due to the closed nature of <code>mdspan</code> extents, copy
 operations can be checked by the implementation to prevent past-the-end
 writes. This is an advantage the proposed copy operation has over the
 existing operations in the standard.</p>
-<h1 data-number="2" id="design"><span class="header-section-number">2</span> Design<a href="#design" class="self-link"></a></h1>
+<h1 data-number="3" id="design"><span class="header-section-number">3</span> Design<a href="#design" class="self-link"></a></h1>
 <p>The main design direction of this proposal is to provide methods for
 copying and filling <code>mdspan</code>s that may have differing layouts
 and accessors, while allowing implementations to provide efficient
@@ -526,12 +563,22 @@ that there may be a high sensitivity of how much implementations able to
 optimize if provided custom accessors. For example, optimizations could
 be disabled if using a custom accessor that is identical to the default
 accessor.</p>
+<p>A common question about <code>copy</code> to <code>mdspan</code> is
+whether it should support <code>mdspan</code>s with differing extent
+(and presumably applying the operation only to the overlapping part).
+It’s the authors’ firm opinion that <code>copy</code> should
+<strong>not</strong> support this. Users wishing to copy an
+<code>mdspan</code> of a differing size should instead make use of
+<code>submdspan</code> <span class="citation" data-cites="P2630R4">[<a href="#ref-P2630R4" role="doc-biblioref">P2630R4</a>]</span> as this
+provides explicit control of which subregions of the <code>mdspan</code>
+the user actually desires to copy.</p>
 <p>Finally, there is some question as to whether <code>copy</code> and
 <code>fill</code> should return a value when applied to
 <code>mdspan</code>, as the iterator and ranged-based algorithms do. We
-believe that <code>mdspan</code> copy and fill should return void, as
-there is no past-the-end iterator that they could reasonably return.</p>
-<h2 data-number="2.1" id="header"><span class="header-section-number">2.1</span> Header<a href="#header" class="self-link"></a></h2>
+believe that <code>mdspan</code> copy and fill should return
+<code>void</code>, as there is no past-the-end iterator that they could
+reasonably return.</p>
+<h2 data-number="3.1" id="header"><span class="header-section-number">3.1</span> Header<a href="#header" class="self-link"></a></h2>
 <p>Currently, we are proposing adding <code>copy</code> and
 <code>fill</code> algorithms on <code>mdspan</code> to header
 <code>&lt;mdspan&gt;</code>. We considered other options, namely:</p>
@@ -552,7 +599,7 @@ proof.</li>
 a relatively light-weight addition that reflects operations that are
 commonly desired with <code>mdspan</code>s. However, the authors are
 open to changing this.</p>
-<h2 data-number="2.2" id="existing-copy-in-stdlinalg"><span class="header-section-number">2.2</span> Existing <code>copy</code> in
+<h2 data-number="3.2" id="existing-copy-in-stdlinalg"><span class="header-section-number">3.2</span> Existing <code>copy</code> in
 <code>std::linalg</code><a href="#existing-copy-in-stdlinalg" class="self-link"></a></h2>
 <p><span class="citation" data-cites="P1673R13">[<a href="#ref-P1673R13" role="doc-biblioref">P1673R13</a>]</span> introduced several linear
 algebra operations including <code>std::linalg::copy</code>. This
@@ -585,7 +632,7 @@ not very ergonomic for a user to have to use
 <code>std::linalg::copy</code> and include <code>&lt;linalg&gt;</code>
 even if the <code>mdspan</code> operations they are performing are
 unrelated to linear algebra.</p>
-<h2 data-number="2.3" id="what-the-proposal-does-not-include"><span class="header-section-number">2.3</span> What the proposal does not
+<h2 data-number="3.3" id="what-the-proposal-does-not-include"><span class="header-section-number">3.3</span> What the proposal does not
 include<a href="#what-the-proposal-does-not-include" class="self-link"></a></h2>
 <p>There are a few additions that are analogous to existing standard
 algorithms that are not included in this proposal, both to keep the
@@ -608,18 +655,54 @@ layout, similar to <code>layout_transpose</code> in <span class="citation" data-
 <code>for_each</code> in particular is a desirable but brings in many
 unanswered questions that should be addressed in a different paper.</li>
 </ul>
-<h1 data-number="3" id="wording"><span class="header-section-number">3</span> Wording<a href="#wording" class="self-link"></a></h1>
-<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span></code></pre></div>
+<h1 data-number="4" id="wording"><span class="header-section-number">4</span> Wording<a href="#wording" class="self-link"></a></h1>
+<blockquote>
+<p>In <span class="sref">version.syn</span>, add:</p>
+</blockquote>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define __cpp_lib_mdspan_copy </span>YYYYMML<span class="pp"> </span><span class="co">// also in &lt;mdspan&gt;</span></span></code></pre></div>
+<blockquote>
+<p>Adjust the placeholder value as needed so as to denote this
+proposal’s date of adoption.</p>
+</blockquote>
+<blockquote>
+<p>Add the following to <span class="sref">mdspan.syn</span></p>
+</blockquote>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [mdspan.copy]</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> copy<span class="op">(</span>mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                    mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy,</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> fill<span class="op">(</span>mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
+<blockquote>
+<p>Add the following to <span class="sref">views.multidim</span>:</p>
+</blockquote>
+<h2 class="unnumbered" id="multidmensional-copy-algorithms">23.7.3.??
+Multidmensional Copy Algorithms<a href="#multidmensional-copy-algorithms" class="self-link"></a></h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> copy<span class="op">(</span>mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                    mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> SrcElementType, <span class="kw">class</span> SrcExtents, <span class="kw">class</span> SrcLayoutPolicy, <span class="kw">class</span> SrcAccessorPolicy,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> DstElementType, <span class="kw">class</span> DstExtents, <span class="kw">class</span> DstLayoutPolicy, <span class="kw">class</span> DstAccessorPolicy<span class="op">&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>SrcElementType, SrcExtents, SrcLayoutPolicy, SrcAccessorPolicy<span class="op">&gt;</span> src,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>DstElementType, DstExtents, DstLayoutPolicy, DstAccessorPolicy<span class="op">&gt;</span> dst<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Constraints:</em></p>
 <ul>
@@ -629,6 +712,12 @@ is <code>true</code>.</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
 <code>is_constructible_v&lt;DstExtents, SrcExtents&gt;</code>.</p></li>
 </ul>
+<div class="note">
+<p><span>[ <em>Note:</em> </span>This constraint effectively verifies
+that the ranks of the extents are the same and that each extent is
+either static and the same, or <code>dynamic_extent</code>.<span> —
+<em>end note</em> ]</span></p>
+</div>
 <p><span class="marginalizedparent"><a class="marginalized">2</a></span>
 <em>Preconditions:</em></p>
 <ul>
@@ -648,13 +737,13 @@ element.</p></li>
 <em>Effects:</em> for all unique multidimensional indices
 <code>i...</code> in <code>src.extents()</code>, assigns
 <code>src[i...]</code> to <code>dst[i...]</code></p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> fill<span class="op">(</span>mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>         <span class="kw">class</span> ElementType, <span class="kw">class</span> Extents, <span class="kw">class</span> LayoutPolicy, <span class="kw">class</span> AccessorPolicy, <span class="kw">class</span> T<span class="op">&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>          mdspan<span class="op">&lt;</span>ElementType, Extents, LayoutPolicy, AccessorPolicy<span class="op">&gt;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
 <em>Constraints:</em>
 <code>std::is_assignable_v&lt;typename mdspan&lt;ElementType, Extents, LayoutPolicy, AccessorPolicy&gt;::reference, const T&amp;&gt;</code></p>
@@ -662,7 +751,7 @@ element.</p></li>
 <em>Effects:</em> for all unique multidimensional indices
 <code>i...</code> in <code>dst.extents()</code>, assigns
 <code>value</code> to <code>dst[i...]</code></p>
-<h1 data-number="4" id="acknowledgments"><span class="header-section-number">4</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
+<h1 data-number="5" id="acknowledgments"><span class="header-section-number">5</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
 <p>Sandia National Laboratories is a multimission laboratory managed and
 operated by National Technology &amp; Engineering Solutions of Sandia,
 LLC, a wholly owned subsidiary of Honeywell International Inc., for the
@@ -671,7 +760,7 @@ under contract DE-NA0003525. This paper describes objective technical
 results and analysis. Any subjective views or opinions that might be
 expressed in the paper do not necessarily represent the views of the
 U.S. Department of Energy or the United States Government.</p>
-<h1 data-number="5" id="references"><span class="header-section-number">5</span> References<a href="#references" class="self-link"></a></h1>
+<h1 data-number="6" id="references"><span class="header-section-number">6</span> References<a href="#references" class="self-link"></a></h1>
 <div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
 <div id="ref-P0009R18" class="csl-entry" role="listitem">
 <div class="csl-left-margin">[P0009R18] </div><div class="csl-right-inline">Christian Trott, D.S. Hollman, Damien
