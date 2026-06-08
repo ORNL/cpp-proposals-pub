@@ -431,7 +431,7 @@ div#refs p { padding-left: 32px; text-indent: -32px; }
   <tr>
     <td style="vertical-align:top">Project: </td>
     <td>Programming Language C++<br>
-      LEWG<br>
+      LEWG, LWG<br>
     </td>
   </tr>
   <tr>
@@ -489,15 +489,16 @@ Algorithms</a></li>
 <li>Wording changes per LWG review:
 <ul>
 <li>Change individual <code>Src*</code> and <code>Dst*</code> template
-arguments to <code>SrcMDSpan</code> and <code>DstMDSpan</code>,
-constraining that those are specializations of
-<code>std::mdspan</code></li>
+arguments to <code>Src</code> and <code>Dst</code>, constraining that
+those are specializations of <code>std::mdspan</code></li>
 <li>Add default for <code>T</code> template parameter in
 <code>fill</code></li>
 <li>Make first <code>copy</code> precondition hardened</li>
 <li>Fix use of “unique” in multidimensional wording</li>
 <li>Simplify effects wording for both <code>copy</code> and
 <code>fill</code></li>
+<li>Change <code>mdspan</code> parameter types to const references for
+consistency with <code>submdspan</code></li>
 </ul></li>
 </ul>
 <h2 class="unnumbered" id="p3242r2-2026-04-post-croydon-mailing">P3242R2: 2026-04 Post-Croydon
@@ -687,38 +688,39 @@ proposal’s date of adoption.</p>
 <p>Add the following to <span class="sref">mdspan.syn</span></p>
 </blockquote>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [mdspan.copy]</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SrcMDSpan, <span class="kw">class</span> DstMDSpan<span class="op">&gt;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> copy<span class="op">(</span>SrcMDSpan src, DstMDSpan dst<span class="op">)</span>;</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Src, <span class="kw">class</span> Dst<span class="op">&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> copy<span class="op">(</span><span class="kw">const</span> Src<span class="op">&amp;</span> src, <span class="kw">const</span> Dst<span class="op">&amp;</span> dst<span class="op">)</span>;</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> SrcMDSpan, <span class="kw">class</span> DstMDSpan<span class="op">&gt;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, SrcMDSpan src, DstMDSpan dst<span class="op">)</span>;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> Src, <span class="kw">class</span> Dst<span class="op">&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, <span class="kw">const</span> Src<span class="op">&amp;</span> src, <span class="kw">const</span> Dst<span class="op">&amp;</span> dst<span class="op">)</span>;</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> DstMDSpan, <span class="kw">class</span> T <span class="op">=</span> <span class="kw">typename</span> DstMDSpan<span class="op">::</span>value_type<span class="op">&gt;</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> fill<span class="op">(</span>DstMDSpan dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Dst, <span class="kw">class</span> T <span class="op">=</span> <span class="kw">typename</span> Dst<span class="op">::</span>value_type<span class="op">&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> fill<span class="op">(</span><span class="kw">const</span> Dst<span class="op">&amp;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> DstMDSpan, <span class="kw">class</span> T <span class="op">=</span> <span class="kw">typename</span> DstMDSpan<span class="op">::</span>value_type<span class="op">&gt;</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, DstMDSpan dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> Dst, <span class="kw">class</span> T <span class="op">=</span> <span class="kw">typename</span> Dst<span class="op">::</span>value_type<span class="op">&gt;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, <span class="kw">const</span> Dst<span class="op">&amp;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
 <blockquote>
 <p>Add the following to <span class="sref">views.multidim</span>:</p>
 </blockquote>
 <h2 class="unnumbered" id="multidmensional-copy-algorithms">23.7.3.??
 Multidmensional Copy Algorithms<a href="#multidmensional-copy-algorithms" class="self-link"></a></h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> SrcMDSpan, <span class="kw">class</span> DstMDSpan<span class="op">&gt;</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> copy<span class="op">(</span>SrcMDSpan src, DstMDSpan dst<span class="op">)</span>;</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Src, <span class="kw">class</span> Dst<span class="op">&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> copy<span class="op">(</span><span class="kw">const</span> Src<span class="op">&amp;</span> src, <span class="kw">const</span> Dst<span class="op">&amp;</span> dst<span class="op">)</span>;</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> SrcMDSpan, <span class="kw">class</span> DstMDSpan<span class="op">&gt;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, SrcMDSpan src, DstMDSpan dst<span class="op">)</span>;</span></code></pre></div>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> Src, <span class="kw">class</span> Dst<span class="op">&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> copy<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, <span class="kw">const</span> Src<span class="op">&amp;</span> src, <span class="kw">const</span> Dst<span class="op">&amp;</span> dst<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">1</a></span>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.1)</a></span>
-<code>SrcMDSpan</code> and <code>DstMDSpan</code> are specializations of
-<code>std::mdspan</code>,</p></li>
+<code>Src</code> and <code>Dst</code> are specializations of
+<code>mdspan</code>,</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.2)</a></span>
-<code>std::is_assignable_v&lt;typename SrcMDSpan::reference, typename DstMDSpan::reference&gt;</code>
+<code>std::is_assignable_v&lt;typename Dst::reference, typename Src::reference&gt;</code>
 is <code>true</code>, and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(1.3)</a></span>
-<code>is_constructible_v&lt;typename SrcMDSpan::extents_type, typename DstMDSpan::extents_type&gt;</code>.</p></li>
+<code>is_constructible_v&lt;typename Src::extents_type, typename Dst::extents_type&gt;</code>
+is <code>true</code>.</p></li>
 </ul>
 <div class="note">
 <p><span>[ <em>Note:</em> </span>This constraint effectively verifies
@@ -742,24 +744,25 @@ each multidimensional index <code>i</code> in
 element.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">4</a></span>
-<em>Effects:</em> assigns each element of src to the corresponding
+<em>Effects:</em> Assigns each element of src to the corresponding
 element of <code>dst</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> DstMDSpan, <span class="kw">class</span> T <span class="op">=</span> <span class="kw">typename</span> DstMDSpan<span class="op">::</span>value_type<span class="op">&gt;</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> fill<span class="op">(</span>DstMDSpan dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> Dst, <span class="kw">class</span> T <span class="op">=</span> <span class="kw">typename</span> Dst<span class="op">::</span>value_type<span class="op">&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">constexpr</span> <span class="dt">void</span> fill<span class="op">(</span><span class="kw">const</span> Dst<span class="op">&amp;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> DstMDSpan, <span class="kw">class</span> T <span class="op">=</span> <span class="kw">typename</span> DstMDSpan<span class="op">::</span>value_type<span class="op">&gt;</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, DstMDSpan dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">template</span><span class="op">&lt;</span><span class="kw">class</span> ExecutionPolicy, <span class="kw">class</span> Dst, <span class="kw">class</span> T <span class="op">=</span> <span class="kw">typename</span> Dst<span class="op">::</span>value_type<span class="op">&gt;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> fill<span class="op">(</span>ExecutionPolicy<span class="op">&amp;&amp;</span> policy, <span class="kw">const</span> Dst<span class="op">&amp;</span> dst, <span class="kw">const</span> T<span class="op">&amp;</span> value<span class="op">)</span>;</span></code></pre></div>
 <p><span class="marginalizedparent"><a class="marginalized">5</a></span>
 <em>Constraints:</em></p>
 <ul>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.1)</a></span>
-<code>DstMDSpan</code> is a specializations of <code>std::mdspan</code>,
+<code>Dst</code> is a specializations of <code>mdspan</code>,
 and</p></li>
 <li><p><span class="marginalizedparent"><a class="marginalized">(5.2)</a></span>
-<code>std::is_assignable_v&lt;typename DstMDSpan::reference, const T&amp;&gt;</code>.</p></li>
+<code>std::is_assignable_v&lt;typename Dst::reference, const T&amp;&gt;</code>
+is <code>true</code>.</p></li>
 </ul>
 <p><span class="marginalizedparent"><a class="marginalized">6</a></span>
-<em>Effects:</em> assigns <code>value</code> to each element of
+<em>Effects:</em> Assigns <code>value</code> to each element of
 <code>dst</code>.</p>
 <h1 data-number="5" id="acknowledgments"><span class="header-section-number">5</span> Acknowledgments<a href="#acknowledgments" class="self-link"></a></h1>
 <p>Sandia National Laboratories is a multimission laboratory managed and
