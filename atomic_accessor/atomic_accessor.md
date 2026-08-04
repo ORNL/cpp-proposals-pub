@@ -1,6 +1,6 @@
 ---
 title: "Atomic Refs Bound to Memory Orderings & Atomic Accessors"
-document: P2689R2
+document: D2689R3
 date: today
 audience: SG1 & LEWG
 author:
@@ -12,6 +12,8 @@ author:
     email: <mhoemmen@nvidia.com>
   - name: Daniel Sunderland
     email: <dansunderland@gmail.com>
+  - name: Nic Morales
+    email: <nmmoral@sandia.gov>
   - name: Nevin Liber
     email: <nliber@anl.gov>
 toc: true
@@ -19,6 +21,16 @@ toc: true
 
 
 # Revision History
+
+## P2689R3 (LEWG Feedback)
+
+- Split definition of _`atomic-ref-bound`_ into one for arithmetic and pointer, and one for other types
+  - needed because the typedef `difference_type` should only appear for arithmetic and pointer types
+- Added discussion for making _`atomic-ref-bound`_ exposition only or not
+- Added discussion arguing for not having converting constructors with respect to memory order
+- Added missing `fetch_min` and `fetch_max` functions
+- Use "west const"
+- Added header synopsis changes
 
 ## P2689R2 (SG1 Issaquah 2023 discussion)
 
@@ -260,7 +272,7 @@ void compute_histogram(ExecT exec, float bin_size,
 }
 ```
 
-The above example is available on godbolt: https://godbolt.org/z/jY17Yoje1 .
+The above example is available on godbolt: [https://godbolt.org/z/cWa6MG5dj](https://godbolt.org/z/cWa6MG5dj)
 
 # Design decisions
 
@@ -278,6 +290,48 @@ a general exposition-only template `basic-atomic-accessor` which takes the `refe
 
 Assuming both papers are approved, SG1 voted that similar changes to `atomic_ref` in P2616R3 (Making std::atomic notification/wait operations usable in more situations) should also be applied to `atomic-ref-bound`.  They are not yet in the wording of either paper, as we do not know what order LWG will apply them to the working draft.
 
+## Exposition Only Or Not
+
+As mentioned above, during SG1 review we introduced explicitly named symbols instead of making `basic-atomic-accessor` and `atomic-ref-bound` public.
+
+The primary reason for not making the generic versions public is that the memory order is generally dictated by algorithmic considerations.
+
+The only generic thing one may want to decide is whether to use atomics at all (e.g. as the function of the execution policy).
+
+Consequently, we could not find a use-case where the generic types are useful. That said we also don't have a strong reason to not make them public - other than that it constrains implementers.
+
+## Memory Order Conversions
+
+A question was raised whether to make the various bounded `atomic_ref` and `atomic_accessor` variants constructible/convertible from each other.
+We don't see many good reasons to enable that:
+
+- `atomic_ref` is meant to be almost used `in-place` for individual operations e.g. `atomic_ref(a[i])++` and not much of an interface type
+- atomic accessors are something you are supposed to add in a fairly local scope too
+  - we don't expect folks to pass `mdspan` with atomic accessors around
+
+However we identified a possible reason not to permit it: 
+
+Writing functions which take `atomic_ref_MEM_ORDER` imply ordering behavior: allowing conversions would make it very easy to violate that expectation.
+
+Consider the following:
+
+```c++
+void foo(atomic_ref_relaxed<int> counter);
+
+void bar(int& counter) {
+  atomic_ref_relaxed atomic_counter(counter);
+  atomic_counter++;
+  ...
+  foo(atomic_counter);
+  ...
+  atomic_counter++;
+  atomic_thread_fence(memory_order::acq_rel);
+}
+```
+
+We believe it would be potentially unexpected for `foo` to do any operations other than `relaxed` atomics on `counter`.
+Likewise if `foo` were to take `atomic_ref_seq_cst` it would be surprising if it did `relaxed` atomic accesses.
+
 # Open questions
 
 This proposal uses alias templates to exposition-only types for `atomic_ref_relaxed`, `atomic_accessor`, etc.
@@ -286,6 +340,7 @@ For instance, if an implementer wished to derive from an `atomic-ref-bound`-like
 user friendly name mangling, which is something not normally covered by the Standard), would
 they be allowed to do so?  We believe an alias template to an exposition-only type is not observable
 from the point of view of the Standard and such an implementation would be allowed, but we request clarification on this.
+Potentially this is something we can leave to LWG review to suggest wording that would achieve that goal.
 
 <!--
 
@@ -307,15 +362,39 @@ from the point of view of the Standard and such an implementation would be allow
 The proposed changes are relative to [N4917](https://wg21.link/n4917):
 
 ## Bound atomic ref
+### Change the header synopsis for atomic in [atomics.syn]:
+
+`// [atomics.ref.pointer], partial specialization for pointers`\
+`template<class T> struct atomic_ref<T*>;                                          // freestanding`\
+[`// [atomics.ref.bounded], class tempalte atomic-ref-bound`]{.add}\
+[`template<class T, class MemoryOrder>` _`atomic-ref-bound`_`; // exposition only`]{.add}\
+[`template<class T> using atomic_ref_relaxed = `_`atomic-ref-bound`_`<T, memory_order_relaxed>; // freestanding`]{.add}\
+[`template<class T> using atomic_ref_acq_rel = `_`atomic-ref-bound`_`<T, memory_order_acq_rel>; // freestanding`]{.add}\
+[`template<class T> using atomic_ref_seq_cst = `_`atomic-ref-bound`_`<T, memory_order_seq_cst>; // freestanding`]{.add}\
+` `\
+`// [atomics.types.generic], class template atomic`\
+`template<class T> struct atomic<T>;                                          // freestanding`
+
+
 
 ### Add the following just before [atomics.types.generic]:
 
 <b>Class template `atomic-ref-bound` [atomics.ref.bound]</b>
 
+<b>Exposition only helper</b>
+
+```c++
+template<class T>
+constexpr bool @_atomic-ref-non-generic-type()_@;
+```
+
+Returns: `true` if the class `atomic_ref<T>` has a member type definition `difference_type`, otherwise `false`.
+
+[Note: This is true for a set of defined integral types, floating point types, and pointers.]
+
 <b>General [atomics.ref.bound.general]</b>
 
 ```c++
-// all freestanding
 template <class T, memory_order MemoryOrder>
 struct atomic-ref-bound {  // exposition only
    private:
@@ -339,7 +418,139 @@ struct atomic-ref-bound {  // exposition only
 
    public:
     using value_type = T;
-    using difference_type = ptrdiff_t;
+    static constexpr memory_order memory_ordering = MemoryOrder;
+    static constexpr size_t required_alignment = atomic_ref_unbound::required_alignment;
+
+    static constexpr bool is_always_lock_free = atomic_ref_unbound::is_always_lock_free;
+    bool is_lock_free() const noexcept;
+
+    explicit atomic-ref-bound(T&);
+    atomic-ref-bound(const atomic-ref-bound&) noexcept;
+    atomic-ref-bound& operator=(const atomic-ref-bound&) = delete;
+
+    void store(T desired) const noexcept;
+    T operator=(T desired) const noexcept;
+    T load() const noexcept;
+    operator T() const noexcept;
+
+    T exchange(T desired) const noexcept;
+    bool compare_exchange_weak(T& expected, T desired) const noexcept;
+    bool compare_exchange_strong(T& expected, T desired) const noexcept;
+
+    void wait(T old) const noexcept;
+    void notify_one() const noexcept;
+    void notify_all() const noexcept;
+};
+```
+[1]{.pnum} Class `atomic-ref-bound` is for exposition only.
+
+[2]{.pnum} *Mandates:*
+
+   * [2.1]{.pnum} `is_trivially_copyable_v<T>` is `true`.
+
+   * [2.2]{.pnum} `is_same_v<T, remove_cv_t<T>>` is `true`.
+
+**Operations [atomics.ref.bound.ops]**
+```c++
+bool is_lock_free() const noexcept;
+```
+[1]{.pnum} *Effects:* Equivalent to: `return ref.is_lock_free();`
+
+```c++
+explicit atomic-ref-bound(T& t);
+```
+
+[2]{.pnum} *Preconditions:* The referenced object is aligned to `required_alignment`.
+
+[3]{.pnum} *Postconditions:* `ref` references the object referenced by `t`.
+
+[4]{.pnum} *Throws:* Nothing.
+
+```c++
+atomic-ref-bound(const atomic-ref-bound& a) noexcept;
+```
+[5]{.pnum} *Postconditions:* `*this` references the object referenced by `a`.
+
+```c++
+void store(T desired) const noexcept;
+```
+[6]{.pnum} *Effects:* Equivalent to: `ref.store(desired, store_ordering);`
+
+```c++
+T operator=(T desired) const noexcept;
+```
+[7]{.pnum} *Effects:* Equivalent to: `store(desired); return desired;`
+
+```c++
+T load() const noexcept;
+```
+[8]{.pnum} *Effects:* Equivalent to: `ref.load(load_ordering);`
+
+```c++
+operator T() const noexcept;
+```
+[9]{.pnum} *Effects:* Equivalent to: `return load();`
+
+```c++
+T exchange(T desired) const noexcept;
+```
+[10]{.pnum} *Effects:* Equivalent to: `return ref.exchange(desired, memory_ordering);`
+
+
+```c++
+bool compare_exchange_weak(T& expected, T desired) const noexcept;
+```
+[11]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
+
+```c++
+bool compare_exchange_strong(T& expected, T desired) const noexcept;
+```
+[12]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
+
+```c++
+void wait(T old) const noexcept;
+```
+[13]{.pnum} *Effects:* Equivalent to: `ref.wait(old, load_ordering);`
+
+```c++
+void notify_one() const noexcept;
+```
+[14]{.pnum} *Effects:* Equivalent to: `ref.notify_one(); }`
+
+```c++
+void notify_all() const noexcept;
+```
+[15]{.pnum} *Effects:* Equivalent to: `ref.notify_all(); }`
+
+
+<b>General [atomics.ref.bound.arithmetic]</b>
+
+```c++
+template <arithmetic-or-pointer T, memory_order MemoryOrder>
+requires(@_atomic-ref-non-generic-type_@<T>())
+struct atomic-ref-bound<T, MemoryOrder> {  // exposition only
+   private:
+    using atomic_ref_unbound = atomic_ref<T>;  // exposition only
+    atomic_ref_unbound ref;                    // exposition only
+
+    static constexpr memory_order store_ordering =
+        MemoryOrder == memory_order_acq_rel ? memory_order_release
+                                            : MemoryOrder;  // exposition only
+
+    static constexpr memory_order load_ordering =
+        MemoryOrder == memory_order_acq_rel ? memory_order_acquire
+                                            : MemoryOrder;  // exposition only
+
+    static constexpr bool is_integral_value =
+        is_integral_v<T> && !is_same_v<T, bool>;  // exposition only
+    static constexpr bool is_floating_point_value =
+        is_floating_point_v<T>;  // exposition only
+    static constexpr bool is_pointer_value =
+        is_pointer_v<T>;  // exposition only
+
+   public:
+    using value_type = T;
+    using difference_type = atomic_ref_bound::difference_type;
     static constexpr memory_order memory_ordering = MemoryOrder;
     static constexpr size_t required_alignment = atomic_ref_unbound::required_alignment;
 
@@ -347,8 +558,8 @@ struct atomic-ref-bound {  // exposition only
     bool is_lock_free() const noexcept;
 
     explicit atomic-ref-bound(T& t);
-    atomic-ref-bound(atomic-ref-bound const& a) noexcept;
-    atomic-ref-bound& operator=(atomic-ref-bound const&) = delete;
+    atomic-ref-bound(const atomic-ref-bound&) noexcept;
+    atomic-ref-bound& operator=(const atomic-ref-bound&) = delete;
 
     void store(T desired) const noexcept;
     T operator=(T desired) const noexcept;
@@ -367,6 +578,9 @@ struct atomic-ref-bound {  // exposition only
     T fetch_and(T operand) const noexcept;
     T fetch_or(T operand) const noexcept;
     T fetch_xor(T operand) const noexcept;
+    T fetch_max(T operand) const noexcept;
+    T fetch_min(T operand) const noexcept;
+    
 
     T operator++(int) const noexcept;
     T operator++() const noexcept;
@@ -417,7 +631,7 @@ explicit atomic-ref-bound(T& t);
 [4]{.pnum} *Throws:* Nothing.
 
 ```c++
-atomic-ref-bound(atomic-ref-bound const& a) noexcept;
+atomic-ref-bound(const atomic-ref-bound& a) noexcept;
 ```
 [5]{.pnum} *Postconditions:* `*this` references the object referenced by `a`.
 
@@ -505,6 +719,20 @@ T fetch_xor(difference_type operand) const noexcept;
 [25]{.pnum} *Constraints:* `is_integral_value` is `true`.
 
 [26]{.pnum} *Effects:* Equivalent to: `return ref.fetch_xor(operand, memory_ordering);`
+
+```c++
+T fetch_max(difference_type operand) const noexcept;
+```
+[25]{.pnum} *Constraints:* `is_integral_value` is `true`.
+
+[26]{.pnum} *Effects:* Equivalent to: `return ref.fetch_max(operand, memory_ordering);`
+
+```c++
+T fetch_min(difference_type operand) const noexcept;
+```
+[25]{.pnum} *Constraints:* `is_integral_value` is `true`.
+
+[26]{.pnum} *Effects:* Equivalent to: `return ref.fetch_min(operand, memory_ordering);`
 
 ```c++
 T operator++(int) const noexcept;
@@ -621,15 +849,34 @@ Update the feature test macro `__cpp_lib_atomic_ref`.
 
 ## Atomic Accessors
 
+### Add to the mdspan header synopsis in [mdspan.syn]
+
+`// [mdspan.accessor.default], class template default_accessor`\
+`template<class ElementType>`\
+`  class default_accessor;`\
+` `\
+[`// [atomics.accessor.atomic], class template basic-atomic-accessor`]{.add}\
+[`template<class T, class ReferenceType>` class _`basic-atomic-accessor`_`; // exposition only`]{.add}\
+[`template<class T> using atomic_accessor = `_`basic-atomic-accessor`_`<T, atomic_ref<T>>;`]{.add}\
+[`template<class T> using atomic_accessor_relaxed = `_`basic-atomic-accessor`_`<T, atomic_ref_relaxed<T>>;`]{.add}\
+[`template<class T> using atomic_accessor_acq_rel = `_`basic-atomic-accessor`_`<T, atomic_ref_acq_rel<T>>;`]{.add}\
+[`template<class T> using atomic_accessor_seq_cst = `_`basic-atomic-accessor`_`<T, atomic_ref_seq_cst<T>>;`]{.add}\
+` `\
+`// [mdspan.mdspan], class template mdspan`\
+`template<class ElementType, class Extents, class LayoutPolicy = layout_right,`\
+`         class AccessorPolicy = default_accessor<ElementType>>`\
+`  class mdspan;`
+
+
 ### Put the following before [mdspan.mdspan]:
 
-<b>Class template `basic-atomic-accessor` [mdspan.accessor.basic]</b>
+<b>Class template `basic-atomic-accessor` [mdspan.accessor.atomic.basic]</b>
 
-<b>General [mdspan.accessor.basic.overview]</b>
+<b>General [mdspan.accessor.atomic.basic.overview]</b>
 
 ```c++
 template <class ElementType, class ReferenceType>
-struct basic-atomic-accessor {  // exposition only
+struct @_basic-atomic-accessor_@ {  // exposition only
     using offset_policy = basic-atomic-accessor;
     using element_type = ElementType;
     using reference = ReferenceType;
@@ -658,14 +905,14 @@ struct basic-atomic-accessor {  // exposition only
 
 [5]{.pnum} `[0,n)` is an accessible range for an object `p` of type `data_handle_type` and an object of type `basic-atomic-accessor` if and only if `[p,p+n)` is a valid range.
 
-<b>Members [mdspan.accessor.basic.members]</b>
+<b>Members [mdspan.accessor.atomic.basic.members]</b>
 
 ```c++
 template <class OtherElementType>
-constexpr basic-atomic-accessor(default_accessor<OtherElementType>) noexcept {}
+constexpr @_basic-atomic-accessor_@(default_accessor<OtherElementType>) noexcept {}
 
 template <class OtherElementType>
-constexpr basic-atomic-accessor(basic-atomic-accessor<OtherElementType, ReferenceType>) noexcept {}
+constexpr @_basic-atomic-accessor_@(@_basic-atomic-accessor_@<OtherElementType, ReferenceType>) noexcept {}
 ```
 [1]{.pnum} *Constraints:* `is_convertible_v<OtherElementType (*)[], element_type (*)[]>` is `true`.
 
@@ -678,20 +925,20 @@ constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept;
 ```
 [3]{.pnum} *Effects:* Equivalent to `return p + i;`
 
-<b>Atomic accessors [mdspan.accessor.atomic]</b>
+<b>Atomic accessors [mdspan.accessor.atomic.bounded]</b>
 ```c++
 namespace std {
 template <class ElementType>
-using atomic_accessor = basic-atomic-accessor<ElementType, atomic_ref<ElementType>>;
+using atomic_accessor = @_basic-atomic-accessor_@<ElementType, atomic_ref<ElementType>>;
 
 template <class ElementType>
-using atomic_accessor_relaxed = basic-atomic-accessor<ElementType, atomic_ref_relaxed<ElementType>>;
+using atomic_accessor_relaxed = @_basic-atomic-accessor_@<ElementType, atomic_ref_relaxed<ElementType>>;
 
 template <class ElementType>
-using atomic_accessor_acq_rel = basic-atomic-accessor<ElementType, atomic_ref_acq_rel<ElementType>>;
+using atomic_accessor_acq_rel = @_basic-atomic-accessor_@<ElementType, atomic_ref_acq_rel<ElementType>>;
 
 template <class ElementType>
-using atomic_accessor_seq_cst = basic-atomic-accessor<ElementType, atomic_ref_seq_cst<ElementType>>;
+using atomic_accessor_seq_cst = @_basic-atomic-accessor_@<ElementType, atomic_ref_seq_cst<ElementType>>;
 }
 ```
 
