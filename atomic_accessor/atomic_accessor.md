@@ -513,7 +513,7 @@ value_type operator=(value_type desired) const noexcept;
 ```c++
 value_type load() const noexcept;
 ```
-[12]{.pnum} *Effects:* Equivalent to: `ref.load(load_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: `return ref.load(load_ordering);`
 
 ```c++
 operator value_type() const noexcept;
@@ -550,17 +550,17 @@ void wait(value_type old) const noexcept;
 ```c++
 void notify_one() const noexcept;
 ```
-[21]{.pnum} *Effects:* Equivalent to: `ref.notify_one(); }`
+[21]{.pnum} *Effects:* Equivalent to: `ref.notify_one();`
 
 ```c++
 void notify_all() const noexcept;
 ```
-[22]{.pnum} *Effects:* Equivalent to: `ref.notify_all(); }`
+[22]{.pnum} *Effects:* Equivalent to: `ref.notify_all();`
 
 ```c++
 auto address() const noexcept;
 ```
-[23]{.pnum} *Effects:* Equivalent to: `return ref.address(); }`
+[23]{.pnum} *Effects:* Equivalent to: `return ref.address();`
 
 <b>Non-generic atomic-ref-bound [atomics.refbound.nongeneric]</b>
 
@@ -735,7 +735,7 @@ value_type operator=(value_type desired) const noexcept;
 ```c++
 value_type load() const noexcept;
 ```
-[12]{.pnum} *Effects:* Equivalent to: `ref.load(load_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: `return ref.load(load_ordering);`
 
 ```c++
 operator value_type() const noexcept;
@@ -772,17 +772,17 @@ void wait(T old) const noexcept;
 ```c++
 void notify_one() const noexcept;
 ```
-[21]{.pnum} *Effects:* Equivalent to: `ref.notify_one(); }`
+[21]{.pnum} *Effects:* Equivalent to: `ref.notify_one();`
 
 ```c++
 void notify_all() const noexcept;
 ```
-[22]{.pnum} *Effects:* Equivalent to: `ref.notify_all(); }`
+[22]{.pnum} *Effects:* Equivalent to: `ref.notify_all();`
 
 ```c++
 auto address() const noexcept;
 ```
-[23]{.pnum} *Effects:* Equivalent to: `return ref.address(); }`
+[23]{.pnum} *Effects:* Equivalent to: `return ref.address();`
 
 **Common Operations [atomics.refbound.nongeneric.common]**
 ```c++
