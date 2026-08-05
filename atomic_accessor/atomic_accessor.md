@@ -423,12 +423,7 @@ struct atomic-ref-bound {  // exposition only
         MemoryOrder == memory_order_acq_rel ? memory_order_acquire
                                             : MemoryOrder;  // exposition only
 
-    static constexpr bool is_integral_value =
-        is_integral_v<T> && !is_same_v<T, bool>;  // exposition only
-    static constexpr bool is_floating_point_value =
-        is_floating_point_v<T>;  // exposition only
-    static constexpr bool is_pointer_value =
-        is_pointer_v<T>;  // exposition only
+    template<class T> friend class atomic-ref-bound<T, MemoryOrder>;
 
    public:
     using value_type = remove_cv_t<T>;
@@ -442,7 +437,7 @@ struct atomic-ref-bound {  // exposition only
     explicit atomic_ref(T&&) = delete;
     atomic-ref-bound(const atomic-ref-bound&) noexcept;
     template<class U>
-      atomic-ref-bound(const atomic-ref-bound<U, memory_order>&) noexcept;
+      atomic-ref-bound(const atomic-ref-bound<U, memory_ordering>&) noexcept;
     atomic-ref-bound& operator=(const atomic-ref-bound&) = delete;
 
     void store(value_type desired) const noexcept;
@@ -587,6 +582,8 @@ struct atomic-ref-bound<T, MemoryOrder> {  // exposition only
         MemoryOrder == memory_order_acq_rel ? memory_order_acquire
                                             : MemoryOrder;  // exposition only
 
+    template<class T> friend class atomic-ref-bound<T, MemoryOrder>;
+
    public:
     using value_type = remove_cv_t<T>;
 
@@ -611,7 +608,7 @@ struct atomic-ref-bound<T, MemoryOrder> {  // exposition only
     explicit atomic-ref-bound(T& t);
     explicit atomic-ref-bound(T&&) = delete;
     template<class U>
-      atomic-ref-bound(const atomic-ref-bound<U, memory_order>&) noexcept;
+      atomic-ref-bound(const atomic-ref-bound<U, memory_ordering>&) noexcept;
     atomic-ref-bound(const atomic-ref-bound&) noexcept;
     atomic-ref-bound& operator=(const atomic-ref-bound&) = delete;
 
