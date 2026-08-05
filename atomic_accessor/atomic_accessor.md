@@ -30,7 +30,7 @@ toc: true
   - incorporated changes to `value_type` enabling a `const T`
   - regrouped member functions
   - make move ctor deleted
-  - add converting ctor
+  - add converting ctor (for when `U` and `T` are similar, and `U*` is convertible to `T*`)
   - add `address` function
 - fix constructor wording
 
