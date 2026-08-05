@@ -29,6 +29,10 @@ toc: true
   - added new floating point minimum and maximum member functions
   - incorporated changes to `value_type` enabling a `const T`
   - regrouped member functions
+  - make move ctor deleted
+  - add converting ctor
+  - add `address` function
+- fix constructor wording
 
 ## P2689R3 (LEWG Feedback)
 
@@ -435,7 +439,10 @@ struct atomic-ref-bound {  // exposition only
     bool is_lock_free() const noexcept;
 
     explicit atomic-ref-bound(T&);
+    explicit atomic_ref(T&&) = delete;
     atomic-ref-bound(const atomic-ref-bound&) noexcept;
+    template<class U>
+      atomic-ref-bound(const atomic-ref-bound<U, memory_order>&) noexcept;
     atomic-ref-bound& operator=(const atomic-ref-bound&) = delete;
 
     void store(value_type desired) const noexcept;
@@ -450,6 +457,8 @@ struct atomic-ref-bound {  // exposition only
     void wait(value_type old) const noexcept;
     void notify_one() const noexcept;
     void notify_all() const noexcept;
+
+    auto address() const noexcept;
 };
 ```
 [1]{.pnum} Class `atomic-ref-bound` is for exposition only.
@@ -475,71 +484,88 @@ explicit atomic-ref-bound(T& t);
 [4]{.pnum} *Throws:* Nothing.
 
 ```c++
-atomic-ref-bound(const atomic-ref-bound& a) noexcept;
+atomic-ref-bound(const atomic-ref-bound& other) noexcept;
 ```
-[5]{.pnum} *Postconditions:* `*this` references the object referenced by `a`.
+[5]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `other.ref`.
+
+```c++
+template<class U>
+  constexpr atomic-ref-bound(const atomic-ref-bound<U>& other) noexcept;
+```
+
+[6]{.pnum} *Constraints:*
+
+   * [6.1]{.pnum} `T` and `U` are similar types ([conv.qual]), and
+
+   * [6.2]{.pnum} `is_convertible_v<U*, T*>` is `true`.
+
+[7]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `other.ref`.
 
 ```c++
 void store(value_type desired) const noexcept;
 ```
-[6]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[8]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[7]{.pnum} *Effects:* Equivalent to: `ref.store(desired, store_ordering);`
+[9]{.pnum} *Effects:* Equivalent to: `ref.store(desired, store_ordering);`
 
 ```c++
 value_type operator=(value_type desired) const noexcept;
 ```
-[8]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[10]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[9]{.pnum} *Effects:* Equivalent to: `store(desired); return desired;`
+[11]{.pnum} *Effects:* Equivalent to: `store(desired); return desired;`
 
 ```c++
 value_type load() const noexcept;
 ```
-[10]{.pnum} *Effects:* Equivalent to: `ref.load(load_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: `ref.load(load_ordering);`
 
 ```c++
 operator value_type() const noexcept;
 ```
-[11]{.pnum} *Effects:* Equivalent to: `return load();`
+[13]{.pnum} *Effects:* Equivalent to: `return load();`
 
 ```c++
 value_type exchange(value_type desired) const noexcept;
 ```
-[12]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[14]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[13]{.pnum} *Effects:* Equivalent to: `return ref.exchange(desired, memory_ordering);`
+[15]{.pnum} *Effects:* Equivalent to: `return ref.exchange(desired, memory_ordering);`
 
 
 ```c++
 bool compare_exchange_weak(value_type& expected, value_type desired) const noexcept;
 ```
-[14]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[16]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[15]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
+[17]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
 
 ```c++
 bool compare_exchange_strong(value_type& expected, value_type desired) const noexcept;
 ```
-[16]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[18]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[17]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
+[19]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
 
 ```c++
 void wait(value_type old) const noexcept;
 ```
-[18]{.pnum} *Effects:* Equivalent to: `ref.wait(old, load_ordering);`
+[20]{.pnum} *Effects:* Equivalent to: `ref.wait(old, load_ordering);`
 
 ```c++
 void notify_one() const noexcept;
 ```
-[19]{.pnum} *Effects:* Equivalent to: `ref.notify_one(); }`
+[21]{.pnum} *Effects:* Equivalent to: `ref.notify_one(); }`
 
 ```c++
 void notify_all() const noexcept;
 ```
-[20]{.pnum} *Effects:* Equivalent to: `ref.notify_all(); }`
+[22]{.pnum} *Effects:* Equivalent to: `ref.notify_all(); }`
 
+```c++
+auto address() const noexcept;
+```
+[23]{.pnum} *Effects:* Equivalent to: `return ref.address(); }`
 
 <b>Non-generic atomic-ref-bound [atomics.refbound.nongeneric]</b>
 
@@ -583,6 +609,9 @@ struct atomic-ref-bound<T, MemoryOrder> {  // exposition only
     bool is_lock_free() const noexcept;
 
     explicit atomic-ref-bound(T& t);
+    explicit atomic-ref-bound(T&&) = delete;
+    template<class U>
+      atomic-ref-bound(const atomic-ref-bound<U, memory_order>&) noexcept;
     atomic-ref-bound(const atomic-ref-bound&) noexcept;
     atomic-ref-bound& operator=(const atomic-ref-bound&) = delete;
 
@@ -598,6 +627,8 @@ struct atomic-ref-bound<T, MemoryOrder> {  // exposition only
     void wait(value_type old) const noexcept;
     void notify_one() const noexcept;
     void notify_all() const noexcept;
+
+    auto address() const noexcept;
 
     // [atomics.refbound.nongeneric.common] Common operations
     value_type fetch_add(difference_type operand) const noexcept
@@ -668,76 +699,93 @@ explicit atomic-ref-bound(T& t);
 
 [2]{.pnum} *Preconditions:* The referenced object is aligned to `required_alignment`.
 
-[3]{.pnum} *Postconditions:* `ref` references the object referenced by `t`.
+[3]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `t`.
 
 [4]{.pnum} *Throws:* Nothing.
 
 ```c++
-atomic-ref-bound(const atomic-ref-bound& a) noexcept;
+atomic-ref-bound(const atomic-ref-bound& other) noexcept;
 ```
-[5]{.pnum} *Postconditions:* `*this` references the object referenced by `a`.
+[7]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `other.ref`.
+
+```c++
+template<class U>
+  constexpr atomic-ref-bound(const atomic-ref-bound<U>& other) noexcept;
+```
+
+[6]{.pnum} *Constraints:*
+
+   * [6.1]{.pnum} `T` and `U` are similar types ([conv.qual]), and
+
+   * [6.2]{.pnum} `is_convertible_v<U*, T*>` is `true`.
+
+[7]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `other.ref`.
 
 ```c++
 void store(value_type desired) const noexcept;
 ```
-[6]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[8]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[7]{.pnum} *Effects:* Equivalent to: `ref.store(desired, store_ordering);`
+[9]{.pnum} *Effects:* Equivalent to: `ref.store(desired, store_ordering);`
 
 ```c++
 value_type operator=(value_type desired) const noexcept;
 ```
-[8]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[10]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[9]{.pnum} *Effects:* Equivalent to: `store(desired); return desired;`
+[11]{.pnum} *Effects:* Equivalent to: `store(desired); return desired;`
 
 ```c++
 value_type load() const noexcept;
 ```
-[10]{.pnum} *Effects:* Equivalent to: `ref.load(load_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: `ref.load(load_ordering);`
 
 ```c++
 operator value_type() const noexcept;
 ```
-[11]{.pnum} *Effects:* Equivalent to: `return load();`
+[13]{.pnum} *Effects:* Equivalent to: `return load();`
 
 ```c++
 value_type exchange(value_type desired) const noexcept;
 ```
-[12]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[14]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[13]{.pnum} *Effects:* Equivalent to: `return ref.exchange(desired, memory_ordering);`
+[15]{.pnum} *Effects:* Equivalent to: `return ref.exchange(desired, memory_ordering);`
 
 
 ```c++
 bool compare_exchange_weak(value_type& expected, value_type desired) const noexcept;
 ```
-[14]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[16]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[15]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
+[17]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
 
 ```c++
 bool compare_exchange_strong(value_type& expected, value_type desired) const noexcept;
 ```
-[16]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+[18]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[12]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
+[19]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
 
 ```c++
 void wait(T old) const noexcept;
 ```
-[17]{.pnum} *Effects:* Equivalent to: `ref.wait(old, load_ordering);`
+[20]{.pnum} *Effects:* Equivalent to: `ref.wait(old, load_ordering);`
 
 ```c++
 void notify_one() const noexcept;
 ```
-[18]{.pnum} *Effects:* Equivalent to: `ref.notify_one(); }`
+[21]{.pnum} *Effects:* Equivalent to: `ref.notify_one(); }`
 
 ```c++
 void notify_all() const noexcept;
 ```
-[19]{.pnum} *Effects:* Equivalent to: `ref.notify_all(); }`
+[22]{.pnum} *Effects:* Equivalent to: `ref.notify_all(); }`
 
+```c++
+auto address() const noexcept;
+```
+[23]{.pnum} *Effects:* Equivalent to: `return ref.address(); }`
 
 **Common Operations [atomics.refbound.nongeneric.common]**
 ```c++
