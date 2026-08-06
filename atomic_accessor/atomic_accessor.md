@@ -34,6 +34,20 @@ toc: true
   - add `address` function
 - fix constructor wording
 
+## LEWG reviews of R3
+
+- LEWG reviewed P2689R3 on 2024-04-30 but did not have quorum.
+
+- LEWG reviewed P2689R3 again on 2026-08-04.
+  This time, LEWG had quorum and took two POLLS.
+
+  - "P2689 should provide conversions from different memory orders":
+    SF/F/N/A/SA, 0/0/2/8/1 (out of 16), consensus against.
+
+  - "P2689 should make _`atomic-ref-bounded`_ / _`basic-atomic-accessor`_
+    NON exposition only (user spellable)":
+    SF/F/N/A/SA, 0/2/8/1/0 (out of 16), no consensus.
+
 ## P2689R3 (LEWG Feedback)
 
 - Split definition of _`atomic-ref-bound`_ into one for arithmetic and pointer, and one for other types
