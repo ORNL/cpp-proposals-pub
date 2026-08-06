@@ -32,7 +32,10 @@ toc: true
   - make move ctor deleted
   - add converting ctor (for when `U` and `T` are similar, and `U*` is convertible to `T*`)
   - add `address` function
-- fix constructor wording
+- Fix constructor wording
+- Improve nonwording sections
+  - Explain why _`atomic-ref-bound`_ omits `compare_exchange_{weak,strong}`
+    with user-specified `failure` memory order
 
 ## LEWG reviews of R3
 
@@ -224,7 +227,7 @@ the next version of this proposal, with these changes, should target SG1 & LEWG
 </tbody>
 </table>
 
-# Rational
+# Rationale
 
 This proposal adds three `atomic_ref` like types each bound to a particular `memory_order`.
 The API differs from `atomic_ref` in that the `memory_order` cannot be specified at run time; i.e., none of its member functions
@@ -357,6 +360,54 @@ void bar(int& counter) {
 
 We believe it would be potentially unexpected for `foo` to do any operations other than `relaxed` atomics on `counter`.
 Likewise if `foo` were to take `atomic_ref_seq_cst` it would be surprising if it did `relaxed` atomic accesses.
+
+## Omit `compare_exchange_{weak,strong}` with user-specified `failure` memory order
+
+The `atomic_ref` class template includes both three-parameter and
+four-parameter versions of `compare_exchange_weak` and `compare_exchange_strong`.
+The four-parameter versions have two separate `memory_order` parameters:
+`success`, to use if the comparison is true,
+and `failure`, to use if the comparison is false.
+
+The three-parameter versions let users set the memory order on success,
+but bind the memory order on failure as a function of the success memory order,
+as specified in
+[[atomics.ref.ops] 25](https://eel.is/c++draft/atomics.ref.generic#atomics.ref.ops-25).
+
+> When only one `memory_order` argument is supplied, the value of `success` is `order`,
+> and the value of `failure` is `order` except that a value of `memory_rder::acq_rel`
+> shall be replaced by the value `memory_order::acquire` and a value of
+> `memory_order::release` shall be replaced by the value `memory_order::relaxed`.
+
+Given that the `success` memory order is the least constrained,
+we define these functions in _`atomic-ref-bound`_ to use
+the class' bound memory order `memory_ordering` as the `success` memory order,
+and to set the `failure` memory order `load_ordering`
+based on the rule from [atomics.ref.ops] 25.
+For example, we define two-parameter `compare_exchange_weak`
+in _`atomic-ref-bound`_ as follows.
+
+```c++
+constexpr bool compare_exchange_weak(
+  value_type& expected, value_type desired) const noexcept;
+```
+
+*Effects*: Equivalent to:
+`ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
+
+We do *not* define the following three-parameter analog
+that would let users set the `failure` memory order separately.
+
+```c++
+constexpr bool compare_exchange_weak(value_type& expected,
+  value_type desired, memory_order failure) const noexcept;
+```
+
+This is because it would be too confusing for the third parameter
+to be the `success` memory order for `atomic_ref`,
+but to be the opposite `failure` memory order for _`atomic-ref-bound`_.
+Users who want the functionality of `atomic_ref`'s four-parameter
+overloads should just use `atomic_ref`.
 
 # Open questions
 
