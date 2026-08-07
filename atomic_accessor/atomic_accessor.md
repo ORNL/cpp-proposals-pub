@@ -39,6 +39,7 @@ toc: true
   - Explain why _`atomic-ref-bound`_ actually _improves_ safety
     by making operations implicitly use a memory order other than
     sequential consistency
+  - Expand explanation of why we prohibit memory order conversions
 
 ## LEWG reviews of R3
 
@@ -124,9 +125,9 @@ No objection to unanimous consent
 
 ## P2689R1 2023-01 (pre-Issaquah 2023) mailing
 
-- Added `atomic-ref-bounded` exposition-only template for an `atomic_ref` like type bounded to a particular `memory_order`
+- Added _`atomic-ref-bounded`_ exposition-only template for an `atomic_ref` like type bounded to a particular `memory_order`
 - Added `atomic_ref_relaxed`, `atomic_ref_acq_rel` and `atomic_ref_seq_cst` alias templates
-- Added `basic-atomic-accessor` exposition-only template
+- Added _`basic-atomic-accessor`_ exposition-only template
 - Added `atomic_accessor_relaxed`, `atomic_accessor_acq_rel` and `atomic_accessor_seq_cst` templates
 
 ## Initial Version 2022-10 Mailing
@@ -230,25 +231,54 @@ the next version of this proposal, with these changes, should target SG1 & LEWG
 </tbody>
 </table>
 
-# Rationale
+# Summary
 
-This proposal adds three `atomic_ref` like types each bound to a particular `memory_order`.
-The API differs from `atomic_ref` in that the `memory_order` cannot be specified at run time; i.e., none of its member functions
-take a `memory_order` parameter.
-In the specific case of `atomic_ref_acq_rel`, loads are done via `memory_order_acquire` and stores are done via `memory_order_release`.
+This proposal adds three "bound atomic reference" types.
+
+1. `atomic_ref_seq_cst`
+
+2. `atomic_ref_acq_rel`
+
+3. `atomic_ref_relaxed`
+
+They work like `atomic_ref`, except that each of them
+is bound to a particular `memory_order` value at compile time.
+Wherever an atomic `atomic_ref` member function would have
+an optional `memory_order` parameter with a default value,
+the corresponding `atomic_ref_*` member function
+just uses its class' bound `memory_order` value.
+
+The following table shows the memory order
+used by each of the three types for loads and stores.
 
 <table>
 <thead><tr><th>Atomic Ref</th><th>`memory_order`</th><th>Loads</th><th>Stores</th></tr></thead>
 <tbody>
-<tr><td>`atomic_ref_relaxed`</td><td>`memory_order_relaxed`</td><td>`memory_order_relaxed`</td><td>`memory_order_relaxed`</td></tr>
-<tr><td>`atomic_ref_acq_rel`</td><td>`memory_order_acq_rel`</td><td>`memory_order_acquire`</td><td>`memory_order_release`</td></tr>
-<tr><td>`atomic_ref_seq_cst`</td><td>`memory_order_seq_cst`</td><td>`memory_order_seq_cst`</td><td>`memory_order_seq_cst`</td></tr>
+<tr>
+  <td>`atomic_ref_relaxed`</td>
+  <td>`memory_order_relaxed`</td>
+  <td>`memory_order_relaxed`</td>
+  <td>`memory_order_relaxed`</td>
+</tr>
+<tr>
+  <td>`atomic_ref_acq_rel`</td>
+  <td>`memory_order_acq_rel`</td>
+  <td>`memory_order_acquire`</td>
+  <td>`memory_order_release`</td>
+</tr>
+<tr>
+  <td>`atomic_ref_seq_cst`</td>
+  <td>`memory_order_seq_cst`</td>
+  <td>`memory_order_seq_cst`</td>
+  <td>`memory_order_seq_cst`</td>
+</tr>
 </tbody>
 </table>
 
-
-This proposal also adds four atomic accessors to be used with `mdspan`.
-They only differ with their `reference` types and all operations are performed atomically by using that corresponding reference type.
+This proposal also adds four `mdspan` "atomic accessors."
+Each of them performs element accesses atomically
+by using an atomic reference type.
+They differ only by their `reference` types.
 
 <table>
 <thead><tr><th>Accessor</th><th>`reference`</th></tr></thead>
@@ -260,12 +290,14 @@ They only differ with their `reference` types and all operations are performed a
 </tbody>
 </table>
 
-`atomic_accessor` was part of the rationale provided in P0009 for `mdspan`s *accessor policy* template parameter.
+# Rationale
+
+`atomic_accessor` was part of the rationale provided in P0009 for `mdspan`'s *accessor policy* template parameter.
 
 One of the primary use cases for these accessors is the ability to write algorithms with somewhat generic `mdspan` outputs,
 which can be called in sequential and parallel contexts.
-When called in parallel contexts users would simply pass an `mdspan` with an atomic accessor - the algorithm implementation itself
-could be agnostic to the calling context.
+When called in parallel contexts users would simply pass an `mdspan` with an atomic accessor.
+The algorithm implementation itself could be agnostic to the calling context.
 
 A variation on this use case is an implementation of an algorithm taking an execution policy,
 which adds the atomic accessor to its output argument if called with a parallel policy,
@@ -327,33 +359,34 @@ a general exposition-only template `basic-atomic-accessor` which takes the `refe
 
 Assuming both papers are approved, SG1 voted that similar changes to `atomic_ref` in P2616R3 (Making std::atomic notification/wait operations usable in more situations) should also be applied to `atomic-ref-bound`.  They are not yet in the wording of either paper, as we do not know what order LWG will apply them to the working draft.
 
-## Exposition Only Or Not
+## Generic reference and accessor are exposition only
 
-As mentioned above, during SG1 review we introduced explicitly named symbols instead of making `basic-atomic-accessor` and `atomic-ref-bound` public.
+As mentioned above, during SG1 review we introduced explicitly named type aliases
+instead of making `basic-atomic-accessor` and `atomic-ref-bound` part of the public interface.
+This is because algorithmic considerations generally dictate memory order.
+It would be unusual to make an algorithm generic on the memory order.
+The only generic thing one may want to decide is whether to use atomics at all,
+e.g., as a function of the execution policy, in the example above.
+We could not find a use case where the generic types are useful enough to expose.
 
-The primary reason for not making the generic versions public is that the memory order is generally dictated by algorithmic considerations.
+## No memory order conversions
 
-The only generic thing one may want to decide is whether to use atomics at all (e.g. as the function of the execution policy).
+The design does *not* permit conversions between references
+or accessors with different memory orders.
+This is because functions with an `atomic_ref_${MEMORY_ORDER} ref` parameter
+strongly suggest that they only access `ref` with the given `${MEMORY_ORDER}`.
+Allowing conversions would make it easy to violate that expectation.
 
-Consequently, we could not find a use-case where the generic types are useful. That said we also don't have a strong reason to not make them public - other than that it constrains implementers.
+For instance, consider a function `void foo_seq_cst(atomic_ref_seq_cst<T>)`.
+If `foo_seq_cst` silently converts its input to `atomic_ref_relaxed<T>`,
+that might break callers' code, because correct use of relaxed atomics
+might require fences or other synchronization.
 
-## Memory Order Conversions
-
-A question was raised whether to make the various bounded `atomic_ref` and `atomic_accessor` variants constructible/convertible from each other.
-We don't see many good reasons to enable that:
-
-- `atomic_ref` is meant to be almost used `in-place` for individual operations e.g. `atomic_ref(a[i])++` and not much of an interface type
-- atomic accessors are something you are supposed to add in a fairly local scope too
-  - we don't expect folks to pass `mdspan` with atomic accessors around
-
-However we identified a possible reason not to permit it: 
-
-Writing functions which take `atomic_ref_MEM_ORDER` imply ordering behavior: allowing conversions would make it very easy to violate that expectation.
-
-Consider the following:
+Permitting the opposite conversion would not harm correctness,
+but it might harm performance.  Consider the following example.
 
 ```c++
-void foo(atomic_ref_relaxed<int> counter);
+void foo_relaxed(atomic_ref_relaxed<int> counter);
 
 void bar(int& counter) {
   atomic_ref_relaxed atomic_counter(counter);
@@ -366,8 +399,40 @@ void bar(int& counter) {
 }
 ```
 
-We believe it would be potentially unexpected for `foo` to do any operations other than `relaxed` atomics on `counter`.
-Likewise if `foo` were to take `atomic_ref_seq_cst` it would be surprising if it did `relaxed` atomic accesses.
+If users call `foo_relaxed`, they would reasonably expect
+to need to use fences or other synchronization for correctness.
+If the function actually uses sequentially consistent operations,
+then users would pay for that synchronization unnecessarily.
+This is why we do not permit conversions
+in the so-called "safer" direction.
+
+Functions that might need to perform atomic operations
+with different memory orders on the same memory location
+can use `atomic_ref<T>` instead.
+
+One argument _for_ permitting conversions is that
+C++26 lets users get the pointer out of an `atomic_ref` anyway,
+due to the `address` member function
+(see [P2835R7](https://wg21.link/p2835r7)).
+That would let users write the conversion by hand anyway,
+as the example below shows.
+
+```c++
+float x = 1.25f;
+atomic_ref_seq_cst<float> x_ref(x);
+// ...
+atomic_ref_relaxed<float> x_ref2(
+  *reinterpret_cast<float*>(x_ref.address()));
+```
+
+Our counterargument is that C++ lets users do all sorts of things
+with `reinterpret_cast`.  Some of those things are undefined behavior.
+We don't aim to prevent all possible ways users could abuse the
+Standard Library; we just want to make it harder.
+Getting the object address via `address` and calling `reinterpret_cast`
+on it is a clear sign that the code is doing something special
+and that readers need to pay close attention to it.
+We would want such code to be explicit.
 
 ## Omit `compare_exchange_{weak,strong}` with user-specified `failure` memory order
 
