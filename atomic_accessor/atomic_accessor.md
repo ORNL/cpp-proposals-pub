@@ -36,7 +36,7 @@ toc: true
 - Improve nonwording sections
   - Explain why _`atomic-ref-bound`_ omits `compare_exchange_{weak,strong}`
     with user-specified `failure` memory order
-  - Explain why _`atomic-ref-bound`_ does not add a "sharp edge"
+  - Explain why _`atomic-ref-bound`_ actually _improves_ safety
     by making operations implicitly use a memory order other than
     sequential consistency
 
@@ -260,7 +260,7 @@ They only differ with their `reference` types and all operations are performed a
 </tbody>
 </table>
 
-`atomic_accessor` was part of the rational provided in P0009 for `mdspan`s *accessor policy* template parameter.
+`atomic_accessor` was part of the rationale provided in P0009 for `mdspan`s *accessor policy* template parameter.
 
 One of the primary use cases for these accessors is the ability to write algorithms with somewhat generic `mdspan` outputs,
 which can be called in sequential and parallel contexts.
@@ -274,37 +274,42 @@ The following demonstrates this with a function computing a histogram:
 
 ```c++
 template<class T, class Extents, class LayoutPolicy>
-auto add_atomic_accessor_if_needed(
-    std::execution::sequenced_policy,
-    mdspan<T, Extents, LayoutPolicy> m) {
-        return m;
-    }
+constexpr auto
+add_atomic_accessor_if_needed(std::execution::sequenced_policy,
+  std::mdspan<T, Extents, LayoutPolicy> m)
+{
+  return m;
+}
 
 template<class ExecutionPolicy, class T, class Extents, class LayoutPolicy>
-auto add_atomic_accessor_if_needed(
-    ExecutionPolicy,
-    mdspan<T, Extents, LayoutPolicy> m) {
-        return mdspan(m.data_handle(), m.mapping(), atomic_accessor<T>());
-    }
+constexpr auto add_atomic_accessor_if_needed(ExecutionPolicy,
+  std::mdspan<T, Extents, LayoutPolicy> m)
+{
+  return std::mdspan(m.data_handle(), m.mapping(), std::atomic_accessor<T>());
+}
 
 template<class ExecT>
 void compute_histogram(ExecT exec, float bin_size,
-               mdspan<int, stdex::dextents<int,1>> output,
-               mdspan<float, stdex::dextents<int,1>> data) {
-
-  static_assert(is_execution_policy_v<ExecT>);
-
+  std::mdspan<int, std::dims<1, int>> output,
+  std::mdspan<float, std::dims<1, int>> data)
+{
+  static_assert(std::is_execution_policy_v<ExecT>);
   auto accumulator = add_atomic_accessor_if_needed(exec, output);
 
-  for_each(exec, data.data_handle(), data.data_handle()+data.extent(0), [=](float val) {
-    int bin = std::abs(val)/bin_size;
-    if(bin > output.extent(0)) bin = output.extent(0)-1;
-    accumulator[bin]++;
-  });
+  std::for_each(exec,
+    data.data_handle(), data.data_handle() + data.extent(0),
+    [=] (float val) {
+      int bin = std::abs(val)/bin_size;
+      if (bin > int(output.extent(0))) {
+        bin = output.extent(0) - 1;
+      }
+      accumulator[bin]++;
+    }
+   );
 }
 ```
 
-The above example is available on godbolt: [https://godbolt.org/z/cWa6MG5dj](https://godbolt.org/z/cWa6MG5dj)
+The above example is [available on Compiler Explorer here](https://godbolt.org/z/WKn46fPev).
 
 # Design decisions
 
@@ -412,17 +417,17 @@ but to be the opposite `failure` memory order for _`atomic-ref-bound`_.
 Users who want the functionality of `atomic_ref`'s four-parameter
 overloads should just use `atomic_ref`.
 
-## Why this does not add a sharp edge
+## Why this improves safety
 
 In LEWG's review of R3 on 2026-08-04, one reviewer brought up a concern
-that our bound atomic reference types introduce a "sharp edge,"
+that our bound atomic reference types introduce a "sharp edge" that reduces safety,
 because they expose users to memory orders other than sequential consistency.
 If users of `atomic` and `atomic_ref` want a nondefault memory order,
 they must ask for it explicitly on every atomic operation.
 Users of `atomic_ref_relaxed` and `atomic_ref_acq_rel` would get
 relaxed resp. acquire-release order on every atomic operation,
 but the only time they would spell out the memory order
-would be in the class name.
+would be in the class name.  The reviewer perceives this as less safe.
 
 We disagree with the reviewer for the following reasons.
 
@@ -537,10 +542,11 @@ Each phase's implementation then does not need to create
 ### Atomic access itself is the sharpest edge
 
 The C++ Standard includes parallel algorithms like `std::ranges::for_each`.
-The Standard parallel algorithms only promise
+For `parallel_policy` and `parallel_unsequenced_policy`,
+the Standard parallel algorithms promise at most
 parallel forward progress across function invocations.
 This means that if users might experience deadlock
-if they try to synchronize between different function invocations.
+if they try to use blocking synchronization.
 The same might happen with explicitly user-created
 `thread` or `jthread` threads, because implementations
 are not required to promise concurrent forward progress.
