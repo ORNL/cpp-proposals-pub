@@ -36,6 +36,9 @@ toc: true
 - Improve nonwording sections
   - Explain why _`atomic-ref-bound`_ omits `compare_exchange_{weak,strong}`
     with user-specified `failure` memory order
+  - Explain why _`atomic-ref-bound`_ does not add a "sharp edge"
+    by making operations implicitly use a memory order other than
+    sequential consistency
 
 ## LEWG reviews of R3
 
@@ -408,6 +411,164 @@ to be the `success` memory order for `atomic_ref`,
 but to be the opposite `failure` memory order for _`atomic-ref-bound`_.
 Users who want the functionality of `atomic_ref`'s four-parameter
 overloads should just use `atomic_ref`.
+
+## Why this does not add a sharp edge
+
+In LEWG's review of R3 on 2026-08-04, one reviewer brought up a concern
+that our bound atomic reference types introduce a "sharp edge,"
+because they expose users to memory orders other than sequential consistency.
+If users of `atomic` and `atomic_ref` want a nondefault memory order,
+they must ask for it explicitly on every atomic operation.
+Users of `atomic_ref_relaxed` and `atomic_ref_acq_rel` would get
+relaxed resp. acquire-release order on every atomic operation,
+but the only time they would spell out the memory order
+would be in the class name.
+
+We disagree with the reviewer for the following reasons.
+
+1. Our proposed bound atomic reference types are actually more safe
+    than `atomic_ref` when used as function parameters,
+    because `atomic_ref` lets the function's implementation
+    use any memory order, while our bound reference types
+    declare and constrain the intended memory order at compile time.
+
+2. Our proposed bound atomic accessor types
+    make algorithms over arrays safer.
+
+3. Atomic access itself is the sharpest edge.
+
+### Bound atomic reference types are more safe than `atomic_ref`
+
+Our proposed bound reference types are actually more safe
+than the existing `atomic_ref` when used as function parameters.
+This is because our bound reference types declare and constrain
+the intended memory order at compile time,
+while `atomic_ref` lets users supply any memory order they like.
+This makes it harder to compose functions with `atomic_ref` parameters.
+Consider the following example.
+
+```c++
+void perform_update_0(atomic_ref<float>& ref, float input) {
+  ref.store(noncommutative_function(float(ref), input));
+}
+
+void perform_update_1(atomic_ref<float>& ref, float input) {
+  ref.store_add(input);
+}
+
+void apply_updates(atomic_ref<float>& ref, float in0, float in1) {
+  perform_update_0(ref, in0);
+  perform_update_1(ref, in1);
+}
+```
+
+The author of `apply_updates` likely expects
+the two updates to happen in order.
+If we let `x` be the "original" value of `float(ref)`,
+then the expected outcome would be for `ref` to hold
+`noncommutative_function(x, in0) + in1`.
+However, if the (possibly different) author of `perform_update_0`
+and `perform_update_1` changes the memory order to relaxed,
+then an execution of `apply_updates` might instead store
+`noncommutative_function(x + in1, in0)`.
+The author of `apply_updates` would have no way to know
+by inspection of the function declarations
+what memory order the functions use.
+If we change the example to use `atomic_ref_seq_cst<float>`
+instead of `atomic_ref<float>` as parameter types throughout,
+then `apply_updates` can declare its required memory order.
+Since we do not permit conversions between _`atomic-ref-bound`_
+of different memory orders, users would get a compilation order
+if this requirement were not satisfied.
+
+```c++
+void perform_update_0(atomic_ref_seq_cst<float> ref, float input) {
+  ref.store(noncommutative_function(input));
+}
+
+void perform_update_1(atomic_ref_seq_cst<float> ref, float input) {
+  ref.store_add(input);
+}
+
+void apply_updates(atomic_ref_seq_cst<float> ref, float in0, float in1) {
+  perform_update_0(ref, in0);
+  perform_update_1(ref, in1);
+}
+```
+
+### Bound accessor types make array-based algorithms safer
+
+The [Kokkos project](https://github.com/kokkos/kokkos) has
+over a decade of practical experience with `atomic_ref_*` analogs.
+Users almost exclusively access them through Kokkos' analog of `mdspan`
+in parallel algorithms.  They almost always do so through
+overloaded arithmetic operators in computations
+that are mathematically associative and commutative.
+This fits the intended use case of `atomic_ref` as explained in
+[P0019](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0019r8.html).
+Users aren't building complicated lock-free algorithms
+with these reference types.
+They hardly ever create or return one explicitly
+or spell out their names.
+
+Idiomatic `mdspan`-based algorithm interfaces
+help lead to safe use of our bound atomic reference types.
+Algorithms declare their access intent
+through the template arguments of their `mdspan` parameters.
+If an `mdspan` parameter has accessor `atomic_accessor_seq_cst`,
+for example, then the algorithm will only perform sequentially consistent
+atomic updates to the elements of that `mdspan`.
+This is the array analog of a function
+with an `atomic_ref_seq_cst` parameter.
+
+Our atomic accessor types thus work together
+with our bound reference types to improve safety
+of array-based algorithm interfaces.
+[P0019](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0019r8.html)
+explains that the intent of `atomic_ref`
+is to support "phases" of computation that alternate
+between parallel algorithms with atomic accesses,
+and parallel algorithms with nonatomic accesses.
+Our atomic accessor types let the atomic phases
+declare their array access intent.
+Each phase's implementation then does not need to create
+`atomic_ref` or _`atomic-ref-bound`_ objects explicitly.
+
+### Atomic access itself is the sharpest edge
+
+The C++ Standard includes parallel algorithms like `std::ranges::for_each`.
+The Standard parallel algorithms only promise
+parallel forward progress across function invocations.
+This means that if users might experience deadlock
+if they try to synchronize between different function invocations.
+The same might happen with explicitly user-created
+`thread` or `jthread` threads, because implementations
+are not required to promise concurrent forward progress.
+Both `atomic` and `atomic_ref` make it easy
+for users to implement synchronization by hand,
+perhaps without even meaning to.
+For example, users can create a barrier without even knowing
+what a barrier is, by incrementing a counter atomically
+and spinning until the counter reaches some value.
+Software developers need tools like thread sanitizers to find such cases.
+Thus, we do not think of sequential consistency as necessarily "safer."
+Users still need to understand forward progress guarantees and deadlock
+in order to use atomic operations correctly.
+
+An `atomic_ref` instance wraps an existing object.
+This already makes it possible for users to invoke undefined behavior
+by accessing the object nonatomically
+while atomic accesses are still in flight.
+It's still undefined behavior even if all those atomic accesses
+use sequentially consistent order.
+[P0019](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0019r8.html)
+explains why we accept this sharper interface.
+The main intended use case of `atomic_ref` is to support
+atomic operations on elements of existing array allocations.
+Without `atomic_ref`, those applications would need to use
+arrays of `atomic<T>` instead of arrays of `T`.
+That would result in a serious performance penalty
+for phases of computation where atomic access is unnecessary.
 
 # Open questions
 
