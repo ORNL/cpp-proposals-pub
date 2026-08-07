@@ -955,28 +955,28 @@ constexpr void store_fmaximum(value_type operand) const noexcept;
 ```
 [9]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
 
-[10]{.pnum} *Effects:* Equivalent to: `ref.fetch_fmaximum(operand, memory_ordering);`
+[10]{.pnum} *Effects:* Equivalent to: `ref.store_fmaximum(operand, memory_ordering);`
 
 ```c++
 constexpr void store_fminimum(value_type operand) const noexcept;
 ```
 [11]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
 
-[12]{.pnum} *Effects:* Equivalent to: `ref.fetch_fminimum(operand, memory_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: `ref.store_fminimum(operand, memory_ordering);`
 
 ```c++
 constexpr void store_fmaximum_num(value_type operand) const noexcept;
 ```
 [13]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
 
-[14]{.pnum} *Effects:* Equivalent to: `ref.fetch_fmaximum_num(operand, memory_ordering);`
+[14]{.pnum} *Effects:* Equivalent to: `ref.store_fmaximum_num(operand, memory_ordering);`
 
 ```c++
 constexpr void store_fminimum_num(value_type operand) const noexcept;
 ```
 [15]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
 
-[16]{.pnum} *Effects:* Equivalent to: `ref.fetch_fminimum_num(operand, memory_ordering);`
+[16]{.pnum} *Effects:* Equivalent to: `ref.store_fminimum_num(operand, memory_ordering);`
 
 **Integral and Pointer Operations [atomics.refbound.nongeneric.integralpointer]**
 ```c++
