@@ -1,6 +1,6 @@
 ---
 title: "Atomic Refs Bound to Memory Orderings & Atomic Accessors"
-document: D2689R3
+document: P2689R4
 date: today
 audience: SG1 & LEWG
 author:
