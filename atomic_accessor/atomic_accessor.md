@@ -47,6 +47,7 @@ toc: true
   - Expand explanation of why we prohibit memory order conversions
   - Explain why we do not attempt to define a
     generic proxy reference accessor
+  - Expand Rationale section
 
 ## LEWG reviews of R3
 
@@ -299,9 +300,67 @@ They differ only by their `reference` types.
 
 # Rationale
 
-`atomic_accessor` was part of the rationale provided in P0009 for `mdspan`'s *accessor policy* template parameter.
+The proposed accessors and their associated bound atomic references have two purposes.
 
-One of the primary use cases for these accessors is the ability to write algorithms with somewhat generic `mdspan` outputs,
+1. They are vocabulary types that declare and restrict access intent
+    at interface or object lifetime boundaries.
+
+2. They are practically useful for making algorithms more readable.
+
+The bound atomic references declare and restrict access intent
+for a single object.
+For example, the following function `update_counter` promises that
+it will only access `counter` using sequentially consistent atomic updates.
+By contrast, the interface of `atomic_ref<int>` permits updates
+with any memory order.
+
+```c++
+void update_counter(atomic_ref_seq_cst<int> counter);
+```
+
+The atomic accessors let users declare and restrict access intent
+for the elements of an array.  For example, the declaration below
+effectively promises that the function `update_array`
+will only access the elements of the array `x`
+using sequentially consistent atomic updates.
+
+```c++
+void update_array(mdspan<float, dims<2>, layout_right, atomic_accessor_seq_cst<float>> x);
+```
+
+The atomic accessors were part of the rationale provided in P0009,
+the proposal that added `mdspan` to C++23,
+for `mdspan`'s *accessor policy* template parameter.
+
+The bound atomic references are called that because they
+bind a memory order to all operations at compile time.
+This is particularly useful for the overloaded arithmetic operators.
+All of `atomic_ref`'s arithmetic operators must use `memory_order_seq_cst`,
+since there is no way to pass in an optional `memory_order` argument.
+The bound atomic references give users both control over the memory order,
+and the convenient syntax.  Here is an example.
+
+```c++
+void compute_histogram(float bin_size,
+  std::span<int> output,
+  std::mdspan<float> data)
+{
+  std::for_each(std::execution::par,
+    data.begin(), data.end(),
+    [=] (float val) {
+      int bin = std::abs(val)/bin_size;
+      if (bin > int(output.extent(0))) {
+        bin = output.extent(0) - 1;
+      }
+      std::atomic_ref_relaxed(accumulator[bin])++;
+    }
+   );
+  // ...
+}
+```
+
+A key use case for the atomic accessors is the ability to write algorithms
+with generic `mdspan` outputs
 which can be called in sequential and parallel contexts.
 When called in parallel contexts users would simply pass an `mdspan` with an atomic accessor.
 The algorithm implementation itself could be agnostic to the calling context.
@@ -309,7 +368,7 @@ The algorithm implementation itself could be agnostic to the calling context.
 A variation on this use case is an implementation of an algorithm taking an execution policy,
 which adds the atomic accessor to its output argument if called with a parallel policy,
 while using the `default_accessor` when called with a sequential policy.
-The following demonstrates this with a function computing a histogram:
+The following demonstrates this with a function computing a histogram.
 
 ```c++
 template<class T, class Extents, class LayoutPolicy>
