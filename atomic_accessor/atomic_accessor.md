@@ -41,6 +41,8 @@ toc: true
     by making operations implicitly use a memory order other than
     sequential consistency
   - Expand explanation of why we prohibit memory order conversions
+  - Explain why we do not attempt to define a
+    generic proxy reference accessor
 
 ## LEWG reviews of R3
 
@@ -483,7 +485,179 @@ but to be the opposite `failure` memory order for _`atomic-ref-bound`_.
 Users who want the functionality of `atomic_ref`'s four-parameter
 overloads should just use `atomic_ref`.
 
-## Why this improves safety
+## No generic "proxy reference" accessor
+
+The _`basic-atomic-accessor`_ class template looks generic enough
+that it should work with many different kinds of proxy references,
+not just `atomic_ref` and the bound atomic references proposed here.
+Previous reviews suggested that we could rename this class and
+make it available as a generic "proxy reference accessor."
+
+We do not attempt to do this, because the Standard currently
+has no precedent for defining a "proxy reference" concept
+outside the context of iterators and Ranges.
+That would make a proxy reference accessor design original research,
+rather than a standardization of existing practice.
+
+Our _`basic-atomic-accessor`_ design is not as generic
+as an arbitrary proxy reference accessor could be.
+First, `atomic_ref<T>` and the bound atomic references
+proposed here all wrap a core language reference `T&`.
+Second, _`basic-atomic-accessor<T, Reference>`_
+uses a raw pointer `T*` as its `data_handle_type`,
+and gets the core language reference to wrap
+by accessing the pointer at a given index.
+A fully generic proxy reference accessor would need to
+
+1. wrap an existing arbitrary accessor `NestedAccessor`
+    (that might have arbitrary `data_handle_type`,
+    `reference`, and `offset_policy` types);
+
+2. dispatch to `NestedAccessor::access` (that might have
+    possibly arbitrary effects) in its `access` function;
+
+3. have a proxy reference that can wrap the possibly arbitrary
+    `NestedAccessor::reference`; and
+
+4. dispatch to `NestedAccessor::offset` in its `offset` function,
+    and produce a data handle for a proxy reference accessor
+    that wraps the offset policy.
+
+In order to design a generic "wrapping proxy reference,"
+we would need a proxy reference concept.
+It's not obvious to us how to write that concept.
+Proxy references come in different forms.
+Sometimes they are just values.  For example,
+
+* `vector<bool>::const_reference` is just `bool`; and
+
+* `linalg::scaled_accessor<SF, NA>::reference` is the result of
+    multiplying two linear algebra value types
+    (which could either be another linear algebra value type,
+    or an expression template of one).
+
+Sometimes a proxy reference is actually a `tuple`
+(as with `ranges_{enumerate,zip}_view`) or
+`pair` (as with `flat_map`).
+
+Standard Algorithms concepts like `indirectly_readable` and
+`indirectly_writeable` exist for iterators and Ranges.
+The concepts always deal with iterators and reference types together.
+For example, `indirectly_readable` constrains an iterator type.
+The Standard does not describe proxy references by themselves.
+
+The `mdspan` design does not depend on iterators or
+Ranges machinery.  That has trade-offs.
+For instance, the `mdspan` authors wanted it to be easy
+for users who are not C++ experts to write a custom accessor.
+Contrast that with writing a custom iterator,
+a tricky enough task to motivate a Boost library
+and a proposal in flight, [P2727](https://wg21.link/p2727).
+It also avoids the correctness and performance complications
+of attempting to define a multidimensional iterator.
+However, it means that `mdspan`-based algorithms
+need to build up their own concepts and traits machinery.
+
+As an example of such machinery, how would one write
+the analog of `views::as_const` for `mdspan` algorithms?
+(This question motivates [P4311](https://wg21.link/p4311).)
+As a part of that task, given a proxy reference type `P`,
+how would one get a type `P_c` such that `P` is convertible to `P_c`,
+and `P_c` is both syntactically and semantically read-only?
+The "const version" of `atomic_ref<T>` is just `atomic_ref<const T>`.
+Not all proxy reference types work like that, though.
+For `vector<bool>::reference`, the const version is `bool`.
+
+Even existing non-Ranges traits might not help us.
+For example, `common_reference_t` of `P` and `P_c` should be `P_c`.
+This works for `vector<bool>::reference`.
+But for `atomic_ref`, GCC 16.1 (`-std=c++26 -Wall`) and
+MSVC (v19.51 VS18.6, `/std::c++latest /W4`) disagree with
+Clang 22.1.0 (`-std=c++26 -Wall`) and nvc++ 26.5 (`-std=c++23 -Wall`).
+With GCC and MSVC,
+`common_reference_t<atomic_ref<float>, atomic_ref<const float>>` is
+`atomic_ref<const float>`, but with Clang and nvc++, it is `float`.
+Please see the example below, which is available
+[in Compiler Explorer](https://godbolt.org/z/TraMhKfYT).
+
+```c++
+#include <atomic>
+#include <ranges>
+#include <type_traits>
+#include <vector>
+
+#if defined(__clang__) || defined(__NVCOMPILER)
+#  define CUSTOMIZE_BASIC_COMMON_REFERENCE 1
+#endif
+
+#if defined(CUSTOMIZE_BASIC_COMMON_REFERENCE)
+template <
+  class T,
+  class U,
+  template <class> class TQual,
+  template <class> class UQual
+> requires std::same_as<U, std::remove_const_t<T>>
+struct std::basic_common_reference<
+  std::atomic_ref<T>, std::atomic_ref<U>, TQual, UQual>
+{
+  using type = std::atomic_ref<const T>;
+};
+
+template <
+  class T,
+  class U,
+  template <class> class TQual,
+  template <class> class UQual
+> requires std::same_as<U, std::remove_const_t<T>>
+struct std::basic_common_reference<
+  std::atomic_ref<U>, std::atomic_ref<T>, TQual, UQual>
+{
+  using type = std::atomic_ref<const T>;
+};
+#endif
+
+int main() {
+  // GCC and MSVC disagree with Clang and nvc++.
+#if ! defined(__clang__) && ! defined(__NVCOMPILER)
+  // GCC says it's atomic_ref<const float>.
+  static_assert(std::is_same_v<
+    std::common_reference_t<std::atomic_ref<float>, std::atomic_ref<const float>>,
+    std::atomic_ref<const float>
+  >);
+#endif
+
+#if defined(__clang__) || defined(__NVCOMPILER)
+#  if defined(CUSTOMIZE_BASIC_COMMON_REFERENCE)
+  static_assert(std::is_same_v<
+    std::common_reference_t<std::atomic_ref<float>, std::atomic_ref<const float>>,
+    std::atomic_ref<const float>
+  >);
+#  else
+  static_assert(std::is_same_v<
+    std::common_reference_t<std::atomic_ref<float>, std::atomic_ref<const float>>,
+    float
+  >);
+#  endif
+#endif
+
+  static_assert(std::is_same_v<
+    std::common_reference_t<
+      std::vector<bool>::reference, bool
+    >,
+    bool
+  >);
+  static_assert(std::is_same_v<
+    std::common_reference_t<
+      bool, std::vector<bool>::reference
+    >,
+    bool
+  >);
+
+  return 0;
+}
+```
+
+## Why this proposal improves safety
 
 In LEWG's review of R3 on 2026-08-04, one reviewer brought up a concern
 that our bound atomic reference types introduce a "sharp edge" that reduces safety,
