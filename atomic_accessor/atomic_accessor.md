@@ -33,7 +33,11 @@ toc: true
   - add converting ctor (for when `U` and `T` are similar, and `U*` is convertible to `T*`)
   - add `address` function
   - make (almost) everything constexpr
-  - fix constructor wording  
+  - fix constructor wording
+  - update latest working draft version from N4917 (2022) to N5054 (July 2026)
+  - fix formatting of exposition-only identifiers
+  - fix constraint on non-generic _`atomic-ref-bound`_
+  - fix `difference_type` in non-generic _`atomic-ref-bound`_
 - Improve nonwording sections
   - Explain why _`atomic-ref-bound`_ omits `compare_exchange_{weak,strong}`
     with user-specified `failure` memory order
@@ -70,11 +74,11 @@ toc: true
 
 ## P2689R2 (SG1 Issaquah 2023 discussion)
 
-- Renamed `atomic-ref-bounded` to `atomic-ref-bound`
-- Renamed `atomic-ref-unbounded` to `atomic-ref-unbound`
-- Fixed the wording for `basic-atomic-accessor::offset`
-- Fixed the wording for `basic-atomic-accessor::access`
-- If P2616R3 (Making std::atomic notification/wait operations usable in more situations) is also approved, similar changes should be applied to `atomic-ref-bound` as well
+- Renamed _`atomic-ref-bounded`_ to _`atomic-ref-bound`_
+- Renamed _`atomic-ref-unbounded`_ to _`atomic-ref-unbound`_
+- Fixed the wording for _`basic-atomic-accessor`_`::offset`
+- Fixed the wording for _`basic-atomic-accessor`_`::access`
+- If P2616R3 (Making std::atomic notification/wait operations usable in more situations) is also approved, similar changes should be applied to _`atomic-ref-bound`_ as well
 
 ### Issaquah 2023 SG1 Polls
 
@@ -351,7 +355,7 @@ The above example is [available on Compiler Explorer here](https://godbolt.org/z
 Three options for atomic refs were discussed in SG1 in Kona 2022:  add new types for `memory_order` bound atomic refs, add a new `memory_order` template parameter to the existing `atomic_ref`, or add a constructor to the existing `atomic_ref` that takes a `memory_order` and stores it.  Given that the last two are ABI breaks, the first option was polled and chosen.
 It was also decided that the new bound atomic refs would not support overriding the specified `memory_order` at run time.
 
-This proposal has chosen to make a general exposition-only template `atomic-ref-bound` that takes a `memory_order` as a template argument
+This proposal has chosen to make a general exposition-only template _`atomic-ref-bound`_ that takes a `memory_order` as a template argument
 and alias templates for the three specific bound atomic refs.
 Also, the various member functions are constrained by integral types not including `bool`, floating point types and pointer types, as opposed to the different template specializations specified for `atomic_ref`.
 Other than not being able to specifiy the `memory_order` at run time, the intention is that the bound atomic ref types have the same functionality and API as `atomic_ref`.
@@ -360,12 +364,12 @@ Similarly for the atomic accessors, it was decided in SG1 in Kona 2022 to add fo
 This proposal has chosen to make
 a general exposition-only template `basic-atomic-accessor` which takes the `reference` type as a template parameter, and four alias templates for the specific atomic accessors.
 
-Assuming both papers are approved, SG1 voted that similar changes to `atomic_ref` in P2616R3 (Making std::atomic notification/wait operations usable in more situations) should also be applied to `atomic-ref-bound`.  They are not yet in the wording of either paper, as we do not know what order LWG will apply them to the working draft.
+Assuming both papers are approved, SG1 voted that similar changes to `atomic_ref` in P2616R3 (Making std::atomic notification/wait operations usable in more situations) should also be applied to _`atomic-ref-bound`_.  They are not yet in the wording of either paper, as we do not know what order LWG will apply them to the working draft.
 
 ## Generic reference and accessor are exposition only
 
 As mentioned above, during SG1 review we introduced explicitly named type aliases
-instead of making `basic-atomic-accessor` and `atomic-ref-bound` part of the public interface.
+instead of making _`basic-atomic-accessor`_ and _`atomic-ref-bound`_ part of the public interface.
 This is because algorithmic considerations generally dictate memory order.
 It would be unusual to make an algorithm generic on the memory order.
 The only generic thing one may want to decide is whether to use atomics at all,
@@ -820,8 +824,8 @@ for phases of computation where atomic access is unnecessary.
 
 This proposal uses alias templates to exposition-only types for `atomic_ref_relaxed`, `atomic_accessor`, etc.
 However, we do not want to prescribe a particular implementation.
-For instance, if an implementer wished to derive from an `atomic-ref-bound`-like type (to get a more
-user friendly name mangling, which is something not normally covered by the Standard), would
+For instance, if an implementer wished to derive from a type like _`atomic-ref-bound`_ (to get more
+user-friendly name mangling, which is something not normally covered by the Standard), would
 they be allowed to do so?  We believe an alias template to an exposition-only type is not observable
 from the point of view of the Standard and such an implementation would be allowed, but we request clarification on this.
 Potentially this is something we can leave to LWG review to suggest wording that would achieve that goal.
@@ -843,27 +847,39 @@ Potentially this is something we can leave to LWG review to suggest wording that
 
 # Wording
 
-The proposed changes are relative to [N4917](https://wg21.link/n4917):
+The proposed changes are relative to [N5054](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/n5054.pdf):
 
 ## Bound atomic ref
 ### Change the header synopsis for atomic in [atomics.syn]:
 
-`// [atomics.ref.pointer], partial specialization for pointers`\
-`template<class T> struct atomic_ref<T*>;                                          // freestanding`\
-[`// [atomics.ref.bounded], class tempalte atomic-ref-bound`]{.add}\
-[`template<class T, class MemoryOrder>` _`atomic-ref-bound`_`; // exposition only`]{.add}\
-[`template<class T> using atomic_ref_relaxed = `_`atomic-ref-bound`_`<T, memory_order_relaxed>; // freestanding`]{.add}\
-[`template<class T> using atomic_ref_acq_rel = `_`atomic-ref-bound`_`<T, memory_order_acq_rel>; // freestanding`]{.add}\
-[`template<class T> using atomic_ref_seq_cst = `_`atomic-ref-bound`_`<T, memory_order_seq_cst>; // freestanding`]{.add}\
-` `\
-`// [atomics.types.generic], class template atomic`\
-`template<class T> struct atomic<T>;                                          // freestanding`
+[Intent is for `atomic_ref_*` to be freestanding.  We don't need to mark this
+because [atomics.syn] is already marked "mostly freestanding."]{.ednote}
 
+```
+// [atomics.ref.pointer], @_class template_@ atomic_ref
+template<class T> struct atomic_ref<T>;
 
+```
+::: add
+```
+// [atomics.ref.bounded], class template @_atomic-ref-bound_@]
+template<class T, class MemoryOrder> @_atomic-ref-bound_@; // @_exposition only_@
+template<class T> using atomic_ref_relaxed = @_atomic-ref-bound_@<T, memory_order_relaxed>;
+template<class T> using atomic_ref_acq_rel = @_atomic-ref-bound_@<T, memory_order_acq_rel>;
+template<class T> using atomic_ref_seq_cst = @_atomic-ref-bound_@<T, memory_order_seq_cst>;
+```
+:::
+```
+
+// [atomics.types.generic], class template atomic
+template<class T> struct atomic<T>;
+// [atomics.types.pointer], partial specialization for pointers
+template<class T> struct atomic<T*>;
+```
 
 ### Add the following just before [atomics.types.generic]:
 
-<b>Class template `atomic-ref-bound` [atomics.refbound]</b>
+<b>Class template _`atomic-ref-bound`_ [atomics.refbound]</b>
 
 <b>Exposition only helper [atomics.refbound.helpers]</b>
 
@@ -876,59 +892,62 @@ Returns: `true` if the class `atomic_ref<T>` has a member type definition `diffe
 
 [Note: This is true for a set of defined integral types, floating point types, and pointers.]
 
-<b>Generic atomic-ref-bound [atomics.refbound.generic]</b>
+<b>Generic _`atomic-ref-bound`_ [atomics.refbound.generic]</b>
 
 <b>Overview [atomics.refbound.generic.overview]</b>
 
+[The friend declaration may be unnecessary.
+Mark didn't need it in an implementation.]{.ednote}
+
 ```c++
 template <class T, memory_order MemoryOrder>
-struct atomic-ref-bound {  // exposition only
-   private:
-    using atomic_ref_unbound = atomic_ref<T>;  // exposition only
-    atomic_ref_unbound ref;                    // exposition only
+struct @_atomic-ref-bound_@ {                   // exposition only
+private:
+  using @_atomic-ref-unbound_@ = atomic_ref<T>; // exposition only
+  @_atomic-ref-unbound_@ @_ref_@;                   // exposition only
 
-    static constexpr memory_order store_ordering =
-        MemoryOrder == memory_order_acq_rel ? memory_order_release
-                                            : MemoryOrder;  // exposition only
+  static constexpr memory_order store_ordering =
+    MemoryOrder == memory_order_acq_rel ? memory_order_release
+                                        : MemoryOrder; // exposition only
 
-    static constexpr memory_order load_ordering =
-        MemoryOrder == memory_order_acq_rel ? memory_order_acquire
-                                            : MemoryOrder;  // exposition only
+  static constexpr memory_order load_ordering =
+    MemoryOrder == memory_order_acq_rel ? memory_order_acquire
+                                        : MemoryOrder; // exposition only
 
-    template<class T> friend class atomic-ref-bound<T, MemoryOrder>;
+  template<class T> friend class @_atomic-ref-bound_@<T, MemoryOrder>;
 
-   public:
-    using value_type = remove_cv_t<T>;
-    static constexpr memory_order memory_ordering = MemoryOrder;
-    static constexpr size_t required_alignment = atomic_ref_unbound::required_alignment;
+public:
+  using value_type = remove_cv_t<T>;
+  static constexpr memory_order memory_ordering = MemoryOrder;
+  static constexpr size_t required_alignment = @_atomic-ref-unbound_@::required_alignment;
 
-    static constexpr bool is_always_lock_free = atomic_ref_unbound::is_always_lock_free;
-    bool is_lock_free() const noexcept;
+  static constexpr bool is_always_lock_free = @_atomic-ref-unbound_@::is_always_lock_free;
+  bool is_lock_free() const noexcept;
 
-    constexpr explicit atomic-ref-bound(T&);
-    explicit atomic_ref(T&&) = delete;
-    constexpr atomic-ref-bound(const atomic-ref-bound&) noexcept;
-    template<class U>
-      constexpr atomic-ref-bound(const atomic-ref-bound<U, memory_ordering>&) noexcept;
-    atomic-ref-bound& operator=(const atomic-ref-bound&) = delete;
+  constexpr explicit @_atomic-ref-bound_@(T&);
+  explicit @_atomic-ref-bound_@(T&&) = delete;
+  constexpr @_atomic-ref-bound_@(const @_atomic-ref-bound_@&) noexcept;
+  template<class U>
+    constexpr @_atomic-ref-bound_@(const @_atomic-ref-bound_@<U, memory_ordering>&) noexcept;
+  @_atomic-ref-bound_@& operator=(const @_atomic-ref-bound_@&) = delete;
 
-    constexpr void store(value_type desired) const noexcept;
-    constexpr value_type operator=(value_type desired) const noexcept;
-    constexpr value_type load() const noexcept;
-    constexpr operator value_type() const noexcept;
+  constexpr void store(value_type desired) const noexcept;
+  constexpr value_type operator=(value_type desired) const noexcept;
+  constexpr value_type load() const noexcept;
+  constexpr operator value_type() const noexcept;
 
-    constexpr value_type exchange(value_type desired) const noexcept;
-    constexpr bool compare_exchange_weak(value_type& expected, value_type desired) const noexcept;
-    constexpr bool compare_exchange_strong(value_type& expected, value_type desired) const noexcept;
+  constexpr value_type exchange(value_type desired) const noexcept;
+  constexpr bool compare_exchange_weak(value_type& expected, value_type desired) const noexcept;
+  constexpr bool compare_exchange_strong(value_type& expected, value_type desired) const noexcept;
 
-    constexpr void wait(value_type old) const noexcept;
-    constexpr void notify_one() const noexcept;
-    constexpr void notify_all() const noexcept;
+  constexpr void wait(value_type old) const noexcept;
+  constexpr void notify_one() const noexcept;
+  constexpr void notify_all() const noexcept;
 
-    constexpr auto address() const noexcept;
+  constexpr auto address() const noexcept;
 };
 ```
-[1]{.pnum} Class `atomic-ref-bound` is for exposition only.
+[1]{.pnum} Class _`atomic-ref-bound`_ is for exposition only.
 
 [2]{.pnum} *Mandates:*
 
@@ -938,26 +957,26 @@ struct atomic-ref-bound {  // exposition only
 ```c++
 bool is_lock_free() const noexcept;
 ```
-[1]{.pnum} *Effects:* Equivalent to: `return ref.is_lock_free();`
+[1]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.is_lock_free();`
 
 ```c++
-constexpr explicit atomic-ref-bound(T& t);
+constexpr explicit @_atomic-ref-bound_@(T& t);
 ```
 
 [2]{.pnum} *Preconditions:* The referenced object is aligned to `required_alignment`.
 
-[3]{.pnum} *Postconditions:* `ref` references the object referenced by `t`.
+[3]{.pnum} *Postconditions:* _`ref`_ references the object referenced by `t`.
 
 [4]{.pnum} *Throws:* Nothing.
 
 ```c++
-constexpr atomic-ref-bound(const atomic-ref-bound& other) noexcept;
+constexpr @_atomic-ref-bound_@(const @_atomic-ref-bound_@& other) noexcept;
 ```
-[5]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `other.ref`.
+[5]{.pnum} *Effects:* Direct-non-list-initializes _`ref`_ with `other.`_`ref`_.
 
 ```c++
 template<class U>
-  constexpr atomic-ref-bound(const atomic-ref-bound<U>& other) noexcept;
+  constexpr @_atomic-ref-bound_@(const @_atomic-ref-bound_@<U>& other) noexcept;
 ```
 
 [6]{.pnum} *Constraints:*
@@ -966,14 +985,14 @@ template<class U>
 
    * [6.2]{.pnum} `is_convertible_v<U*, T*>` is `true`.
 
-[7]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `other.ref`.
+[7]{.pnum} *Effects:* Direct-non-list-initializes _`ref`_ with `other.`_`ref`_.
 
 ```c++
 constexpr void store(value_type desired) const noexcept;
 ```
 [8]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[9]{.pnum} *Effects:* Equivalent to: `ref.store(desired, store_ordering);`
+[9]{.pnum} *Effects:* Equivalent to: _`ref`_`.store(desired, store_ordering);`
 
 ```c++
 constexpr value_type operator=(value_type desired) const noexcept;
@@ -985,7 +1004,7 @@ constexpr value_type operator=(value_type desired) const noexcept;
 ```c++
 constexpr value_type load() const noexcept;
 ```
-[12]{.pnum} *Effects:* Equivalent to: `return ref.load(load_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.load(load_ordering);`
 
 ```c++
 constexpr operator value_type() const noexcept;
@@ -997,7 +1016,7 @@ constexpr value_type exchange(value_type desired) const noexcept;
 ```
 [14]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[15]{.pnum} *Effects:* Equivalent to: `return ref.exchange(desired, memory_ordering);`
+[15]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.exchange(desired, memory_ordering);`
 
 
 ```c++
@@ -1005,146 +1024,149 @@ constexpr bool compare_exchange_weak(value_type& expected, value_type desired) c
 ```
 [16]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[17]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
+[17]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
 
 ```c++
 constexpr bool compare_exchange_strong(value_type& expected, value_type desired) const noexcept;
 ```
 [18]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[19]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
+[19]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
 
 ```c++
 constexpr void wait(value_type old) const noexcept;
 ```
-[20]{.pnum} *Effects:* Equivalent to: `ref.wait(old, load_ordering);`
+[20]{.pnum} *Effects:* Equivalent to: _`ref`_`.wait(old, load_ordering);`
 
 ```c++
 constexpr void notify_one() const noexcept;
 ```
-[21]{.pnum} *Effects:* Equivalent to: `ref.notify_one();`
+[21]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_one();`
 
 ```c++
 constexpr void notify_all() const noexcept;
 ```
-[22]{.pnum} *Effects:* Equivalent to: `ref.notify_all();`
+[22]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_all();`
 
 ```c++
 constexpr auto address() const noexcept;
 ```
-[23]{.pnum} *Effects:* Equivalent to: `return ref.address();`
+[23]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.address();`
 
-<b>Non-generic atomic-ref-bound [atomics.refbound.nongeneric]</b>
+<b>Non-generic _`atomic-ref-bound`_ [atomics.refbound.nongeneric]</b>
 
 <b>Overview [atomics.refbound.nongeneric.overview]</b>
 
 ```c++
-template <arithmetic-or-pointer T, memory_order MemoryOrder>
+template <class T, memory_order MemoryOrder>
 requires(@_atomic-ref-non-generic-type_@<T>())
-struct atomic-ref-bound<T, MemoryOrder> {  // exposition only
-   private:
-    using atomic_ref_unbound = atomic_ref<T>;  // exposition only
-    atomic_ref_unbound ref;                    // exposition only
+struct @_atomic-ref-bound_@<T, MemoryOrder> {  // exposition only
+private:
+  using @_atomic-ref-unbound_@ = atomic_ref<T>;  // exposition only
+  @_atomic-ref-unbound_@ @_ref_@;                    // exposition only
 
-    static constexpr memory_order store_ordering =
-        MemoryOrder == memory_order_acq_rel ? memory_order_release
-                                            : MemoryOrder;  // exposition only
+  static constexpr memory_order store_ordering =
+    MemoryOrder == memory_order_acq_rel ? memory_order_release
+                                        : MemoryOrder;  // exposition only
 
-    static constexpr memory_order load_ordering =
-        MemoryOrder == memory_order_acq_rel ? memory_order_acquire
-                                            : MemoryOrder;  // exposition only
+  static constexpr memory_order load_ordering =
+    MemoryOrder == memory_order_acq_rel ? memory_order_acquire
+                                        : MemoryOrder;  // exposition only
 
-    template<class T> friend class atomic-ref-bound<T, MemoryOrder>;
+  template<class T> friend class @_atomic-ref-bound_@<T, MemoryOrder>;
 
-   public:
-    using value_type = remove_cv_t<T>;
+public:
+  using value_type = remove_cv_t<T>;
 
-   private:
-    static constexpr bool is_integral_value = // exposition only
-        is_integral_v<value_type> && !is_same_v<value_type, bool>;
-    static constexpr bool is_floating_point_value = // exposition only
-        is_floating_point_v<value_type>;
-    static constexpr bool is_pointer_value = // exposition only
-        is_pointer_v<value_type>;
+private:
+  static constexpr bool @_is-integral-value_@ =       // exposition only
+    is_integral_v<value_type> && !is_same_v<value_type, bool>;
+  static constexpr bool @_is-floating-point-value_@ = // exposition only
+    is_floating_point_v<value_type>;
+  static constexpr bool @_is-pointer-value_@ =        // exposition only
+    is_pointer_v<value_type>;
 
-   public:
-    using difference_type = atomic_ref_bound::difference_type;
-    static constexpr memory_order memory_ordering = MemoryOrder;
-    static constexpr size_t required_alignment = atomic_ref_unbound::required_alignment;
+public:
+  using difference_type = @_atomic-ref-unbound_@::difference_type;
+  static constexpr memory_order memory_ordering = MemoryOrder;
+  static constexpr size_t required_alignment =
+    @_atomic-ref-unbound_@::required_alignment;
 
-    static constexpr bool is_always_lock_free = atomic_ref_unbound::is_always_lock_free;
+  static constexpr bool is_always_lock_free =
+    @_atomic-ref-unbound_@::is_always_lock_free;
 
-    // [atomics.refbound.nongeneric.ops] Operations common with generic version
-    bool is_lock_free() const noexcept;
+  // [atomics.refbound.nongeneric.ops] Operations common with generic version
+  bool is_lock_free() const noexcept;
 
-    constexpr explicit atomic-ref-bound(T& t);
-    explicit atomic-ref-bound(T&&) = delete;
-    template<class U>
-      constexpr atomic-ref-bound(const atomic-ref-bound<U, memory_ordering>&) noexcept;
-    constexpr atomic-ref-bound(const atomic-ref-bound&) noexcept;
-    constexpr atomic-ref-bound& operator=(const atomic-ref-bound&) = delete;
+  constexpr explicit @_atomic-ref-bound_@(T& t);
+  explicit @_atomic-ref-bound_@(T&&) = delete;
+  template<class U>
+    constexpr @_atomic-ref-bound_@(const @_atomic-ref-bound_@<U, memory_ordering>&) noexcept;
+  constexpr @_atomic-ref-bound_@(const @_atomic-ref-bound_@&) noexcept;
+  constexpr @_atomic-ref-bound_@& operator=(const @_atomic-ref-bound_@&) = delete;
 
-    constexpr void store(value_type desired) const noexcept;
-    constexpr value_type operator=(value_type desired) const noexcept;
-    constexpr value_type load() const noexcept;
-    constexpr operator value_type() const noexcept;
+  constexpr void store(value_type desired) const noexcept;
+  constexpr value_type operator=(value_type desired) const noexcept;
+  constexpr value_type load() const noexcept;
+  constexpr operator value_type() const noexcept;
 
-    constexpr value_type exchange(value_type desired) const noexcept;
-    constexpr bool compare_exchange_weak(value_type& expected, value_type desired) const noexcept;
-    constexpr bool compare_exchange_strong(value_type& expected, value_type desired) const noexcept;
+  constexpr value_type exchange(value_type desired) const noexcept;
+  constexpr bool compare_exchange_weak(value_type& expected, value_type desired) const noexcept;
+  constexpr bool compare_exchange_strong(value_type& expected, value_type desired) const noexcept;
 
-    constexpr void wait(value_type old) const noexcept;
-    constexpr void notify_one() const noexcept;
-    constexpr void notify_all() const noexcept;
+  constexpr void wait(value_type old) const noexcept;
+  constexpr void notify_one() const noexcept;
+  constexpr void notify_all() const noexcept;
 
-    constexpr auto address() const noexcept;
+  constexpr auto address() const noexcept;
 
-    // [atomics.refbound.nongeneric.common] Common operations
-    constexpr value_type fetch_add(difference_type operand) const noexcept
-    constexpr value_type fetch_sub(difference_type operand) const noexcept;
-    constexpr value_type fetch_max(value_type operand) const noexcept;
-    constexpr value_type fetch_min(value_type operand) const noexcept;
+  // [atomics.refbound.nongeneric.common] Common operations
+  constexpr value_type fetch_add(difference_type operand) const noexcept
+  constexpr value_type fetch_sub(difference_type operand) const noexcept;
+  constexpr value_type fetch_max(value_type operand) const noexcept;
+  constexpr value_type fetch_min(value_type operand) const noexcept;
 
-    constexpr void store_add(difference_type operand) const noexcept;
-    constexpr void store_sub(difference_type operand) const noexcept;
-    constexpr void store_max(value_type operand) const noexcept;
-    constexpr void store_min(value_type operand) const noexcept;
+  constexpr void store_add(difference_type operand) const noexcept;
+  constexpr void store_sub(difference_type operand) const noexcept;
+  constexpr void store_max(value_type operand) const noexcept;
+  constexpr void store_min(value_type operand) const noexcept;
 
-    constexpr value_type operator+=(difference_type operand) const noexcept;
-    constexpr value_type operator-=(difference_type operand) const noexcept;
+  constexpr value_type operator+=(difference_type operand) const noexcept;
+  constexpr value_type operator-=(difference_type operand) const noexcept;
 
-    // [atomics.refbound.nongeneric.integral] Integral only operations
-    constexpr value_type fetch_and(value_type operand) const noexcept;
-    constexpr value_type fetch_or (value_type operand) const noexcept;
-    constexpr value_type fetch_xor(value_type operand) const noexcept;
+  // [atomics.refbound.nongeneric.integral] Integral only operations
+  constexpr value_type fetch_and(value_type operand) const noexcept;
+  constexpr value_type fetch_or (value_type operand) const noexcept;
+  constexpr value_type fetch_xor(value_type operand) const noexcept;
 
-    constexpr void store_and(value_type operand) const noexcept;
-    constexpr void store_or (value_type operand) const noexcept;
-    constexpr void store_xor(value_type operand) const noexcept;
+  constexpr void store_and(value_type operand) const noexcept;
+  constexpr void store_or (value_type operand) const noexcept;
+  constexpr void store_xor(value_type operand) const noexcept;
 
-    constexpr value_type operator&=(value_type operand) const noexcept;
-    constexpr value_type operator|=(value_type operand) const noexcept;
-    constexpr value_type operator^=(value_type operand) const noexcept;
+  constexpr value_type operator&=(value_type operand) const noexcept;
+  constexpr value_type operator|=(value_type operand) const noexcept;
+  constexpr value_type operator^=(value_type operand) const noexcept;
 
-    // [atomics.refbound.nongeneric.floatingpoint] Floating point only operations
-    constexpr value_type fetch_fmaximum(value_type operand) const noexcept;
-    constexpr value_type fetch_fminimum(value_type operand) const noexcept;
-    constexpr value_type fetch_fmaximum_num(value_type operand) const noexcept;
-    constexpr value_type fetch_fminimum_num(value_type operand) const noexcept;
+  // [atomics.refbound.nongeneric.floatingpoint] Floating point only operations
+  constexpr value_type fetch_fmaximum(value_type operand) const noexcept;
+  constexpr value_type fetch_fminimum(value_type operand) const noexcept;
+  constexpr value_type fetch_fmaximum_num(value_type operand) const noexcept;
+  constexpr value_type fetch_fminimum_num(value_type operand) const noexcept;
 
-    constexpr void store_fmaximum(value_type operand) const noexcept;
-    constexpr void store_fminimum(value_type operand) const noexcept;
-    constexpr void store_fmaximum_num(value_type operand) const noexcept;
-    constexpr void store_fminimum_num(value_type operand) const noexcept;
+  constexpr void store_fmaximum(value_type operand) const noexcept;
+  constexpr void store_fminimum(value_type operand) const noexcept;
+  constexpr void store_fmaximum_num(value_type operand) const noexcept;
+  constexpr void store_fminimum_num(value_type operand) const noexcept;
 
-    // [atomics.refbound.nongeneric.integralpointer] Integral and pointer type operations
-    constexpr value_type operator++(int) const noexcept;
-    constexpr value_type operator++() const noexcept;
-    constexpr value_type operator--(int) const noexcept;
-    constexpr value_type operator--() const noexcept;
+  // [atomics.refbound.nongeneric.integralpointer] Integral and pointer type operations
+  constexpr value_type operator++(int) const noexcept;
+  constexpr value_type operator++() const noexcept;
+  constexpr value_type operator--(int) const noexcept;
+  constexpr value_type operator--() const noexcept;
 };
 ```
-[1]{.pnum} Class `atomic-ref-bound` is for exposition only.
+
+[1]{.pnum} Class _`atomic-ref-bound`_ is for exposition only.
 
 [2]{.pnum} *Mandates:*
 
@@ -1159,26 +1181,26 @@ necessarily `memory_order_seq_cst`.
 ```c++
 bool is_lock_free() const noexcept;
 ```
-[1]{.pnum} *Effects:* Equivalent to: `return ref.is_lock_free();`
+[1]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.is_lock_free();`
 
 ```c++
-constexpr explicit atomic-ref-bound(T& t);
+constexpr explicit @_atomic-ref-bound_@(T& t);
 ```
 
 [2]{.pnum} *Preconditions:* The referenced object is aligned to `required_alignment`.
 
-[3]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `t`.
+[3]{.pnum} *Effects:* Direct-non-list-initializes _`ref`_ with `t`.
 
 [4]{.pnum} *Throws:* Nothing.
 
 ```c++
-constexpr atomic-ref-bound(const atomic-ref-bound& other) noexcept;
+constexpr @_atomic-ref-bound_@(const @_atomic-ref-bound_@& other) noexcept;
 ```
 [7]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `other.ref`.
 
 ```c++
 template<class U>
-  constexpr atomic-ref-bound(const atomic-ref-bound<U>& other) noexcept;
+  constexpr @_atomic-ref-bound_@(const @_atomic-ref-bound_@<U>& other) noexcept;
 ```
 
 [6]{.pnum} *Constraints:*
@@ -1187,14 +1209,14 @@ template<class U>
 
    * [6.2]{.pnum} `is_convertible_v<U*, T*>` is `true`.
 
-[7]{.pnum} *Effects:* Direct-non-list-initializes `ref` with `other.ref`.
+[7]{.pnum} *Effects:* Direct-non-list-initializes _`ref`_ with `other.`_`ref`_.
 
 ```c++
 constexpr void store(value_type desired) const noexcept;
 ```
 [8]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[9]{.pnum} *Effects:* Equivalent to: `ref.store(desired, store_ordering);`
+[9]{.pnum} *Effects:* Equivalent to: _`ref`_`.store(desired, store_ordering);`
 
 ```c++
 constexpr value_type operator=(value_type desired) const noexcept;
@@ -1206,7 +1228,7 @@ constexpr value_type operator=(value_type desired) const noexcept;
 ```c++
 constexpr value_type load() const noexcept;
 ```
-[12]{.pnum} *Effects:* Equivalent to: `return ref.load(load_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.load(load_ordering);`
 
 ```c++
 constexpr operator value_type() const noexcept;
@@ -1218,7 +1240,7 @@ constexpr value_type exchange(value_type desired) const noexcept;
 ```
 [14]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[15]{.pnum} *Effects:* Equivalent to: `return ref.exchange(desired, memory_ordering);`
+[15]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.exchange(desired, memory_ordering);`
 
 
 ```c++
@@ -1226,34 +1248,34 @@ constexpr bool compare_exchange_weak(value_type& expected, value_type desired) c
 ```
 [16]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[17]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
+[17]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.compare_exchange_weak(expected, desired, memory_ordering, load_ordering);`
 
 ```c++
 constexpr bool compare_exchange_strong(value_type& expected, value_type desired) const noexcept;
 ```
 [18]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[19]{.pnum} *Effects:* Equivalent to: `return ref.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
+[19]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.compare_exchange_strong(expected, desired, memory_ordering, load_ordering);`
 
 ```c++
 constexpr void wait(T old) const noexcept;
 ```
-[20]{.pnum} *Effects:* Equivalent to: `ref.wait(old, load_ordering);`
+[20]{.pnum} *Effects:* Equivalent to: _`ref`_`.wait(old, load_ordering);`
 
 ```c++
 constexpr void notify_one() const noexcept;
 ```
-[21]{.pnum} *Effects:* Equivalent to: `ref.notify_one();`
+[21]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_one();`
 
 ```c++
 constexpr void notify_all() const noexcept;
 ```
-[22]{.pnum} *Effects:* Equivalent to: `ref.notify_all();`
+[22]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_all();`
 
 ```c++
 constexpr auto address() const noexcept;
 ```
-[23]{.pnum} *Effects:* Equivalent to: `return ref.address();`
+[23]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.address();`
 
 **Common Operations [atomics.refbound.nongeneric.common]**
 ```c++
@@ -1261,7 +1283,7 @@ constexpr value_type fetch_add(difference_type operand) const noexcept;
 ```
 [1]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[2]{.pnum} *Effects:* Equivalent to: `return ref.fetch_add(operand, memory_ordering);`
+[2]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_add(operand, memory_ordering);`
 
 ```c++
 constexpr value_type fetch_sub(difference_type operand) const noexcept;
@@ -1269,14 +1291,14 @@ constexpr value_type fetch_sub(difference_type operand) const noexcept;
 
 [3]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[4]{.pnum} *Effects:* Equivalent to: `return ref.fetch_sub(operand, memory_ordering);`
+[4]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_sub(operand, memory_ordering);`
 
 ```c++
 constexpr value_type fetch_max(value_type operand) const noexcept;
 ```
 [5]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[6]{.pnum} *Effects:* Equivalent to: `return ref.fetch_max(operand, memory_ordering);`
+[6]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_max(operand, memory_ordering);`
 
 ```c++
 constexpr value_type fetch_min(value_type operand) const noexcept;
@@ -1284,35 +1306,35 @@ constexpr value_type fetch_min(value_type operand) const noexcept;
 
 [7]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[8]{.pnum} *Effects:* Equivalent to: `return ref.fetch_min(operand, memory_ordering);`
+[8]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_min(operand, memory_ordering);`
 
 ```c++
 constexpr void store_add(difference_type operand) const noexcept;
 ```
 [9]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[10]{.pnum} *Effects:* Equivalent to: `ref.store_add(operand, memory_ordering);`
+[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_add(operand, memory_ordering);`
 
 ```c++
 constexpr void store_sub(difference_type operand) const noexcept;
 ```
 [11]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[12]{.pnum} *Effects:* Equivalent to: `ref.store_sub(operand, memory_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_sub(operand, memory_ordering);`
 
 ```c++
 constexpr void store_max(value_type operand) const noexcept;
 ```
 [13]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[14]{.pnum} *Effects:* Equivalent to: `ref.store_max(operand, memory_ordering);`
+[14]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_max(operand, memory_ordering);`
 
 ```c++
 constexpr void store_min(value_type operand) const noexcept;
 ```
 [15]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[16]{.pnum} *Effects:* Equivalent to: `ref.store_min(operand, memory_ordering);`
+[16]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_min(operand, memory_ordering);`
 
 ```c++
 constexpr value_type operator+=(difference_type operand) const noexcept;
@@ -1332,63 +1354,63 @@ constexpr value_type operator-=(difference_type operand) const noexcept;
 ```c++
 constexpr value_type fetch_and(value_type operand) const noexcept;
 ```
-[1]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[1]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[2]{.pnum} *Effects:* Equivalent to: `return ref.fetch_and(operand, memory_ordering);`
+[2]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_and(operand, memory_ordering);`
 
 ```c++
 constexpr value_type fetch_or(value_type operand) const noexcept;
 ```
-[3]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[3]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[4]{.pnum} *Effects:* Equivalent to: `return ref.fetch_or(operand, memory_ordering);`
+[4]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_or(operand, memory_ordering);`
 
 ```c++
 constexpr value_type fetch_xor(value_type operand) const noexcept;
 ```
-[5]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[5]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[6]{.pnum} *Effects:* Equivalent to: `return ref.fetch_xor(operand, memory_ordering);`
+[6]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_xor(operand, memory_ordering);`
 
 ```c++
 constexpr void store_and(value_type operand) const noexcept;
 ```
-[7]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[7]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[8]{.pnum} *Effects:* Equivalent to: `ref.store_and(operand, memory_ordering);`
+[8]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_and(operand, memory_ordering);`
 
 ```c++
 constexpr void store_or(value_type operand) const noexcept;
 ```
-[9]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[9]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[10]{.pnum} *Effects:* Equivalent to: `ref.store_or(operand, memory_ordering);`
+[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_or(operand, memory_ordering);`
 
 ```c++
 constexpr void store_xor(value_type operand) const noexcept;
 ```
-[11]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[11]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[12]{.pnum} *Effects:* Equivalent to: `ref.store_xor(operand, memory_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_xor(operand, memory_ordering);`
 
 ```c++
 constexpr value_type operator&=(value_type operand) const noexcept;
 ```
-[13]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[13]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
 [14]{.pnum} *Effects:* Equivalent to: `return fetch_and(operand) & operand;`
 
 ```c++
 constexpr value_type operator|=(value_type operand) const noexcept;
 ```
-[15]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[15]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
 [16]{.pnum} *Effects:* Equivalent to: `return fetch_or(operand) | operand;`
 
 ```c++
 constexpr value_type operator^=(value_type operand) const noexcept;
 ```
-[17]{.pnum} *Constraints:* `is_integral_value && !is_const_v<T>` is `true`.
+[17]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
 [18]{.pnum} *Effects:* Equivalent to: `return fetch_xor(operand) ^ operand;`
 
@@ -1396,58 +1418,58 @@ constexpr value_type operator^=(value_type operand) const noexcept;
 ```c++
 constexpr value_type fetch_fmaximum(value_type operand) const noexcept;
 ```
-[1]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
+[1]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[2]{.pnum} *Effects:* Equivalent to: `return ref.fetch_fmaximum(operand, memory_ordering);`
+[2]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_fmaximum(operand, memory_ordering);`
 
 ```c++
 constexpr value_type fetch_fminimum(value_type operand) const noexcept;
 ```
-[3]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
+[3]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[4]{.pnum} *Effects:* Equivalent to: `return ref.fetch_fminimum(operand, memory_ordering);`
+[4]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_fminimum(operand, memory_ordering);`
 
 ```c++
 constexpr value_type fetch_fmaximum_num(value_type operand) const noexcept;
 ```
-[5]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
+[5]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[6]{.pnum} *Effects:* Equivalent to: `return ref.fetch_fmaximum_num(operand, memory_ordering);`
+[6]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_fmaximum_num(operand, memory_ordering);`
 
 ```c++
 constexpr value_type fetch_fminimum_num(value_type operand) const noexcept;
 ```
-[7]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
+[7]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[8]{.pnum} *Effects:* Equivalent to: `return ref.fetch_fminimum_num(operand, memory_ordering);`
+[8]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.fetch_fminimum_num(operand, memory_ordering);`
 
 ```c++
 constexpr void store_fmaximum(value_type operand) const noexcept;
 ```
-[9]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
+[9]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[10]{.pnum} *Effects:* Equivalent to: `ref.store_fmaximum(operand, memory_ordering);`
+[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fmaximum(operand, memory_ordering);`
 
 ```c++
 constexpr void store_fminimum(value_type operand) const noexcept;
 ```
-[11]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
+[11]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[12]{.pnum} *Effects:* Equivalent to: `ref.store_fminimum(operand, memory_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fminimum(operand, memory_ordering);`
 
 ```c++
 constexpr void store_fmaximum_num(value_type operand) const noexcept;
 ```
-[13]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
+[13]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[14]{.pnum} *Effects:* Equivalent to: `ref.store_fmaximum_num(operand, memory_ordering);`
+[14]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fmaximum_num(operand, memory_ordering);`
 
 ```c++
 constexpr void store_fminimum_num(value_type operand) const noexcept;
 ```
-[15]{.pnum} *Constraints:* `is_floating_point_value && !is_const_v<T>` is `true`.
+[15]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[16]{.pnum} *Effects:* Equivalent to: `ref.store_fminimum_num(operand, memory_ordering);`
+[16]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fminimum_num(operand, memory_ordering);`
 
 **Integral and Pointer Operations [atomics.refbound.nongeneric.integralpointer]**
 ```c++
@@ -1455,7 +1477,7 @@ constexpr value_type operator++(int) const noexcept;
 ```
 [1]{.pnum} *Constraints:*
 
-   * `is_integral_value || is_pointer_value` is `true`, and
+   * _`is-integral-value`_ `||` _`is-pointer-value`_ is `true`, and
 
    * `is_const_v<T>` is `false`.
 
@@ -1466,7 +1488,7 @@ constexpr value_type operator++() const noexcept;
 ```
 [3]{.pnum} *Constraints:*
 
-   * `is_integral_value || is_pointer_value` is `true`, and
+   * _`is-integral-value`_ `||` _`is-pointer-value`_ is `true`, and
 
    * `is_const_v<T>` is `false`.
 
@@ -1477,7 +1499,7 @@ constexpr value_type operator--(int) const noexcept;
 ```
 [5]{.pnum} *Constraints:*
 
-   * `is_integral_value || is_pointer_value` is `true`, and
+   * _`is-integral-value`_ `||` _`is-pointer-value`_ is `true`, and
 
    * `is_const_v<T>` is `false`.
 
@@ -1488,7 +1510,7 @@ constexpr value_type operator--() const noexcept;
 ```
 [7]{.pnum} *Constraints:*
 
-   * `is_integral_value || is_pointer_value` is `true`, and
+   * _`is-integral-value`_ `||` _`is-pointer-value`_ is `true`, and
 
    * `is_const_v<T>` is `false`.
 
@@ -1502,13 +1524,13 @@ constexpr value_type operator--() const noexcept;
 // all freestanding
 namespace std {
 template<class T>
-using atomic_ref_relaxed = atomic-ref-bound<T, memory_order_relaxed>;
+using atomic_ref_relaxed = @_atomic-ref-bound_@<T, memory_order_relaxed>;
 
 template<class T>
-using atomic_ref_acq_rel = atomic-ref-bound<T, memory_order_acq_rel>;
+using atomic_ref_acq_rel = @_atomic-ref-bound_@<T, memory_order_acq_rel>;
 
 template<class T>
-using atomic_ref_seq_cst = atomic-ref-bound<T, memory_order_seq_cst>;
+using atomic_ref_seq_cst = @_atomic-ref-bound_@<T, memory_order_seq_cst>;
 }
 ```
 
@@ -1520,59 +1542,66 @@ Update the feature test macro `__cpp_lib_atomic_ref`.
 
 ### Add to the mdspan header synopsis in [mdspan.syn]
 
-`// [mdspan.accessor.default], class template default_accessor`\
-`template<class ElementType>`\
-`  class default_accessor;`\
-` `\
-[`// [atomics.accessor.atomic], class template basic-atomic-accessor`]{.add}\
-[`template<class T, class ReferenceType>` class _`basic-atomic-accessor`_`; // exposition only`]{.add}\
-[`template<class T> using atomic_accessor = `_`basic-atomic-accessor`_`<T, atomic_ref<T>>;`]{.add}\
-[`template<class T> using atomic_accessor_relaxed = `_`basic-atomic-accessor`_`<T, atomic_ref_relaxed<T>>;`]{.add}\
-[`template<class T> using atomic_accessor_acq_rel = `_`basic-atomic-accessor`_`<T, atomic_ref_acq_rel<T>>;`]{.add}\
-[`template<class T> using atomic_accessor_seq_cst = `_`basic-atomic-accessor`_`<T, atomic_ref_seq_cst<T>>;`]{.add}\
-` `\
-`// [mdspan.mdspan], class template mdspan`\
-`template<class ElementType, class Extents, class LayoutPolicy = layout_right,`\
-`         class AccessorPolicy = default_accessor<ElementType>>`\
-`  class mdspan;`
+```
+// [mdspan.accessor.default], class template default_accessor
+template<class ElementType>
+  class default_accessor;
 
+```
+::: add
+```
+// [atomics.accessor.atomic], class template @_basic-atomic-accessor_@
+template<class T, class ReferenceType> class @_basic-atomic-accessor_@; // exposition only
+template<class T> using atomic_accessor = @_basic-atomic-accessor_@<T, atomic_ref<T>>;
+template<class T> using atomic_accessor_relaxed = @_basic-atomic-accessor_@<T, atomic_ref_relaxed<T>>;
+template<class T> using atomic_accessor_acq_rel = @_basic-atomic-accessor_@<T, atomic_ref_acq_rel<T>>;
+template<class T> using atomic_accessor_seq_cst = @_basic-atomic-accessor_@<T, atomic_ref_seq_cst<T>>;
+
+```
+:::
+```
+// [mdspan.mdspan], class template mdspan
+template<class ElementType, class Extents, class LayoutPolicy = layout_right,
+         class AccessorPolicy = default_accessor<ElementType>>
+  class mdspan;
+```
 
 ### Put the following before [mdspan.mdspan]:
 
-<b>Class template `basic-atomic-accessor` [mdspan.accessor.atomic.basic]</b>
+<b>Class template _`basic-atomic-accessor`_ [mdspan.accessor.atomic.basic]</b>
 
 <b>General [mdspan.accessor.atomic.basic.overview]</b>
 
 ```c++
 template <class ElementType, class ReferenceType>
 struct @_basic-atomic-accessor_@ {  // exposition only
-    using offset_policy = basic-atomic-accessor;
-    using element_type = ElementType;
-    using reference = ReferenceType;
-    using data_handle_type = ElementType*;
+  using offset_policy = @_basic-atomic-accessor_@;
+  using element_type = ElementType;
+  using reference = ReferenceType;
+  using data_handle_type = ElementType*;
 
-    constexpr basic-atomic-accessor() noexcept = default;
+  constexpr @_basic-atomic-accessor_@() noexcept = default;
 
-    template <class OtherElementType>
-    constexpr basic-atomic-accessor(default_accessor<OtherElementType>) noexcept;
+  template <class OtherElementType>
+  constexpr @_basic-atomic-accessor_@(default_accessor<OtherElementType>) noexcept;
 
-    template <class OtherElementType>
-    constexpr basic-atomic-accessor(basic-atomic-accessor<OtherElementType, ReferenceType>) noexcept;
+  template <class OtherElementType>
+  constexpr @_basic-atomic-accessor_@(@_basic-atomic-accessor<OtherElementType, ReferenceType>_@) noexcept;
 
-    constexpr reference access(data_handle_type p, size_t i) const noexcept;
-    constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept;
+  constexpr reference access(data_handle_type p, size_t i) const noexcept;
+  constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept;
 };
 ```
 
-[1]{.pnum} Class `basic-atomic-accessor` is for exposition only.
+[1]{.pnum} Class _`basic-atomic-accessor`_ is for exposition only.
 
-[2]{.pnum} `basic-atomic-accessor` meets the accessor policy requirements.
+[2]{.pnum} _`basic-atomic-accessor`_ meets the accessor policy requirements.
 
 [3]{.pnum} `ElementType` is required to be a complete object type that is neither an abstract class type nor an array type.
 
-[4]{.pnum} Each specialization of `basic-atomic-accessor` is a trivially copyable type that models `semiregular`.
+[4]{.pnum} Each specialization of _`basic-atomic-accessor`_ is a trivially copyable type that models `semiregular`.
 
-[5]{.pnum} `[0,n)` is an accessible range for an object `p` of type `data_handle_type` and an object of type `basic-atomic-accessor` if and only if `[p,p+n)` is a valid range.
+[5]{.pnum} `[0, n)` is an accessible range for an object `p` of type `data_handle_type` and an object of type _`basic-atomic-accessor`_ if and only if `[p, p+n)` is a valid range.
 
 <b>Members [mdspan.accessor.atomic.basic.members]</b>
 
@@ -1583,15 +1612,19 @@ constexpr @_basic-atomic-accessor_@(default_accessor<OtherElementType>) noexcept
 template <class OtherElementType>
 constexpr @_basic-atomic-accessor_@(@_basic-atomic-accessor_@<OtherElementType, ReferenceType>) noexcept {}
 ```
+
 [1]{.pnum} *Constraints:* `is_convertible_v<OtherElementType (*)[], element_type (*)[]>` is `true`.
 
 ```c++
 constexpr reference access(data_handle_type p, size_t i) const noexcept;
 ```
+
 [2]{.pnum} *Effects:* Equivalent to `return reference(p[i]);`
+
 ```c++
 constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept;
 ```
+
 [3]{.pnum} *Effects:* Equivalent to `return p + i;`
 
 <b>Atomic accessors [mdspan.accessor.atomic.bounded]</b>
