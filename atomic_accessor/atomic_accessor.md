@@ -362,7 +362,7 @@ Other than not being able to specifiy the `memory_order` at run time, the intent
 
 Similarly for the atomic accessors, it was decided in SG1 in Kona 2022 to add four new types.
 This proposal has chosen to make
-a general exposition-only template `basic-atomic-accessor` which takes the `reference` type as a template parameter, and four alias templates for the specific atomic accessors.
+a general exposition-only template _`basic-atomic-accessor`_ which takes the `reference` type as a template parameter, and four alias templates for the specific atomic accessors.
 
 Assuming both papers are approved, SG1 voted that similar changes to `atomic_ref` in P2616R3 (Making std::atomic notification/wait operations usable in more situations) should also be applied to _`atomic-ref-bound`_.  They are not yet in the wording of either paper, as we do not know what order LWG will apply them to the working draft.
 
