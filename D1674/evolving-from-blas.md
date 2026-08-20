@@ -1522,7 +1522,7 @@ Thanks to Damien Lebrun-Grandie for reviewing Revision 1 changes.
   Mar. 2022.
 
 * Heidi Pan,
-  ["Cooperative Hierarchical Resource Management for Efficient Composition of Parallel Software,"](http://lithe.eecs.berkeley.edu/pubs/pan-phd-thesis.pdf),
+  ["Cooperative Hierarchical Resource Management for Efficient Composition of Parallel Software,"](http://people.eecs.berkeley.edu/~krste/papers/pan-phd-thesis.pdf),
   PhD dissertation, Department of Electrical Engineering and Computer
   Science, Massachusetts Institute of Technology, Jun. 2010.
 
