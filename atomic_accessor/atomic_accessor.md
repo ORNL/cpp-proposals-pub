@@ -1058,7 +1058,11 @@ constexpr value_type operator=(value_type desired) const noexcept;
 ```
 [10]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[11]{.pnum} *Effects:* Equivalent to: `store(desired); return desired;`
+[11]{.pnum} *Effects:* Equivalent to:
+```c++
+    store(desired);
+    return desired;`
+```
 
 ```c++
 constexpr value_type load() const noexcept;
@@ -1100,17 +1104,21 @@ constexpr void wait(value_type old) const noexcept;
 ```c++
 constexpr void notify_one() const noexcept;
 ```
-[21]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_one();`
+[21]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+
+[22]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_one();`
 
 ```c++
 constexpr void notify_all() const noexcept;
 ```
-[22]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_all();`
+[23]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+
+[24]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_all();`
 
 ```c++
 constexpr auto address() const noexcept;
 ```
-[23]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.address();`
+[25]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.address();`
 
 <b>Non-generic _`atomic-ref-bound`_ [atomics.refbound.nongeneric]</b>
 
@@ -1282,7 +1290,11 @@ constexpr value_type operator=(value_type desired) const noexcept;
 ```
 [10]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[11]{.pnum} *Effects:* Equivalent to: `store(desired); return desired;`
+[11]{.pnum} *Effects:* Equivalent to:
+```c++
+    store(desired);
+    return desired;`
+```
 
 ```c++
 constexpr value_type load() const noexcept;
@@ -1324,17 +1336,21 @@ constexpr void wait(T old) const noexcept;
 ```c++
 constexpr void notify_one() const noexcept;
 ```
-[21]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_one();`
+[21]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+
+[22]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_one();`
 
 ```c++
 constexpr void notify_all() const noexcept;
 ```
-[22]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_all();`
+[23]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
+
+[24]{.pnum} *Effects:* Equivalent to: _`ref`_`.notify_all();`
 
 ```c++
 constexpr auto address() const noexcept;
 ```
-[23]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.address();`
+[25]{.pnum} *Effects:* Equivalent to: `return` _`ref`_`.address();`
 
 **Common Operations [atomics.refbound.nongeneric.common]**
 ```c++
@@ -1372,28 +1388,28 @@ constexpr void store_add(difference_type operand) const noexcept;
 ```
 [9]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_add(operand, memory_ordering);`
+[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_add(operand, store_ordering);`
 
 ```c++
 constexpr void store_sub(difference_type operand) const noexcept;
 ```
 [11]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_sub(operand, memory_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_sub(operand, store_ordering);`
 
 ```c++
 constexpr void store_max(value_type operand) const noexcept;
 ```
 [13]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[14]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_max(operand, memory_ordering);`
+[14]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_max(operand, store_ordering);`
 
 ```c++
 constexpr void store_min(value_type operand) const noexcept;
 ```
 [15]{.pnum} *Constraints:* `is_const_v<T>` is `false`.
 
-[16]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_min(operand, memory_ordering);`
+[16]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_min(operand, store_ordering);`
 
 ```c++
 constexpr value_type operator+=(difference_type operand) const noexcept;
@@ -1436,21 +1452,21 @@ constexpr void store_and(value_type operand) const noexcept;
 ```
 [7]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[8]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_and(operand, memory_ordering);`
+[8]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_and(operand, store_ordering);`
 
 ```c++
 constexpr void store_or(value_type operand) const noexcept;
 ```
 [9]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_or(operand, memory_ordering);`
+[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_or(operand, store_ordering);`
 
 ```c++
 constexpr void store_xor(value_type operand) const noexcept;
 ```
 [11]{.pnum} *Constraints:* _`is-integral-value`_ `&& !is_const_v<T>` is `true`.
 
-[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_xor(operand, memory_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_xor(operand, store_ordering);`
 
 ```c++
 constexpr value_type operator&=(value_type operand) const noexcept;
@@ -1507,28 +1523,28 @@ constexpr void store_fmaximum(value_type operand) const noexcept;
 ```
 [9]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fmaximum(operand, memory_ordering);`
+[10]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fmaximum(operand, store_ordering);`
 
 ```c++
 constexpr void store_fminimum(value_type operand) const noexcept;
 ```
 [11]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fminimum(operand, memory_ordering);`
+[12]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fminimum(operand, store_ordering);`
 
 ```c++
 constexpr void store_fmaximum_num(value_type operand) const noexcept;
 ```
 [13]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[14]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fmaximum_num(operand, memory_ordering);`
+[14]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fmaximum_num(operand, store_ordering);`
 
 ```c++
 constexpr void store_fminimum_num(value_type operand) const noexcept;
 ```
 [15]{.pnum} *Constraints:* _`is-floating-point-value`_ `&& !is_const_v<T>` is `true`.
 
-[16]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fminimum_num(operand, memory_ordering);`
+[16]{.pnum} *Effects:* Equivalent to: _`ref`_`.store_fminimum_num(operand, store_ordering);`
 
 **Integral and Pointer Operations [atomics.refbound.nongeneric.integralpointer]**
 ```c++
@@ -1606,6 +1622,10 @@ Update the feature test macro `__cpp_lib_atomic_ref`.
 template<class ElementType>
   class default_accessor;
 
+// [mdspan.accessor.aligned], class template aligned_accessor
+  template<class ElementType, size_t ByteAlignment>
+    class aligned_accessor;
+
 ```
 ::: add
 ```
@@ -1645,7 +1665,7 @@ struct @_basic-atomic-accessor_@ {  // exposition only
   constexpr @_basic-atomic-accessor_@(default_accessor<OtherElementType>) noexcept;
 
   template <class OtherElementType>
-  constexpr @_basic-atomic-accessor_@(@_basic-atomic-accessor<OtherElementType, ReferenceType>_@) noexcept;
+  constexpr @_basic-atomic-accessor_@(@_basic-atomic-accessor_@<OtherElementType, ReferenceType>) noexcept;
 
   constexpr reference access(data_handle_type p, size_t i) const noexcept;
   constexpr data_handle_type offset(data_handle_type p, size_t i) const noexcept;
