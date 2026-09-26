@@ -6,8 +6,8 @@ audience: SG1 & LEWG
 author:
   - name: Christian Trott 
     email: <crtrott@sandia.gov>
-  - name: Damien Lebrun-Grandie 
-    email: <lebrungrandt@ornl.gov>
+  - name: Damien Lebrun-Grandie
+    email: <lebrun-grandie@lanl.gov>
   - name: Mark Hoemmen 
     email: <mhoemmen@nvidia.com>
   - name: Daniel Sunderland
